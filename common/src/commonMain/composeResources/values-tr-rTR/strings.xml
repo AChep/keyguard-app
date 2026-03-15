@@ -21,7 +21,7 @@
     <string name="current_password">Mevcut parola</string>
     <string name="new_password">Yeni parola</string>
     <string name="no_password">Parola yok</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">Gelişmiş</string>
     <string name="email">E-posta</string>
     <string name="email_verified">Doğrulandı</string>
     <string name="email_not_verified">Doğrulanmadı</string>
@@ -119,7 +119,7 @@
     <string name="category">Kategori</string>
     <string name="command">Komut</string>
     <string name="execute_command">Uygula</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">Bağlama dayalı öneriler</string>
     <!-- Add (something) -->
     <string name="add">Ekle</string>
     <string name="add_integration">Entegrasyon ekle</string>
@@ -142,8 +142,8 @@
     <string name="address1">Adres satırı 1</string>
     <string name="address2">Adres satırı 2</string>
     <string name="address3">Adres satırı 3</string>
-    <string name="ssh_agent">SSH agent</string>
-    <string name="ssh_client">SSH client</string>
+    <string name="ssh_agent">SSH aracısı</string>
+    <string name="ssh_client">SSH istemcisi</string>
     <string name="rename">Yeniden adlandır</string>
     <string name="deletion_date">Silinme tarihi</string>
     <string name="deletion_date_custom">Özel</string>
@@ -157,8 +157,8 @@
     <string name="backup_disclaimer_title">Verileriniz sizin sorumluluğunuzdadır.</string>
     <string name="backup_disclaimer_text">Verilerinizin asla kaybolmamasını sağlamak için 3-2-1 Yedekleme Kuralı'nı benimseyin: kasanızın üç kopyasını iki farklı medya türünde bulundurun ve bir kopyasını ayrı, güvenli bir yerde saklayın.</string>
     <string name="passkey">Geçiş anahtarı</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
+    <string name="credential_login_create_header">Giriş oluştur</string>
+    <string name="credential_password_create_header">Parola oluştur</string>
     <string name="passkey_create_header">Geçiş anahtarı oluştur</string>
     <string name="passkey_unlock_header">Keyguard Kilidini Aç</string>
     <string name="passkey_auth_via_header">Kimlik doğrulama isteği onaylanıyor…</string>
@@ -193,7 +193,7 @@
     <string name="one_time_password">Tek kullanımlık parola</string>
     <string name="one_time_password_authenticator_key">Doğrulayıcı anahtarı</string>
     <string name="passkey_use_short">Kullan</string>
-    <string name="password_save">Save password</string>
+    <string name="password_save">Parolayı kaydet</string>
     <string name="passkey_save">Geçiş anahtarını kaydet</string>
     <string name="passkey_available">Geçiş anahtarı mevcut</string>
     <string name="twofa_available">İki faktörlü kimlik doğrulama mevcut</string>
@@ -212,6 +212,8 @@
     <string name="local_vault">Yerel kasa</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Beni hatırla</string>
+    <!-- An Archive screen -->
+    <string name="archive">Arşiv</string>
     <!-- A Trash screen -->
     <string name="trash">Çöp Kutusu</string>
     <!-- To download something -->
@@ -300,8 +302,8 @@
     <string name="ciphers_history_empty">Henüz geçmiş yok</string>
     <string name="ciphers_view_details">Ayrıntıları görüntüle</string>
     <string name="ciphers_save_to">Kaydet</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Bir geçiş anahtarı ekler</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Kullanıcı adı ve parolayı değiştirir</string>
     <string name="ciphers_action_add_to_favorites_title">Favorilere ekle</string>
     <string name="ciphers_action_remove_from_favorites_title">Favorilerden kaldır</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Kimlik doğrulama tekrarını etkinleştir</string>
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">Parolayı değiştir</string>
     <string name="ciphers_action_change_passwords_title">Parolaları değiştir</string>
     <string name="ciphers_action_view_password_history_title">Parola geçmişini görüntüle</string>
+    <string name="ciphers_action_archive_title">Arşivle</string>
+    <string name="ciphers_action_archive_confirmation_title">Arşive taşınsın mı?</string>
+    <string name="ciphers_action_unarchive_title">Arşivden geri yükle</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Arşivden geri yüklensin mi?</string>
     <string name="ciphers_action_trash_title">Çöp Kutusuna Taşı</string>
     <string name="ciphers_action_trash_confirmation_title">Çöp kutusuna taşınsın mı?</string>
     <string name="ciphers_action_trash_confirmation_text">Çöp kutusunda 30 günden fazla kalan öğeler otomatik olarak silinecektir.</string>
@@ -442,7 +448,7 @@
     <string name="copy_uri">URI'yi kopyala</string>
     <string name="copy_send">Gönderiyi kopyala</string>
     <string name="copy_package_name">Paket adını kopyala</string>
-    <string name="copy_bundle_id">Copy bundle ID</string>
+    <string name="copy_bundle_id">Bundle ID kopyala</string>
     <string name="copy_password">Parolayı kopyala</string>
     <string name="copy_username">Kullanıcı adını kopyala</string>
     <string name="copy_email">E-postayı kopyala</string>
@@ -479,8 +485,8 @@
     <string name="copied_cvv_code">Güvenlik kodu kopyalandı</string>
     <string name="copied_otp_code">Tek kullanımlık parola kopyalandı</string>
     <string name="copied_otp_secret_code">Gizli anahtar kopyalandı</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">Bir tek kullanımlık parola bulundu</string>
+    <string name="found_value">Bir değer bulundu</string>
     <string name="autofill_unlock_keyguard">Keyguard Kilidini Aç</string>
     <string name="autofill_open_keyguard">Keyguard'ı Aç</string>
     <string name="january">Ocak</string>
@@ -535,32 +541,32 @@
     <string name="error_invalid_uri">Geçersiz URI</string>
     <string name="error_invalid_card_number">Geçersiz kart numarası</string>
     <string name="error_incorrect_password">Yanlış parola</string>
-    <string name="error_not_found">Not found</string>
+    <string name="error_not_found">Bulunamadı</string>
     <string name="error_otp_key_must_not_be_empty">Tek kullanımlık parolanın gizli anahtarı boş olmamalıdır</string>
     <string name="error_failed_file_already_exists">Dosya oluşturulamadı. Mevcut dosyanın üzerine yazmaya izin verilmiyor</string>
     <string name="error_failed_generate_kdf_hash_oom">Anahtar oluşturulamadı, yeterli bellek yok. Lütfen KDF sunucu ayarlarınızı kontrol edin.</string>
     <string name="error_failed_generate_otp_code">OTP kodu oluşturulamadı</string>
     <string name="error_failed_create_passkey">Geçiş anahtarı oluşturulamadı</string>
-    <string name="error_failed_create_password">Failed to create a password</string>
+    <string name="error_failed_create_password">Parola oluşturulamadı</string>
     <string name="error_failed_use_passkey">İstek doğrulanamadı</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
+    <string name="error_failed_use_password">İstek yetkilendirilemedi</string>
     <string name="error_failed_open_uri">URI açılamadı</string>
     <string name="error_failed_format_placeholder">Yer tutucu biçimlendirilemedi</string>
     <string name="error_failed_open_app_for">Yüklü hiçbir uygulama bu isteği işleyemez</string>
     <string name="error_failed_unknown">Bir şeyler ters gitti</string>
     <string name="error_failed_encrypt_biometric_key">Biyometrik anahtar şifrelenemedi</string>
     <string name="error_failed_decrypt_biometric_key">Biyometrik anahtarın şifresi çözülemedi</string>
-    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_failed_ssh_agent_start">SSH aracısı başlatılamadı</string>
+    <string name="error_credential_calling_app_not_privileged">Çağıran uygulama ayrıcalıklı listede değil ve diğer uygulamalar adına kimlik doğrulama isteğinde bulunamaz.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Ayrıcalık tanıyın ve devam edin</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Bir uygulamaya güvenmek, o uygulamanın herhangi bir hizmet için kimlik bilgisi istemesine olanak tanır. Kötü niyetli bir uygulama bunu kimlik bilgilerinizi çalmak için kullanabilir.</string>
     <string name="scanqr_title">QR kodunu tara</string>
     <string name="scanqr_load_from_image_note">Bir resim dosyasından QR kodunu yükle ve ayrıştır.</string>
     <string name="scanqr_camera_permission_required_text">QR kodlarını taramak için kamera izni gereklidir.</string>
@@ -675,14 +681,14 @@
     <string name="urlblock_empty_label">Engellenen URI yok</string>
     <string name="urlblock_expose_title">Kasayı açmadan önce verileri Otomatik Doldurma'ya sun</string>
     <string name="urlblock_expose_text">Etkinleştirildiğinde, öğe kasanın dışında saklanır ve bu da kasa kilitli olsa bile Otomatik Doldurma önerilerinin tamamen gizlenmesine olanak tanır</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
-    <string name="privilegedapps_empty_label">No privileged apps</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
+    <string name="privilegedapps_header_title">Ayrıcalıklı uygulamalar</string>
+    <string name="privilegedapps_list_header_title">Ayrıcalıklı uygulamalar</string>
+    <string name="privilegedapps_list_section_title">Ayrıcalıklı uygulamalar</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Ayrıcalıklı uygulama silinsin mi?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Ayrıcalıklı uygulamalar silinsin mi?</string>
+    <string name="privilegedapps_empty_label">Ayrıcalıklı uygulama yok</string>
+    <string name="privilegedapps_user_apps">Kullanıcı uygulamaları</string>
+    <string name="privilegedapps_community_apps">Topluluk uygulamaları</string>
     <string name="setup_header_text">Yerel verilerin saklanacağı şifreli bir kasa oluşturun.</string>
     <string name="setup_free_text">Devam ederek Keyguard'ı satın aldığınızı veya aktif bir lisansınız olduğunu onaylamış olursunuz.</string>
     <string name="setup_field_app_password_label">Uygulama parolası</string>
@@ -723,6 +729,9 @@
     <string name="addsend_hide_text_by_default_title">Öğeye erişirken metni varsayılan olarak gizle</string>
     <string name="addsend_hide_email_title">E-posta adresini gizle</string>
     <string name="addsend_max_access_count_note">Ayarlanırsa, maksimum erişim sayısına ulaşıldıktan sonra kullanıcılar bu öğeye artık erişemez.</string>
+    <string name="addsend_auth_emails_label">Email(s)</string>
+    <string name="addsend_auth_emails_placeholder">Virgülle ayrılmış e-postalar</string>
+    <string name="addsend_auth_emails_note">Alıcıların bağlantıyı açtıktan sonra bir kerelik e-posta doğrulamasını tamamlaması istenecektir.</string>
     <string name="addaccount_promo_title">Kasanız boş. Başlamak için bir hesap bağlayın:</string>
     <string name="addaccount_promo_features">Deneyiminizden en iyi şekilde yararlanmak ister misiniz? Uygulamanın tüm temel özelliklerini aşağıda sizin için özetledik. Sizin için nasıl çalışabileceğini görmek için bir göz atın.</string>
     <string name="addaccount_description_short_bitwarden_text">Şifrelenmiş kasayı bir bulutta saklayın.</string>
@@ -762,7 +771,7 @@
     <string name="addaccount2fa_yubikey_manual_text">YubiKey kimlik doğrulama kodunu manuel olarak girin. İmleci aşağıdaki alana yerleştirin ve YubiKey'i tetikleyin.</string>
     <string name="addkeepass_header_title">KeePass hesabı ekle</string>
     <string name="addkeepass_header_body">Tüm parolalarınızı doğrudan cihazınızda saklanan tek, yüksek düzeyde şifrelenmiş bir KDBX dosyasında kaydedin. Verileriniz üzerinde tam kontrole sahipsiniz. Bilgisayarınızda, bir USB sürücüde saklayın veya Google Drive veya Dropbox gibi bir bulut hizmeti kullanarak kendiniz senkronize edin.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass entegrasyonu beta aşamasındadır ve henüz standart KeePass istemcileriyle tam uyumlu değildir. Riski size ait olmak üzere kullanın. Devam etmeden önce veritabanınızın doğrulanmış bir yedeğine sahip olduğunuzdan lütfen emin olun.</string>
     <string name="provider_2fa_authenticator">Doğrulayıcı</string>
     <string name="provider_2fa_duo_organization">Duo (Kuruluş)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web Kimlik Doğrulaması</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">YubiKey'inizi cihazınızın arkasına düz bir şekilde tutun</string>
     <string name="yubikey_nfc_text">NFC desteği gerektirir.</string>
     <string name="yubikey_error_failed_to_read">YubiKey okunamadı</string>
+    <string name="yubikey_unlock_error_unsupported_title">YubiKey ile kilit açma desteklenmiyor</string>
+    <string name="yubikey_unlock_error_unsupported_text">Bu YubiKey veya bağlantı türü, meydan okuma-yanıt (challenge-response) kilit açma işlemini desteklemiyor.</string>
+    <string name="yubikey_unlock_error_failed_title">YubiKey kullanılamadı</string>
+    <string name="yubikey_unlock_error_failed_text">YubiKey'i tekrar deneyin veya kasanın kilidini parolanızla açın.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">FIDO2 WebAuthn kullanmak, Bitwarden Web kasasının <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> veya daha yüksek bir sürümünü kullanmayı gerektirir. Eski sürümlerde kimlik doğrulama sonucu yanlışlıkla resmi Bitwarden uygulamasına yönlendirilecektir.</string>
     <string name="elevatedaccess_header_title">Erişimi onayla</string>
     <string name="elevatedaccess_header_text">Bu veri korunuyor, devam etmek için lütfen uygulama parolanızı girin.</string>
@@ -791,6 +804,10 @@
     <string name="lock_reason_manually">Manuel olarak kilitlendi</string>
     <string name="send_type_text">Metin</string>
     <string name="send_type_file">Dosya</string>
+    <string name="send_auth_title">Kimler görüntüleyebilir</string>
+    <string name="send_auth_type_none">Bağlantıya sahip herhangi biri</string>
+    <string name="send_auth_type_password">Bağlantıya ve parolaya sahip herhangi biri</string>
+    <string name="send_auth_type_email">Belirli kişiler</string>
     <string name="cipher_type_login">Giriş</string>
     <string name="cipher_type_card">Kart</string>
     <string name="cipher_type_identity">Kimlik</string>
@@ -824,27 +841,27 @@
     <string name="customfilters_add_filter_title">Özel bir filtre ekle</string>
     <string name="filter_header_title">Filtrele</string>
     <string name="filter_empty_label">Kullanılabilir filtre yok</string>
-    <string name="ssh_agent_filters_header_title">SSH agent filters</string>
-    <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
-    <string name="ssh_agent_setup_header_title">SSH client setup</string>
-    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
-    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
+    <string name="ssh_agent_filters_header_title">SSH aracısı filtreleri</string>
+    <string name="ssh_agent_filters_note_save_to_apply">Değişiklikler Kaydet'e bastıktan sonra uygulanır.</string>
+    <string name="ssh_agent_setup_header_title">SSH istemcisi kurulumu</string>
+    <string name="ssh_agent_setup_intro">SSH istemcinizi, özel anahtar materyalini ifşa etmeden onaylı anahtarlarınızla kimlik doğrulaması veya imzalama yapabilmesi için Keyguard'ın SSH aracısına bağlanacak şekilde kurun.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Keyguard'da SSH aracısını etkinleştirin</string>
+    <string name="ssh_agent_setup_step_1_text">Güvenlik ayarlarını açın ve SSH aracısını etkinleştirin.</string>
+    <string name="ssh_agent_setup_step_2_title">2. SSH istemcinizi yapılandırın</string>
+    <string name="ssh_agent_setup_step_2_text">SSH istemcinizi Keyguard'ın soket (socket) yoluna yönlendirin.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Yedek yol: Oturumunuzda XDG_RUNTIME_DIR bulunmadığında bunu kullanın.</string>
     <string name="ssh_agent_setup_option_env_tab">Env</string>
-    <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
-    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
-    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
-    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">Yapılandırma</string>
+    <string name="ssh_agent_setup_option_env_label">SSH_AUTH_SOCK değerini Keyguard'ın soket yolu olarak ayarlayın.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">SSH yapılandırmanızda IdentityAgent ayarını yapın.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Doğrulayın</string>
+    <string name="ssh_agent_setup_step_3_text">Bu komutları aracıyı yapılandırdığınız aynı kabuk (shell) oturumunda çalıştırın.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
-    <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
-    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
-    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
-    <string name="ssh_client_request">SSH client request</string>
+    <string name="ssh_agent_setup_windows_text">Mevcut Keyguard masaüstü SSH aracısı çalışma ortamı henüz Windows'ta mevcut değildir, bu nedenle buradaki kurulum sadece bilgi amaçlıdır.</string>
+    <string name="ssh_agent_request_approval_sign_title">SSH İmza İsteği</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> adlı uygulama, verileri imzalamak için aşağıdaki SSH anahtarını kullanmak istiyor:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">Bir uygulama, verileri imzalamak için aşağıdaki SSH anahtarını kullanmak istiyor:</string>
+    <string name="ssh_client_request">SSH istemci isteği</string>
     <string name="sort_header_title">Sırala</string>
     <string name="sort_empty_label">Kullanılabilir sıralama yok</string>
     <string name="sortby_title_title">Başlık</string>
@@ -890,6 +907,7 @@
     <string name="vault_view_passkey_created_at_label">Geçiş anahtarı oluşturulma tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Son değiştirilme tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Oluşturulma tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g> tarihinde arşivlendi</string>
     <string name="vault_view_deleted_at_label">Silinme tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Süresi dolma tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Süresi dolma planı: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -905,6 +923,7 @@
     <string name="send_main_header_title">Gönderiler</string>
     <string name="send_main_search_placeholder">Gönderilerde ara</string>
     <string name="send_main_new_item_button">Yeni öğe</string>
+    <string name="send_email_is_required_to_access_label">E-posta onayı alan alıcılar bu paylaşıma erişebilir</string>
     <string name="send_password_is_required_to_access_label">Bu paylaşıma erişmek için bir parola gereklidir</string>
     <string name="generator_header_title">Oluşturucu</string>
     <string name="generator_header_username_title">Kullanıcı adı oluşturucu</string>
@@ -1131,11 +1150,11 @@
     <string name="pref_item_allow_screenshots_title">Ekran görüntülerine izin ver</string>
     <string name="pref_item_allow_screenshots_text_on">Son uygulamalar arasında geçiş yaparken uygulamanın içeriğini göster ve ekran yakalamaya izin ver</string>
     <string name="pref_item_allow_screenshots_text_off">Son uygulamalar arasında geçiş yaparken uygulamanın içeriğini gizle ve ekran yakalamayı yasakla</string>
-    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
-    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
-    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
-    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
-    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
+    <string name="pref_item_allow_screenshots_badge">Ekran görüntülerine izin verildi, devre dışı bırakmak için dokunun</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Ekran görüntüleri devre dışı bırakıldı</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Devre dışı</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">İzin verildi, görsel ipucu ile</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">İzin verildi</string>
     <string name="pref_item_data_safety_title">Veri güvenliği</string>
     <string name="pref_item_logs_title">Kayıtlar</string>
     <string name="pref_item_lock_vault_title">Kasayı kilitle</string>
@@ -1153,21 +1172,28 @@
     <string name="pref_item_permissions_title">İzinler</string>
     <string name="pref_item_features_overview_title">Özelliklere genel bakış</string>
     <string name="pref_item_url_override_title">URL geçersiz kılmaları</string>
-    <string name="pref_item_ssh_agent_title">SSH agent</string>
+    <string name="pref_item_ssh_agent_title">SSH aracısı</string>
     <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
-    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
-    <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
-    <string name="pref_item_ssh_agent_status_starting">Starting</string>
-    <string name="pref_item_ssh_agent_status_ready">Ready</string>
-    <string name="pref_item_ssh_agent_status_failed">Failed</string>
-    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
-    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
-    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
-    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
-    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
+    <string name="pref_item_ssh_agent_status_unsupported">Desteklenmiyor</string>
+    <string name="pref_item_ssh_agent_status_stopped">Durduruldu</string>
+    <string name="pref_item_ssh_agent_status_starting">Başlatılıyor</string>
+    <string name="pref_item_ssh_agent_status_ready">Hazır</string>
+    <string name="pref_item_ssh_agent_status_failed">Başarısız</string>
+    <string name="pref_item_ssh_agent_setup_title">SSH istemcisi kurulumu</string>
+    <string name="pref_item_ssh_agent_filters_title">SSH aracısı filtreleri</string>
+    <string name="pref_item_ssh_agent_filters_text">Hangi SSH anahtarlarına SSH aracısı tarafından erişilebileceğini seçin</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">Tüm anahtarlar erişilebilir</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">Filtreler etkin</string>
     <string name="pref_item_biometric_unlock_title">Biyometrik kilit açma</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Onay gerektir</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Başarılı bir biyometrik kimlik doğrulamasından sonra ek bir onay düğmesine dokunmayı gerektir</string>
+    <string name="pref_item_yubikey_unlock_title">YubiKey ile kilit açma</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> ile yapılandırıldı</string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Slot'u hazırla</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Disable</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">YubiKey slot'u hazırlansın mı?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Kasa kilidini açmak için slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> hazırlansın mı? Kurulum için USB bağlantısı gerekir.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> zaten ayarlanmış. Yeniden yapılandırma, USB bağlantısı gerektirir ve geçerli slot yapılandırmasının üzerine yazar.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -1192,13 +1218,13 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Bazı web sitelerinin parola alanlarında otomatik doldurmayı devre dışı bıraktığı bilinmektedir. Ayrıca, bazı tarayıcıların otomatik doldurma devre dışı bırakılmış olsa bile bu durumu dikkate almadığı da bilinmektedir.</string>
     <string name="pref_item_autofill_save_request_title">Verileri kaydetmeyi sor</string>
     <string name="pref_item_autofill_save_request_text">Bir formun doldurulması tamamlandığında kasayı güncellemeyi sorar</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Geçiş anahtarları desteği</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Uygulamanın istekleri yerine getirmesine olanak sağlayarak Kimlik Bilgileri Yöneticisine geçiş anahtarı desteğini duyurur</string>
     <string name="pref_item_autofill_auto_save_source_title">Uygulama veya web sitesi bilgilerini otomatik kaydet</string>
     <string name="pref_item_autofill_block_uri_title">Otomatik doldurmayı engelle</string>
     <string name="pref_item_autofill_block_uri_text">Bu URI'ler için otomatik doldurma önerilmesini engeller</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_title">Ayrıcalıklı uygulamalar</string>
+    <string name="pref_item_autofill_privileged_apps_text">Ayrıcalıklı uygulamalar, diğer hizmetler adına kimlik bilgisi isteğinde bulunabilir</string>
     <string name="pref_item_clipboard_auto_clear_title">Panoyu otomatik olarak temizle</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Hemen</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Asla</string>

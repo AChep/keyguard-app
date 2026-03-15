@@ -9,9 +9,9 @@
     <string name="show_keyguard">Afișează Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Nume</string>
-    <string name="description">Description</string>
+    <string name="description">Descriere</string>
     <string name="account_name">Numele contului</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">Nume bază de date</string>
     <string name="enabled">Activ</string>
     <string name="disabled">Inactiv</string>
     <string name="wordlist">Lista de cuvinte</string>
@@ -21,712 +21,721 @@
     <string name="current_password">Parola curentă</string>
     <string name="new_password">Parola nouă</string>
     <string name="no_password">Fără parolă</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">Avansate</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Verificat</string>
-    <string name="email_not_verified">Not verified</string>
-    <string name="email_visibility">Email visibility</string>
-    <string name="public_url">Public URL</string>
+    <string name="email_not_verified">Neverificat</string>
+    <string name="email_visibility">Vizibilitate e-mail</string>
+    <string name="public_url">URL public</string>
     <string name="url">URL</string>
-    <string name="conceal_value">Conceal value</string>
-    <string name="field_label">Label</string>
-    <string name="field_value">Value</string>
-    <string name="tag_value">Value</string>
+    <string name="conceal_value">Ascunde valoarea</string>
+    <string name="field_label">Etichetă</string>
+    <string name="field_value">Valoare</string>
+    <string name="tag_value">Valoare</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
-    <string name="access_count">Access count</string>
+    <string name="access_count">Număr de accesări</string>
     <!--
         Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">Număr maxim de accesări</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alpha</string>
-    <string name="learn_more">Learn more</string>
-    <string name="phone_number">Phone number</string>
-    <string name="passport_number">Passport number</string>
-    <string name="license_number">License number</string>
-    <string name="card_number">Card number</string>
-    <string name="card_number_empty_label">No card number</string>
-    <string name="card_type">Brand</string>
-    <string name="card_cvv">Security code</string>
-    <string name="card_valid_from">Valid from</string>
-    <string name="card_valid_to">Valid to</string>
-    <string name="card_expiry_month">Card expiry month</string>
-    <string name="card_expiry_year">Card expiry year</string>
-    <string name="cardholder_name">Cardholder name</string>
-    <string name="valid_from">Valid from</string>
-    <string name="expiry_date">Expiry date</string>
-    <string name="company">Company</string>
-    <string name="sync">Sync</string>
+    <string name="learn_more">Află mai multe</string>
+    <string name="phone_number">Număr de telefon</string>
+    <string name="passport_number">Număr de pașaport</string>
+    <string name="license_number">Număr de permis</string>
+    <string name="card_number">Număr card</string>
+    <string name="card_number_empty_label">Niciun număr de card</string>
+    <string name="card_type">Marcă</string>
+    <string name="card_cvv">Cod de securitate</string>
+    <string name="card_valid_from">Valabil de la</string>
+    <string name="card_valid_to">Valabil până la</string>
+    <string name="card_expiry_month">Luna expirării cardului</string>
+    <string name="card_expiry_year">Anul expirării cardului</string>
+    <string name="cardholder_name">Numele titularului</string>
+    <string name="valid_from">Valabil de la</string>
+    <string name="expiry_date">Data expirării</string>
+    <string name="company">Companie</string>
+    <string name="sync">Sincronizare</string>
     <!-- Opposite of 'visible' -->
-    <string name="hidden">Hidden</string>
+    <string name="hidden">Ascuns</string>
     <!-- Opposite of 'hidden' -->
-    <string name="visible">Visible</string>
+    <string name="visible">Vizibil</string>
     <!-- Shows up instead of a value if a value is an empty text -->
-    <string name="empty_value">Empty</string>
+    <string name="empty_value">Gol</string>
     <!-- Social Security Number -->
-    <string name="ssn">SSN</string>
-    <string name="city">City</string>
-    <string name="state">State</string>
-    <string name="info">Info</string>
-    <string name="cancel">Cancel</string>
-    <string name="continue_">Continue</string>
-    <string name="country">Country</string>
-    <string name="address">Address</string>
-    <string name="postal_code">Postal code</string>
-    <string name="pull_to_search">Pull to search</string>
-    <string name="save">Save</string>
-    <string name="save_to">Save to</string>
+    <string name="ssn">CNP</string>
+    <string name="city">Oraș</string>
+    <string name="state">Județ/Stat</string>
+    <string name="info">Informații</string>
+    <string name="cancel">Anulare</string>
+    <string name="continue_">Continuare</string>
+    <string name="country">Țară</string>
+    <string name="address">Adresă</string>
+    <string name="postal_code">Cod poștal</string>
+    <string name="pull_to_search">Trage pentru a căuta</string>
+    <string name="save">Salvează</string>
+    <string name="save_to">Salvează în</string>
     <string name="uri">URI</string>
-    <string name="uris">URIs</string>
-    <string name="note">Note</string>
-    <string name="notes">Notes</string>
-    <string name="date">Date</string>
-    <string name="time">Time</string>
-    <string name="attachments">Attachments</string>
-    <string name="attachments_empty_label">No attachments</string>
-    <string name="deactivated">Deactivated</string>
-    <string name="expired">Expired</string>
-    <string name="expiring_soon">Expiring soon</string>
-    <string name="item_incomplete_title">Incomplete data</string>
-    <string name="item_incomplete_text">This item is missing some of the important information.</string>
-    <string name="item">Item</string>
-    <string name="items">Items</string>
-    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> items</string>
-    <string name="items_all">All items</string>
-    <string name="items_empty_label">No items</string>
-    <string name="sends">Sends</string>
-    <string name="folder_none">No folder</string>
-    <string name="folder_new">New folder</string>
-    <string name="folder">Folder</string>
-    <string name="folders">Folders</string>
-    <string name="folders_empty_label">No folders</string>
-    <string name="tag_none">No tag</string>
-    <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
-    <string name="collection_none">No collection</string>
-    <string name="collection">Collection</string>
-    <string name="collections">Collections</string>
-    <string name="collections_empty_label">No collections</string>
-    <string name="organization_none">My vault</string>
-    <string name="organization">Organization</string>
-    <string name="organizations">Organizations</string>
-    <string name="organizations_empty_label">No organizations</string>
-    <string name="equivalent_domains">Equivalent domains</string>
-    <string name="equivalent_domains_empty_label">No equivalent domains</string>
-    <string name="misc">Miscellaneous</string>
-    <string name="category">Category</string>
-    <string name="command">Command</string>
-    <string name="execute_command">Execute</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="uris">URI-uri</string>
+    <string name="note">Notiță</string>
+    <string name="notes">Notițe</string>
+    <string name="date">Dată</string>
+    <string name="time">Oră</string>
+    <string name="attachments">Atașamente</string>
+    <string name="attachments_empty_label">Fără atașamente</string>
+    <string name="deactivated">Dezactivat</string>
+    <string name="expired">Expirat</string>
+    <string name="expiring_soon">Expiră în curând</string>
+    <string name="item_incomplete_title">Date incomplete</string>
+    <string name="item_incomplete_text">Acestui element îi lipsesc unele informații importante.</string>
+    <string name="item">Element</string>
+    <string name="items">Elemente</string>
+    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elemente</string>
+    <string name="items_all">Toate elementele</string>
+    <string name="items_empty_label">Niciun element</string>
+    <string name="sends">Trimise (Sends)</string>
+    <string name="folder_none">Niciun dosar</string>
+    <string name="folder_new">Dosar nou</string>
+    <string name="folder">Dosar</string>
+    <string name="folders">Dosare</string>
+    <string name="folders_empty_label">Niciun dosar</string>
+    <string name="tag_none">Fără etichetă</string>
+    <string name="tag">Etichetă</string>
+    <string name="tags">Etichete</string>
+    <string name="tags_empty_label">Fără etichete</string>
+    <string name="collection_none">Nicio colecție</string>
+    <string name="collection">Colecție</string>
+    <string name="collections">Colecții</string>
+    <string name="collections_empty_label">Nicio colecție</string>
+    <string name="organization_none">Seiful meu</string>
+    <string name="organization">Organizație</string>
+    <string name="organizations">Organizații</string>
+    <string name="organizations_empty_label">Nicio organizație</string>
+    <string name="equivalent_domains">Domenii echivalente</string>
+    <string name="equivalent_domains_empty_label">Niciun domeniu echivalent</string>
+    <string name="misc">Diverse</string>
+    <string name="category">Categorie</string>
+    <string name="command">Comandă</string>
+    <string name="execute_command">Execută</string>
+    <string name="context_based_suggestions">Sugestii bazate pe context</string>
     <!-- Add (something) -->
-    <string name="add">Add</string>
-    <string name="add_integration">Add integration</string>
-    <string name="account">Account</string>
-    <string name="accounts">Accounts</string>
-    <string name="accounts_empty_label">No accounts</string>
-    <string name="account_none">No account</string>
-    <string name="type">Type</string>
-    <string name="options">Options</string>
-    <string name="send">Send</string>
-    <string name="reset">Reset</string>
-    <string name="length">Length</string>
-    <string name="security">Security</string>
-    <string name="contact_info">Contact info</string>
-    <string name="identity_title">Title</string>
-    <string name="identity_first_name">First name</string>
-    <string name="identity_middle_name">Middle name</string>
-    <string name="identity_last_name">Last name</string>
-    <string name="identity_full_name">Full name</string>
-    <string name="address1">Address line 1</string>
-    <string name="address2">Address line 2</string>
-    <string name="address3">Address line 3</string>
-    <string name="ssh_agent">SSH agent</string>
-    <string name="ssh_client">SSH client</string>
-    <string name="rename">Rename</string>
-    <string name="deletion_date">Deletion date</string>
-    <string name="deletion_date_custom">Custom</string>
-    <string name="expiration_date">Expiration date</string>
-    <string name="expiration_date_custom">Custom</string>
-    <string name="expiration_date_never">Never</string>
-    <string name="select_linked_type">Select a type</string>
-    <string name="select_file">Select a file</string>
-    <string name="autofill">Autofill</string>
-    <string name="autofill_and_save_uri">Autofill and save app or website info</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
-    <string name="passkey">Passkey</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
-    <string name="passkey_create_header">Create a passkey</string>
-    <string name="passkey_unlock_header">Unlock Keyguard</string>
-    <string name="passkey_auth_via_header">Confirming auth request…</string>
-    <string name="passkeys">Passkeys</string>
+    <string name="add">Adaugă</string>
+    <string name="add_integration">Adaugă integrare</string>
+    <string name="account">Cont</string>
+    <string name="accounts">Conturi</string>
+    <string name="accounts_empty_label">Niciun cont</string>
+    <string name="account_none">Niciun cont</string>
+    <string name="type">Tip</string>
+    <string name="options">Opțiuni</string>
+    <string name="send">Trimite</string>
+    <string name="reset">Resetează</string>
+    <string name="length">Lungime</string>
+    <string name="security">Securitate</string>
+    <string name="contact_info">Informații de contact</string>
+    <string name="identity_title">Titlu</string>
+    <string name="identity_first_name">Prenume</string>
+    <string name="identity_middle_name">Al doilea prenume</string>
+    <string name="identity_last_name">Nume</string>
+    <string name="identity_full_name">Nume complet</string>
+    <string name="address1">Adresa (rândul 1)</string>
+    <string name="address2">Adresa (rândul 2)</string>
+    <string name="address3">Adresa (rândul 3)</string>
+    <string name="ssh_agent">Agent SSH</string>
+    <string name="ssh_client">Client SSH</string>
+    <string name="rename">Redenumește</string>
+    <string name="deletion_date">Data ștergerii</string>
+    <string name="deletion_date_custom">Personalizat</string>
+    <string name="expiration_date">Data expirării</string>
+    <string name="expiration_date_custom">Personalizat</string>
+    <string name="expiration_date_never">Niciodată</string>
+    <string name="select_linked_type">Selectează un tip</string>
+    <string name="select_file">Selectează un fișier</string>
+    <string name="autofill">Completare automată</string>
+    <string name="autofill_and_save_uri">Completează automat și salvează informațiile site-ului/aplicației</string>
+    <string name="backup_disclaimer_title">Ești responsabil de datele tale.</string>
+    <string name="backup_disclaimer_text">Pentru a nu le pierde niciodată, folosește regula de backup 3-2-1: păstrează trei copii ale seifului pe două tipuri diferite de suporturi media și păstrează o copie într-un loc separat, sigur.</string>
+    <string name="passkey">Cheie de acces</string>
+    <string name="credential_login_create_header">Creează date de conectare</string>
+    <string name="credential_password_create_header">Creează o parolă</string>
+    <string name="passkey_create_header">Creează o cheie de acces</string>
+    <string name="passkey_unlock_header">Deblochează Keyguard</string>
+    <string name="passkey_auth_via_header">Se confirmă cererea de autentificare…</string>
+    <string name="passkeys">Chei de acces</string>
     <!--
         Signature counter is incremented each time a user uses a passkey. See:
         https://www.w3.org/TR/webauthn-2/#signature-counter
         -->
-    <string name="passkey_signature_counter">Signature counter</string>
+    <string name="passkey_signature_counter">Contor semnături</string>
     <!--
         The entity whose web application utilizes the Web Authentication API
         to register and authenticate users. For example "Google" is a relying party.
         https://www.w3.org/TR/webauthn-2/#relying-party
         -->
-    <string name="passkey_relying_party">Relying party</string>
+    <string name="passkey_relying_party">Entitate emitentă</string>
     <!--
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
-    <string name="passkey_discoverable">Discoverable</string>
-    <string name="passkey_user_username">Username</string>
-    <string name="passkey_user_display_name">Display name</string>
-    <string name="ignored_alerts">Ignored alerts</string>
-    <string name="api_key">API key</string>
-    <string name="domain">Domain</string>
-    <string name="add_to_home_screen">Add to Home screen</string>
-    <string name="edit">Edit</string>
-    <string name="delete">Delete</string>
-    <string name="remove">Remove</string>
-    <string name="remove_from_history">Remove from the history</string>
-    <string name="reused_password">Reused password</string>
-    <string name="reused_passwords">Reused passwords</string>
-    <string name="one_time_password">One-time password</string>
-    <string name="one_time_password_authenticator_key">Authenticator key</string>
-    <string name="passkey_use_short">Use</string>
-    <string name="password_save">Save password</string>
-    <string name="passkey_save">Save passkey</string>
-    <string name="passkey_available">Passkey available</string>
-    <string name="twofa_available">Two-factor authentication available</string>
-    <string name="custom">Custom</string>
-    <string name="grant_permission">Grant permission</string>
-    <string name="create_account">Create account</string>
-    <string name="follow_system_settings">Follow system settings</string>
+    <string name="passkey_discoverable">Poate fi descoperită</string>
+    <string name="passkey_user_username">Nume utilizator</string>
+    <string name="passkey_user_display_name">Nume afișat</string>
+    <string name="ignored_alerts">Alerte ignorate</string>
+    <string name="api_key">Cheie API</string>
+    <string name="domain">Domeniu</string>
+    <string name="add_to_home_screen">Adaugă pe ecranul de pornire</string>
+    <string name="edit">Editează</string>
+    <string name="delete">Șterge</string>
+    <string name="remove">Elimină</string>
+    <string name="remove_from_history">Elimină din istoric</string>
+    <string name="reused_password">Parolă refolosită</string>
+    <string name="reused_passwords">Parole refolosite</string>
+    <string name="one_time_password">Parolă cu o singură utilizare</string>
+    <string name="one_time_password_authenticator_key">Cheie autentificator</string>
+    <string name="passkey_use_short">Folosește</string>
+    <string name="password_save">Salvează parola</string>
+    <string name="passkey_save">Salvează cheia de acces</string>
+    <string name="passkey_available">Cheie de acces disponibilă</string>
+    <string name="twofa_available">Autentificare cu doi factori disponibilă</string>
+    <string name="custom">Personalizat</string>
+    <string name="grant_permission">Acordă permisiunea</string>
+    <string name="create_account">Creează cont</string>
+    <string name="follow_system_settings">Urmează setările sistemului</string>
     <!-- A feature is coming soon! -->
-    <string name="coming_soon">Coming soon</string>
-    <string name="powered_by">Powered by</string>
-    <string name="verification_code">Verification code</string>
-    <string name="resend_verification_code">Re-send verification code</string>
-    <string name="requested_verification_email">Requested a verification email</string>
-    <string name="web_vault">Web vault</string>
-    <string name="launch_web_vault">Launch Web vault</string>
-    <string name="local_vault">Local vault</string>
+    <string name="coming_soon">În curând</string>
+    <string name="powered_by">Furnizat de</string>
+    <string name="verification_code">Cod de verificare</string>
+    <string name="resend_verification_code">Retrimite codul de verificare</string>
+    <string name="requested_verification_email">S-a solicitat un e-mail de verificare</string>
+    <string name="web_vault">Seif web</string>
+    <string name="launch_web_vault">Deschide Seiful web</string>
+    <string name="local_vault">Seif local</string>
     <!-- Remember me to not have to enter OTP code second time -->
-    <string name="remember_me">Remember me</string>
+    <string name="remember_me">Ține-mă minte</string>
+    <!-- An Archive screen -->
+    <string name="archive">Arhivă</string>
     <!-- A Trash screen -->
-    <string name="trash">Trash</string>
+    <string name="trash">Coș de gunoi</string>
     <!-- To download something -->
-    <string name="download">Download</string>
-    <string name="downloads">Downloads</string>
-    <string name="downloads_empty_label">No downloads</string>
-    <string name="duplicates_empty_label">No duplicates</string>
-    <string name="duplicate">Duplicate</string>
-    <string name="regex">Regular expression</string>
-    <string name="encryption">Encryption</string>
+    <string name="download">Descarcă</string>
+    <string name="downloads">Descărcări</string>
+    <string name="downloads_empty_label">Nicio descărcare</string>
+    <string name="duplicates_empty_label">Niciun duplicat</string>
+    <string name="duplicate">Duplicat</string>
+    <string name="regex">Expresie regulată</string>
+    <string name="encryption">Criptare</string>
     <!-- Encryption key -->
-    <string name="encryption_key">Key</string>
+    <string name="encryption_key">Cheie</string>
     <string name="encryption_hash">Hash</string>
     <string name="encryption_salt">Salt</string>
-    <string name="encryption_algorithm_256bit_aes">256-bit AES</string>
-    <string name="encryption_random_bits_data">Random <xliff:g id="length" example="64">%1$d</xliff:g>-bits of data</string>
-    <string name="none">None</string>
+    <string name="encryption_algorithm_256bit_aes">AES pe 256 de biți</string>
+    <string name="encryption_random_bits_data"><xliff:g id="length" example="64">%1$d</xliff:g> de biți de date aleatorii</string>
+    <string name="none">Niciunul</string>
     <string name="text">Text</string>
-    <string name="linked_app">Linked app</string>
-    <string name="linked_apps">Linked apps</string>
-    <string name="linked_uri">Linked URI</string>
-    <string name="linked_uris">Linked URIs</string>
-    <string name="custom_field">Custom field</string>
-    <string name="custom_fields">Custom fields</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
-    <string name="reveal_secure_note">Reveal a secure note</string>
-    <string name="hide_secure_note">Hide a secure note</string>
-    <string name="master_password_hint">Master password hint</string>
-    <string name="public_key">Public key</string>
-    <string name="private_key">Private key</string>
-    <string name="fingerprint">Fingerprint</string>
-    <string name="key_type">Key type</string>
-    <string name="key_pair">Key pair</string>
-    <string name="key_ssh">SSH Key</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
-    <string name="fingerprint_phrase">Fingerprint phrase</string>
-    <string name="fingerprint_phrase_help_title">What is a fingerprint?</string>
-    <string name="filter_auth_reprompt_items">Auth re-prompt</string>
-    <string name="filter_pending_items">Pending</string>
-    <string name="filter_failed_items">Failed</string>
-    <string name="bitwarden_premium">Bitwarden premium</string>
-    <string name="bitwarden_premium_required">Requires Bitwarden premium</string>
-    <string name="bitwarden_unofficial_server">Unofficial Bitwarden server</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Generate unique emails for better privacy.</string>
-    <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="account_action_change_name_title">Change name</string>
-    <string name="account_action_change_color_title">Change color</string>
-    <string name="account_action_change_master_password_hint_title">Change master password hint</string>
-    <string name="account_action_sign_out_title">Sign out</string>
-    <string name="account_action_sign_in_title">Sign in</string>
-    <string name="account_action_export_vault_title">Export vault</string>
-    <string name="account_action_export_individual_vault_title">Export individual vault</string>
-    <string name="account_action_hide_title">Hide items</string>
-    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
-    <string name="account_action_email_verify_instructions_title">Visit Web vault to verify your email address</string>
-    <string name="account_action_premium_purchase_instructions_title">Upgrade your account to a premium membership and unlock some great additional features</string>
-    <string name="account_action_tfa_title">Two-factor authentication</string>
-    <string name="account_action_tfa_text">Require login verification with another device such as a security key, authenticator app, SMS or email</string>
-    <string name="account_action_tfa_active_status">Active</string>
-    <string name="account_action_items_title">Items</string>
-    <string name="account_action_log_out_title">Sign out</string>
-    <string name="account_log_out_confirmation_title">Sign out?</string>
-    <string name="account_log_out_confirmation_text">All unsynchronized changes will be lost!</string>
-    <string name="folder_action_change_name_title">Change name</string>
-    <string name="folder_action_change_names_title">Change names</string>
-    <string name="folder_action_merge_title">Merge into…</string>
-    <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
-    <string name="folder_delete_one_confirmation_title">Delete the folder?</string>
-    <string name="folder_delete_many_confirmation_title">Delete the folders?</string>
-    <string name="folder_delete_confirmation_text">This item(s) will be deleted immediately. You cannot undo this action.</string>
-    <string name="ciphers_recently_opened">Recently opened</string>
-    <string name="ciphers_often_opened">Often opened</string>
-    <string name="ciphers_history_empty">No history yet</string>
-    <string name="ciphers_view_details">View details</string>
-    <string name="ciphers_save_to">Save to</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
-    <string name="ciphers_action_add_to_favorites_title">Add to favorites</string>
-    <string name="ciphers_action_remove_from_favorites_title">Remove from favorites</string>
-    <string name="ciphers_action_enable_auth_reprompt_title">Enable auth re-prompt</string>
-    <string name="ciphers_action_disable_auth_reprompt_title">Disable auth re-prompt</string>
-    <string name="ciphers_action_edit_title">Edit</string>
-    <string name="ciphers_action_merge_title">Merge into…</string>
-    <string name="ciphers_action_copy_title">Copy to…</string>
-    <string name="ciphers_action_export_title">Export…</string>
-    <string name="ciphers_action_change_folder_title">Move to folder</string>
-    <string name="ciphers_action_change_name_title">Change name</string>
-    <string name="ciphers_action_change_names_title">Change names</string>
-    <string name="ciphers_action_add_password_title">Add password</string>
-    <string name="ciphers_action_add_passwords_title">Add passwords</string>
-    <string name="ciphers_action_change_password_title">Change password</string>
-    <string name="ciphers_action_change_passwords_title">Change passwords</string>
-    <string name="ciphers_action_view_password_history_title">View password history</string>
-    <string name="ciphers_action_trash_title">Trash</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash for more than 30 days will be automatically deleted.</string>
-    <string name="ciphers_action_restore_title">Restore</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
-    <string name="ciphers_action_delete_title">Delete forever</string>
-    <string name="ciphers_action_delete_confirmation_title">Delete forever?</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
-    <string name="ciphers_action_cascade_trash_associated_items_title">Move associated items to trash</string>
-    <string name="sends_action_change_name_title">Change name</string>
-    <string name="sends_action_change_names_title">Change names</string>
-    <string name="sends_action_change_filename_title">Change file name</string>
-    <string name="sends_action_change_filenames_title">Change file names</string>
-    <string name="sends_action_set_password_title">Set password</string>
-    <string name="sends_action_set_passwords_title">Set passwords</string>
-    <string name="sends_action_set_password_confirmation_message">Require a password for users to access this item</string>
-    <string name="sends_action_change_password_title">Change password</string>
-    <string name="sends_action_change_passwords_title">Change passwords</string>
-    <string name="sends_action_remove_password_title">Remove password</string>
-    <string name="sends_action_remove_passwords_title">Remove passwords</string>
-    <string name="sends_action_remove_password_confirmation_title">Remove password?</string>
-    <string name="sends_action_remove_passwords_confirmation_title">Remove passwords?</string>
-    <string name="sends_action_remove_password_confirmation_message">Do not require a password for users to access this item</string>
-    <string name="sends_action_hide_email_title">Hide email</string>
-    <string name="sends_action_show_email_title">Show email</string>
-    <string name="sends_action_enable_title">Activate</string>
-    <string name="sends_action_enable_text">Active send is accessible by a public URL</string>
-    <string name="sends_action_enable_confirmation_title">Activate?</string>
-    <string name="sends_action_disable_title">Deactivate</string>
-    <string name="sends_action_disable_text">Deactivated send is inaccessible by a public URL</string>
-    <string name="sends_action_disable_confirmation_title">Deactivate?</string>
-    <string name="sends_action_disabled_note">This send is deactivated, no one can access it.</string>
-    <string name="sends_action_delete_title">Delete forever</string>
-    <string name="sends_action_delete_confirmation_title">Delete forever?</string>
-    <string name="file_action_open_with_title">Open with…</string>
-    <string name="file_action_send_with_title">Send with…</string>
-    <string name="file_action_open_in_file_manager_title">Open in a file manager</string>
-    <string name="file_action_delete_local_title">Delete local file</string>
-    <string name="file_action_delete_local_many_title">Delete local files</string>
-    <string name="file_action_view_cipher_title">View parent item</string>
-    <string name="file_action_reveal_title">Reveal</string>
-    <string name="vault_action_always_show_keyboard_title">Always show keyboard</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
-    <string name="vault_action_sync_vault_title">Sync vault</string>
-    <string name="vault_action_lock_vault_title">Lock vault</string>
-    <string name="vault_action_rename_folder_title">Rename folder</string>
-    <string name="email_action_check_data_breach_title">Check the email in known data breaches</string>
-    <string name="username_action_check_data_breach_title">Check the username in known data breaches</string>
-    <string name="password_action_check_data_breach_title">Check the password in known data breaches</string>
-    <string name="website_action_check_data_breach_title">Check the website in known data breaches</string>
-    <string name="uri_action_launch_app_title">Launch app</string>
-    <string name="uri_action_launch_website_title">Launch website</string>
-    <string name="uri_action_launch_docs_title">Launch docs</string>
-    <string name="uri_action_launch_browser_title">Launch browser</string>
-    <string name="uri_action_launch_browser_main_page_title">Launch main page</string>
-    <string name="uri_action_launch_play_store_title">Launch Play Store</string>
-    <string name="uri_action_launch_in_app_title">Launch with <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
-    <string name="uri_action_launch_in_smth_title">Launch with…</string>
-    <string name="uri_action_how_to_delete_account_title">How to delete an account?</string>
-    <string name="uri_action_get_my_data_account_title">How to get my data?</string>
-    <string name="uri_action_autofix_unsecure_title">Auto-fix insecure URL</string>
-    <string name="uri_action_autofix_unsecure_text">Changes the protocol to a secure variant if it is available</string>
-    <string name="uri_unsecure">Insecure</string>
-    <string name="uri_match_app_title">Match app</string>
-    <string name="uri_match_detection_title">Match detection</string>
-    <string name="uri_match_detection_default_title">Default</string>
-    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
-    <string name="uri_match_detection_domain_title">Base domain</string>
-    <string name="uri_match_detection_domain_note">Match resources by top-level and second-level domain.</string>
-    <string name="uri_match_detection_host_title">Host</string>
-    <string name="uri_match_detection_host_note">Match resources by hostname and (if specified) port.</string>
-    <string name="uri_match_detection_startswith_title">Starts with</string>
-    <string name="uri_match_detection_startswith_note">Match resources when the detected resource starts with the URI.</string>
-    <string name="uri_match_detection_exact_title">Exact</string>
-    <string name="uri_match_detection_exact_note">Match resources when the detected resource exactly matches the URI.</string>
-    <string name="uri_match_detection_regex_title">Regular expression</string>
-    <string name="uri_match_detection_regex_note">Match resources by regular expression. Advanced option.</string>
-    <string name="uri_match_detection_never_title">Never</string>
-    <string name="uri_match_detection_never_note">Ignore URI during auto-fill item search.</string>
-    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> linked to the password</string>
-    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
-    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration month</string>
-    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration year</string>
-    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card code</string>
-    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card brand</string>
-    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card number</string>
-    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the title</string>
-    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the middle name</string>
-    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (1)</string>
-    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (2)</string>
-    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (3)</string>
-    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the city</string>
-    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the state</string>
-    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the postal code</string>
-    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the country</string>
-    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the company</string>
-    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the email</string>
-    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the phone number</string>
-    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
-    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
-    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
-    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
-    <string name="text_action_share_with_title">Share with…</string>
-    <string name="text_action_send_title">Create a send</string>
-    <string name="ssh_key_action_save_unencrypted_keys_title">Save unencrypted keys</string>
-    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Keys saved to Downloads</string>
-    <string name="ssh_key_action_save_public_key_title">Save public key</string>
-    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
-    <string name="ssh_key_action_add_key_title">Add keys</string>
-    <string name="ssh_key_action_replace_key_title">Replace keys</string>
-    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
-    <string name="copy">Copy</string>
-    <string name="copy_value">Copy value</string>
-    <string name="copy_url">Copy URL</string>
-    <string name="copy_uri">Copy URI</string>
-    <string name="copy_send">Copy send</string>
-    <string name="copy_package_name">Copy package name</string>
-    <string name="copy_bundle_id">Copy bundle ID</string>
-    <string name="copy_password">Copy password</string>
-    <string name="copy_username">Copy username</string>
-    <string name="copy_email">Copy email</string>
-    <string name="copy_phone_number">Copy phone number</string>
-    <string name="copy_passport_number">Copy passport number</string>
-    <string name="copy_license_number">Copy license number</string>
-    <string name="copy_card_number">Copy card number</string>
-    <string name="copy_cardholder_name">Copy cardholder name</string>
-    <string name="copy_expiration_year">Copy expiration year</string>
-    <string name="copy_expiration_month">Copy expiration month</string>
-    <string name="copy_cvv_code">Copy security code</string>
-    <string name="copy_otp_code">Copy one-time password</string>
-    <string name="copy_otp_secret_code">Copy secret key</string>
-    <string name="copy_ssh_unencrypted_private_key">Copy unencrypted private key</string>
-    <string name="copy_ssh_public_key">Copy public key</string>
-    <string name="copy_ssh_fingerprint">Copy fingerprint</string>
-    <string name="copied_value">Copied a value</string>
-    <string name="copied_url">Copied a URL</string>
-    <string name="copied_uri">Copied a URI</string>
-    <string name="copied_tag">Copied a tag</string>
-    <string name="copied_package_name">Copied a package name</string>
-    <string name="copied_key">Copied a key</string>
-    <string name="copied_fingerprint">Copied a fingerprint</string>
-    <string name="copied_password">Copied a password</string>
-    <string name="copied_username">Copied a username</string>
-    <string name="copied_email">Copied an email</string>
-    <string name="copied_phone_number">Copied a phone number</string>
-    <string name="copied_passport_number">Copied a passport number</string>
-    <string name="copied_license_number">Copied a license number</string>
-    <string name="copied_card_number">Copied a card number</string>
-    <string name="copied_cardholder_name">Copied a cardholder name</string>
-    <string name="copied_expiration_year">Copied an expiration year</string>
-    <string name="copied_expiration_month">Copied an expiration month</string>
-    <string name="copied_cvv_code">Copied a security code</string>
-    <string name="copied_otp_code">Copied a one-time password</string>
-    <string name="copied_otp_secret_code">Copied a secret key</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
-    <string name="autofill_unlock_keyguard">Unlock Keyguard</string>
-    <string name="autofill_open_keyguard">Open Keyguard</string>
-    <string name="january">January</string>
-    <string name="february">February</string>
-    <string name="march">March</string>
-    <string name="april">April</string>
-    <string name="may">May</string>
-    <string name="june">June</string>
-    <string name="july">July</string>
+    <string name="linked_app">Aplicație conectată</string>
+    <string name="linked_apps">Aplicații conectate</string>
+    <string name="linked_uri">URI conectat</string>
+    <string name="linked_uris">URI-uri conectate</string>
+    <string name="custom_field">Câmp personalizat</string>
+    <string name="custom_fields">Câmpuri personalizate</string>
+    <string name="custom_field_toggle_boolean_value">Comută valoarea</string>
+    <string name="reveal_secure_note">Afișează notița securizată</string>
+    <string name="hide_secure_note">Ascunde notița securizată</string>
+    <string name="master_password_hint">Indiciu pentru parola principală</string>
+    <string name="public_key">Cheie publică</string>
+    <string name="private_key">Cheie privată</string>
+    <string name="fingerprint">Amprentă</string>
+    <string name="key_type">Tip de cheie</string>
+    <string name="key_pair">Pereche de chei</string>
+    <string name="key_ssh">Cheie SSH</string>
+    <string name="key_ssh_value_placeholder">Pare gol aici. Generează o cheie SSH pentru a începe!</string>
+    <string name="fingerprint_phrase">Frază de amprentă</string>
+    <string name="fingerprint_phrase_help_title">Ce este o amprentă?</string>
+    <string name="filter_auth_reprompt_items">Resolicitare autentificare</string>
+    <string name="filter_pending_items">În așteptare</string>
+    <string name="filter_failed_items">Eșuat</string>
+    <string name="bitwarden_premium">Bitwarden Premium</string>
+    <string name="bitwarden_premium_required">Necesită Bitwarden Premium</string>
+    <string name="bitwarden_unofficial_server">Server Bitwarden neoficial</string>
+    <string name="server_version">Versiune server <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Versiune bază de date <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Golește</string>
+    <string name="replace_key_file">Înlocuiește fișierul cheie</string>
+    <string name="select_key_file">Selectează un fișier cheie</string>
+    <string name="select_database_file">Selectează un fișier bază de date</string>
+    <string name="replace_database_file">Înlocuiește fișierul bază de date</string>
+    <string name="open_database">Deschide o bază de date</string>
+    <string name="create_database">Creează o bază de date</string>
+    <string name="qr_wifi_description_text">Scanează acest cod QR cu un alt dispozitiv pentru a te conecta la această rețea Wi-Fi.</string>
+    <string name="qr_generate_button">Generează cod QR</string>
+    <string name="pro_tip">Sfat util: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Generează e-mailuri unice pentru intimitate mai bună.</string>
+    <string name="account_last_synced_at">Ultima sincronizare la <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="account_action_change_name_title">Schimbă numele</string>
+    <string name="account_action_change_color_title">Schimbă culoarea</string>
+    <string name="account_action_change_master_password_hint_title">Schimbă indiciul parolei principale</string>
+    <string name="account_action_sign_out_title">Deconectare</string>
+    <string name="account_action_sign_in_title">Conectare</string>
+    <string name="account_action_export_vault_title">Exportă seiful</string>
+    <string name="account_action_export_individual_vault_title">Exportă seiful individual</string>
+    <string name="account_action_hide_title">Ascunde elementele</string>
+    <string name="account_action_hide_text">Ascunde elementele din ecranele principale ale aplicației</string>
+    <string name="account_action_email_verify_instructions_title">Vizitează Seiful web pentru a verifica adresa de e-mail</string>
+    <string name="account_action_premium_purchase_instructions_title">Treci la un cont Premium și deblochează funcții suplimentare extraordinare</string>
+    <string name="account_action_tfa_title">Autentificare cu doi factori</string>
+    <string name="account_action_tfa_text">Solicită verificarea conectării cu un alt dispozitiv, cum ar fi o cheie de securitate, o aplicație de autentificare, un SMS sau un e-mail</string>
+    <string name="account_action_tfa_active_status">Activ</string>
+    <string name="account_action_items_title">Elemente</string>
+    <string name="account_action_log_out_title">Deconectare</string>
+    <string name="account_log_out_confirmation_title">Deconectare?</string>
+    <string name="account_log_out_confirmation_text">Toate modificările nesincronizate se vor pierde!</string>
+    <string name="folder_action_change_name_title">Schimbă numele</string>
+    <string name="folder_action_change_names_title">Schimbă numele</string>
+    <string name="folder_action_merge_title">Combină în…</string>
+    <string name="folder_action_merge_confirmation_title">Ești sigur că vrei să combini aceste dosare?</string>
+    <string name="folder_action_create_title">Creează un dosar</string>
+    <string name="folder_delete_one_confirmation_title">Ștergi dosarul?</string>
+    <string name="folder_delete_many_confirmation_title">Ștergi dosarele?</string>
+    <string name="folder_delete_confirmation_text">Acest element (sau aceste elemente) va fi șters imediat. Acțiunea nu poate fi anulată.</string>
+    <string name="ciphers_recently_opened">Deschise recent</string>
+    <string name="ciphers_often_opened">Deschise des</string>
+    <string name="ciphers_history_empty">Niciun istoric deocamdată</string>
+    <string name="ciphers_view_details">Vezi detaliile</string>
+    <string name="ciphers_save_to">Salvează în</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Adaugă o cheie de acces</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Înlocuiește numele de utilizator și parola</string>
+    <string name="ciphers_action_add_to_favorites_title">Adaugă la favorite</string>
+    <string name="ciphers_action_remove_from_favorites_title">Elimină din favorite</string>
+    <string name="ciphers_action_enable_auth_reprompt_title">Activează resolicitarea autentificării</string>
+    <string name="ciphers_action_disable_auth_reprompt_title">Dezactivează resolicitarea autentificării</string>
+    <string name="ciphers_action_edit_title">Editează</string>
+    <string name="ciphers_action_merge_title">Combină în…</string>
+    <string name="ciphers_action_copy_title">Copiază în…</string>
+    <string name="ciphers_action_export_title">Exportă…</string>
+    <string name="ciphers_action_change_folder_title">Mută în dosar</string>
+    <string name="ciphers_action_change_name_title">Schimbă numele</string>
+    <string name="ciphers_action_change_names_title">Schimbă numele</string>
+    <string name="ciphers_action_add_password_title">Adaugă parolă</string>
+    <string name="ciphers_action_add_passwords_title">Adaugă parole</string>
+    <string name="ciphers_action_change_password_title">Schimbă parola</string>
+    <string name="ciphers_action_change_passwords_title">Schimbă parolele</string>
+    <string name="ciphers_action_view_password_history_title">Vezi istoricul parolelor</string>
+    <string name="ciphers_action_archive_title">Arhivează</string>
+    <string name="ciphers_action_archive_confirmation_title">Muți în arhivă?</string>
+    <string name="ciphers_action_unarchive_title">Restaurează din arhivă</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Restaurezi din arhivă?</string>
+    <string name="ciphers_action_trash_title">Mută la coș</string>
+    <string name="ciphers_action_trash_confirmation_title">Muți la coș?</string>
+    <string name="ciphers_action_trash_confirmation_text">Elementele aflate în Coșul de gunoi de mai mult de 30 de zile vor fi șterse automat.</string>
+    <string name="ciphers_action_restore_title">Restaurează</string>
+    <string name="ciphers_action_restore_confirmation_title">Restaurezi din coș?</string>
+    <string name="ciphers_action_delete_title">Șterge definitiv</string>
+    <string name="ciphers_action_delete_confirmation_title">Ștergi definitiv?</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Configurează alertele Watchtower</string>
+    <string name="ciphers_action_cascade_trash_associated_items_title">Mută elementele asociate la coș</string>
+    <string name="sends_action_change_name_title">Schimbă numele</string>
+    <string name="sends_action_change_names_title">Schimbă numele</string>
+    <string name="sends_action_change_filename_title">Schimbă numele fișierului</string>
+    <string name="sends_action_change_filenames_title">Schimbă numele fișierelor</string>
+    <string name="sends_action_set_password_title">Setează parola</string>
+    <string name="sends_action_set_passwords_title">Setează parole</string>
+    <string name="sends_action_set_password_confirmation_message">Solicită o parolă pentru ca utilizatorii să poată accesa acest element</string>
+    <string name="sends_action_change_password_title">Schimbă parola</string>
+    <string name="sends_action_change_passwords_title">Schimbă parolele</string>
+    <string name="sends_action_remove_password_title">Elimină parola</string>
+    <string name="sends_action_remove_passwords_title">Elimină parolele</string>
+    <string name="sends_action_remove_password_confirmation_title">Elimini parola?</string>
+    <string name="sends_action_remove_passwords_confirmation_title">Elimini parolele?</string>
+    <string name="sends_action_remove_password_confirmation_message">Nu va mai fi necesară o parolă pentru ca utilizatorii să acceseze acest element</string>
+    <string name="sends_action_hide_email_title">Ascunde e-mailul</string>
+    <string name="sends_action_show_email_title">Afișează e-mailul</string>
+    <string name="sends_action_enable_title">Activează</string>
+    <string name="sends_action_enable_text">O partajare activă este accesibilă printr-un URL public</string>
+    <string name="sends_action_enable_confirmation_title">Activezi?</string>
+    <string name="sends_action_disable_title">Dezactivează</string>
+    <string name="sends_action_disable_text">O partajare dezactivată este inaccesibilă printr-un URL public</string>
+    <string name="sends_action_disable_confirmation_title">Dezactivezi?</string>
+    <string name="sends_action_disabled_note">Această partajare este dezactivată, nimeni nu o poate accesa.</string>
+    <string name="sends_action_delete_title">Șterge definitiv</string>
+    <string name="sends_action_delete_confirmation_title">Ștergi definitiv?</string>
+    <string name="file_action_open_with_title">Deschide cu…</string>
+    <string name="file_action_send_with_title">Trimite cu…</string>
+    <string name="file_action_open_in_file_manager_title">Deschide în managerul de fișiere</string>
+    <string name="file_action_delete_local_title">Șterge fișierul local</string>
+    <string name="file_action_delete_local_many_title">Șterge fișierele locale</string>
+    <string name="file_action_view_cipher_title">Vezi elementul părinte</string>
+    <string name="file_action_reveal_title">Afișează</string>
+    <string name="vault_action_always_show_keyboard_title">Afișează mereu tastatura</string>
+    <string name="vault_action_remember_sorting_title">Reține metoda de sortare</string>
+    <string name="vault_action_sync_vault_title">Sincronizează seiful</string>
+    <string name="vault_action_lock_vault_title">Blochează seiful</string>
+    <string name="vault_action_rename_folder_title">Redenumește dosarul</string>
+    <string name="email_action_check_data_breach_title">Verifică e-mailul în scurgerile de date cunoscute</string>
+    <string name="username_action_check_data_breach_title">Verifică numele de utilizator în scurgerile de date cunoscute</string>
+    <string name="password_action_check_data_breach_title">Verifică parola în scurgerile de date cunoscute</string>
+    <string name="website_action_check_data_breach_title">Verifică site-ul în scurgerile de date cunoscute</string>
+    <string name="uri_action_launch_app_title">Lansează aplicația</string>
+    <string name="uri_action_launch_website_title">Lansează website-ul</string>
+    <string name="uri_action_launch_docs_title">Deschide documentația</string>
+    <string name="uri_action_launch_browser_title">Deschide în browser</string>
+    <string name="uri_action_launch_browser_main_page_title">Lansează pagina principală</string>
+    <string name="uri_action_launch_play_store_title">Lansează Magazin Play</string>
+    <string name="uri_action_launch_in_app_title">Deschide cu <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
+    <string name="uri_action_launch_in_smth_title">Deschide cu…</string>
+    <string name="uri_action_how_to_delete_account_title">Cum să șterg un cont?</string>
+    <string name="uri_action_get_my_data_account_title">Cum să-mi obțin datele?</string>
+    <string name="uri_action_autofix_unsecure_title">Auto-repară URL nesigur</string>
+    <string name="uri_action_autofix_unsecure_text">Schimbă protocolul către o variantă sigură, dacă este disponibilă</string>
+    <string name="uri_unsecure">Nesigur</string>
+    <string name="uri_match_app_title">Potrivire aplicație</string>
+    <string name="uri_match_detection_title">Regulă potrivire</string>
+    <string name="uri_match_detection_default_title">Implicită</string>
+    <string name="uri_match_detection_default_note">Folosește o regulă implicită globală aleasă în Setări → Completare automată → Regulă de potrivire URI implicită. Potrivirea domeniului de bază este opțiunea implicită.</string>
+    <string name="uri_match_detection_domain_title">Domeniu de bază</string>
+    <string name="uri_match_detection_domain_note">Potrivește resursele după domeniul de nivel superior și secundar.</string>
+    <string name="uri_match_detection_host_title">Gazdă</string>
+    <string name="uri_match_detection_host_note">Potrivește resursele după gazdă și (dacă e specificat) port.</string>
+    <string name="uri_match_detection_startswith_title">Începe cu</string>
+    <string name="uri_match_detection_startswith_note">Potrivește când resursa detectată începe cu URI-ul dat.</string>
+    <string name="uri_match_detection_exact_title">Exactă</string>
+    <string name="uri_match_detection_exact_note">Potrivește doar dacă resursa detectată se potrivește complet și exact cu URI-ul.</string>
+    <string name="uri_match_detection_regex_title">Expresie regulată</string>
+    <string name="uri_match_detection_regex_note">Potrivește printr-o expresie regulată. Opțiune avansată.</string>
+    <string name="uri_match_detection_never_title">Niciodată</string>
+    <string name="uri_match_detection_never_note">Ignoră acest URI la căutarea completării automate.</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> asociat(ă) parolei</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) numelui de utilizator</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) numelui titularului</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) lunii de expirare a cardului</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) anului de expirare a cardului</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) codului de securitate</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) mărcii cardului</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) numărului cardului</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) titlului</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) celui de-al doilea prenume</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) adresei (rând 1)</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) adresei (rând 2)</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) adresei (rând 3)</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) orașului</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) județului/statului</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) codului poștal</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) țării</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) companiei</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) adresei de e-mail</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) numărului de telefon</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) CNP-ului</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) numelui de utilizator</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) numărului de pașaport</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) numărului de permis</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) prenumelui</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) numelui</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) numelui complet</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> asociat(ă) unui câmp necunoscut</string>
+    <string name="text_action_share_with_title">Partajează cu…</string>
+    <string name="text_action_send_title">Creează o partajare</string>
+    <string name="ssh_key_action_save_unencrypted_keys_title">Salvează cheile necriptate</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Cheile salvate în Descărcări</string>
+    <string name="ssh_key_action_save_public_key_title">Salvează cheia publică</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Cheia publică salvată în Descărcări</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Salvează cheia privată necriptată</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Cheia privată necriptată salvată în Descărcări</string>
+    <string name="ssh_key_action_add_key_title">Adaugă chei</string>
+    <string name="ssh_key_action_replace_key_title">Înlocuiește cheile</string>
+    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selectate</string>
+    <string name="copy">Copiază</string>
+    <string name="copy_value">Copiază valoarea</string>
+    <string name="copy_url">Copiază URL</string>
+    <string name="copy_uri">Copiază URI</string>
+    <string name="copy_send">Copiază partajarea</string>
+    <string name="copy_package_name">Copiază numele pachetului</string>
+    <string name="copy_bundle_id">Copiază ID-ul pachetului</string>
+    <string name="copy_password">Copiază parola</string>
+    <string name="copy_username">Copiază numele de utilizator</string>
+    <string name="copy_email">Copiază adresa de e-mail</string>
+    <string name="copy_phone_number">Copiază numărul de telefon</string>
+    <string name="copy_passport_number">Copiază numărul de pașaport</string>
+    <string name="copy_license_number">Copiază numărul de permis</string>
+    <string name="copy_card_number">Copiază numărul cardului</string>
+    <string name="copy_cardholder_name">Copiază numele titularului</string>
+    <string name="copy_expiration_year">Copiază anul de expirare</string>
+    <string name="copy_expiration_month">Copiază luna de expirare</string>
+    <string name="copy_cvv_code">Copiază codul de securitate</string>
+    <string name="copy_otp_code">Copiază parola cu o singură utilizare (OTP)</string>
+    <string name="copy_otp_secret_code">Copiază cheia secretă</string>
+    <string name="copy_ssh_unencrypted_private_key">Copiază cheia privată necriptată</string>
+    <string name="copy_ssh_public_key">Copiază cheia publică</string>
+    <string name="copy_ssh_fingerprint">Copiază amprenta</string>
+    <string name="copied_value">S-a copiat o valoare</string>
+    <string name="copied_url">S-a copiat un URL</string>
+    <string name="copied_uri">S-a copiat un URI</string>
+    <string name="copied_tag">S-a copiat o etichetă</string>
+    <string name="copied_package_name">S-a copiat un nume de pachet</string>
+    <string name="copied_key">S-a copiat o cheie</string>
+    <string name="copied_fingerprint">S-a copiat o amprentă</string>
+    <string name="copied_password">S-a copiat o parolă</string>
+    <string name="copied_username">S-a copiat un nume de utilizator</string>
+    <string name="copied_email">S-a copiat un e-mail</string>
+    <string name="copied_phone_number">S-a copiat un număr de telefon</string>
+    <string name="copied_passport_number">S-a copiat un număr de pașaport</string>
+    <string name="copied_license_number">S-a copiat un număr de permis</string>
+    <string name="copied_card_number">S-a copiat un număr de card</string>
+    <string name="copied_cardholder_name">S-a copiat numele titularului</string>
+    <string name="copied_expiration_year">S-a copiat un an de expirare</string>
+    <string name="copied_expiration_month">S-a copiat o lună de expirare</string>
+    <string name="copied_cvv_code">S-a copiat un cod de securitate</string>
+    <string name="copied_otp_code">S-a copiat o parolă cu o singură utilizare</string>
+    <string name="copied_otp_secret_code">S-a copiat o cheie secretă</string>
+    <string name="found_otp_code">S-a găsit o parolă cu o singură utilizare</string>
+    <string name="found_value">S-a găsit o valoare</string>
+    <string name="autofill_unlock_keyguard">Deblochează Keyguard</string>
+    <string name="autofill_open_keyguard">Deschide Keyguard</string>
+    <string name="january">Ianuarie</string>
+    <string name="february">Februarie</string>
+    <string name="march">Martie</string>
+    <string name="april">Aprilie</string>
+    <string name="may">Mai</string>
+    <string name="june">Iunie</string>
+    <string name="july">Iulie</string>
     <string name="august">August</string>
-    <string name="september">September</string>
-    <string name="october">October</string>
-    <string name="november">November</string>
-    <string name="december">December</string>
-    <string name="tolerance">Tolerance</string>
-    <string name="tolerance_min">Min</string>
-    <string name="tolerance_low">Low</string>
-    <string name="tolerance_normal">Normal</string>
-    <string name="tolerance_high">High</string>
-    <string name="tolerance_max">Max</string>
-    <string name="list_move_up">Move up</string>
-    <string name="list_move_down">Move down</string>
-    <string name="list_remove">Remove</string>
-    <string name="list_remove_confirmation_title">Remove an item?</string>
-    <string name="list_add">Add more</string>
+    <string name="september">Septembrie</string>
+    <string name="october">Octombrie</string>
+    <string name="november">Noiembrie</string>
+    <string name="december">Decembrie</string>
+    <string name="tolerance">Toleranță</string>
+    <string name="tolerance_min">Minimă</string>
+    <string name="tolerance_low">Scăzută</string>
+    <string name="tolerance_normal">Normală</string>
+    <string name="tolerance_high">Ridicată</string>
+    <string name="tolerance_max">Maximă</string>
+    <string name="list_move_up">Mută sus</string>
+    <string name="list_move_down">Mută jos</string>
+    <string name="list_remove">Elimină</string>
+    <string name="list_remove_confirmation_title">Elimini elementul?</string>
+    <string name="list_add">Adaugă</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
-    <string name="fido2webauthn_action_go_title">Authenticate WebAuthn</string>
-    <string name="fido2webauthn_action_return_title">Return to app</string>
-    <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
-    <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
-    <string name="expiry_tips_card_line2">1. Get a new card: Your card issuer may have already sent you a replacement card with a new expiration date. If not, contact your card issuer to see if they plan to send you a new card and when to expect it.</string>
-    <string name="expiry_tips_card_line3">2. Update automatic payments: If you have any automatic payments set up with your card, such as a monthly gym membership or Netflix subscription, make sure to update the information with the new card number and expiration date.</string>
-    <string name="expiry_tips_card_line4">3. Destroy the old card: Once your new card arrives and you have updated any necessary information, be sure to securely dispose of the old, expired card to prevent identity theft.</string>
+    <string name="fido2webauthn_action_go_title">Autentificare WebAuthn</string>
+    <string name="fido2webauthn_action_return_title">Întoarce-te la aplicație</string>
+    <string name="expiry_tips_item_line1">Acest element expiră pe <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
+    <string name="expiry_tips_card_line1">Acest card expiră pe <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. Se recomandă câțiva pași pentru o tranziție fără probleme:</string>
+    <string name="expiry_tips_card_line2">1. Obține un card nou: Emitentul cardului s-ar putea să-ți fi trimis deja un card înlocuitor cu o nouă dată de expirare. În caz contrar, contactează-i pentru a afla când să te aștepți la noul card.</string>
+    <string name="expiry_tips_card_line3">2. Actualizează plățile automate: Dacă ai plăți automate configurate cu acest card, cum ar fi un abonament la Netflix, asigură-te că le actualizezi cu noul număr și data de expirare.</string>
+    <string name="expiry_tips_card_line4">3. Distruge vechiul card: Odată ce noul card ajunge și ai actualizat plățile, asigură-te că arunci vechiul card în mod securizat pentru a preveni furtul de identitate.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
-    <string name="error_must_not_be_empty">Must not be empty</string>
+    <string name="error_must_not_be_empty">Nu trebuie să fie gol</string>
     <!--
         Blank string is an empty string or a string that consists
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
-    <string name="error_must_not_be_blank">Must not be blank</string>
-    <string name="error_must_be_custom_domain">Must be custom domain</string>
-    <string name="error_must_be_number">Must be a number</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from now</string>
-    <string name="error_must_contain_only_us_ascii_chars">Must contain only US-ASCII characters</string>
-    <string name="error_must_have_at_least_n_symbols">Must be at least <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
-    <string name="error_must_have_exactly_n_symbols">Must be <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
-    <string name="error_invalid_domain">Invalid domain</string>
-    <string name="error_invalid_email">Invalid email</string>
-    <string name="error_invalid_url">Invalid URL</string>
-    <string name="error_invalid_uri">Invalid URI</string>
-    <string name="error_invalid_card_number">Invalid card number</string>
-    <string name="error_incorrect_password">Incorrect password</string>
-    <string name="error_not_found">Not found</string>
-    <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
-    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
-    <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
-    <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
-    <string name="error_failed_create_passkey">Failed to create a passkey</string>
-    <string name="error_failed_create_password">Failed to create a password</string>
-    <string name="error_failed_use_passkey">Failed to authorize a request</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
-    <string name="error_failed_open_uri">Failed to open a URI</string>
-    <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
-    <string name="error_failed_open_app_for">No installed app can handle this request</string>
-    <string name="error_failed_unknown">Something went wrong</string>
-    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
-    <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
-    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_must_not_be_blank">Nu trebuie să fie necompletat</string>
+    <string name="error_must_be_custom_domain">Trebuie să fie un domeniu personalizat</string>
+    <string name="error_must_be_number">Trebuie să fie un număr</string>
+    <string name="error_must_be_less_than_days">Trebuie să aibă mai puțin de <xliff:g id="days" example="15">%1$d</xliff:g> zile de acum înainte</string>
+    <string name="error_must_contain_only_us_ascii_chars">Trebuie să conțină doar caractere US-ASCII</string>
+    <string name="error_must_have_at_least_n_symbols">Trebuie să aibă o lungime de cel puțin <xliff:g id="length" example="15">%1$d</xliff:g> simboluri</string>
+    <string name="error_must_have_exactly_n_symbols">Trebuie să aibă o lungime de <xliff:g id="length" example="15">%1$d</xliff:g> simboluri</string>
+    <string name="error_invalid_domain">Domeniu nevalid</string>
+    <string name="error_invalid_email">E-mail nevalid</string>
+    <string name="error_invalid_url">URL nevalid</string>
+    <string name="error_invalid_uri">URI nevalid</string>
+    <string name="error_invalid_card_number">Număr de card nevalid</string>
+    <string name="error_incorrect_password">Parolă incorectă</string>
+    <string name="error_not_found">Nu s-a găsit</string>
+    <string name="error_otp_key_must_not_be_empty">Câmpul cheii secrete pentru OTP nu trebuie să fie gol</string>
+    <string name="error_failed_file_already_exists">Eroare la crearea fișierului. Înlocuirea unui fișier existent nu este permisă</string>
+    <string name="error_failed_generate_kdf_hash_oom">Eroare la crearea cheii: memorie insuficientă. Verifică setările serverului KDF.</string>
+    <string name="error_failed_generate_otp_code">Eroare la generarea codului OTP</string>
+    <string name="error_failed_create_passkey">Eroare la crearea unei chei de acces</string>
+    <string name="error_failed_create_password">Eroare la crearea unei parole</string>
+    <string name="error_failed_use_passkey">Eroare la autorizarea unei solicitări</string>
+    <string name="error_failed_use_password">Eroare la autorizarea unei solicitări</string>
+    <string name="error_failed_open_uri">Eroare la deschiderea adresei URI</string>
+    <string name="error_failed_format_placeholder">Eroare la formatarea substituentului</string>
+    <string name="error_failed_open_app_for">Nicio aplicație instalată nu poate prelua această solicitare</string>
+    <string name="error_failed_unknown">Ceva nu a mers bine</string>
+    <string name="error_failed_encrypt_biometric_key">Eroare la criptarea cheii biometrice</string>
+    <string name="error_failed_decrypt_biometric_key">Eroare la decriptarea cheii biometrice</string>
+    <string name="error_failed_ssh_agent_start">Eroare la pornirea agentului SSH</string>
+    <string name="error_credential_calling_app_not_privileged">Aplicația apelantă nu se află pe lista celor privilegiate și nu poate solicita autentificarea în numele altor aplicații.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Acordă privilegiul și continuă</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
-    <string name="scanqr_title">Scan QR code</string>
-    <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
-    <string name="scanqr_camera_permission_required_text">Camera permission is required to scan the QR codes.</string>
-    <string name="post_notifications_permission_banner_title">Notifications are disabled</string>
-    <string name="post_notifications_permission_banner_text">Grant the notification permission to allow Keyguard to show one-time passwords when autofilling &amp; more.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Dacă ai încredere într-o aplicație, îi permiți să solicite credențiale pentru orice serviciu. O aplicație malițioasă ar putea folosi acest lucru pentru a fura credențiale.</string>
+    <string name="scanqr_title">Scanează cod QR</string>
+    <string name="scanqr_load_from_image_note">Încarcă și procesează un cod QR dintr-o imagine.</string>
+    <string name="scanqr_camera_permission_required_text">Pentru a scana coduri QR este necesară permisiunea pentru utilizarea camerei foto.</string>
+    <string name="post_notifications_permission_banner_title">Notificările sunt dezactivate</string>
+    <string name="post_notifications_permission_banner_text">Acordă permisiunea de a trimite notificări pentru a permite aplicației Keyguard să îți afișeze parole cu o singură utilizare pe parcursul completării automate.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
-    <string name="barcodetype_title">Barcode</string>
-    <string name="barcodetype_action_show_in_barcode_title">Show as Barcode</string>
-    <string name="barcodetype_copy_otp_secret_code_note">Copy this authenticator to another device by scanning the QR code.</string>
+    <string name="barcodetype_title">Cod de bare</string>
+    <string name="barcodetype_action_show_in_barcode_title">Arată ca un cod de bare</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Copiază acest autentificator pe un alt dispozitiv scanând codul QR.</string>
     <!-- Title of the 'Date picker' dialog -->
-    <string name="datepicker_title">Date picker</string>
+    <string name="datepicker_title">Selector de date</string>
     <!-- Title of the 'Color picker' dialog -->
-    <string name="colorpicker_title">Color picker</string>
+    <string name="colorpicker_title">Selector de culori</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justdeleteme_title">How to delete an account?</string>
-    <string name="justdeleteme_subtitle">A collection of information on how to delete your account from web services</string>
+    <string name="justdeleteme_title">Cum să șterg un cont?</string>
+    <string name="justdeleteme_subtitle">O colecție de informații pentru ștergerea conturilor de pe servicii web</string>
     <!-- Simple process -->
-    <string name="justdeleteme_difficulty_easy_label">Easy</string>
+    <string name="justdeleteme_difficulty_easy_label">Ușor</string>
     <!-- Some extra steps involved -->
-    <string name="justdeleteme_difficulty_medium_label">Medium</string>
+    <string name="justdeleteme_difficulty_medium_label">Mediu</string>
     <!-- Cannot be fully deleted without contacting customer services -->
-    <string name="justdeleteme_difficulty_hard_label">Hard</string>
+    <string name="justdeleteme_difficulty_hard_label">Greu</string>
     <!-- Account can only be deleted if you live in a location with privacy rights -->
-    <string name="justdeleteme_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justdeleteme_difficulty_limited_availability_label">Disponibilitate limitată</string>
     <!-- Cannot be deleted -->
-    <string name="justdeleteme_difficulty_impossible_label">Impossible</string>
-    <string name="justdeleteme_send_email_title">Send an email</string>
-    <string name="justdeleteme_search_placeholder">Search websites</string>
-    <string name="justdeleteme_empty_label">No instructions</string>
+    <string name="justdeleteme_difficulty_impossible_label">Imposibil</string>
+    <string name="justdeleteme_send_email_title">Trimite un e-mail</string>
+    <string name="justdeleteme_search_placeholder">Caută site-uri web</string>
+    <string name="justdeleteme_empty_label">Fără instrucțiuni</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justgetmydata_title">How to get my data?</string>
-    <string name="justgetmydata_subtitle">A collection of info on how to get the data from your account from web services</string>
+    <string name="justgetmydata_title">Cum să-mi obțin datele?</string>
+    <string name="justgetmydata_subtitle">O colecție de informații despre cum să îți exporți datele conturilor de pe servicii web</string>
     <!-- Simple process -->
-    <string name="justgetmydata_difficulty_easy_label">Easy</string>
+    <string name="justgetmydata_difficulty_easy_label">Ușor</string>
     <!-- Some extra steps involved -->
-    <string name="justgetmydata_difficulty_medium_label">Medium</string>
+    <string name="justgetmydata_difficulty_medium_label">Mediu</string>
     <!-- Cannot be fully obtained without contacting customer services -->
-    <string name="justgetmydata_difficulty_hard_label">Hard</string>
+    <string name="justgetmydata_difficulty_hard_label">Greu</string>
     <!-- Cannot be obtained without verifying you live in an area with privacy laws -->
-    <string name="justgetmydata_difficulty_limited_availability_label">Limited availability</string>
+    <string name="justgetmydata_difficulty_limited_availability_label">Disponibilitate limitată</string>
     <!-- Cannot be obtained -->
-    <string name="justgetmydata_difficulty_impossible_label">Impossible</string>
-    <string name="justgetmydata_send_email_title">Send an email</string>
-    <string name="justgetmydata_search_placeholder">Search websites</string>
-    <string name="justgetmydata_empty_label">No instructions</string>
-    <string name="tfa_directory_title">Two-factor authentication</string>
-    <string name="tfa_directory_text">List of websites with two-factor authentication support</string>
-    <string name="tfa_directory_search_placeholder">Search websites</string>
-    <string name="passkeys_directory_title">Passkeys</string>
-    <string name="passkeys_directory_text">List of websites with passkeys support</string>
-    <string name="passkeys_directory_search_placeholder">Search websites</string>
+    <string name="justgetmydata_difficulty_impossible_label">Imposibil</string>
+    <string name="justgetmydata_send_email_title">Trimite un e-mail</string>
+    <string name="justgetmydata_search_placeholder">Caută site-uri web</string>
+    <string name="justgetmydata_empty_label">Fără instrucțiuni</string>
+    <string name="tfa_directory_title">Autentificare cu doi factori</string>
+    <string name="tfa_directory_text">Listă a site-urilor ce suportă autentificarea cu doi factori</string>
+    <string name="tfa_directory_search_placeholder">Caută site-uri web</string>
+    <string name="passkeys_directory_title">Chei de acces</string>
+    <string name="passkeys_directory_text">Listă a site-urilor ce suportă chei de acces (passkeys)</string>
+    <string name="passkeys_directory_search_placeholder">Caută site-uri web</string>
     <!-- Title of the 'Email data breach' dialog -->
-    <string name="emailleak_title">Data breach</string>
-    <string name="emailleak_note">Breached account data can provide malicious actors with access to sensitive personal and financial information, potentially leading to identity theft, financial fraud, and other forms of cybercrime.</string>
-    <string name="emailleak_breach_not_found_title">No breaches found</string>
-    <string name="emailleak_breach_found_title">Breached accounts found</string>
-    <string name="emailleak_breach_section">Breaches</string>
-    <string name="emailleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_failed_to_load_status_text">Failed to check data breaches. You might be offline</string>
-    <string name="passwordleak_title">Data breach</string>
-    <string name="passwordleak_note">A password that is found in the data breaches takes significantly less time to break and should never be used.</string>
-    <string name="passwordleak_occurrences_found_title">Password is compromised</string>
-    <string name="passwordleak_occurrences_found_text">The password has been identified in known data breaches. Please change it immediately to protect your online security</string>
-    <string name="passwordleak_occurrences_not_found_title">No breaches found</string>
-    <string name="passwordleak_failed_to_load_status_text">Failed to check data breaches. You might be offline</string>
+    <string name="emailleak_title">Scurgeri de date</string>
+    <string name="emailleak_note">Datele din conturi compromise oferă persoanelor rău intenționate acces la informații personale sau financiare importante, putând duce la furt de identitate, fraude și alte fapte ilicite pe internet.</string>
+    <string name="emailleak_breach_not_found_title">Nicio scurgere de date găsită</string>
+    <string name="emailleak_breach_found_title">Au fost găsite conturi compromise</string>
+    <string name="emailleak_breach_section">Scurgeri de date (Breaches)</string>
+    <string name="emailleak_breach_occurred_at">Petrecută pe <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_reported_at">Raportată pe <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_failed_to_load_status_text">Nu s-a putut verifica istoricul scurgerilor de calupuri de date. Echipamentul tău poate fi offline</string>
+    <string name="passwordleak_title">Scurgeri de date</string>
+    <string name="passwordleak_note">O parolă găsită în scurgerile de date poate fi spartă foarte ușor și nu ar mai trebui folosită niciodată.</string>
+    <string name="passwordleak_occurrences_found_title">Parola este compromisă</string>
+    <string name="passwordleak_occurrences_found_text">Procedeul de verificare relevă prezența parolei în scurgerile de date publice și din această cauză securitatea contului online asociat rămâne compromisă. Este necesar să o modifici cât de repede posibil</string>
+    <string name="passwordleak_occurrences_not_found_title">Nicio scurgere de date găsită</string>
+    <string name="passwordleak_failed_to_load_status_text">Nu s-a putut verifica istoricul scurgerilor de calupuri de date. Echipamentul tău poate fi offline</string>
     <!-- Title of the 'Show in Large Type' dialog -->
-    <string name="largetype_title">Large Type</string>
-    <string name="largetype_action_show_in_large_type_title">Show in Large Type</string>
-    <string name="largetype_action_show_in_large_type_and_lock_title">Show in Large Type and Lock vault</string>
-    <string name="largetype_unicode_surrogate_note">Text contains composite Unicode symbols!</string>
-    <string name="apppicker_header_title">App Picker</string>
-    <string name="apppicker_search_placeholder">Search installed apps</string>
-    <string name="apppicker_system_app_label">System app</string>
-    <string name="apppicker_empty_label">No apps</string>
-    <string name="folderpicker_header_title">Choose a folder</string>
-    <string name="folderpicker_create_new_folder">Create a new folder:</string>
+    <string name="largetype_title">Font mărit</string>
+    <string name="largetype_action_show_in_large_type_title">Afișează cu font mărit</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">Afișează cu font mărit și blochează seiful</string>
+    <string name="largetype_unicode_surrogate_note">Textul conține caractere complexe Unicode!</string>
+    <string name="apppicker_header_title">Selector aplicație</string>
+    <string name="apppicker_search_placeholder">Caută aplicații instalate</string>
+    <string name="apppicker_system_app_label">Aplicație de sistem</string>
+    <string name="apppicker_empty_label">Nicio aplicație</string>
+    <string name="folderpicker_header_title">Alege un dosar</string>
+    <string name="folderpicker_create_new_folder">Creează un dosar nou:</string>
     <!--
         When you copy an item to a new destination and choose to copy it into
         an organization, this text shows up to warn you about ownership. -->
-    <string name="destinationpicker_organization_ownership_note">This organization will have ownership of the copy. You will not become the direct owner.</string>
-    <string name="emailrelay_list_header_title">Email forwarders</string>
-    <string name="emailrelay_list_section_title">Email forwarders</string>
-    <string name="emailrelay_delete_one_confirmation_title">Delete the email forwarder?</string>
-    <string name="emailrelay_delete_many_confirmation_title">Delete the email forwarders?</string>
-    <string name="emailrelay_integration_title">Email forwarder integration</string>
-    <string name="emailrelay_empty_label">No email forwarders</string>
-    <string name="emailrelay_base_env_server_url_label">Server URL</string>
-    <string name="emailrelay_base_env_note">Specify the base URL of your self-hosted installation.</string>
-    <string name="wordlist_list_header_title">Wordlists</string>
-    <string name="wordlist_list_section_title">Wordlists</string>
-    <string name="wordlist_delete_one_confirmation_title">Delete the wordlist?</string>
-    <string name="wordlist_delete_many_confirmation_title">Delete the wordlists?</string>
-    <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
-    <string name="wordlist_add_wordlist_title">Add a wordlist</string>
-    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
-    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
-    <string name="wordlist_empty_label">No wordlists</string>
-    <string name="wordlist_word_search_placeholder">Search words</string>
-    <string name="urloverride_header_title">URL override</string>
-    <string name="urloverride_list_header_title">URL overrides</string>
-    <string name="urloverride_list_section_title">URL overrides</string>
-    <string name="urloverride_regex_note">The override will be applied to URLs that match the regular expression.</string>
-    <string name="urloverride_delete_one_confirmation_title">Delete the URL override?</string>
-    <string name="urloverride_delete_many_confirmation_title">Delete the URL overrides?</string>
-    <string name="urloverride_empty_label">No URL overrides</string>
-    <string name="urlblock_header_title">URI block</string>
-    <string name="urlblock_list_header_title">Blocked URIs</string>
-    <string name="urlblock_list_section_title">Blocked URIs</string>
-    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URIs?</string>
-    <string name="urlblock_empty_label">No blocked URIs</string>
-    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
-    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
-    <string name="privilegedapps_empty_label">No privileged apps</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
-    <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased Keyguard or have had an active license.</string>
-    <string name="setup_field_app_password_label">App password</string>
-    <string name="setup_checkbox_biometric_auth">Biometric authentication</string>
-    <string name="setup_biometric_auth_confirm_title">Create a vault</string>
-    <string name="setup_button_send_crash_reports">Send crash reports</string>
-    <string name="setup_button_create_vault">Create a vault</string>
-    <string name="setup_action_erase_data_title">Erase app data</string>
-    <string name="setup_action_erase_data_text">Close the app and erase all local app data</string>
-    <string name="unlock_header_text">The vault is locked. Enter your app password to continue.</string>
-    <string name="unlock_button_unlock">Unlock</string>
+    <string name="destinationpicker_organization_ownership_note">Această organizație va deveni proprietara elementului. Tu nu vei mai fi cel direct deținător.</string>
+    <string name="emailrelay_list_header_title">Servicii redirecționare e-mail</string>
+    <string name="emailrelay_list_section_title">Servicii redirecționare e-mail</string>
+    <string name="emailrelay_delete_one_confirmation_title">Ștergi serviciul de redirecționare a e-mailurilor?</string>
+    <string name="emailrelay_delete_many_confirmation_title">Ștergi serviciile de redirecționare a e-mailurilor?</string>
+    <string name="emailrelay_integration_title">Integrarea redirecționării e-mailurilor</string>
+    <string name="emailrelay_empty_label">Niciun serviciu de redirecționare e-mail</string>
+    <string name="emailrelay_base_env_server_url_label">URL-ul serverului</string>
+    <string name="emailrelay_base_env_note">Specifică URL-ul de bază al instalării tale autogăzduite.</string>
+    <string name="wordlist_list_header_title">Liste de cuvinte</string>
+    <string name="wordlist_list_section_title">Liste de cuvinte</string>
+    <string name="wordlist_delete_one_confirmation_title">Ștergi lista de cuvinte?</string>
+    <string name="wordlist_delete_many_confirmation_title">Ștergi listele de cuvinte?</string>
+    <string name="wordlist_edit_wordlist_title">Editează lista de cuvinte</string>
+    <string name="wordlist_add_wordlist_title">Adaugă listă de cuvinte</string>
+    <string name="wordlist_add_wordlist_via_file_title">Încarcă de la un fișier</string>
+    <string name="wordlist_add_wordlist_via_url_title">Încarcă de la un URL</string>
+    <string name="wordlist_empty_label">Nicio listă de cuvinte</string>
+    <string name="wordlist_word_search_placeholder">Căutare după cuvânt</string>
+    <string name="urloverride_header_title">Suprascriere URL-uri</string>
+    <string name="urloverride_list_header_title">Suprascriere URL-uri</string>
+    <string name="urloverride_list_section_title">Suprascriere URL-uri</string>
+    <string name="urloverride_regex_note">Suprascrierea va fi aplicată URL-urilor cuprinse de expresia regulată aferentă.</string>
+    <string name="urloverride_delete_one_confirmation_title">Ștergi suprascrierea de URL-uri?</string>
+    <string name="urloverride_delete_many_confirmation_title">Ștergi suprascrierile de URL-uri?</string>
+    <string name="urloverride_empty_label">Nicio suprascriere a vreunui URL</string>
+    <string name="urlblock_header_title">Blocare URI-uri</string>
+    <string name="urlblock_list_header_title">URI-uri blocate</string>
+    <string name="urlblock_list_section_title">URI-uri blocate</string>
+    <string name="urlblock_delete_one_confirmation_title">Ștergi adresa URI blocată?</string>
+    <string name="urlblock_delete_many_confirmation_title">Ștergi adresele URI blocate?</string>
+    <string name="urlblock_empty_label">Nicio adresă URI blocată</string>
+    <string name="urlblock_expose_title">Expune datele către interfața de completare automată înainte de deblocarea seifului</string>
+    <string name="urlblock_expose_text">Dacă activezi opțiunea, elementul va fi stocat și în afara seifului, permițând ascunderea completă a sugestiilor de completare automată pentru anumite adrese chiar și atunci când seiful este blocat</string>
+    <string name="privilegedapps_header_title">Aplicații privilegiate</string>
+    <string name="privilegedapps_list_header_title">Aplicații privilegiate</string>
+    <string name="privilegedapps_list_section_title">Aplicații privilegiate</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Ștergi aplicația privilegiată?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Ștergi aplicațiile privilegiate?</string>
+    <string name="privilegedapps_empty_label">Nicio aplicație privilegiată</string>
+    <string name="privilegedapps_user_apps">Aplicațiile utilizatorului</string>
+    <string name="privilegedapps_community_apps">Aplicații ale comunității</string>
+    <string name="setup_header_text">Creează un seif criptat unde vor fi stocate datele locale.</string>
+    <string name="setup_free_text">Prin continuare, confirmi că ai achiziționat Keyguard sau că ai deținut o licență activă.</string>
+    <string name="setup_field_app_password_label">Parola aplicației</string>
+    <string name="setup_checkbox_biometric_auth">Autentificare biometrică</string>
+    <string name="setup_biometric_auth_confirm_title">Creează un seif</string>
+    <string name="setup_button_send_crash_reports">Trimite rapoarte de eroare</string>
+    <string name="setup_button_create_vault">Creează un seif</string>
+    <string name="setup_action_erase_data_title">Șterge datele aplicației</string>
+    <string name="setup_action_erase_data_text">Închide aplicația și șterge toate datele locale stocate de aceasta</string>
+    <string name="unlock_header_text">Seiful este blocat. Introdu parola aplicației pentru a continua.</string>
+    <string name="unlock_button_unlock">Deblochează</string>
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
-    <string name="unlock_biometric_auth_confirm_title">Unlock a vault</string>
+    <string name="unlock_biometric_auth_confirm_title">Deblochează un seif</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
-    <string name="unlock_biometric_auth_confirm_text">Use biometric authentication to unlock the vault.</string>
-    <string name="userverification_header_text">User verification is required. Enter your app password to continue.</string>
-    <string name="userverification_button_go">Verify</string>
-    <string name="syncstatus_header_title">Sync status</string>
-    <string name="syncstatus_status_up_to_date">Up to date</string>
-    <string name="syncstatus_status_pending">Pending</string>
-    <string name="syncstatus_status_syncing">Syncing</string>
-    <string name="syncstatus_status_failed">Sync failed</string>
-    <string name="additem_header_new_title">New item</string>
-    <string name="additem_header_edit_title">Edit item</string>
-    <string name="additem_header_merge_title">Merge items</string>
-    <string name="additem_merge_remove_origin_ciphers_title">Move origin items to trash</string>
-    <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The created item will not have any attachments added.</string>
-    <string name="additem_note_placeholder">Add any notes about this item here</string>
-    <string name="additem_markdown_note">Style text with <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> and more. Limited Markdown syntax is supported.</string>
-    <string name="additem_markdown_note_italic">italic</string>
-    <string name="additem_markdown_note_bold">bold</string>
-    <string name="additem_markdown_render_preview">Render preview</string>
-    <string name="additem_auth_reprompt_title">Auth re-prompt</string>
-    <string name="additem_auth_reprompt_text">Ask to authenticate again when you view or autofill a cipher</string>
-    <string name="addsend_header_new_title">New send</string>
-    <string name="addsend_header_edit_title">Edit send</string>
-    <string name="addsend_text_hide_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
-    <string name="addsend_hide_email_title">Hide email address</string>
-    <string name="addsend_max_access_count_note">If set, users will no longer be able to access this item after the maximum access count is reached.</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="unlock_biometric_auth_confirm_text">Folosește autentificarea biometrică pentru a debloca seiful.</string>
+    <string name="userverification_header_text">Verificarea utilizatorului este necesară. Introdu parola aplicației pentru a continua.</string>
+    <string name="userverification_button_go">Verifică</string>
+    <string name="syncstatus_header_title">Starea de sincronizare</string>
+    <string name="syncstatus_status_up_to_date">La zi</string>
+    <string name="syncstatus_status_pending">În așteptare</string>
+    <string name="syncstatus_status_syncing">Se sincronizează</string>
+    <string name="syncstatus_status_failed">Sincronizare eșuată</string>
+    <string name="additem_header_new_title">Element nou</string>
+    <string name="additem_header_edit_title">Editează elementul</string>
+    <string name="additem_header_merge_title">Combină elementele</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Mută elementele de origine în coșul de gunoi</string>
+    <string name="additem_merge_attachments_note">Fuzionarea elementelor nu combină fișierele lor atașate! Elementul nou creat nu va conține niciun atașament adăugat.</string>
+    <string name="additem_note_placeholder">Adaugă aici orice notițe despre acest element</string>
+    <string name="additem_markdown_note">Afișare fonturi cu anumite stiluri: poți folosi text <xliff:g id="italic" example="italic">%1$s</xliff:g> sau <xliff:g id="bold" example="bold">%2$s</xliff:g> și altele. Se acceptă sintaxă restrânsă de tip Markdown.</string>
+    <string name="additem_markdown_note_italic">înclinat</string>
+    <string name="additem_markdown_note_bold">îngroșat</string>
+    <string name="additem_markdown_render_preview">Previzualizează stilurile</string>
+    <string name="additem_auth_reprompt_title">Resolicitare autentificare</string>
+    <string name="additem_auth_reprompt_text">Cere autentificarea din nou la vizualizarea sau completarea automată a elementului</string>
+    <string name="addsend_header_new_title">Partajare nouă</string>
+    <string name="addsend_header_edit_title">Editează partajarea</string>
+    <string name="addsend_text_hide_by_default_title">Ascunde textul în mod implicit la accesarea elementului</string>
+    <string name="addsend_hide_text_by_default_title">Ascunde textul în mod implicit la accesarea elementului</string>
+    <string name="addsend_hide_email_title">Ascunde adresa de e-mail</string>
+    <string name="addsend_max_access_count_note">Dacă ai configurat, utilizatorii nu vor mai putea deschide partajarea odată ce numărul maxim de accesări va fi atins.</string>
+    <string name="addsend_auth_emails_label">E-mail(uri)</string>
+    <string name="addsend_auth_emails_placeholder">Adrese de e-mail separate prin virgulă</string>
+    <string name="addsend_auth_emails_note">Cei care recepționează vor fi îndemnați să finalizeze o verificare din e-mail (valabilă o sigură dată) pentru a deschide linkul.</string>
+    <string name="addaccount_promo_title">Seiful tău este încă gol. Conectează un cont pentru început:</string>
+    <string name="addaccount_promo_features">Vrei să utilizezi la maximum capabilitățile oferite? Am subliniat toate funcțiile principale ale aplicației mai jos – aruncă o privire pentru a descifra modul în care lucrează.</string>
+    <string name="addaccount_description_short_bitwarden_text">Stochează seiful criptat într-un cloud.</string>
+    <string name="addaccount_description_short_keepass_text">Stochează seiful criptat la nivel local folosind formatul de fișiere KDBX.</string>
     <string name="addaccount_header_title">Add Bitwarden account</string>
     <string name="addaccount_disclaimer_bitwarden_label">We are not affiliated, associated, authorized, endorsed by, or in any way officially connected with the Bitwarden, Inc., or any of its subsidiaries or its affiliates.</string>
     <!--
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">Hold your YubiKey flat against the back of your device</string>
     <string name="yubikey_nfc_text">Requires NFC support.</string>
     <string name="yubikey_error_failed_to_read">Failed to read YubiKey</string>
+    <string name="yubikey_unlock_error_unsupported_title">YubiKey unlock is not supported</string>
+    <string name="yubikey_unlock_error_unsupported_text">This YubiKey or connection type does not support challenge-response unlock.</string>
+    <string name="yubikey_unlock_error_failed_title">Failed to use YubiKey</string>
+    <string name="yubikey_unlock_error_failed_text">Try the YubiKey again or unlock the vault with your password.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Using FIDO2 WebAuthn requires using the Bitwarden Web vault version <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> or higher. On older versions the authentication result will incorrectly be forwarded to the official Bitwarden app.</string>
     <string name="elevatedaccess_header_title">Confirm access</string>
     <string name="elevatedaccess_header_text">This data is protected, to continue please enter your app password.</string>
@@ -791,6 +804,10 @@
     <string name="lock_reason_manually">Locked manually</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">File</string>
+    <string name="send_auth_title">Who can view</string>
+    <string name="send_auth_type_none">Anyone with the link</string>
+    <string name="send_auth_type_password">Anyone with the link + password</string>
+    <string name="send_auth_type_email">Specific people</string>
     <string name="cipher_type_login">Login</string>
     <string name="cipher_type_card">Card</string>
     <string name="cipher_type_identity">Identity</string>
@@ -874,70 +891,72 @@
     <string name="sortby_password_strength_title">Password strength</string>
     <string name="sortby_password_strength_normal_mode">Weakest First</string>
     <string name="sortby_password_strength_reverse_mode">Strongest First</string>
-    <string name="relative_time_just_now_short">now</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
-    <string name="vault_main_search_placeholder">Search vault</string>
-    <string name="vault_main_new_item_button">New item</string>
-    <string name="vault_main_no_suggested_items">There are no suggested items available for this context</string>
+    <string name="relative_time_just_now_short">acum</string>
+    <string name="relative_time_minute_short">acum <xliff:g id="minute" example="1">%1$s</xliff:g>m</string>
+    <string name="relative_time_hour_short">acum <xliff:g id="hour" example="1">%1$s</xliff:g>h</string>
+    <string name="relative_time_day_short">acum <xliff:g id="day" example="1">%1$s</xliff:g>z</string>
+    <string name="relative_time_week_short">acum <xliff:g id="week" example="1">%1$s</xliff:g>s</string>
+    <string name="vault_main_search_placeholder">Caută în seif...</string>
+    <string name="vault_main_new_item_button">Element nou</string>
+    <string name="vault_main_no_suggested_items">Nu există elemente sugerate pentru acest context</string>
     <!-- A label for the CVV code of the card -->
-    <string name="vault_view_card_cvv_label">Security code</string>
-    <string name="vault_view_saved_to_label">Saved to <xliff:g id="email" example="username@example.com">%1$s</xliff:g> at <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
-    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
-    <string name="vault_view_password_revision_label">Password last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_passkey_created_at_label">Passkey created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_revision_label">Last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_created_at_label">Created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_deleted_at_label">Deleted at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_expired_at_label">Expired at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_expiration_scheduled_at_label">Expiration scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_deletion_scheduled_at_label">Deletion scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_card_cvv_label">Cod de securitate (CVV/CVC)</string>
+    <string name="vault_view_saved_to_label">Salvat pe <xliff:g id="email" example="username@example.com">%1$s</xliff:g> la <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Salvat pe <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
+    <string name="vault_view_password_revision_label">Parola modificată ultima dată la <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_passkey_created_at_label">Cheie de acces creată la <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_revision_label">Ultima modificare la <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_created_at_label">Creat la <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Arhivat la <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deleted_at_label">Șters la <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expired_at_label">Expirat la <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expiration_scheduled_at_label">Expirare programată pentru <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deletion_scheduled_at_label">Ștergere programată pentru <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <!-- Call the phone number. The text should be as short as possible! -->
-    <string name="vault_view_call_phone_action">Call</string>
+    <string name="vault_view_call_phone_action">Apelează</string>
     <!-- Text the phone number (SMS). The text should be as short as possible! -->
-    <string name="vault_view_text_phone_action">Text</string>
+    <string name="vault_view_text_phone_action">Mesaj text (SMS)</string>
     <!-- Compose an email. The text should be as short as possible! -->
-    <string name="vault_view_email_action">Email</string>
+    <string name="vault_view_email_action">E-mail</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
-    <string name="vault_view_navigate_action">Directions</string>
-    <string name="send_main_header_title">Sends</string>
-    <string name="send_main_search_placeholder">Search sends</string>
-    <string name="send_main_new_item_button">New item</string>
-    <string name="send_password_is_required_to_access_label">A password is required to access this share</string>
+    <string name="vault_view_navigate_action">Indicații</string>
+    <string name="send_main_header_title">Partajări</string>
+    <string name="send_main_search_placeholder">Caută partajări...</string>
+    <string name="send_main_new_item_button">Element nou</string>
+    <string name="send_email_is_required_to_access_label">Destinatarii verificați prin e-mail au acces la partajare</string>
+    <string name="send_password_is_required_to_access_label">O parolă este necesară pentru a accesa această partajare</string>
     <string name="generator_header_title">Generator</string>
-    <string name="generator_header_username_title">Username generator</string>
-    <string name="generator_header_password_title">Password generator</string>
-    <string name="generator_header_ssh_key_title">SSH Key generator</string>
-    <string name="generator_generate_button">Generate</string>
-    <string name="generator_regenerate_button">Regenerate</string>
+    <string name="generator_header_username_title">Generator de Nume de utilizator</string>
+    <string name="generator_header_password_title">Generator de Parole</string>
+    <string name="generator_header_ssh_key_title">Generator de chei SSH</string>
+    <string name="generator_generate_button">Generează</string>
+    <string name="generator_regenerate_button">Regenerează</string>
     <!-- 'Use' generated password as a password -->
-    <string name="generator_use_button">Use</string>
-    <string name="generator_passphrase_type">Passphrase</string>
-    <string name="generator_passphrase_note">Random passphrases provide the best combination of memorability and security.</string>
-    <string name="generator_passphrase_delimiter_title">Delimiter</string>
-    <string name="generator_passphrase_capitalize_title">Capitalize</string>
-    <string name="generator_passphrase_number_title">Number</string>
-    <string name="generator_passphrase_wordlist_title">Wordlist</string>
-    <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
-    <string name="generator_username_type">Username</string>
-    <string name="generator_username_delimiter_title">Delimiter</string>
-    <string name="generator_username_custom_word_title">Custom word</string>
-    <string name="generator_username_capitalize_title">Capitalize</string>
-    <string name="generator_username_number_title">Number</string>
-    <string name="generator_username_wordlist_title">Wordlist</string>
-    <string name="generator_password_type">Random symbols</string>
-    <string name="generator_password_note">A strong password has at least <xliff:g id="length" example="15">%1$d</xliff:g> characters, uppercase &amp; lowercase letters, digits and symbols.</string>
-    <string name="generator_password_numbers_title">Digits</string>
-    <string name="generator_password_symbols_title">Symbols</string>
-    <string name="generator_password_uppercase_letters_title">Uppercase letters</string>
-    <string name="generator_password_lowercase_letters_title">Lowercase letters</string>
+    <string name="generator_use_button">Folosește</string>
+    <string name="generator_passphrase_type">Frază secretă (Passphrase)</string>
+    <string name="generator_passphrase_note">Fraza secretă oferă cea mai bună combinație de memorabilitate și securitate.</string>
+    <string name="generator_passphrase_delimiter_title">Delimitator</string>
+    <string name="generator_passphrase_capitalize_title">Litere majuscule</string>
+    <string name="generator_passphrase_number_title">Număr</string>
+    <string name="generator_passphrase_wordlist_title">Lista de cuvinte (Wordlist)</string>
+    <string name="generator_pin_code_type">Cod PIN</string>
+    <string name="generator_pin_code_note">Aproape 1 din 10 persoane folosesc același cod PIN din 4 cifre. Generează un PIN aleatoriu pentru a evita variantele comune.</string>
+    <string name="generator_username_type">Nume de utilizator</string>
+    <string name="generator_username_delimiter_title">Delimitator</string>
+    <string name="generator_username_custom_word_title">Cuvânt personalizat</string>
+    <string name="generator_username_capitalize_title">Litere majuscule</string>
+    <string name="generator_username_number_title">Număr</string>
+    <string name="generator_username_wordlist_title">Lista de cuvinte</string>
+    <string name="generator_password_type">Simboluri aleatorii</string>
+    <string name="generator_password_note">O parolă puternică are cel puțin <xliff:g id="length" example="15">%1$d</xliff:g> caractere, ambele cazuri de litere, cifre și simboluri (majuscule &amp; minuscule).</string>
+    <string name="generator_password_numbers_title">Cifre</string>
+    <string name="generator_password_symbols_title">Simboluri</string>
+    <string name="generator_password_uppercase_letters_title">Litere majuscule (A-Z)</string>
+    <string name="generator_password_lowercase_letters_title">Litere minuscule (a-z)</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
     <string name="generator_password_exclude_similar_symbols_title">Exclude similar symbols</string>
     <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
-    <string name="generator_password_exclude_ambiguous_symbols_title">Exclude ambiguous symbols</string>
+    <string name="generator_password_exclude_ambiguous_symbols_title">Exclude simbolurile ambigue</string>
     <string name="generator_email_catch_all_type">Catch-all email</string>
     <string name="generator_email_catch_all_note">A catch-all email address provides users the option to receive all mail sent to their domain, even if they are sent to an email address that has not been set up for their domain. Ensure that your email hosting supports this feature before using it.</string>
     <!-- Referring to a website domain -->
@@ -950,7 +969,7 @@
     <string name="generator_email_subdomain_addressing_email_title">Email</string>
     <string name="generator_email_forward_alias_type">Forwarded email alias</string>
     <string name="generator_key_length_title">Length</string>
-    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
+    <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-biți</string>
     <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
     <string name="generator_key_rsa_text">Compatible with all SSH servers</string>
     <string name="generator_key_ed25519_note">This is the fastest and most modern standard. Support in SSH clients is not yet universal.</string>
@@ -958,8 +977,8 @@
     <string name="generator_create_item_with_password_title">Create new login with the password</string>
     <string name="generator_create_item_with_username_title">Create new login with the username</string>
     <string name="generator_create_item_with_ssh_key_title">Create new SSH Key item</string>
-    <string name="generator_password_history_title">Password history</string>
-    <string name="generator_show_tips_title">Show tips</string>
+    <string name="generator_password_history_title">Istoricul generărilor aferente ale parolei</string>
+    <string name="generator_show_tips_title">Sfaturi folositoare</string>
     <string name="generatorhistory_header_title">Generator history</string>
     <string name="generatorhistory_clear_history_title">Clear history</string>
     <string name="generatorhistory_clear_history_confirmation_title">Clear generator history?</string>
@@ -975,46 +994,46 @@
     <string name="block_autofill_header_title">Block autofill</string>
     <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">Password strength</string>
-    <string name="watchtower_section_security_label">Security</string>
-    <string name="watchtower_section_maintenance_label">Maintenance</string>
-    <string name="watchtower_item_new_alerts_title">Review new alerts</string>
-    <string name="watchtower_item_weak_passwords_title">Weak Passwords</string>
-    <string name="watchtower_item_pwned_passwords_title">Pwned Passwords</string>
-    <string name="watchtower_item_pwned_passwords_text">Passwords that have been exposed in data breaches. Such passwords should be changed immediately.</string>
-    <string name="watchtower_item_reused_passwords_title">Reused Passwords</string>
-    <string name="watchtower_item_reused_passwords_text">Don't use the same password on multiple websites. Generate unique passwords to improve security.</string>
-    <string name="watchtower_item_vulnerable_accounts_title">Vulnerable Accounts</string>
-    <string name="watchtower_item_vulnerable_accounts_text">Sites that were affected by a data breach since you last changed a password. Change your password to keep your account safe.</string>
-    <string name="watchtower_item_unsecure_websites_title">Insecure Websites</string>
-    <string name="watchtower_item_unsecure_websites_text">Change the URLs that use HTTP protocol to use HTTPS protocol, as the latter utilizes the most advanced encryption available.</string>
-    <string name="watchtower_item_inactive_2fa_title">Inactive two-factor authentication</string>
-    <string name="watchtower_item_inactive_2fa_text">Sites that have two-factor authentication available but you haven't set it up yet.</string>
-    <string name="watchtower_item_inactive_passkey_title">Available Passkeys</string>
-    <string name="watchtower_item_inactive_passkey_text">Sites that have passkeys available but you haven't set it up yet. It's simpler and more secure than a password.</string>
-    <string name="watchtower_item_incomplete_items_title">Incomplete Items</string>
-    <string name="watchtower_item_incomplete_items_text">Helps you identify missing or incomplete data in your vault. This can refer to identities with missing names or logins without usernames.</string>
-    <string name="watchtower_item_expiring_items_title">Expiring Items</string>
-    <string name="watchtower_item_expiring_items_text">Items that have expired or are expiring soon.</string>
-    <string name="watchtower_item_duplicate_websites_title">Duplicate URIs</string>
-    <string name="watchtower_item_duplicate_websites_text">Items that have one or more URIs that cover the same websites after applying the match detection.</string>
-    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
-    <string name="watchtower_item_trashed_items_title">Trashed Items</string>
-    <string name="watchtower_item_trashed_items_text">Items that have been moved into the trash. Having too many items in the trash may slow down operations with your vault.</string>
-    <string name="watchtower_item_empty_folders_title">Empty Folders</string>
-    <string name="watchtower_item_empty_folders_text">Folders that do not have any items in them.</string>
-    <string name="watchtower_item_duplicate_items_title">Duplicate Items</string>
-    <string name="watchtower_item_duplicate_items_text">Helps you identify and eliminate duplicate items in your vault.</string>
-    <string name="watchtower_item_compromised_accounts_title">Compromised Accounts</string>
-    <string name="watchtower_item_compromised_accounts_text">Check data breaches by a username or email address.</string>
-    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
-    <string name="watchtower_alerts_header_title">New watchtower alerts</string>
-    <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
-    <string name="changepassword_header_title">Change app password</string>
-    <string name="changepassword_change_password_button">Change password</string>
-    <string name="changepassword_biometric_auth_checkbox">Biometric authentication</string>
+    <string name="watchtower_section_security_label">Securitate</string>
+    <string name="watchtower_section_maintenance_label">Întreținere</string>
+    <string name="watchtower_item_new_alerts_title">Revizuiește alertele noi</string>
+    <string name="watchtower_item_weak_passwords_title">Parole slabe</string>
+    <string name="watchtower_item_pwned_passwords_title">Parole compromise</string>
+    <string name="watchtower_item_pwned_passwords_text">Parole implicate în scurgeri de date. Astfel de parole ar trebui schimbate imediat.</string>
+    <string name="watchtower_item_reused_passwords_title">Parole refolosite</string>
+    <string name="watchtower_item_reused_passwords_text">Nu utiliza aceeași parolă pe mai multe site-uri web. Generează parole unice pentru un plus de securitate.</string>
+    <string name="watchtower_item_vulnerable_accounts_title">Conturi vulnerabile</string>
+    <string name="watchtower_item_vulnerable_accounts_text">Website-uri afectate de o breșă de date de când ți-ai actualizat ultima oară parola. Evită riscurile și schimbă parola contului.</string>
+    <string name="watchtower_item_unsecure_websites_title">Site-uri nesigure</string>
+    <string name="watchtower_item_unsecure_websites_text">Ajustează linkurile pentru a direcționa prin protocol HTTPS în loc de HTTP simplu, beneficiind de un grad avansat de criptare.</string>
+    <string name="watchtower_item_inactive_2fa_title">Autentificarea 2FA e inactivă</string>
+    <string name="watchtower_item_inactive_2fa_text">Servicii și aplicații unde ai posibilitatea securizării duble (2FA), dar nu o ai setată.</string>
+    <string name="watchtower_item_inactive_passkey_title">Chei de acces (passkey) neutilizate</string>
+    <string name="watchtower_item_inactive_passkey_text">Servicii cu suport dovedit pentru securizarea cu chei de acces (passkey) pe care nu le folosești. Metoda e mai curată, fluentă și vizibil mai sigură decât banala parolă.</string>
+    <string name="watchtower_item_incomplete_items_title">Intrări cu date incomplete</string>
+    <string name="watchtower_item_incomplete_items_text">Ghid optim ca să identifici datele incomplete sau lipsă din seif. De exemplu la o intrare de logare căreia îi lipsește numele de utilizator aferent.</string>
+    <string name="watchtower_item_expiring_items_title">Intrări ce expiră</string>
+    <string name="watchtower_item_expiring_items_text">Elementele a căror valabilitate a expirat ori expiră în curând.</string>
+    <string name="watchtower_item_duplicate_websites_title">Legături URI duplicate</string>
+    <string name="watchtower_item_duplicate_websites_text">Elementele din seif care dețin una sau mai multe adrese URI ce direcționează precis spre aceleași website-uri.</string>
+    <string name="watchtower_item_broad_websites_title">Potrivire prea largă a legăturii (URI)</string>
+    <string name="watchtower_item_broad_websites_text">Pentru elementele cu reguli URI setate la un grad detectabil de potrivire vagă se recomandă o minimizare a ariei, definindu-le mult mai strict.</string>
+    <string name="watchtower_item_trashed_items_title">Coșul de gunoi</string>
+    <string name="watchtower_item_trashed_items_text">Informațiile eliminate. Un volum prea înalt reținut necurățat acolo în gunoi poate duce la o funcționare un pic mai lentă a seifului tău.</string>
+    <string name="watchtower_item_empty_folders_title">Dosare goale</string>
+    <string name="watchtower_item_empty_folders_text">Dosare care nu includ nicio informație reținută în ele.</string>
+    <string name="watchtower_item_duplicate_items_title">Intrări copiate (duplicate)</string>
+    <string name="watchtower_item_duplicate_items_text">Modulul util ce te va ghida să descoperi și evident elimini diverse variante ale elementelor duplicate în propriul tău seif.</string>
+    <string name="watchtower_item_compromised_accounts_title">Conturi posibil compromise</string>
+    <string name="watchtower_item_compromised_accounts_text">Caută dacă figurezi în vreo breșă ori scurgere de date online, tastând numele tău de utilizator ori simplu prin e-mail.</string>
+    <string name="watchtower_notification_new_alerts_title">Noi alerte de securitate</string>
+    <string name="watchtower_alerts_header_title">Alerte Watchtower</string>
+    <string name="watchtower_mark_all_as_read_title">Marchează-le citite</string>
+    <string name="changepassword_header_title">Schimbarea parolei la aplicație</string>
+    <string name="changepassword_change_password_button">Schimbă parola</string>
+    <string name="changepassword_biometric_auth_checkbox">Autentifică-te biometric</string>
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
-    <string name="changepassword_biometric_auth_confirm_title">Change app password</string>
+    <string name="changepassword_biometric_auth_confirm_title">Aprobă setarea noii parole a aplicației</string>
     <string name="changepassword_disclaimer_local_note">App password never gets stored on the device nor sent over the network. It is used to generate a secret key that is used to encrypt the local data.</string>
     <string name="changepassword_disclaimer_abuse_note">Unless you suspect unauthorized access or discover malware on the device, there is no need to change the password if it is a strong, unique password.</string>
     <string name="changepassword_password_changed_successfully">Password changed successfully</string>
@@ -1033,23 +1052,23 @@
     <string name="contactus_thanks_note">We appreciate the time that you spend sending us a message. Your message goes directly to us and we use it to troubleshoot issues, make product improvements and fix problems. While we may not reply to every report, we're reviewing and working on improvements &amp; fixing issues as fast as we can.</string>
     <string name="account_main_header_title">Accounts</string>
     <string name="account_main_add_account_title">Add account</string>
-    <string name="team_header_title">Team behind the app</string>
-    <string name="team_artem_whoami_text">I'm a Software engineer from Ukraine. I specialize in app design and development.</string>
-    <string name="team_follow_me_section">Follow me</string>
-    <string name="settingssearch_header_title">Search</string>
-    <string name="settingssearch_header_subtitle">Settings</string>
-    <string name="settingssearch_search_placeholder">Search settings</string>
-    <string name="settings_appearance_header_title">Appearance</string>
-    <string name="settings_autofill_header_title">Autofill</string>
-    <string name="settings_dev_header_title">Development</string>
-    <string name="settings_experimental_header_title">Experimental</string>
-    <string name="settings_main_header_title">Settings</string>
-    <string name="settings_notifications_header_title">Notifications</string>
-    <string name="settings_other_header_title">Other</string>
-    <string name="settings_permissions_header_title">Permissions</string>
-    <string name="settings_security_header_title">Security</string>
-    <string name="settings_subscriptions_header_title">Keyguard Premium</string>
-    <string name="settings_watchtower_header_title">Watchtower</string>
+    <string name="team_header_title">Echipa din culisele aplicației</string>
+    <string name="team_artem_whoami_text">Sunt un inginer software din Ucraina, specializat pe design-ul și dezvoltarea aplicațiilor.</string>
+    <string name="team_follow_me_section">Urmărește-mă online pe</string>
+    <string name="settingssearch_header_title">Caută setări</string>
+    <string name="settingssearch_header_subtitle">Setări</string>
+    <string name="settingssearch_search_placeholder">Caută setări...</string>
+    <string name="settings_appearance_header_title">Aspect vizual</string>
+    <string name="settings_autofill_header_title">Autocompletare (Autofill)</string>
+    <string name="settings_dev_header_title">Setări dezvoltator</string>
+    <string name="settings_experimental_header_title">Setări experimentale</string>
+    <string name="settings_main_header_title">Setări generale</string>
+    <string name="settings_notifications_header_title">Setări de notificare</string>
+    <string name="settings_other_header_title">Altele</string>
+    <string name="settings_permissions_header_title">Permisiuni necesare</string>
+    <string name="settings_security_header_title">Reguli privind securitatea</string>
+    <string name="settings_subscriptions_header_title">Abonament Keyguard Premium</string>
+    <string name="settings_watchtower_header_title">Setări Watchtower</string>
     <string name="settings_open_source_licenses_header_title">Open-source licenses</string>
     <string name="pref_section_premium_title">Premium</string>
     <string name="pref_section_options_title">Options</string>
@@ -1068,41 +1087,41 @@
     <string name="pref_item_appearance_title">Appearance</string>
     <string name="pref_item_appearance_text">Language, theme, and animations</string>
     <string name="pref_item_dev_title">Development</string>
-    <string name="pref_item_dev_text">Test settings for development</string>
-    <string name="pref_item_other_title">Other</string>
-    <string name="pref_item_other_text">Community websites, app info</string>
-    <string name="pref_item_nav_label_title">Show labels on navigation buttons</string>
-    <string name="pref_item_app_version_title">App version</string>
-    <string name="pref_item_app_build_date_title">App build date</string>
+    <string name="pref_item_dev_text">Setări de testare pentru dezvoltare</string>
+    <string name="pref_item_other_title">Altele</string>
+    <string name="pref_item_other_text">Site-uri web comunitare, informații despre aplicație</string>
+    <string name="pref_item_nav_label_title">Afișează etichetele pe butoanele de navigare</string>
+    <string name="pref_item_app_version_title">Versiunea aplicației</string>
+    <string name="pref_item_app_build_date_title">Data compilării aplicației</string>
     <!--
         The short ref name of the branch or tag that triggered the workflow run.
         This value matches the branch or tag name shown on GitHub.
         -->
-    <string name="pref_item_app_build_ref_title">App build ref</string>
-    <string name="pref_item_app_changelog_title">App changelog</string>
-    <string name="pref_item_app_team_title">Team behind the app</string>
-    <string name="pref_item_reddit_community_title">Reddit community</string>
-    <string name="pref_item_github_title">GitHub project</string>
-    <string name="pref_item_crowdin_title">Crowdin project</string>
-    <string name="pref_item_crowdin_view_all_contributors_title">View all</string>
-    <string name="pref_item_open_source_licenses_title">Open-source licenses</string>
-    <string name="pref_item_download_apk_title">Download APK file</string>
-    <string name="pref_item_load_app_icons_title">Load App icons</string>
-    <string name="pref_item_load_website_icons_title">Load Website icons</string>
-    <string name="pref_item_load_website_icons_text">Fetching website icons might leak website addresses to your internet provider</string>
-    <string name="pref_item_load_gravatar_icons_title">Load Gravatar icons</string>
-    <string name="pref_item_markdown_title">Rich text formatting</string>
-    <string name="pref_item_markdown_text">Use Markdown to format notes</string>
-    <string name="pref_item_locale_title">Language</string>
-    <string name="pref_item_locale_help_translation_button">Suggest translation</string>
-    <string name="pref_item_font_title">Font</string>
-    <string name="pref_item_rate_on_play_store_title">Rate on Play Store</string>
-    <string name="pref_item_color_accent_title">Tint color</string>
-    <string name="pref_item_color_scheme_title">Theme</string>
-    <string name="pref_item_color_scheme_amoled_dark_title">Use contrast black theme</string>
-    <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
-    <string name="pref_item_open_links_in_external_browser_title">Open links in external browser</string>
-    <string name="pref_item_close_to_tray_title">Close to system tray</string>
+    <string name="pref_item_app_build_ref_title">Sursa compilării aplicației</string>
+    <string name="pref_item_app_changelog_title">Istoricul modificărilor aplicației</string>
+    <string name="pref_item_app_team_title">Echipa din spatele aplicației</string>
+    <string name="pref_item_reddit_community_title">Comunitatea Reddit</string>
+    <string name="pref_item_github_title">Proiectul GitHub</string>
+    <string name="pref_item_crowdin_title">Proiectul Crowdin (Traduceri)</string>
+    <string name="pref_item_crowdin_view_all_contributors_title">Vezi tot</string>
+    <string name="pref_item_open_source_licenses_title">Licențe software Open-Source</string>
+    <string name="pref_item_download_apk_title">Descarcă fișierul APK</string>
+    <string name="pref_item_load_app_icons_title">Încarcă pictogramele aplicațiilor</string>
+    <string name="pref_item_load_website_icons_title">Încarcă pictogramele grafice ale website-urilor</string>
+    <string name="pref_item_load_website_icons_text">Afișarea pictogramelor presupune interogarea site-urilor, iar furnizorul tău de internet ar putea vedea acest trafic</string>
+    <string name="pref_item_load_gravatar_icons_title">Încarcă iconițele Gravatar</string>
+    <string name="pref_item_markdown_title">Formatare bogată de text (Rich text)</string>
+    <string name="pref_item_markdown_text">Se folosește limbajul Markdown pentru personalizarea notițelor tale</string>
+    <string name="pref_item_locale_title">Limbă de afișare</string>
+    <string name="pref_item_locale_help_translation_button">Sugerează o traducere</string>
+    <string name="pref_item_font_title">Alege font tipografic</string>
+    <string name="pref_item_rate_on_play_store_title">Acordă o recenzie pe Play Store</string>
+    <string name="pref_item_color_accent_title">Culoare de accent</string>
+    <string name="pref_item_color_scheme_title">Profil grafic general (Apariție tematică)</string>
+    <string name="pref_item_color_scheme_amoled_dark_title">Alege contrastul absolut negru (AMOLED)</string>
+    <string name="pref_item_color_scheme_expressive_title">Tema vizuală dinamică Material You (Tema Expresivă)</string>
+    <string name="pref_item_open_links_in_external_browser_title">Utilizează browser web extern pentru deschiderea de link-uri</string>
+    <string name="pref_item_close_to_tray_title">Fereastra restrânsă va rămâne rezidentă în bara sistemului de lucru (System Tray)</string>
     <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
     <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
     <string name="pref_item_check_inactive_2fa_title">Check for inactive two-factor authentication</string>
@@ -1168,6 +1187,13 @@
     <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
+    <string name="pref_item_yubikey_unlock_title">YubiKey unlock</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Configured with slot <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Provision slot</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Disable</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">Provision YubiKey slot?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock? Setup requires a USB connection.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> is already configured. Re-provisioning requires USB connection and overwrites the current slot configuration.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

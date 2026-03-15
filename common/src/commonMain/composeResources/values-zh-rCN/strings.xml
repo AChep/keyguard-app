@@ -212,6 +212,8 @@
     <string name="local_vault">本地密码库</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">记住登录状态</string>
+    <!-- An Archive screen -->
+    <string name="archive">归档</string>
     <!-- A Trash screen -->
     <string name="trash">回收站</string>
     <!-- To download something -->
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">修改密码</string>
     <string name="ciphers_action_change_passwords_title">修改密码</string>
     <string name="ciphers_action_view_password_history_title">查看历史密码</string>
+    <string name="ciphers_action_archive_title">归档</string>
+    <string name="ciphers_action_archive_confirmation_title">移至归档？</string>
+    <string name="ciphers_action_unarchive_title">从归档中恢复</string>
+    <string name="ciphers_action_unarchive_confirmation_title">从归档中恢复？</string>
     <string name="ciphers_action_trash_title">回收站</string>
     <string name="ciphers_action_trash_confirmation_title">移至回收站？</string>
     <string name="ciphers_action_trash_confirmation_text">回收站中超过 30 天的项目将会被自动删除。</string>
@@ -723,6 +729,9 @@
     <string name="addsend_hide_text_by_default_title">访问条目时，将默认隐藏文本</string>
     <string name="addsend_hide_email_title">隐藏电子邮件地址</string>
     <string name="addsend_max_access_count_note">设置后，当达到最大访问次数时用户将不再能够访问此条目。</string>
+    <string name="addsend_auth_emails_label">电子邮件</string>
+    <string name="addsend_auth_emails_placeholder">逗号分隔的电子邮件地址</string>
+    <string name="addsend_auth_emails_note">收件人打开链接后，需完成一次性电子邮件验证。</string>
     <string name="addaccount_promo_title">您的密码库是空的。连接一个账户以开始：</string>
     <string name="addaccount_promo_features">想获得最佳体验？我们已在下方为您列出了该应用的所有主要功能。请查看以下内容，了解它如何为您服务。</string>
     <string name="addaccount_description_short_bitwarden_text">将加密的密码库存储在云端。</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">将您的 YubiKey 平放在设备背部的 NFC识别区域</string>
     <string name="yubikey_nfc_text">需要 NFC 支持。</string>
     <string name="yubikey_error_failed_to_read">读取 YubiKey 失败</string>
+    <string name="yubikey_unlock_error_unsupported_title">不支持 YubiKey 解锁</string>
+    <string name="yubikey_unlock_error_unsupported_text">此 YubiKey 或连接类型不支持质询-响应解锁。</string>
+    <string name="yubikey_unlock_error_failed_title">使用 YubiKey 失败</string>
+    <string name="yubikey_unlock_error_failed_text">请重试 YubiKey，或使用您的密码解锁保险库。</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">使用 FIDO2 WebAuthn 需要使用 Bitwarden 网页密码库 <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> 或更高版本。在旧版本上，验证结果将错误地转发到 Bitwarden 官方应用程序。</string>
     <string name="elevatedaccess_header_title">确认访问</string>
     <string name="elevatedaccess_header_text">此数据已被加密，请输入您的应用专用密码以继续。</string>
@@ -791,6 +804,10 @@
     <string name="lock_reason_manually">手动锁定</string>
     <string name="send_type_text">文本</string>
     <string name="send_type_file">文件</string>
+    <string name="send_auth_title">谁可以查看</string>
+    <string name="send_auth_type_none">获得链接的任何人</string>
+    <string name="send_auth_type_password">获得链接的任何人 + 密码</string>
+    <string name="send_auth_type_email">特定人员</string>
     <string name="cipher_type_login">登录</string>
     <string name="cipher_type_card">卡片</string>
     <string name="cipher_type_identity">身份</string>
@@ -831,19 +848,19 @@
     <string name="ssh_agent_setup_step_1_title">1. 在 Keyguard 中启用 SSH 代理</string>
     <string name="ssh_agent_setup_step_1_text">打开安全设置并启用 SSH 代理。</string>
     <string name="ssh_agent_setup_step_2_title">2. 配置您的 SSH 客户端</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
-    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
+    <string name="ssh_agent_setup_step_2_text">将您的 SSH 客户端指向 Keyguard 的套接字路径。</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">备用路径：当您的会话中 XDG_RUNTIME_DIR 不可用时，请使用此路径。</string>
     <string name="ssh_agent_setup_option_env_tab">环境变量</string>
     <string name="ssh_agent_setup_option_identityagent_tab">配置</string>
-    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
-    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
+    <string name="ssh_agent_setup_option_env_label">将 SSH_AUTH_SOCK 设置为 Keyguard 的套接字路径。</string>
+    <string name="ssh_agent_setup_option_identityagent_label">在您的 SSH 配置文件中设置 IdentityAgent。</string>
     <string name="ssh_agent_setup_step_3_title">3. 验证</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_step_3_text">在配置了代理的同一 Shell 会话中运行这些命令。</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
+    <string name="ssh_agent_setup_windows_text">当前的 Keyguard 桌面 SSH 代理运行时暂不支持 Windows，因此此处的设置说明仅供参考。</string>
     <string name="ssh_agent_request_approval_sign_title">SSH 签名请求</string>
-    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
-    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> 请求使用以下 SSH 密钥对数据进行签名：</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">某应用请求使用以下 SSH 密钥对数据进行签名：</string>
     <string name="ssh_client_request">SSH 客户端请求</string>
     <string name="sort_header_title">排序方式</string>
     <string name="sort_empty_label">没有可用的排序方式</string>
@@ -890,6 +907,7 @@
     <string name="vault_view_passkey_created_at_label">通行密钥创建于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">最后修改于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">创建于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">归档于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">删除于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">过期于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g> 过期</string>
@@ -905,6 +923,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">搜索 Sends</string>
     <string name="send_main_new_item_button">新项目</string>
+    <string name="send_email_is_required_to_access_label">通过电子邮件验证的收件人可访问此分享</string>
     <string name="send_password_is_required_to_access_label">需要密码以访问此共享</string>
     <string name="generator_header_title">生成器</string>
     <string name="generator_header_username_title">用户名生成器</string>
@@ -1156,20 +1175,27 @@
     <string name="pref_item_features_overview_title">功能概述</string>
     <string name="pref_item_url_override_title">URL 覆写</string>
     <string name="pref_item_ssh_agent_title">SSH 代理</string>
-    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
+    <string name="pref_item_ssh_agent_text">对您的 Git 和 SSH 客户端进行身份验证，且确保这些客户端永远无法读取您的私钥</string>
     <string name="pref_item_ssh_agent_status_unsupported">暂不支持</string>
     <string name="pref_item_ssh_agent_status_stopped">已停止</string>
     <string name="pref_item_ssh_agent_status_starting">正在启动</string>
     <string name="pref_item_ssh_agent_status_ready">准备就绪</string>
     <string name="pref_item_ssh_agent_status_failed">失败</string>
     <string name="pref_item_ssh_agent_setup_title">SSH 客户端设置</string>
-    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
-    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
-    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
-    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
+    <string name="pref_item_ssh_agent_filters_title">SSH 代理过滤器</string>
+    <string name="pref_item_ssh_agent_filters_text">选择可供 SSH 代理访问的 SSH 密钥</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">所有密钥均可访问</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">过滤器已启用</string>
     <string name="pref_item_biometric_unlock_title">生物识别解锁</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">需要确认</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">需要在成功的生物识别认证后点击额外的确认按钮</string>
+    <string name="pref_item_yubikey_unlock_title">YubiKey 解锁</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">已配置于插槽 <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">配置插槽</string>
+    <string name="pref_item_yubikey_unlock_disable_title">禁用</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">配置 YubiKey 插槽？</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">为保险库解锁配置插槽 <xliff:g id="slot_number" example="1">%1$s</xliff:g>？设置过程需要使用 USB 连接。</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">插槽 <xliff:g id="slot_number" example="1">%1$s</xliff:g> 已配置。重新配置需要使用 USB 连接，且会覆盖当前的插槽配置。</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

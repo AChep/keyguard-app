@@ -142,8 +142,8 @@
     <string name="address1">Адрес, строка 1</string>
     <string name="address2">Адрес, строка 2</string>
     <string name="address3">Адрес, строка 3</string>
-    <string name="ssh_agent">SSH agent</string>
-    <string name="ssh_client">SSH client</string>
+    <string name="ssh_agent">SSH-агент</string>
+    <string name="ssh_client">SSH-клиент</string>
     <string name="rename">Переименовать</string>
     <string name="deletion_date">Дата удаления</string>
     <string name="deletion_date_custom">Пользовательское</string>
@@ -212,6 +212,8 @@
     <string name="local_vault">Локальное хранилище</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Запомнить меня</string>
+    <!-- An Archive screen -->
+    <string name="archive">Archive</string>
     <!-- A Trash screen -->
     <string name="trash">Корзина</string>
     <!-- To download something -->
@@ -246,7 +248,7 @@
     <string name="key_type">Тип ключа</string>
     <string name="key_pair">Пара ключей</string>
     <string name="key_ssh">SSH-ключ</string>
-    <string name="key_ssh_value_placeholder">Здесь пока пусто. Создайте SSH ключ, что бы начать!</string>
+    <string name="key_ssh_value_placeholder">Здесь пока пусто. Создайте SSH-ключ, чтобы начать!</string>
     <string name="fingerprint_phrase">Фраза отпечатка</string>
     <string name="fingerprint_phrase_help_title">Что такое фраза отпечатка?</string>
     <string name="filter_auth_reprompt_items">Повторная аутентификация</string>
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">Изменить пароль</string>
     <string name="ciphers_action_change_passwords_title">Изменить пароли</string>
     <string name="ciphers_action_view_password_history_title">Просмотреть историю паролей</string>
+    <string name="ciphers_action_archive_title">Архивировать</string>
+    <string name="ciphers_action_archive_confirmation_title">Переместить в архив?</string>
+    <string name="ciphers_action_unarchive_title">Восстановить из архива</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Восстановить из архива?</string>
     <string name="ciphers_action_trash_title">Корзина</string>
     <string name="ciphers_action_trash_confirmation_title">Переместить в корзину?</string>
     <string name="ciphers_action_trash_confirmation_text">Элементы, находящиеся в корзине более 30 дней, будут автоматически удалены.</string>
@@ -406,7 +412,7 @@
     <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к карточному бренду</string>
     <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру карты</string>
     <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к названию</string>
-    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к отечеству</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к отчеству</string>
     <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к улице</string>
     <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к номеру дома (квартиры)</string>
     <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к адресной строке (3)</string>
@@ -424,7 +430,7 @@
     <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к имени</string>
     <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к фамилии</string>
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к полному имени</string>
-    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан в неизвестному полю</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> привязан к неизвестному полю</string>
     <string name="text_action_share_with_title">Поделиться через…</string>
     <string name="text_action_send_title">Создать отправку</string>
     <string name="ssh_key_action_save_unencrypted_keys_title">Сохранить незашифрованные ключи</string>
@@ -550,7 +556,7 @@
     <string name="error_failed_unknown">Произошла ошибка</string>
     <string name="error_failed_encrypt_biometric_key">Не удалось зашифровать биометрический ключ</string>
     <string name="error_failed_decrypt_biometric_key">Не удалось расшифровать биометрический ключ</string>
-    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
+    <string name="error_failed_ssh_agent_start">Не удалось запустить SSH-агент</string>
     <string name="error_credential_calling_app_not_privileged">Приложение, выполняющее запрос, не входит в список доверенных и не может запрашивать аутентификацию от имени других приложений.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -673,16 +679,16 @@
     <string name="urlblock_delete_one_confirmation_title">Удалить URI?</string>
     <string name="urlblock_delete_many_confirmation_title">Удалить URI?</string>
     <string name="urlblock_empty_label">Нет заблокированных URI</string>
-    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
-    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
-    <string name="privilegedapps_empty_label">No privileged apps</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
+    <string name="urlblock_expose_title">Раскрывать данные системе автозаполнения до разблокировки хранилища</string>
+    <string name="urlblock_expose_text">Если включено, элемент сохраняется вне хранилища, что позволяет полностью скрыть предложения автозаполнения, даже когда хранилище заблокировано</string>
+    <string name="privilegedapps_header_title">Привилегированные приложения</string>
+    <string name="privilegedapps_list_header_title">Привилегированные приложения</string>
+    <string name="privilegedapps_list_section_title">Привилегированные приложения</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Удалить это привилегированное приложение?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Удалить эти привилегированные приложения?</string>
+    <string name="privilegedapps_empty_label">Нет привилегированных приложений</string>
+    <string name="privilegedapps_user_apps">Пользовательские приложения</string>
+    <string name="privilegedapps_community_apps">Приложения сообщества</string>
     <string name="setup_header_text">Создайте зашифрованное хранилище, где будут храниться локальные данные.</string>
     <string name="setup_free_text">Продолжая вы подтверждаете, что купили Keyguard или имели активную лицензию.</string>
     <string name="setup_field_app_password_label">Пароль приложения</string>
@@ -723,10 +729,13 @@
     <string name="addsend_hide_text_by_default_title">При обращении к элементу скрыть текст по умолчанию</string>
     <string name="addsend_hide_email_title">Скрыть адрес email</string>
     <string name="addsend_max_access_count_note">Если включено, пользователи больше не будут иметь доступа к элементу после того, как достигнуто максимальное количество доступа</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addsend_auth_emails_label">Email(s)</string>
+    <string name="addsend_auth_emails_placeholder">Comma-separated emails</string>
+    <string name="addsend_auth_emails_note">Recipients will be asked to complete a one-time email verification after opening the link.</string>
+    <string name="addaccount_promo_title">Ваше хранилище пусто. Подключите аккаунт, чтобы начать:</string>
+    <string name="addaccount_promo_features">Хотите получить максимум от приложения? Ниже мы перечислили его основные возможности, чтобы вы могли понять, чем оно может быть вам полезно.</string>
+    <string name="addaccount_description_short_bitwarden_text">Хранить зашифрованное хранилище в облаке.</string>
+    <string name="addaccount_description_short_keepass_text">Хранить зашифрованное хранилище локально в формате файла KDBX.</string>
     <string name="addaccount_header_title">Добавить аккаунт Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Мы не являемся аффилированными, связанными, уполномоченными, одобренными или каким-либо образом официально связанными с Bitwarden Inc., или с одним из её дочерних предприятий или филиалов.</string>
     <!--
@@ -760,9 +769,9 @@
     <string name="addaccount2fa_otp_note">Введите код подтверждения из приложения для аутентификации.</string>
     <string name="addaccount2fa_email_note">Введите код подтверждения, который был отправлен на адрес электронной почты <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Введите код подтверждения YubiKey вручную. Поместите курсор на поле ниже и запустите YubiKey.</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_header_title">Добавить аккаунт KeePass</string>
+    <string name="addkeepass_header_body">Сохраняйте все свои пароли в едином, надежно зашифрованном файле KDBX, который хранится прямо на вашем устройстве. Вы полностью контролируете свои данные. Храните их на компьютере, USB-накопителе или самостоятельно синхронизируйте с помощью таких сервисов, как Syncthing, Google Диск или Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">Поддержка KeePass находится в стадии бета-тестирования и пока может быть не полностью совместима со стандартными клиентами KeePass. Используйте на свой страх и риск. Пожалуйста, убедитесь, что у вас есть проверенная резервная копия вашей базы данных, прежде чем продолжить.</string>
     <string name="provider_2fa_authenticator">Аутентификатор</string>
     <string name="provider_2fa_duo_organization">Duo (Организация)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web аутентификация</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">Приложите YubiKey к задней панели устройства</string>
     <string name="yubikey_nfc_text">Требуется поддержка NFC.</string>
     <string name="yubikey_error_failed_to_read">Не удалось прочитать YubiKey</string>
+    <string name="yubikey_unlock_error_unsupported_title">Разблокировка с помощью YubiKey не поддерживается</string>
+    <string name="yubikey_unlock_error_unsupported_text">Этот YubiKey или тип подключения не поддерживает разблокировку в режиме "вызов-ответ" (challenge-response).</string>
+    <string name="yubikey_unlock_error_failed_title">Не удалось использовать YubiKey</string>
+    <string name="yubikey_unlock_error_failed_text">Попробуйте использовать YubiKey еще раз или разблокируйте хранилище с помощью вашего пароля.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Для использования FIDO2 WebAuthn необходимо использовать веб-хранилище Bitwarden версии <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> или новее. В более старых версиях результат аутентификации будет ошибочно перенаправлен в официальное приложение Bitwarden.</string>
     <string name="elevatedaccess_header_title">Подтвердить доступ</string>
     <string name="elevatedaccess_header_text">Эти данные защищены, чтобы продолжить, введите ваш пароль приложения.</string>
@@ -787,10 +800,14 @@
     <string name="home_watchtower_label">Доз. башня</string>
     <string name="home_settings_label">Настройки</string>
     <string name="lock_reason_inactivity">Заблокировано из-за бездействия</string>
-    <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_screen_off">Заблокировано из-за выключения экрана</string>
     <string name="lock_reason_manually">Заблокировано вручную</string>
     <string name="send_type_text">Текст</string>
     <string name="send_type_file">Файл</string>
+    <string name="send_auth_title">Кто может просматривать</string>
+    <string name="send_auth_type_none">Anyone with the link</string>
+    <string name="send_auth_type_password">Anyone with the link + password</string>
+    <string name="send_auth_type_email">Определенные люди</string>
     <string name="cipher_type_login">Логин</string>
     <string name="cipher_type_card">Карта</string>
     <string name="cipher_type_identity">Личные данные</string>
@@ -824,27 +841,27 @@
     <string name="customfilters_add_filter_title">Добавить пользовательский фильтр</string>
     <string name="filter_header_title">Фильтр</string>
     <string name="filter_empty_label">Нет доступных фильтров</string>
-    <string name="ssh_agent_filters_header_title">SSH agent filters</string>
-    <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
-    <string name="ssh_agent_setup_header_title">SSH client setup</string>
-    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
-    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
+    <string name="ssh_agent_filters_header_title">Фильтры SSH-агента</string>
+    <string name="ssh_agent_filters_note_save_to_apply">Изменения вступят в силу после нажатия кнопки "Сохранить".</string>
+    <string name="ssh_agent_setup_header_title">Настройка SSH-клиента</string>
+    <string name="ssh_agent_setup_intro">Настройте SSH-клиент для подключения к SSH-агенту Keyguard, чтобы он мог выполнять аутентификацию или подписание вашими одобренными ключами без раскрытия материалов закрытого ключа.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Включите SSH-агент в Keyguard</string>
+    <string name="ssh_agent_setup_step_1_text">Откройте настройки безопасности и включите SSH-агент.</string>
+    <string name="ssh_agent_setup_step_2_title">2. Настройте ваш SSH-клиент</string>
+    <string name="ssh_agent_setup_step_2_text">Укажите вашему SSH-клиенту путь к сокету Keyguard.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Запасной путь: используйте его, если переменная XDG_RUNTIME_DIR недоступна в вашей сессии.</string>
     <string name="ssh_agent_setup_option_env_tab">Env</string>
     <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
-    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
-    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
-    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_option_env_label">Установите SSH_AUTH_SOCK на путь к сокету Keyguard.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">Установите IdentityAgent в вашей конфигурации SSH.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Проверка</string>
+    <string name="ssh_agent_setup_step_3_text">Выполните эти команды в той же сессии оболочки (shell), в которой вы настраивали агент.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
-    <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
-    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
-    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
-    <string name="ssh_client_request">SSH client request</string>
+    <string name="ssh_agent_setup_windows_text">Текущая версия SSH-агента Keyguard для ПК пока недоступна в Windows, поэтому информация по настройке здесь носит исключительно ознакомительный характер.</string>
+    <string name="ssh_agent_request_approval_sign_title">Запрос на подписание SSH</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> хочет использовать следующий SSH-ключ для подписания данных:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">Приложение хочет использовать следующий SSH-ключ для подписания данных:</string>
+    <string name="ssh_client_request">Запрос от SSH-клиента</string>
     <string name="sort_header_title">Сортировка</string>
     <string name="sort_empty_label">Нет доступных сортировок</string>
     <string name="sortby_title_title">Название</string>
@@ -885,11 +902,12 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Код безопасности</string>
     <string name="vault_view_saved_to_label">Сохранено в <xliff:g id="email" example="username@example.com">%1$s</xliff:g> на <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
-    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Сохранено в <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Пароль последний раз изменен <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Ключ доступа создан <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Последний раз изменено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Создано <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Перемещено в архив в <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Удалено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Закончился срок действия <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Срок действия закончится <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -905,6 +923,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">Поиск Sends</string>
     <string name="send_main_new_item_button">Новая запись</string>
+    <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">Для доступа к этой отправке необходимо будет ввести пароль</string>
     <string name="generator_header_title">Генератор</string>
     <string name="generator_header_username_title">Генератор имени пользователя</string>
@@ -972,7 +991,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Все пароли из истории будут удалены.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Удалить пароль из истории?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Удалить пароли из истории?</string>
-    <string name="block_autofill_header_title">Block autofill</string>
+    <string name="block_autofill_header_title">Блокировка автозаполнения</string>
     <string name="watchtower_header_title">Дозорная башня</string>
     <string name="watchtower_section_password_strength_label">Надёжность пароля</string>
     <string name="watchtower_section_security_label">Безопасность</string>
@@ -1131,11 +1150,11 @@
     <string name="pref_item_allow_screenshots_title">Разрешить скриншоты</string>
     <string name="pref_item_allow_screenshots_text_on">Показывать содержимое приложения при переключении между недавними приложениями и отображении экрана</string>
     <string name="pref_item_allow_screenshots_text_off">Скрыть содержимое приложения при переключении между недавними приложениями и запретить создание скриншотов</string>
-    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
-    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
-    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
-    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
-    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
+    <string name="pref_item_allow_screenshots_badge">Скриншоты разрешены, нажмите для отключения</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Скриншоты были отключены</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Отключено</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Разрешено, с визуальной индикацией</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Разрешено</string>
     <string name="pref_item_data_safety_title">Безопасность данных</string>
     <string name="pref_item_logs_title">Логи</string>
     <string name="pref_item_lock_vault_title">Заблокировать хранилище</string>
@@ -1153,21 +1172,28 @@
     <string name="pref_item_permissions_title">Разрешения</string>
     <string name="pref_item_features_overview_title">Обзор возможностей</string>
     <string name="pref_item_url_override_title">Переопределение URL-адреса</string>
-    <string name="pref_item_ssh_agent_title">SSH agent</string>
-    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
-    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
-    <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
-    <string name="pref_item_ssh_agent_status_starting">Starting</string>
-    <string name="pref_item_ssh_agent_status_ready">Ready</string>
-    <string name="pref_item_ssh_agent_status_failed">Failed</string>
-    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
-    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
-    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
-    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
-    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
+    <string name="pref_item_ssh_agent_title">SSH-агент</string>
+    <string name="pref_item_ssh_agent_text">Проходите аутентификацию в Git и SSH-клиентах так, чтобы они никогда не смогли прочитать ваш закрытый ключ.</string>
+    <string name="pref_item_ssh_agent_status_unsupported">Не поддерживается</string>
+    <string name="pref_item_ssh_agent_status_stopped">Остановлен</string>
+    <string name="pref_item_ssh_agent_status_starting">Запускается</string>
+    <string name="pref_item_ssh_agent_status_ready">Готов</string>
+    <string name="pref_item_ssh_agent_status_failed">Ошибка</string>
+    <string name="pref_item_ssh_agent_setup_title">Настройка SSH-клиента</string>
+    <string name="pref_item_ssh_agent_filters_title">Фильтры SSH-агента</string>
+    <string name="pref_item_ssh_agent_filters_text">Выберите, к каким SSH-ключам SSH-агент будет иметь доступ</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">Доступ ко всем ключам</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">Фильтры активны</string>
     <string name="pref_item_biometric_unlock_title">Биометрическая разблокировка</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Требовать подтверждение</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Запрашивать дополнительное подтверждение после успешного входа по биометрии</string>
+    <string name="pref_item_yubikey_unlock_title">Разблокировка с помощью YubiKey</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Настроено со слотом <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Настроить слот</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Отключить</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">Запрограммировать слот YubiKey?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Настроить слот <xliff:g id="slot_number" example="1">%1$s</xliff:g> для разблокировки хранилища? Для этой процедуры потребуется USB-подключение.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Слот <xliff:g id="slot_number" example="1">%1$s</xliff:g> уже настроен. Повторная конфигурация потребует USB-подключения и перезапишет текущие настройки слота.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -1195,10 +1221,10 @@
     <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Автосохранение информации приложения или сайта</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
-    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_block_uri_title">Блокировка автозаполнения</string>
+    <string name="pref_item_autofill_block_uri_text">Запрещает предлагать автозаполнение для этих URI</string>
+    <string name="pref_item_autofill_privileged_apps_title">Привилегированные приложения</string>
+    <string name="pref_item_autofill_privileged_apps_text">Привилегированные приложения могут запрашивать учетные данные от имени других сервисов</string>
     <string name="pref_item_clipboard_auto_clear_title">Автоматически очищать буфер обмена</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Немедленно</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Никогда</string>
@@ -1209,7 +1235,7 @@
     <string name="pref_item_premium_membership_title">О членстве в Keyguard</string>
     <string name="pref_item_premium_membership_text">Премиум открывает дополнительные возможности и финансирует разработку приложения. Спасибо за вашу поддержку! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Подписки</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Ваша подписка будет автоматически продлена за 24 часа до её окончания, средства за подписку будет сняты с вашей учетной записи в Google Play. Ви можете настроить автоматическое продление и отменить подписку в любой момент. На первую подписку вам может быть предложен бесплатный пробный период, за который не будут сняты средства, если подписка будет отменена до её окончания.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Ваша подписка будет автоматически продлена за 24 часа до её окончания; средства за подписку будут списаны с вашей учетной записи в Google Play. Вы можете настроить автоматическое продление и отменить подписку в любой момент. К первой подписке может прилагаться бесплатный пробный период, за который не будут сняты средства, если подписка отменена до его окончания.</string>
     <string name="pref_item_premium_membership_section_products_title">Товары</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Не удалось загрузить список подписок</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Не удалось загрузить список товаров</string>

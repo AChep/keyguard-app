@@ -9,9 +9,9 @@
     <string name="show_keyguard">إظهار سلاح المفاتيح</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">الاسم</string>
-    <string name="description">Description</string>
+    <string name="description">الوصف</string>
     <string name="account_name">اسم الحساب</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">اسم قاعدة البيانات</string>
     <string name="enabled">مفعّل</string>
     <string name="disabled">معطّل</string>
     <string name="wordlist">قائمة الكلمات</string>
@@ -21,7 +21,7 @@
     <string name="current_password">كلمة المرور الحالية</string>
     <string name="new_password">كلمة السر الجديدة</string>
     <string name="no_password">لا كلمة المرور</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">خيارات متقدمة</string>
     <string name="email">البريد الإلكتروني</string>
     <string name="email_verified">تم التحقق</string>
     <string name="email_not_verified">لم يتم التحقق منها</string>
@@ -31,7 +31,7 @@
     <string name="conceal_value">إخفاء القيمة</string>
     <string name="field_label">تصنيف</string>
     <string name="field_value">القيمة</string>
-    <string name="tag_value">Value</string>
+    <string name="tag_value">القيمة</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">عدد الوصول</string>
     <!--
@@ -39,8 +39,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">الحد الأقصى لعدد الوصول</string>
-    <string name="ready_status_beta">Beta</string>
-    <string name="ready_status_alpha">Alpha</string>
+    <string name="ready_status_beta">بيتا</string>
+    <string name="ready_status_alpha">ألفا</string>
     <string name="learn_more">يتعلم أكثر</string>
     <string name="phone_number">رقم الهاتف</string>
     <string name="passport_number">رقم جواز السفر</string>
@@ -92,7 +92,7 @@
     <string name="item_incomplete_text">يفتقد هذا العنصر بعض المعلومات المهمة.</string>
     <string name="item">غرض</string>
     <string name="items">أغراض</string>
-    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> items</string>
+    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> عناصر</string>
     <string name="items_all">جميع العناصر</string>
     <string name="items_empty_label">لا توجد عناصر</string>
     <string name="sends">يرسل</string>
@@ -101,10 +101,10 @@
     <string name="folder">مجلد</string>
     <string name="folders">المجلدات</string>
     <string name="folders_empty_label">لا توجد مجلدات</string>
-    <string name="tag_none">No tag</string>
-    <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tag_none">لا يوجد وسم</string>
+    <string name="tag">وسم</string>
+    <string name="tags">وسوم</string>
+    <string name="tags_empty_label">لا توجد وسوم</string>
     <string name="collection_none">لا يوجد جمع</string>
     <string name="collection">مجموعة</string>
     <string name="collections">المجموعات</string>
@@ -119,7 +119,7 @@
     <string name="category">فئة</string>
     <string name="command">يأمر</string>
     <string name="execute_command">ينفذ</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">اقتراحات مبنية على السياق</string>
     <!-- Add (something) -->
     <string name="add">يضيف</string>
     <string name="add_integration">إضافة التكامل</string>
@@ -142,8 +142,8 @@
     <string name="address1">العنوان سطر 1</string>
     <string name="address2">سطر العنوان 2</string>
     <string name="address3">سطر العنوان 3</string>
-    <string name="ssh_agent">SSH agent</string>
-    <string name="ssh_client">SSH client</string>
+    <string name="ssh_agent">وكيل SSH</string>
+    <string name="ssh_client">عميل SSH</string>
     <string name="rename">إعادة تسمية</string>
     <string name="deletion_date">تاريخ الحذف</string>
     <string name="deletion_date_custom">مخصص</string>
@@ -154,11 +154,11 @@
     <string name="select_file">حدد ملفًا</string>
     <string name="autofill">الملء التلقائي</string>
     <string name="autofill_and_save_uri">الملء التلقائي وحفظ معلومات التطبيق أو موقع الويب</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">بياناتك هي مسؤوليتك.</string>
+    <string name="backup_disclaimer_text">لضمان عدم ضياعها أبدًا، اتبع قاعدة النسخ الاحتياطي 3-2-1: احتفظ بثلاث نسخ من قبوك على وسيطي تخزين مختلفين، واحتفظ بنسخة واحدة في مكان منفصل وآمن.</string>
     <string name="passkey">مفتاح المرور</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
+    <string name="credential_login_create_header">إنشاء تسجيل دخول</string>
+    <string name="credential_password_create_header">إنشاء كلمة مرور</string>
     <string name="passkey_create_header">إنشاء مفتاح مرور</string>
     <string name="passkey_unlock_header">فتح قفل المفاتيح</string>
     <string name="passkey_auth_via_header">جارٍ تأكيد طلب المصادقة…</string>
@@ -193,7 +193,7 @@
     <string name="one_time_password">كلمة المرور لمرة واحدة</string>
     <string name="one_time_password_authenticator_key">مفتاح المصادقة</string>
     <string name="passkey_use_short">يستخدم</string>
-    <string name="password_save">Save password</string>
+    <string name="password_save">حفظ كلمة المرور</string>
     <string name="passkey_save">حفظ مفتاح المرور</string>
     <string name="passkey_available">مفتاح المرور متاح</string>
     <string name="twofa_available">المصادقة الثنائية متاحة</string>
@@ -209,16 +209,18 @@
     <string name="requested_verification_email">طلبت رسالة التحقق بالبريد الإلكتروني</string>
     <string name="web_vault">قبو الويب</string>
     <string name="launch_web_vault">إطلاق قبو الويب</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">قبو محلي</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">تذكرنى</string>
+    <!-- An Archive screen -->
+    <string name="archive">أرشيف</string>
     <!-- A Trash screen -->
     <string name="trash">نفاية</string>
     <!-- To download something -->
     <string name="download">تحميل</string>
     <string name="downloads">التنزيلات</string>
-    <string name="downloads_empty_label">لا التنزيلات</string>
-    <string name="duplicates_empty_label">لا التكرارات</string>
+    <string name="downloads_empty_label">لا توجد تنزيلات</string>
+    <string name="duplicates_empty_label">لا توجد تكرارات</string>
     <string name="duplicate">ينسخ</string>
     <string name="regex">التعبير العادي</string>
     <string name="encryption">التشفير</string>
@@ -227,16 +229,16 @@
     <string name="encryption_hash">التجزئة</string>
     <string name="encryption_salt">ملح</string>
     <string name="encryption_algorithm_256bit_aes">256 بت الخدمات المعمارية والهندسية</string>
-    <string name="encryption_random_bits_data">Random <xliff:g id="length" example="64">%1$d</xliff:g>-bits of data</string>
+    <string name="encryption_random_bits_data">بيانات عشوائية بحجم <xliff:g id="length" example="64">%1$d</xliff:g> بت</string>
     <string name="none">لا أحد</string>
     <string name="text">نص</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">تطبيق مرتبط</string>
     <string name="linked_apps">التطبيقات المرتبطة</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">URI مرتبط</string>
     <string name="linked_uris">عناوين URL المرتبطة</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">حقل مخصص</string>
     <string name="custom_fields">الحقول المخصصة</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">تبديل القيمة</string>
     <string name="reveal_secure_note">كشف مذكرة آمنة</string>
     <string name="hide_secure_note">إخفاء ملاحظة آمنة</string>
     <string name="master_password_hint">تلميح كلمة المرور الرئيسية</string>
@@ -246,7 +248,7 @@
     <string name="key_type">نوع المفتاح</string>
     <string name="key_pair">زوج المفاتيح</string>
     <string name="key_ssh">مفتاح SSH</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">يبدو فارغاً هنا. قم بتوليد مفتاح SSH للبدء!</string>
     <string name="fingerprint_phrase">عبارة بصمة</string>
     <string name="fingerprint_phrase_help_title">ما هي بصمة الإصبع؟</string>
     <string name="filter_auth_reprompt_items">إعادة المطالبة بالمصادقة</string>
@@ -255,20 +257,20 @@
     <string name="bitwarden_premium">قسط Bitwarden</string>
     <string name="bitwarden_premium_required">يتطلب قسط Bitwarden</string>
     <string name="bitwarden_unofficial_server">خادم Bitwarden غير الرسمي</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
+    <string name="server_version">إصدار الخادم <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">إصدار قاعدة البيانات <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">مسح</string>
+    <string name="replace_key_file">استبدال ملف المفتاح</string>
+    <string name="select_key_file">تحديد ملف مفتاح</string>
+    <string name="select_database_file">تحديد ملف قاعدة بيانات</string>
+    <string name="replace_database_file">استبدال ملف قاعدة البيانات</string>
+    <string name="open_database">فتح قاعدة بيانات</string>
+    <string name="create_database">إنشاء قاعدة بيانات</string>
+    <string name="qr_wifi_description_text">امسح رمز الاستجابة السريعة هذا باستخدام جهاز آخر للانضمام إلى شبكة Wi-Fi هذه.</string>
+    <string name="qr_generate_button">توليد رمز استجابة سريعة</string>
     <string name="pro_tip">نصيحة احترافية: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">إنشاء بريد إلكتروني فريد لتحسين الخصوصية.</string>
-    <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="account_last_synced_at">آخر مزامنة في <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">تغيير الاسم</string>
     <string name="account_action_change_color_title">تغيير اللون</string>
     <string name="account_action_change_master_password_hint_title">تغيير تلميح كلمة المرور الرئيسية</string>
@@ -300,8 +302,8 @@
     <string name="ciphers_history_empty">لا يوجد تاريخ بعد</string>
     <string name="ciphers_view_details">عرض التفاصيل</string>
     <string name="ciphers_save_to">حفظ ل</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">إضافة مفتاح مرور</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">يستبدل اسم المستخدم وكلمة المرور</string>
     <string name="ciphers_action_add_to_favorites_title">أضف إلى المفضلة</string>
     <string name="ciphers_action_remove_from_favorites_title">إزالة من المفضلة</string>
     <string name="ciphers_action_enable_auth_reprompt_title">تمكين إعادة المطالبة بالمصادقة</string>
@@ -309,7 +311,7 @@
     <string name="ciphers_action_edit_title">يحرر</string>
     <string name="ciphers_action_merge_title">دمج في…</string>
     <string name="ciphers_action_copy_title">نسخ إلى…</string>
-    <string name="ciphers_action_export_title">Export…</string>
+    <string name="ciphers_action_export_title">تصدير…</string>
     <string name="ciphers_action_change_folder_title">الانتقال إلى المجلد</string>
     <string name="ciphers_action_change_name_title">تغيير الاسم</string>
     <string name="ciphers_action_change_names_title">تغيير الأسماء</string>
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">تغيير كلمة المرور</string>
     <string name="ciphers_action_change_passwords_title">تغيير كلمات المرور</string>
     <string name="ciphers_action_view_password_history_title">عرض تاريخ كلمة المرور</string>
+    <string name="ciphers_action_archive_title">أرشفة</string>
+    <string name="ciphers_action_archive_confirmation_title">نقل إلى الأرشيف؟</string>
+    <string name="ciphers_action_unarchive_title">استعادة من الأرشيف</string>
+    <string name="ciphers_action_unarchive_confirmation_title">استعادة من الأرشيف؟</string>
     <string name="ciphers_action_trash_title">نفاية</string>
     <string name="ciphers_action_trash_confirmation_title">نقل إلى سلة المهملات؟</string>
     <string name="ciphers_action_trash_confirmation_text">سيتم حذف العناصر التي ظلت في سلة المهملات لأكثر من 30 يومًا تلقائيًا.</string>
@@ -345,10 +351,10 @@
     <string name="sends_action_show_email_title">إظهار البريد الإلكتروني</string>
     <string name="sends_action_enable_title">فعل</string>
     <string name="sends_action_enable_text">يمكن الوصول إلى الإرسال النشط عبر عنوان URL عام</string>
-    <string name="sends_action_enable_confirmation_title">Activate?</string>
+    <string name="sends_action_enable_confirmation_title">تفعيل؟</string>
     <string name="sends_action_disable_title">إلغاء التنشيط</string>
     <string name="sends_action_disable_text">لا يمكن الوصول إلى الإرسال المعطل عن طريق عنوان URL عام</string>
-    <string name="sends_action_disable_confirmation_title">Deactivate?</string>
+    <string name="sends_action_disable_confirmation_title">تعطيل؟</string>
     <string name="sends_action_disabled_note">تم إلغاء تفعيل هذا الإرسال، ولا يمكن لأحد الوصول إليه.</string>
     <string name="sends_action_delete_title">حذف إلى الأبد</string>
     <string name="sends_action_delete_confirmation_title">هل تريد الحذف نهائيًا؟</string>
@@ -374,7 +380,7 @@
     <string name="uri_action_launch_browser_title">إطلاق المتصفح</string>
     <string name="uri_action_launch_browser_main_page_title">إطلاق الصفحة الرئيسية</string>
     <string name="uri_action_launch_play_store_title">قم بتشغيل متجر Play</string>
-    <string name="uri_action_launch_in_app_title">Launch with <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
+    <string name="uri_action_launch_in_app_title">فتح باستخدام <xliff:g id="app" example="Keyguard">%1$s</xliff:g></string>
     <string name="uri_action_launch_in_smth_title">الانطلاق مع…</string>
     <string name="uri_action_how_to_delete_account_title">كيفية حذف حساب؟</string>
     <string name="uri_action_get_my_data_account_title">كيف أحصل على بياناتي؟</string>
@@ -397,34 +403,34 @@
     <string name="uri_match_detection_regex_note">مطابقة الموارد عن طريق التعبير العادي. خيار متقدم.</string>
     <string name="uri_match_detection_never_title">أبداً</string>
     <string name="uri_match_detection_never_note">تجاهل URI أثناء البحث عن عنصر الملء التلقائي.</string>
-    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> linked to the password</string>
-    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the cardholder name</string>
-    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration month</string>
-    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the expiration year</string>
-    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card code</string>
-    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card brand</string>
-    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the card number</string>
-    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the title</string>
-    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the middle name</string>
-    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (1)</string>
-    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (2)</string>
-    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the address line (3)</string>
-    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the city</string>
-    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the state</string>
-    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the postal code</string>
-    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the country</string>
-    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the company</string>
-    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the email</string>
-    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the phone number</string>
-    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the SSN</string>
-    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the username</string>
-    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the passport number</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the license number</string>
-    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the first name</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the last name</string>
-    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to the full name</string>
-    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> linked to an unknown field</string>
+    <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> مرتبط بكلمة المرور</string>
+    <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط باسم المستخدم</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط باسم حامل البطاقة</string>
+    <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بشهر انتهاء البطاقة</string>
+    <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بسنة انتهاء البطاقة</string>
+    <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط برمز الأمان</string>
+    <string name="field_linked_to_card_brand"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالعلامة التجارية</string>
+    <string name="field_linked_to_card_number"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط برقم البطاقة</string>
+    <string name="field_linked_to_identity_title"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالعنوان</string>
+    <string name="field_linked_to_identity_middlename"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالاسم الأوسط</string>
+    <string name="field_linked_to_identity_address1"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالعنوان سطر 1</string>
+    <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بسطر العنوان 2</string>
+    <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بسطر العنوان 3</string>
+    <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالمدينة</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالولاية</string>
+    <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالرمز البريدي</string>
+    <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالدولة</string>
+    <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالشركة</string>
+    <string name="field_linked_to_identity_email"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالبريد الإلكتروني</string>
+    <string name="field_linked_to_identity_phone"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط برقم الهاتف</string>
+    <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط برقم الضمان الاجتماعي</string>
+    <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط باسم المستخدم</string>
+    <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط برقم جواز السفر</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط برقم السجل/ الرخصة التجارية</string>
+    <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالاسم الأول</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط باسم العائلة</string>
+    <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بالاسم الكامل</string>
+    <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> مرتبط بحقل غير معروف</string>
     <string name="text_action_share_with_title">شارك مع…</string>
     <string name="text_action_send_title">إنشاء إرسال</string>
     <string name="ssh_key_action_save_unencrypted_keys_title">حفظ المفاتيح غير المشفرة</string>
@@ -435,14 +441,14 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">مفتاح خاص غير مشفر تم حفظه في التنزيلات</string>
     <string name="ssh_key_action_add_key_title">إضافة مفاتيح</string>
     <string name="ssh_key_action_replace_key_title">استبدال المفاتيح</string>
-    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
+    <string name="selection_n_selected">تم تحديد <xliff:g id="size" example="15">%1$d</xliff:g></string>
     <string name="copy">ينسخ</string>
     <string name="copy_value">نسخ القيمة</string>
     <string name="copy_url">انسخ عنوان URL</string>
     <string name="copy_uri">انسخ عنوان URL</string>
     <string name="copy_send">نسخ إرسال</string>
     <string name="copy_package_name">انسخ اسم الحزمة</string>
-    <string name="copy_bundle_id">Copy bundle ID</string>
+    <string name="copy_bundle_id">نسخ معرّف الحزمة</string>
     <string name="copy_password">انسخ كلمة المرور</string>
     <string name="copy_username">انسخ اسم المستخدم</string>
     <string name="copy_email">نسخ البريد الإلكتروني</string>
@@ -462,7 +468,7 @@
     <string name="copied_value">تم نسخ قيمة</string>
     <string name="copied_url">تم نسخ عنوان URL</string>
     <string name="copied_uri">تم نسخ URI</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">تم نسخ الوسم</string>
     <string name="copied_package_name">تم نسخ اسم الحزمة</string>
     <string name="copied_key">تم نسخ مفتاح</string>
     <string name="copied_fingerprint">تم نسخ بصمة الإصبع</string>
@@ -479,8 +485,8 @@
     <string name="copied_cvv_code">تم نسخ رمز الأمان</string>
     <string name="copied_otp_code">نسخ كلمة المرور لمرة واحدة</string>
     <string name="copied_otp_secret_code">نسخ مفتاح سري</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">تم العثور على كلمة مرور لمرة واحدة</string>
+    <string name="found_value">تم العثور على قيمة</string>
     <string name="autofill_unlock_keyguard">فتح قفل المفاتيح</string>
     <string name="autofill_open_keyguard">افتح حارس المفاتيح</string>
     <string name="january">يناير</string>
@@ -509,8 +515,8 @@
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
     <string name="fido2webauthn_action_go_title">مصادقة WebAuthn</string>
     <string name="fido2webauthn_action_return_title">العودة إلى التطبيق</string>
-    <string name="expiry_tips_item_line1">This item expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
-    <string name="expiry_tips_card_line1">This card expires on <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. There are a few things you can do to ensure a smooth transition:</string>
+    <string name="expiry_tips_item_line1">ينتهي هذا العنصر في <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>.</string>
+    <string name="expiry_tips_card_line1">تنتهي صلاحية هذه البطاقة في <xliff:g id="date" example="15 May 2024">%1$s</xliff:g>. إليك بعض الخطوات لضمان انتقال سلس:</string>
     <string name="expiry_tips_card_line2">1. احصل على بطاقة جديدة: ربما تكون جهة إصدار بطاقتك قد أرسلت إليك بالفعل بطاقة بديلة بتاريخ انتهاء صلاحية جديد. إذا لم يكن الأمر كذلك، فاتصل بجهة إصدار البطاقة لمعرفة ما إذا كانت تخطط لإرسال بطاقة جديدة إليك ومتى تتوقع ذلك.</string>
     <string name="expiry_tips_card_line3">2. تحديث الدفعات التلقائية: إذا كان لديك أي دفعات تلقائية معدة ببطاقتك، مثل عضوية الصالة الرياضية الشهرية أو اشتراك Netflix، فتأكد من تحديث المعلومات برقم البطاقة الجديدة وتاريخ انتهاء الصلاحية.</string>
     <string name="expiry_tips_card_line4">3. قم بتدمير البطاقة القديمة: بمجرد وصول بطاقتك الجديدة وقمت بتحديث أي معلومات ضرورية، تأكد من التخلص بشكل آمن من البطاقة القديمة منتهية الصلاحية لمنع سرقة الهوية.</string>
@@ -525,42 +531,42 @@
     <string name="error_must_not_be_blank">يجب ألا تكون فارغة</string>
     <string name="error_must_be_custom_domain">يجب أن يكون المجال المخصص</string>
     <string name="error_must_be_number">يجب أن يكون رقما</string>
-    <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from current time</string>
+    <string name="error_must_be_less_than_days">يجب أن يكون أقل من <xliff:g id="days" example="15">%1$d</xliff:g> يومًا من الآن</string>
     <string name="error_must_contain_only_us_ascii_chars">يجب أن يحتوي على أحرف US-ASCII فقط</string>
-    <string name="error_must_have_at_least_n_symbols">Must be at least <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
-    <string name="error_must_have_exactly_n_symbols">Must be <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
+    <string name="error_must_have_at_least_n_symbols">يجب أن لا يقل عن <xliff:g id="length" example="15">%1$d</xliff:g> رموز</string>
+    <string name="error_must_have_exactly_n_symbols">يجب أن يتكون من <xliff:g id="length" example="15">%1$d</xliff:g> رموز بالضبط</string>
     <string name="error_invalid_domain">المجال غير صالح</string>
     <string name="error_invalid_email">بريد إلكتروني غير صالح</string>
     <string name="error_invalid_url">عنوان URL غير صالح</string>
     <string name="error_invalid_uri">عنوان URL غير صالح</string>
     <string name="error_invalid_card_number">رقم البطاقة غير صالح</string>
     <string name="error_incorrect_password">كلمة مرور غير صحيحة</string>
-    <string name="error_not_found">Not found</string>
+    <string name="error_not_found">غير موجود</string>
     <string name="error_otp_key_must_not_be_empty">يجب ألا يكون المفتاح السري لكلمة المرور لمرة واحدة فارغًا</string>
-    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
+    <string name="error_failed_file_already_exists">فشل إنشاء ملف. استبدال ملف موجود غير مسموح به</string>
     <string name="error_failed_generate_kdf_hash_oom">فشل في إنشاء مفتاح، لا توجد ذاكرة كافية. يرجى التحقق من إعدادات خادم KDF الخاص بك.</string>
     <string name="error_failed_generate_otp_code">فشل في إنشاء رمز OTP</string>
     <string name="error_failed_create_passkey">فشل في إنشاء مفتاح مرور</string>
-    <string name="error_failed_create_password">Failed to create a password</string>
+    <string name="error_failed_create_password">فشل إنشاء كلمة مرور</string>
     <string name="error_failed_use_passkey">فشل في اعتماد الطلب</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
+    <string name="error_failed_use_password">فشلت مصادقة الطلب</string>
     <string name="error_failed_open_uri">فشل في فتح URI</string>
     <string name="error_failed_format_placeholder">فشل تنسيق العنصر النائب</string>
     <string name="error_failed_open_app_for">لا يوجد تطبيق مثبت يمكنه التعامل مع هذا الطلب</string>
     <string name="error_failed_unknown">حدث خطأ ما</string>
     <string name="error_failed_encrypt_biometric_key">فشل تشفير المفتاح البيومتري</string>
     <string name="error_failed_decrypt_biometric_key">فشل فك تشفير المفتاح البيومتري</string>
-    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_failed_ssh_agent_start">فشل بدء وكيل SSH</string>
+    <string name="error_credential_calling_app_not_privileged">التطبيق المتصل ليس في قائمة التطبيقات ذات الامتيازات ولا يمكنه طلب المصادقة نيابة عن التطبيقات الأخرى.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">منح الامتياز والمتابعة</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">الثقة في تطبيق ما تسمح له بطلب بيانات الاعتماد لأي خدمة. قد يستخدم تطبيق خبيث هذا لمحاولة سرقة بيانات الاعتماد الخاصة بك.</string>
     <string name="scanqr_title">مسح رمز الاستجابة السريعة</string>
     <string name="scanqr_load_from_image_note">تحميل وتحليل رمز الاستجابة السريعة من ملف صورة.</string>
     <string name="scanqr_camera_permission_required_text">إذن الكاميرا مطلوب لمسح رموز QR.</string>
@@ -618,8 +624,8 @@
     <string name="emailleak_breach_not_found_title">لم يتم العثور على انتهاكات</string>
     <string name="emailleak_breach_found_title">تم العثور على حسابات خرقت</string>
     <string name="emailleak_breach_section">الخروقات</string>
-    <string name="emailleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
-    <string name="emailleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_occurred_at">حدث في <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_reported_at">أُبلغ عنه في <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">فشل في التحقق من خروقات البيانات. قد تكون غير متصل حاليًا</string>
     <string name="passwordleak_title">خرق البيانات</string>
     <string name="passwordleak_note">تستغرق كلمة المرور التي يتم العثور عليها في خروقات البيانات وقتًا أقل بكثير لاختراقها ويجب عدم استخدامها أبدًا.</string>
@@ -667,22 +673,22 @@
     <string name="urloverride_delete_one_confirmation_title">هل تريد حذف تجاوز عنوان URL؟</string>
     <string name="urloverride_delete_many_confirmation_title">هل تريد حذف تجاوزات عنوان URL؟</string>
     <string name="urloverride_empty_label">لا يوجد تجاوزات لعنوان URL</string>
-    <string name="urlblock_header_title">URI block</string>
-    <string name="urlblock_list_header_title">Blocked URIs</string>
-    <string name="urlblock_list_section_title">Blocked URIs</string>
-    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URIs?</string>
-    <string name="urlblock_empty_label">No blocked URIs</string>
-    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
-    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
-    <string name="privilegedapps_empty_label">No privileged apps</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
+    <string name="urlblock_header_title">حظر URI</string>
+    <string name="urlblock_list_header_title">عناوين URI المحظورة</string>
+    <string name="urlblock_list_section_title">عناوين URI المحظورة</string>
+    <string name="urlblock_delete_one_confirmation_title">حذف URI المحظور؟</string>
+    <string name="urlblock_delete_many_confirmation_title">حذف عناوين URI المحظورة؟</string>
+    <string name="urlblock_empty_label">لا توجد عناوين URI محظورة</string>
+    <string name="urlblock_expose_title">كشف البيانات لإطار عمل التعبئة التلقائية قبل فتح القبو</string>
+    <string name="urlblock_expose_text">في حال التفعيل، يتم تخزين العنصر خارج القبو، مما يسمح بإخفاء اقتراحات التعبئة التلقائية تمامًا حتى لو كان القبو مقفلاً.</string>
+    <string name="privilegedapps_header_title">التطبيقات ذات الامتيازات</string>
+    <string name="privilegedapps_list_header_title">التطبيقات ذات الامتيازات</string>
+    <string name="privilegedapps_list_section_title">التطبيقات ذات الامتيازات</string>
+    <string name="privilegedapps_delete_one_confirmation_title">حذف التطبيق ذو الامتيازات؟</string>
+    <string name="privilegedapps_delete_many_confirmation_title">حذف التطبيقات ذات الامتيازات؟</string>
+    <string name="privilegedapps_empty_label">لا توجد تطبيقات ذات امتيازات</string>
+    <string name="privilegedapps_user_apps">تطبيقات المستخدم</string>
+    <string name="privilegedapps_community_apps">تطبيقات المجتمع</string>
     <string name="setup_header_text">قم بإنشاء قبو مشفر حيث سيتم تخزين البيانات المحلية.</string>
     <string name="setup_free_text">من خلال مواصلتك تؤكد أنك اشتريت Keyguard أو حصلت على ترخيص فعلي.</string>
     <string name="setup_field_app_password_label">كلمة مرور التطبيق</string>
@@ -711,7 +717,7 @@
     <string name="additem_merge_remove_origin_ciphers_title">نقل العناصر الأصلية إلى سلة المهملات</string>
     <string name="additem_merge_attachments_note">دمج العناصر لا يدمج مرفقاتها! لن يحتوي العنصر الذي تم إنشاؤه على أي مرفقات مضافة.</string>
     <string name="additem_note_placeholder">أضف أي ملاحظات حول هذا العنصر هنا</string>
-    <string name="additem_markdown_note">Style text with <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> and more. Limited Markdown syntax is supported.</string>
+    <string name="additem_markdown_note">يمكنك تنسيق النص كـ <xliff:g id="italic" example="italic">%1$s</xliff:g> أو <xliff:g id="bold" example="bold">%2$s</xliff:g> وغيرها. يتوفر دعم محدود لنص ماركداون (Markdown).</string>
     <string name="additem_markdown_note_italic">مائل</string>
     <string name="additem_markdown_note_bold">عريض</string>
     <string name="additem_markdown_render_preview">تقديم المعاينة</string>
@@ -723,10 +729,13 @@
     <string name="addsend_hide_text_by_default_title">عند الوصول إلى العنصر، قم بإخفاء النص بشكل افتراضي</string>
     <string name="addsend_hide_email_title">إخفاء عنوان البريد الإلكتروني</string>
     <string name="addsend_max_access_count_note">إذا تم تعيينه، فلن يتمكن المستخدمون من الوصول إلى هذا العنصر بعد الوصول إلى الحد الأقصى لعدد الوصول.</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addsend_auth_emails_label">البريد الإلكتروني</string>
+    <string name="addsend_auth_emails_placeholder">عناوين بريد إلكتروني مفصولة بفواصل</string>
+    <string name="addsend_auth_emails_note">سيُطلب من المستلمين إكمال تحقق بريد إلكتروني لمرة واحدة بعد فتح الرابط.</string>
+    <string name="addaccount_promo_title">قبوك فارغ. قم بربط حساب للبدء:</string>
+    <string name="addaccount_promo_features">هل ترغب في الحصول على أقصى استفادة من تجربتك؟ لقد أوجزنا جميع الميزات الأساسية للتطبيق أدناه. ألق نظرة لتعرف كيف يمكن أن يساعدك.</string>
+    <string name="addaccount_description_short_bitwarden_text">تخزين قبو مشفر في سحابة.</string>
+    <string name="addaccount_description_short_keepass_text">تخزين قبو مشفر محليًا باستخدام صيغة ملف KDBX.</string>
     <string name="addaccount_header_title">إضافة حساب Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">نحن لسنا تابعين أو مرتبطين أو مرخصين أو معتمدين أو مرتبطين رسميًا بأي شكل من الأشكال بشركة Bitwarden, Inc. أو أي من الشركات التابعة لها أو الشركات التابعة لها.</string>
     <!--
@@ -758,11 +767,11 @@
     <string name="addaccount2fa_header_title">تَحَقّق</string>
     <string name="addaccount2fa_unsupported_note">طريقة المصادقة هذه غير مدعومة حتى الآن.</string>
     <string name="addaccount2fa_otp_note">أدخل رمز التحقق من تطبيق المصادقة الخاص بك.</string>
-    <string name="addaccount2fa_email_note">Enter the verification code that was emailed to <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
+    <string name="addaccount2fa_email_note">أدخل رمز التحقق الذي أُرسل إلى <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">أدخل رمز مصادقة YubiKey يدويًا. ضع المؤشر على الحقل أدناه وقم بتشغيل YubiKey.</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_header_title">إضافة حساب KeePass</string>
+    <string name="addkeepass_header_body">احفظ جميع كلمات المرور الخاصة بك في ملف KDBX واحد وعالي التشفير يخزن مباشرة على جهازك. لديك سيطرة كاملة على بياناتك. يمكنك تخزينه على حاسوبك، أو محرك USB، أو مزامنته بنفسك باستخدام خدمة مثل Syncthing، أو Google Drive، أو Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">تنفيذ KeePass لا يزال في مرحلة بيتا وقد لا يكون متوافقًا تمامًا مع عملاء KeePass القياسيين بعد. استخدمه على مسؤوليتك الخاصة. يُرجى التأكد من وجود نسخة احتياطية مصدقة من قاعدة بياناتك قبل المتابعة.</string>
     <string name="provider_2fa_authenticator">الموثق</string>
     <string name="provider_2fa_duo_organization">الثنائي (المؤسسة)</string>
     <string name="provider_2fa_fido2_webauthn">مصادقة الويب FIDO2</string>
@@ -774,7 +783,11 @@
     <string name="yubikey_nfc_title">أمسك YubiKey بشكل مسطح على الجزء الخلفي من جهازك</string>
     <string name="yubikey_nfc_text">يتطلب دعم NFC.</string>
     <string name="yubikey_error_failed_to_read">فشل في قراءة YubiKey</string>
-    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Using FIDO2 WebAuthn requires using the Bitwarden Web vault version <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> or higher. On older versions the authentication result will incorrectly be forwarded to the official Bitwarden app.</string>
+    <string name="yubikey_unlock_error_unsupported_title">فتح القفل باستخدام YubiKey غير مدعوم</string>
+    <string name="yubikey_unlock_error_unsupported_text">جهاز YubiKey هذا أو نوع الاتصال لا يدعم فتح القفل بأسلوب التحدي والاستجابة.</string>
+    <string name="yubikey_unlock_error_failed_title">فشل استخدام YubiKey</string>
+    <string name="yubikey_unlock_error_failed_text">حاول استخدام YubiKey مرة أخرى أو افتح القبو باستخدام كلمة المرور الخاصة بك.</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">يتطلب استخدام FIDO2 WebAuthn إصدار قبو الويب Bitwarden <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> أو أعلى. في الإصدارات القديمة، سيتم توجيه نتيجة المصادقة بشكل غير صحيح إلى تطبيق Bitwarden الرسمي.</string>
     <string name="elevatedaccess_header_title">تأكيد الوصول</string>
     <string name="elevatedaccess_header_text">هذه البيانات محمية، للمتابعة، يرجى إدخال كلمة مرور التطبيق الخاص بك.</string>
     <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
@@ -787,10 +800,14 @@
     <string name="home_watchtower_label">برج المراقبة</string>
     <string name="home_settings_label">إعدادات</string>
     <string name="lock_reason_inactivity">مغلق بسبب عدم النشاط</string>
-    <string name="lock_reason_screen_off">Locked due to screen off</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_screen_off">قُفل بسبب إيقاف الشاشة</string>
+    <string name="lock_reason_manually">قُفل يدويًا</string>
     <string name="send_type_text">نص</string>
     <string name="send_type_file">ملف</string>
+    <string name="send_auth_title">من يمكنه المشاهدة</string>
+    <string name="send_auth_type_none">أي شخص لديه الرابط</string>
+    <string name="send_auth_type_password">أي شخص لديه الرابط + كلمة المرور</string>
+    <string name="send_auth_type_email">أشخاص محددون</string>
     <string name="cipher_type_login">تسجيل الدخول</string>
     <string name="cipher_type_card">بطاقة</string>
     <string name="cipher_type_identity">هوية</string>
@@ -798,13 +815,13 @@
     <string name="cipher_type_ssh_key">مفتاح SSH</string>
     <string name="cipher_type_passkey">مفتاح المرور</string>
     <string name="field_type_text">نص</string>
-    <string name="field_type_text_concealed">Text (concealed)</string>
+    <string name="field_type_text_concealed">نص (مخفي)</string>
     <string name="field_type_boolean">منطقية</string>
     <string name="field_type_linked">مرتبط</string>
     <!--
         Displayed below a password that was exposed in the known data breached. It
         ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
-    <string name="password_pwned_label">Pwned</string>
+    <string name="password_pwned_label">مخترقة</string>
     <string name="password_strength_very_strong_label">قوي جدا</string>
     <string name="password_strength_strong_label">قوي</string>
     <string name="password_strength_good_label">جيد</string>
@@ -824,27 +841,27 @@
     <string name="customfilters_add_filter_title">أضف مرشحًا مخصصًا</string>
     <string name="filter_header_title">فلتر</string>
     <string name="filter_empty_label">لا توجد مرشحات متاحة</string>
-    <string name="ssh_agent_filters_header_title">SSH agent filters</string>
-    <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
-    <string name="ssh_agent_setup_header_title">SSH client setup</string>
-    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
-    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
-    <string name="ssh_agent_setup_option_env_tab">Env</string>
-    <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
-    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
-    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
-    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_filters_header_title">عوامل تصفية وكيل SSH</string>
+    <string name="ssh_agent_filters_note_save_to_apply">ستُطبق التغييرات بعد الضغط على حفظ.</string>
+    <string name="ssh_agent_setup_header_title">إعداد عميل SSH</string>
+    <string name="ssh_agent_setup_intro">قم بإعداد عميل SSH للاتصال بوكيل SSH الخاص بـ Keyguard للسماح له بإجراء المصادقة أو التوقيع باستخدام مفاتيحك المعتمدة دون كشف بيانات المفتاح الخاص.</string>
+    <string name="ssh_agent_setup_step_1_title">1. تفعيل وكيل SSH في Keyguard</string>
+    <string name="ssh_agent_setup_step_1_text">افتح إعدادات الأمان وفعل وكيل SSH.</string>
+    <string name="ssh_agent_setup_step_2_title">2. تكوين عميل SSH الخاص بك</string>
+    <string name="ssh_agent_setup_step_2_text">وجّه عميل SSH الخاص بك إلى مسار مقبس Keyguard.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">مسار بديل: استخدم هذا عندما لا يكون XDG_RUNTIME_DIR متاحًا في جلستك.</string>
+    <string name="ssh_agent_setup_option_env_tab">البيئة</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">التكوين</string>
+    <string name="ssh_agent_setup_option_env_label">قم بتعيين SSH_AUTH_SOCK إلى مسار مقبس Keyguard.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">قم بتعيين IdentityAgent في تكوين SSH الخاص بك.</string>
+    <string name="ssh_agent_setup_step_3_title">3. التحقق</string>
+    <string name="ssh_agent_setup_step_3_text">شغّل هذه الأوامر في نفس جلسة الغلاف (shell session) حيث قمت بتكوين الوكيل.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
-    <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
-    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
-    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
-    <string name="ssh_client_request">SSH client request</string>
+    <string name="ssh_agent_setup_windows_text">لا يتوفر بيئة عمل وكيل SSH الخاصة بـ Keyguard المكتبي حاليًا على نظام Windows، لذا الإعداد هنا للعلم فقط.</string>
+    <string name="ssh_agent_request_approval_sign_title">طلب توقيع SSH</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app">يريد <xliff:g id="who" example="Keyguard">%1$s</xliff:g> استخدام مفتاح SSH التالي لتوقيع البيانات:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">يريد تطبيق ما استخدام مفتاح SSH التالي لتوقيع البيانات:</string>
+    <string name="ssh_client_request">طلب عميل SSH</string>
     <string name="sort_header_title">الترتيب حسب</string>
     <string name="sort_empty_label">لا يوجد فرز متاح</string>
     <string name="sortby_title_title">عنوان</string>
@@ -874,22 +891,23 @@
     <string name="sortby_password_strength_title">قوة كلمة المرور</string>
     <string name="sortby_password_strength_normal_mode">الأضعف أولا</string>
     <string name="sortby_password_strength_reverse_mode">الأقوى أولاً</string>
-    <string name="relative_time_just_now_short">now</string>
-    <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>m ago</string>
-    <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>h ago</string>
-    <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>d ago</string>
-    <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>w ago</string>
+    <string name="relative_time_just_now_short">الآن</string>
+    <string name="relative_time_minute_short">منذ <xliff:g id="minute" example="1">%1$s</xliff:g> دقيقة</string>
+    <string name="relative_time_hour_short">منذ <xliff:g id="hour" example="1">%1$s</xliff:g> ساعة</string>
+    <string name="relative_time_day_short">منذ <xliff:g id="day" example="1">%1$s</xliff:g> يوم</string>
+    <string name="relative_time_week_short">منذ <xliff:g id="week" example="1">%1$s</xliff:g> أسبوع</string>
     <string name="vault_main_search_placeholder">قبو البحث</string>
     <string name="vault_main_new_item_button">عنصر جديد</string>
     <string name="vault_main_no_suggested_items">لا توجد عناصر مقترحة متاحة لهذا السياق</string>
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">رمز الأمان</string>
     <string name="vault_view_saved_to_label">Saved to <xliff:g id="email" example="username@example.com">%1$s</xliff:g> at <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
-    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">حُفظت في <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Password last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Passkey created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Last modified at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Created at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">نُقل للأرشيف في <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Deleted at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Expired at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Expiration scheduled at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -902,9 +920,10 @@
     <string name="vault_view_email_action">بريد إلكتروني</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">الاتجاهات</string>
-    <string name="send_main_header_title">يرسل</string>
-    <string name="send_main_search_placeholder">بحث يرسل</string>
+    <string name="send_main_header_title">الإرسال</string>
+    <string name="send_main_search_placeholder">البحث في الإرسال</string>
     <string name="send_main_new_item_button">عنصر جديد</string>
+    <string name="send_email_is_required_to_access_label">المستلمون الذين أثبتوا ملكية بريدهم الإلكتروني يمكنهم الوصول لهذه المشاركة</string>
     <string name="send_password_is_required_to_access_label">كلمة المرور مطلوبة للوصول إلى هذه المشاركة</string>
     <string name="generator_header_title">مولد</string>
     <string name="generator_header_username_title">مولد اسم المستخدم</string>
@@ -920,8 +939,8 @@
     <string name="generator_passphrase_capitalize_title">الاستفادة من الحروف الكبيرة</string>
     <string name="generator_passphrase_number_title">رقم</string>
     <string name="generator_passphrase_wordlist_title">قائمة الكلمات</string>
-    <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_type">رمز التمرير (PIN)</string>
+    <string name="generator_pin_code_note">يستخدم واحد من كل 10 أشخاص تقريبًا نفس رقم PIN المكون من أربعة أرقام. قم بتوليد أرقام PIN لتجنب الأرقام الشائعة.</string>
     <string name="generator_username_type">اسم المستخدم</string>
     <string name="generator_username_delimiter_title">محدد</string>
     <string name="generator_username_custom_word_title">كلمة مخصصة</string>
@@ -972,7 +991,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">سيؤدي هذا إلى إزالة جميع كلمات المرور من السجل.</string>
     <string name="passwordhistory_delete_one_confirmation_title">هل تريد حذف كلمة المرور من السجل؟</string>
     <string name="passwordhistory_delete_many_confirmation_title">هل تريد حذف كلمات المرور من السجل؟</string>
-    <string name="block_autofill_header_title">Block autofill</string>
+    <string name="block_autofill_header_title">حظر التعبئة التلقائية</string>
     <string name="watchtower_header_title">برج المراقبة</string>
     <string name="watchtower_section_password_strength_label">قوة كلمة المرور</string>
     <string name="watchtower_section_security_label">حماية</string>
@@ -997,8 +1016,8 @@
     <string name="watchtower_item_expiring_items_text">العناصر التي انتهت صلاحيتها أو ستنتهي صلاحيتها قريبًا.</string>
     <string name="watchtower_item_duplicate_websites_title">عناوين URI مكررة</string>
     <string name="watchtower_item_duplicate_websites_text">العناصر التي تحتوي على معرف URI واحد أو أكثر يغطي نفس مواقع الويب بعد تطبيق اكتشاف المطابقة.</string>
-    <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_title">اكتشاف تطابق واسع لعناوين URI</string>
+    <string name="watchtower_item_broad_websites_text">يجب تضييق نطاق العناصر التي تحتوي على واحد أو أكثر من عناوين URI التي تتطابق مع قواعد الاكتشاف.</string>
     <string name="watchtower_item_trashed_items_title">العناصر المحذوفة</string>
     <string name="watchtower_item_trashed_items_text">العناصر التي تم نقلها إلى سلة المهملات. قد يؤدي وجود عدد كبير جدًا من العناصر في سلة المهملات إلى إبطاء العمليات في مخزنك.</string>
     <string name="watchtower_item_empty_folders_title">المجلدات الفارغة</string>
@@ -1007,7 +1026,7 @@
     <string name="watchtower_item_duplicate_items_text">يساعدك على تحديد وإزالة العناصر المكررة في قبو الخاص بك.</string>
     <string name="watchtower_item_compromised_accounts_title">الحسابات المخترقة</string>
     <string name="watchtower_item_compromised_accounts_text">التحقق من خروقات البيانات عن طريق اسم المستخدم أو عنوان البريد الإلكتروني.</string>
-    <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
+    <string name="watchtower_notification_new_alerts_title">تنبيهات المراقب الجديدة</string>
     <string name="watchtower_alerts_header_title">تنبيهات برج المراقبة الجديدة</string>
     <string name="watchtower_mark_all_as_read_title">وضع علامة على الكل كمقروءة</string>
     <string name="changepassword_header_title">تغيير كلمة مرور التطبيق</string>
@@ -1020,7 +1039,7 @@
     <string name="changepassword_password_changed_successfully">تم تغيير كلمة المرور بنجاح</string>
     <string name="exportaccount_header_title">تصدير العناصر</string>
     <string name="exportaccount_password_label">كلمة مرور الأرشيف</string>
-    <string name="exportaccount_format_note">تصدير الخزنة كأرشيف ZIP مشفر.</string>
+    <string name="exportaccount_format_note">تصدير القبو كأرشيف ZIP مشفر.</string>
     <string name="exportaccount_attachments_note">سيتم إبقاء Vault مفتوحًا أثناء عملية التصدير. تتم الإشارة إلى المرفقات في بيانات المخزن. لا يتم تخزين المرفقات أبدًا في شكل غير مشفر أثناء هذه العملية.</string>
     <string name="exportaccount_include_attachments_title">تصدير المرفقات</string>
     <string name="exportaccount_export_button">يصدّر</string>
@@ -1100,7 +1119,7 @@
     <string name="pref_item_color_accent_title">لون خفيف</string>
     <string name="pref_item_color_scheme_title">سمة</string>
     <string name="pref_item_color_scheme_amoled_dark_title">استخدم سمة سوداء متباينة</string>
-    <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
+    <string name="pref_item_color_scheme_expressive_title">استخدام النمط التعبيري</string>
     <string name="pref_item_open_links_in_external_browser_title">فتح الروابط في متصفح خارجي</string>
     <string name="pref_item_close_to_tray_title">بالقرب من علبة النظام</string>
     <string name="pref_item_check_pwned_passwords_title">التحقق من وجود كلمات المرور Pwned</string>
@@ -1131,11 +1150,11 @@
     <string name="pref_item_allow_screenshots_title">السماح بلقطات الشاشة</string>
     <string name="pref_item_allow_screenshots_text_on">اعرض محتوى التطبيق عند التبديل بين التطبيقات الحديثة واسمح بالتقاط الشاشة</string>
     <string name="pref_item_allow_screenshots_text_off">إخفاء محتوى التطبيق عند التبديل بين التطبيقات الحديثة ومنع التقاط الشاشة</string>
-    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
-    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
-    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
-    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
-    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
+    <string name="pref_item_allow_screenshots_badge">لقطات الشاشة مسموحة، اضغط للتعطيل</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">تم تعطيل لقطات الشاشة</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">معطل</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">مسموح، مع إشارة مرئية</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">مسموح</string>
     <string name="pref_item_data_safety_title">سلامة البيانات</string>
     <string name="pref_item_logs_title">سجلات</string>
     <string name="pref_item_lock_vault_title">قفل قبو</string>
@@ -1153,21 +1172,28 @@
     <string name="pref_item_permissions_title">الأذونات</string>
     <string name="pref_item_features_overview_title">نظرة عامة على الميزات</string>
     <string name="pref_item_url_override_title">تجاوزات URL</string>
-    <string name="pref_item_ssh_agent_title">SSH agent</string>
-    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
-    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
-    <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
-    <string name="pref_item_ssh_agent_status_starting">Starting</string>
-    <string name="pref_item_ssh_agent_status_ready">Ready</string>
-    <string name="pref_item_ssh_agent_status_failed">Failed</string>
-    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
-    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
-    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
-    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
-    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
+    <string name="pref_item_ssh_agent_title">وكيل SSH</string>
+    <string name="pref_item_ssh_agent_text">قم بمصادقة عملاء Git و SSH الخاصين بك دون تمكين هؤلاء العملاء من قراءة مفتاحك الخاص</string>
+    <string name="pref_item_ssh_agent_status_unsupported">غير مدعوم</string>
+    <string name="pref_item_ssh_agent_status_stopped">متوقف</string>
+    <string name="pref_item_ssh_agent_status_starting">جارِ البدء</string>
+    <string name="pref_item_ssh_agent_status_ready">جاهز</string>
+    <string name="pref_item_ssh_agent_status_failed">فشل</string>
+    <string name="pref_item_ssh_agent_setup_title">إعداد عميل SSH</string>
+    <string name="pref_item_ssh_agent_filters_title">عوامل تصفية وكيل SSH</string>
+    <string name="pref_item_ssh_agent_filters_text">اختر مفاتيح SSH التي يمكن لوكيل SSH الوصول إليها</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">جميع المفاتيح يمكن الوصول إليها</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">المرشحات فعالة</string>
     <string name="pref_item_biometric_unlock_title">فتح البيومترية</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">تتطلب التأكيد</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">يتطلب النقر على زر تأكيد إضافي بعد المصادقة البيومترية الناجحة</string>
+    <string name="pref_item_yubikey_unlock_title">فتح القفل باستخدام YubiKey</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">تم التكوين مع الفتحة <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">تكوين فتحة</string>
+    <string name="pref_item_yubikey_unlock_disable_title">تعطيل</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">هل تريد تكوين فتحة YubiKey؟</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">هل تريد تكوين الفتحة <xliff:g id="slot_number" example="1">%1$s</xliff:g> لفتح القبو؟ الإعداد يتطلب اتصال USB.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">الفتحة <xliff:g id="slot_number" example="1">%1$s</xliff:g> مكونة مسبقًا. إعادة التكوين تتطلب اتصال USB وستحل محل تكوين الفتحة الحالية.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -1192,13 +1218,13 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">لاحظ أن بعض مواقع الويب تشتهر بتعطيل الملء التلقائي لحقل كلمة المرور، كما تشتهر بعض المتصفحات بتجاهل علامة تعطيل الملء التلقائي</string>
     <string name="pref_item_autofill_save_request_title">اطلب حفظ البيانات</string>
     <string name="pref_item_autofill_save_request_text">يطلب تحديث القبو عند اكتمال ملء النموذج</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">دعم مفاتيح المرور</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">يعلن عن دعم مفتاح المرور لمدير بيانات الاعتماد، مما يسمح للتطبيق بتلبية الطلبات</string>
     <string name="pref_item_autofill_auto_save_source_title">الحفظ التلقائي لمعلومات التطبيق أو موقع الويب</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
-    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_block_uri_title">حظر التعبئة التلقائية</string>
+    <string name="pref_item_autofill_block_uri_text">يمنع تقديم التعبئة التلقائية لعناوين URI هذه</string>
+    <string name="pref_item_autofill_privileged_apps_title">التطبيقات ذات الامتيازات</string>
+    <string name="pref_item_autofill_privileged_apps_text">التطبيقات ذات الامتيازات يمكنها تقديم طلبات بيانات الاعتماد نيابة عن خدمات أخرى</string>
     <string name="pref_item_clipboard_auto_clear_title">مسح الحافظة تلقائيا</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">في الحال</string>
     <string name="pref_item_clipboard_auto_clear_never_text">أبداً</string>
@@ -1265,7 +1291,7 @@
     <string name="feat_item_duplicate_items_title">العناصر المكررة</string>
     <string name="feat_item_duplicate_items_text">البحث عن العناصر المكررة ودمجها.</string>
     <string name="feat_section_misc_title">متنوعات</string>
-    <string name="feat_item_multi_selection_title">Multi-selection</string>
+    <string name="feat_item_multi_selection_title">اختيار متعدد</string>
     <string name="feat_item_multi_selection_text">دمج الأصفار، وربط إعادة البناء بالعمليات المجمعة.</string>
     <string name="feat_item_show_barcode_title">إظهار كرمز شريطي</string>
     <string name="feat_item_show_barcode_text">تشفير النص كرموز شريطية مختلفة.</string>

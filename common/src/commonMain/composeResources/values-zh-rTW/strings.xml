@@ -212,6 +212,8 @@
     <string name="local_vault">本地密碼庫</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">記住登入狀態</string>
+    <!-- An Archive screen -->
+    <string name="archive">Archive</string>
     <!-- A Trash screen -->
     <string name="trash">丟棄</string>
     <!-- To download something -->
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">修改密碼</string>
     <string name="ciphers_action_change_passwords_title">修改密碼</string>
     <string name="ciphers_action_view_password_history_title">檢視歷史密碼</string>
+    <string name="ciphers_action_archive_title">Archive</string>
+    <string name="ciphers_action_archive_confirmation_title">Move to archive?</string>
+    <string name="ciphers_action_unarchive_title">Restore from archive</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Restore from archive?</string>
     <string name="ciphers_action_trash_title">回收站</string>
     <string name="ciphers_action_trash_confirmation_title">移至回收站？</string>
     <string name="ciphers_action_trash_confirmation_text">回收站中超過 30 天的專案將會被自動刪除。</string>
@@ -723,6 +729,9 @@
     <string name="addsend_hide_text_by_default_title">訪問條目時，將預設隱藏文字</string>
     <string name="addsend_hide_email_title">隱藏電子郵件地址</string>
     <string name="addsend_max_access_count_note">設定後，當達到最大訪問次數時使用者將不再能夠訪問此條目。</string>
+    <string name="addsend_auth_emails_label">Email(s)</string>
+    <string name="addsend_auth_emails_placeholder">Comma-separated emails</string>
+    <string name="addsend_auth_emails_note">Recipients will be asked to complete a one-time email verification after opening the link.</string>
     <string name="addaccount_promo_title">您的密碼庫是空的。連線到一個帳號開始：</string>
     <string name="addaccount_promo_features">想取得最佳體驗？我們已在下方未您列出了該應用程式所有主要的功能。請檢視以下內容，了解它如何為您服務。</string>
     <string name="addaccount_description_short_bitwarden_text">將加密的密碼庫存到雲端。</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">將您的 YubiKey 平放在裝置背部的 NFC識別區域</string>
     <string name="yubikey_nfc_text">需要 NFC 支援。</string>
     <string name="yubikey_error_failed_to_read">讀取 YubiKey 失敗</string>
+    <string name="yubikey_unlock_error_unsupported_title">YubiKey unlock is not supported</string>
+    <string name="yubikey_unlock_error_unsupported_text">This YubiKey or connection type does not support challenge-response unlock.</string>
+    <string name="yubikey_unlock_error_failed_title">Failed to use YubiKey</string>
+    <string name="yubikey_unlock_error_failed_text">Try the YubiKey again or unlock the vault with your password.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">使用 FIDO2 WebAuthn 需要使用 Bitwarden 網頁密碼庫 <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> 或更高版本。在舊版本上，驗證結果將錯誤地轉發到 Bitwarden 官方應用程式。</string>
     <string name="elevatedaccess_header_title">確認訪問</string>
     <string name="elevatedaccess_header_text">此資料已被加密，請輸入您的應用專用密碼以繼續。</string>
@@ -791,6 +804,10 @@
     <string name="lock_reason_manually">手動鎖定</string>
     <string name="send_type_text">文字</string>
     <string name="send_type_file">檔案</string>
+    <string name="send_auth_title">Who can view</string>
+    <string name="send_auth_type_none">Anyone with the link</string>
+    <string name="send_auth_type_password">Anyone with the link + password</string>
+    <string name="send_auth_type_email">Specific people</string>
     <string name="cipher_type_login">登入</string>
     <string name="cipher_type_card">卡片</string>
     <string name="cipher_type_identity">身份</string>
@@ -890,6 +907,7 @@
     <string name="vault_view_passkey_created_at_label">通行金鑰創建於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">最後修改於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">創建於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Archived at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">刪除於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">過期於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">於 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g> 過期</string>
@@ -905,6 +923,7 @@
     <string name="send_main_header_title">傳送</string>
     <string name="send_main_search_placeholder">搜尋 Sends</string>
     <string name="send_main_new_item_button">新專案</string>
+    <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">需要密碼以訪問此共享</string>
     <string name="generator_header_title">生成器</string>
     <string name="generator_header_username_title">使用者名稱生成器</string>
@@ -1170,6 +1189,13 @@
     <string name="pref_item_biometric_unlock_title">生物識別解鎖</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">需要確認</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">需要在成功的生物識別認證後點擊額外的確認按鈕</string>
+    <string name="pref_item_yubikey_unlock_title">YubiKey unlock</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Configured with slot <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Provision slot</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Disable</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">Provision YubiKey slot?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock? Setup requires a USB connection.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> is already configured. Re-provisioning requires USB connection and overwrites the current slot configuration.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

@@ -101,10 +101,10 @@
     <string name="folder">フォルダー</string>
     <string name="folders">フォルダー</string>
     <string name="folders_empty_label">フォルダーなし</string>
-    <string name="tag_none">No tag</string>
-    <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tag_none">タグなし</string>
+    <string name="tag">タグ</string>
+    <string name="tags">タグ</string>
+    <string name="tags_empty_label">タグがありません</string>
     <string name="collection_none">コレクションなし</string>
     <string name="collection">コレクション</string>
     <string name="collections">コレクション</string>
@@ -142,8 +142,8 @@
     <string name="address1">住所1</string>
     <string name="address2">住所2</string>
     <string name="address3">住所3</string>
-    <string name="ssh_agent">SSH agent</string>
-    <string name="ssh_client">SSH client</string>
+    <string name="ssh_agent">SSH エージェント</string>
+    <string name="ssh_client">SSH クライアント</string>
     <string name="rename">名前の変更</string>
     <string name="deletion_date">削除した日</string>
     <string name="deletion_date_custom">カスタム</string>
@@ -154,7 +154,7 @@
     <string name="select_file">ファイルを選択</string>
     <string name="autofill">自動入力</string>
     <string name="autofill_and_save_uri">アプリまたはウェブサイトの情報を自動入力して保存</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
+    <string name="backup_disclaimer_title">データはあなた自身の責任で管理してください。</string>
     <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
     <string name="passkey">パスキー</string>
     <string name="credential_login_create_header">Create a login</string>
@@ -173,7 +173,7 @@
         to register and authenticate users. For example "Google" is a relying party.
         https://www.w3.org/TR/webauthn-2/#relying-party
         -->
-    <string name="passkey_relying_party"></string>
+    <string name="passkey_relying_party">証明書利用者</string>
     <!--
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
@@ -212,6 +212,8 @@
     <string name="local_vault">Local vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">記憶する</string>
+    <!-- An Archive screen -->
+    <string name="archive">アーカイブ</string>
     <!-- A Trash screen -->
     <string name="trash">ごみ箱</string>
     <!-- To download something -->
@@ -250,7 +252,7 @@
     <string name="fingerprint_phrase">フィンガープリントフレーズ</string>
     <string name="fingerprint_phrase_help_title">フィンガープリントとは</string>
     <string name="filter_auth_reprompt_items">認証の再要求</string>
-    <string name="filter_pending_items"></string>
+    <string name="filter_pending_items">保留中のアイテム</string>
     <string name="filter_failed_items">失敗</string>
     <string name="bitwarden_premium">Bitwarden プレミアム</string>
     <string name="bitwarden_premium_required">Bitwarden プレミアムが必要です</string>
@@ -267,7 +269,7 @@
     <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">ヒント: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">プライバシー強化のため、一意のメールアドレスを生成します。</string>
+    <string name="pro_tip_generate_email_relay_title">プライバシーを保護するために、一意のメールアドレスを生成しましょう。</string>
     <string name="account_last_synced_at">最終同期時刻: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">名前の変更</string>
     <string name="account_action_change_color_title">色の変更</string>
@@ -301,7 +303,7 @@
     <string name="ciphers_view_details">詳細を表示</string>
     <string name="ciphers_save_to">保存先</string>
     <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">ユーザー名とパスワードを置き換える</string>
     <string name="ciphers_action_add_to_favorites_title">お気に入りに追加</string>
     <string name="ciphers_action_remove_from_favorites_title">お気に入りから削除</string>
     <string name="ciphers_action_enable_auth_reprompt_title">認証の再要求の有効化</string>
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">パスワードの変更</string>
     <string name="ciphers_action_change_passwords_title">パスワードの変更</string>
     <string name="ciphers_action_view_password_history_title">パスワードの履歴を表示</string>
+    <string name="ciphers_action_archive_title">アーカイブ</string>
+    <string name="ciphers_action_archive_confirmation_title">アーカイブに移動しますか？</string>
+    <string name="ciphers_action_unarchive_title">アーカイブから復元</string>
+    <string name="ciphers_action_unarchive_confirmation_title">アーカイブから復元しますか？</string>
     <string name="ciphers_action_trash_title">ごみ箱へ移動</string>
     <string name="ciphers_action_trash_confirmation_title">ごみ箱に移動しますか？</string>
     <string name="ciphers_action_trash_confirmation_text">ごみ箱に入っているアイテムは 30 日以上経過後に自動的に削除されます。</string>
@@ -435,7 +441,7 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">暗号化されていない秘密鍵をダウンロードに保存しました</string>
     <string name="ssh_key_action_add_key_title">キーを追加</string>
     <string name="ssh_key_action_replace_key_title">キーを置換</string>
-    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> 件選択済み</string>
+    <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> 個選択中</string>
     <string name="copy">コピー</string>
     <string name="copy_value">値をコピー</string>
     <string name="copy_url">URL をコピー</string>
@@ -462,7 +468,7 @@
     <string name="copied_value">値をコピーしました</string>
     <string name="copied_url">URL をコピーしました</string>
     <string name="copied_uri">URI をコピーしました</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">タグをコピーしました</string>
     <string name="copied_package_name">パッケージ名をコピーしました</string>
     <string name="copied_key">キーをコピーしました</string>
     <string name="copied_fingerprint">フィンガープリントをコピーしました</string>
@@ -525,7 +531,7 @@
     <string name="error_must_not_be_blank">空にすることはできません</string>
     <string name="error_must_be_custom_domain">カスタムドメインである必要があります</string>
     <string name="error_must_be_number">数字でなければなりません</string>
-    <string name="error_must_be_less_than_days">現在の時刻から <xliff:g id="days" example="15">%1$d</xliff:g> 日未満である必要があります</string>
+    <string name="error_must_be_less_than_days">今から <xliff:g id="days" example="15">%1$d</xliff:g> 日未満である必要があります</string>
     <string name="error_must_contain_only_us_ascii_chars">US-ASCII 文字のみである必要があります</string>
     <string name="error_must_have_at_least_n_symbols">少なくとも<xliff:g id="length" example="15">%1$d</xliff:g>文字以上である必要があります</string>
     <string name="error_must_have_exactly_n_symbols"><xliff:g id="length" example="15">%1$d</xliff:g>文字である必要があります</string>
@@ -550,17 +556,17 @@
     <string name="error_failed_unknown">何らかの問題が発生しました</string>
     <string name="error_failed_encrypt_biometric_key">生体認証キーの暗号化に失敗しました</string>
     <string name="error_failed_decrypt_biometric_key">生体認証キーの復号化に失敗しました</string>
-    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_failed_ssh_agent_start">SSHエージェントの起動に失敗しました</string>
+    <string name="error_credential_calling_app_not_privileged">呼び出し元のアプリは特権アプリケーションのリストに含まれておらず、他のアプリの代わりに認証をリクエストすることはできません。</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">特権を付与して続行する</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">アプリを信頼すると、任意のサービスに対する認証情報をリクエストできるようになります。悪意のあるアプリがこれを悪用して認証情報を盗む可能性があります。</string>
     <string name="scanqr_title">QR コードをスキャン</string>
     <string name="scanqr_load_from_image_note">画像ファイルから QR コードを読み込んで解析します。</string>
     <string name="scanqr_camera_permission_required_text">QR コードのスキャンにはカメラの権限の許可が必要です。</string>
@@ -723,8 +729,11 @@
     <string name="addsend_hide_text_by_default_title">アイテムのアクセス時にデフォルトでテキストを非表示にする</string>
     <string name="addsend_hide_email_title">メールアドレスを隠す</string>
     <string name="addsend_max_access_count_note">設定されている場合、最大アクセス数に達した後にユーザーはこのアイテムにアクセスできなくなります。</string>
+    <string name="addsend_auth_emails_label">メールアドレス</string>
+    <string name="addsend_auth_emails_placeholder">メールアドレス（カンマ区切り）</string>
+    <string name="addsend_auth_emails_note">受信者はリンクを開いた後、1回限りのメール認証を完了する必要があります。</string>
     <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
+    <string name="addaccount_promo_features">アプリの機能を最大限に活用したいですか？以下に主な機能をまとめましたので、どのように役立つかご覧ください。</string>
     <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
     <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
     <string name="addaccount_header_title">Bitwarden アカウントを追加</string>
@@ -761,8 +770,8 @@
     <string name="addaccount2fa_email_note"><xliff:g id="email" example="username@example.com">%1$s</xliff:g> に送信された確認コードを入力してください。</string>
     <string name="addaccount2fa_yubikey_manual_text">YubiKey 認証コードを手動で入力してください。下のフィールドにカーソルを置いて、YubiKey をトリガーしてください。</string>
     <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_header_body">すべてのパスワードを強力に暗号化された1つのKDBXファイルに保存し、デバイス上に直接保管します。データはあなた自身が完全に管理できます。コンピュータやUSBドライブに保存したり、Syncthing、Google ドライブ、Dropboxなどのサービスを使用して自分で同期したりできます。</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePassの実装はまだベータ版であり、標準のKeePassクライアントと完全に互換性がない場合があります。自己責任でご使用ください。続行する前に、検証済みのデータベースのバックアップがあることを確認してください。</string>
     <string name="provider_2fa_authenticator">認証アプリ</string>
     <string name="provider_2fa_duo_organization">Duo (組織)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 ウェブ認証</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">YubiKey をデバイスの背面に平らに当ててください</string>
     <string name="yubikey_nfc_text">NFC の対応が必要です。</string>
     <string name="yubikey_error_failed_to_read">YubiKey の読み取りに失敗しました</string>
+    <string name="yubikey_unlock_error_unsupported_title">YubiKeyによるロック解除はサポートされていません</string>
+    <string name="yubikey_unlock_error_unsupported_text">このYubiKeyまたは接続タイプは、チャレンジ・レスポンスによるロック解除をサポートしていません。</string>
+    <string name="yubikey_unlock_error_failed_title">YubiKeyの操作に失敗しました</string>
+    <string name="yubikey_unlock_error_failed_text">Try the YubiKey again or unlock the vault with your password.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">FIDO2 WebAuthn を使用するには、Butwarden ウェブ保管庫バージョン <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> 以上を使用する必要があります。古いバージョンでは、認証の結果が誤って公式の Bitwarden アプリに転送されます。</string>
     <string name="elevatedaccess_header_title">アクセスの確認</string>
     <string name="elevatedaccess_header_text">このデータは保護されています。続行するには、アプリのパスワードを入力してください。</string>
@@ -787,10 +800,14 @@
     <string name="home_watchtower_label">監視</string>
     <string name="home_settings_label">設定</string>
     <string name="lock_reason_inactivity">ロックされています</string>
-    <string name="lock_reason_screen_off">Locked due to screen off</string>
-    <string name="lock_reason_manually">Locked manually</string>
+    <string name="lock_reason_screen_off">画面オフのためロック中</string>
+    <string name="lock_reason_manually">手動でロック中</string>
     <string name="send_type_text">テキスト</string>
     <string name="send_type_file">ファイル</string>
+    <string name="send_auth_title">アクセスできる人</string>
+    <string name="send_auth_type_none">リンクを知っている全員</string>
+    <string name="send_auth_type_password">リンクとパスワードを知っている全員</string>
+    <string name="send_auth_type_email">特定のユーザー</string>
     <string name="cipher_type_login">ログイン</string>
     <string name="cipher_type_card">カード</string>
     <string name="cipher_type_identity">ID</string>
@@ -824,27 +841,27 @@
     <string name="customfilters_add_filter_title">カスタムフィルターを追加</string>
     <string name="filter_header_title">フィルター</string>
     <string name="filter_empty_label">フィルターは利用できません</string>
-    <string name="ssh_agent_filters_header_title">SSH agent filters</string>
-    <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
-    <string name="ssh_agent_setup_header_title">SSH client setup</string>
-    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
-    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
-    <string name="ssh_agent_setup_option_env_tab">Env</string>
-    <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
-    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
-    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
-    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_filters_header_title">SSHエージェント フィルタ設定</string>
+    <string name="ssh_agent_filters_note_save_to_apply">変更は保存後に適用されます。</string>
+    <string name="ssh_agent_setup_header_title">SSHクライアントのセットアップ</string>
+    <string name="ssh_agent_setup_intro">SSHクライアントをKeyguardのSSHエージェントに接続して設定すると、秘密鍵の情報を外部に公開することなく、承認済みキーで認証や署名を行うことができます。</string>
+    <string name="ssh_agent_setup_step_1_title">1. KeyguardでSSHエージェントを有効化</string>
+    <string name="ssh_agent_setup_step_1_text">セキュリティ設定を開き、SSHエージェントを有効にします。</string>
+    <string name="ssh_agent_setup_step_2_title">2. SSHクライアントの設定</string>
+    <string name="ssh_agent_setup_step_2_text">SSHクライアントにKeyguardのソケットパスを指定します。</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">代替パス: セッションでXDG_RUNTIME_DIRが利用できない場合に使用してください。</string>
+    <string name="ssh_agent_setup_option_env_tab">環境変数</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">設定ファイル</string>
+    <string name="ssh_agent_setup_option_env_label">SSH_AUTH_SOCKをKeyguardのソケットパスに設定します。</string>
+    <string name="ssh_agent_setup_option_identityagent_label">SSH設定ファイルでIdentityAgentを設定します。</string>
+    <string name="ssh_agent_setup_step_3_title">3. 確認</string>
+    <string name="ssh_agent_setup_step_3_text">エージェントを設定したのと同じシェルセッションで、以下のコマンドを実行します。</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
-    <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
-    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
-    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
-    <string name="ssh_client_request">SSH client request</string>
+    <string name="ssh_agent_setup_windows_text">現在、デスクトップ版KeyguardのSSHエージェントはWindowsでは利用できません。以下のセットアップ手順は参考用です。</string>
+    <string name="ssh_agent_request_approval_sign_title">SSH署名リクエスト</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> が以下のSSHキーを使用してデータの署名を行おうとしています：</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">あるアプリケーションが以下のSSHキーを使用してデータの署名を行おうとしています：</string>
+    <string name="ssh_client_request">SSHクライアントリクエスト</string>
     <string name="sort_header_title">並べ替え</string>
     <string name="sort_empty_label">並べ替えは利用できません</string>
     <string name="sortby_title_title">タイトル</string>
@@ -890,6 +907,7 @@
     <string name="vault_view_passkey_created_at_label">パスキー作成日時: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">最終更新時刻: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">作成日時: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">アーカイブ日時：<xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">削除日時: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">有効期限切れ: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">有効期限: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -905,6 +923,7 @@
     <string name="send_main_header_title">Send</string>
     <string name="send_main_search_placeholder">Send を検索</string>
     <string name="send_main_new_item_button">新しいアイテム</string>
+    <string name="send_email_is_required_to_access_label">これにアクセスするには、メール認証を完了した受信者である必要があります。</string>
     <string name="send_password_is_required_to_access_label">この共有にアクセスするにはパスワードが必要です</string>
     <string name="generator_header_title">パスワード生成</string>
     <string name="generator_header_username_title">ユーザー名生成</string>
@@ -921,7 +940,7 @@
     <string name="generator_passphrase_number_title">数字を含める</string>
     <string name="generator_passphrase_wordlist_title">ワードリスト</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Almost one in 10 people use the same four-digit PIN. Generate PINs to avoid common variants.</string>
+    <string name="generator_pin_code_note">約10人に1人が同じ4桁のPINを使用しています。推測されやすい一般的な番号を避けるために、推測が難しいPINを生成しましょう。</string>
     <string name="generator_username_type">ユーザー名</string>
     <string name="generator_username_delimiter_title">区切り文字</string>
     <string name="generator_username_custom_word_title">カスタムワード</string>
@@ -1131,11 +1150,11 @@
     <string name="pref_item_allow_screenshots_title">スクリーンショットを許可</string>
     <string name="pref_item_allow_screenshots_text_on">最近のアプリ画面でアプリのコンテンツを非表示にし、画面キャプチャを許可します。</string>
     <string name="pref_item_allow_screenshots_text_off">最近のアプリ画面でアプリのコンテンツを非表示にし、画面キャプチャを禁止します。</string>
-    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
-    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
-    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
-    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
-    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
+    <string name="pref_item_allow_screenshots_badge">スクリーンショットの撮影が許可されています。タップして無効化できます。</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">スクリーンショットの撮影が無効化されました</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">無効</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">許可（視覚的インジケータ付き）</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">許可</string>
     <string name="pref_item_data_safety_title">データセーフティ</string>
     <string name="pref_item_logs_title">ログ</string>
     <string name="pref_item_lock_vault_title">保管庫をロック</string>
@@ -1153,21 +1172,28 @@
     <string name="pref_item_permissions_title">権限</string>
     <string name="pref_item_features_overview_title">機能の概要</string>
     <string name="pref_item_url_override_title">URL の上書き</string>
-    <string name="pref_item_ssh_agent_title">SSH agent</string>
-    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
-    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
-    <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
-    <string name="pref_item_ssh_agent_status_starting">Starting</string>
-    <string name="pref_item_ssh_agent_status_ready">Ready</string>
-    <string name="pref_item_ssh_agent_status_failed">Failed</string>
-    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
-    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
-    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
-    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
-    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
+    <string name="pref_item_ssh_agent_title">SSHエージェント</string>
+    <string name="pref_item_ssh_agent_text">秘密鍵を公開することなく、GitおよびSSHクライアントとの安全な認証を行います</string>
+    <string name="pref_item_ssh_agent_status_unsupported">サポートされていません</string>
+    <string name="pref_item_ssh_agent_status_stopped">停止</string>
+    <string name="pref_item_ssh_agent_status_starting">起動中</string>
+    <string name="pref_item_ssh_agent_status_ready">準備完了</string>
+    <string name="pref_item_ssh_agent_status_failed">失敗</string>
+    <string name="pref_item_ssh_agent_setup_title">SSHクライアントのセットアップ</string>
+    <string name="pref_item_ssh_agent_filters_title">SSHエージェント フィルタ設定</string>
+    <string name="pref_item_ssh_agent_filters_text">SSHエージェントがアクセス可能なSSHキーを選択します</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">すべてのキーにアクセス可能</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">フィルタ有効</string>
     <string name="pref_item_biometric_unlock_title">生体認証によるロック解除</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">確認を求める</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">生体認証の成功後に追加の確認ボタンのタップを要求します。</string>
+    <string name="pref_item_yubikey_unlock_title">YubiKey ロック解除</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">スロット <xliff:g id="slot_number" example="1">%1$s</xliff:g> に設定済み</string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">スロットの設定</string>
+    <string name="pref_item_yubikey_unlock_disable_title">無効にする</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">YubiKeyスロットを設定しますか？</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock? Setup requires a USB connection.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">スロット <xliff:g id="slot_number" example="1">%1$s</xliff:g> はすでに設定されています。再設定にはUSB接続が必要であり、現在のスロット設定は上書きされます。</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -1192,13 +1218,13 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">一部のウェブサイトではパスワードフィールドの自動入力が無効化されており、一部のブラウザでは自動入力無効化フラグが無視されることに注意してください。</string>
     <string name="pref_item_autofill_save_request_title">データを保存するか尋ねる</string>
     <string name="pref_item_autofill_save_request_text">フォームの入力が完了したときに保管庫を更新するかどうかを尋ねます。</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">パスキーのサポート</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">認証情報マネージャーにパスキーのサポートを通知し、アプリがリクエストを処理できるようにします</string>
     <string name="pref_item_autofill_auto_save_source_title">アプリまたはウェブサイト情報の自動保存</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
+    <string name="pref_item_autofill_block_uri_title">自動入力ブロックリスト</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_title">特権アプリケーション</string>
+    <string name="pref_item_autofill_privileged_apps_text">認証された特権アプリは、他のサービスの代わりに認証情報をリクエストできます</string>
     <string name="pref_item_clipboard_auto_clear_title">クリップボードを自動的に消去</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">即時</string>
     <string name="pref_item_clipboard_auto_clear_never_text">しない</string>

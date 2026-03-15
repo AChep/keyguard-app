@@ -212,6 +212,8 @@
     <string name="local_vault">Helyi széf</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Emlékezzen rám</string>
+    <!-- An Archive screen -->
+    <string name="archive">Archive</string>
     <!-- A Trash screen -->
     <string name="trash">Lomtár</string>
     <!-- To download something -->
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">Jelszó módosítása</string>
     <string name="ciphers_action_change_passwords_title">Jelszavak módosítása</string>
     <string name="ciphers_action_view_password_history_title">Jelszóelőzmények megtekintése</string>
+    <string name="ciphers_action_archive_title">Archive</string>
+    <string name="ciphers_action_archive_confirmation_title">Move to archive?</string>
+    <string name="ciphers_action_unarchive_title">Restore from archive</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Restore from archive?</string>
     <string name="ciphers_action_trash_title">Lomtár</string>
     <string name="ciphers_action_trash_confirmation_title">Áthelyezed a lomtárba?</string>
     <string name="ciphers_action_trash_confirmation_text">A 30 napnál hosszabb ideje a Lomtárban lévő elemek automatikusan törlődnek.</string>
@@ -723,6 +729,9 @@
     <string name="addsend_hide_text_by_default_title">Az elem elérésekor alapértelmezés szerint rejtse el a szöveget</string>
     <string name="addsend_hide_email_title">Email cím elrejtése</string>
     <string name="addsend_max_access_count_note">Amennyiben be van állítva, az elem elérhetetlen lesz, amint eléri a meghatározott hozzáférések számát.</string>
+    <string name="addsend_auth_emails_label">Email(s)</string>
+    <string name="addsend_auth_emails_placeholder">Comma-separated emails</string>
+    <string name="addsend_auth_emails_note">Recipients will be asked to complete a one-time email verification after opening the link.</string>
     <string name="addaccount_promo_title">A széfje üres. Csatlakoztasson egy fiókot a kezdéshez:</string>
     <string name="addaccount_promo_features">Szeretné a legtöbbet kihozni a használatból? Alább összefoglaltuk az alkalmazás összes elsődleges funkcióját. Vessen rá egy pillantást, hogy lássa, hogyan működhet ez az Ön számára.</string>
     <string name="addaccount_description_short_bitwarden_text">Titkosított széf tárolása a felhőben.</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">Tartsa a YubiKey-t laposan a készülék hátuljához</string>
     <string name="yubikey_nfc_text">NFC támogatást igényel.</string>
     <string name="yubikey_error_failed_to_read">Nem sikerült beolvasni a YubiKey-t</string>
+    <string name="yubikey_unlock_error_unsupported_title">YubiKey unlock is not supported</string>
+    <string name="yubikey_unlock_error_unsupported_text">This YubiKey or connection type does not support challenge-response unlock.</string>
+    <string name="yubikey_unlock_error_failed_title">Failed to use YubiKey</string>
+    <string name="yubikey_unlock_error_failed_text">Try the YubiKey again or unlock the vault with your password.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">A FIDO2 WebAuthn használatához a Bitwarden Webes széf <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> vagy magasabb verziója szükséges. A régebbi verziók esetén a hitelesítési eredmény helytelenül kerül továbbításra a hivatalos Bitwarden alkalmazáshoz.</string>
     <string name="elevatedaccess_header_title">Hozzáférés megerősítése</string>
     <string name="elevatedaccess_header_text">Ez az adat védett, a folytatáshoz kérjük, adja meg az alkalmazás jelszavát.</string>
@@ -791,6 +804,10 @@
     <string name="lock_reason_manually">Manuálisan zárolva</string>
     <string name="send_type_text">Szöveg</string>
     <string name="send_type_file">Fájl</string>
+    <string name="send_auth_title">Who can view</string>
+    <string name="send_auth_type_none">Anyone with the link</string>
+    <string name="send_auth_type_password">Anyone with the link + password</string>
+    <string name="send_auth_type_email">Specific people</string>
     <string name="cipher_type_login">Bejelentkezés</string>
     <string name="cipher_type_card">Kártya</string>
     <string name="cipher_type_identity">Személyazonosság</string>
@@ -890,6 +907,7 @@
     <string name="vault_view_passkey_created_at_label">Hozzáférési kulcs létrehozva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Utoljára módosítva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Létrehozva: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Archived at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Törölve lett: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Lejárt ekkor: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Lejárat ütemezve ekkorra: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -905,6 +923,7 @@
     <string name="send_main_header_title">Küldések</string>
     <string name="send_main_search_placeholder">Küldés keresése</string>
     <string name="send_main_new_item_button">Új elem</string>
+    <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">A megosztás eléréséhez jelszó szükséges</string>
     <string name="generator_header_title">Generátor</string>
     <string name="generator_header_username_title">Felhasználónév generátor</string>
@@ -1168,6 +1187,13 @@
     <string name="pref_item_biometric_unlock_title">Biometrikus feloldás</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Megerősítést követelése</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Követeljen meg egy további megerősítő gombnyomást a sikeres biometrikus hitelesítés után</string>
+    <string name="pref_item_yubikey_unlock_title">YubiKey unlock</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Configured with slot <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Provision slot</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Disable</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">Provision YubiKey slot?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock? Setup requires a USB connection.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> is already configured. Re-provisioning requires USB connection and overwrites the current slot configuration.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

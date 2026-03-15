@@ -21,7 +21,7 @@
     <string name="current_password">Aktuelles Passwort</string>
     <string name="new_password">Neues Passwort</string>
     <string name="no_password">Kein Passwort</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">Erweitert</string>
     <string name="email">E-Mail</string>
     <string name="email_verified">Verifiziert</string>
     <string name="email_not_verified">Nicht verifiziert</string>
@@ -65,7 +65,7 @@
     <!-- Shows up instead of a value if a value is an empty text -->
     <string name="empty_value">Leer</string>
     <!-- Social Security Number -->
-    <string name="ssn">SSN</string>
+    <string name="ssn">Sozialversicherungsnummer</string>
     <string name="city">Ort</string>
     <string name="state">Staat/Provinz</string>
     <string name="info">Info</string>
@@ -142,8 +142,8 @@
     <string name="address1">Adresszeile 1</string>
     <string name="address2">Adresszeile 2</string>
     <string name="address3">Adresszeile 3</string>
-    <string name="ssh_agent">SSH agent</string>
-    <string name="ssh_client">SSH client</string>
+    <string name="ssh_agent">SSH-Agent</string>
+    <string name="ssh_client">SSH-Client</string>
     <string name="rename">Umbenennen</string>
     <string name="deletion_date">Löschdatum</string>
     <string name="deletion_date_custom">Benutzerdefiniert</string>
@@ -157,8 +157,8 @@
     <string name="backup_disclaimer_title">Du bist für deine Daten verantwortlich.</string>
     <string name="backup_disclaimer_text">Um sicherzugehen, dass nicht verloren geht, nutze die 3-2-1 Backup Regel: behalte drei Kopien deines Tresors auf zwei verschiedenen Medien Typen, und behalte eine Kopie an einem anderen sicheren Ort.</string>
     <string name="passkey">Passkey</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
+    <string name="credential_login_create_header">Login erstellen</string>
+    <string name="credential_password_create_header">Passwort erstellen</string>
     <string name="passkey_create_header">Passkey erstellen</string>
     <string name="passkey_unlock_header">Keyguard entsperren</string>
     <string name="passkey_auth_via_header">Authentifizierungsanfrage bestätigen…</string>
@@ -193,7 +193,7 @@
     <string name="one_time_password">Einmalpasswort</string>
     <string name="one_time_password_authenticator_key">Authentifizierungsschlüssel</string>
     <string name="passkey_use_short">Nutzen</string>
-    <string name="password_save">Save password</string>
+    <string name="password_save">Passwort speichern</string>
     <string name="passkey_save">Passkey speichern</string>
     <string name="passkey_available">Passkey verfügbar</string>
     <string name="twofa_available">Zwei-Faktor-Authentifizierung verfügbar</string>
@@ -212,6 +212,8 @@
     <string name="local_vault">Lokaler Tresor</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Anmeldedaten speichern</string>
+    <!-- An Archive screen -->
+    <string name="archive">Archiv</string>
     <!-- A Trash screen -->
     <string name="trash">Papierkorb</string>
     <!-- To download something -->
@@ -252,10 +254,10 @@
     <string name="filter_auth_reprompt_items">Authentifizierung erneut anfordern</string>
     <string name="filter_pending_items">Ausstehend</string>
     <string name="filter_failed_items">Fehlgeschlagen</string>
-    <string name="bitwarden_premium">Bitwarden premium</string>
+    <string name="bitwarden_premium">Bitwarden Premium</string>
     <string name="bitwarden_premium_required">Benötigt Bitwarden Premium</string>
     <string name="bitwarden_unofficial_server">Inoffizieller Bitwarden-Server</string>
-    <string name="server_version">Server Version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="server_version">Server-Version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">Datenbank Version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="clear_file">Leeren</string>
     <string name="replace_key_file">Ersetze eine Schlüssel-Datei</string>
@@ -300,8 +302,8 @@
     <string name="ciphers_history_empty">Noch kein Verlauf vorhanden</string>
     <string name="ciphers_view_details">Details anzeigen</string>
     <string name="ciphers_save_to">Speichern unter</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Fügt einen Passkey hinzu</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Ersetzt Benutzername &amp; Passwort</string>
     <string name="ciphers_action_add_to_favorites_title">Zu Favoriten hinzufügen</string>
     <string name="ciphers_action_remove_from_favorites_title">Aus Favoriten entfernen</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Aktiviere Authentifizierungs-Wiederholung</string>
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">Passwort ändern</string>
     <string name="ciphers_action_change_passwords_title">Passwörter ändern</string>
     <string name="ciphers_action_view_password_history_title">Passwortverlauf anzeigen</string>
+    <string name="ciphers_action_archive_title">Archivieren</string>
+    <string name="ciphers_action_archive_confirmation_title">Ins Archiv verschieben?</string>
+    <string name="ciphers_action_unarchive_title">Aus dem Archiv wiederherstellen</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Aus dem Archiv wiederherstellen?</string>
     <string name="ciphers_action_trash_title">Papierkorb</string>
     <string name="ciphers_action_trash_confirmation_title">In den Papierkorb verschieben?</string>
     <string name="ciphers_action_trash_confirmation_text">Einträge, die länger als 30 Tage im Papierkorb waren, werden automatisch gelöscht.</string>
@@ -393,7 +399,7 @@
     <string name="uri_match_detection_startswith_note">Ressourcen anpassen, wenn die erkannte Ressource mit der URL beginnt.</string>
     <string name="uri_match_detection_exact_title">Genau</string>
     <string name="uri_match_detection_exact_note">Ressourcen anpassen, wenn die erkannte Ressource genau mit der URL übereinstimmt.</string>
-    <string name="uri_match_detection_regex_title">Regular expression</string>
+    <string name="uri_match_detection_regex_title">Regulärer Ausdruck</string>
     <string name="uri_match_detection_regex_note">Ressourcen nach regulärem Ausdruck anpassen. Erweiterte Option.</string>
     <string name="uri_match_detection_never_title">Nie</string>
     <string name="uri_match_detection_never_note">Ignoriere URI während der automatischen Elementsuche.</string>
@@ -442,7 +448,7 @@
     <string name="copy_uri">URI kopieren</string>
     <string name="copy_send">Senden kopieren</string>
     <string name="copy_package_name">Paketname kopieren</string>
-    <string name="copy_bundle_id">Copy bundle ID</string>
+    <string name="copy_bundle_id">Bundle-ID kopieren</string>
     <string name="copy_password">Passwort kopieren</string>
     <string name="copy_username">Benutzername kopieren</string>
     <string name="copy_email">E-Mail kopieren</string>
@@ -535,32 +541,32 @@
     <string name="error_invalid_uri">Ungültige URI</string>
     <string name="error_invalid_card_number">Kartennummer ungültig</string>
     <string name="error_incorrect_password">Falsches Passwort</string>
-    <string name="error_not_found">Not found</string>
+    <string name="error_not_found">Nicht gefunden</string>
     <string name="error_otp_key_must_not_be_empty">Einmalkennwort darf nicht leer sein</string>
     <string name="error_failed_file_already_exists">Datei konnte nicht erstellt werden. Das Ersetzen der existierenden Datei ist nicht erlaubt</string>
     <string name="error_failed_generate_kdf_hash_oom">Fehler beim Erstellen eines Schlüssels, nicht genügend Speicher. Bitte überprüfe die KDF-Server-Einstellungen.</string>
     <string name="error_failed_generate_otp_code">Fehler beim Generieren des Einmalpassworts</string>
     <string name="error_failed_create_passkey">Fehler beim Erstellen eines Passkey</string>
-    <string name="error_failed_create_password">Failed to create a password</string>
+    <string name="error_failed_create_password">Passwort konnte nicht erstellt werden</string>
     <string name="error_failed_use_passkey">Anfrage konnte nicht autorisiert werden</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
+    <string name="error_failed_use_password">Anfrage konnte nicht autorisiert werden</string>
     <string name="error_failed_open_uri">Fehler beim Öffnen einer URI</string>
     <string name="error_failed_format_placeholder">Platzhalter konnte nicht formatiert werden</string>
     <string name="error_failed_open_app_for">Keine installierte App kann diese Anfrage bearbeiten</string>
     <string name="error_failed_unknown">Etwas ist schiefgelaufen</string>
     <string name="error_failed_encrypt_biometric_key">Fehler beim Verschlüsseln des biometrischen Schlüssels</string>
     <string name="error_failed_decrypt_biometric_key">Fehler beim Entschlüsseln des biometrischen Schlüssels</string>
-    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_failed_ssh_agent_start">SSH-Agent konnte nicht gestartet werden</string>
+    <string name="error_credential_calling_app_not_privileged">Die aufrufende App steht nicht auf der Liste der privilegierten Apps und kann keine Authentifizierung im Namen anderer Apps anfordern.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Berechtigung erteilen und fortfahren</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Wenn Sie einer App vertrauen, kann diese Anmeldedaten für einen beliebigen Dienst anfordern. Eine böswillige App könnte dies nutzen, um zu versuchen, Ihre Anmeldedaten zu stehlen.</string>
     <string name="scanqr_title">QR-Code scannen</string>
     <string name="scanqr_load_from_image_note">Laden und Analysieren eines QR-Codes aus einer Bilddatei.</string>
     <string name="scanqr_camera_permission_required_text">Kamera-Berechtigung wird benötigt, um die QR-Codes zu scannen.</string>
@@ -648,7 +654,7 @@
     <string name="emailrelay_delete_many_confirmation_title">E-Mail-Weiterleitungen löschen?</string>
     <string name="emailrelay_integration_title">E-Mail-Weiterleitung Integration</string>
     <string name="emailrelay_empty_label">Keine E-Mail Weiterleitungen</string>
-    <string name="emailrelay_base_env_server_url_label">Server URL</string>
+    <string name="emailrelay_base_env_server_url_label">Server-URL</string>
     <string name="emailrelay_base_env_note">Geben Sie die Basis-URL Ihrer selbst gehosteten Installation an.</string>
     <string name="wordlist_list_header_title">Wortlisten</string>
     <string name="wordlist_list_section_title">Wortlisten</string>
@@ -675,14 +681,14 @@
     <string name="urlblock_empty_label">Keine blockierten URIs</string>
     <string name="urlblock_expose_title">Daten vor dem Entsperren des Tresors für das Autofill-Framework freigeben</string>
     <string name="urlblock_expose_text">Wenn diese Option aktiviert ist, wird das Element außerhalb des Tresors gespeichert, sodass die Vorschläge für die automatische Ausfüllung vollständig ausgeblendet werden können, selbst wenn der Tresor gesperrt ist</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
-    <string name="privilegedapps_empty_label">No privileged apps</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
+    <string name="privilegedapps_header_title">Privilegierte Apps</string>
+    <string name="privilegedapps_list_header_title">Privilegierte Apps</string>
+    <string name="privilegedapps_list_section_title">Privilegierte Apps</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Privilegierte App löschen?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Privilegierte Apps löschen?</string>
+    <string name="privilegedapps_empty_label">Keine privilegierten Apps</string>
+    <string name="privilegedapps_user_apps">Benutzer-Apps</string>
+    <string name="privilegedapps_community_apps">Community-Apps</string>
     <string name="setup_header_text">Erstelle einen verschlüsselten Tresor in den lokalen Daten gespeichert werden.</string>
     <string name="setup_free_text">Indem Sie fortfahren bestätigen Sie, dass Sie den Keyguard gekauft haben oder eine aktive Lizenz besitzen.</string>
     <string name="setup_field_app_password_label">App Passwort</string>
@@ -723,6 +729,9 @@
     <string name="addsend_hide_text_by_default_title">Beim Zugriff auf dieses Element, den Text standardmäßig ausblenden</string>
     <string name="addsend_hide_email_title">E-Mail-Adresse ausblenden</string>
     <string name="addsend_max_access_count_note">Wenn aktiviert, können Benutzer nach Erreichen der maximalen Zugriffsanzahl nicht mehr auf dieses Element zugreifen.</string>
+    <string name="addsend_auth_emails_label">E-Mail(s)</string>
+    <string name="addsend_auth_emails_placeholder">Comma-separated emails</string>
+    <string name="addsend_auth_emails_note">Empfänger müssen nach dem Öffnen des Links eine einmalige E-Mail-Verifizierung durchführen.</string>
     <string name="addaccount_promo_title">Dein Tresor ist leer. Verbinde einen Account, um loszulegen:</string>
     <string name="addaccount_promo_features">Möchtest du das Beste aus deiner Erfahrung herausholen? Nachfolgend haben wir alle wichtigen Funktionen der App für Sie zusammengefasst. Sieh sie dir an und schau wie sie dir helfen können.</string>
     <string name="addaccount_description_short_bitwarden_text">Verschlüsselten Tresor in der Cloud speichern.</string>
@@ -752,8 +761,8 @@
     <string name="addaccount_custom_env_section">Benutzerdefinierte Umgebung</string>
     <string name="addaccount_custom_env_note">Sie können die Basis-URL jedes Dienstes unabhängig voneinander angeben.</string>
     <string name="addaccount_custom_env_web_vault_url_label">Web Tresor Server URL</string>
-    <string name="addaccount_custom_env_api_url_label">API Server URL</string>
-    <string name="addaccount_custom_env_icons_url_label">Icons Server URL</string>
+    <string name="addaccount_custom_env_api_url_label">API-Server-URL</string>
+    <string name="addaccount_custom_env_icons_url_label">Icon-Server-URL</string>
     <string name="addaccount_custom_env_identity_url_label">Identitätsserver-URL</string>
     <string name="addaccount2fa_header_title">Verifizierung</string>
     <string name="addaccount2fa_unsupported_note">Diese Authentifizierungsmethode wird noch nicht unterstützt.</string>
@@ -762,7 +771,7 @@
     <string name="addaccount2fa_yubikey_manual_text">Geben Sie den YubiKey Authentifizierungscode manuell ein. Platzieren Sie den Cursor auf das Feld unten und lösen Sie den YubiKey aus.</string>
     <string name="addkeepass_header_title">KeePass Account hinzufügen</string>
     <string name="addkeepass_header_body">Speichere all deine Passwörter in einer einzelnen, hoch-sicheren KDBX Datei direkt auf deinem Gerät. Du hast die komplette Kontrolle über deine Daten. Speichere sie auf deinem Computer, einem USB-Stick, oder synchronisiere sie selber mithilfe von Services wie Syncthing, Google Drive oder Dropbox.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">Die KeePass-Implementierung befindet sich in der Beta-Phase und ist noch nicht vollständig mit standardmäßigen KeePass-Clients kompatibel. Nutzung auf eigene Gefahr. Bitte stellen Sie sicher, dass Sie über ein funktionierendes Backup Ihrer Datenbank verfügen, bevor Sie fortfahren.</string>
     <string name="provider_2fa_authenticator">Authentifikator</string>
     <string name="provider_2fa_duo_organization">Duo (Organisation)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web-Authentifizierung</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">Halte deinen YubiKey flach gegen die Rückseite Ihres Geräts</string>
     <string name="yubikey_nfc_text">Benötigt NFC-Unterstützung.</string>
     <string name="yubikey_error_failed_to_read">Fehler beim Lesen von YubiKey</string>
+    <string name="yubikey_unlock_error_unsupported_title">YubiKey-Entsperrung wird nicht unterstützt</string>
+    <string name="yubikey_unlock_error_unsupported_text">Dieser YubiKey oder Verbindungstyp unterstützt keine Challenge-Response-Entsperrung.</string>
+    <string name="yubikey_unlock_error_failed_title">Fehler bei der YubiKey-Nutzung</string>
+    <string name="yubikey_unlock_error_failed_text">Versuchen Sie es erneut mit dem YubiKey oder entsperren Sie den Tresor mit Ihrem Passwort.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Die Verwendung von FIDO2 WebAuthn erfordert die Verwendung der Bitwarden Web Tresor Version <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> oder höher. Bei älteren Versionen wird das Authentifizierungsergebnis fälschlicherweise an die offizielle Bitwarden App weitergeleitet.</string>
     <string name="elevatedaccess_header_title">Zugriff bestätigen</string>
     <string name="elevatedaccess_header_text">Diese Daten sind geschützt, geben Sie bitte Ihr App-Passwort ein um fortzufahren.</string>
@@ -791,6 +804,10 @@
     <string name="lock_reason_manually">Manuell gesperrt</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Datei</string>
+    <string name="send_auth_title">Wer kann das sehen</string>
+    <string name="send_auth_type_none">Jeder mit dem Link</string>
+    <string name="send_auth_type_password">Jeder mit dem Link + Passwort</string>
+    <string name="send_auth_type_email">Bestimmte Personen</string>
     <string name="cipher_type_login">Login</string>
     <string name="cipher_type_card">Karte</string>
     <string name="cipher_type_identity">Identität</string>
@@ -808,7 +825,7 @@
     <string name="password_strength_very_strong_label">Sehr stark</string>
     <string name="password_strength_strong_label">Stark</string>
     <string name="password_strength_good_label">Gut</string>
-    <string name="password_strength_fair_label">Fair</string>
+    <string name="password_strength_fair_label">Mäßig</string>
     <string name="password_strength_weak_label">Schwach</string>
     <string name="passwords_very_strong_label">Sehr starke Passwörter</string>
     <string name="passwords_strong_label">Starke Passwörter</string>
@@ -824,27 +841,27 @@
     <string name="customfilters_add_filter_title">Benutzerdefinierten Filter hinzufügen</string>
     <string name="filter_header_title">Filter</string>
     <string name="filter_empty_label">Keine Filter verfügbar</string>
-    <string name="ssh_agent_filters_header_title">SSH agent filters</string>
-    <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
-    <string name="ssh_agent_setup_header_title">SSH client setup</string>
-    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
-    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
+    <string name="ssh_agent_filters_header_title">SSH-Agenten-Filter</string>
+    <string name="ssh_agent_filters_note_save_to_apply">Änderungen werden nach dem Speichern übernommen.</string>
+    <string name="ssh_agent_setup_header_title">SSH-Client-Konfiguration</string>
+    <string name="ssh_agent_setup_intro">Richten Sie einen SSH-Client ein, um sich mit dem SSH-Agenten von Keyguard zu verbinden, damit dieser sich mit Ihren genehmigten Schlüsseln authentifizieren oder Daten signieren kann, ohne privates Schlüsselmaterial offenzulegen.</string>
+    <string name="ssh_agent_setup_step_1_title">1. SSH-Agenten in Keyguard aktivieren</string>
+    <string name="ssh_agent_setup_step_1_text">Öffnen Sie die Sicherheitseinstellungen und aktivieren Sie den SSH-Agenten.</string>
+    <string name="ssh_agent_setup_step_2_title">2. Konfigurieren Sie Ihren SSH-Client</string>
+    <string name="ssh_agent_setup_step_2_text">Verweisen Sie Ihren SSH-Client auf den Socket-Pfad von Keyguard.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Alternativer Pfad: Verwenden Sie diesen, wenn XDG_RUNTIME_DIR in Ihrer Sitzung nicht verfügbar ist.</string>
     <string name="ssh_agent_setup_option_env_tab">Env</string>
     <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
-    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
-    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
-    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_option_env_label">Setzen Sie SSH_AUTH_SOCK auf den Socket-Pfad von Keyguard.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">Setzen Sie IdentityAgent in Ihrer SSH-Konfiguration.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Überprüfen</string>
+    <string name="ssh_agent_setup_step_3_text">Führen Sie diese Befehle in derselben Shell-Sitzung aus, in der Sie den Agenten konfiguriert haben.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
+    <string name="ssh_agent_setup_windows_text">Die aktuelle Desktop-SSH-Agent-Laufzeitumgebung von Keyguard ist vorerst nicht unter Windows verfügbar, daher dienen die Einrichtungsschritte hier nur zu Informationszwecken.</string>
     <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
-    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
-    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
-    <string name="ssh_client_request">SSH client request</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> möchte den folgenden SSH-Schlüssel verwenden, um Daten zu signieren:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">Eine Anwendung möchte den folgenden SSH-Schlüssel verwenden, um Daten zu signieren:</string>
+    <string name="ssh_client_request">SSH-Client-Anfrage</string>
     <string name="sort_header_title">Sortieren nach</string>
     <string name="sort_empty_label">Keine Sortierung verfügbar</string>
     <string name="sortby_title_title">Titel</string>
@@ -890,6 +907,7 @@
     <string name="vault_view_passkey_created_at_label">Passkey erstellt am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Zuletzt geändert am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Erstellt am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Archiviert am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Gelöscht am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Abgelaufen am <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Ablaufdatum <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -905,6 +923,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">Sends durchsuchen</string>
     <string name="send_main_new_item_button">Neuer Eintrag</string>
+    <string name="send_email_is_required_to_access_label">Nur Empfänger mit verifizierter E-Mail-Adresse können auf diese Freigabe zugreifen.</string>
     <string name="send_password_is_required_to_access_label">Ein Passwort wird benötigt, um auf diese Freigabe zuzugreifen</string>
     <string name="generator_header_title">Generator</string>
     <string name="generator_header_username_title">Benutzernamengenerator</string>
@@ -1040,7 +1059,7 @@
     <string name="settingssearch_header_subtitle">Einstellungen</string>
     <string name="settingssearch_search_placeholder">Sucheinstellungen</string>
     <string name="settings_appearance_header_title">Erscheinung</string>
-    <string name="settings_autofill_header_title">Autofill</string>
+    <string name="settings_autofill_header_title">Automatisches Ausfüllen</string>
     <string name="settings_dev_header_title">Entwicklung</string>
     <string name="settings_experimental_header_title">Experimentell</string>
     <string name="settings_main_header_title">Einstellungen</string>
@@ -1055,7 +1074,7 @@
     <string name="pref_section_options_title">Optionen</string>
     <string name="pref_item_accounts_title">Konten</string>
     <string name="pref_item_accounts_text">Konten hinzufügen &amp; anzeigen</string>
-    <string name="pref_item_autofill_title">Autofill</string>
+    <string name="pref_item_autofill_title">Automatisches Ausfüllen</string>
     <string name="pref_item_autofill_text">Android Autofill Service</string>
     <string name="pref_item_security_title">Sicherheit</string>
     <string name="pref_item_security_text">Biometrie, Passwort ändern, Tresor Zeitüberschreitung</string>
@@ -1078,7 +1097,7 @@
         The short ref name of the branch or tag that triggered the workflow run.
         This value matches the branch or tag name shown on GitHub.
         -->
-    <string name="pref_item_app_build_ref_title">App Build Ref</string>
+    <string name="pref_item_app_build_ref_title">App-Build-Ref</string>
     <string name="pref_item_app_changelog_title">App Änderungsprotokoll</string>
     <string name="pref_item_app_team_title">Team hinter der App</string>
     <string name="pref_item_reddit_community_title">Reddit-Community</string>
@@ -1131,11 +1150,11 @@
     <string name="pref_item_allow_screenshots_title">Screenshots erlauben</string>
     <string name="pref_item_allow_screenshots_text_on">Zeige den Inhalt der App beim Wechsel zwischen den letzten Apps und erlaubt das Erfassen des Bildschirms</string>
     <string name="pref_item_allow_screenshots_text_off">Den Inhalt der App ausblenden, wenn zwischen den letzten Apps gewechselt wird und verbietet das Erfassen des Bildschirms</string>
-    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
-    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
-    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
-    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
-    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots sind erlaubt; tippen, um sie zu deaktivieren</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots wurden deaktiviert</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Deaktiviert</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Erlaubt, mit visuellem Hinweis</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Erlaubt</string>
     <string name="pref_item_data_safety_title">Datensicherheit</string>
     <string name="pref_item_logs_title">Protokolle</string>
     <string name="pref_item_lock_vault_title">Tresor sperren</string>
@@ -1153,21 +1172,28 @@
     <string name="pref_item_permissions_title">Berechtigungen</string>
     <string name="pref_item_features_overview_title">Feature-Überblick</string>
     <string name="pref_item_url_override_title">URL Überschreibungen</string>
-    <string name="pref_item_ssh_agent_title">SSH agent</string>
-    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
-    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
-    <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
-    <string name="pref_item_ssh_agent_status_starting">Starting</string>
-    <string name="pref_item_ssh_agent_status_ready">Ready</string>
-    <string name="pref_item_ssh_agent_status_failed">Failed</string>
-    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
-    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
-    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
-    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
-    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
+    <string name="pref_item_ssh_agent_title">SSH-Agent</string>
+    <string name="pref_item_ssh_agent_text">Authentifizieren Sie Ihre Git- und SSH-Clients, ohne dass diese jemals Ihren privaten Schlüssel lesen können</string>
+    <string name="pref_item_ssh_agent_status_unsupported">Nicht unterstützt</string>
+    <string name="pref_item_ssh_agent_status_stopped">Angehalten</string>
+    <string name="pref_item_ssh_agent_status_starting">Wird gestartet</string>
+    <string name="pref_item_ssh_agent_status_ready">Bereit</string>
+    <string name="pref_item_ssh_agent_status_failed">Fehler</string>
+    <string name="pref_item_ssh_agent_setup_title">SSH-Client-Konfiguration</string>
+    <string name="pref_item_ssh_agent_filters_title">SSH-Agenten-Filter</string>
+    <string name="pref_item_ssh_agent_filters_text">Wählen Sie aus, welche SSH-Schlüssel für den SSH-Agenten zugänglich sind</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">Alle Schlüssel zugänglich</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">Filter aktiv</string>
     <string name="pref_item_biometric_unlock_title">Biometrisches Entsperren</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Bestätigung erforderlich</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Erfordert eine zusätzliche Bestätigung nach erfolgreicher biometrischer Authentifizierung</string>
+    <string name="pref_item_yubikey_unlock_title">Entsperren mit YubiKey</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Konfiguriert für Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Slot konfigurieren</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Deaktivieren</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">YubiKey-Slot konfigurieren?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Möchten Sie den Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> zum Entsperren des Tresors konfigurieren? Für die Einrichtung ist eine USB-Verbindung erforderlich.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> ist bereits konfiguriert. Die Neukonfiguration erfordert eine USB-Verbindung und überschreibt die aktuelle Slot-Konfiguration.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -1192,13 +1218,13 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Beachten Sie, dass einige Webseiten dafür berüchtigt sind, Autofill für ein Passwortfeld zu deaktivieren sowie einige Browser dafür berüchtigt sind, die Deaktiviert-Markierung für Autofill zu ignorieren</string>
     <string name="pref_item_autofill_save_request_title">Anfrage zum Speichern von Daten</string>
     <string name="pref_item_autofill_save_request_text">Fragt nach der Aktualisierung des Tresors, wenn das Ausfüllen eines Formulars abgeschlossen ist</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkey-Unterstützung</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Gibt die Passkey-Unterstützung an den Credential Manager weiter, damit die App entsprechende Anfragen bearbeiten kann</string>
     <string name="pref_item_autofill_auto_save_source_title">App oder Website-Info automatisch speichern</string>
     <string name="pref_item_autofill_block_uri_title">Autofill blockieren</string>
     <string name="pref_item_autofill_block_uri_text">Verhindert das Anbieten eines Autofills für diese URIs</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_title">Privilegierte Apps</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privilegierte Apps können im Namen anderer Dienste Anmeldedaten anfordern</string>
     <string name="pref_item_clipboard_auto_clear_title">Zwischenablage automatisch löschen</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Sofort</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nie</string>

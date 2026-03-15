@@ -12,7 +12,7 @@
     <string name="listing_description_highlight_offline">离线管理：离线添加项目和发送、修改和查看您的密码库。</string>
     <string name="listing_description_highlight_export">数据导出：导出个人或组织项目，包括附件。</string>
     <string name="listing_description_highlight_generator">生成器：创建密码、SSH 密钥和电子邮件转发器，支持自定义字典。</string>
-    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH 代理：对服务器进行身份验证、签名 Git 提交、与基于 SSH 的服务进行交互。</string>
     <string name="listing_description_highlight_other">高级功能：支持快捷方式、字段占位符、URL 覆盖和智能冲突解决。</string>
     <!-- A content description shown below the Home screenshort, made with the default settings -->
     <string name="listing_screenshot_home_default">主界面</string>

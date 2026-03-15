@@ -11,7 +11,7 @@
     <string name="generic_name">Navn</string>
     <string name="description">Description</string>
     <string name="account_name">Kontonavn</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">Databasenaam</string>
     <string name="enabled">Aktiveret</string>
     <string name="disabled">Deaktiveret</string>
     <string name="wordlist">Ordliste</string>
@@ -21,7 +21,7 @@
     <string name="current_password">Aktuel adgangskode</string>
     <string name="new_password">Ny adgangskode</string>
     <string name="no_password">Ingen adgangskode</string>
-    <string name="advanced_options">Advanced</string>
+    <string name="advanced_options">Geavanceerd</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Bekræftet</string>
     <string name="email_not_verified">Ikke bekræftet</string>
@@ -31,7 +31,7 @@
     <string name="conceal_value">Skjul værdi</string>
     <string name="field_label">Etiket</string>
     <string name="field_value">Værdi</string>
-    <string name="tag_value">Value</string>
+    <string name="tag_value">Waarde</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Adgangsantal</string>
     <!--
@@ -39,8 +39,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">Maks. adgangsantal</string>
-    <string name="ready_status_beta">Beta</string>
-    <string name="ready_status_alpha">Alpha</string>
+    <string name="ready_status_beta">Bèta</string>
+    <string name="ready_status_alpha">Alfa</string>
     <string name="learn_more">Læs mere</string>
     <string name="phone_number">Telefonnummer</string>
     <string name="passport_number">Pasnummer</string>
@@ -119,7 +119,7 @@
     <string name="category">Kategori</string>
     <string name="command">Kommando</string>
     <string name="execute_command">Eksekvér</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">Suggesties op basis van context</string>
     <!-- Add (something) -->
     <string name="add">Tilføj</string>
     <string name="add_integration">Tilføj integration</string>
@@ -154,11 +154,11 @@
     <string name="select_file">Vælg en fil</string>
     <string name="autofill">Autofyld</string>
     <string name="autofill_and_save_uri">Autofyld og gem app- eller webstedsinfo</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">Je gegevens zijn jouw verantwoordelijkheid.</string>
+    <string name="backup_disclaimer_text">Pas de 3-2-1 Back-upregel toe om verlies van je kluis te voorkomen: bewaar drie kopieën op twee verschillende mediatypen en bewaar één kopie op een afzonderlijke, veilige locatie.</string>
     <string name="passkey">Adgangsnøgle</string>
-    <string name="credential_login_create_header">Create a login</string>
-    <string name="credential_password_create_header">Create a password</string>
+    <string name="credential_login_create_header">Maak inloggegevens aan</string>
+    <string name="credential_password_create_header">Maak een wachtwoord aan</string>
     <string name="passkey_create_header">Opret en adgangsnøgle</string>
     <string name="passkey_unlock_header">Oplås Keyguard</string>
     <string name="passkey_auth_via_header">Bekræfter godkendelsesforespørgsel…</string>
@@ -167,17 +167,17 @@
         Signature counter is incremented each time a user uses a passkey. See:
         https://www.w3.org/TR/webauthn-2/#signature-counter
         -->
-    <string name="passkey_signature_counter">Signaturtæller</string>
+    <string name="passkey_signature_counter">Handtekeningenteller</string>
     <!--
         The entity whose web application utilizes the Web Authentication API
         to register and authenticate users. For example "Google" is a relying party.
         https://www.w3.org/TR/webauthn-2/#relying-party
         -->
-    <string name="passkey_relying_party">Afhængige part</string>
+    <string name="passkey_relying_party">Vertrouwende partij</string>
     <!--
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
-    <string name="passkey_discoverable">Opdagelig</string>
+    <string name="passkey_discoverable">Vindbaar</string>
     <string name="passkey_user_username">Brugernavn</string>
     <string name="passkey_user_display_name">Visningsnavn</string>
     <string name="ignored_alerts">Ignorerede advarsler</string>
@@ -209,9 +209,11 @@
     <string name="requested_verification_email">Anmodet om en bekræftelsesmail</string>
     <string name="web_vault">Web-boks</string>
     <string name="launch_web_vault">Start Web-boks</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">Lokale kluis</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Husk mig</string>
+    <!-- An Archive screen -->
+    <string name="archive">Archief</string>
     <!-- A Trash screen -->
     <string name="trash">Papirkurv</string>
     <!-- To download something -->
@@ -230,13 +232,13 @@
     <string name="encryption_random_bits_data">Tilfældige <xliff:g id="length" example="64">%1$d</xliff:g>-bits data</string>
     <string name="none">None</string>
     <string name="text">Tekst</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">Gekoppelde app</string>
     <string name="linked_apps">Linkede apps</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">Gekoppelde URI</string>
     <string name="linked_uris">Linkede URI'er</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">Aangepast veld</string>
     <string name="custom_fields">Tilpassede felter</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">Schakelwaarde in/uit</string>
     <string name="reveal_secure_note">Vis et sikkert notat</string>
     <string name="hide_secure_note">Skjul et sikkert notat</string>
     <string name="master_password_hint">Hovedadgangskodetip</string>
@@ -246,7 +248,7 @@
     <string name="key_type">Nøgletype</string>
     <string name="key_pair">Nøglepar</string>
     <string name="key_ssh">SSH-nøgle</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">Het is hier leeg. Genereer een SSH sleutel om te beginnen!</string>
     <string name="fingerprint_phrase">Fingeraftrykssætning</string>
     <string name="fingerprint_phrase_help_title">Hvad er et fingeraftryk?</string>
     <string name="filter_auth_reprompt_items">Anmod om godkendelse igen</string>
@@ -255,18 +257,18 @@
     <string name="bitwarden_premium">Bitwarden Premium</string>
     <string name="bitwarden_premium_required">Kræver Bitwarden Premium</string>
     <string name="bitwarden_unofficial_server">Uofficiel Bitwarden-server</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="server_version">Serverversie <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Databaseversie <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Wissen</string>
+    <string name="replace_key_file">Vervang een sleutelbestand</string>
+    <string name="select_key_file">Selecteer een sleutelbestand</string>
+    <string name="select_database_file">Selecteer een databasebestand</string>
+    <string name="replace_database_file">Vervang een databasebestand</string>
+    <string name="open_database">Open een database</string>
+    <string name="create_database">Maak een database aan</string>
+    <string name="qr_wifi_description_text">Scan deze QR-code met een ander apparaat om verbinding te maken met dit wifinetwerk.</string>
+    <string name="qr_generate_button">Genereer QR-code</string>
+    <string name="pro_tip">Pro-tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generér unikke e-mails for bedre fortrolighed.</string>
     <string name="account_last_synced_at">Senest synket pr. <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Skift navn</string>
@@ -300,8 +302,8 @@
     <string name="ciphers_history_empty">Ingen historik endnu</string>
     <string name="ciphers_view_details">Vis detaljer</string>
     <string name="ciphers_save_to">Gem som</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
-    <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Voegt een passkey toe</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Vervangt de gebruikersnaam en het wachtwoord</string>
     <string name="ciphers_action_add_to_favorites_title">Føj til favoritter</string>
     <string name="ciphers_action_remove_from_favorites_title">Fjern fra favoritter</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Aktivér gentaget anmodning om godkendelse</string>
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">Skift adgangskode</string>
     <string name="ciphers_action_change_passwords_title">Skift adgangskoder</string>
     <string name="ciphers_action_view_password_history_title">Vis adgangskodehistorik</string>
+    <string name="ciphers_action_archive_title">Archiveren</string>
+    <string name="ciphers_action_archive_confirmation_title">Naar archief verplaatsen?</string>
+    <string name="ciphers_action_unarchive_title">Uit archief herstellen</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Uit archief herstellen?</string>
     <string name="ciphers_action_trash_title">Papirkurv</string>
     <string name="ciphers_action_trash_confirmation_title">Flyt til papirkurv?</string>
     <string name="ciphers_action_trash_confirmation_text">Emner, som har været i papirkurven i flere end 30 dage, slettes automatisk.</string>
@@ -370,7 +376,7 @@
     <string name="website_action_check_data_breach_title">Tjek webstedet i kendte datalæk</string>
     <string name="uri_action_launch_app_title">Start app</string>
     <string name="uri_action_launch_website_title">Start websted</string>
-    <string name="uri_action_launch_docs_title">Start dokumenter</string>
+    <string name="uri_action_launch_docs_title">Docs openen</string>
     <string name="uri_action_launch_browser_title">Start webbrowser</string>
     <string name="uri_action_launch_browser_main_page_title">Start hovedside</string>
     <string name="uri_action_launch_play_store_title">Start Play Butik</string>
@@ -442,7 +448,7 @@
     <string name="copy_uri">Kopiér URI</string>
     <string name="copy_send">Kopiér send</string>
     <string name="copy_package_name">Kopiér pakkenavn</string>
-    <string name="copy_bundle_id">Copy bundle ID</string>
+    <string name="copy_bundle_id">Bundle ID kopiëren</string>
     <string name="copy_password">Kopiér adgangskode</string>
     <string name="copy_username">Kopiér brugernavn</string>
     <string name="copy_email">Kopiér e-mail</string>
@@ -462,7 +468,7 @@
     <string name="copied_value">En værdi er kopieret</string>
     <string name="copied_url">En URL er kopieret</string>
     <string name="copied_uri">En URI er kopieret</string>
-    <string name="copied_tag">Copied a tag</string>
+    <string name="copied_tag">Tag gekopieerd</string>
     <string name="copied_package_name">Et pakkenavn er kopieret</string>
     <string name="copied_key">En nøgle er kopieret</string>
     <string name="copied_fingerprint">Et fingeraftryk er kopieret</string>
@@ -479,8 +485,8 @@
     <string name="copied_cvv_code">En sikkerhedskode er kopieret</string>
     <string name="copied_otp_code">En engangsadgangskode er kopieret</string>
     <string name="copied_otp_secret_code">En hemmelig nøgle er kopieret</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">Eenmalig wachtwoord gevonden</string>
+    <string name="found_value">Waarde gevonden</string>
     <string name="autofill_unlock_keyguard">Oplås Keyguard</string>
     <string name="autofill_open_keyguard">Åbn Keyguard</string>
     <string name="january">Januar</string>
@@ -535,32 +541,32 @@
     <string name="error_invalid_uri">Ugyldig URI</string>
     <string name="error_invalid_card_number">Ugyldigt kortnummer</string>
     <string name="error_incorrect_password">Forkert adgangskode</string>
-    <string name="error_not_found">Not found</string>
+    <string name="error_not_found">Niet gevonden</string>
     <string name="error_otp_key_must_not_be_empty">Engangsadgangskodes hemmelige nøgle er obligatorisk</string>
-    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
+    <string name="error_failed_file_already_exists">Aanmaken van bestand mislukt. Vervangen van een bestaand bestand is niet toegestaan</string>
     <string name="error_failed_generate_kdf_hash_oom">Kunne ikke oprette en nøgle, ikke nok hukommelse. Tjek KDF-serverindstillingerne.</string>
     <string name="error_failed_generate_otp_code">Mislykkedes at generere OTP-kode</string>
     <string name="error_failed_create_passkey">Mislykkedes at oprette en adgangsnøgle</string>
-    <string name="error_failed_create_password">Failed to create a password</string>
+    <string name="error_failed_create_password">Wachtwoord aanmaken mislukt</string>
     <string name="error_failed_use_passkey">Mislykkedes at godkende en anmodning</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
+    <string name="error_failed_use_password">Autoriseren van verzoek mislukt</string>
     <string name="error_failed_open_uri">Mislykkedes at åbne en URI</string>
     <string name="error_failed_format_placeholder">Mislykkedes at formatere pladsholderen</string>
     <string name="error_failed_open_app_for">Ingen installeret app kan håndtere denne anmodning</string>
     <string name="error_failed_unknown">Noget gik galt</string>
     <string name="error_failed_encrypt_biometric_key">Mislykkedes at kryptere den biometriske nøgle</string>
     <string name="error_failed_decrypt_biometric_key">Mislykkedes at dekryptere den biometriske nøgle</string>
-    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
-    <string name="error_credential_calling_app_not_privileged">The calling app is not on the privileged list and can not request authentication on behalf of the other apps.</string>
+    <string name="error_failed_ssh_agent_start">Starten van de SSH agent mislukt</string>
+    <string name="error_credential_calling_app_not_privileged">De aanroepende app staat niet in de lijst met bevoorrechte apps en kan niet namens andere apps om authenticatie vragen.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Verleen voorrecht en ga door</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Door een app te vertrouwen, kan deze om inloggegevens voor elke dienst vragen. Een kwaadaardige app zou dit kunnen gebruiken om je inloggegevens te stelen.</string>
     <string name="scanqr_title">Skan QR-kode</string>
     <string name="scanqr_load_from_image_note">Indlæs og fortolk QR-kode fra billedfil.</string>
     <string name="scanqr_camera_permission_required_text">Kamera-tilladelse kræves for at skanne QR-koderne.</string>
@@ -663,26 +669,26 @@
     <string name="urloverride_header_title">URL-tilsidesættelse</string>
     <string name="urloverride_list_header_title">URL-tilsidesættelser</string>
     <string name="urloverride_list_section_title">URL-tilsidesættelser</string>
-    <string name="urloverride_regex_note">Tilsidesættelsen vil blive anvendt på URL'er matchende det regulære udtryk.</string>
+    <string name="urloverride_regex_note">De override wordt toegepast op URL's die overeenkomen met de reguliere expressie.</string>
     <string name="urloverride_delete_one_confirmation_title">Slet URL-tilsidesættelsen?</string>
     <string name="urloverride_delete_many_confirmation_title">Slet URL-tilsidesættelserne?</string>
     <string name="urloverride_empty_label">Ingen URL-tilsidesættelser</string>
-    <string name="urlblock_header_title">URI block</string>
-    <string name="urlblock_list_header_title">Blocked URIs</string>
-    <string name="urlblock_list_section_title">Blocked URIs</string>
-    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URIs?</string>
-    <string name="urlblock_empty_label">No blocked URIs</string>
-    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
-    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
-    <string name="privilegedapps_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_header_title">Privileged apps</string>
-    <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
-    <string name="privilegedapps_empty_label">No privileged apps</string>
-    <string name="privilegedapps_user_apps">User apps</string>
-    <string name="privilegedapps_community_apps">Community apps</string>
+    <string name="urlblock_header_title">URI-blokkering</string>
+    <string name="urlblock_list_header_title">Geblokkeerde URI's</string>
+    <string name="urlblock_list_section_title">Geblokkeerde URI's</string>
+    <string name="urlblock_delete_one_confirmation_title">De geblokkeerde URI verwijderen?</string>
+    <string name="urlblock_delete_many_confirmation_title">De geblokkeerde URI's verwijderen?</string>
+    <string name="urlblock_empty_label">Geen geblokkeerde URI's</string>
+    <string name="urlblock_expose_title">Gegevens vrijgeven aan het framework voor automatisch invullen vóór het ontgrendelen van de kluis</string>
+    <string name="urlblock_expose_text">Indien ingeschakeld, wordt het item buiten de kluis opgeslagen, waardoor de suggesties voor automatisch invullen volledig kunnen worden verborgen, zelfs als de kluis is vergrendeld</string>
+    <string name="privilegedapps_header_title">Bevoorrechte apps</string>
+    <string name="privilegedapps_list_header_title">Bevoorrechte apps</string>
+    <string name="privilegedapps_list_section_title">Bevoorrechte apps</string>
+    <string name="privilegedapps_delete_one_confirmation_title">De bevoorrechte app verwijderen?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">De bevoorrechte apps verwijderen?</string>
+    <string name="privilegedapps_empty_label">Geen bevoorrechte apps</string>
+    <string name="privilegedapps_user_apps">Gebruikersapps</string>
+    <string name="privilegedapps_community_apps">Community-apps</string>
     <string name="setup_header_text">Opret en krypteret boks, hvor de lokale data lages.</string>
     <string name="setup_free_text">Ved at fortsætte bekræfter man at have købt Keyguard eller at have haft en aktiv licens.</string>
     <string name="setup_field_app_password_label">App-adgangskode</string>
@@ -723,10 +729,13 @@
     <string name="addsend_hide_text_by_default_title">Når emnet tilgås, skjul som standard teksten</string>
     <string name="addsend_hide_email_title">Skjul e-mailadresse</string>
     <string name="addsend_max_access_count_note">Hvis indstillet, vil brugere ikke længere kunne tilgå dette emne, når det maksimale adgangsantal er nået.</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addsend_auth_emails_label">E-mail(s)</string>
+    <string name="addsend_auth_emails_placeholder">Kommagescheiden e-mails</string>
+    <string name="addsend_auth_emails_note">Ontvangers worden gevraagd om een eenmalige e-mailverificatie te voltooien na het openen van de link.</string>
+    <string name="addaccount_promo_title">Je kluis is leeg. Koppel een account om te beginnen:</string>
+    <string name="addaccount_promo_features">Wil je het maximale uit de app halen? Hieronder staan de belangrijkste functies. Kijk hoe het voor je kan werken.</string>
+    <string name="addaccount_description_short_bitwarden_text">Sla je versleutelde kluis op in de cloud.</string>
+    <string name="addaccount_description_short_keepass_text">Sla je versleutelde kluis lokaal op in het KDBX-bestandsformaat.</string>
     <string name="addaccount_header_title">Tilføj Bitwarden-konto</string>
     <string name="addaccount_disclaimer_bitwarden_label">Vi er ikke tilknyttet, associeret, godkendt af eller på nogen måde officielt forbundet med Bitwarden, Inc. eller et af dets datterselskaber eller dettes datterselskaber.</string>
     <!--
@@ -751,18 +760,18 @@
     <string name="addaccount_base_env_note">Angiv basis-URL'en for den selv-hostede Bitwarden-installation.</string>
     <string name="addaccount_custom_env_section">Tilpasset miljø</string>
     <string name="addaccount_custom_env_note">Man kan angive basis-URL'en for hver tjeneste uafhængigt.</string>
-    <string name="addaccount_custom_env_web_vault_url_label">Web-boks server-URL</string>
+    <string name="addaccount_custom_env_web_vault_url_label">Webkluis Server URL</string>
     <string name="addaccount_custom_env_api_url_label">API-server URL</string>
-    <string name="addaccount_custom_env_icons_url_label">Ikonserver-URL</string>
-    <string name="addaccount_custom_env_identity_url_label">Identitetsserver-URL</string>
+    <string name="addaccount_custom_env_icons_url_label">Pictogrammen Server URL</string>
+    <string name="addaccount_custom_env_identity_url_label">Identiteit Server URL</string>
     <string name="addaccount2fa_header_title">Bekræftelse</string>
     <string name="addaccount2fa_unsupported_note">Denne godkendelsesmetode understøttes endnu ikke.</string>
     <string name="addaccount2fa_otp_note">Angiv bekræftelseskoden fra godkendelses-appen.</string>
     <string name="addaccount2fa_email_note">Angiv bekræftelseskoden sendt til <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Angiv YubiKey-godkendelseskoden manuelt. Placér markøren på feltet nedenfor og udløs YubiKey'en.</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_header_title">KeePass-account toevoegen</string>
+    <string name="addkeepass_header_body">Sla al je wachtwoorden op in één, sterk versleuteld KDBX-bestand, direct op je apparaat. Je hebt de volledige controle over je gegevens. Bewaar ze op je computer, een USB-stick of synchroniseer zelf met diensten zoals Syncthing, Google Drive of Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">De KeePass integratie bevindt zich in bèta en is nog niet volledig compatibel met standaard KeePass-clients. Gebruik op eigen risico. Zorg dat je een geverifieerde back-up van je database hebt voordat je verdergaat.</string>
     <string name="provider_2fa_authenticator">Authenticator</string>
     <string name="provider_2fa_duo_organization">Duo (organisation)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web Authentication</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">Hold YubiKey'en fladt mod bagsiden af enheden</string>
     <string name="yubikey_nfc_text">Kræver NFC-understøttelse.</string>
     <string name="yubikey_error_failed_to_read">Mislykkedes at læse YubiKey</string>
+    <string name="yubikey_unlock_error_unsupported_title">YubiKey-ontgrendeling wordt niet ondersteund</string>
+    <string name="yubikey_unlock_error_unsupported_text">Deze YubiKey of het verbindingstype ondersteunt geen challenge-response-ontgrendeling.</string>
+    <string name="yubikey_unlock_error_failed_title">YubiKey gebruiken mislukt</string>
+    <string name="yubikey_unlock_error_failed_text">Probeer de YubiKey opnieuw of ontgrendel de kluis met je wachtwoord.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Brug af FIDO2 WebAuthn kræver minimum Bitwarden Web-boks version <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g>. På ældre versioner videresendes godkendelsesresultatet fejlagtigt til den officielle Bitwarden-app.</string>
     <string name="elevatedaccess_header_title">Bekræft adgang</string>
     <string name="elevatedaccess_header_text">Disse data er beskyttet. Angiv app-adgangskoden for at fortsætte.</string>
@@ -787,10 +800,14 @@
     <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">Indstillinger</string>
     <string name="lock_reason_inactivity">Låst grundet inaktivitet</string>
-    <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_screen_off">Vergrendeld wegens uitschakelen van scherm</string>
     <string name="lock_reason_manually">Låst manuelt</string>
     <string name="send_type_text">Tekst</string>
     <string name="send_type_file">Fil</string>
+    <string name="send_auth_title">Wie het kan bekijken</string>
+    <string name="send_auth_type_none">Iedereen met de link</string>
+    <string name="send_auth_type_password">Iedereen met de link en het wachtwoord</string>
+    <string name="send_auth_type_email">Specifieke personen</string>
     <string name="cipher_type_login">Login</string>
     <string name="cipher_type_card">Kort</string>
     <string name="cipher_type_identity">Identitet</string>
@@ -825,26 +842,26 @@
     <string name="filter_header_title">Filter</string>
     <string name="filter_empty_label">Ingen tilgængelige filtre</string>
     <string name="ssh_agent_filters_header_title">SSH agent filters</string>
-    <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
-    <string name="ssh_agent_setup_header_title">SSH client setup</string>
-    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
-    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
+    <string name="ssh_agent_filters_note_save_to_apply">Wijzigingen zijn van kracht na Opslaan.</string>
+    <string name="ssh_agent_setup_header_title">SSH client instellen</string>
+    <string name="ssh_agent_setup_intro">Stel een SSH client in om verbinding te maken met de SSH agent van Keyguard voor authenticatie of ondertekening met je goedgekeurde sleutels, zonder je privésleutelmateriaal prijs te geven.</string>
+    <string name="ssh_agent_setup_step_1_title">1. SSH agent inschakelen in Keyguard</string>
+    <string name="ssh_agent_setup_step_1_text">Open Beveiligingsinstellingen en schakel SSH agent in.</string>
+    <string name="ssh_agent_setup_step_2_title">2. Je SSH client configureren</string>
+    <string name="ssh_agent_setup_step_2_text">Verwijs je SSH client naar het socket-pad van Keyguard.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Terugvalpad: gebruik dit wanneer XDG_RUNTIME_DIR niet beschikbaar is in je sessie.</string>
     <string name="ssh_agent_setup_option_env_tab">Env</string>
     <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
-    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
-    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
-    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_option_env_label">Stel SSH_AUTH_SOCK in op het socket-pad van Keyguard.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">Stel IdentityAgent in je SSH-configuratie in.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Verifieer</string>
+    <string name="ssh_agent_setup_step_3_text">Voer deze opdrachten uit in dezelfde shell-sessie waar je de agent hebt geconfigureerd.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
-    <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
-    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
-    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
-    <string name="ssh_client_request">SSH client request</string>
+    <string name="ssh_agent_setup_windows_text">De huidige desktop SSH agent voor Keyguard is nog niet beschikbaar op Windows, dus de installatie-informatie hier is alleen informatief.</string>
+    <string name="ssh_agent_request_approval_sign_title">SSH Handtekeningverzoek</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wil je SSH sleutel gebruiken om gegevens te ondertekenen:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">Een toepassing wil je SSH sleutel gebruiken om gegevens te ondertekenen:</string>
+    <string name="ssh_client_request">SSH client verzoek</string>
     <string name="sort_header_title">Sortér efter</string>
     <string name="sort_empty_label">Ingen sortering tilgængelig</string>
     <string name="sortby_title_title">Titel</string>
@@ -885,11 +902,12 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Sikkerhedskode</string>
     <string name="vault_view_saved_to_label">Gemt i <xliff:g id="email" example="username@example.com">%1$s</xliff:g> på <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
-    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Opgeslagen in <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Adgangskode senest ændret pr. <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Adgangsnøgle oprettet pr. <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Senest ændret pr. <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Oprettet pr. <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Gearchiveerd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Slettet pr. <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Udløbet pr. <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Planlagt udløb pr. <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -905,6 +923,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">Søg i sends</string>
     <string name="send_main_new_item_button">Nyt emne</string>
+    <string name="send_email_is_required_to_access_label">Ontvangers met geverifieerde e-mail krijgen toegang tot deze gedeelde link</string>
     <string name="send_password_is_required_to_access_label">Adgangskode kræves for at tilgå denne deling</string>
     <string name="generator_header_title">Generator</string>
     <string name="generator_header_username_title">Brugernavnsgenerator</string>
@@ -1131,11 +1150,11 @@
     <string name="pref_item_allow_screenshots_title">Tillad skærmfotos</string>
     <string name="pref_item_allow_screenshots_text_on">Vis indholdet af appen, når der skiftes mellem seneste apps og tillad skærmoptagelse</string>
     <string name="pref_item_allow_screenshots_text_off">Vis indholdet af appen, når der skiftes mellem seneste apps og forbyd skærmoptagelse</string>
-    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
-    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
-    <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
-    <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
-    <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
+    <string name="pref_item_allow_screenshots_badge">Schermafbeeldingen zijn toegestaan, tik om uit te schakelen</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Schermafbeeldingen zijn uitgeschakeld</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Uitgeschakeld</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Toegestaan, met een visuele aanwijzing</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Toegestaan</string>
     <string name="pref_item_data_safety_title">Datasikkerhed</string>
     <string name="pref_item_logs_title">Logger</string>
     <string name="pref_item_lock_vault_title">Lås boks</string>
@@ -1154,20 +1173,27 @@
     <string name="pref_item_features_overview_title">Funktionsoversigt</string>
     <string name="pref_item_url_override_title">URL-tilsidesættelser</string>
     <string name="pref_item_ssh_agent_title">SSH agent</string>
-    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
-    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
-    <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
-    <string name="pref_item_ssh_agent_status_starting">Starting</string>
-    <string name="pref_item_ssh_agent_status_ready">Ready</string>
-    <string name="pref_item_ssh_agent_status_failed">Failed</string>
-    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
+    <string name="pref_item_ssh_agent_text">Authenticeer uw Git en SSH clients zonder dat die clients uw privésleutel kunnen lezen</string>
+    <string name="pref_item_ssh_agent_status_unsupported">Niet ondersteund</string>
+    <string name="pref_item_ssh_agent_status_stopped">Gestopt</string>
+    <string name="pref_item_ssh_agent_status_starting">Starten</string>
+    <string name="pref_item_ssh_agent_status_ready">Klaar</string>
+    <string name="pref_item_ssh_agent_status_failed">Mislukt</string>
+    <string name="pref_item_ssh_agent_setup_title">SSH client instellen</string>
     <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
-    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
-    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
-    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
+    <string name="pref_item_ssh_agent_filters_text">Kies welke SSH sleutels toegankelijk zijn voor de SSH agent</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">Alle sleutels toegankelijk</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">Filters actief</string>
     <string name="pref_item_biometric_unlock_title">Biometrisk oplåsning</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Kræv bekræftelse</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Kræv et ekstra tryk på bekræftelsesknappen efter biometrisk godkendelse</string>
+    <string name="pref_item_yubikey_unlock_title">YubiKey-ontgrendeling</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Geconfigureerd met slot <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Slot configureren</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Uitschakelen</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">YubiKey-slot configureren?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> configureren voor het ontgrendelen van de kluis? De instelling vereist een USB-verbinding.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> is al geconfigureerd. Opnieuw configureren vereist een USB-verbinding en overschrijft de huidige slotconfiguratie.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -1192,13 +1218,13 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Bemærk, at nogle websteder er kendte for at deaktivere autofyld for adgangskodefelter, samt at nogle webbrowsere er kendte for at ignorere autofyld deaktiveret-flaget</string>
     <string name="pref_item_autofill_save_request_title">Spørg om at gemme data</string>
     <string name="pref_item_autofill_save_request_text">Spørger om opdatering af boksen, når udfyldelsen af en formular er afsluttet</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkey-ondersteuning</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Kondigt passkey-ondersteuning aan bij de Credential Manager, waardoor de app verzoeken kan inwilligen</string>
     <string name="pref_item_autofill_auto_save_source_title">Autogem app- eller webstedsinfo</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
-    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
-    <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_block_uri_title">Automatisch invullen blokkeren</string>
+    <string name="pref_item_autofill_block_uri_text">Voorkomt dat u automatisch aanvullen voor deze URI's aanbiedt</string>
+    <string name="pref_item_autofill_privileged_apps_title">Bevoorrechte apps</string>
+    <string name="pref_item_autofill_privileged_apps_text">Bevoorrechte apps kunnen inlogverzoeken indienen namens andere diensten</string>
     <string name="pref_item_clipboard_auto_clear_title">Ryd automatisk udklipsholder</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Straks</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Aldrig</string>

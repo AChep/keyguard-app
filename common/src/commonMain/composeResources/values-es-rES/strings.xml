@@ -95,7 +95,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elementos</string>
     <string name="items_all">Todos los elementos</string>
     <string name="items_empty_label">Sin elementos</string>
-    <string name="sends">Sends</string>
+    <string name="sends">Envíos</string>
     <string name="folder_none">Sin carpeta</string>
     <string name="folder_new">Nueva carpeta</string>
     <string name="folder">Carpeta</string>
@@ -129,7 +129,7 @@
     <string name="account_none">Sin cuenta</string>
     <string name="type">Tipo</string>
     <string name="options">Opciones</string>
-    <string name="send">Send</string>
+    <string name="send">Envío</string>
     <string name="reset">Restablecer</string>
     <string name="length">Longitud</string>
     <string name="security">Seguridad</string>
@@ -142,8 +142,8 @@
     <string name="address1">Dirección (línea 1)</string>
     <string name="address2">Dirección (línea 2)</string>
     <string name="address3">Dirección (línea 3)</string>
-    <string name="ssh_agent">SSH agent</string>
-    <string name="ssh_client">SSH client</string>
+    <string name="ssh_agent">Agente SSH</string>
+    <string name="ssh_client">Cliente SSH</string>
     <string name="rename">Renombrar</string>
     <string name="deletion_date">Fecha de eliminación</string>
     <string name="deletion_date_custom">Personalizado</string>
@@ -212,6 +212,8 @@
     <string name="local_vault">Caja fuerte local</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Recordarme</string>
+    <!-- An Archive screen -->
+    <string name="archive">Archivo</string>
     <!-- A Trash screen -->
     <string name="trash">Basura</string>
     <!-- To download something -->
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">Cambiar contraseña</string>
     <string name="ciphers_action_change_passwords_title">Cambiar contraseñas</string>
     <string name="ciphers_action_view_password_history_title">Ver historial de contraseñas</string>
+    <string name="ciphers_action_archive_title">Archivar</string>
+    <string name="ciphers_action_archive_confirmation_title">¿Mover al archivo?</string>
+    <string name="ciphers_action_unarchive_title">Restaurar desde el archivo</string>
+    <string name="ciphers_action_unarchive_confirmation_title">¿Restaurar desde el archivo?</string>
     <string name="ciphers_action_trash_title">Papelera</string>
     <string name="ciphers_action_trash_confirmation_title">¿Mover a la papelera?</string>
     <string name="ciphers_action_trash_confirmation_text">Las entradas que han estado en la papelera de más de 30 días se eliminarán automáticamente.</string>
@@ -344,10 +350,10 @@
     <string name="sends_action_hide_email_title">Ocultar correo electrónico</string>
     <string name="sends_action_show_email_title">Mostrar correo</string>
     <string name="sends_action_enable_title">Activar</string>
-    <string name="sends_action_enable_text">El send activo es accesible por una URL pública</string>
+    <string name="sends_action_enable_text">Un envío activo es accesible mediante una URL pública</string>
     <string name="sends_action_enable_confirmation_title">¿Activar?</string>
     <string name="sends_action_disable_title">Desactivar</string>
-    <string name="sends_action_disable_text">El send desactivado es inaccesible por una URL pública</string>
+    <string name="sends_action_disable_text">Un envío desactivado no es accesible mediante una URL pública</string>
     <string name="sends_action_disable_confirmation_title">¿Desactivar?</string>
     <string name="sends_action_disabled_note">Este envío está desactivado, nadie puede acceder a él.</string>
     <string name="sends_action_delete_title">Eliminar para siempre</string>
@@ -550,7 +556,7 @@
     <string name="error_failed_unknown">Algo salió mal</string>
     <string name="error_failed_encrypt_biometric_key">Error al cifrar la clave biométrica</string>
     <string name="error_failed_decrypt_biometric_key">Error al descifrar la clave biométrica</string>
-    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
+    <string name="error_failed_ssh_agent_start">Error al iniciar el agente SSH</string>
     <string name="error_credential_calling_app_not_privileged">La aplicación que llama no está en la lista de privilegios y no puede solicitar autenticación en nombre de las otras aplicaciones.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -723,6 +729,9 @@
     <string name="addsend_hide_text_by_default_title">Al acceder al elemento, oculta el texto por defecto</string>
     <string name="addsend_hide_email_title">Ocultar dirección de correo electrónico</string>
     <string name="addsend_max_access_count_note">Si se establece, los usuarios ya no podrán acceder a este elemento después de que se alcance el número máximo de accesos.</string>
+    <string name="addsend_auth_emails_label">Email(s)</string>
+    <string name="addsend_auth_emails_placeholder">Correos electrónicos separados por comas</string>
+    <string name="addsend_auth_emails_note">A los destinatarios se les pedirá que completen una verificación única por correo electrónico después de abrir el enlace.</string>
     <string name="addaccount_promo_title">Tu caja fuerte está vacía. Conecta una cuenta para empezar:</string>
     <string name="addaccount_promo_features">¿Quieres sacar el máximo provecho de tu experiencia? Te hemos esbozado todas las características principales de la aplicación a continuación. Echa un vistazo para ver cómo puede funcionar para ti.</string>
     <string name="addaccount_description_short_bitwarden_text">Almacena la caja fuerte cifrada en la nube.</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">Mantén tu YubiKey en la parte trasera de tu dispositivo</string>
     <string name="yubikey_nfc_text">Requiere soporte NFC.</string>
     <string name="yubikey_error_failed_to_read">Error al leer la YubiKey</string>
+    <string name="yubikey_unlock_error_unsupported_title">El desbloqueo con YubiKey no es compatible</string>
+    <string name="yubikey_unlock_error_unsupported_text">Esta YubiKey o tipo de conexión no admite el desbloqueo mediante desafío-respuesta.</string>
+    <string name="yubikey_unlock_error_failed_title">Error al usar YubiKey</string>
+    <string name="yubikey_unlock_error_failed_text">Try the YubiKey again or unlock the vault with your password.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Usar WebAuthn de FIDO2 requiere usar la caja fuerte de Bitwarden Web <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> o superior. En versiones anteriores el resultado de autenticación será reenviado incorrectamente a la aplicación oficial de Bitwarden.</string>
     <string name="elevatedaccess_header_title">Confirmar acceso</string>
     <string name="elevatedaccess_header_text">Estos datos están protegidos, para continuar por favor ingrese la contraseña de la aplicación.</string>
@@ -782,7 +795,7 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Usa la autenticación biométrica para confirmar su acceso y desbloquear estos datos.</string>
     <string name="home_vault_label">Caja fuerte</string>
-    <string name="home_send_label">Send</string>
+    <string name="home_send_label">Envío</string>
     <string name="home_generator_label">Generador</string>
     <string name="home_watchtower_label">Informes</string>
     <string name="home_settings_label">Ajustes</string>
@@ -791,6 +804,10 @@
     <string name="lock_reason_manually">Bloqueado manualmente</string>
     <string name="send_type_text">Texto</string>
     <string name="send_type_file">Archivo</string>
+    <string name="send_auth_title">Quién puede ver</string>
+    <string name="send_auth_type_none">Cualquiera con el enlace</string>
+    <string name="send_auth_type_password">Cualquiera con el enlace y la contraseña</string>
+    <string name="send_auth_type_email">Personas específicas</string>
     <string name="cipher_type_login">Iniciar sesión</string>
     <string name="cipher_type_card">Tarjeta</string>
     <string name="cipher_type_identity">Identidad</string>
@@ -799,7 +816,7 @@
     <string name="cipher_type_passkey">Llave de acceso</string>
     <string name="field_type_text">Texto</string>
     <string name="field_type_text_concealed">Texto (ocultado)</string>
-    <string name="field_type_boolean">Boolean</string>
+    <string name="field_type_boolean">Booleano</string>
     <string name="field_type_linked">Vinculado</string>
     <!--
         Displayed below a password that was exposed in the known data breached. It
@@ -824,27 +841,27 @@
     <string name="customfilters_add_filter_title">Añadir un filtro personalizado</string>
     <string name="filter_header_title">Filtro</string>
     <string name="filter_empty_label">No hay filtros disponibles</string>
-    <string name="ssh_agent_filters_header_title">SSH agent filters</string>
-    <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
-    <string name="ssh_agent_setup_header_title">SSH client setup</string>
-    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
-    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
-    <string name="ssh_agent_setup_option_env_tab">Env</string>
-    <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
-    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
-    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
-    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_filters_header_title">Filtros del agente SSH</string>
+    <string name="ssh_agent_filters_note_save_to_apply">Los cambios se aplican después de presionar Guardar.</string>
+    <string name="ssh_agent_setup_header_title">Configuración del cliente SSH</string>
+    <string name="ssh_agent_setup_intro">Configure un cliente SSH para conectarse al agente SSH de Keyguard, lo que le permitirá realizar autenticaciones o firmas con sus claves aprobadas sin exponer material de clave privada.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Habilitar el agente SSH en Keyguard</string>
+    <string name="ssh_agent_setup_step_1_text">Abra la configuración de seguridad y habilite el agente SSH.</string>
+    <string name="ssh_agent_setup_step_2_title">2. Configurar su cliente SSH</string>
+    <string name="ssh_agent_setup_step_2_text">Apunte su cliente SSH a la ruta del socket de Keyguard.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Ruta alternativa: use esto cuando XDG_RUNTIME_DIR no esté disponible en su sesión.</string>
+    <string name="ssh_agent_setup_option_env_tab">Entorno</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">Configuración</string>
+    <string name="ssh_agent_setup_option_env_label">Establezca SSH_AUTH_SOCK a la ruta del socket de Keyguard.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">Establezca IdentityAgent en su configuración de SSH.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Verificar</string>
+    <string name="ssh_agent_setup_step_3_text">Ejecute estos comandos en la misma sesión de terminal donde configuró el agente.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
-    <string name="ssh_agent_request_approval_sign_title">SSH Signing Request</string>
-    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following SSH key to sign data:</string>
-    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
-    <string name="ssh_client_request">SSH client request</string>
+    <string name="ssh_agent_setup_windows_text">El entorno de ejecución del agente SSH de Keyguard para escritorio aún no está disponible en Windows, por lo que la configuración aquí es solo informativa.</string>
+    <string name="ssh_agent_request_approval_sign_title">Solicitud de firma SSH</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> desea utilizar la siguiente clave SSH para firmar datos:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">Una aplicación desea utilizar la siguiente clave SSH para firmar datos:</string>
+    <string name="ssh_client_request">Solicitud del cliente SSH</string>
     <string name="sort_header_title">Ordenar por</string>
     <string name="sort_empty_label">No hay ordenamiento disponible</string>
     <string name="sortby_title_title">Título</string>
@@ -890,6 +907,7 @@
     <string name="vault_view_passkey_created_at_label">Llave de acceso creada el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Última modificación el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Creado el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Archivado el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Eliminado el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Expira el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Expiración programada el <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -902,9 +920,10 @@
     <string name="vault_view_email_action">Correo electrónico</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">Direcciones</string>
-    <string name="send_main_header_title">Sends</string>
+    <string name="send_main_header_title">Envíos</string>
     <string name="send_main_search_placeholder">Buscar Sends</string>
     <string name="send_main_new_item_button">Nuevo elemento</string>
+    <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">Se requiere una contraseña para acceder a esta parte</string>
     <string name="generator_header_title">Generador</string>
     <string name="generator_header_username_title">Generador de nombre de usuario</string>
@@ -1153,21 +1172,28 @@
     <string name="pref_item_permissions_title">Permisos</string>
     <string name="pref_item_features_overview_title">Vista de las características</string>
     <string name="pref_item_url_override_title">Anulación de URL</string>
-    <string name="pref_item_ssh_agent_title">SSH agent</string>
-    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
-    <string name="pref_item_ssh_agent_status_unsupported">Unsupported</string>
-    <string name="pref_item_ssh_agent_status_stopped">Stopped</string>
-    <string name="pref_item_ssh_agent_status_starting">Starting</string>
-    <string name="pref_item_ssh_agent_status_ready">Ready</string>
-    <string name="pref_item_ssh_agent_status_failed">Failed</string>
-    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
-    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
-    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
-    <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
-    <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
+    <string name="pref_item_ssh_agent_title">Agente SSH</string>
+    <string name="pref_item_ssh_agent_text">Autentique sus clientes Git y SSH sin que estos puedan leer nunca su clave privada</string>
+    <string name="pref_item_ssh_agent_status_unsupported">No admitido</string>
+    <string name="pref_item_ssh_agent_status_stopped">Detenido</string>
+    <string name="pref_item_ssh_agent_status_starting">Iniciando</string>
+    <string name="pref_item_ssh_agent_status_ready">Listo</string>
+    <string name="pref_item_ssh_agent_status_failed">Fallido</string>
+    <string name="pref_item_ssh_agent_setup_title">Configuración del cliente SSH</string>
+    <string name="pref_item_ssh_agent_filters_title">Filtros del agente SSH</string>
+    <string name="pref_item_ssh_agent_filters_text">Elija a qué claves SSH puede acceder el agente SSH</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">Todas las claves están accesibles</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">Filtros activos</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueo biométrico</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Requiere confirmación</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Requiere un toque adicional del botón de confirmación después de una autenticación biométrica exitosa</string>
+    <string name="pref_item_yubikey_unlock_title">Desbloqueo con YubiKey</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Configurado con la ranura <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Configurar ranura</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Desactivar</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">¿Configurar ranura de YubiKey?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock? Setup requires a USB connection.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">La ranura <xliff:g id="slot_number" example="1">%1$s</xliff:g> ya está configurada. Volver a configurarla requiere una conexión USB y sobrescribirá la configuración actual de la ranura.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

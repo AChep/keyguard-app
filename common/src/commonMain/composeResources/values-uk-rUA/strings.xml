@@ -212,6 +212,8 @@
     <string name="local_vault">Локальне сховище</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Запам'ятати мене</string>
+    <!-- An Archive screen -->
+    <string name="archive">Archive</string>
     <!-- A Trash screen -->
     <string name="trash">Кошик</string>
     <!-- To download something -->
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">Змінити пароль</string>
     <string name="ciphers_action_change_passwords_title">Змінити паролі</string>
     <string name="ciphers_action_view_password_history_title">Переглянути історію паролів</string>
+    <string name="ciphers_action_archive_title">Архівувати</string>
+    <string name="ciphers_action_archive_confirmation_title">Перемістити в архів?</string>
+    <string name="ciphers_action_unarchive_title">Відновити з архіву</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Відновити з архіву?</string>
     <string name="ciphers_action_trash_title">Відправити у кошик</string>
     <string name="ciphers_action_trash_confirmation_title">Перемістити до кошика?</string>
     <string name="ciphers_action_trash_confirmation_text">Записи, що знаходяться в кошику понад 30 днів, будуть автоматично видалені.</string>
@@ -723,6 +729,9 @@
     <string name="addsend_hide_text_by_default_title">При доступі до відправлення приховувати текст</string>
     <string name="addsend_hide_email_title">Приховати адресу електронної пошти</string>
     <string name="addsend_max_access_count_note">Якщо встановлено, користувачі більше не зможуть отримати доступ до цього відправлення після досягнення максимальної кількості відвідувань.</string>
+    <string name="addsend_auth_emails_label">Email(s)</string>
+    <string name="addsend_auth_emails_placeholder">Comma-separated emails</string>
+    <string name="addsend_auth_emails_note">Після відкриття посилання одержувачам потрібно буде пройти одноразове підтвердження електронної пошти.</string>
     <string name="addaccount_promo_title">У вашому сховищі порожньо. Додайте обліковий запис, щоб розпочати:</string>
     <string name="addaccount_promo_features">Хочете повною мірою скористатися всіма можливостями? Нижче ми виклали огляд основних функцій додатку. Подивіться, щоб дізнатися, як вони можуть вам допомогти.</string>
     <string name="addaccount_description_short_bitwarden_text">Зберігайте зашифроване сховище в хмарі.</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">Притуліть YubiKey до задньої частини вашого пристрою</string>
     <string name="yubikey_nfc_text">Потребує підтримки NFC.</string>
     <string name="yubikey_error_failed_to_read">Не вдалося прочитати YubiKey</string>
+    <string name="yubikey_unlock_error_unsupported_title">Розблокування YubiKey не підтримується</string>
+    <string name="yubikey_unlock_error_unsupported_text">This YubiKey or connection type does not support challenge-response unlock.</string>
+    <string name="yubikey_unlock_error_failed_title">Не вдалося використати YubiKey</string>
+    <string name="yubikey_unlock_error_failed_text">Спробуйте застосувати YubiKey ще раз або розблокуйте сховище за допомогою пароля.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Для використання FIDO2 WebAuthn необхідно мати версію вебсховища Bitwarden <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> або новішу. В старіших версіях результат автентифікації буде помилково відправлений в офіційний застосунок Bitwarden.</string>
     <string name="elevatedaccess_header_title">Підтвердити доступ</string>
     <string name="elevatedaccess_header_text">Ці дані захищені, щоб продовжити введіть ваш пароль до застосунку.</string>
@@ -791,6 +804,10 @@
     <string name="lock_reason_manually">Заблоковано вручну</string>
     <string name="send_type_text">Текст</string>
     <string name="send_type_file">Файл</string>
+    <string name="send_auth_title">Хто може переглядати</string>
+    <string name="send_auth_type_none">Усі, хто має посилання</string>
+    <string name="send_auth_type_password">Усі, хто має посилання та пароль</string>
+    <string name="send_auth_type_email">Певні особи</string>
     <string name="cipher_type_login">Логін</string>
     <string name="cipher_type_card">Картка</string>
     <string name="cipher_type_identity">Особисті дані</string>
@@ -828,16 +845,16 @@
     <string name="ssh_agent_filters_note_save_to_apply">Зміни застосовуються тільки після збереження.</string>
     <string name="ssh_agent_setup_header_title">Налаштування SSH клієнта</string>
     <string name="ssh_agent_setup_intro">Налаштуйте SSH-клієнт для підключення до SSH-агента Keyguard, щоб він міг виконувати автентифікацію або підписування вашими затвердженими ключами без розкриття даних закритого ключа.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
-    <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Увімкніть SSH-агент у Keyguard</string>
+    <string name="ssh_agent_setup_step_1_text">Відкрийте налаштування безпеки та увімкніть SSH-агент.</string>
+    <string name="ssh_agent_setup_step_2_title">2. Налаштуйте ваш SSH-клієнт</string>
+    <string name="ssh_agent_setup_step_2_text">Вкажіть вашому SSH-клієнту шлях до сокета Keyguard.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Резервний шлях: використовуйте це, коли XDG_RUNTIME_DIR недоступний у вашому сеансі.</string>
     <string name="ssh_agent_setup_option_env_tab">Env</string>
     <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
-    <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
-    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
-    <string name="ssh_agent_setup_step_3_title">3. Verify</string>
+    <string name="ssh_agent_setup_option_env_label">Встановіть SSH_AUTH_SOCK на шлях до сокета Keyguard.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">Встановіть IdentityAgent у вашій конфігурації SSH.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Перевірка</string>
     <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">SSH-агент поки що недоступний для Windows, тому налаштування тут наведені лише для ознайомлення.</string>
@@ -890,6 +907,7 @@
     <string name="vault_view_passkey_created_at_label">Ключ доступу створено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Останній раз змінено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Створено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">В архіві з <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Видалено <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Закінчився термін дії <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Термін дії закінчиться <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -905,6 +923,7 @@
     <string name="send_main_header_title">Відправлення</string>
     <string name="send_main_search_placeholder">Пошук відправлень</string>
     <string name="send_main_new_item_button">Нове відправлення</string>
+    <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">Для доступу до цього відправлення необхідно буде ввести пароль</string>
     <string name="generator_header_title">Генератор</string>
     <string name="generator_header_username_title">Генератор імені користувача</string>
@@ -1168,6 +1187,13 @@
     <string name="pref_item_biometric_unlock_title">Біометричне розблокування</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Вимагати підтвердження</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Вимагати додаткового підтвердження після успішної біометричної автентифікації</string>
+    <string name="pref_item_yubikey_unlock_title">Розблокування YubiKey</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Налаштовано для слота <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Налаштувати слот</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Вимкнути</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">Налаштувати слот YubiKey?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Сконфігурувати слот <xliff:g id="slot_number" example="1">%1$s</xliff:g> для розблокування сховища? Налаштування вимагає підключення через USB.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Слот <xliff:g id="slot_number" example="1">%1$s</xliff:g> вже налаштовано. Повторне налаштування потребує підключення через USB та перезапише поточну конфігурацію слота.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

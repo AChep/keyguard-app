@@ -212,6 +212,8 @@
     <string name="local_vault">Local vault</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Mijn gegevens onthouden</string>
+    <!-- An Archive screen -->
+    <string name="archive">Archive</string>
     <!-- A Trash screen -->
     <string name="trash">Prullenbak</string>
     <!-- To download something -->
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">Wachtwoord wijzigen</string>
     <string name="ciphers_action_change_passwords_title">Wachtwoorden wijzigen</string>
     <string name="ciphers_action_view_password_history_title">Wachtwoordgeschiedenis bekijken</string>
+    <string name="ciphers_action_archive_title">Archive</string>
+    <string name="ciphers_action_archive_confirmation_title">Move to archive?</string>
+    <string name="ciphers_action_unarchive_title">Restore from archive</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Restore from archive?</string>
     <string name="ciphers_action_trash_title">Prullenbak</string>
     <string name="ciphers_action_trash_confirmation_title">Verplaatsen naar prullenbak?</string>
     <string name="ciphers_action_trash_confirmation_text">Items die meer dan 30 dagen in de prullenbak zitten worden automatisch verwijderd.</string>
@@ -723,6 +729,9 @@
     <string name="addsend_hide_text_by_default_title">Verberg de tekst automatisch wanneer je dit item bekijkt</string>
     <string name="addsend_hide_email_title">Verberg e-mailadres</string>
     <string name="addsend_max_access_count_note">Als dit is ingesteld kunnen gebruikers deze Send niet meer bekijken zodra het maximale aantal bezoekers is bereikt.</string>
+    <string name="addsend_auth_emails_label">Email(s)</string>
+    <string name="addsend_auth_emails_placeholder">Comma-separated emails</string>
+    <string name="addsend_auth_emails_note">Recipients will be asked to complete a one-time email verification after opening the link.</string>
     <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
     <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
     <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
@@ -774,6 +783,10 @@
     <string name="yubikey_nfc_title">Houd je YubiKey plat tegen de achterkant van je apparaat</string>
     <string name="yubikey_nfc_text">Vereist NFC ondersteuning.</string>
     <string name="yubikey_error_failed_to_read">Fout bij het lezen van de YubiKey</string>
+    <string name="yubikey_unlock_error_unsupported_title">YubiKey unlock is not supported</string>
+    <string name="yubikey_unlock_error_unsupported_text">This YubiKey or connection type does not support challenge-response unlock.</string>
+    <string name="yubikey_unlock_error_failed_title">Failed to use YubiKey</string>
+    <string name="yubikey_unlock_error_failed_text">Try the YubiKey again or unlock the vault with your password.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">FIDO2 WebAuthn vereist versie <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> of hoger van de Bitwarden Web kluis. Op oudere versies wordt het verificatieresultaat verkeerd doorgestuurd naar de officiële Bitwarden-app.</string>
     <string name="elevatedaccess_header_title">Bevestig toegang</string>
     <string name="elevatedaccess_header_text">Deze gegevens zijn beveiligd, voer het app-wachtwoord in om door te gaan.</string>
@@ -791,6 +804,10 @@
     <string name="lock_reason_manually">Handmatig vergrendeld</string>
     <string name="send_type_text">Tekst</string>
     <string name="send_type_file">Bestand</string>
+    <string name="send_auth_title">Who can view</string>
+    <string name="send_auth_type_none">Anyone with the link</string>
+    <string name="send_auth_type_password">Anyone with the link + password</string>
+    <string name="send_auth_type_email">Specific people</string>
     <string name="cipher_type_login">Login</string>
     <string name="cipher_type_card">Kaart</string>
     <string name="cipher_type_identity">Identiteit</string>
@@ -890,6 +907,7 @@
     <string name="vault_view_passkey_created_at_label">Toegangssleutel aangemaakt op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Laatst gewijzigd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Aangemaakt op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Archived at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Verwijderd op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Verlopen op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Vervaldatum gepland op <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -905,6 +923,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">Sends zoeken</string>
     <string name="send_main_new_item_button">Nieuw item</string>
+    <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">Een wachtwoord is vereist om toegang te krijgen tot dit bericht</string>
     <string name="generator_header_title">Generator</string>
     <string name="generator_header_username_title">Gebruikersnaam generator</string>
@@ -1168,6 +1187,13 @@
     <string name="pref_item_biometric_unlock_title">Biometrische ontgrendeling</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Bevestiging vereisen</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Vereis een extra druk op de bevestigingsknop na geslaagde biometrische verificatie</string>
+    <string name="pref_item_yubikey_unlock_title">YubiKey unlock</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Configured with slot <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Provision slot</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Disable</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">Provision YubiKey slot?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock? Setup requires a USB connection.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> is already configured. Re-provisioning requires USB connection and overwrites the current slot configuration.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

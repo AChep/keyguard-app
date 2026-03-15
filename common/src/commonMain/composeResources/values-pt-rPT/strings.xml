@@ -212,6 +212,8 @@
     <string name="local_vault">Cofre local</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Manter sessão iniciada</string>
+    <!-- An Archive screen -->
+    <string name="archive">Arquivo</string>
     <!-- A Trash screen -->
     <string name="trash">Reciclagem</string>
     <!-- To download something -->
@@ -318,6 +320,10 @@
     <string name="ciphers_action_change_password_title">Alterar palavra-passe</string>
     <string name="ciphers_action_change_passwords_title">Alterar palavras-passe</string>
     <string name="ciphers_action_view_password_history_title">Ver histórico de palavras-passe</string>
+    <string name="ciphers_action_archive_title">Arquivo</string>
+    <string name="ciphers_action_archive_confirmation_title">Mover para o arquivo?</string>
+    <string name="ciphers_action_unarchive_title">Restaurar a partir do arquivo</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Restaurar do arquivo?</string>
     <string name="ciphers_action_trash_title">Reciclagem</string>
     <string name="ciphers_action_trash_confirmation_title">Mover para a reciclagem?</string>
     <string name="ciphers_action_trash_confirmation_text">Os dados que estiverem na reciclagem há mais de 30 dias, serão automaticamente eliminados.</string>
@@ -724,6 +730,9 @@
     <string name="addsend_hide_text_by_default_title">Ao aceder à entrada, esconder o texto por padrão</string>
     <string name="addsend_hide_email_title">Ocultar endereços de e-mail</string>
     <string name="addsend_max_access_count_note">Se definido, os utilizadores deixarão de poder aceder a este envio quando a contagem máxima de acessos for atingida.</string>
+    <string name="addsend_auth_emails_label">E-mail(s)</string>
+    <string name="addsend_auth_emails_placeholder">E-mails separados por vírgulas</string>
+    <string name="addsend_auth_emails_note">Os destinatários serão solicitados a completar uma verificação de e-mail única após abrirem a ligação.</string>
     <string name="addaccount_promo_title">O seu cofre está vazio. Ligue uma conta para começar:</string>
     <string name="addaccount_promo_features">Quer aproveitar ao máximo a sua experiência? Descrevemos abaixo todas as principais funcionalidades da aplicação. Verifique como pode ser útil para si.</string>
     <string name="addaccount_description_short_bitwarden_text">Armazene o cofre encriptado numa nuvem.</string>
@@ -775,6 +784,10 @@
     <string name="yubikey_nfc_title">Segurar o YubiKey contra a parte de trás do seu dispositivo</string>
     <string name="yubikey_nfc_text">Requer suporte a NFC.</string>
     <string name="yubikey_error_failed_to_read">Falha ao ler o YubiKey</string>
+    <string name="yubikey_unlock_error_unsupported_title">O desbloqueio por YubiKey não é suportado</string>
+    <string name="yubikey_unlock_error_unsupported_text">Este YubiKey ou tipo de ligação não suporta o desbloqueio por desafio-resposta.</string>
+    <string name="yubikey_unlock_error_failed_title">Falha ao utilizar o YubiKey</string>
+    <string name="yubikey_unlock_error_failed_text">Tente usar o YubiKey novamente ou desbloqueie o cofre com a sua palavra-passe.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Usar FIDO2 WebAuthn requer usar a versão web do cofre Bitwarden <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> ou superior. Em versões mais antigas, a autenticação será incorretamente encaminhado para o aplicativo oficial do Bitwarden.</string>
     <string name="elevatedaccess_header_title">Confirmar acesso</string>
     <string name="elevatedaccess_header_text">Estes dados estão protegidos, para continuar por favor digitar a senha do seu aplicativo.</string>
@@ -792,6 +805,10 @@
     <string name="lock_reason_manually">Bloqueado manualmente</string>
     <string name="send_type_text">Texto</string>
     <string name="send_type_file">Ficheiro</string>
+    <string name="send_auth_title">Quem pode ver</string>
+    <string name="send_auth_type_none">Qualquer um com a ligação</string>
+    <string name="send_auth_type_password">Qualquer um com a ligação + palavra-passe</string>
+    <string name="send_auth_type_email">Pessoas específicas</string>
     <string name="cipher_type_login">Início de sessão</string>
     <string name="cipher_type_card">Cartão</string>
     <string name="cipher_type_identity">Identidade</string>
@@ -891,6 +908,7 @@
     <string name="vault_view_passkey_created_at_label">Chave de acesso criada em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Modificado pela última vez em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Criado em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Arquivado a <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Excluído em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Fim da data de validade em <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Expiração agendada a <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -906,6 +924,7 @@
     <string name="send_main_header_title">Envios</string>
     <string name="send_main_search_placeholder">Pesquisar partilhas</string>
     <string name="send_main_new_item_button">Novo item</string>
+    <string name="send_email_is_required_to_access_label">Os destinatários com e-mail verificado podem aceder a esta partilha</string>
     <string name="send_password_is_required_to_access_label">É necessário uma palavra-passe para aceder esta partilha</string>
     <string name="generator_header_title">Gerador automático</string>
     <string name="generator_header_username_title">Gerador de nome de utilizador</string>
@@ -1169,6 +1188,13 @@
     <string name="pref_item_biometric_unlock_title">Desbloqueio biométrico</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Requer confirmação</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Exigir um toque adicional no botão de confirmação após uma autenticação biométrica bem sucedida</string>
+    <string name="pref_item_yubikey_unlock_title">Desbloquear com YubiKey</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Configurado com o slot <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Espaço de provisão</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Desativar</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">Provisionar slot YubiKey?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provisionar slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> para desbloqueio do cofre? A configuração requer uma ligação USB.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">O slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> já está configurado. O reaprovisionamento requer uma ligação USB e sobrescreve a configuração atual do slot.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

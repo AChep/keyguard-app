@@ -16,7 +16,7 @@ data class BitwardenPersona(
     val chUaPlatform: String,
 ) {
     companion object {
-        const val CLIENT_VERSION = "2025.9.1"
+        const val CLIENT_VERSION = "2026.2.1"
 
         fun of(platform: Platform) = when (platform) {
             is Platform.Mobile -> {

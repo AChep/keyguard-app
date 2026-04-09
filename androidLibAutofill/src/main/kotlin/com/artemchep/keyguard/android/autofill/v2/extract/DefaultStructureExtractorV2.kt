@@ -83,25 +83,47 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
         buttons: MutableList<ButtonNode>,
         formActions: MutableMap<String, String?>,
     ): TraverseResult {
+        fun traverseUrlOnly(
+            node: AssistStructure.ViewNode,
+        ): TraverseResult {
+            val isWebView = node.className == "android.webkit.WebView"
+            var nestedWebView = isWebView
+            var nestedScheme: String? = if (Build.VERSION.SDK_INT >= 28) {
+                node.webScheme?.takeIf { it.isNotEmpty() }
+            } else null
+            var nestedDomain: String? = node.webDomain
+            for (i in 0 until node.childCount) {
+                val child = node.getChildAt(i)
+                val childSegment = "${child.className.orEmpty()}-$i"
+                pathStack.addLast(childSegment)
+
+                val childResult =
+                    traverseUrlOnly(
+                        node = child,
+                    )
+                pathStack.removeLast()
+                nestedWebView = nestedWebView || childResult.webView
+                nestedScheme = nestedScheme ?: childResult.webScheme
+                nestedDomain = nestedDomain ?: childResult.webDomain
+            }
+            return TraverseResult(
+                webView = nestedWebView,
+                webScheme = nestedScheme,
+                webDomain = nestedDomain,
+            )
+        }
+
         // Skip invisible and assist-blocked nodes. Disabled nodes are still
         // traversed so that disabled-but-visible fields (e.g. a pre-filled
         // identifier on a password-step screen) remain in the parsed structure
         // for save-detection.
         if (node.visibility != View.VISIBLE || node.isAssistBlocked) {
-            return TraverseResult(
-                webView = false,
-                webScheme = null,
-                webDomain = null,
-            )
+            return traverseUrlOnly(node)
         }
 
         // Skip known browser URL bars.
         if (isUrlBar(node)) {
-            return TraverseResult(
-                webView = false,
-                webScheme = null,
-                webDomain = null,
-            )
+            return traverseUrlOnly(node)
         }
 
         val isWebView = node.className == "android.webkit.WebView"
@@ -234,9 +256,10 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
 
         var nestedWebView = isWebView
         var nestedScheme: String? = if (Build.VERSION.SDK_INT >= 28) {
-            node.webScheme
+            node.webScheme?.takeIf { it.isNotEmpty() }
         } else null
         var nestedDomain: String? = node.webDomain
+            ?.takeIf { it.isNotEmpty() }
         for (i in 0 until node.childCount) {
             val child = node.getChildAt(i)
             val childSegment = "${child.className.orEmpty()}-$i"

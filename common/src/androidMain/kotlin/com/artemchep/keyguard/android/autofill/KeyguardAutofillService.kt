@@ -22,6 +22,8 @@ import com.artemchep.keyguard.android.AutofillFakeAuthActivity
 import com.artemchep.keyguard.android.AutofillSaveActivity
 import com.artemchep.keyguard.android.MainActivity
 import com.artemchep.keyguard.android.PendingIntents
+import com.artemchep.keyguard.android.autofill.v2.DefaultStructureParserV2
+import com.artemchep.keyguard.android.autofill.v2.model.ParseOptions
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.*
 import com.artemchep.keyguard.common.model.*
@@ -184,7 +186,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         model()
     }
 
-    private val autofillStructureParser = AutofillStructureParser()
+    private val autofillStructureParser = DefaultStructureParserV2()
 
     private class GetCipherSuggestions(
         private val parent: GetSuggestions<Any?>,
@@ -293,18 +295,23 @@ class KeyguardAutofillService : AutofillService(), DIAware {
     private fun getAutofillStructureIo(
         request: FillRequest,
     ) = ioEffect {
-        val assistStructureLatest = request.fillContexts
-            .map { it.structure }
-            .lastOrNull()
+        val latestFillContext = request.fillContexts.lastOrNull()
+        val assistStructureLatest = latestFillContext?.structure
         if (assistStructureLatest == null) {
             throw AbortAutofillException("No structures to fill.")
         }
+        val focusedFieldId = latestFillContext.focusedId
 
         val respectAutofillOff = prefRespectAutofillOffFlow.first()
-        autofillStructureParser.parse(
-            assistStructureLatest,
-            respectAutofillOff,
-        )
+        autofillStructureParser
+            .parse(
+                assistStructureLatest,
+                ParseOptions(
+                    respectAutofillOff = respectAutofillOff,
+                    focusedFieldId = focusedFieldId,
+                ),
+            )
+            .toAutofillStructure2()
     }
 
     private fun getSaveStructureIo(
@@ -318,10 +325,14 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         }
 
         val respectAutofillOff = prefRespectAutofillOffFlow.first()
-        autofillStructureParser.parse(
-            assistStructureLatest,
-            respectAutofillOff,
-        )
+        autofillStructureParser
+            .parse(
+                assistStructureLatest,
+                ParseOptions(
+                    respectAutofillOff = respectAutofillOff,
+                ),
+            )
+            .toAutofillStructure2()
     }
 
     private fun getAutofillResponseIo(

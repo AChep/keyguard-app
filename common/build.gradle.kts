@@ -186,6 +186,7 @@ kotlin {
         val androidMain by getting {
             dependsOn(jvmMain)
             dependencies {
+                api(project(":androidLibAutofill"))
                 api(project.dependencies.platform(libs.firebase.bom.get()))
                 api(libs.firebase.analytics)
                 api(libs.firebase.crashlytics)

@@ -188,6 +188,9 @@
     <string name="delete">Elimina</string>
     <string name="remove">Rimuovi</string>
     <string name="remove_from_history">Rimuovi dalla cronologia</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">Password riutilizzata</string>
     <string name="reused_passwords">Password riutilizzate</string>
     <string name="one_time_password">Password monouso (OTP)</string>
@@ -315,7 +318,7 @@
     <string name="ciphers_action_change_folder_title">Sposta nella cartella</string>
     <string name="ciphers_action_change_name_title">Modifica nome</string>
     <string name="ciphers_action_change_names_title">Modifica nomi</string>
-    <string name="ciphers_action_change_tags_title">Change tags</string>
+    <string name="ciphers_action_change_tags_title">Cambia tag</string>
     <string name="ciphers_action_add_password_title">Aggiungi password</string>
     <string name="ciphers_action_add_passwords_title">Aggiungi password</string>
     <string name="ciphers_action_change_password_title">Cambia password</string>
@@ -442,9 +445,9 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Chiave privata in chiaro salvata nei download</string>
     <string name="ssh_key_action_add_key_title">Aggiungi chiavi</string>
     <string name="ssh_key_action_replace_key_title">Sostituisci chiavi</string>
-    <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_title">Importa chiave SSH</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
-    <string name="ssh_key_import_success_title">Imported SSH key</string>
+    <string name="ssh_key_import_success_title">Chiave SSH importata</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
     <string name="ssh_key_import_error_unsupported_algorithm">Only RSA and Ed25519 SSH keys are supported.</string>
     <string name="ssh_key_import_error_invalid_passphrase">The SSH key passphrase is invalid.</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Se consideri affidabile un'app questa potrà richiedere le credenziali per qualsiasi servizio. Un'app dannosa potrebbe sfruttare questa funzionalità per cercare di rubare le tue credenziali.</string>
     <string name="scanqr_title">Scansiona codice QR</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">Carica e analizza un codice QR da un file immagine.</string>
     <string name="scanqr_camera_permission_required_text">L'autorizzazione della fotocamera è necessaria per scansionare i codici QR.</string>
     <string name="post_notifications_permission_banner_title">Le notifiche sono disattivate</string>
@@ -683,8 +687,8 @@
     <string name="wordlist_empty_label">Nessuna wordlist</string>
     <string name="wordlist_word_search_placeholder">Cerca parole</string>
     <string name="urloverride_header_title">Sovrascrivere URL</string>
-    <string name="urloverride_list_header_title">Sovrascrivere URL</string>
-    <string name="urloverride_list_section_title">Sovrascrivere URL</string>
+    <string name="urloverride_list_header_title">Sovrascrizioni URL</string>
+    <string name="urloverride_list_section_title">Sovrascrizioni URL</string>
     <string name="urloverride_regex_note">La sovrascrittura sarà applicata agli URL che corrispondono all'espressione regolare.</string>
     <string name="urloverride_delete_one_confirmation_title">Eliminare la sovrascrittura del URL?</string>
     <string name="urloverride_delete_many_confirmation_title">Eliminare la sovrascrittura degli URL?</string>
@@ -695,8 +699,8 @@
     <string name="urlblock_delete_one_confirmation_title">Eliminare l'URI bloccato?</string>
     <string name="urlblock_delete_many_confirmation_title">Eliminare gli URI bloccati?</string>
     <string name="urlblock_empty_label">Nessun URI bloccato</string>
-    <string name="urlblock_expose_title">Esponi i dati al framework di compilazione automatica prima di sbloccare il caveau</string>
-    <string name="urlblock_expose_text">Se attivata, l'elemento viene memorizzato al di fuori del caveau, consentendo di nascondere completamente i suggerimenti di compilazione automatica anche se la cassaforte è bloccata.</string>
+    <string name="urlblock_expose_title">Esponi i dati al framework di compilazione automatica prima di sbloccare la cassaforte</string>
+    <string name="urlblock_expose_text">Se attivata, l'elemento viene memorizzato al di fuori della cassaforte, consentendo di nascondere completamente i suggerimenti di compilazione automatica anche se la cassaforte è bloccata</string>
     <string name="privilegedapps_header_title">App privilegiate</string>
     <string name="privilegedapps_list_header_title">App privilegiate</string>
     <string name="privilegedapps_list_section_title">App privilegiate</string>
@@ -748,9 +752,9 @@
     <string name="addsend_auth_emails_label">Email</string>
     <string name="addsend_auth_emails_placeholder">Email separate da virgole</string>
     <string name="addsend_auth_emails_note">Ai destinatari verrà chiesto di completare una verifica via e-mail una tantum dopo aver aperto il link.</string>
-    <string name="addaccount_promo_title">Il tuo caveau è vuoto. Collega un account per iniziare:</string>
+    <string name="addaccount_promo_title">La tua cassaforte è vuota. Collega un account per iniziare:</string>
     <string name="addaccount_promo_features">Vuoi ottenere il massimo dalla tua esperienza? Abbiamo riassunto per te qui sotto tutte le funzionalità principali dell'app. Dai un'occhiata per scoprire come può esserti utile.</string>
-    <string name="addaccount_description_short_bitwarden_text">Salva il caveau crittografato su un cloud.</string>
+    <string name="addaccount_description_short_bitwarden_text">Salva la cassaforte crittografata su cloud.</string>
     <string name="addaccount_description_short_keepass_text">Memorizza la cassaforte crittografata localmente utilizzando il formato KDBX.</string>
     <string name="addaccount_header_title">Aggiungi account Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Non siamo affiliati, associati, autorizzati, approvati da, o in alcun modo ufficialmente connessi con il Bitwarden, Inc. o di una delle sue controllate o delle sue affiliate.</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">URL server API</string>
     <string name="addaccount_custom_env_icons_url_label">URL del server icone</string>
     <string name="addaccount_custom_env_identity_url_label">URL del server d'identità</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Verifica</string>
     <string name="addaccount2fa_unsupported_note">Questo metodo di autenticazione non è ancora supportato.</string>
     <string name="addaccount2fa_otp_note">Inserisci il codice di verifica dalla tua app di autenticazione.</string>
@@ -802,7 +821,7 @@
     <string name="yubikey_unlock_error_unsupported_title">Lo sblocco tramite YubiKey non è supportato</string>
     <string name="yubikey_unlock_error_unsupported_text">Questa YubiKey o il tipo di connessione non supporta lo sblocco di tipo challenge-response.</string>
     <string name="yubikey_unlock_error_failed_title">Utilizzo di YubiKey non riuscito</string>
-    <string name="yubikey_unlock_error_failed_text">Riprova con la YubiKey o sblocca il caveau con la password.</string>
+    <string name="yubikey_unlock_error_failed_text">Riprova con la YubiKey o sblocca la cassaforte con la password.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">L'utilizzo di FIDO2 WebAuthn richiede l'utilizzo della versione <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> della cassaforte Web Bitwarden o superiore. Nelle versioni precedenti il risultato dell'autenticazione verrà inoltrato in modo errato all'app ufficiale Bitwarden.</string>
     <string name="elevatedaccess_header_title">Conferma accesso</string>
     <string name="elevatedaccess_header_text">Questi dati sono protetti, per continuare inserisci la password dell'app.</string>
@@ -875,15 +894,15 @@
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">L'attuale runtime dell'agente SSH per la versione desktop di Keyguard non è ancora disponibile su Windows, quindi la configurazione indicata qui è solo a titolo informativo.</string>
     <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
-    <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
-    <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
-    <string name="ssh_agent_setup_android_termux_step_2_title">Install package</string>
-    <string name="ssh_agent_setup_android_termux_step_2_text">Open Termux and install the package from a custom APT repository:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_title">Configure your SSH client</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Start the package and export the socket into your current shell:</string>
+    <string name="ssh_agent_setup_android_termux_step_1_title">Installa Termux</string>
+    <string name="ssh_agent_setup_android_termux_step_1_text">Termux è un'applicazione terminale e ambiente Linux per Android.</string>
+    <string name="ssh_agent_setup_android_termux_step_2_title">Installa pacchetto</string>
+    <string name="ssh_agent_setup_android_termux_step_2_text">Apri Termux e installa il pacchetto da un repository APT personalizzato:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_title">Configura il tuo client SSH</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Avvia il pacchetto ed esporta il socket nella shell corrente:</string>
     <string name="ssh_agent_setup_android_termux_step_3_shell_startup">If you want to auto-start the package every time Termux starts, add it to your shell startup file:</string>
-    <string name="ssh_agent_setup_android_termux_step_4_title">Verify</string>
-    <string name="ssh_agent_setup_android_termux_step_4_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_android_termux_step_4_title">Verifica</string>
+    <string name="ssh_agent_setup_android_termux_step_4_text">Esegui questi comandi nella stessa sessione di shell su cui è stato configurato l'agente.</string>
     <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work</string>
     <string name="ssh_agent_setup_android_how_does_it_work_1">The SSH agent receives requests from SSH tools, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
     <string name="ssh_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The SSH agent acts as a relay, while the Keyguard app performs the actual operations.</string>
@@ -1200,7 +1219,7 @@
     <string name="pref_item_persist_vault_key_note">Archiviare una chiave di cassaforte sul disco è un rischio per la sicurezza. Se la memoria interna del dispositivo è compromessa, l'attaccante otterrà l'accesso ai dati della cassaforte locale.</string>
     <string name="pref_item_permissions_title">Autorizzazioni</string>
     <string name="pref_item_features_overview_title">Panoramica delle funzionalità</string>
-    <string name="pref_item_url_override_title">Sovrascrivere URL</string>
+    <string name="pref_item_url_override_title">Sovrascrizioni URL</string>
     <string name="pref_item_ssh_agent_title">Agente SSH</string>
     <string name="pref_item_ssh_agent_text">Autentica i tuoi client Git e SSH senza che questi possano mai leggere la tua chiave privata</string>
     <string name="pref_item_ssh_agent_status_unsupported">Non supportato</string>

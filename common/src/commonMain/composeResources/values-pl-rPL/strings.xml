@@ -142,8 +142,8 @@
     <string name="address1">Adres linia 1</string>
     <string name="address2">Adres linia 2</string>
     <string name="address3">Adres linia 3</string>
-    <string name="ssh_agent">SSH agent</string>
-    <string name="ssh_client">SSH client</string>
+    <string name="ssh_agent">Agent SSH</string>
+    <string name="ssh_client">Klient SSH</string>
     <string name="rename">Zmień nazwę</string>
     <string name="deletion_date">Data usunięcia</string>
     <string name="deletion_date_custom"></string>
@@ -188,6 +188,9 @@
     <string name="delete">Usuń</string>
     <string name="remove">Usuń</string>
     <string name="remove_from_history">Usuń z historii</string>
+    <string name="pkcs12_password">Hasło PKCS#12</string>
+    <string name="pkcs12_password_title">Wprowadź hasło PKCS#12</string>
+    <string name="pkcs12_password_note">Ten pakiet PKCS#12 jest zaszyfrowany.</string>
     <string name="reused_password">Powtórnie użyte hasło</string>
     <string name="reused_passwords">Powtórnie użyte hasła</string>
     <string name="one_time_password">Hasło jednorazowe</string>
@@ -315,7 +318,7 @@
     <string name="ciphers_action_change_folder_title">Przenieś do folderu</string>
     <string name="ciphers_action_change_name_title">Zmień nazwę</string>
     <string name="ciphers_action_change_names_title">Zmień nazwy</string>
-    <string name="ciphers_action_change_tags_title">Change tags</string>
+    <string name="ciphers_action_change_tags_title">Zmień etykiety</string>
     <string name="ciphers_action_add_password_title">Dodaj hasło</string>
     <string name="ciphers_action_add_passwords_title">Dodaj hasła</string>
     <string name="ciphers_action_change_password_title">Zmień hasło</string>
@@ -442,19 +445,19 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Niezaszyfrowany klucz prywatny zapisany do Pobranych</string>
     <string name="ssh_key_action_add_key_title">Dodaj klucze</string>
     <string name="ssh_key_action_replace_key_title">Zastąp klucze</string>
-    <string name="ssh_key_import_title">Import SSH key</string>
-    <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
-    <string name="ssh_key_import_success_title">Imported SSH key</string>
-    <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
-    <string name="ssh_key_import_error_unsupported_algorithm">Only RSA and Ed25519 SSH keys are supported.</string>
-    <string name="ssh_key_import_error_invalid_passphrase">The SSH key passphrase is invalid.</string>
-    <string name="ssh_key_import_error_malformed_key">The SSH key file is malformed.</string>
-    <string name="ssh_key_import_error_read">Unable to read the selected file.</string>
-    <string name="ssh_key_import_error_passphrase_required">A passphrase is required to unlock this SSH key.</string>
-    <string name="ssh_key_import_passphrase_title">Passphrase</string>
-    <string name="ssh_key_import_passphrase_hint">Enter SSH key passphrase</string>
-    <string name="ssh_key_import_passphrase_dialog_title">Enter SSH key passphrase</string>
-    <string name="ssh_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> key is encrypted.</string>
+    <string name="ssh_key_import_title">Importuj klucz SSH</string>
+    <string name="ssh_key_import_failed_title">Nie udało się zaimportować klucza SSH</string>
+    <string name="ssh_key_import_success_title">Zaimportowano klucz SSH</string>
+    <string name="ssh_key_import_error_unsupported_format">Nieobsługiwany format klucza prywatnego SSH.</string>
+    <string name="ssh_key_import_error_unsupported_algorithm">Tylko klucze RSA i Ed25519 SSH są obsługiwane.</string>
+    <string name="ssh_key_import_error_invalid_passphrase">Hasło klucza SSH jest nieprawidłowe.</string>
+    <string name="ssh_key_import_error_malformed_key">Plik klucza SSH jest uszkodzony.</string>
+    <string name="ssh_key_import_error_read">Nie można odczytać wybranego pliku.</string>
+    <string name="ssh_key_import_error_passphrase_required">Wymagane jest hasło, aby odblokować ten klucz SSH.</string>
+    <string name="ssh_key_import_passphrase_title">Hasło</string>
+    <string name="ssh_key_import_passphrase_hint">Wprowadź hasło klucza SSH</string>
+    <string name="ssh_key_import_passphrase_dialog_title">Wprowadź hasło klucza SSH</string>
+    <string name="ssh_key_import_passphrase_dialog_message">Ten klucz <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> jest zaszyfrowany.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> wybrany</string>
     <string name="copy">Kopiuj</string>
     <string name="copy_value">Kopiuj wartość</string>
@@ -553,7 +556,7 @@
     <string name="error_invalid_email">Nieprawidłowy adres e-mail</string>
     <string name="error_invalid_url">Nieprawidłowy adres URL</string>
     <string name="error_invalid_uri">Nieprawidłowy URI</string>
-    <string name="error_invalid_key">Invalid key</string>
+    <string name="error_invalid_key">Nieprawidłowy klucz</string>
     <string name="error_invalid_card_number">Nieprawidłowy numer karty</string>
     <string name="error_incorrect_password">Nieprawidłowe hasło</string>
     <string name="error_not_found">Nie znaleziono</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Ufanie aplikacji pozwala jej na wywoływanie żądań dotyczących danych uwierzytelniających z wszystkich serwisów. Nieuczciwa aplikacja może spróbować użyć tych mechanizmów w celu kradzieży twoich danych.</string>
     <string name="scanqr_title">Skanuj kod QR</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">Załaduj i analizuj kod QR z pliku obrazu.</string>
     <string name="scanqr_camera_permission_required_text">Wymagane jest uprawnienie aparatu do skanowania kodów QR.</string>
     <string name="post_notifications_permission_banner_title">Powiadomienia są wyłączone</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">Adres URL serwera interfejsu API</string>
     <string name="addaccount_custom_env_icons_url_label">Adres URL serwera ikon</string>
     <string name="addaccount_custom_env_identity_url_label">Adres URL serwera tożsamości</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Weryfikacja</string>
     <string name="addaccount2fa_unsupported_note">Ta metoda uwierzytelniania nie jest jeszcze obsługiwana.</string>
     <string name="addaccount2fa_otp_note">Wprowadź kod weryfikacyjny z aplikacji uwierzytelniającej.</string>
@@ -1221,8 +1240,8 @@
     <string name="pref_item_yubikey_unlock_provision_slot_title">Provision slot</string>
     <string name="pref_item_yubikey_unlock_disable_title">Disable</string>
     <string name="pref_item_yubikey_unlock_confirm_title">Provision YubiKey slot?</string>
-    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock? Setup requires a USB connection.</string>
-    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> is already configured. Re-provisioning requires USB connection and overwrites the current slot configuration.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> is already configured. Re-provisioning overwrites the current slot configuration.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->

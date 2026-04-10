@@ -83,7 +83,7 @@ class DefaultStructureResolverV2(
             }
         val formProposals =
             clustered.clusters.associate { cluster ->
-                cluster.id to formAnalyzers.flatMap { it.analyze(cluster, context) }
+                cluster.id to formAnalyzers.flatMap { it.analyze(cluster, context, fieldProposals) }
             }
 
         val resolvedFormIntents = mutableMapOf<String, FormIntent>()

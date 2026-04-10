@@ -1,11 +1,14 @@
 package com.artemchep.keyguard.android.autofill.v2.analyzer.impl
 
+import android.view.autofill.AutofillId
 import com.artemchep.keyguard.android.autofill.v2.analyzer.FormAnalyzer
 import com.artemchep.keyguard.android.autofill.v2.model.AnalysisContext
 import com.artemchep.keyguard.android.autofill.v2.model.FieldCluster
 import com.artemchep.keyguard.android.autofill.v2.model.FieldNode
+import com.artemchep.keyguard.android.autofill.v2.model.FieldProposal
 import com.artemchep.keyguard.android.autofill.v2.model.FormIntent
 import com.artemchep.keyguard.android.autofill.v2.model.FormProposal
+import com.artemchep.keyguard.android.autofill.v2.model.SemanticType
 import com.artemchep.keyguard.android.autofill.v2.util.KeywordMatcher
 import com.artemchep.keyguard.android.autofill.v2.util.KeywordTag
 import com.artemchep.keyguard.android.autofill.v2.util.containsAny
@@ -50,12 +53,13 @@ class TemplateFormAnalyzer : FormAnalyzer {
     override fun analyze(
         cluster: FieldCluster,
         context: AnalysisContext,
+        fieldProposals: Map<AutofillId, List<FieldProposal>>,
     ): List<FormProposal> {
         val fields = cluster.fieldIds.mapNotNull(context.fieldsById::get)
         if (fields.isEmpty()) return listOf(unknownProposal())
 
-        // Map each field to a slot using fast heuristic classification.
-        val fieldSlots = fields.map { classifySlot(it, context) }
+        // Map each field to a slot using field-analyzer proposals + keyword fallback.
+        val fieldSlots = fields.map { classifySlot(it, context, fieldProposals) }
 
         // Score each template against the field slot sequence.
         val proposals = mutableListOf<FormProposal>()
@@ -98,6 +102,7 @@ class TemplateFormAnalyzer : FormAnalyzer {
     private fun classifySlot(
         field: FieldNode,
         context: AnalysisContext,
+        fieldProposals: Map<AutofillId, List<FieldProposal>>,
     ): Slot {
         val htmlType = field.htmlType ?: ""
         // Single AC pass over the field blob (cached in AnalysisContext).
@@ -105,10 +110,19 @@ class TemplateFormAnalyzer : FormAnalyzer {
             context.fieldBlobMatches[field.id]
                 ?: KeywordMatcher.match(context.fieldBlobs[field.id] ?: fieldBlob(field))
 
+        // Use field-analyzer proposals when available (covers autofillHints,
+        // autocomplete attributes, text signals, and the decision tree).
+        val proposalSlot =
+            fieldProposals[field.id]
+                ?.maxByOrNull { it.confidence }
+                ?.let { semanticTypeToSlot(it.semanticType) }
+
         return when {
             htmlType == "password" -> Slot.PASSWORD
 
             htmlType == "search" -> Slot.SEARCH
+
+            proposalSlot != null -> proposalSlot
 
             m has KeywordTag.PASSWORD -> Slot.PASSWORD
 
@@ -293,6 +307,58 @@ class TemplateFormAnalyzer : FormAnalyzer {
 
     companion object {
         /**
+         * Maps a [SemanticType] from field-analyzer proposals to the
+         * coarse [Slot] used for form-template matching.
+         * Returns `null` for [SemanticType.UNKNOWN] so that keyword
+         * matching can still attempt classification.
+         */
+        fun semanticTypeToSlot(type: SemanticType): Slot? =
+            when (type) {
+                SemanticType.EMAIL_ADDRESS,
+                SemanticType.USERNAME,
+                SemanticType.NEW_USERNAME,
+                SemanticType.PHONE_NUMBER,
+                    -> Slot.IDENTIFIER
+
+                SemanticType.PASSWORD,
+                SemanticType.NEW_PASSWORD,
+                    -> Slot.PASSWORD
+
+                SemanticType.OTP -> Slot.OTP
+
+                SemanticType.PERSON_NAME,
+                SemanticType.GIVEN_NAME,
+                SemanticType.FAMILY_NAME,
+                    -> Slot.NAME
+
+                SemanticType.STREET_ADDRESS,
+                SemanticType.POSTAL_CODE,
+                SemanticType.COUNTRY,
+                SemanticType.REGION,
+                SemanticType.LOCALITY,
+                    -> Slot.ADDRESS
+
+                SemanticType.CREDIT_CARD_NUMBER,
+                SemanticType.CREDIT_CARD_SECURITY_CODE,
+                SemanticType.CREDIT_CARD_EXPIRATION_DATE,
+                SemanticType.CREDIT_CARD_EXPIRATION_MONTH,
+                SemanticType.CREDIT_CARD_EXPIRATION_YEAR,
+                    -> Slot.PAYMENT
+
+                SemanticType.SEARCH -> Slot.SEARCH
+
+                SemanticType.COMMENT -> Slot.COMMENT
+
+                SemanticType.QUANTITY,
+                SemanticType.CAPTCHA,
+                SemanticType.CONSENT,
+                    -> Slot.OTHER
+
+                // UNKNOWN — let keyword matching try instead.
+                SemanticType.UNKNOWN -> null
+            }
+
+        /**
          * Canonical form templates. Order within the list doesn't matter;
          * the template with the best (lowest distance) match wins.
          */
@@ -305,6 +371,18 @@ class TemplateFormAnalyzer : FormAnalyzer {
                 FormTemplate(FormIntent.SIGN_UP, listOf(Slot.NAME, Slot.IDENTIFIER, Slot.PASSWORD, Slot.PASSWORD), 0.90f),
                 FormTemplate(FormIntent.SIGN_UP, listOf(Slot.IDENTIFIER, Slot.PASSWORD, Slot.PASSWORD), 0.88f),
                 FormTemplate(FormIntent.SIGN_UP, listOf(Slot.NAME, Slot.IDENTIFIER, Slot.PASSWORD), 0.82f),
+                // Registration combined with shipping/billing address fields.
+                FormTemplate(FormIntent.SIGN_UP, listOf(Slot.IDENTIFIER, Slot.PASSWORD, Slot.ADDRESS, Slot.ADDRESS, Slot.ADDRESS), 0.80f),
+                FormTemplate(
+                    FormIntent.SIGN_UP,
+                    listOf(Slot.NAME, Slot.IDENTIFIER, Slot.PASSWORD, Slot.ADDRESS, Slot.ADDRESS, Slot.ADDRESS),
+                    0.78f,
+                ),
+                FormTemplate(
+                    FormIntent.SIGN_UP,
+                    listOf(Slot.IDENTIFIER, Slot.PASSWORD, Slot.PASSWORD, Slot.ADDRESS, Slot.ADDRESS, Slot.ADDRESS),
+                    0.78f,
+                ),
                 FormTemplate(FormIntent.AUTH_COMBINED, listOf(Slot.NAME, Slot.NAME, Slot.IDENTIFIER, Slot.PASSWORD), 0.85f),
                 FormTemplate(FormIntent.PASSWORD_RESET, listOf(Slot.IDENTIFIER), 0.65f),
                 FormTemplate(FormIntent.PASSWORD_RESET, listOf(Slot.PASSWORD, Slot.PASSWORD), 0.80f),

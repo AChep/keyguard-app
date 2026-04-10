@@ -35,10 +35,12 @@ class AutocompleteFieldAnalyzer : FieldAnalyzer {
 
         return tokens.mapNotNull { token ->
             when (token) {
-                "email" -> {
+                // HTML: email | Android: emailAddress
+                "email", "emailaddress" -> {
                     proposal(SemanticType.EMAIL_ADDRESS, 1.0f, token)
                 }
 
+                // HTML: username
                 "username" -> {
                     if (looksLikeEmailField(field)) {
                         proposal(SemanticType.EMAIL_ADDRESS, 0.98f, token)
@@ -47,60 +49,117 @@ class AutocompleteFieldAnalyzer : FieldAnalyzer {
                     }
                 }
 
-                "current-password" -> {
+                // HTML: current-password | Android: password
+                "current-password", "password" -> {
                     proposal(SemanticType.PASSWORD, 1.0f, token)
                 }
 
-                "new-password" -> {
+                // HTML: new-password | Android: newPassword
+                "new-password", "newpassword" -> {
                     proposal(SemanticType.NEW_PASSWORD, 1.0f, token)
                 }
 
-                "new-username" -> {
+                // HTML: (non-standard) new-username | Android: newUsername
+                "new-username", "newusername" -> {
                     proposal(SemanticType.NEW_USERNAME, 1.0f, token)
                 }
 
-                "tel", "phone" -> {
+                // HTML: tel | Android: phone (deprecated), phoneNumber,
+                // phoneNational, phoneNumberDevice
+                "tel", "phone", "phonenumber", "phonenational",
+                "phonenumberdevice",
+                    -> {
                     proposal(SemanticType.PHONE_NUMBER, 1.0f, token)
                 }
 
-                "one-time-code" -> {
+                // HTML: one-time-code | Android: smsOTPCode, emailOTPCode,
+                // 2faAppOTPCode
+                "one-time-code", "smsotpcode", "emailotpcode",
+                "2faappotpcode",
+                    -> {
                     proposal(SemanticType.OTP, 1.0f, token)
                 }
 
-                "postal-code" -> {
+                // HTML: postal-code | Android: postalCode
+                "postal-code", "postalcode" -> {
                     proposal(SemanticType.POSTAL_CODE, 1.0f, token)
                 }
 
-                "address-line1", "street-address" -> {
+                // HTML: address-line1, street-address |
+                // Android: postalAddress, streetAddress
+                "address-line1", "street-address", "postaladdress",
+                "streetaddress",
+                    -> {
                     proposal(SemanticType.STREET_ADDRESS, 0.95f, token)
                 }
 
-                "cc-number" -> {
+                // HTML: cc-number | Android: creditCardNumber
+                "cc-number", "creditcardnumber" -> {
                     proposal(SemanticType.CREDIT_CARD_NUMBER, 1.0f, token)
                 }
 
-                "cc-csc" -> {
+                // HTML: cc-csc | Android: creditCardSecurityCode
+                "cc-csc", "creditcardsecuritycode" -> {
                     proposal(SemanticType.CREDIT_CARD_SECURITY_CODE, 1.0f, token)
                 }
 
-                "cc-exp" -> {
+                // HTML: cc-exp | Android: creditCardExpirationDate
+                "cc-exp", "creditcardexpirationdate" -> {
                     proposal(SemanticType.CREDIT_CARD_EXPIRATION_DATE, 1.0f, token)
                 }
 
-                "cc-exp-month" -> {
+                // HTML: cc-exp-month | Android: creditCardExpirationMonth
+                "cc-exp-month", "creditcardexpirationmonth" -> {
                     proposal(SemanticType.CREDIT_CARD_EXPIRATION_MONTH, 1.0f, token)
                 }
 
-                "cc-exp-year" -> {
+                // HTML: cc-exp-year | Android: creditCardExpirationYear
+                "cc-exp-year", "creditcardexpirationyear" -> {
                     proposal(SemanticType.CREDIT_CARD_EXPIRATION_YEAR, 1.0f, token)
                 }
 
-                "name" -> {
+                // HTML: name | Android: name (deprecated), personName
+                "name", "personname" -> {
                     proposal(SemanticType.PERSON_NAME, 0.85f, token)
                 }
 
+                // HTML: given-name | Android: personGivenName
+                "given-name", "persongivenname" -> {
+                    proposal(SemanticType.GIVEN_NAME, 0.90f, token)
+                }
+
+                // HTML: family-name | Android: personFamilyName
+                "family-name", "personfamilyname" -> {
+                    proposal(SemanticType.FAMILY_NAME, 0.90f, token)
+                }
+
+                // HTML: country, country-name | Android: addressCountry
+                "country", "country-name", "addresscountry" -> {
+                    proposal(SemanticType.COUNTRY, 0.90f, token)
+                }
+
+                // Android: addressRegion
+                "addressregion" -> {
+                    proposal(SemanticType.REGION, 0.90f, token)
+                }
+
+                // Android: addressLocality
+                "addresslocality" -> {
+                    proposal(SemanticType.LOCALITY, 0.90f, token)
+                }
+
+                // Android: notApplicable — suppress autofill for this field
+                "notapplicable" -> {
+                    proposal(SemanticType.UNKNOWN, 1.0f, token)
+                }
+
                 else -> {
-                    null
+                    // Android: smsOTPCode1..smsOTPCode8 (per-character OTP)
+                    if (token.startsWith("smsotpcode")) {
+                        proposal(SemanticType.OTP, 1.0f, token)
+                    } else {
+                        null
+                    }
                 }
             }
         }

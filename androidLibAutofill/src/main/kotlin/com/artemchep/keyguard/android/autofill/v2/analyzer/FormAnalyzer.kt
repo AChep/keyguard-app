@@ -1,7 +1,9 @@
 package com.artemchep.keyguard.android.autofill.v2.analyzer
 
+import android.view.autofill.AutofillId
 import com.artemchep.keyguard.android.autofill.v2.model.AnalysisContext
 import com.artemchep.keyguard.android.autofill.v2.model.FieldCluster
+import com.artemchep.keyguard.android.autofill.v2.model.FieldProposal
 import com.artemchep.keyguard.android.autofill.v2.model.FormProposal
 
 /**
@@ -13,5 +15,6 @@ interface FormAnalyzer {
     fun analyze(
         cluster: FieldCluster,
         context: AnalysisContext,
+        fieldProposals: Map<AutofillId, List<FieldProposal>>,
     ): List<FormProposal>
 }

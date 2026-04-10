@@ -117,7 +117,9 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
         // Record per-WebView metadata when we first enter a WebView node.
         if (isWebView) {
             val domain = node.webDomain.blankToNull()
-            val scheme = node.webScheme.blankToNull()
+            val scheme = if (Build.VERSION.SDK_INT >= 28) {
+                node.webScheme.blankToNull()
+            } else null
             if (domain != null || scheme != null) {
                 webViewMetadata[node.id] =
                     WebViewInfo(

@@ -188,6 +188,9 @@
     <string name="delete">Eliminar</string>
     <string name="remove">Apagar</string>
     <string name="remove_from_history">Remover do histórico</string>
+    <string name="pkcs12_password">Palavra-passe PKCS#12</string>
+    <string name="pkcs12_password_title">Introduza a palavra-passe PKCS#12</string>
+    <string name="pkcs12_password_note">Este pacote PKCS#12 está encriptado.</string>
     <string name="reused_password">Palavra-passe reutilizada</string>
     <string name="reused_passwords">Palavras-passe reutilizadas</string>
     <string name="one_time_password">Código 2FA</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Confiar numa aplicação permite que esta solicite credenciais para qualquer serviço. Uma aplicação maliciosa pode usar isso para tentar roubar as suas credenciais.</string>
     <string name="scanqr_title">Ler código QR</string>
+    <string name="scanqr_load_from_image">Carregar a partir de um ficheiro</string>
     <string name="scanqr_load_from_image_note">Abrir e analisar um código QR a partir de uma imagem.</string>
     <string name="scanqr_camera_permission_required_text">É necessária permissão de acesso 
 à câmera para ler códigos QR.</string>
@@ -781,6 +785,21 @@
     <string name="addaccount_custom_env_api_url_label">Endereço do servidor da API</string>
     <string name="addaccount_custom_env_icons_url_label">Endereço do servidor de ícones</string>
     <string name="addaccount_custom_env_identity_url_label">Endereço do servidor de identidade</string>
+    <string name="addaccount_custom_env_notifications_url_label">Ligação do servidor de notificações</string>
+    <string name="addaccount_mutual_tls_section">TLS mútuo</string>
+    <string name="addaccount_mutual_tls_file_label">Certificado do cliente</string>
+    <string name="addaccount_mutual_tls_note">Certificado utilizado para a autenticação do cliente.</string>
+    <string name="addaccount_mutual_tls_password_label">Palavra-passe PKCS#12</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Introduza a palavra-passe PKCS#12</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">Este pacote PKCS#12 está encriptado.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Exibir nome</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Emissor</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expira a</string>
+    <string name="addaccount_mutual_tls_status_imported">Importado</string>
+    <string name="addaccount_mutual_tls_status_failed">Falha ao importar</string>
     <string name="addaccount2fa_header_title">Verificação</string>
     <string name="addaccount2fa_unsupported_note">Este método de autenticação ainda não é suportado.</string>
     <string name="addaccount2fa_otp_note">Insira o código de verificação do seu aplicativo de autenticação.</string>

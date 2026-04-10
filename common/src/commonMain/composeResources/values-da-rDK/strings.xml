@@ -188,6 +188,9 @@
     <string name="delete">Slet</string>
     <string name="remove">Fjern</string>
     <string name="remove_from_history">Fjern fra historikken</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">Genbrugt adgangskode</string>
     <string name="reused_passwords">Genbrugte adgangskoder</string>
     <string name="one_time_password">Engangsadgangskode</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Door een app te vertrouwen, kan deze om inloggegevens voor elke dienst vragen. Een kwaadaardige app zou dit kunnen gebruiken om je inloggegevens te stelen.</string>
     <string name="scanqr_title">Skan QR-kode</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">Indlæs og fortolk QR-kode fra billedfil.</string>
     <string name="scanqr_camera_permission_required_text">Kamera-tilladelse kræves for at skanne QR-koderne.</string>
     <string name="post_notifications_permission_banner_title">Notifikationer er slået fra</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">API-server URL</string>
     <string name="addaccount_custom_env_icons_url_label">Pictogrammen Server URL</string>
     <string name="addaccount_custom_env_identity_url_label">Identiteit Server URL</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Bekræftelse</string>
     <string name="addaccount2fa_unsupported_note">Denne godkendelsesmetode understøttes endnu ikke.</string>
     <string name="addaccount2fa_otp_note">Angiv bekræftelseskoden fra godkendelses-appen.</string>

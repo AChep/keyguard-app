@@ -188,6 +188,9 @@
     <string name="delete">Apagar</string>
     <string name="remove">Remover</string>
     <string name="remove_from_history">Remover do histórico</string>
+    <string name="pkcs12_password">Senha PKCS#12</string>
+    <string name="pkcs12_password_title">Digite a senha PKCS#12</string>
+    <string name="pkcs12_password_note">Este pacote PKCS#12 é criptografado.</string>
     <string name="reused_password">Senha reutilizada</string>
     <string name="reused_passwords">Senhas reutilizadas</string>
     <string name="one_time_password">Senha de uso único</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Confiar em um aplicativo permite solicitar credenciais para qualquer serviço. Um aplicativo malicioso pode usar isso para tentar roubar suas credenciais.</string>
     <string name="scanqr_title">Escanear código QR</string>
+    <string name="scanqr_load_from_image">Carregar de um arquivo</string>
     <string name="scanqr_load_from_image_note">Carregar e analisar um código QR a partir de um arquivo de imagem.</string>
     <string name="scanqr_camera_permission_required_text">É necessária a permissão da câmera para ler os códigos QR.</string>
     <string name="post_notifications_permission_banner_title">Notificações desativadas</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">Endereço do servidor da API</string>
     <string name="addaccount_custom_env_icons_url_label">Endereço do servidor de ícones</string>
     <string name="addaccount_custom_env_identity_url_label">URL do Servidor de Identidade</string>
+    <string name="addaccount_custom_env_notifications_url_label">URL do Servidor de Notificações</string>
+    <string name="addaccount_mutual_tls_section">TLS Mútuo</string>
+    <string name="addaccount_mutual_tls_file_label">Certificado de cliente</string>
+    <string name="addaccount_mutual_tls_note">Certificado usado para autenticação do cliente.</string>
+    <string name="addaccount_mutual_tls_password_label">Senha PKCS#12</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Digite a senha PKCS#12</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">Este pacote PKCS#12 é criptografado.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Nome de exibição</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Emissor</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expira em</string>
+    <string name="addaccount_mutual_tls_status_imported">Importado</string>
+    <string name="addaccount_mutual_tls_status_failed">Falha ao importar</string>
     <string name="addaccount2fa_header_title">Verificação</string>
     <string name="addaccount2fa_unsupported_note">Este método de autenticação ainda não é suportado.</string>
     <string name="addaccount2fa_otp_note">Insira o código de verificação do seu aplicativo de autenticação.</string>
@@ -874,19 +893,19 @@
     <string name="ssh_agent_setup_step_3_text">Execute esses comandos na mesma sessão de shell em que você configurou o agente.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">O tempo de execução atual do agente SSH do desktop Keyguard ainda não está disponível no Windows, portanto, a configuração aqui é apenas informativa.</string>
-    <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
-    <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
-    <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
-    <string name="ssh_agent_setup_android_termux_step_2_title">Install package</string>
-    <string name="ssh_agent_setup_android_termux_step_2_text">Open Termux and install the package from a custom APT repository:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_title">Configure your SSH client</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Start the package and export the socket into your current shell:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">If you want to auto-start the package every time Termux starts, add it to your shell startup file:</string>
-    <string name="ssh_agent_setup_android_termux_step_4_title">Verify</string>
-    <string name="ssh_agent_setup_android_termux_step_4_text">Run these commands in the same shell session where you configured the agent.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_1">The SSH agent receives requests from SSH tools, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The SSH agent acts as a relay, while the Keyguard app performs the actual operations.</string>
+    <string name="ssh_agent_setup_android_termux_text">No Android, o Keyguard fornece o agente SSH por meio de um pacote auxiliar dedicado. Habilite o agente SSH no Keyguard, instale e configure o pacote e aprove solicitações quando seu cliente SSH se conectar.</string>
+    <string name="ssh_agent_setup_android_termux_step_1_title">Instalar o Termux</string>
+    <string name="ssh_agent_setup_android_termux_step_1_text">Termux é um aplicativo de terminal Android e ambiente Linux.</string>
+    <string name="ssh_agent_setup_android_termux_step_2_title">Instalar pacote</string>
+    <string name="ssh_agent_setup_android_termux_step_2_text">Abra o Termux e instale o pacote de um repositório APT personalizado:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_title">Configure seu cliente SSH</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Inicie o pacote e exporte o soquete para o seu shell atual:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">Se você deseja iniciar automaticamente o pacote sempre que o Termux for iniciado, adicione-o ao arquivo de inicialização do shell:</string>
+    <string name="ssh_agent_setup_android_termux_step_4_title">Verificar</string>
+    <string name="ssh_agent_setup_android_termux_step_4_text">Execute esses comandos na mesma sessão de shell em que você configurou o agente.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_title">Como funciona</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_1">O agente SSH recebe solicitações de ferramentas SSH e as encaminha para o aplicativo Keyguard em vez de lidar com a operação confidencial sozinho.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_2">A comunicação é feita em duas etapas: primeira, o agente sinaliza ao aplicativo para iniciar uma sessão, depois ambos os lados se conectam por meio de um canal TCP local e trocam mensagens criptografadas. O agente SSH atua como um retransmissor, enquanto o aplicativo Keyguard executa as operações reais.</string>
     <string name="ssh_agent_request_approval_sign_title">Solicitação de assinatura SSH</string>
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> deseja usar a seguinte chave SSH para assinar dados:</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">Um aplicativo deseja usar a seguinte chave SSH para assinar dados:</string>

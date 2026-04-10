@@ -188,6 +188,9 @@
     <string name="delete">Видалити</string>
     <string name="remove">Видалити</string>
     <string name="remove_from_history">Видалити з історії</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">Повторюваний пароль</string>
     <string name="reused_passwords">Повторювані паролі</string>
     <string name="one_time_password">Одноразовий пароль</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Дозволяє йому запитувати облікові дані для будь-якого сервісу. Зловмисний застосунок може використати це для викрадення ваших облікових даних.</string>
     <string name="scanqr_title">Сканувати QR-код</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">Завантажте з файлу та проаналізуйте QR-код.</string>
     <string name="scanqr_camera_permission_required_text">Для сканування QR-кодів необхідний дозвіл на камеру.</string>
     <string name="post_notifications_permission_banner_title">Сповіщення вимкнені</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">URL-адреса сервера API</string>
     <string name="addaccount_custom_env_icons_url_label">URL-адреса сервера піктограм</string>
     <string name="addaccount_custom_env_identity_url_label">URL-адреса сервера ідентифікації</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Підтвердження</string>
     <string name="addaccount2fa_unsupported_note">Цей метод аутентифікації ще не підтримується.</string>
     <string name="addaccount2fa_otp_note">Введіть код підтвердження з програми для автентифікації.</string>
@@ -874,19 +893,19 @@
     <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">SSH-агент поки що недоступний для Windows, тому налаштування тут наведені лише для ознайомлення.</string>
-    <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
+    <string name="ssh_agent_setup_android_termux_text">На Android Keyguard забезпечує роботу SSH-агента за допомогою спеціального допоміжного пакета. Увімкніть SSH-агента в Keyguard, встановіть та налаштуйте пакет, а потім схвалюйте запити під час підключення вашого SSH-клієнта.</string>
     <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
-    <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
-    <string name="ssh_agent_setup_android_termux_step_2_title">Install package</string>
-    <string name="ssh_agent_setup_android_termux_step_2_text">Open Termux and install the package from a custom APT repository:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_title">Configure your SSH client</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Start the package and export the socket into your current shell:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">If you want to auto-start the package every time Termux starts, add it to your shell startup file:</string>
-    <string name="ssh_agent_setup_android_termux_step_4_title">Verify</string>
-    <string name="ssh_agent_setup_android_termux_step_4_text">Run these commands in the same shell session where you configured the agent.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_1">The SSH agent receives requests from SSH tools, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The SSH agent acts as a relay, while the Keyguard app performs the actual operations.</string>
+    <string name="ssh_agent_setup_android_termux_step_1_text">Termux — це термінальний застосунок для Android та середовище Linux.</string>
+    <string name="ssh_agent_setup_android_termux_step_2_title">Встановити пакет</string>
+    <string name="ssh_agent_setup_android_termux_step_2_text">Відкрийте Termux та встановіть пакет з APT-репозиторію:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_title">Налаштуйте ваш SSH-клієнт</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Запустіть програму та експортуйте сокет:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">Якщо ви хочете, щоб пакет запускався автоматично під час кожного запуску Termux, додайте його до стартового файлу вашого терміналу:</string>
+    <string name="ssh_agent_setup_android_termux_step_4_title">Перевірка</string>
+    <string name="ssh_agent_setup_android_termux_step_4_text">Виконайте ці команди в тому ж сеансі терміналу, де ви налаштували агента.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_title">Як це працює</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_1">SSH-агент отримує запити від SSH-інструментів і пересилає їх до застосунку Keyguard, замість того щоб самостійно виконувати цю конфіденційну операцію.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_2">Зв'язок відбувається у два етапи: спочатку агент подає сигнал застосунку для початку сеансу, після чого обидві сторони з'єднуються через локальний TCP-канал і обмінюються зашифрованими повідомленнями. SSH-агент виконує роль ретранслятора, тоді як застосунок Keyguard здійснює операції.</string>
     <string name="ssh_agent_request_approval_sign_title">Запит на підпис від SSH клієнта</string>
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> хоче використати цей SSH-ключ для підпису даних:</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">Застосунок хоче використати цей SSH-ключ для підпису даних:</string>
@@ -952,7 +971,7 @@
     <string name="send_main_header_title">Відправлення</string>
     <string name="send_main_search_placeholder">Пошук відправлень</string>
     <string name="send_main_new_item_button">Нове відправлення</string>
-    <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
+    <string name="send_email_is_required_to_access_label">Доступ до цього ресурсу мають одержувачі з підтвердженою електронною поштою</string>
     <string name="send_password_is_required_to_access_label">Для доступу до цього відправлення необхідно буде ввести пароль</string>
     <string name="generator_header_title">Генератор</string>
     <string name="generator_header_username_title">Генератор імені користувача</string>
@@ -1202,7 +1221,7 @@
     <string name="pref_item_features_overview_title">Перегляд можливостей</string>
     <string name="pref_item_url_override_title">Перевизначення URL-адреси</string>
     <string name="pref_item_ssh_agent_title">SSH агент</string>
-    <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
+    <string name="pref_item_ssh_agent_text">Автентифікуйте свої клієнти Git та SSH так, щоб вони ніколи не мали доступу до вашого приватного ключа</string>
     <string name="pref_item_ssh_agent_status_unsupported">Не підтримується</string>
     <string name="pref_item_ssh_agent_status_stopped">Зупинено</string>
     <string name="pref_item_ssh_agent_status_starting">Запускається</string>

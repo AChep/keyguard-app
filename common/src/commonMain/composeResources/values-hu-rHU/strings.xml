@@ -188,6 +188,9 @@
     <string name="delete">Törlés</string>
     <string name="remove">Eltávolítás</string>
     <string name="remove_from_history">Eltávolítás az előzményekből</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">Újrahasznált jelszó</string>
     <string name="reused_passwords">Újrahasznált jelszavak</string>
     <string name="one_time_password">Egyszeri jelszó</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Egy alkalmazás megbízhatónak jelölése lehetővé teszi számára, hogy bármely szolgáltatáshoz hitelesítő adatokat kérjen. Egy rosszindulatú alkalmazás ezt felhasználhatja a hitelesítő adatok ellopására.</string>
     <string name="scanqr_title">QR kód beolvasása</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">QR-kód betöltése és elemzése egy képfájlból.</string>
     <string name="scanqr_camera_permission_required_text">A QR-kódok beolvasásához kamera engedélye szükséges.</string>
     <string name="post_notifications_permission_banner_title">Értesítések letiltva</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">API szerver URL</string>
     <string name="addaccount_custom_env_icons_url_label">Ikonok szerver URL</string>
     <string name="addaccount_custom_env_identity_url_label">Identitás szerver URL</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Hitelesítés</string>
     <string name="addaccount2fa_unsupported_note">Ez a hitelesítési módszer még nem támogatott.</string>
     <string name="addaccount2fa_otp_note">Adja meg az ellenőrző kódot a hitelesítő alkalmazásából.</string>

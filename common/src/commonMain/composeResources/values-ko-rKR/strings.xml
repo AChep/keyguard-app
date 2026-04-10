@@ -188,6 +188,9 @@
     <string name="delete">삭제</string>
     <string name="remove">제거</string>
     <string name="remove_from_history">기록에서 제거</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">재사용 비밀번호</string>
     <string name="reused_passwords">재사용 비밀번호</string>
     <string name="one_time_password">OTP</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">앱을 신뢰하면 모든 서비스에 대한 인증 정보를 요청할 수 있습니다. 악성 앱이 이를 악용하여 사용자의 인증 정보를 탈취할 위험이 있습니다.</string>
     <string name="scanqr_title">QR 코드 스캔</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">이미지 파일에서 QR 코드를 읽을 수 있습니다.</string>
     <string name="scanqr_camera_permission_required_text">QR 코드를 스캔하기 위해 카메라 권한이 필요합니다.</string>
     <string name="post_notifications_permission_banner_title">알림이 꺼져 있음</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">API 서버 URL</string>
     <string name="addaccount_custom_env_icons_url_label">아이콘 서버 URL</string>
     <string name="addaccount_custom_env_identity_url_label">ID 서버 URL</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">인증</string>
     <string name="addaccount2fa_unsupported_note">이 인증 방법은 아직 지원하지 않습니다.</string>
     <string name="addaccount2fa_otp_note">인증 앱에서 인증 코드를 입력하세요.</string>
@@ -1221,7 +1240,7 @@
     <string name="pref_item_yubikey_unlock_provision_slot_title">슬롯 구성</string>
     <string name="pref_item_yubikey_unlock_disable_title">비활성화</string>
     <string name="pref_item_yubikey_unlock_confirm_title">YubiKey 슬롯을 구성하시겠습니까?</string>
-    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock? Setup requires a USB connection.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock?</string>
     <string name="pref_item_yubikey_unlock_confirm_message_configured">슬롯 <xliff:g id="slot_number" example="1">%1$s</xliff:g>이(가) 이미 구성되어 있습니다. 다시 구성하려면 USB 연결이 필요하며, 현재 슬롯의 구성 내용이 덮어쓰기됩니다.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

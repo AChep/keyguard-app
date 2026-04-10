@@ -188,6 +188,9 @@
     <string name="delete">Sil</string>
     <string name="remove">Kaldır</string>
     <string name="remove_from_history">Geçmişten kaldır</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">Yeniden kullanılan parola</string>
     <string name="reused_passwords">Yeniden kullanılan parolalar</string>
     <string name="one_time_password">Tek kullanımlık parola</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Bir uygulamaya güvenmek, o uygulamanın herhangi bir hizmet için kimlik bilgisi talep etmesine izin verir. Kötü niyetli bir uygulama bunu kimlik bilgilerinizi çalmak için kullanabilir.</string>
     <string name="scanqr_title">QR kodunu tara</string>
+    <string name="scanqr_load_from_image">Dosyadan yükle</string>
     <string name="scanqr_load_from_image_note">Bir görüntü dosyasından QR kodunu yükleyin ve ayrıştırın.</string>
     <string name="scanqr_camera_permission_required_text">QR kodlarını taramak için kamera izni gereklidir.</string>
     <string name="post_notifications_permission_banner_title">Bildirimler devre dışı bırakıldı</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">API Sunucu URL'si</string>
     <string name="addaccount_custom_env_icons_url_label">Simgeler Sunucusu URL'si</string>
     <string name="addaccount_custom_env_identity_url_label">Kimlik Sunucusu URL'si</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Doğrulama</string>
     <string name="addaccount2fa_unsupported_note">Bu kimlik doğrulama yöntemi henüz desteklenmiyor.</string>
     <string name="addaccount2fa_otp_note">Kimlik doğrulayıcı uygulamanızdan doğrulama kodunu girin.</string>
@@ -874,19 +893,19 @@
     <string name="ssh_agent_setup_step_3_text">Bu komutları aracıyı yapılandırdığınız aynı kabuk (shell) oturumunda çalıştırın.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">Mevcut Keyguard masaüstü SSH aracısı çalışma zamanı henüz Windows'ta mevcut değildir, bu nedenle buradaki kurulum sadece bilgi amaçlıdır.</string>
-    <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
-    <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
-    <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
-    <string name="ssh_agent_setup_android_termux_step_2_title">Install package</string>
-    <string name="ssh_agent_setup_android_termux_step_2_text">Open Termux and install the package from a custom APT repository:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_title">Configure your SSH client</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Start the package and export the socket into your current shell:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">If you want to auto-start the package every time Termux starts, add it to your shell startup file:</string>
-    <string name="ssh_agent_setup_android_termux_step_4_title">Verify</string>
-    <string name="ssh_agent_setup_android_termux_step_4_text">Run these commands in the same shell session where you configured the agent.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_1">The SSH agent receives requests from SSH tools, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The SSH agent acts as a relay, while the Keyguard app performs the actual operations.</string>
+    <string name="ssh_agent_setup_android_termux_text">Android'de Keyguard, SSH aracısını özel bir yardımcı paket aracılığıyla sağlar. Keyguard'da SSH aracısını etkinleştirin, paketi kurup yapılandırın ve SSH istemciniz bağlandığında istekleri onaylayın.</string>
+    <string name="ssh_agent_setup_android_termux_step_1_title">Termux'u yükle</string>
+    <string name="ssh_agent_setup_android_termux_step_1_text">Termux, bir Android terminal uygulaması ve Linux ortamıdır.</string>
+    <string name="ssh_agent_setup_android_termux_step_2_title">Paketi yükle</string>
+    <string name="ssh_agent_setup_android_termux_step_2_text">Termux'u açın ve paketi özel bir APT deposundan yükleyin:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_title">SSH istemcinizi yapılandırın</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Paketi başlatın ve soketi mevcut kabuğunuza (shell) aktarın:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">Paketin Termux her başladığında otomatik olarak çalışmasını istiyorsanız, kabuk (shell) başlangıç dosyanıza ekleyin:</string>
+    <string name="ssh_agent_setup_android_termux_step_4_title">Doğrula</string>
+    <string name="ssh_agent_setup_android_termux_step_4_text">Bu komutları aracıyı yapılandırdığınız aynı kabuk (shell) oturumunda çalıştırın.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_title">Nasıl çalışır?</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_1">SSH aracısı, SSH araçlarından gelen istekleri alır ve hassas işlemleri kendisi yürütmek yerine Keyguard uygulamasına yönlendirir.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_2">İletişim iki aşamada gerçekleşir: Aracı önce bir oturum başlatması için uygulamaya sinyal gönderir, ardından her iki taraf yerel bir TCP kanalı üzerinden bağlanır ve şifreli mesaj alışverişinde bulunur. Asıl işlemleri Keyguard uygulaması gerçekleştirirken, SSH aracısı bir aktarıcı (relay) görevi görür.</string>
     <string name="ssh_agent_request_approval_sign_title">SSH İmzalama Talebi</string>
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> verileri imzalamak için aşağıdaki SSH anahtarını kullanmak istiyor:</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">Bir uygulama verileri imzalamak için aşağıdaki SSH anahtarını kullanmak istiyor:</string>

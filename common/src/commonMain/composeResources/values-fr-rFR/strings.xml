@@ -188,6 +188,9 @@
     <string name="delete">Supprimer</string>
     <string name="remove">Effacer</string>
     <string name="remove_from_history">Effacer de l'historique</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">Mot de passe réutilisé</string>
     <string name="reused_passwords">Mots de passe réutilisés</string>
     <string name="one_time_password">Mot de passe à usage unique (0TP)</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Autoriser une application lui permet de demander des identifiants pour n'importe quel service. Une application malveillante pourrait utiliser cette fonctionnalité pour tenter de voler vos identifiants.</string>
     <string name="scanqr_title">Scanner le code QR</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">Charger et analyser un code QR à partir d'un fichier image.</string>
     <string name="scanqr_camera_permission_required_text">L'autorisation d'accéder à la caméra est nécessaire pour scanner les codes QR.</string>
     <string name="post_notifications_permission_banner_title">Les notifications sont désactivées</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">URL du serveur de l'API</string>
     <string name="addaccount_custom_env_icons_url_label">URL du serveur d’icônes</string>
     <string name="addaccount_custom_env_identity_url_label">URL du serveur d'identité</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Vérification</string>
     <string name="addaccount2fa_unsupported_note">Cette méthode d'authentification n'est pas encore prise en charge.</string>
     <string name="addaccount2fa_otp_note">Saisissez le code de vérification depuis votre application d'authentification.</string>

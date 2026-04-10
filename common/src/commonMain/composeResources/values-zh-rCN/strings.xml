@@ -188,6 +188,9 @@
     <string name="delete">删除</string>
     <string name="remove">移除</string>
     <string name="remove_from_history">从历史记录中移除</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">重复使用的密码</string>
     <string name="reused_passwords">重复使用的密码</string>
     <string name="one_time_password">一次性密码（OTP）</string>
@@ -315,7 +318,7 @@
     <string name="ciphers_action_change_folder_title">移动至文件夹</string>
     <string name="ciphers_action_change_name_title">修改名称</string>
     <string name="ciphers_action_change_names_title">修改名称</string>
-    <string name="ciphers_action_change_tags_title">Change tags</string>
+    <string name="ciphers_action_change_tags_title">更改标签</string>
     <string name="ciphers_action_add_password_title">添加密码</string>
     <string name="ciphers_action_add_passwords_title">添加密码</string>
     <string name="ciphers_action_change_password_title">修改密码</string>
@@ -442,19 +445,19 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">保存未加密私钥到下载</string>
     <string name="ssh_key_action_add_key_title">添加密钥</string>
     <string name="ssh_key_action_replace_key_title">替换密钥</string>
-    <string name="ssh_key_import_title">Import SSH key</string>
-    <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
-    <string name="ssh_key_import_success_title">Imported SSH key</string>
-    <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
-    <string name="ssh_key_import_error_unsupported_algorithm">Only RSA and Ed25519 SSH keys are supported.</string>
-    <string name="ssh_key_import_error_invalid_passphrase">The SSH key passphrase is invalid.</string>
-    <string name="ssh_key_import_error_malformed_key">The SSH key file is malformed.</string>
-    <string name="ssh_key_import_error_read">Unable to read the selected file.</string>
-    <string name="ssh_key_import_error_passphrase_required">A passphrase is required to unlock this SSH key.</string>
-    <string name="ssh_key_import_passphrase_title">Passphrase</string>
-    <string name="ssh_key_import_passphrase_hint">Enter SSH key passphrase</string>
-    <string name="ssh_key_import_passphrase_dialog_title">Enter SSH key passphrase</string>
-    <string name="ssh_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> key is encrypted.</string>
+    <string name="ssh_key_import_title">导入 SSH 密钥</string>
+    <string name="ssh_key_import_failed_title">导入 SSH 密钥失败</string>
+    <string name="ssh_key_import_success_title">已导入 SSH 密钥</string>
+    <string name="ssh_key_import_error_unsupported_format">不支持的 SSH 私钥格式。</string>
+    <string name="ssh_key_import_error_unsupported_algorithm">仅支持 RSA 和 Ed25519 SSH 密钥。</string>
+    <string name="ssh_key_import_error_invalid_passphrase">SSH 密钥口令无效。</string>
+    <string name="ssh_key_import_error_malformed_key">SSH 密钥文件格式不正确。</string>
+    <string name="ssh_key_import_error_read">无法读取选定的文件。</string>
+    <string name="ssh_key_import_error_passphrase_required">需要口令才能解锁此 SSH 密钥。</string>
+    <string name="ssh_key_import_passphrase_title">口令</string>
+    <string name="ssh_key_import_passphrase_hint">输入 SSH 密钥口令</string>
+    <string name="ssh_key_import_passphrase_dialog_title">输入 SSH 密钥口令</string>
+    <string name="ssh_key_import_passphrase_dialog_message">此 <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> 密钥已加密。</string>
     <string name="selection_n_selected">已选择 <xliff:g id="size" example="15">%1$d</xliff:g> 项</string>
     <string name="copy">复制</string>
     <string name="copy_value">复制值</string>
@@ -553,12 +556,12 @@
     <string name="error_invalid_email">电子邮件无效</string>
     <string name="error_invalid_url">URL无效</string>
     <string name="error_invalid_uri">URI 无效</string>
-    <string name="error_invalid_key">Invalid key</string>
+    <string name="error_invalid_key">无效的密钥</string>
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_incorrect_password">密码错误</string>
     <string name="error_not_found">未找到</string>
     <string name="error_otp_key_must_not_be_empty">一次性密码的密钥不能为空</string>
-    <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
+    <string name="error_otp_key_is_invalid">一次性密码的密钥无效</string>
     <string name="error_failed_file_already_exists">无法创建文件。不允许替换现有文件</string>
     <string name="error_failed_generate_kdf_hash_oom">创建密钥失败，内存不足。请检查您的 KDF 服务器设置。</string>
     <string name="error_failed_generate_otp_code">生成一次性验证码失败</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">信任某个应用就意味着它有权请求任何服务的凭据。恶意应用可能会利用这一点来窃取您的凭据。</string>
     <string name="scanqr_title">扫描二维码</string>
+    <string name="scanqr_load_from_image">从文件加载</string>
     <string name="scanqr_load_from_image_note">从图像文件加载并解析二维码。</string>
     <string name="scanqr_camera_permission_required_text">请授予相机权限以扫描二维码。</string>
     <string name="post_notifications_permission_banner_title">通知已禁用</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">API 服务器 URL</string>
     <string name="addaccount_custom_env_icons_url_label">图标服务器 URL</string>
     <string name="addaccount_custom_env_identity_url_label">身份验证器 URL</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">验证</string>
     <string name="addaccount2fa_unsupported_note">此认证方法尚未被支持。</string>
     <string name="addaccount2fa_otp_note">请输入您的身份验证器应用中的验证码</string>
@@ -874,19 +893,19 @@
     <string name="ssh_agent_setup_step_3_text">在配置了代理的同一 Shell 会话中运行这些命令。</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">当前的 Keyguard 桌面 SSH 代理运行时暂不支持 Windows，因此此处的设置说明仅供参考。</string>
-    <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
-    <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
-    <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
-    <string name="ssh_agent_setup_android_termux_step_2_title">Install package</string>
-    <string name="ssh_agent_setup_android_termux_step_2_text">Open Termux and install the package from a custom APT repository:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_title">Configure your SSH client</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Start the package and export the socket into your current shell:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">If you want to auto-start the package every time Termux starts, add it to your shell startup file:</string>
-    <string name="ssh_agent_setup_android_termux_step_4_title">Verify</string>
-    <string name="ssh_agent_setup_android_termux_step_4_text">Run these commands in the same shell session where you configured the agent.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_1">The SSH agent receives requests from SSH tools, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The SSH agent acts as a relay, while the Keyguard app performs the actual operations.</string>
+    <string name="ssh_agent_setup_android_termux_text">在 Android 上，Keyguard 通过专用辅助软件包提供 SSH 代理。请在 Keyguard 中启用 SSH 代理，安装并配置该软件包，并在 SSH 客户端连接时批准请求。</string>
+    <string name="ssh_agent_setup_android_termux_step_1_title">安装 Termux</string>
+    <string name="ssh_agent_setup_android_termux_step_1_text">Termux 是一款 Android 终端应用及 Linux 环境。</string>
+    <string name="ssh_agent_setup_android_termux_step_2_title">安装软件包</string>
+    <string name="ssh_agent_setup_android_termux_step_2_text">打开 Termux，从自定义 APT 仓库安装软件包：</string>
+    <string name="ssh_agent_setup_android_termux_step_3_title">配置 SSH 客户端</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_current">启动软件包并将套接字导出到当前 Shell：</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">若希望每次 Termux 启动时自动运行该软件包，请将其添加到 Shell 启动文件中：</string>
+    <string name="ssh_agent_setup_android_termux_step_4_title">验证</string>
+    <string name="ssh_agent_setup_android_termux_step_4_text">请在配置代理时所用的同一 Shell 会话中执行以下命令。</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_title">工作原理</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_1">SSH 代理接收来自 SSH 工具的请求，再将其转发给 Keyguard 应用，而非由自身处理敏感操作。</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_2">通信分两步进行：代理先通知应用启动会话，双方再通过本地 TCP 通道建立连接并交换加密消息。SSH 代理充当中继，实际操作由 Keyguard 应用执行。</string>
     <string name="ssh_agent_request_approval_sign_title">SSH 签名请求</string>
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> 请求使用以下 SSH 密钥对数据进行签名：</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">某应用请求使用以下 SSH 密钥对数据进行签名：</string>

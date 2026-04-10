@@ -188,6 +188,9 @@
     <string name="delete">削除</string>
     <string name="remove">削除</string>
     <string name="remove_from_history">履歴から削除</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">再利用パスワード</string>
     <string name="reused_passwords">再利用パスワード</string>
     <string name="one_time_password">ワンタイムパスワード</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">アプリを信頼すると、任意のサービスに対する認証情報をリクエストできるようになります。悪意のあるアプリがこれを悪用して認証情報を盗む可能性があります。</string>
     <string name="scanqr_title">QR コードをスキャン</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">画像ファイルから QR コードを読み込んで解析します。</string>
     <string name="scanqr_camera_permission_required_text">QR コードのスキャンにはカメラの権限の許可が必要です。</string>
     <string name="post_notifications_permission_banner_title">通知が無効化されています</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">API サーバー URL</string>
     <string name="addaccount_custom_env_icons_url_label">アイコンサーバー URL</string>
     <string name="addaccount_custom_env_identity_url_label">ID サーバー URL</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">認証</string>
     <string name="addaccount2fa_unsupported_note">この認証方法はまだサポートされていません。</string>
     <string name="addaccount2fa_otp_note">認証アプリに表示された認証コードを入力してください。</string>
@@ -1221,7 +1240,7 @@
     <string name="pref_item_yubikey_unlock_provision_slot_title">スロットの設定</string>
     <string name="pref_item_yubikey_unlock_disable_title">無効にする</string>
     <string name="pref_item_yubikey_unlock_confirm_title">YubiKeyスロットを設定しますか？</string>
-    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock? Setup requires a USB connection.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock?</string>
     <string name="pref_item_yubikey_unlock_confirm_message_configured">スロット <xliff:g id="slot_number" example="1">%1$s</xliff:g> はすでに設定されています。再設定にはUSB接続が必要であり、現在のスロット設定は上書きされます。</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

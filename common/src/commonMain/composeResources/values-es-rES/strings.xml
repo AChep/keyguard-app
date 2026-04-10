@@ -188,6 +188,9 @@
     <string name="delete">Borrar</string>
     <string name="remove">Eliminar</string>
     <string name="remove_from_history">Eliminar del historial</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">Contraseñas reutilizadas</string>
     <string name="reused_passwords">Contraseñas reutilizadas</string>
     <string name="one_time_password">Contraseña de un solo uso</string>
@@ -315,7 +318,7 @@
     <string name="ciphers_action_change_folder_title">Mover a carpeta</string>
     <string name="ciphers_action_change_name_title">Cambiar nombre</string>
     <string name="ciphers_action_change_names_title">Cambiar nombres</string>
-    <string name="ciphers_action_change_tags_title">Change tags</string>
+    <string name="ciphers_action_change_tags_title">Cambiar etiquetas</string>
     <string name="ciphers_action_add_password_title">Añadir contraseña</string>
     <string name="ciphers_action_add_passwords_title">Añadir contraseñas</string>
     <string name="ciphers_action_change_password_title">Cambiar contraseña</string>
@@ -442,19 +445,19 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Clave privada sin cifrar guardada en Descargas</string>
     <string name="ssh_key_action_add_key_title">Añadir claves</string>
     <string name="ssh_key_action_replace_key_title">Reemplazar claves</string>
-    <string name="ssh_key_import_title">Import SSH key</string>
-    <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
-    <string name="ssh_key_import_success_title">Imported SSH key</string>
-    <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
-    <string name="ssh_key_import_error_unsupported_algorithm">Only RSA and Ed25519 SSH keys are supported.</string>
-    <string name="ssh_key_import_error_invalid_passphrase">The SSH key passphrase is invalid.</string>
-    <string name="ssh_key_import_error_malformed_key">The SSH key file is malformed.</string>
-    <string name="ssh_key_import_error_read">Unable to read the selected file.</string>
-    <string name="ssh_key_import_error_passphrase_required">A passphrase is required to unlock this SSH key.</string>
-    <string name="ssh_key_import_passphrase_title">Passphrase</string>
-    <string name="ssh_key_import_passphrase_hint">Enter SSH key passphrase</string>
-    <string name="ssh_key_import_passphrase_dialog_title">Enter SSH key passphrase</string>
-    <string name="ssh_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> key is encrypted.</string>
+    <string name="ssh_key_import_title">Importar clave SSH</string>
+    <string name="ssh_key_import_failed_title">Error al importar la clave SSH</string>
+    <string name="ssh_key_import_success_title">Clave SSH importada</string>
+    <string name="ssh_key_import_error_unsupported_format">Formato de clave privada SSH no soportado.</string>
+    <string name="ssh_key_import_error_unsupported_algorithm">Solo se admiten claves RSA y Ed25519 SSH.</string>
+    <string name="ssh_key_import_error_invalid_passphrase">La contraseña de clave SSH no es válida.</string>
+    <string name="ssh_key_import_error_malformed_key">El archivo de clave SSH está mal formado.</string>
+    <string name="ssh_key_import_error_read">No es posible leer el archivo especificado.</string>
+    <string name="ssh_key_import_error_passphrase_required">Se requiere una contraseña para desbloquear esta clave SSH.</string>
+    <string name="ssh_key_import_passphrase_title">Contraseña</string>
+    <string name="ssh_key_import_passphrase_hint">Introduzca contraseña de clave SSH</string>
+    <string name="ssh_key_import_passphrase_dialog_title">Introduzca contraseña de clave SSH</string>
+    <string name="ssh_key_import_passphrase_dialog_message">Esta clave <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> está cifrada.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> seleccionado</string>
     <string name="copy">Copiar</string>
     <string name="copy_value">Copiar valor</string>
@@ -553,12 +556,12 @@
     <string name="error_invalid_email">Correo electrónico no válido</string>
     <string name="error_invalid_url">URL no válida</string>
     <string name="error_invalid_uri">URI no válida</string>
-    <string name="error_invalid_key">Invalid key</string>
+    <string name="error_invalid_key">Clave no válida</string>
     <string name="error_invalid_card_number">Número de tarjeta no válido</string>
     <string name="error_incorrect_password">Contraseña incorrecta</string>
     <string name="error_not_found">No encontrado</string>
     <string name="error_otp_key_must_not_be_empty">La clave secreta de contraseñas de un solo uso debe no estar vacía</string>
-    <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
+    <string name="error_otp_key_is_invalid">Clave secreta de una sola vez no válida</string>
     <string name="error_failed_file_already_exists">Error al crear un archivo. No se permite reemplazar el archivo existente</string>
     <string name="error_failed_generate_kdf_hash_oom">Error al crear una clave, no hay suficiente memoria. Por favor, compruebe la configuración del servidor de KDF.</string>
     <string name="error_failed_generate_otp_code">Error al generar el código OTP</string>
@@ -584,6 +587,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Confiar en una aplicación le permite solicitar credenciales para cualquier servicio. Una aplicación maliciosa podría usarla para intentar robar sus credenciales.</string>
     <string name="scanqr_title">Escanear código QR</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">Carga y analiza un código QR desde un archivo de imagen.</string>
     <string name="scanqr_camera_permission_required_text">Se requiere permiso de la cámara para escanear códigos QR.</string>
     <string name="post_notifications_permission_banner_title">Las notificaciones están desactivadas</string>
@@ -745,7 +749,7 @@
     <string name="addsend_hide_text_by_default_title">Al acceder al elemento, oculta el texto por defecto</string>
     <string name="addsend_hide_email_title">Ocultar dirección de correo electrónico</string>
     <string name="addsend_max_access_count_note">Si se establece, los usuarios ya no podrán acceder a este elemento después de que se alcance el número máximo de accesos.</string>
-    <string name="addsend_auth_emails_label">Email(s)</string>
+    <string name="addsend_auth_emails_label">Correo(s) electrónico(s)</string>
     <string name="addsend_auth_emails_placeholder">Correos electrónicos separados por comas</string>
     <string name="addsend_auth_emails_note">A los destinatarios se les pedirá que completen una verificación única por correo electrónico después de abrir el enlace.</string>
     <string name="addaccount_promo_title">Tu caja fuerte está vacía. Conecta una cuenta para empezar:</string>
@@ -780,6 +784,21 @@
     <string name="addaccount_custom_env_api_url_label">URL del servidor API</string>
     <string name="addaccount_custom_env_icons_url_label">URL del servidor de iconos</string>
     <string name="addaccount_custom_env_identity_url_label">URL del servidor de identidad</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Verificación</string>
     <string name="addaccount2fa_unsupported_note">Este método de autenticación no está soportado todavía.</string>
     <string name="addaccount2fa_otp_note">Introduzca el código de verificación de su aplicación de autenticación.</string>
@@ -802,7 +821,7 @@
     <string name="yubikey_unlock_error_unsupported_title">El desbloqueo con YubiKey no es compatible</string>
     <string name="yubikey_unlock_error_unsupported_text">Esta YubiKey o tipo de conexión no admite el desbloqueo mediante desafío-respuesta.</string>
     <string name="yubikey_unlock_error_failed_title">Error al usar YubiKey</string>
-    <string name="yubikey_unlock_error_failed_text">Try the YubiKey again or unlock the vault with your password.</string>
+    <string name="yubikey_unlock_error_failed_text">Prueba la YubiKey de nuevo o desbloquea la bóveda con tu contraseña.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Usar WebAuthn de FIDO2 requiere usar la caja fuerte de Bitwarden Web <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> o superior. En versiones anteriores el resultado de autenticación será reenviado incorrectamente a la aplicación oficial de Bitwarden.</string>
     <string name="elevatedaccess_header_title">Confirmar acceso</string>
     <string name="elevatedaccess_header_text">Estos datos están protegidos, para continuar por favor ingrese la contraseña de la aplicación.</string>
@@ -874,19 +893,19 @@
     <string name="ssh_agent_setup_step_3_text">Ejecute estos comandos en la misma sesión de terminal donde configuró el agente.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">El entorno de ejecución del agente SSH de Keyguard para escritorio aún no está disponible en Windows, por lo que la configuración aquí es solo informativa.</string>
-    <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
-    <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
-    <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
-    <string name="ssh_agent_setup_android_termux_step_2_title">Install package</string>
-    <string name="ssh_agent_setup_android_termux_step_2_text">Open Termux and install the package from a custom APT repository:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_title">Configure your SSH client</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Start the package and export the socket into your current shell:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">If you want to auto-start the package every time Termux starts, add it to your shell startup file:</string>
-    <string name="ssh_agent_setup_android_termux_step_4_title">Verify</string>
-    <string name="ssh_agent_setup_android_termux_step_4_text">Run these commands in the same shell session where you configured the agent.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_1">The SSH agent receives requests from SSH tools, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The SSH agent acts as a relay, while the Keyguard app performs the actual operations.</string>
+    <string name="ssh_agent_setup_android_termux_text">En Android, Keyguard proporciona el agente SSH a través de un paquete de ayuda dedicado. Active el agente SSH en Keyguard, instale y configure el paquete, y apruebe las peticiones cuando su cliente SSH se conecte.</string>
+    <string name="ssh_agent_setup_android_termux_step_1_title">Instalar Termux</string>
+    <string name="ssh_agent_setup_android_termux_step_1_text">Termux es una aplicación de terminal Android y entorno Linux.</string>
+    <string name="ssh_agent_setup_android_termux_step_2_title">Instalar paquete</string>
+    <string name="ssh_agent_setup_android_termux_step_2_text">Abra Termux e instale el paquete desde un repositorio APT personalizado:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_title">Configurar su cliente SSH</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Inicie el paquete y exporte el socket a su shell actual:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">Si quieres auto-iniciar el paquete cada vez que Termux se inicie, añádelo al archivo de inicio del shell:</string>
+    <string name="ssh_agent_setup_android_termux_step_4_title">Verificar</string>
+    <string name="ssh_agent_setup_android_termux_step_4_text">Ejecute estos comandos en la misma sesión de shell donde configuró el agente.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_title">¿Cómo funciona?</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_1">El agente SSH recibe peticiones de las herramientas SSH y luego las reenvía a la aplicación GuardaKeyguard en lugar de manejar la operación sensible en sí.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_2">La comunicación se realiza en dos pasos: primero el agente indica la aplicación para iniciar una sesión, entonces ambos lados conectan a través de un canal TCP local y intercambian mensajes cifrados. El agente SSH actúa como un repetidor, mientras que la aplicación Guardián realiza las operaciones reales.</string>
     <string name="ssh_agent_request_approval_sign_title">Solicitud de firma SSH</string>
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> desea utilizar la siguiente clave SSH para firmar datos:</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">Una aplicación desea utilizar la siguiente clave SSH para firmar datos:</string>
@@ -952,7 +971,7 @@
     <string name="send_main_header_title">Envíos</string>
     <string name="send_main_search_placeholder">Buscar Sends</string>
     <string name="send_main_new_item_button">Nuevo elemento</string>
-    <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
+    <string name="send_email_is_required_to_access_label">Los destinatarios verificados por correo electrónico pueden acceder a esta parte</string>
     <string name="send_password_is_required_to_access_label">Se requiere una contraseña para acceder a esta parte</string>
     <string name="generator_header_title">Generador</string>
     <string name="generator_header_username_title">Generador de nombre de usuario</string>
@@ -1221,7 +1240,7 @@
     <string name="pref_item_yubikey_unlock_provision_slot_title">Configurar ranura</string>
     <string name="pref_item_yubikey_unlock_disable_title">Desactivar</string>
     <string name="pref_item_yubikey_unlock_confirm_title">¿Configurar ranura de YubiKey?</string>
-    <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock? Setup requires a USB connection.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">¿Ranura de provisión <xliff:g id="slot_number" example="1">%1$s</xliff:g> para desbloqueo de bóveda? La configuración requiere una conexión USB.</string>
     <string name="pref_item_yubikey_unlock_confirm_message_configured">La ranura <xliff:g id="slot_number" example="1">%1$s</xliff:g> ya está configurada. Volver a configurarla requiere una conexión USB y sobrescribirá la configuración actual de la ranura.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later

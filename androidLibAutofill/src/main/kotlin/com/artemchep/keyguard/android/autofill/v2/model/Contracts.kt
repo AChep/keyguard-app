@@ -114,7 +114,6 @@ enum class ClusterType {
 /** Caller-supplied flags that control parser behaviour. */
 data class ParseOptions(
     val respectAutofillOff: Boolean = true,
-    val allowWebViewOnlyFields: Boolean = true,
     /**
      * The [AutofillId] of the field that currently holds input focus.
      *
@@ -122,6 +121,11 @@ data class ParseOptions(
      * field (and, to a lesser degree, for other fields in the same cluster)
      * so that borderline fields the user explicitly tapped are more likely
      * to receive a non-NONE classification.
+     *
+     * Additionally, the orchestrator uses the focused field's origin
+     * (native vs. WebView, and frame context within a WebView) to apply
+     * origin isolation — only fields from the same origin are included
+     * in the final result, preventing credential spill across view boundaries.
      */
     val focusedFieldId: AutofillId? = null,
 )
@@ -161,6 +165,15 @@ data class FieldNode(
     val idEntry: String? = null,
     /** True when this field originates from a native Android view (no [htmlTag]). */
     val isNative: Boolean = false,
+    /**
+     * Identifies the frame context within a WebView.
+     *
+     * Fields in the main frame of a WebView have `null`. Fields inside an
+     * `<iframe>` receive a unique ID derived from the traversal path.
+     * This is used by origin isolation to prevent credential spill across
+     * iframe boundaries within the same WebView.
+     */
+    val frameContextId: String? = null,
     /**
      * Whether the original [AssistStructure.ViewNode][android.app.assist.AssistStructure.ViewNode]
      * was enabled. Disabled fields are still extracted for save-detection
@@ -243,6 +256,15 @@ data class FieldCluster(
 )
 
 /**
+ * Domain and scheme metadata for a single WebView, keyed by
+ * [AssistStructure.ViewNode.getId][android.app.assist.AssistStructure.ViewNode.getId].
+ */
+data class WebViewInfo(
+    val webDomain: String? = null,
+    val webScheme: String? = null,
+)
+
+/**
  * Flat, normalized view of the entire [AssistStructure][android.app.assist.AssistStructure].
  *
  * After extraction, this contains fields, buttons, web-domain info, and
@@ -259,6 +281,14 @@ data class NormalizedStructureV2(
     val clusters: List<FieldCluster> = emptyList(),
     /** Form action URLs keyed by clusterId, populated when <form> boundaries are detected. */
     val formActions: Map<String, String?> = emptyMap(),
+    /**
+     * Per-WebView domain/scheme metadata, keyed by the WebView's
+     * [ViewNode id][android.app.assist.AssistStructure.ViewNode.getId].
+     *
+     * Used by origin isolation to select the correct web metadata when
+     * the focused field belongs to a specific WebView.
+     */
+    val webViewMetadata: Map<Int, WebViewInfo> = emptyMap(),
 )
 
 /**

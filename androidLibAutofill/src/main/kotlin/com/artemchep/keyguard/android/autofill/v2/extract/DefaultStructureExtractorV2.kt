@@ -7,6 +7,7 @@ import com.artemchep.keyguard.android.autofill.v2.model.ButtonNode
 import com.artemchep.keyguard.android.autofill.v2.model.FieldNode
 import com.artemchep.keyguard.android.autofill.v2.model.NormalizedStructureV2
 import com.artemchep.keyguard.android.autofill.v2.model.ParseOptions
+import com.artemchep.keyguard.android.autofill.v2.model.WebViewInfo
 
 /**
  * Default [StructureExtractorV2] implementation that recursively traverses
@@ -34,6 +35,7 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
         val fields = mutableListOf<FieldNode>()
         val buttons = mutableListOf<ButtonNode>()
         val formActions = mutableMapOf<String, String?>()
+        val webViewMetadata = mutableMapOf<Int, WebViewInfo>()
 
         for (windowIndex in 0 until assistStructure.windowNodeCount) {
             val windowNode = assistStructure.getWindowNodeAt(windowIndex)
@@ -47,9 +49,11 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
                 pathStack = ArrayDeque<String>().apply { addLast("window-$windowIndex") },
                 currentWebViewNodeId = null,
                 currentClusterId = null,
+                currentFrameContextId = null,
                 fields = fields,
                 buttons = buttons,
                 formActions = formActions,
+                webViewMetadata = webViewMetadata,
             ).also { result ->
                 webView = webView || result.webView
                 webScheme = webScheme ?: result.webScheme
@@ -65,6 +69,7 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
             fields = fields,
             buttons = buttons,
             formActions = formActions,
+            webViewMetadata = webViewMetadata,
         )
     }
 
@@ -79,55 +84,48 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
         pathStack: ArrayDeque<String>,
         currentWebViewNodeId: Int?,
         currentClusterId: String?,
+        currentFrameContextId: String?,
         fields: MutableList<FieldNode>,
         buttons: MutableList<ButtonNode>,
         formActions: MutableMap<String, String?>,
+        webViewMetadata: MutableMap<Int, WebViewInfo>,
     ): TraverseResult {
-        fun traverseUrlOnly(
-            node: AssistStructure.ViewNode,
-        ): TraverseResult {
-            val isWebView = node.className == "android.webkit.WebView"
-            var nestedWebView = isWebView
-            var nestedScheme: String? = if (Build.VERSION.SDK_INT >= 28) {
-                node.webScheme?.takeIf { it.isNotEmpty() }
-            } else null
-            var nestedDomain: String? = node.webDomain
-            for (i in 0 until node.childCount) {
-                val child = node.getChildAt(i)
-                val childSegment = "${child.className.orEmpty()}-$i"
-                pathStack.addLast(childSegment)
-
-                val childResult =
-                    traverseUrlOnly(
-                        node = child,
-                    )
-                pathStack.removeLast()
-                nestedWebView = nestedWebView || childResult.webView
-                nestedScheme = nestedScheme ?: childResult.webScheme
-                nestedDomain = nestedDomain ?: childResult.webDomain
-            }
-            return TraverseResult(
-                webView = nestedWebView,
-                webScheme = nestedScheme,
-                webDomain = nestedDomain,
-            )
-        }
-
         // Skip invisible and assist-blocked nodes. Disabled nodes are still
         // traversed so that disabled-but-visible fields (e.g. a pre-filled
         // identifier on a password-step screen) remain in the parsed structure
         // for save-detection.
         if (node.visibility != View.VISIBLE || node.isAssistBlocked) {
-            return traverseUrlOnly(node)
+            return TraverseResult(
+                webView = false,
+                webScheme = null,
+                webDomain = null,
+            )
         }
 
         // Skip known browser URL bars.
         if (isUrlBar(node)) {
-            return traverseUrlOnly(node)
+            return TraverseResult(
+                webView = false,
+                webScheme = null,
+                webDomain = null,
+            )
         }
 
         val isWebView = node.className == "android.webkit.WebView"
         val webViewNodeId = if (isWebView) node.id else currentWebViewNodeId
+
+        // Record per-WebView metadata when we first enter a WebView node.
+        if (isWebView) {
+            val domain = node.webDomain.blankToNull()
+            val scheme = node.webScheme.blankToNull()
+            if (domain != null || scheme != null) {
+                webViewMetadata[node.id] =
+                    WebViewInfo(
+                        webDomain = domain,
+                        webScheme = scheme,
+                    )
+            }
+        }
 
         val attributes =
             node.htmlInfo
@@ -138,6 +136,26 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
 
         // Whether this node lives outside a WebView (native Android view).
         val isNative = htmlTag == null && currentWebViewNodeId == null
+
+        // Detect <iframe> boundaries to isolate frame contexts within a WebView.
+        val isIframeTag = htmlTag == "iframe"
+        val nextFrameContextId =
+            when {
+                // Entering an iframe: start a new frame context.
+                isIframeTag && webViewNodeId != null -> {
+                    "frame-$webViewNodeId-${pathStack.joinToString("-")}"
+                }
+
+                // Entering a WebView resets frame context (main frame).
+                isWebView -> {
+                    null
+                }
+
+                // Otherwise: propagate the current frame context.
+                else -> {
+                    currentFrameContextId
+                }
+            }
 
         // Detect <form> boundaries to create separate clusters per form.
         val isFormTag = htmlTag == "form"
@@ -221,6 +239,7 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
                     idPackage = node.idPackage,
                     idEntry = node.idEntry,
                     isNative = isNative,
+                    frameContextId = nextFrameContextId,
                     isEnabled = node.isEnabled,
                 )
         } else if (isButtonTag(htmlTag, htmlType) || isNativeButton(node, htmlTag)) {
@@ -256,10 +275,9 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
 
         var nestedWebView = isWebView
         var nestedScheme: String? = if (Build.VERSION.SDK_INT >= 28) {
-            node.webScheme?.takeIf { it.isNotEmpty() }
+            node.webScheme.blankToNull()
         } else null
-        var nestedDomain: String? = node.webDomain
-            ?.takeIf { it.isNotEmpty() }
+        var nestedDomain: String? = node.webDomain.blankToNull()
         for (i in 0 until node.childCount) {
             val child = node.getChildAt(i)
             val childSegment = "${child.className.orEmpty()}-$i"
@@ -270,14 +288,28 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
                     pathStack = pathStack,
                     currentWebViewNodeId = webViewNodeId,
                     currentClusterId = nextClusterId,
+                    currentFrameContextId = nextFrameContextId,
                     fields = fields,
                     buttons = buttons,
                     formActions = formActions,
+                    webViewMetadata = webViewMetadata,
                 )
             pathStack.removeLast()
             nestedWebView = nestedWebView || childResult.webView
             nestedScheme = nestedScheme ?: childResult.webScheme
             nestedDomain = nestedDomain ?: childResult.webDomain
+        }
+
+        // Collect per-WebView metadata from child traversal results
+        // (covers cases where webDomain is on a child node, not the WebView root).
+        if (isWebView && webViewMetadata[node.id] == null) {
+            if (nestedDomain != null || nestedScheme != null) {
+                webViewMetadata[node.id] =
+                    WebViewInfo(
+                        webDomain = nestedDomain,
+                        webScheme = nestedScheme,
+                    )
+            }
         }
 
         return TraverseResult(
@@ -342,6 +374,9 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
     }
 
     private fun firstNonBlank(vararg values: String?): String? = values.firstOrNull { !it.isNullOrBlank() }?.trim()
+
+    /** Treats blank strings as null so that empty/whitespace-only webDomain/webScheme are ignored. */
+    private fun String?.blankToNull(): String? = this?.ifBlank { null }
 
     private companion object {
         private val FIELD_TAGS = setOf("input", "textarea", "select")

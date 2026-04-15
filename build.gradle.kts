@@ -1,3 +1,6 @@
+import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+
 // Top-level build file where you can add configuration options common
 // to all sub-projects/modules.
 buildscript {
@@ -32,6 +35,10 @@ plugins {
     alias(libs.plugins.license.check) apply false
     alias(libs.plugins.versions) apply true
     alias(libs.plugins.version.catalog.update) apply true
+}
+
+tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
+    languageVersion = JavaLanguageVersion.of(libs.versions.jdk.get().toInt())
 }
 
 subprojects {

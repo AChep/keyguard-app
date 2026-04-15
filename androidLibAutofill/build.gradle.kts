@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.library)
 }
 
+val jdkVersion = JavaVersion.toVersion(libs.versions.jdk.get())
+
 android {
     compileSdk = libs.versions.androidCompileSdk.get().toInt()
     namespace = "com.artemchep.keyguard.android.autofill"
@@ -11,8 +13,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = jdkVersion
+        targetCompatibility = jdkVersion
     }
 }
 

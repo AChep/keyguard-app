@@ -6,6 +6,10 @@ plugins {
     alias(libs.plugins.baseline.profile)
 }
 
+val jdkVersion = libs.versions.jdk.get()
+val javaVersion = JavaVersion.toVersion(jdkVersion)
+val kotlinJvmTarget = JvmTarget.fromTarget(jdkVersion)
+
 android {
     compileSdk = libs.versions.androidCompileSdk.get().toInt()
     namespace = "com.artemchep.macrobenchmark"
@@ -18,8 +22,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = javaVersion
+        targetCompatibility = javaVersion
     }
 
     targetProjectPath = ":androidApp"
@@ -43,8 +47,10 @@ android {
 }
 
 kotlin {
+    jvmToolchain(jdkVersion.toInt())
+
     compilerOptions {
-        jvmTarget = JvmTarget.fromTarget("11")
+        jvmTarget = kotlinJvmTarget
     }
 }
 

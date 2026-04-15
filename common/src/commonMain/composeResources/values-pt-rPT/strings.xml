@@ -276,7 +276,7 @@
     <string name="account_last_synced_at">Última sincronização a <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Alterar nome</string>
     <string name="account_action_change_color_title">Alterar cor</string>
-    <string name="account_action_change_master_password_hint_title">Alterar lembrete da senha mestra</string>
+    <string name="account_action_change_master_password_hint_title">Alterar lembrete da palavra-passe mestra</string>
     <string name="account_action_sign_out_title">Terminar sessão</string>
     <string name="account_action_sign_in_title">Iniciar sessão</string>
     <string name="account_action_export_vault_title">Exportar cofre</string>
@@ -450,13 +450,13 @@
     <string name="ssh_key_import_success_title">Chave SSH importada</string>
     <string name="ssh_key_import_error_unsupported_format">Formato de chave privada SSH não suportado.</string>
     <string name="ssh_key_import_error_unsupported_algorithm">Apenas chaves SSH, RSA e Ed25519 são suportadas.</string>
-    <string name="ssh_key_import_error_invalid_passphrase">A frase-chave da chave SSH é inválida.</string>
+    <string name="ssh_key_import_error_invalid_passphrase">A frase-palavra-passe da chave SSH é inválida.</string>
     <string name="ssh_key_import_error_malformed_key">O ficheiro de chave SSH está corrompido.</string>
     <string name="ssh_key_import_error_read">Não foi possível ler o ficheiro selecionado.</string>
-    <string name="ssh_key_import_error_passphrase_required">É necessária uma frase-chave para desbloquear esta chave SSH.</string>
-    <string name="ssh_key_import_passphrase_title">Frase-chave</string>
-    <string name="ssh_key_import_passphrase_hint">Introduza a frase-chave da chave SSH</string>
-    <string name="ssh_key_import_passphrase_dialog_title">Introduza a frase-chave da chave SSH</string>
+    <string name="ssh_key_import_error_passphrase_required">É necessária uma frase-palavra-passe para desbloquear esta chave SSH.</string>
+    <string name="ssh_key_import_passphrase_title">Frase-palavra-passe</string>
+    <string name="ssh_key_import_passphrase_hint">Introduza a frase-palavra-passe da chave SSH</string>
+    <string name="ssh_key_import_passphrase_dialog_title">Introduza a frase-palavra-passe da chave SSH</string>
     <string name="ssh_key_import_passphrase_dialog_message">Esta chave <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> é encriptada.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selecionado</string>
     <string name="copy">Copiar</string>
@@ -500,7 +500,7 @@
     <string name="copied_expiration_year">Ano de expiração copiado</string>
     <string name="copied_expiration_month">Mês de expiração copiado</string>
     <string name="copied_cvv_code">Código de segurança copiado</string>
-    <string name="copied_otp_code">Senha única copiada</string>
+    <string name="copied_otp_code">Palavra-passe única copiada</string>
     <string name="copied_otp_secret_code">Chave secreta copiada</string>
     <string name="found_otp_code">Encontrada palavra-passe de utilização única</string>
     <string name="found_value">Encontrado um valor</string>
@@ -825,7 +825,7 @@
     <string name="yubikey_unlock_error_failed_text">Tente usar o YubiKey novamente ou desbloqueie o cofre com a sua palavra-passe.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Usar FIDO2 WebAuthn requer usar a versão web do cofre Bitwarden <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> ou superior. Em versões mais antigas, a autenticação será incorretamente encaminhado para o aplicativo oficial do Bitwarden.</string>
     <string name="elevatedaccess_header_title">Confirmar acesso</string>
-    <string name="elevatedaccess_header_text">Estes dados estão protegidos, para continuar por favor digitar a senha do seu aplicativo.</string>
+    <string name="elevatedaccess_header_text">Estes dados estão protegidos, para continuar por favor digitar a palavra-passe do seu aplicativo.</string>
     <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_title">Confirmar acesso</string>
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
@@ -982,8 +982,8 @@
     <string name="generator_regenerate_button">Gerar novamente</string>
     <!-- 'Use' generated password as a password -->
     <string name="generator_use_button">Utilizar</string>
-    <string name="generator_passphrase_type">Frase-chave</string>
-    <string name="generator_passphrase_note">Senhas de palavras aleatórias fornecem a melhor combinação de memorização e segurança.</string>
+    <string name="generator_passphrase_type">Frase-palavra-passe</string>
+    <string name="generator_passphrase_note">As frases-palavra-passe aleatórias oferecem a melhor combinação de facilidade de memorização e segurança.</string>
     <string name="generator_passphrase_delimiter_title">Limite de caracteres</string>
     <string name="generator_passphrase_capitalize_title">Maiúsculas</string>
     <string name="generator_passphrase_number_title">Números</string>
@@ -1084,7 +1084,7 @@
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
     <string name="changepassword_biometric_auth_confirm_title">Alterar palavra-passe da aplicação</string>
     <string name="changepassword_disclaimer_local_note">A palavra-passe da aplicação nunca é armazenada no dispositivo nem enviada pela rede. É usada para gerar uma chave secreta que é usada para encriptar os dados locais.</string>
-    <string name="changepassword_disclaimer_abuse_note">A menos que você suspeite de acesso não autorizado ou descubra um malware no dispositivo, não há necessidade de alterar a senha se ela for uma senha forte e única.</string>
+    <string name="changepassword_disclaimer_abuse_note">A menos que suspeite de acesso não autorizado ou descubra malware no dispositivo, não há necessidade de alterar a palavra-passe se esta for forte e exclusiva.</string>
     <string name="changepassword_password_changed_successfully">Palavra-passe alterada com sucesso</string>
     <string name="exportaccount_header_title">Exportar entradas</string>
     <string name="exportaccount_password_label">Palavra-passe do ficheiro</string>
@@ -1176,7 +1176,7 @@
     <string name="pref_item_check_inactive_2fa_title">Verificar por autenticações de 2 fatores inativas</string>
     <string name="pref_item_check_inactive_passkeys_title">Verificar por chaves de acesso inativas</string>
     <string name="pref_item_conceal_fields_title">Ofuscar campos</string>
-    <string name="pref_item_conceal_fields_text">Ocultar informações confidenciais, como senhas e números de cartão de crédito</string>
+    <string name="pref_item_conceal_fields_text">Ocultar informações confidenciais, como palavras-passe e números de cartão de crédito</string>
     <!--
         When a user clicks this button, the app crashes. Not visible to
         regular users. -->
@@ -1264,7 +1264,7 @@
     <string name="pref_item_autofill_manual_selection_text">Exibe uma opção para pesquisar manualmente no cofre por uma entrada</string>
     <string name="pref_item_autofill_respect_autofill_disabled_title">Respeitar o sinalizador de preenchimento automático</string>
     <string name="pref_item_autofill_respect_autofill_disabled_text">Desativa o preenchimento automático para um campo do navegador que tem o sinalizador de preenchimento automático desabilitado</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_note">Note que alguns sites são conhecidos por desativar o preenchimento automático para um campo de senha, bem como alguns navegadores são conhecidos por ignorar o preenchimento automático desabilitado</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">Note que alguns sites são conhecidos por desativar o preenchimento automático para um campo de palavra-passe, bem como alguns navegadores são conhecidos por ignorar o preenchimento automático desabilitado.</string>
     <string name="pref_item_autofill_save_request_title">Pedir para salvar dados</string>
     <string name="pref_item_autofill_save_request_text">Pede para atualizar o cofre quando o preenchimento de um formulário tiver sido concluído</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Suporte a chaves de acesso</string>
@@ -1345,7 +1345,7 @@
     <string name="feat_item_show_barcode_title">Mostrar como código de barras</string>
     <string name="feat_item_show_barcode_text">Codificar um texto em códigos de barras diferentes.</string>
     <string name="feat_item_generator_title">Gerador</string>
-    <string name="feat_item_generator_text">Gerar senhas ou nomes de utilizador.</string>
+    <string name="feat_item_generator_text">Gere palavras-passe, nomes de utilizador, e-mails e chaves.</string>
     <string name="feat_item_export_title">Exportar</string>
     <string name="feat_item_export_text">Exportar dados do Cofre, incluindo anexos.</string>
     <string name="datasafety_header_title">Segurança de dados</string>
@@ -1355,7 +1355,7 @@
     <string name="datasafety_local_settings_section">Definições do utilizador</string>
     <string name="datasafety_local_settings_note">As configurações do utilizador são criptografadas usando uma chave específica do dispositivo.</string>
     <string name="datasafety_local_vault_section">Definições do utilizador</string>
-    <string name="datasafety_local_encryption_algorithm_intro">O Cofre é criptografado usando uma chave, derivada da senha do aplicativo usando as seguintes etapas:</string>
+    <string name="datasafety_local_encryption_algorithm_intro">O cofre é encriptado através de uma chave, derivada da palavra-passe da aplicação, seguindo os passos abaixo:</string>
     <string name="datasafety_local_encryption_algorithm_outro">O segredo Salt e o Hash são armazenados localmente no dispositivo, para mais tarde gerar uma chave mestra para desbloquear o cofre.</string>
     <string name="datasafety_local_unlocking_vault">Desbloquear um cofre significa armazenar uma chave correta na memória RAM do dispositivo, ganhando a capacidade de ler e modificar um cofre criptografado.</string>
     <string name="datasafety_remote_section">Dados remotos</string>

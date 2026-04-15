@@ -121,11 +121,6 @@ data class ParseOptions(
      * field (and, to a lesser degree, for other fields in the same cluster)
      * so that borderline fields the user explicitly tapped are more likely
      * to receive a non-NONE classification.
-     *
-     * Additionally, the orchestrator uses the focused field's origin
-     * (native vs. WebView, and frame context within a WebView) to apply
-     * origin isolation — only fields from the same origin are included
-     * in the final result, preventing credential spill across view boundaries.
      */
     val focusedFieldId: AutofillId? = null,
 )
@@ -170,8 +165,8 @@ data class FieldNode(
      *
      * Fields in the main frame of a WebView have `null`. Fields inside an
      * `<iframe>` receive a unique ID derived from the traversal path.
-     * This is used by origin isolation to prevent credential spill across
-     * iframe boundaries within the same WebView.
+     * This gives downstream consumers a stable way to distinguish nested
+     * frame contexts within the same web-backed subtree.
      */
     val frameContextId: String? = null,
     /**
@@ -267,9 +262,10 @@ data class WebViewInfo(
 /**
  * Flat, normalized view of the entire [AssistStructure][android.app.assist.AssistStructure].
  *
- * After extraction, this contains fields, buttons, web-domain info, and
- * form actions. After clustering, the [clusters] list is populated with
- * [FieldCluster]s that group related fields together.
+ * After extraction, this contains fields, buttons, form actions, and
+ * tree-level web metadata propagated upward from any node that reports a
+ * non-blank domain or scheme. After clustering, the [clusters] list is
+ * populated with [FieldCluster]s that group related fields together.
  */
 data class NormalizedStructureV2(
     val applicationId: String? = null,
@@ -285,8 +281,8 @@ data class NormalizedStructureV2(
      * Per-WebView domain/scheme metadata, keyed by the WebView's
      * [ViewNode id][android.app.assist.AssistStructure.ViewNode.getId].
      *
-     * Used by origin isolation to select the correct web metadata when
-     * the focused field belongs to a specific WebView.
+     * Populated from node metadata discovered
+     * while traversing each subtree.
      */
     val webViewMetadata: Map<Int, WebViewInfo> = emptyMap(),
 )

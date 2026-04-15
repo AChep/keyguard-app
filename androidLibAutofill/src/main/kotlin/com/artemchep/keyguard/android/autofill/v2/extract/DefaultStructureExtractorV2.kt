@@ -21,7 +21,7 @@ import com.artemchep.keyguard.android.autofill.v2.model.WebViewInfo
  * - tracks `<form>` boundaries to assign cluster IDs,
  * - skips known browser URL bars via [URL_BARS],
  * - skips assist-blocked and disabled nodes,
- * - extracts web domain/scheme from WebView nodes.
+ * - propagates web origin metadata from any node up to the extracted tree root.
  */
 class DefaultStructureExtractorV2 : StructureExtractorV2 {
     override fun extract(
@@ -56,8 +56,8 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
                 webViewMetadata = webViewMetadata,
             ).also { result ->
                 webView = webView || result.webView
-                webScheme = webScheme ?: result.webScheme
-                webDomain = webDomain ?: result.webDomain
+                webScheme = webScheme ?: result.webInfo?.webScheme
+                webDomain = webDomain ?: result.webInfo?.webDomain
             }
         }
 
@@ -75,8 +75,7 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
 
     private data class TraverseResult(
         val webView: Boolean,
-        val webScheme: String?,
-        val webDomain: String?,
+        val webInfo: WebViewInfo?,
     )
 
     private fun traverse(
@@ -97,37 +96,33 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
         if (node.visibility != View.VISIBLE || node.isAssistBlocked) {
             return TraverseResult(
                 webView = false,
-                webScheme = null,
-                webDomain = null,
+                webInfo = null,
             )
         }
 
         // Skip known browser URL bars.
         if (isUrlBar(node)) {
+            val ownWebOriginInfo =
+                WebOriginDetector.webOriginInfo(
+                    className = node.className,
+                    webDomain = node.webDomain,
+                    webScheme = node.compatWebScheme(),
+                )
+            val startsWebOrigin = currentWebViewNodeId == null && ownWebOriginInfo != null
             return TraverseResult(
-                webView = false,
-                webScheme = null,
-                webDomain = null,
+                webView = startsWebOrigin,
+                webInfo = ownWebOriginInfo,
             )
         }
 
-        val isWebView = node.className == "android.webkit.WebView"
-        val webViewNodeId = if (isWebView) node.id else currentWebViewNodeId
-
-        // Record per-WebView metadata when we first enter a WebView node.
-        if (isWebView) {
-            val domain = node.webDomain.blankToNull()
-            val scheme = if (Build.VERSION.SDK_INT >= 28) {
-                node.webScheme.blankToNull()
-            } else null
-            if (domain != null || scheme != null) {
-                webViewMetadata[node.id] =
-                    WebViewInfo(
-                        webDomain = domain,
-                        webScheme = scheme,
-                    )
-            }
-        }
+        val ownWebOriginInfo =
+            WebOriginDetector.webOriginInfo(
+                className = node.className,
+                webDomain = node.webDomain,
+                webScheme = node.compatWebScheme(),
+            )
+        val startsWebOrigin = currentWebViewNodeId == null && ownWebOriginInfo != null
+        val webViewNodeId = if (startsWebOrigin) node.id else currentWebViewNodeId
 
         val attributes =
             node.htmlInfo
@@ -136,10 +131,11 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
                 .orEmpty()
         val htmlTag = node.htmlInfo?.tag?.lowercase()
 
-        // Whether this node lives outside a WebView (native Android view).
-        val isNative = htmlTag == null && currentWebViewNodeId == null
+        // Whether this node lives outside any web-backed subtree.
+        val isNative = htmlTag == null && webViewNodeId == null
 
-        // Detect <iframe> boundaries to isolate frame contexts within a WebView.
+        // Detect <iframe> boundaries to isolate frame contexts within a
+        // web-backed subtree.
         val isIframeTag = htmlTag == "iframe"
         val nextFrameContextId =
             when {
@@ -148,8 +144,8 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
                     "frame-$webViewNodeId-${pathStack.joinToString("-")}"
                 }
 
-                // Entering a WebView resets frame context (main frame).
-                isWebView -> {
+                // Entering a web-backed subtree resets frame context (main frame).
+                startsWebOrigin -> {
                     null
                 }
 
@@ -167,7 +163,7 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
                     "cluster-form-$webViewNodeId-${pathStack.joinToString("-")}"
                 }
 
-                isWebView -> {
+                startsWebOrigin -> {
                     currentClusterId
                 }
 
@@ -275,11 +271,8 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
                 )
         }
 
-        var nestedWebView = isWebView
-        var nestedScheme: String? = if (Build.VERSION.SDK_INT >= 28) {
-            node.webScheme.blankToNull()
-        } else null
-        var nestedDomain: String? = node.webDomain.blankToNull()
+        var nestedWebView = webViewNodeId != null
+        var nestedWebInfo: WebViewInfo? = ownWebOriginInfo
         for (i in 0 until node.childCount) {
             val child = node.getChildAt(i)
             val childSegment = "${child.className.orEmpty()}-$i"
@@ -298,26 +291,22 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
                 )
             pathStack.removeLast()
             nestedWebView = nestedWebView || childResult.webView
-            nestedScheme = nestedScheme ?: childResult.webScheme
-            nestedDomain = nestedDomain ?: childResult.webDomain
+            nestedWebInfo =
+                WebOriginDetector.merge(
+                    preferred = nestedWebInfo,
+                    fallback = childResult.webInfo,
+                )
         }
 
-        // Collect per-WebView metadata from child traversal results
-        // (covers cases where webDomain is on a child node, not the WebView root).
-        if (isWebView && webViewMetadata[node.id] == null) {
-            if (nestedDomain != null || nestedScheme != null) {
-                webViewMetadata[node.id] =
-                    WebViewInfo(
-                        webDomain = nestedDomain,
-                        webScheme = nestedScheme,
-                    )
-            }
+        // Record metadata for the current web-backed subtree after child
+        // traversal so descendants can fill in any missing domain/scheme.
+        if (startsWebOrigin && nestedWebInfo != null) {
+            webViewMetadata[node.id] = nestedWebInfo
         }
 
         return TraverseResult(
             webView = nestedWebView,
-            webScheme = nestedScheme,
-            webDomain = nestedDomain,
+            webInfo = nestedWebInfo,
         )
     }
 
@@ -377,8 +366,12 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
 
     private fun firstNonBlank(vararg values: String?): String? = values.firstOrNull { !it.isNullOrBlank() }?.trim()
 
-    /** Treats blank strings as null so that empty/whitespace-only webDomain/webScheme are ignored. */
-    private fun String?.blankToNull(): String? = this?.ifBlank { null }
+    private fun AssistStructure.ViewNode.compatWebScheme(): String? =
+        if (Build.VERSION.SDK_INT >= 28) {
+            webScheme
+        } else {
+            null
+        }
 
     private companion object {
         private val FIELD_TAGS = setOf("input", "textarea", "select")
@@ -412,4 +405,42 @@ class DefaultStructureExtractorV2 : StructureExtractorV2 {
                 "com.brave.browser_nightly" to "url_bar",
             )
     }
+}
+
+internal object WebOriginDetector {
+    @Suppress("UNUSED_PARAMETER")
+    fun webOriginInfo(
+        className: String?,
+        webDomain: String?,
+        webScheme: String?,
+    ): WebViewInfo? {
+        val normalizedDomain = webDomain.blankToNull()
+        val normalizedScheme = webScheme.blankToNull()
+        return if (normalizedDomain != null || normalizedScheme != null) {
+            WebViewInfo(
+                webDomain = normalizedDomain,
+                webScheme = normalizedScheme,
+            )
+        } else {
+            null
+        }
+    }
+
+    fun isWebBacked(
+        className: String?,
+        webDomain: String?,
+        webScheme: String?,
+    ): Boolean = webOriginInfo(className, webDomain, webScheme) != null
+
+    fun merge(
+        preferred: WebViewInfo?,
+        fallback: WebViewInfo?,
+    ): WebViewInfo? =
+        webOriginInfo(
+            className = null,
+            webDomain = preferred?.webDomain ?: fallback?.webDomain,
+            webScheme = preferred?.webScheme ?: fallback?.webScheme,
+        )
+
+    private fun String?.blankToNull(): String? = this?.ifBlank { null }
 }

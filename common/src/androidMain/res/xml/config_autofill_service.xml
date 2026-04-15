@@ -12,7 +12,7 @@
         android:maxLongVersionCode="@string/version_code_max" />
     <compatibility-package
         android:name="com.android.chrome"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="711900039" />
     <compatibility-package
         android:name="com.android.htmlviewer"
         android:maxLongVersionCode="@string/version_code_max" />
@@ -24,10 +24,10 @@
         android:maxLongVersionCode="@string/version_code_max" />
     <compatibility-package
         android:name="com.brave.browser"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="427912320" />
     <compatibility-package
         android:name="com.brave.browser_beta"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="427912320" />
     <compatibility-package
         android:name="com.brave.browser_default"
         android:maxLongVersionCode="@string/version_code_max" />
@@ -36,16 +36,16 @@
         android:maxLongVersionCode="@string/version_code_max" />
     <compatibility-package
         android:name="com.brave.browser_nightly"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="427912320" />
     <compatibility-package
         android:name="com.chrome.beta"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="711900039" />
     <compatibility-package
         android:name="com.chrome.canary"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="711900039" />
     <compatibility-package
         android:name="com.chrome.dev"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="711900039" />
     <compatibility-package
         android:name="com.cookiegames.smartcookie"
         android:maxLongVersionCode="@string/version_code_max" />
@@ -69,16 +69,16 @@
         android:maxLongVersionCode="@string/version_code_max" />
     <compatibility-package
         android:name="com.microsoft.emmx"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="2100000000" />
     <compatibility-package
         android:name="com.microsoft.emmx.beta"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="2100000000" />
     <compatibility-package
         android:name="com.microsoft.emmx.canary"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="2100000000" />
     <compatibility-package
         android:name="com.microsoft.emmx.dev"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="2100000000" />
     <compatibility-package
         android:name="com.mmbox.browser"
         android:maxLongVersionCode="@string/version_code_max" />
@@ -111,10 +111,10 @@
         android:maxLongVersionCode="@string/version_code_max" />
     <compatibility-package
         android:name="com.sec.android.app.sbrowser"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="2100000000" />
     <compatibility-package
         android:name="com.sec.android.app.sbrowser.beta"
-        android:maxLongVersionCode="@string/version_code_max" />
+        android:maxLongVersionCode="2100000000" />
     <compatibility-package
         android:name="com.stoutner.privacybrowser.free"
         android:maxLongVersionCode="@string/version_code_max" />

@@ -43,7 +43,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 #### Platforms
 Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and largely dependent on the JVM libraries. Keyguard is focusing to be **Android** first, other platforms might have some features missing.
 
-- [Android](#android);
+- [Android](#android), including Wear OS;
 - [Linux](#linux);
 - [Windows](#windows);
 - [macOS](#macos).
@@ -65,6 +65,10 @@ Read more about implementation details:
 |        |
 | :----: |
 | ![](https://github.com/AChep/keyguard-app/blob/master/screenshots/tablet10/Screenshot_20250825_180106.png) |
+
+|                                                                                         |                                                                                         |                                                                                             |
+|:---------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|
+| ![1](https://github.com/AChep/keyguard-app/blob/master/screenshots/wear/vault_list.png) | ![2](https://github.com/AChep/keyguard-app/blob/master/screenshots/wear/vault_info.png) | ![3](https://github.com/AChep/keyguard-app/blob/master/screenshots/wear/vault_info_2fa.png) | 
 
 ## Localisation
 

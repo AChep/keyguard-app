@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
+    alias(libs.plugins.kotlin.plugin.parcelize)
+    alias(libs.plugins.kotlin.plugin.serialization)
     alias(libs.plugins.ktlint)
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
@@ -46,6 +48,10 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+    }
+
+    lint {
+        disable += "Instantiatable"
     }
 
     compileOptions {

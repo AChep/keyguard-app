@@ -57,7 +57,7 @@ jobs:
       - name: "Build Android"
         run: ./gradlew :androidApp:bundlePlayStoreRelease
       - name: 'Upload Android .aab'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-android-aab
           path: |
@@ -87,7 +87,7 @@ jobs:
       - name: "Build WearOS"
         run: ./gradlew :wearApp:bundlePlayStoreRelease
       - name: 'Upload WearOS .aab'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-wearos-aab
           path: |

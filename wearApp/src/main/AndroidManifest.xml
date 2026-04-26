@@ -6,6 +6,7 @@
 
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission"
         tools:node="remove" />
     <uses-permission
         android:name="android.permission.FOREGROUND_SERVICE"
@@ -83,15 +84,19 @@
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.PasskeyCreateActivity"
+            tools:ignore="NewApi"
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.PasswordGetActivity"
+            tools:ignore="NewApi"
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.PasskeyGetActivity"
+            tools:ignore="NewApi"
             tools:node="remove" />
         <activity
             android:name="com.artemchep.keyguard.android.CredentialGetUnlockActivity"
+            tools:ignore="NewApi"
             tools:node="remove" />
         <activity
             android:name=".wear.WearPasswordGetActivity"
@@ -151,6 +156,7 @@
             tools:node="remove" />
         <service
             android:name="com.artemchep.keyguard.android.autofill.KeyguardCredentialService"
+            tools:ignore="NewApi"
             tools:node="remove" />
         <service
             android:name=".wear.WearKeyguardCredentialService"

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import androidx.core.content.ContextCompat
@@ -56,11 +57,17 @@ class Main : BaseApp(), DIAware {
     override val di by DI.lazy {
         import(androidXModule(this@Main))
         import(diFingerprintRepositoryModule())
-        if (Build.VERSION.SDK_INT >= 34) {
+
+        @SuppressLint("NewApi")
+        fun importPasskeysModule() {
             import(passkeysModule())
             bindSingleton<CredentialProviderPlatformConfig> {
                 PhoneCredentialProviderPlatformConfig
             }
+        }
+
+        if (Build.VERSION.SDK_INT >= 34) {
+            importPasskeysModule()
         }
         val imageLoaderModule = kotlin.run {
             val packageManager = packageManager

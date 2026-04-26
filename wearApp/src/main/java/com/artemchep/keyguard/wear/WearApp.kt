@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.wear
 
+import android.annotation.SuppressLint
 import android.os.Build
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -31,11 +32,17 @@ class WearApp : BaseApp(), org.kodein.di.DIAware {
     override val di by DI.lazy {
         import(androidXModule(this@WearApp))
         import(diFingerprintRepositoryModule())
-        if (Build.VERSION.SDK_INT >= 34) {
+
+        @SuppressLint("NewApi")
+        fun importPasskeysModule() {
             import(passkeysModule())
             bindSingleton<CredentialProviderPlatformConfig> {
                 WearCredentialProviderPlatformConfig
             }
+        }
+
+        if (Build.VERSION.SDK_INT >= 34) {
+            importPasskeysModule()
         }
         import(imageLoaderModule { _ -> })
 

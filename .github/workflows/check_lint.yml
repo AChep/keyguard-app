@@ -27,6 +27,7 @@ jobs:
       - name: "Prepare env"
         run: |
           echo ${{ vars.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
+          echo ${{ vars.GOOGLE_SERVICES }} | base64 -d | zcat >> wearApp/google-services.json
           echo "" >> gradle.properties
       - name: "Check lint"
         run: ./gradlew lint

@@ -22,7 +22,7 @@ fun TotpCode.formatCode(): AnnotatedString = buildAnnotatedString {
         }
 }
 
-fun TotpCode.formatCode2(): PersistentList<List<String>> = code
+fun TotpCode.formatCode2(): PersistentList<PersistentList<String>> = code
     .windowed(
         size = 3,
         step = 3,
@@ -30,7 +30,7 @@ fun TotpCode.formatCode2(): PersistentList<List<String>> = code
     )
     .map {
         it.asCodePointsSequence()
-            .toList()
+            .toPersistentList()
     }
     .toPersistentList()
 

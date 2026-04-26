@@ -44,6 +44,8 @@ import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentC
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.navigationNextEntryOrNull
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.account_main_add_account_title
 import com.artemchep.keyguard.res.empty_value
@@ -110,7 +112,10 @@ fun SettingListItem(
                             .width(8.dp),
                     )
                 }
-                ChevronIcon()
+                val isWatch = CurrentPlatform.hasWatch()
+                if (!isWatch) {
+                    ChevronIcon()
+                }
             },
             content = {
                 FlatItemTextContent(

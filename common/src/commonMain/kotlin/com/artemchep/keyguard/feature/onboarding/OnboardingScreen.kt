@@ -6,9 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
@@ -49,6 +51,8 @@ import com.artemchep.keyguard.common.usecase.PutOnboardingLastVisitInstant
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -66,13 +70,13 @@ import kotlinx.coroutines.GlobalScope
 import kotlin.time.Clock
 import org.kodein.di.compose.rememberInstance
 
-val onboardingItemsPremium = listOf(
+val onboardingItemsPremium = listOfNotNull(
     OnboardingItem(
         title = Res.string.feat_item_two_way_sync_title,
         text = Res.string.feat_item_two_way_sync_text,
         premium = true,
         icon = Icons.Outlined.Sync,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_multiple_accounts_title,
         text = Res.string.feat_item_multiple_accounts_text,
@@ -84,89 +88,107 @@ val onboardingItemsPremium = listOf(
         text = Res.string.feat_item_offline_editing_text,
         premium = true,
         icon = Icons.Outlined.OfflineBolt,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
 )
 
-val onboardingItemsSearch = listOf(
+val onboardingItemsSearch = listOfNotNull(
     OnboardingItem(
         title = Res.string.feat_item_search_by_anything_title,
         text = Res.string.feat_item_search_by_anything_text,
         icon = Icons.Outlined.Search,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_filter_title,
         text = Res.string.feat_item_filter_text,
         icon = Icons.Outlined.FilterAlt,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_multiple_keywords_title,
         text = Res.string.feat_item_multiple_keywords_text,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
 )
 
-val onboardingItemsWatchtower = listOf(
+val onboardingItemsWatchtower = listOfNotNull(
     OnboardingItem(
         title = Res.string.feat_item_pwned_passwords_title,
         text = Res.string.feat_item_pwned_passwords_text,
         icon = Icons.Outlined.DataArray,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_password_strength_title,
         text = Res.string.feat_item_password_strength_text,
         icon = Icons.Outlined.Password,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_reused_passwords_title,
         text = Res.string.feat_item_reused_passwords_text,
         icon = Icons.Outlined.Recycling,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_inactive_totp_title,
         text = Res.string.feat_item_inactive_totp_text,
         icon = Icons.Outlined.KeyguardTwoFa,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_unsecure_websites_title,
         text = Res.string.feat_item_unsecure_websites_text,
         icon = Icons.Outlined.KeyguardWebsite,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_incomplete_items_title,
         text = Res.string.feat_item_incomplete_items_text,
         icon = Icons.AutoMirrored.Outlined.ShortText,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_expiring_items_title,
         text = Res.string.feat_item_expiring_items_text,
         icon = Icons.Outlined.Timer,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_duplicate_items_title,
         text = Res.string.feat_item_duplicate_items_text,
         icon = Icons.Outlined.CopyAll,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
 )
 
-val onboardingItemsOther = listOf(
+val onboardingItemsOther = listOfNotNull(
     OnboardingItem(
         title = Res.string.feat_item_export_title,
         text = Res.string.feat_item_export_text,
         icon = Icons.Outlined.Download,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_multi_selection_title,
         text = Res.string.feat_item_multi_selection_text,
         icon = Icons.Outlined.SelectAll,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_show_barcode_title,
         text = Res.string.feat_item_show_barcode_text,
         icon = Icons.Outlined.QrCode,
-    ),
+    ).takeIf { !CurrentPlatform.hasWatch() },
     OnboardingItem(
         title = Res.string.feat_item_generator_title,
         text = Res.string.feat_item_generator_text,
     ),
+)
+
+val onboardingSections = listOfNotNull(
+    OnboardingSection(
+        items = onboardingItemsPremium,
+    ).takeIf { (title, items) -> items.isNotEmpty() },
+    OnboardingSection(
+        title = Res.string.feat_section_search_title,
+        items = onboardingItemsSearch,
+    ).takeIf { (title, items) -> items.isNotEmpty() },
+    OnboardingSection(
+        title = Res.string.feat_section_watchtower_title,
+        items = onboardingItemsWatchtower,
+    ).takeIf { (title, items) -> items.isNotEmpty() },
+    OnboardingSection(
+        title = Res.string.feat_section_misc_title,
+        items = onboardingItemsOther,
+    ).takeIf { (title, items) -> items.isNotEmpty() },
 )
 
 @Composable
@@ -202,35 +224,18 @@ fun OnboardingScreen() {
 
 @Composable
 fun ColumnScope.OnboardingScreenContent() {
-    OnboardingContainer(
-        modifier = Modifier
-            .fillMaxWidth(),
-        items = onboardingItemsPremium,
-    )
-    Section(
-        text = stringResource(Res.string.feat_section_search_title),
-    )
-    OnboardingContainer(
-        modifier = Modifier
-            .fillMaxWidth(),
-        items = onboardingItemsSearch,
-    )
-    Section(
-        text = stringResource(Res.string.feat_section_watchtower_title),
-    )
-    OnboardingContainer(
-        modifier = Modifier
-            .fillMaxWidth(),
-        items = onboardingItemsWatchtower,
-    )
-    Section(
-        text = stringResource(Res.string.feat_section_misc_title),
-    )
-    OnboardingContainer(
-        modifier = Modifier
-            .fillMaxWidth(),
-        items = onboardingItemsOther,
-    )
+    onboardingSections.forEach { section ->
+        section.title?.let { title ->
+            Section(
+                text = stringResource(title),
+            )
+        }
+        OnboardingContainer(
+            modifier = Modifier
+                .fillMaxWidth(),
+            items = section.items,
+        )
+    }
 }
 
 @Composable
@@ -338,8 +343,11 @@ fun OnboardingCard(
 @Composable
 fun SmallOnboardingCard(
     modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(8.dp),
     title: String,
     text: String? = null,
+    premium: Boolean = false,
     imageVector: ImageVector? = null,
 ) {
     Box(
@@ -359,8 +367,8 @@ fun SmallOnboardingCard(
             )
         }
         Column(
-            modifier = Modifier
-                .padding(8.dp)
+            modifier = contentModifier
+                .padding(contentPadding)
                 .widthIn(max = 128.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
@@ -387,6 +395,27 @@ fun SmallOnboardingCard(
                     maxLines = 4,
                     overflow = TextOverflow.Ellipsis,
                 )
+            }
+            ExpandedIfNotEmpty(
+                valueOrNull = Unit.takeIf { premium },
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(12.dp),
+                        imageVector = Icons.Outlined.KeyguardPremium,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = stringResource(Res.string.feat_keyguard_premium_label),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
             }
         }
     }

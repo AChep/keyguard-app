@@ -8,12 +8,23 @@ import com.artemchep.keyguard.feature.home.settings.SettingPaneItem
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun DebugSettingsScreen() {
-    val items = remember {
+    val items = rememberSettingsDebugItems()
+    SettingPaneContent(
+        title = stringResource(Res.string.settings_dev_header_title),
+        items = items,
+    )
+}
+
+@Composable
+fun rememberSettingsDebugItems(
+): ImmutableList<SettingPaneItem> {
+    return remember {
         persistentListOf(
             SettingPaneItem.Group(
                 key = "ui",
@@ -54,8 +65,4 @@ fun DebugSettingsScreen() {
             ),
         )
     }
-    SettingPaneContent(
-        title = stringResource(Res.string.settings_dev_header_title),
-        items = items,
-    )
 }

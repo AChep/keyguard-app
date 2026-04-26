@@ -26,6 +26,7 @@ import com.artemchep.keyguard.feature.auth.common.util.validateUrl
 import com.artemchep.keyguard.feature.auth.common.util.validatedEmail
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRoute
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -33,8 +34,10 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
@@ -91,6 +94,7 @@ private const val KEY_SERVER_CUSTOM_API_URL = "$TAG.server.custom.api_url"
 private const val KEY_SERVER_CUSTOM_IDENTITY_URL = "$TAG.server.custom.identity_url"
 private const val KEY_SERVER_CUSTOM_ICONS_URL = "$TAG.server.custom.icons_url"
 private const val KEY_SERVER_CUSTOM_DESCRIPTION = "$TAG.server.custom.description"
+private const val DEFAULT_SCREEN_KEY = "bitwardenlogin"
 
 @LeParcelize
 data class IdentityRequestFingerprint(
@@ -107,14 +111,41 @@ private data class IdentityCredentials(
     val clientSecret: Validated<String>?,
 )
 
+internal enum class BitwardenLoginBlockedBy {
+    EMAIL,
+    PASSWORD,
+    CLIENT_SECRET,
+    CUSTOM_ENV,
+    EXECUTING,
+}
+
+internal fun getBitwardenLoginBlockedBy(
+    validatedEmail: Validated<String>,
+    validatedPassword: Validated<String>,
+    validatedClientSecret: Validated<String>?,
+    showCustomEnv: Boolean,
+    outputError: Boolean,
+    taskIsExecuting: Boolean,
+): BitwardenLoginBlockedBy? = when {
+    taskIsExecuting -> BitwardenLoginBlockedBy.EXECUTING
+    validatedEmail is Validated.Failure -> BitwardenLoginBlockedBy.EMAIL
+    validatedPassword is Validated.Failure -> BitwardenLoginBlockedBy.PASSWORD
+    validatedClientSecret is Validated.Failure -> BitwardenLoginBlockedBy.CLIENT_SECRET
+    showCustomEnv && outputError -> BitwardenLoginBlockedBy.CUSTOM_ENV
+    else -> null
+}
+
 @Composable
 fun produceBitwardenLoginScreenState(
     args: BitwardenLoginRoute.Args,
+    screenKey: String = DEFAULT_SCREEN_KEY,
 ): Loadable<LoginState> = with(localDI().direct) {
     produceBitwardenLoginScreenState(
         addAccount = instance(),
         cipherUnsecureUrlCheck = instance(),
+        confirmationRouteFactory = instance(),
         args = args,
+        screenKey = screenKey,
     )
 }
 
@@ -127,13 +158,16 @@ private inline val defaultPassword get() = ""
 fun produceBitwardenLoginScreenState(
     addAccount: AddAccount,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     args: BitwardenLoginRoute.Args,
+    screenKey: String = DEFAULT_SCREEN_KEY,
 ): Loadable<LoginState> = produceScreenState(
     initial = Loadable.Loading,
-    key = "bitwardenlogin",
+    key = screenKey,
     args = arrayOf(
         addAccount,
         args,
+        screenKey,
     ),
 ) {
     val onSuccessFlow = EventFlow<Unit>()
@@ -452,6 +486,7 @@ fun produceBitwardenLoginScreenState(
         scope = "header",
         initial = args.env.headers,
         initialType = { "header" },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = envHeadersFactories,
         afterList = {
             val header = LoginStateItem.Section(
@@ -558,10 +593,15 @@ fun produceBitwardenLoginScreenState(
         ) { a, b -> a to b },
         actionExecutor.isExecutingFlow,
     ) { (validatedEmail, validatedPassword, clientSecret), showCustomEnv, output, (items, regionItems), taskIsExecuting ->
-        val canLogin = validatedEmail is Validated.Success &&
-                validatedPassword is Validated.Success &&
-                !output.error &&
-                !taskIsExecuting
+        val blockedBy = getBitwardenLoginBlockedBy(
+            validatedEmail = validatedEmail,
+            validatedPassword = validatedPassword,
+            validatedClientSecret = clientSecret,
+            showCustomEnv = showCustomEnv,
+            outputError = output.error,
+            taskIsExecuting = taskIsExecuting,
+        )
+        val canLogin = blockedBy == null
 
         val onRegister = run {
             val registerUrl = when (val region = output.region) {
@@ -613,7 +653,10 @@ fun produceBitwardenLoginScreenState(
             regionItems = regionItems,
             items = envServerItems + items,
             isLoading = taskIsExecuting,
-            onRegisterClick = onRegister,
+            // On watches, it is barely possible to register on a web-site,
+            // so we can hide the button for doing so.
+            onRegisterClick = onRegister
+                .takeIf { !CurrentPlatform.hasWatch() },
             onLoginClick = if (canLogin) {
                 {
                     val env = if (args.envEditable) {
@@ -838,6 +881,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo3(
     scope: String,
     initial: List<Argument>,
     initialType: (Argument) -> String,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     factories: List<Foo2Factory<T, Argument>>,
     afterList: suspend MutableList<LoginStateItem>.() -> Unit,
     extra: suspend FieldBakeryScope<Argument>.() -> Flow<List<LoginStateItem>> = {
@@ -859,6 +903,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo3(
     )
     return foo<T, Argument>(
         scope = scope,
+        confirmationRouteFactory = confirmationRouteFactory,
         initialState = initialState,
         entryAdd = { coroutineScope, (key, type), arg ->
             val factory = factories.first { it.type == type }
@@ -917,6 +962,7 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
 suspend fun <T, Argument> RememberStateFlowScope.foo(
     // scope name,
     scope: String,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     initialState: Foo2InitialState<Argument>,
     entryAdd: suspend RememberStateFlowScope.(CoroutineScope, Foo2Persistable, Argument?) -> T,
     entryRelease: RememberStateFlowScope.(Foo2Persistable) -> Unit,
@@ -1087,6 +1133,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
                     title = Res.string.list_remove.wrap(),
                     onClick = onClick {
                         val intent = createConfirmationDialogIntent(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             icon = icon(Icons.Outlined.DeleteForever),
                             title = translate(Res.string.list_remove_confirmation_title),
                         ) {

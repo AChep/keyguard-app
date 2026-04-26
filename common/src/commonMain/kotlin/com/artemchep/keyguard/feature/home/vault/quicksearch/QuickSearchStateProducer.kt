@@ -23,7 +23,7 @@ import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
-import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
@@ -92,6 +92,7 @@ internal fun quickSearchScreenState(): QuickSearchState = with(localDI().direct)
         getAppIcons = instance(),
         getWebsiteIcons = instance(),
         clipboardService = instance(),
+        bitwardenLoginRouteFactory = instance(),
     )
 }
 
@@ -112,6 +113,7 @@ internal fun quickSearchScreenState(
     getAppIcons: GetAppIcons,
     getWebsiteIcons: GetWebsiteIcons,
     clipboardService: ClipboardService,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
 ): QuickSearchState = produceScreenState(
     key = QUICK_SEARCH_SCREEN_STATE_KEY,
     initial = QuickSearchState(),
@@ -313,7 +315,10 @@ internal fun quickSearchScreenState(
         val content = quickSearchContent(
             results = input.items,
             hasAccounts = input.hasAccounts,
-            onAddAccount = quickSearchAddAccountAction(input.hasAccounts),
+            onAddAccount = quickSearchAddAccountAction(
+                hasAccounts = input.hasAccounts,
+                bitwardenLoginRouteFactory = bitwardenLoginRouteFactory,
+            ),
         )
         val queryField = if (input.hasAccounts) {
             TextFieldModel2(
@@ -423,12 +428,13 @@ private data class QuickSearchSelectionState(
 
 private fun RememberStateFlowScope.quickSearchAddAccountAction(
     hasAccounts: Boolean,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
 ): ((AccountType) -> Unit)? = if (hasAccounts) {
     null
 } else {
     { type ->
         val routeMain = when (type) {
-            AccountType.BITWARDEN -> BitwardenLoginRoute()
+            AccountType.BITWARDEN -> bitwardenLoginRouteFactory.create()
             AccountType.KEEPASS -> KeePassLoginRoute
         }
         val route = registerRouteResultReceiver(routeMain) {

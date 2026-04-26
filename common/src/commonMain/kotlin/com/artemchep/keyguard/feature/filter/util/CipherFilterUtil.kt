@@ -8,9 +8,11 @@ import com.artemchep.keyguard.common.model.DCipherFilter
 import com.artemchep.keyguard.common.service.filter.RemoveCipherFilterById
 import com.artemchep.keyguard.common.service.filter.RenameCipherFilter
 import com.artemchep.keyguard.common.service.filter.model.RenameCipherFilterRequest
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
+import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.filter.CipherFiltersRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
@@ -28,6 +30,7 @@ import com.artemchep.keyguard.ui.icons.iconSmall
 object CipherFilterUtil {
     context(RememberStateFlowScope)
     suspend fun onRename(
+        confirmationRouteFactory: ConfirmationRouteFactory,
         renameCipherFilter: RenameCipherFilter,
         model: DCipherFilter,
     ) {
@@ -43,17 +46,15 @@ object CipherFilterUtil {
         val items = listOfNotNull(
             nameItem,
         )
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(
-                        main = Icons.Outlined.KeyguardCipherFilter,
-                        secondary = Icons.Outlined.Edit,
-                    ),
-                    title = translate(Res.string.customfilters_edit_filter_title),
-                    items = items,
-                    docUrl = null,
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(
+                    main = Icons.Outlined.KeyguardCipherFilter,
+                    secondary = Icons.Outlined.Edit,
                 ),
+                title = translate(Res.string.customfilters_edit_filter_title),
+                items = items,
+                docUrl = null,
             ),
         ) { result ->
             if (result is ConfirmationResult.Confirm) {
@@ -74,6 +75,7 @@ object CipherFilterUtil {
 
     context(RememberStateFlowScope)
     suspend fun onDeleteByItems(
+        confirmationRouteFactory: ConfirmationRouteFactory,
         removeCipherFilterById: RemoveCipherFilterById,
         items: List<DCipherFilter>,
     ) {
@@ -85,6 +87,7 @@ object CipherFilterUtil {
         val message = items
             .joinToString(separator = "\n") { it.name }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,

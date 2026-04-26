@@ -69,7 +69,15 @@ fun DataSafetyScreen() {
 }
 
 @Composable
-private fun ColumnScope.DataSafetyScreenContent() {
+fun ColumnScope.DataSafetyScreenContent(
+    row: @Composable (modifier: Modifier, title: String, value: String) -> Unit = { modifier, title, value ->
+        TwoColumnRow(
+            modifier = modifier,
+            title = title,
+            value = value,
+        )
+    },
+) {
     val navigationController by rememberUpdatedState(LocalNavigationController.current)
     val secondaryTextStyle = LocalTextStyle.current
         .merge(MaterialTheme.typography.bodyMedium)
@@ -93,12 +101,12 @@ private fun ColumnScope.DataSafetyScreenContent() {
     Section(
         text = stringResource(Res.string.datasafety_local_downloads_section),
     )
-    TwoColumnRow(
-        modifier = Modifier
+    row(
+        Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimens.textHorizontalPadding),
-        title = stringResource(Res.string.encryption),
-        value = stringResource(Res.string.none),
+        stringResource(Res.string.encryption),
+        stringResource(Res.string.none),
     )
     Spacer(
         modifier = Modifier
@@ -107,12 +115,12 @@ private fun ColumnScope.DataSafetyScreenContent() {
     Section(
         text = stringResource(Res.string.datasafety_local_settings_section),
     )
-    TwoColumnRow(
-        modifier = Modifier
+    row(
+        Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimens.textHorizontalPadding),
-        title = stringResource(Res.string.encryption),
-        value = "256-bit AES",
+        stringResource(Res.string.encryption),
+        "256-bit AES",
     )
     Spacer(
         modifier = Modifier
@@ -136,12 +144,12 @@ private fun ColumnScope.DataSafetyScreenContent() {
     Section(
         text = stringResource(Res.string.datasafety_local_vault_section),
     )
-    TwoColumnRow(
-        modifier = Modifier
+    row(
+        Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimens.textHorizontalPadding),
-        title = stringResource(Res.string.encryption),
-        value = stringResource(Res.string.encryption_algorithm_256bit_aes),
+        stringResource(Res.string.encryption),
+        stringResource(Res.string.encryption_algorithm_256bit_aes),
     )
     Spacer(
         modifier = Modifier
@@ -166,36 +174,36 @@ private fun ColumnScope.DataSafetyScreenContent() {
                 modifier = Modifier
                     .height(16.dp),
             )
-            TwoColumnRow(
-                modifier = Modifier
+            row(
+                Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Dimens.textHorizontalPadding),
-                title = labelSalt,
-                value = stringResource(Res.string.encryption_random_bits_data, 64),
+                labelSalt,
+                stringResource(Res.string.encryption_random_bits_data, 64),
             )
             HorizontalDivider(
                 modifier = Modifier
                     .padding(vertical = 8.dp)
                     .padding(horizontal = Dimens.textHorizontalPadding),
             )
-            TwoColumnRow(
-                modifier = Modifier
+            row(
+                Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Dimens.textHorizontalPadding),
-                title = labelHash,
-                value = "Argon2id($labelAppPassword, $labelSalt)",
+                labelHash,
+                "Argon2id($labelAppPassword, $labelSalt)",
             )
             HorizontalDivider(
                 modifier = Modifier
                     .padding(vertical = 8.dp)
                     .padding(horizontal = Dimens.textHorizontalPadding),
             )
-            TwoColumnRow(
-                modifier = Modifier
+            row(
+                Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Dimens.textHorizontalPadding),
-                title = labelKey,
-                value = "Argon2id($labelAppPassword, $labelHash)",
+                labelKey,
+                "Argon2id($labelAppPassword, $labelHash)",
             )
             Spacer(
                 modifier = Modifier

@@ -103,37 +103,18 @@ import org.kodein.di.compose.localDI
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasskeyGetActivity : BaseActivity(), DIAware {
     companion object {
-        private const val KEY_ARGUMENTS = "arguments"
-
-        fun getIntent(
-            context: Context,
-            args: Args,
-        ): Intent = Intent(context, PasskeyGetActivity::class.java).apply {
-            putExtra(KEY_ARGUMENTS, args)
-        }
+        const val KEY_ARGUMENTS = "arguments"
     }
-
-    @Parcelize
-    data class Args(
-        val accountId: String,
-        val cipherId: String,
-        val credId: String,
-        val cipherName: String,
-        val credRpId: String,
-        val credUserDisplayName: String,
-        val requiresUserVerification: Boolean,
-        val userVerified: Boolean,
-    ) : Parcelable
 
     private val _args by lazy {
-        intent.extras?.getParcelableCompat<Args>(KEY_ARGUMENTS)
+        intent.extras?.getParcelableCompat<PasskeyProviderGetActivityArgs>(KEY_ARGUMENTS)
     }
 
-    private val args: Args get() = requireNotNull(_args)
+    protected val args: PasskeyProviderGetActivityArgs get() = requireNotNull(_args)
 
     private val getVaultSession by instance<GetVaultSession>()
 
-    private val getCredentialRequestUtils by instance<PasskeyProviderGetRequest>()
+    private val passkeyProviderGetFlow by instance<PasskeyProviderGetFlow>()
 
     private val getCredentialRequest by lazy {
         val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
@@ -238,15 +219,10 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
 
         // Log that a used has used the passkey. We only do
         // it after a successful attempt.
-        val addCipherUsedPasskey = session.di.direct.instance<AddCipherUsedPasskeyHistory>()
-        val addCipherUsedPasskeyRequest = AddCipherUsedPasskeyHistoryRequest(
-            accountId = args.accountId,
-            cipherId = args.cipherId,
-            credentialId = args.credId,
+        passkeyProviderGetFlow.recordUsage(
+            session = session,
+            args = args,
         )
-        addCipherUsedPasskey(addCipherUsedPasskeyRequest)
-            .attempt()
-            .bind()
 
         val intent = Intent().apply {
             PendingIntentHandler.setGetCredentialResponse(
@@ -356,40 +332,12 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
     private suspend fun processUnlockedVault(
         session: MasterSession.Key,
         userVerified: Boolean,
-    ): GetCredentialResponse {
-        val ciphers = kotlin.run {
-            val getCiphers = session.di.direct.instance<GetCiphers>()
-            getCiphers()
-                .first()
-        }
-        val credential = ciphers
-            .firstNotNullOfOrNull { cipher ->
-                if (
-                    args.accountId != cipher.accountId &&
-                    args.cipherId != cipher.id
-                ) {
-                    return@firstNotNullOfOrNull null
-                }
-
-                cipher.login?.fido2Credentials
-                    ?.firstOrNull { credential ->
-                        args.credId == credential.credentialId
-                    }
-            }
-        requireNotNull(credential)
-
-        val privilegedApps = kotlin.run {
-            val getPrivilegedApps = session.di.direct.instance<GetPrivilegedApps>()
-            getPrivilegedApps()
-                .first()
-        }
-        return getCredentialRequestUtils.processGetCredentialsRequest(
-            request = getCredentialRequest,
-            credential = credential,
-            userVerified = userVerified,
-            privilegedApps = privilegedApps,
-        )
-    }
+    ): GetCredentialResponse = passkeyProviderGetFlow.processUnlockedVault(
+        session = session,
+        request = getCredentialRequest,
+        args = args,
+        userVerified = userVerified,
+    )
 }
 
 class UserVerificationRoute(

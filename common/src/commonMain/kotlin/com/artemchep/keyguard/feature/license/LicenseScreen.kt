@@ -96,13 +96,16 @@ fun LicenseScreen() {
 }
 
 @Composable
-private fun NoItemsPlaceholder(
+fun NoItemsPlaceholder(
     modifier: Modifier = Modifier,
 ) {
     EmptySearchView(
         modifier = modifier,
     )
 }
+
+fun licenseDependency(item: License): String =
+    "${item.groupId}:${item.artifactId}:${item.version}"
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -111,8 +114,9 @@ private fun LicenseItem(
     item: License,
     shapeState: Int,
 ) {
+    val model = item.toLicenseItemModel()
     val navigationController by rememberUpdatedState(LocalNavigationController.current)
-    val scmUrl by rememberUpdatedState(item.scm?.url)
+    val scmUrl by rememberUpdatedState(model.scmUrl)
     FlatItemLayoutExpressive(
         modifier = modifier,
         shapeState = shapeState,
@@ -120,13 +124,13 @@ private fun LicenseItem(
             FlatItemTextContent(
                 title = {
                     Text(
-                        text = item.name
+                        text = model.name
                             ?: stringResource(Res.string.empty_value),
                         color = LocalContentColor.current
                             .let { color ->
                                 // If the name doesn't exist, then show it with
                                 // a different accent.
-                                if (item.name != null) {
+                                if (model.name != null) {
                                     color
                                 } else {
                                     color.combineAlpha(DisabledEmphasisAlpha)
@@ -135,10 +139,8 @@ private fun LicenseItem(
                     )
                 },
             )
-            val dependency =
-                "${item.groupId}:${item.artifactId}:${item.version}"
             Text(
-                text = dependency,
+                text = model.dependency,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 fontFamily = FontFamily.Monospace,
@@ -146,7 +148,7 @@ private fun LicenseItem(
                 color = LocalContentColor.current
                     .combineAlpha(MediumEmphasisAlpha),
             )
-            if (item.spdxLicenses.isNotEmpty()) {
+            if (model.licenseNames.isNotEmpty()) {
                 Spacer(
                     modifier = Modifier
                         .height(8.dp),
@@ -156,10 +158,10 @@ private fun LicenseItem(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                item.spdxLicenses.forEach { license ->
+                model.licenseNames.forEach { licenseName ->
                     FlatTextFieldBadge(
                         backgroundColor = MaterialTheme.colorScheme.infoContainer,
-                        text = license.name,
+                        text = licenseName,
                     )
                 }
             }

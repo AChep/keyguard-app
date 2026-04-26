@@ -26,15 +26,12 @@ import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.service.autotype.AutotypeService
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.focus.FocusRequester2
-import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
@@ -112,16 +109,12 @@ private fun SettingAutotypeTest(
     )
 
     val updatedAutotypeService by rememberUpdatedState(autotypeService)
-    FlatItemLayoutExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.Keyboard),
-        content = {
-            FlatItemTextContent(
-                title = {
-                    Text("Autotype test")
-                },
-            )
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.Keyboard,
+        title = {
+            Text("Autotype test")
         },
+        enabled = true,
         footer = {
             Column(
                 modifier = Modifier

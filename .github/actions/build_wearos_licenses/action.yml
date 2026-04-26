@@ -1,0 +1,15 @@
+name: "Build WearOS Licenses"
+inputs:
+  build-flavor:
+    description: 'Build Flavor'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: "Check and Build licenses"
+      shell: bash
+      run: ./gradlew :wearApp:licenseeAndroid${{ inputs.build-flavor }}Release
+    - name: "Move licenses"
+      shell: bash
+      run: |
+        mv -f wearApp/build/reports/licensee/android${{ inputs.build-flavor }}Release/artifacts.json common/src/commonMain/composeResources/files/licenses.json

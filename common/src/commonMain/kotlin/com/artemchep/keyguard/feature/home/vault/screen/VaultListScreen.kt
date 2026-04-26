@@ -608,7 +608,3 @@ fun VaultHomeScreenListPane(
         }
     }
 }
-
-@Composable
-private fun NoItemsPlaceholder() {
-}

@@ -21,9 +21,9 @@ import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.theme.combineAlpha
 
-private const val defaultTitleWidth: Float = 0.45f
+const val defaultTitleWidth: Float = 0.45f
 
-private const val defaultTextWidth: Float = 0.33f
+const val defaultTextWidth: Float = 0.33f
 
 enum class SkeletonItemAvatar {
     NONE,

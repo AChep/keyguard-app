@@ -10,6 +10,10 @@ import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthCoordinatorAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthSecurityAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthTransportAndroid
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
@@ -75,6 +79,7 @@ import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
+import com.artemchep.keyguard.feature.navigation.defaultNavigationModule
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.toLocalPath
@@ -110,6 +115,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
     name = "com.artemchep.keyguard.core.session.repository::FingerprintRepository",
 ) {
     import(globalModuleJvm())
+    import(defaultNavigationModule())
 
     bindProvider<LeContext>() {
         val context: Context = instance()
@@ -174,6 +180,18 @@ fun diFingerprintRepositoryModule() = DI.Module(
 //    }
     bindSingleton<ClipboardService> {
         ClipboardServiceAndroid(this)
+    }
+    bindSingleton<CompanionAuthTransportAndroid> {
+        CompanionAuthTransportAndroid(this)
+    }
+    bindSingleton<CompanionAuthSecurityAndroid> {
+        CompanionAuthSecurityAndroid(this)
+    }
+    bindSingleton<CompanionAuthCoordinatorAndroid> {
+        CompanionAuthCoordinatorAndroid(this)
+    }
+    bindSingleton<CompanionAuthBridgeAndroid> {
+        CompanionAuthBridgeAndroid(this)
     }
     bindSingleton<ConnectivityService> {
         ConnectivityServiceAndroid(this)

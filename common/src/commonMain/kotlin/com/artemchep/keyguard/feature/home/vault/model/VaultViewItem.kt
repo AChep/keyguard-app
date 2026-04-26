@@ -340,7 +340,7 @@ sealed interface VaultViewItem {
 
         @Immutable
         data class LocalState(
-            val codes: PersistentList<List<String>>,
+            val codes: PersistentList<PersistentList<String>>,
             val dropdown: PersistentList<ContextItem>,
         )
 

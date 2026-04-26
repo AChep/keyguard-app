@@ -76,7 +76,7 @@ import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.feature.send.view.SendViewRoute
+import com.artemchep.keyguard.feature.send.view.SendViewRouteFactory
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.res.Res
@@ -150,6 +150,7 @@ fun produceSendAddScreenState(
         clipboardService = instance(),
         dateFormatter = instance(),
         addSend = instance(),
+        sendViewRouteFactory = instance(),
     )
 }
 
@@ -170,6 +171,7 @@ fun produceSendAddScreenState(
     clipboardService: ClipboardService,
     dateFormatter: DateFormatter,
     addSend: AddSend,
+    sendViewRouteFactory: SendViewRouteFactory,
 ): Loadable<SendAddState> = produceScreenState(
     key = "send_add",
     initial = Loadable.Loading,
@@ -423,7 +425,7 @@ fun produceSendAddScreenState(
                             if (args.behavior.launchEditedCipher) {
                                 val sendId = it.first()
                                 val accountId = ownership.data.accountId!!
-                                val route = SendViewRoute(
+                                val route = sendViewRouteFactory.create(
                                     sendId = sendId,
                                     accountId = accountId,
                                 )

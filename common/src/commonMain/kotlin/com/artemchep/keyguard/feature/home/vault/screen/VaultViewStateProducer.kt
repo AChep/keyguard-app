@@ -156,6 +156,7 @@ import com.artemchep.keyguard.core.store.bitwarden.message
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
@@ -163,9 +164,12 @@ import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
+import com.artemchep.keyguard.feature.home.vault.by
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
+import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRouteFactory
 import com.artemchep.keyguard.feature.home.vault.component.UrlAppStoreListings
 import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
@@ -187,6 +191,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherUnarchiveAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
+import com.artemchep.keyguard.feature.home.vault.watchtower
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewDialogRoute
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataViewDialogRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
@@ -201,6 +206,7 @@ import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
+import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRouteFactory
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServiceViewDialogRoute
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
 import com.artemchep.keyguard.feature.send.action.createSendActionOrNull
@@ -209,6 +215,7 @@ import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceViewDialogRoute
 import com.artemchep.keyguard.feature.websiteleak.WebsiteLeakRoute
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -317,6 +324,10 @@ fun vaultViewScreenState(
         downloadManager = instance(),
         downloadAttachment = instance(),
         removeAttachment = instance(),
+        passkeysCredentialViewRouteFactory = instance(),
+        vaultViewRouteFactory = instance(),
+        vaultRouteFactory = instance(),
+        collectionsRouteFactory = instance(),
         cipherExpiringCheck = instance(),
         cipherIncompleteCheck = instance(),
         clipboardService = instance(),
@@ -331,6 +342,7 @@ fun vaultViewScreenState(
         iosAppAppStoreParser = instance(),
         androidAppGooglePlayParser = instance(),
         androidAppFDroidParser = instance(),
+        confirmationRouteFactory = instance(),
         mode = mode,
         contentColor = contentColor,
         disabledContentColor = disabledContentColor,
@@ -412,6 +424,10 @@ fun vaultViewScreenState(
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
+    passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
+    vaultViewRouteFactory: VaultViewRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
     cipherExpiringCheck: CipherExpiringCheck,
     cipherIncompleteCheck: CipherIncompleteCheck,
     clipboardService: ClipboardService,
@@ -426,6 +442,7 @@ fun vaultViewScreenState(
     windowCoroutineScope: WindowCoroutineScope,
     placeholderFactories: List<Placeholder.Factory>,
     linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     itemId: String,
     accountId: String,
 ) = produceScreenState(
@@ -681,7 +698,11 @@ fun vaultViewScreenState(
     // should not show the reprompt.
     secretFlow
         .onEach { cipher ->
-            defaultReprompt = cipher?.reprompt == true
+            // We disable the re-prompt feature for the watches as
+            // it's very unlikely to be useful + it's super annoying
+            // to perform an unlock on a watch.
+            defaultReprompt = cipher?.reprompt == true &&
+                    !CurrentPlatform.hasWatch()
         }
         .launchIn(appScope)
 
@@ -946,6 +967,7 @@ fun vaultViewScreenState(
                 val action = flow<FlatItemAction> {
                     if (cipher.deletedDate == null && cipher.service.remote != null) {
                         val trashAction = cipherTrashAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             trashCipherById = trashCipherById,
                             ciphers = listOf(cipher),
                         )
@@ -956,6 +978,7 @@ fun vaultViewScreenState(
                         cipher.hasError
                     ) {
                         val deleteAction = cipherDeleteAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             removeCipherById = removeCipherById,
                             ciphers = listOf(cipher),
                         )
@@ -982,6 +1005,7 @@ fun vaultViewScreenState(
                 val cipher = cipherExtra.cipher
                 val action = flow<FlatItemAction> {
                     val deleteAction = cipherDeleteAction(
+                        confirmationRouteFactory = confirmationRouteFactory,
                         removeCipherById = removeCipherById,
                         ciphers = listOf(cipher),
                     )
@@ -1140,15 +1164,18 @@ fun vaultViewScreenState(
                             .takeIf { secretOrNull.passwordHistory.isNotEmpty() }
                             ?.verify(verify),
                         cipherChangeNameAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             changeCipherNameById = changeCipherNameById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit },
                         cipherChangePasswordAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             changeCipherPasswordById = changeCipherPasswordById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit && secretOrNull.login != null }
                             ?.verify(verify),
                         cipherSendAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canAddSecret }?.verify(verify),
                         cipherCopyToAction(
@@ -1161,6 +1188,7 @@ fun vaultViewScreenState(
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit },
                         cipherWatchtowerAlerts(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             patchWatchtowerAlertCipher = patchWatchtowerAlertCipher,
                             ciphers = listOf(secretOrNull),
                         ),
@@ -1168,22 +1196,27 @@ fun vaultViewScreenState(
                             ciphers = listOf(secretOrNull),
                         ),
                         cipherArchiveAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             archiveCipherById = archiveCipherById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit && secretOrNull.archivedDate == null },
                         cipherUnarchiveAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             unarchiveCipherById = unarchiveCipherById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit && secretOrNull.archivedDate != null },
                         cipherTrashAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             trashCipherById = trashCipherById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canDelete && (secretOrNull.deletedDate == null && secretOrNull.service.remote != null) },
                         cipherRestoreAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             restoreCipherById = restoreCipherById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canDelete && secretOrNull.deletedDate != null },
                         cipherDeleteAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             removeCipherById = removeCipherById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf {
@@ -1197,6 +1230,9 @@ fun vaultViewScreenState(
                     items = oh(
                         mode = mode,
                         markdownParser = markdownParser,
+                        vaultViewRouteFactory = vaultViewRouteFactory,
+                        vaultRouteFactory = vaultRouteFactory,
+                        collectionsRouteFactory = collectionsRouteFactory,
                         sharingScope = screenScope, // FIXME: must not be a screen scope!!
                         selectionHandle = selectionHandle,
                         canEdit = canEdit,
@@ -1211,6 +1247,7 @@ fun vaultViewScreenState(
                         getTotpCode = getTotpCode,
                         getPasswordStrength = getPasswordStrength,
                         passkeyTargetCheck = passkeyTargetCheck,
+                        passkeysCredentialViewRouteFactory = passkeysCredentialViewRouteFactory,
                         keyPairGenerator = keyPairGenerator,
                         keyPrivateExport = keyPrivateExport,
                         keyPublicExport = keyPublicExport,
@@ -1259,6 +1296,9 @@ fun vaultViewScreenState(
 private fun RememberStateFlowScope.oh(
     mode: AppMode,
     markdownParser: CommonmarkAstNodeParser,
+    vaultViewRouteFactory: VaultViewRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
     sharingScope: CoroutineScope,
     selectionHandle: SelectionHandle,
     canEdit: Boolean,
@@ -1273,6 +1313,7 @@ private fun RememberStateFlowScope.oh(
     getTotpCode: GetTotpCode,
     getPasswordStrength: GetPasswordStrength,
     passkeyTargetCheck: PasskeyTargetCheck,
+    passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
     keyPairGenerator: KeyPairGenerator,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
@@ -1753,7 +1794,7 @@ private fun RememberStateFlowScope.oh(
                     count = reusedPasswords,
                     onClick = onClick {
                         val intent = NavigationIntent.NavigateToRoute(
-                            VaultRoute.watchtower(
+                            vaultRouteFactory.watchtower(
                                 title = translate(Res.string.reused_passwords),
                                 subtitle = translate(Res.string.watchtower_header_title),
                                 filter = DFilter.ByPasswordValue(cipherLoginPassword),
@@ -1965,7 +2006,7 @@ private fun RememberStateFlowScope.oh(
                     source = item,
                     onUse = onUse,
                     onClick = {
-                        val route = PasskeysCredentialViewRoute(
+                        val route = passkeysCredentialViewRouteFactory.create(
                             args = PasskeysCredentialViewRoute.Args(
                                 cipherId = cipher.id,
                                 credentialId = item.credentialId,
@@ -2462,7 +2503,7 @@ private fun RememberStateFlowScope.oh(
         )
         emit(note)
     }
-    if (cipher.attachments.isNotEmpty()) {
+    if (cipher.attachments.isNotEmpty() && !CurrentPlatform.hasWatch()) {
         val section = VaultViewItem.Section(
             id = "attachment",
             text = translate(Res.string.attachments),
@@ -2494,6 +2535,7 @@ private fun RememberStateFlowScope.oh(
                             attachmentId = attachment.id,
                         ),
                         selectionHandle = selectionHandle,
+                        vaultViewRouteFactory = vaultViewRouteFactory,
                         sharingScope = sharingScope,
                         attachment = attachment,
                         launchViewCipherData = null,
@@ -2523,6 +2565,7 @@ private fun RememberStateFlowScope.oh(
                             remoteCipherId = cipher.service.remote?.id,
                             attachmentId = attachment.id,
                         ),
+                        vaultViewRouteFactory = vaultViewRouteFactory,
                         selectionHandle = selectionHandle,
                         sharingScope = sharingScope,
                         attachment = attachment,
@@ -2557,7 +2600,7 @@ private fun RememberStateFlowScope.oh(
             tags = cipher.tags,
             onClick = { tag ->
                 action {
-                    val route = VaultRoute.by(
+                    val route = vaultRouteFactory.by(
                         tag = tag,
                     )
                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -2582,7 +2625,7 @@ private fun RememberStateFlowScope.oh(
                     VaultViewItem.Folder.FolderNode(
                         name = it.name,
                         onClick = onClick {
-                            val route = VaultRoute.by(
+                            val route = vaultRouteFactory.by(
                                 folder = it.folder,
                             )
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -2591,7 +2634,7 @@ private fun RememberStateFlowScope.oh(
                     )
                 },
             onClick = onClick {
-                val route = VaultRoute.by(
+                val route = vaultRouteFactory.by(
                     folder = folder.folder,
                 )
                 val intent = NavigationIntent.NavigateToRoute(route)
@@ -2617,7 +2660,7 @@ private fun RememberStateFlowScope.oh(
                 id = "collection.${collection.id}",
                 title = collection.name,
                 onClick = onClick {
-                    val route = VaultRoute.by(
+                    val route = vaultRouteFactory.by(
                         collection = collection,
                     )
                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -2638,14 +2681,13 @@ private fun RememberStateFlowScope.oh(
             id = "organization.0",
             title = organization.name,
             onClick = {
-                val intent = NavigationIntent.NavigateToRoute(
-                    CollectionsRoute(
-                        args = CollectionsRoute.Args(
-                            accountId = organization.accountId.let(::AccountId),
-                            organizationId = organization.id,
-                        ),
+                val route = collectionsRouteFactory.create(
+                    args = CollectionsRoute.Args(
+                        accountId = organization.accountId.let(::AccountId),
+                        organizationId = organization.id,
                     ),
                 )
+                val intent = NavigationIntent.NavigateToRoute(route)
                 navigate(intent)
             },
         )

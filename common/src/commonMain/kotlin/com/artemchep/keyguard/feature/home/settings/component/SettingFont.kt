@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.FontDownload
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -11,11 +12,15 @@ import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetFontVariants
 import com.artemchep.keyguard.common.usecase.PutFont
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.KgPicker
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
@@ -47,6 +52,10 @@ fun settingFontProvider(
     getFont(),
     getFontVariants(),
 ) { font, variants ->
+    if (CurrentPlatform.hasWatch()) {
+        return@combine null
+    }
+
     val text = getAppFontTitle(font, context)
     val dropdown = variants
         .map { fontVariant ->
@@ -102,21 +111,10 @@ private fun SettingFont(
     text: String,
     dropdown: List<FlatItemAction>,
 ) {
-    FlatDropdownSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.FontDownload),
-        content = {
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.pref_item_font_title),
-                    )
-                },
-                text = {
-                    Text(text)
-                },
-            )
-        },
+    LocalSettingPaneComponents.current.KgPicker(
+        icon = Icons.Outlined.FontDownload,
+        title = stringResource(Res.string.pref_item_font_title),
+        text = text,
         dropdown = dropdown,
     )
 }

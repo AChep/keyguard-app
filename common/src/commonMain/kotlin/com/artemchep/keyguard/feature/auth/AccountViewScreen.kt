@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
@@ -118,19 +119,7 @@ fun AccountViewScreen(
                 scrollBehavior = scrollBehavior,
             )
         },
-        floatingActionState = run {
-            val primaryAction = AccountViewState.content.data.primaryAction.getOrNull(state)
-            val fabOnClick = primaryAction?.onClick
-            val fabState = if (fabOnClick != null) {
-                FabState(
-                    onClick = fabOnClick,
-                    model = null,
-                )
-            } else {
-                null
-            }
-            rememberUpdatedState(newValue = fabState)
-        },
+        floatingActionState = rememberAccountViewFabState(state),
         floatingActionButton = {
             val primaryAction = AccountViewState.content.data.primaryAction.getOrNull(state)
             DefaultFab(
@@ -159,6 +148,22 @@ fun AccountViewScreen(
     }
 }
 
+@Composable
+fun rememberAccountViewFabState(
+    state: AccountViewState,
+): State<FabState?> {
+    val primaryAction = AccountViewState.content.data.primaryAction.getOrNull(state)
+    val fabOnClick = primaryAction?.onClick
+    val fabState = if (fabOnClick != null) {
+        FabState(
+            onClick = fabOnClick,
+            model = null,
+        )
+    } else {
+        null
+    }
+    return rememberUpdatedState(newValue = fabState)
+}
 
 @Composable
 private fun LaunchWebVaultButton(
@@ -221,13 +226,12 @@ private fun AccountViewTitle(
 ) = Row(
     verticalAlignment = Alignment.CenterVertically,
 ) {
+    val header = state.toAccountViewHeaderState()
     val shimmerColor = LocalContentColor.current
         .combineAlpha(DisabledEmphasisAlpha)
 
-    val data = AccountViewState.content.data.data
-        .getOrNull(state)
     Avatar {
-        val imageRes = data?.type?.logoImageRes
+        val imageRes = header.logoImageRes
         if (imageRes != null) {
             Image(
                 modifier = Modifier
@@ -249,8 +253,7 @@ private fun AccountViewTitle(
             .width(16.dp),
     )
     Column {
-        val isLoading = state.content is AccountViewState.Content.Skeleton
-        if (isLoading) {
+        if (header.isLoading) {
             Box(
                 modifier = Modifier
                     .height(IntrinsicSize.Min),
@@ -289,9 +292,9 @@ private fun AccountViewTitle(
                 )
             }
         } else {
-            val name = data?.type?.fullName
+            val name = header.name
                 .orEmpty()
-            val host = data?.host
+            val host = header.host
                 .orEmpty()
             Text(
                 text = host,
@@ -312,7 +315,7 @@ private fun AccountViewTitle(
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                 )
-                if (data?.type?.beta == true) {
+                if (header.beta) {
                     Spacer(
                         modifier = Modifier
                             .width(8.dp),

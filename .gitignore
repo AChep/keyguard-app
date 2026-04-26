@@ -15,6 +15,10 @@ bin/
 gen/
 out/
 
+# Python generated files
+__pycache__/
+*.pyc
+
 # Gradle files
 .gradle/
 .gradle-*/

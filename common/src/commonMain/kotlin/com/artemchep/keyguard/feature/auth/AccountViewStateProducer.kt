@@ -32,6 +32,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.AccountId
@@ -40,6 +41,7 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DMeta
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.PutProfileHiddenRequest
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.CopyText
@@ -65,8 +67,10 @@ import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.colorpicker.ColorPickerRoute
 import com.artemchep.keyguard.feature.colorpicker.createColorPickerDialogIntent
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
@@ -75,12 +79,17 @@ import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsRoute
 import com.artemchep.keyguard.feature.export.ExportRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
+import com.artemchep.keyguard.feature.home.vault.by
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
+import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRouteFactory
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
+import com.artemchep.keyguard.feature.home.vault.folders.FoldersRouteFactory
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
+import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRouteFactory
 import com.artemchep.keyguard.feature.home.vault.util.emitWithSection
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.wrap
@@ -91,7 +100,12 @@ import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.send.SendRoute
+import com.artemchep.keyguard.feature.send.SendRouteFactory
+import com.artemchep.keyguard.feature.send.by
 import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasBrowser
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -147,6 +161,13 @@ fun accountState(
         getCollections = instance(),
         getOrganizations = instance(),
         getMetas = instance(),
+        bitwardenLoginRouteFactory = instance(),
+        confirmationRouteFactory = instance(),
+        vaultRouteFactory = instance(),
+        sendRouteFactory = instance(),
+        collectionsRouteFactory = instance(),
+        foldersRouteFactory = instance(),
+        organizationsRouteFactory = instance(),
         db = instance(),
         accountId = accountId,
     )
@@ -183,6 +204,13 @@ fun accountState(
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
     getMetas: GetMetas,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+    sendRouteFactory: SendRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
+    foldersRouteFactory: FoldersRouteFactory,
+    organizationsRouteFactory: OrganizationsRouteFactory,
     db: VaultDatabaseManager,
     accountId: AccountId,
 ): AccountViewState = produceScreenState(
@@ -198,7 +226,7 @@ fun accountState(
         env: ServerEnv,
     ) {
         val route = registerRouteResultReceiver(
-            route = BitwardenLoginRoute(
+            route = bitwardenLoginRouteFactory.create(
                 args = BitwardenLoginRoute.Args(
                     accountId = accountId.id,
                     email = email,
@@ -216,11 +244,20 @@ fun accountState(
 
     fun doSyncAccountById(accountId: AccountId) {
         queueSyncById(accountId)
+            .effectTap {
+                val title = translate(Res.string.sync_requested)
+                val msg = ToastMessage(
+                    type = ToastMessage.Type.INFO,
+                    title = title,
+                )
+                message(msg)
+            }
             .launchIn(appScope)
     }
 
     suspend fun doRemoveAccountById(accountId: AccountId) {
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.AutoMirrored.Outlined.Logout),
             title = translate(Res.string.account_log_out_confirmation_title),
             message = translate(Res.string.account_log_out_confirmation_text),
@@ -238,6 +275,18 @@ fun accountState(
             ),
         )
         putProfileHidden(request)
+            .effectTap {
+                val title = if (hidden) {
+                    translate(Res.string.account_action_hide_success_on_title)
+                } else {
+                    translate(Res.string.account_action_hide_success_off_title)
+                }
+                val msg = ToastMessage(
+                    type = ToastMessage.Type.SUCCESS,
+                    title = title,
+                )
+                message(msg)
+            }
             .launchIn(appScope)
     }
 
@@ -360,6 +409,12 @@ fun accountState(
         val items = buildItemsFlow(
             accountId = accountId,
             scope = this,
+            confirmationRouteFactory = confirmationRouteFactory,
+            vaultRouteFactory = vaultRouteFactory,
+            sendRouteFactory = sendRouteFactory,
+            collectionsRouteFactory = collectionsRouteFactory,
+            foldersRouteFactory = foldersRouteFactory,
+            organizationsRouteFactory = organizationsRouteFactory,
             account = account,
             profile = profile,
             meta = meta,
@@ -494,6 +549,12 @@ fun accountState(
 private fun buildItemsFlow(
     accountId: AccountId,
     scope: RememberStateFlowScope,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+    sendRouteFactory: SendRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
+    foldersRouteFactory: FoldersRouteFactory,
+    organizationsRouteFactory: OrganizationsRouteFactory,
     account: DAccount?,
     profile: DProfile?,
     meta: DMeta?,
@@ -543,6 +604,7 @@ private fun buildItemsFlow(
             scope = scope,
             profile = profile,
             copyText = copyText,
+            confirmationRouteFactory = confirmationRouteFactory,
             putAccountNameById = putAccountNameById,
             putAccountColorById = putAccountColorById,
         )
@@ -553,7 +615,7 @@ private fun buildItemsFlow(
             copyText = copyText,
         )
     }
-    if (account != null && profile?.twoFactorEnabled == false) {
+    if (account != null && profile?.twoFactorEnabled == false && CurrentPlatform.hasBrowser()) {
         val onOpenWebVault = account.webVaultUrl
             ?.let { webVaultUrl ->
                 // lambda
@@ -592,7 +654,7 @@ private fun buildItemsFlow(
         emit(descriptionItem)
     }
 
-    if (counters.ciphers > 0) {
+    if (counters.ciphers > 0 && !CurrentPlatform.hasWatch()) {
         val quickActions = VaultViewItem.QuickActions(
             id = "quick_actions",
             actions = buildContextItems {
@@ -636,7 +698,7 @@ private fun buildItemsFlow(
                 ChevronIcon()
             },
             onClick = {
-                val route = VaultRoute.by(account = account)
+                val route = vaultRouteFactory.by(account = account)
                 val intent = NavigationIntent.NavigateToRoute(route)
                 scope.navigate(intent)
             },
@@ -662,7 +724,7 @@ private fun buildItemsFlow(
                     ChevronIcon()
                 },
                 onClick = {
-                    val route = SendRoute.by(account = account)
+                    val route = sendRouteFactory.by(account = account)
                     val intent = NavigationIntent.NavigateToRoute(route)
                     scope.navigate(intent)
                 },
@@ -689,7 +751,7 @@ private fun buildItemsFlow(
             ChevronIcon()
         },
         onClick = {
-            val route = FoldersRoute(
+            val route = foldersRouteFactory.create(
                 args = FoldersRoute.Args(
                     filter = DFilter.ById(accountId.id, DFilter.ById.What.ACCOUNT),
                 ),
@@ -719,7 +781,7 @@ private fun buildItemsFlow(
                 ChevronIcon()
             },
             onClick = {
-                val route = CollectionsRoute(
+                val route = collectionsRouteFactory.create(
                     args = CollectionsRoute.Args(
                         accountId = accountId,
                         organizationId = null,
@@ -749,7 +811,7 @@ private fun buildItemsFlow(
                 ChevronIcon()
             },
             onClick = {
-                val route = OrganizationsRoute(
+                val route = organizationsRouteFactory.create(
                     args = OrganizationsRoute.Args(
                         accountId = accountId,
                     ),
@@ -760,33 +822,35 @@ private fun buildItemsFlow(
         )
         emit(ff3)
     }
-    val watchtowerSectionItem = VaultViewItem.Section(
-        id = "watchtower.section",
-    )
-    emit(watchtowerSectionItem)
-    val watchtowerItem = VaultViewItem.Action(
-        id = "watchtower",
-        title = scope.translate(Res.string.watchtower_header_title),
-        leading = {
-            Icon(Icons.Outlined.Security, null)
-        },
-        trailing = {
-            ChevronIcon()
-        },
-        onClick = {
-            val route = WatchtowerRoute(
-                args = WatchtowerRoute.Args(
-                    filter = DFilter.ById(
-                        id = accountId.id,
-                        what = DFilter.ById.What.ACCOUNT,
+    if (!CurrentPlatform.hasWatch()) {
+        val watchtowerSectionItem = VaultViewItem.Section(
+            id = "watchtower.section",
+        )
+        emit(watchtowerSectionItem)
+        val watchtowerItem = VaultViewItem.Action(
+            id = "watchtower",
+            title = scope.translate(Res.string.watchtower_header_title),
+            leading = {
+                Icon(Icons.Outlined.Security, null)
+            },
+            trailing = {
+                ChevronIcon()
+            },
+            onClick = {
+                val route = WatchtowerRoute(
+                    args = WatchtowerRoute.Args(
+                        filter = DFilter.ById(
+                            id = accountId.id,
+                            what = DFilter.ById.What.ACCOUNT,
+                        ),
                     ),
-                ),
-            )
-            val intent = NavigationIntent.NavigateToRoute(route)
-            scope.navigate(intent)
-        },
-    )
-    emit(watchtowerItem)
+                )
+                val intent = NavigationIntent.NavigateToRoute(route)
+                scope.navigate(intent)
+            },
+        )
+        emit(watchtowerItem)
+    }
 
     //
     // Security
@@ -811,6 +875,7 @@ private fun buildItemsFlow(
             scope = scope,
             profile = profile,
             copyText = copyText,
+            confirmationRouteFactory = confirmationRouteFactory,
             putAccountMasterPasswordHintById = putAccountMasterPasswordHintById,
         )
     }
@@ -827,7 +892,7 @@ private fun buildItemsFlow(
             )
         },
     ) {
-        if (account == null || profile == null) return@emitWithSection
+        if (account == null || profile == null || CurrentPlatform.hasWatch()) return@emitWithSection
         emitPremium(
             scope = scope,
             account = account,
@@ -846,7 +911,7 @@ private fun buildItemsFlow(
             )
         },
     ) {
-        if (account == null) return@emitWithSection
+        if (account == null || CurrentPlatform.hasWatch()) return@emitWithSection
         emitEquivalentDomains(
             scope = scope,
             account = account,
@@ -879,6 +944,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
     scope: RememberStateFlowScope,
     profile: DProfile,
     copyText: CopyText,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     putAccountNameById: PutAccountNameById,
     putAccountColorById: PutAccountColorById,
 ) {
@@ -886,6 +952,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
 
     suspend fun onClick() {
         val intent = scope.createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Edit),
             item = ConfirmationRoute.Args.Item.StringItem(
                 key = "name",
@@ -1170,6 +1237,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
     scope: RememberStateFlowScope,
     profile: DProfile,
     copyText: CopyText,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     putAccountMasterPasswordHintById: PutAccountMasterPasswordHintById,
 ) {
     val hint = profile.masterPasswordHint
@@ -1180,6 +1248,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
 
     suspend fun onClick() {
         val intent = scope.createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Edit),
             item = ConfirmationRoute.Args.Item.StringItem(
                 key = "name",

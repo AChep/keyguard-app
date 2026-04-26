@@ -38,6 +38,7 @@ import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.filter.model.AddCipherFilterRequest
 import com.artemchep.keyguard.common.usecase.GetFolderTree
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
@@ -141,6 +142,7 @@ suspend fun RememberStateFlowScope.createFilter(
     directDI: DirectDI,
 ): CreateFilterResult {
     val addCipherFilter: AddCipherFilter = directDI.instance()
+    val confirmationRouteFactory: ConfirmationRouteFactory = directDI.instance()
 
     val emptyState = FilterHolder(
         state = mapOf(),
@@ -161,6 +163,7 @@ suspend fun RememberStateFlowScope.createFilter(
     val onSave = { state: Map<String, Set<DFilter.Primitive>> ->
         action {
             val intent = createConfirmationDialogIntent(
+                confirmationRouteFactory = confirmationRouteFactory,
                 item = ConfirmationRoute.Args.Item.StringItem(
                     key = "name",
                     title = translate(Res.string.generic_name),

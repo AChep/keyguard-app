@@ -121,7 +121,8 @@ jobs:
     name: "Generate versions code for Google Play Store"
     runs-on: ubuntu-slim
     outputs:
-      version-code: ${{ steps.producer.outputs.version_code }}
+      wear-version-code: ${{ steps.producer.outputs.wear_version_code }}
+      android-version-code: ${{ steps.producer.outputs.android_version_code }}
     steps:
       - name: "Checkout"
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -134,8 +135,10 @@ jobs:
         run: |
           pip install -r .github/scripts/versioning/requirements.txt
           python .github/scripts/versioning/fetch_version.py --package-name com.artemchep.keyguard --credentials service-account-google.json --output play-store-versions.json
-          VERSION_CODE=$(jq -r '.next_version_code' play-store-versions.json)
-          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+          WEAR_VERSION_CODE=$(jq -r '.wear_version_code' play-store-versions.json)
+          ANDROID_VERSION_CODE=$(jq -r '.android_version_code' play-store-versions.json)
+          echo "wear_version_code=$WEAR_VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "android_version_code=$ANDROID_VERSION_CODE" >> $GITHUB_OUTPUT
   build-macos-app:
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -342,6 +345,58 @@ jobs:
           name: app-windows
           path: desktopApp/build/compose/binaries/main-release/msi/*.msi
           retention-days: 1
+  build-wearos-app:
+    runs-on: ubuntu-latest
+    needs:
+      - generate-versions-code-google-play-store
+    strategy:
+      fail-fast: true
+      matrix:
+        config:
+          - { flavor: None, build-type: assemble }
+          - { flavor: PlayStore, build-type: bundle }
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          lfs: true
+          submodules: recursive
+      - uses: ./.github/actions/setup_gradle
+      - uses: ./.github/actions/setup_python
+      - name: "Prepare env"
+        run: |
+          echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > wearApp/keyguard-release.keystore
+          echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat > wearApp/keyguard-release.properties
+          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat > wearApp/google-services.json
+          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+      - name: "Prepare version code"
+        run: |
+          echo "" >> gradle.properties
+          echo "versionCode=${{ needs.generate-versions-code-google-play-store.outputs.wear-version-code }}" >> gradle.properties
+      - uses: ./.github/actions/build_wearos_licenses
+        with:
+          build-flavor: ${{ matrix.config.flavor }}
+      - name: "Build"
+        run: ./gradlew :wearApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
+      - name: 'Upload .apk'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        if: matrix.config.build-type == 'assemble'
+        with:
+          name: app-wearos-apk
+          path: |
+            wearApp/build/outputs/apk/**/*.apk
+            wearApp/build/outputs/mapping/**/mapping.txt
+          retention-days: 1
+      - name: 'Upload .aab'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        if: matrix.config.build-type == 'bundle'
+        with:
+          name: app-wearos-aab
+          path: |
+            wearApp/build/outputs/bundle/**/*.aab
+          retention-days: 1
   build-android-app:
     runs-on: ubuntu-latest
     needs:
@@ -371,7 +426,7 @@ jobs:
       - name: "Prepare version code"
         run: |
           echo "" >> gradle.properties
-          echo "versionCode=${{ needs.generate-versions-code-google-play-store.outputs.version-code }}" >> gradle.properties
+          echo "versionCode=${{ needs.generate-versions-code-google-play-store.outputs.android-version-code }}" >> gradle.properties
       - uses: ./.github/actions/build_android_licenses
         with:
           build-flavor: ${{ matrix.config.flavor }}
@@ -445,6 +500,7 @@ jobs:
     needs:
       - generate-changelog
       - generate-versions
+      - build-wearos-app
       - build-android-app
       - build-android-ssh-agent
       - build-linux-app
@@ -570,7 +626,12 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: app-android-aab
-          path: artifacts
+          path: artifacts-android
+      - name: "Download WearOS app (aab)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-wearos-aab
+          path: artifacts-wearos
       - name: "Download changelog"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -581,13 +642,21 @@ jobs:
           echo ${{ secrets.SERVICE_ACCOUNT_B64 }} | base64 -d | zcat > service-account-google.json
           mkdir whatsnew
           mv artifacts-changelog/changelog-summary.md whatsnew/whatsnew-en-US
-      - name: "Distribute on Play Store"
+      - name: "Distribute Android on Play Store"
         uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb
         with:
           serviceAccountJson: service-account-google.json
           whatsNewDirectory: whatsnew
           packageName: com.artemchep.keyguard
-          releaseFiles: artifacts/**/*.aab
+          releaseFiles: artifacts-android/**/*.aab
+      - name: "Distribute WearOS on Play Store"
+        uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb
+        with:
+          serviceAccountJson: service-account-google.json
+          whatsNewDirectory: whatsnew
+          packageName: com.artemchep.keyguard
+          releaseFiles: artifacts-wearos/**/*.aab
+          track: wear:production
   deploy-termux:
     name: Deploy Termux
     runs-on: ubuntu-latest

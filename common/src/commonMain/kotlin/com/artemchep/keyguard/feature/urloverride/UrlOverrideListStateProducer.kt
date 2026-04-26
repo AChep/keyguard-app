@@ -20,9 +20,11 @@ import com.artemchep.keyguard.common.usecase.RemoveUrlOverrideById
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
+import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.home.settings.SettingsItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
@@ -63,6 +65,7 @@ private class UrlOverrideListUiException(
 fun produceUrlOverrideListState(
 ) = with(localDI().direct) {
     produceUrlOverrideListState(
+        confirmationRouteFactory = instance(),
         addUrlOverride = instance(),
         removeUrlOverrideById = instance(),
         getUrlOverrides = instance(),
@@ -72,6 +75,7 @@ fun produceUrlOverrideListState(
 
 @Composable
 fun produceUrlOverrideListState(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     addUrlOverride: AddUrlOverride,
     removeUrlOverrideById: RemoveUrlOverrideById,
     getUrlOverrides: GetUrlOverrides,
@@ -131,20 +135,18 @@ fun produceUrlOverrideListState(
             commandItem,
             enabledItem,
         )
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(
-                        main = Icons.Outlined.Link,
-                        secondary = if (entity != null) {
-                            Icons.Outlined.Edit
-                        } else {
-                            Icons.Outlined.Add
-                        },
-                    ),
-                    title = translate(Res.string.urloverride_header_title),
-                    items = items2,
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(
+                    main = Icons.Outlined.Link,
+                    secondary = if (entity != null) {
+                        Icons.Outlined.Edit
+                    } else {
+                        Icons.Outlined.Add
+                    },
                 ),
+                title = translate(Res.string.urloverride_header_title),
+                items = items2,
             ),
         ) { result ->
             if (result is ConfirmationResult.Confirm) {
@@ -196,6 +198,7 @@ fun produceUrlOverrideListState(
         val message = items
             .joinToString(separator = "\n") { it.name }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,

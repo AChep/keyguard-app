@@ -81,6 +81,7 @@ import com.artemchep.keyguard.core.session.BiometricStatusUseCaseImpl
 import com.artemchep.keyguard.core.store.DatabaseSqlManagerInFileJvm
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
+import com.artemchep.keyguard.feature.navigation.defaultNavigationModule
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeBiometricCipherKeychain
 import com.artemchep.keyguard.platform.LeContext
@@ -281,6 +282,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
     name = "com.artemchep.keyguard.core.session.repository::FingerprintRepository",
 ) {
     import(globalModuleJvm())
+    import(defaultNavigationModule())
 
     bindProvider<LeContext>() {
         LeContext()

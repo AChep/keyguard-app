@@ -8,12 +8,23 @@ import com.artemchep.keyguard.feature.home.settings.SettingPaneItem
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SubscriptionsSettingsScreen() {
-    val items = remember {
+    val items = rememberSettingsSubscriptionsItems()
+    SettingPaneContent(
+        title = stringResource(Res.string.settings_subscriptions_header_title),
+        items = items,
+    )
+}
+
+@Composable
+fun rememberSettingsSubscriptionsItems(
+): ImmutableList<SettingPaneItem> {
+    return remember {
         persistentListOf(
             SettingPaneItem.Item(Setting.SUBSCRIPTIONS),
             SettingPaneItem.Group(
@@ -28,8 +39,4 @@ fun SubscriptionsSettingsScreen() {
             ),
         )
     }
-    SettingPaneContent(
-        title = stringResource(Res.string.settings_subscriptions_header_title),
-        items = items,
-    )
 }

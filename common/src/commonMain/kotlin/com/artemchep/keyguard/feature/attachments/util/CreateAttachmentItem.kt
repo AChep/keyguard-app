@@ -15,6 +15,7 @@ import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.attachments.foo
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRouteFactory
 import com.artemchep.keyguard.feature.home.vault.screen.verify
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.ui.selection.SelectionHandle
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.stateIn
 
 suspend fun RememberStateFlowScope.createAttachmentItem(
     attachment: DSecret.Attachment,
+    vaultViewRouteFactory: VaultViewRouteFactory,
     tag: DownloadInfoEntity2.AttachmentDownloadTag,
     selectionHandle: SelectionHandle,
     sharingScope: CoroutineScope,
@@ -62,6 +64,7 @@ suspend fun RememberStateFlowScope.createAttachmentItem(
         .map { actionsStatus ->
             val actions = foo(
                 translatorScope = this,
+                vaultViewRouteFactory = vaultViewRouteFactory,
                 fileName = fileName,
                 launchViewCipherData = launchViewCipherData,
                 status = actionsStatus,

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -18,7 +19,9 @@ import com.artemchep.keyguard.common.usecase.GetAllowScreenshots
 import com.artemchep.keyguard.common.usecase.GetAllowScreenshotsVariants
 import com.artemchep.keyguard.common.usecase.PutAllowScreenshots
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.KgPicker
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
@@ -115,35 +118,32 @@ private fun SettingAllowScreenshots(
     checked: Boolean,
     dropdown: List<FlatItemAction>,
 ) {
-    FlatDropdownSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.Screenshot),
-        content = {
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.pref_item_allow_screenshots_title),
-                    )
-                },
-                text = {
-                    Text(text)
-                    Spacer(
-                        modifier = Modifier
-                            .height(8.dp),
-                    )
-                    val text = if (checked) {
-                        stringResource(Res.string.pref_item_allow_screenshots_text_on)
-                    } else {
-                        stringResource(Res.string.pref_item_allow_screenshots_text_off)
-                    }
-                    Text(
-                        color = LocalContentColor.current
-                            .combineAlpha(MediumEmphasisAlpha),
-                        style = MaterialTheme.typography.bodySmall,
-                        text = text,
-                    )
-                },
-            )
+    val title = stringResource(Res.string.pref_item_allow_screenshots_title)
+    LocalSettingPaneComponents.current.KgPicker(
+        icon = Icons.Outlined.Screenshot,
+        title = {
+            Text(text = title)
+        },
+        titleText = title,
+        text = {
+            Column {
+                Text(text)
+                Spacer(
+                    modifier = Modifier
+                        .height(8.dp),
+                )
+                val text = if (checked) {
+                    stringResource(Res.string.pref_item_allow_screenshots_text_on)
+                } else {
+                    stringResource(Res.string.pref_item_allow_screenshots_text_off)
+                }
+                Text(
+                    color = LocalContentColor.current
+                        .combineAlpha(MediumEmphasisAlpha),
+                    style = MaterialTheme.typography.bodySmall,
+                    text = text,
+                )
+            }
         },
         dropdown = dropdown,
     )

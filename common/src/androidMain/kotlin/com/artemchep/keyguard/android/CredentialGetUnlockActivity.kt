@@ -46,21 +46,15 @@ import kotlin.time.Clock
 import org.kodein.di.*
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-class PasskeyGetUnlockActivity : BaseActivity(), DIAware {
-    companion object {
-        fun getIntent(
-            context: Context,
-        ): Intent = Intent(context, PasskeyGetUnlockActivity::class.java)
-    }
-
+class CredentialGetUnlockActivity : BaseActivity(), DIAware {
     private val getVaultSession by instance<GetVaultSession>()
 
-    private val passkeyBeginGetRequest by instance<PasskeyBeginGetRequest>()
+    private val passkeyBeginGetUnlockFlow by instance<PasskeyBeginGetUnlockFlow>()
 
     @SuppressLint("RestrictedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        recordLog("Opened passkey get-unlock activity")
+        recordLog("Opened credential get-unlock activity")
         val startedAt = Clock.System.now()
 
         // Observe the vault session to detect when a user
@@ -93,14 +87,10 @@ class PasskeyGetUnlockActivity : BaseActivity(), DIAware {
                 finish()
                 return@launch // end
             }
-            // If the provider does not have a credential, or an exception to return,
-            // provider must call android.app.Activity.setResult with the result code
-            // as android.app.Activity.RESULT_CANCELED.
-            val status = if (response.credentialEntries.isEmpty()) {
-                Activity.RESULT_CANCELED
-            } else {
-                Activity.RESULT_OK
-            }
+
+            // We always have a valid result to return, therefore
+            // Activity.RESULT_OK
+            val status = Activity.RESULT_OK
             val intent = Intent().apply {
                 PendingIntentHandler.setBeginGetCredentialResponse(
                     intent = this,
@@ -180,23 +170,9 @@ class PasskeyGetUnlockActivity : BaseActivity(), DIAware {
         requireNotNull(request) {
             "Begin get request from framework is empty."
         }
-        val ciphers = kotlin.run {
-            val getCiphers = session.di.direct.instance<GetCiphers>()
-            val getProfiles = session.di.direct.instance<GetProfiles>()
-
-            val ciphersRawFlow = filterHiddenProfiles(
-                getProfiles = getProfiles,
-                getCiphers = getCiphers,
-                filter = null,
-            )
-            ciphersRawFlow
-                .first()
-        }
-
-        return passkeyBeginGetRequest.processGetCredentialsRequest(
-            cipherHistoryOpenedRepository = session.di.direct.instance(),
+        return passkeyBeginGetUnlockFlow.processUnlockedVault(
+            session = session,
             request = request,
-            ciphers = ciphers,
             userVerified = userVerified,
         )
     }

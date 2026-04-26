@@ -5,6 +5,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -197,6 +198,17 @@ fun ManualAppScreenOnMain(
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ManualAppScreen(
+    toastHost: @Composable BoxScope.() -> Unit = {
+        val insets = WindowInsets.leNavigationBars
+            .union(WindowInsets.leIme)
+            .asPaddingValues()
+        ToastMessageHost(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(insets)
+                .widthIn(max = 300.dp),
+        )
+    },
     content: @Composable (VaultState) -> Unit,
 ) {
     Box(
@@ -228,14 +240,6 @@ fun ManualAppScreen(
             content(state)
         }
 
-        val insets = WindowInsets.leNavigationBars
-            .union(WindowInsets.leIme)
-            .asPaddingValues()
-        ToastMessageHost(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(insets)
-                .widthIn(max = 300.dp),
-        )
+        toastHost()
     }
 }

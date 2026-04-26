@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.usecase.RemoveWordlistById
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListState
 import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
@@ -65,6 +66,7 @@ fun produceWordlistListState(
         removeWordlistById = instance(),
         getWordlists = instance(),
         numberFormatter = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -75,6 +77,7 @@ fun produceWordlistListState(
     removeWordlistById: RemoveWordlistById,
     getWordlists: GetWordlists,
     numberFormatter: NumberFormatter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): Loadable<WordlistListState> = produceScreenState(
     key = "wordlist_list",
     initial = Loadable.Loading,
@@ -137,6 +140,7 @@ fun produceWordlistListState(
                             title = Res.string.edit.wrap(),
                             onClick = onClick {
                                 WordlistUtil.onRename(
+                                    confirmationRouteFactory = confirmationRouteFactory,
                                     editWordlist = editWordlist,
                                     entity = selectedItem,
                                 )
@@ -150,6 +154,7 @@ fun produceWordlistListState(
                         title = Res.string.delete.wrap(),
                         onClick = onClick {
                             WordlistUtil.onDeleteByItems(
+                                confirmationRouteFactory = confirmationRouteFactory,
                                 removeWordlistById = removeWordlistById,
                                 items = selectedItems,
                             )
@@ -254,19 +259,21 @@ fun produceWordlistListState(
                 title = Res.string.wordlist_add_wordlist_via_file_title.wrap(),
                 onClick = onClick {
                     WordlistUtil.onNewFromFile(
+                        confirmationRouteFactory = confirmationRouteFactory,
                         addWordlist = addWordlist,
                     )
                 },
             )
-            this += FlatItemAction(
-                leading = icon(Icons.Outlined.KeyguardWebsite),
-                title = Res.string.wordlist_add_wordlist_via_url_title.wrap(),
-                onClick = onClick {
-                    WordlistUtil.onNewFromUrl(
-                        addWordlist = addWordlist,
-                    )
-                },
-            )
+                this += FlatItemAction(
+                    leading = icon(Icons.Outlined.KeyguardWebsite),
+                    title = Res.string.wordlist_add_wordlist_via_url_title.wrap(),
+                    onClick = onClick {
+                        WordlistUtil.onNewFromUrl(
+                            confirmationRouteFactory = confirmationRouteFactory,
+                            addWordlist = addWordlist,
+                        )
+                    },
+                )
         }
     }
     val contentFlow = combine(

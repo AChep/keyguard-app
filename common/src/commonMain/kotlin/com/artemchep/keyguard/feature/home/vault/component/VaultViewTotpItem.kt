@@ -81,7 +81,7 @@ private sealed interface VaultViewTotpItemBadgeState {
     data object Error : VaultViewTotpItemBadgeState
 
     data class Success(
-        val codes: PersistentList<List<String>>,
+        val codes: PersistentList<PersistentList<String>>,
         val codeRaw: String,
         val counter: Counter,
     ) : VaultViewTotpItemBadgeState {
@@ -283,7 +283,7 @@ fun VaultViewTotpBadge2(
 @Composable
 private fun RowScope.VaultViewTotpCodeContent(
     totp: TotpToken,
-    codes: PersistentList<List<String>>?,
+    codes: PersistentList<PersistentList<String>>?,
 ) {
     val symbolColor = LocalContentColor.current
         .combineAlpha(DisabledEmphasisAlpha)

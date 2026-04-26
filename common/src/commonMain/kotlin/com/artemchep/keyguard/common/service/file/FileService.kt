@@ -12,6 +12,8 @@ interface FileService {
     fun readFromFile(uri: String): Source
 
     fun writeToFile(uri: String): Sink
+
+    fun delete(uri: String): Boolean
 }
 
 class PureFileService : FileService {
@@ -37,6 +39,16 @@ class PureFileService : FileService {
                     .toFilePath(action = FileAccessAction.Write),
             )
             .buffered()
+
+    override fun delete(uri: String): Boolean = runCatching {
+        SystemFileSystem
+            .delete(
+                path = uri
+                    .toFilePath(action = FileAccessAction.Write),
+                mustExist = false,
+            )
+        true
+    }.getOrDefault(false)
 }
 
 private enum class FileAccessAction(

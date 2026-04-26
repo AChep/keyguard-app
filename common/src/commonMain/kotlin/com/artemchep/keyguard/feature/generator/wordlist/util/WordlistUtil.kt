@@ -11,9 +11,11 @@ import com.artemchep.keyguard.common.model.EditWordlistRequest
 import com.artemchep.keyguard.common.usecase.AddWordlist
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.RemoveWordlistById
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
+import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
@@ -26,6 +28,7 @@ import com.artemchep.keyguard.ui.icons.icon
 object WordlistUtil {
     context(RememberStateFlowScope)
     suspend fun onRename(
+        confirmationRouteFactory: ConfirmationRouteFactory,
         editWordlist: EditWordlist,
         entity: DGeneratorWordlist,
     ) {
@@ -41,17 +44,15 @@ object WordlistUtil {
         val items = listOfNotNull(
             nameItem,
         )
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(
-                        main = Icons.Outlined.KeyguardCipherFilter,
-                        secondary = Icons.Outlined.Edit,
-                    ),
-                    title = translate(Res.string.wordlist_edit_wordlist_title),
-                    items = items,
-                    docUrl = null,
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(
+                    main = Icons.Outlined.KeyguardCipherFilter,
+                    secondary = Icons.Outlined.Edit,
                 ),
+                title = translate(Res.string.wordlist_edit_wordlist_title),
+                items = items,
+                docUrl = null,
             ),
         ) { result ->
             if (result is ConfirmationResult.Confirm) {
@@ -72,6 +73,7 @@ object WordlistUtil {
 
     context(RememberStateFlowScope)
     suspend fun onNewFromFile(
+        confirmationRouteFactory: ConfirmationRouteFactory,
         addWordlist: AddWordlist,
     ) {
         val nameKey = "name"
@@ -94,17 +96,15 @@ object WordlistUtil {
             nameItem,
             fileItem,
         )
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(
-                        main = Icons.Outlined.KeyguardWordlist,
-                        secondary = Icons.Outlined.Add,
-                    ),
-                    title = translate(Res.string.wordlist_add_wordlist_title),
-                    items = items,
-                    docUrl = null,
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(
+                    main = Icons.Outlined.KeyguardWordlist,
+                    secondary = Icons.Outlined.Add,
                 ),
+                title = translate(Res.string.wordlist_add_wordlist_title),
+                items = items,
+                docUrl = null,
             ),
         ) { result ->
             if (result is ConfirmationResult.Confirm) {
@@ -130,6 +130,7 @@ object WordlistUtil {
 
     context(RememberStateFlowScope)
     suspend fun onNewFromUrl(
+        confirmationRouteFactory: ConfirmationRouteFactory,
         addWordlist: AddWordlist,
     ) {
         val nameKey = "name"
@@ -154,17 +155,15 @@ object WordlistUtil {
             nameItem,
             urlItem,
         )
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(
-                        main = Icons.Outlined.KeyguardWordlist,
-                        secondary = Icons.Outlined.Add,
-                    ),
-                    title = translate(Res.string.wordlist_add_wordlist_title),
-                    items = items,
-                    docUrl = null,
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(
+                    main = Icons.Outlined.KeyguardWordlist,
+                    secondary = Icons.Outlined.Add,
                 ),
+                title = translate(Res.string.wordlist_add_wordlist_title),
+                items = items,
+                docUrl = null,
             ),
         ) { result ->
             if (result is ConfirmationResult.Confirm) {
@@ -190,6 +189,7 @@ object WordlistUtil {
 
     context(RememberStateFlowScope)
     suspend fun onDeleteByItems(
+        confirmationRouteFactory: ConfirmationRouteFactory,
         removeWordlistById: RemoveWordlistById,
         items: List<DGeneratorWordlist>,
     ) {
@@ -201,6 +201,7 @@ object WordlistUtil {
         val message = items
             .joinToString(separator = "\n") { it.name }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,

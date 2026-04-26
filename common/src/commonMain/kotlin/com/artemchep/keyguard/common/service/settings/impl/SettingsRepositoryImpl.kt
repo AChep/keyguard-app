@@ -26,6 +26,8 @@ import com.artemchep.keyguard.common.service.settings.entity.VersionLogEntity
 import com.artemchep.keyguard.common.service.settings.entity.of
 import com.artemchep.keyguard.common.service.settings.entity.toDomain
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -53,6 +55,7 @@ class SettingsRepositoryImpl(
         private const val KEY_AUTOFILL_SAVE_REQUEST = "autofill.save_request"
         private const val KEY_AUTOFILL_SAVE_URI = "autofill.save_uri"
         private const val KEY_AUTOFILL_ADVERTISE_PASSKEYS_SUPPORT = "autofill.advertise_passkeys_support"
+        private const val KEY_AUTOFILL_ADVERTISE_PASSWORDS_SUPPORT = "autofill.advertise_passwords_support"
         private const val KEY_AUTOFILL_COPY_TOTP = "autofill.copy_totp"
         private const val KEY_VAULT_PERSIST = "vault_persist"
         private const val KEY_VAULT_REBOOT = "vault_reboot"
@@ -120,6 +123,9 @@ class SettingsRepositoryImpl(
     private val advertisePasskeysSupportPref =
         store.getBoolean(KEY_AUTOFILL_ADVERTISE_PASSKEYS_SUPPORT, true)
 
+    private val advertisePasswordsSupportPref =
+        store.getBoolean(KEY_AUTOFILL_ADVERTISE_PASSWORDS_SUPPORT, true)
+
     private val autofillCopyTotpPref =
         store.getBoolean(KEY_AUTOFILL_COPY_TOTP, true)
 
@@ -156,17 +162,18 @@ class SettingsRepositoryImpl(
     private val allowScreenshotsEnumPref =
         store.getEnumNullable(KEY_ALLOW_SCREENSHOTS_ENUM, lens = AllowScreenshots::key)
 
+    private val isWatch = CurrentPlatform.hasWatch()
     private val checkPwnedPasswordsPref =
-        store.getBoolean(KEY_CHECK_PWNED_PASSWORDS, true)
+        store.getBoolean(KEY_CHECK_PWNED_PASSWORDS, !isWatch)
 
     private val checkPwnedServicesPref =
-        store.getBoolean(KEY_CHECK_PWNED_SERVICES, true)
+        store.getBoolean(KEY_CHECK_PWNED_SERVICES, !isWatch)
 
     private val checkTwoFAPref =
-        store.getBoolean(KEY_CHECK_TWO_FA, true)
+        store.getBoolean(KEY_CHECK_TWO_FA, !isWatch)
 
     private val checkPasskeysPref =
-        store.getBoolean(KEY_CHECK_PASSKEYS, true)
+        store.getBoolean(KEY_CHECK_PASSKEYS, !isWatch)
 
     private val writeAccessPref =
         store.getBoolean(KEY_WRITE_ACCESS, true)
@@ -411,6 +418,11 @@ class SettingsRepositoryImpl(
 
     override fun setAdvertisePasskeysSupport(advertisePasskeysSupport: Boolean) = advertisePasskeysSupportPref
         .setAndCommit(advertisePasskeysSupport)
+
+    override fun getAdvertisePasswordsSupport() = advertisePasswordsSupportPref
+
+    override fun setAdvertisePasswordsSupport(advertisePasswordsSupport: Boolean) = advertisePasswordsSupportPref
+        .setAndCommit(advertisePasswordsSupport)
 
     override fun getAutofillSaveUri() = autofillSaveUriPref
 

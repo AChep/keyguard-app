@@ -35,6 +35,9 @@ androidxLifecycle = "2.10.0"
 androidxProfileInstaller = "1.4.1"
 androidxRoom = "2.8.4"
 androidxSecurityCryptoKtx = "1.1.0"
+androidxWearCompose = "1.6.0"
+androidxWearComposeMaterial3 = "1.6.0"
+androidxWearRemoteInteractions = "1.1.0"
 androidxTestEspresso = "3.7.0"
 coreTestingVersion = "2.2.0"
 androidxTestCore = "1.7.0"
@@ -44,6 +47,7 @@ androidxTestRule = "1.7.0"
 androidxTestJUnit = "1.3.0"
 androidxTestOrchestrator = "1.6.1"
 androidxWork = "2.11.2"
+horologist = "0.8.3-alpha"
 # https://github.com/harawata/appdirs
 appDirs = "1.5.0"
 # https://github.com/arrow-kt/arrow
@@ -81,6 +85,7 @@ flowPreferences = "1.9.1"
 googleServicesPlugin = "4.4.4"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "3.0.0-beta02"
+junit = "4.13.2"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kyant0/m3color
@@ -133,6 +138,7 @@ okHttp = "5.3.2"
 playReviewKtx = "2.0.2"
 # https://developers.google.com/android/guides/setup
 playServicesBase = "18.10.0"
+playServicesWearable = "19.0.0"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha03"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
@@ -206,6 +212,11 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidxRoom" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
 androidx-security-crypto-ktx = { module = "androidx.security:security-crypto-ktx", version.ref = "androidxSecurityCryptoKtx" }
+androidx-wear-compose-foundation = { module = "androidx.wear.compose:compose-foundation", version.ref = "androidxWearCompose" }
+androidx-wear-compose-material = { module = "androidx.wear.compose:compose-material", version.ref = "androidxWearCompose" }
+androidx-wear-compose-material3 = { module = "androidx.wear.compose:compose-material3", version.ref = "androidxWearComposeMaterial3" }
+androidx-wear-compose-navigation = { module = "androidx.wear.compose:compose-navigation", version.ref = "androidxWearCompose" }
+androidx-wear-remote-interactions = { module = "androidx.wear:wear-remote-interactions", version.ref = "androidxWearRemoteInteractions" }
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "androidxWork" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidxWork" }
 androidx-arch-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTestingVersion" }
@@ -250,6 +261,7 @@ firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "fir
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 fredporciuncula-flow-preferences = { module = "com.fredporciuncula:flow-preferences", version.ref = "flowPreferences" }
 google-accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
+google-play-services-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "playServicesWearable" }
 google-accompanist-navigation-material = { module = "com.google.accompanist:accompanist-navigation-material", version.ref = "accompanist" }
 google-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist" }
@@ -262,7 +274,9 @@ halilibo-richtext-commonmark = { module = "com.halilibo.compose-richtext:richtex
 halilibo-richtext-markdown = { module = "com.halilibo.compose-richtext:richtext-markdown", version.ref = "richtext" }
 halilibo-richtext-ui-material3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", version.ref = "richtext" }
 harawata-appdirs = { module = "net.harawata:appdirs", version.ref = "appDirs" }
+horologist-compose-layout = { module = "com.google.android.horologist:horologist-compose-layout", version.ref = "horologist" }
 html-text = { module = "de.charlex.compose:html-text-material3", version.ref = "htmlText" }
+junit = { module = "junit:junit", version.ref = "junit" }
 kdrag0n-colorkt = { module = "dev.kdrag0n:colorkt", version.ref = "kdrag0nColorKt" }
 kyant0-m3color = { module = "com.github.Kyant0:m3color", version.ref = "m3color" }
 kodein-kodein-di = { module = "org.kodein.di:kodein-di", version.ref = "kodeinDi" }

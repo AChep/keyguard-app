@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -36,6 +37,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAutofillDef
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillInlineSuggestionsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillManualSelectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPasskeysEnabledProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPasswordsEnabledProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPrivilegedAppProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillRespectAutofillOffProvider
@@ -105,6 +107,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLay
 import com.artemchep.keyguard.feature.home.settings.component.settingUnreadWatchtowerAlerts
 import com.artemchep.keyguard.feature.home.settings.component.settingUrlOverrideProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUseExternalBrowserProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingVaultClearProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterRebootProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterScreenOffProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterTimeoutProvider
@@ -140,6 +143,7 @@ object Setting {
     const val AUTOFILL_SAVE_REQUEST = "autofill_save_request"
     const val AUTOFILL_SAVE_URI = "autofill_save_uri"
     const val AUTOFILL_PASSKEYS = "autofill_passkeys"
+    const val AUTOFILL_PASSWORDS = "autofill_passwords"
     const val AUTOFILL_BLOCK_URI = "autofill_block_uri"
     const val AUTOFILL_PRIVILEGED_APPS = "autofill_privileged_apps"
     const val AUTOFILL_COPY_TOTP = "autofill_copy_totp"
@@ -161,6 +165,7 @@ object Setting {
     const val BIOMETRIC_REQUIRE_CONFIRMATION = "biometric_require_confirmation"
     const val YUBIKEY_UNLOCK = "yubikey_unlock"
     const val VAULT_PERSIST = "vault_persist"
+    const val VAULT_CLEAR = "vault_clear"
     const val VAULT_LOCK = "vault_lock"
     const val VAULT_LOCK_AFTER_REBOOT = "vault_lock_after_reboot"
     const val VAULT_LOCK_AFTER_SCREEN_OFF = "vault_screen_lock"
@@ -242,6 +247,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.AUTOFILL_SAVE_REQUEST to ::settingAutofillSaveRequestProvider,
     Setting.AUTOFILL_SAVE_URI to ::settingAutofillSaveUriProvider,
     Setting.AUTOFILL_PASSKEYS to ::settingAutofillPasskeysEnabledProvider,
+    Setting.AUTOFILL_PASSWORDS to ::settingAutofillPasswordsEnabledProvider,
     Setting.AUTOFILL_BLOCK_URI to ::settingAutofillBlockUriProvider,
     Setting.AUTOFILL_PRIVILEGED_APPS to ::settingAutofillPrivilegedAppProvider,
     Setting.AUTOFILL_COPY_TOTP to ::settingAutofillCopyTotpProvider,
@@ -263,6 +269,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.BIOMETRIC_REQUIRE_CONFIRMATION to ::settingBiometricsRequireConfirmationProvider,
     Setting.YUBIKEY_UNLOCK to ::settingYubiKeyUnlockProvider,
     Setting.VAULT_PERSIST to ::settingVaultPersistProvider,
+    Setting.VAULT_CLEAR to ::settingVaultClearProvider,
     Setting.VAULT_LOCK to ::settingVaultLockProvider,
     Setting.VAULT_LOCK_AFTER_REBOOT to ::settingVaultLockAfterRebootProvider,
     Setting.VAULT_LOCK_AFTER_SCREEN_OFF to ::settingVaultLockAfterScreenOffProvider,
@@ -332,8 +339,19 @@ fun SettingPaneContent(
     title: String,
     items: List<SettingPaneItem>,
 ) {
+    val panelState = rememberSettingPaneState(items)
+    SettingPaneContent2(
+        title = title,
+        state = panelState.value,
+    )
+}
+
+@Composable
+fun rememberSettingPaneState(
+    items: List<SettingPaneItem>,
+): State<SettingPaneState> {
     val di = localDI()
-    val state by remember(items, di, hub) {
+    return remember(items, di, hub) {
         val platform = CurrentPlatform
 
         fun create(
@@ -352,7 +370,7 @@ fun SettingPaneContent(
                     content = content
                         ?.takeIf {
                             val isValid = it.platformClasses.isEmpty() ||
-                                it.platformClasses.any { clazz -> clazz.isInstance(platform) }
+                                    it.platformClasses.any { clazz -> clazz.isInstance(platform) }
                             isValid
                         }
                         ?.content,
@@ -412,11 +430,6 @@ fun SettingPaneContent(
                 )
             }
     }.collectAsState(initial = SettingPaneState())
-
-    SettingPaneContent2(
-        title = title,
-        state = state,
-    )
 }
 
 @OptIn(

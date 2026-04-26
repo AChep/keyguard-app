@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.flatMap
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.ErrorView
@@ -117,48 +116,45 @@ fun PrivilegedAppListScreen(
         },
         listState = listState,
     ) {
-        val contentState = loadableState
-            .flatMap { it.content }
+        val contentState = loadableState.toPrivilegedAppListContentState()
         when (contentState) {
-            is Loadable.Loading -> {
+            is PrivilegedAppListContentState.Loading -> {
                 skeletonItems(
                     avatar = SkeletonItemAvatar.LARGE,
                     count = 1, // usually there's less than one
                 )
             }
 
-            is Loadable.Ok -> {
-                contentState.value.fold(
-                    ifLeft = { e ->
-                        item("error") {
-                            ErrorView(
-                                text = {
-                                    Text(text = "Failed to load privileged app list!")
-                                },
-                                exception = e,
-                            )
-                        }
-                    },
-                    ifRight = { content ->
-                        val items = content.items
-                        if (items.isEmpty()) {
-                            item("empty") {
-                                NoItemsPlaceholder()
-                            }
-                        }
+            is PrivilegedAppListContentState.Error -> {
+                item("error") {
+                    ErrorView(
+                        text = {
+                            Text(text = "Failed to load privileged app list!")
+                        },
+                        exception = contentState.exception,
+                    )
+                }
+            }
 
-                        items(
-                            items = items,
-                            key = { it.key },
-                        ) { item ->
-                            PrivilegedAppItem(
-                                modifier = Modifier
-                                    .animateItem(),
-                                item = item,
-                            )
-                        }
-                    },
-                )
+            is PrivilegedAppListContentState.Content -> {
+                val content = contentState.content
+                val items = content.items
+                if (items.isEmpty()) {
+                    item("empty") {
+                        NoItemsPlaceholder()
+                    }
+                }
+
+                items(
+                    items = items,
+                    key = { it.key },
+                ) { item ->
+                    PrivilegedAppItem(
+                        modifier = Modifier
+                            .animateItem(),
+                        item = item,
+                    )
+                }
             }
         }
     }
@@ -182,25 +178,29 @@ private fun NoItemsPlaceholder(
 private fun PrivilegedAppItem(
     modifier: Modifier,
     item: PrivilegedAppListState.Item,
-) {
-    when (item) {
-        is PrivilegedAppListState.Item.Section -> {
-            Section(
-                modifier = modifier,
-                text = item.name,
-            )
-        }
-        is PrivilegedAppListState.Item.Content -> {
-            PrivilegedAppItemContent(
-                modifier = modifier,
-                item = item,
-            )
-        }
-    }
-}
+) = PrivilegedAppItemContent(
+    modifier = modifier,
+    item = item,
+    renderers = commonPrivilegedAppItemRenderers,
+)
+
+private val commonPrivilegedAppItemRenderers = PrivilegedAppItemRenderers(
+    section = { modifier, item ->
+        Section(
+            modifier = modifier,
+            text = item.name,
+        )
+    },
+    content = { modifier, item ->
+        PrivilegedAppItemContentRow(
+            modifier = modifier,
+            item = item,
+        )
+    },
+)
 
 @Composable
-private fun PrivilegedAppItemContent(
+private fun PrivilegedAppItemContentRow(
     modifier: Modifier,
     item: PrivilegedAppListState.Item.Content,
 ) {

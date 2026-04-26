@@ -1,9 +1,11 @@
 package com.artemchep.keyguard.feature.localization
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
+@Immutable
 sealed interface TextHolder {
     @JvmInline
     value class Value(

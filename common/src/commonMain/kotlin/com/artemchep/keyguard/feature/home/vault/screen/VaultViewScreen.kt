@@ -250,7 +250,7 @@ private fun VaultViewTitle(
 ) = Row(
     verticalAlignment = Alignment.CenterVertically,
 ) {
-    val isLoading = state.content is VaultViewState.Content.Loading
+    val header = state.toVaultViewHeaderState()
     val shimmerColor = LocalContentColor.current
         .combineAlpha(DisabledEmphasisAlpha)
 
@@ -258,11 +258,11 @@ private fun VaultViewTitle(
         is VaultViewState.Content.Loading -> shimmerColor
         is VaultViewState.Content.NotFound -> shimmerColor
         is VaultViewState.Content.Cipher -> {
-            val avatarIcon = state.content.icon
+            val avatarIcon = header.icon
             val avatarBackground = if (
                 (avatarIcon !is VaultItemIcon.VectorIcon &&
                         avatarIcon !is VaultItemIcon.TextIcon) ||
-                state.content.data.service.remote == null
+                !header.hasRemoteService
             ) {
                 val elevation = LocalAbsoluteTonalElevation.current + 8.dp
                 MaterialTheme.colorScheme
@@ -270,8 +270,8 @@ private fun VaultViewTitle(
                     .combineAlpha(LocalContentColor.current.alpha)
             } else {
                 rememberSecretAccentColor(
-                    accentLight = state.content.data.accentLight,
-                    accentDark = state.content.data.accentDark,
+                    accentLight = header.accentLight,
+                    accentDark = header.accentDark,
                 )
             }
             avatarBackground
@@ -280,7 +280,7 @@ private fun VaultViewTitle(
     Avatar(
         modifier = Modifier
             .then(
-                if (isLoading) {
+                if (header.isLoading) {
                     Modifier
                         .shimmer()
                 } else {
@@ -289,7 +289,7 @@ private fun VaultViewTitle(
             ),
         color = avatarBackground,
     ) {
-        val icon = VaultViewState.content.cipher.icon.getOrNull(state)
+        val icon = header.icon
         if (icon != null) {
             VaultItemIcon2(
                 icon,
@@ -311,8 +311,8 @@ private fun VaultViewTitle(
         }
 
         is VaultViewState.Content.Cipher -> {
-            val title = state.content.data.name
-                .takeUnless { it.isEmpty() }
+            val title = header.name
+                ?.takeUnless { it.isEmpty() }
             Tooltip(
                 valueOrNull = title,
                 tooltip = { text ->
@@ -365,7 +365,7 @@ private fun RowScope.VaultViewTitleActions(
 }
 
 @Composable
-private fun NoItemsPlaceholder() {
+fun NoItemsPlaceholder() {
     EmptyView(
         icon = {
             Icon(Icons.Outlined.SearchOff, null)

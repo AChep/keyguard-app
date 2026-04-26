@@ -10,7 +10,10 @@ import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeoutVariants
 import com.artemchep.keyguard.common.usecase.PutVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.KgPicker
+import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
@@ -21,6 +24,7 @@ import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.format
+import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
@@ -99,19 +103,10 @@ fun SettingLockAfterTimeout(
     text: String,
     dropdown: List<FlatItemAction>,
 ) {
-    FlatDropdownSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.Timer),
+    LocalSettingPaneComponents.current.KgPicker(
+        icon = Icons.Outlined.Timer,
+        title = stringResource(Res.string.pref_item_lock_vault_after_delay_title),
+        text = text,
         dropdown = dropdown,
-        content = {
-            FlatItemTextContent(
-                title = {
-                    Text(stringResource(Res.string.pref_item_lock_vault_after_delay_title))
-                },
-                text = {
-                    Text(text)
-                },
-            )
-        },
     )
 }

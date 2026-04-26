@@ -56,6 +56,10 @@ kotlin {
         }
 
         androidResources.enable = true
+
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
     }
     jvm("desktop")
 
@@ -79,7 +83,7 @@ kotlin {
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material)
                 implementation(libs.jetbrains.compose.material3)
-                implementation(libs.jetbrains.compose.material.icons.extended)
+                api(libs.jetbrains.compose.material.icons.extended)
                 implementation(libs.jetbrains.compose.ui.tooling.preview)
                 api(libs.jetbrains.compose.components.resources)
                 api(libs.kotlin.stdlib)
@@ -124,6 +128,14 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
+        }
+
+        val androidHostTest by getting {
+            kotlin.srcDir("src/androidUnitTest/kotlin")
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+            }
         }
 
         val desktopTest by getting {
@@ -219,6 +231,8 @@ kotlin {
                 api(libs.android.billing.ktx)
                 api(libs.android.billing)
                 api(libs.google.accompanist.drawablepainter)
+                api(libs.androidx.wear.remote.interactions)
+                api(libs.google.play.services.wearable)
                 api(libs.google.accompanist.permissions)
                 api(libs.google.play.review.ktx)
                 api(libs.google.play.services.base)

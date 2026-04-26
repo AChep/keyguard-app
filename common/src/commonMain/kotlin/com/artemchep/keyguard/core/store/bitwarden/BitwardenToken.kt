@@ -162,6 +162,7 @@ data class KeePassToken(
             result?.groupValues?.getOrNull(1)
                 ?: databaseUri
         },
+        val managedByApp: Boolean = false,
     )
 }
 

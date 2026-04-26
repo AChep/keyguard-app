@@ -302,7 +302,7 @@ private fun UnlockScreen(
 }
 
 @Composable
-private fun UnlockScreenTheVaultIsLockedTitle() {
+fun UnlockScreenTheVaultIsLockedTitle() {
     Text(
         textAlign = TextAlign.Center,
         text = stringResource(Res.string.unlock_header_text),

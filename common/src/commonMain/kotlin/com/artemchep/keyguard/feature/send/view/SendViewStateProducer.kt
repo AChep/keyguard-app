@@ -44,6 +44,7 @@ import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.SendToolbox
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.ui.icons.FaviconIcon
@@ -120,6 +121,7 @@ fun sendViewScreenState(
         dateFormatter = instance(),
         windowCoroutineScope = instance(),
         linkInfoExtractors = allInstances(),
+        confirmationRouteFactory = instance(),
         contentColor = contentColor,
         disabledContentColor = disabledContentColor,
         sendId = sendId,
@@ -159,6 +161,7 @@ fun sendViewScreenState(
     dateFormatter: DateFormatter,
     windowCoroutineScope: WindowCoroutineScope,
     linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     sendId: String,
     accountId: String,
 ) = produceScreenState(
@@ -290,6 +293,7 @@ fun sendViewScreenState(
 
                 val action = flow<FlatItemAction> {
                     val deleteAction = deleteActionOrNull(
+                        confirmationRouteFactory = confirmationRouteFactory,
                         removeSendById = toolbox.removeSendById,
                         sends = listOf(sendExtra.send),
                         canDelete = sendExtra.canDelete,
@@ -316,6 +320,7 @@ fun sendViewScreenState(
 
                 val action = flow<FlatItemAction> {
                     val deleteAction = deleteActionOrNull(
+                        confirmationRouteFactory = confirmationRouteFactory,
                         removeSendById = toolbox.removeSendById,
                         sends = listOf(sendExtra.send),
                         canDelete = sendExtra.canDelete,
@@ -370,6 +375,7 @@ fun sendViewScreenState(
                 }
 
                 val actions = SendUtil.actions(
+                    confirmationRouteFactory = confirmationRouteFactory,
                     toolbox = toolbox,
                     sends = listOf(secretOrNull),
                     canEdit = canAddSecret,

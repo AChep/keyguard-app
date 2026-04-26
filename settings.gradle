@@ -30,7 +30,11 @@ include ':androidBenchmark'
 include ':androidSshAgent'
 include ':androidLibAutofill'
 include ':androidTest'
+include ':wearApp'
 include ':desktopApp'
 include ':desktopLibJvm'
 include ':desktopLibNative'
 include ':desktopSshAgent'
+include ':integration:wearCredentialProviderApp'
+
+project(':integration:wearCredentialProviderApp').projectDir = file('integration/wearCredentialProviderApp')

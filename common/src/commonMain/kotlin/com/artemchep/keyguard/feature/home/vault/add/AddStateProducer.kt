@@ -119,6 +119,7 @@ import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
 import com.artemchep.keyguard.feature.auth.common.util.format
 import com.artemchep.keyguard.feature.auth.common.util.validateUri
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
@@ -210,6 +211,7 @@ fun produceAddScreenState(
         cipherUnsecureUrlCheck = instance(),
         showMessage = instance(),
         addCipher = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -243,6 +245,7 @@ fun produceAddScreenState(
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     showMessage: ShowMessage,
     addCipher: AddCipher,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): Loadable<AddState> = produceScreenState(
     key = "cipher_add",
     initial = Loadable.Loading,
@@ -332,6 +335,7 @@ fun produceAddScreenState(
         sshKeyImportService = sshKeyImportService,
         showMessage = showMessage,
         filePickerIntentSink = filePickerEvents,
+        confirmationRouteFactory = confirmationRouteFactory,
     )
 
     val typeFlow = kotlin.run {
@@ -362,6 +366,7 @@ fun produceAddScreenState(
             existingPasskeys
         },
         initialType = { "passkey" },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = passkeysFactories,
         afterList = {
             if (isEmpty()) {
@@ -378,6 +383,7 @@ fun produceAddScreenState(
 
     val urisFactories = kotlin.run {
         val uriFactory = AddStateItemUriFactory(
+            confirmationRouteFactory = confirmationRouteFactory,
             getAutofillDefaultMatchDetection = getAutofillDefaultMatchDetection,
             cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
         )
@@ -398,6 +404,7 @@ fun produceAddScreenState(
             )
         },
         initialType = { "uri" },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = urisFactories,
         afterList = {
             val header = AddStateItem.Section(
@@ -463,6 +470,7 @@ fun produceAddScreenState(
             }
             .filterNotNull(),
         initialType = { "attachment" },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = attachmentsFactories,
         afterList = {
             if (this.isEmpty()) {
@@ -663,6 +671,7 @@ fun produceAddScreenState(
                 DSecret.Field.Type.Linked -> "field.linked_id"
             }
         },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = fieldsFactories,
         afterList = {
             val header = AddStateItem.Section(
@@ -729,6 +738,7 @@ fun produceAddScreenState(
         scope = "tag",
         initial = args.initialValue?.tags.orEmpty(),
         initialType = { tag -> "tag.text" },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = tagsFactories,
         afterList = {
             val header = AddStateItem.Section(
@@ -1019,6 +1029,7 @@ class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment<*>, DS
 }
 
 class AddStateItemUriFactory(
+    private val confirmationRouteFactory: ConfirmationRouteFactory,
     private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     private val cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
 ) : Foo2Factory<AddStateItem.Url<*>, DSecret.Uri> {
@@ -1080,6 +1091,7 @@ class AddStateItemUriFactory(
                                 )
                             }
                         val intent = createConfirmationDialogIntent(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             item = ConfirmationRoute.Args.Item.EnumItem(
                                 key = "name",
                                 value = selectedMatchType.name,
@@ -1732,6 +1744,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo3(
     scope: String,
     initial: List<Argument>,
     initialType: (Argument) -> String,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     factories: List<Foo2Factory<T, Argument>>,
     afterList: suspend MutableList<AddStateItem>.() -> Unit,
     extra: suspend FieldBakeryScope<Argument>.() -> Flow<List<AddStateItem>> = {
@@ -1754,6 +1767,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo3(
     logRepository.post("Foo3", "Scope '$scope' with initial ${initial.size} items.")
     return foo<T, Argument>(
         scope = scope,
+        confirmationRouteFactory = confirmationRouteFactory,
         initialState = initialState,
         entryAdd = { (key, type), arg ->
             val factory = factories.first { it.type == type }
@@ -1777,6 +1791,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo3(
 
 suspend fun <T, Argument> RememberStateFlowScope.foo2(
     scope: String,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     initialState: Foo2InitialState<Argument>,
     factories: List<Foo2Factory<T, Argument>>,
     afterList: suspend MutableList<AddStateItem>.() -> Unit,
@@ -1786,6 +1801,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo2(
 ): Flow<List<AddStateItem>> where T : AddStateItem, T : AddStateItem.HasOptions<T> {
     return foo<T, Argument>(
         scope = scope,
+        confirmationRouteFactory = confirmationRouteFactory,
         initialState = initialState,
         entryAdd = { (key, type), arg ->
             val factory = factories.first { it.type == type }
@@ -1845,6 +1861,7 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
 suspend fun <T, Argument> RememberStateFlowScope.foo(
     // scope name,
     scope: String,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     initialState: Foo2InitialState<Argument>,
     entryAdd: RememberStateFlowScope.(Foo2Persistable, Argument?) -> T,
     entryRelease: RememberStateFlowScope.(Foo2Persistable) -> Unit,
@@ -1994,6 +2011,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
                         title = Res.string.list_remove.wrap(),
                         onClick = onClick {
                             val intent = createConfirmationDialogIntent(
+                                confirmationRouteFactory = confirmationRouteFactory,
                                 icon = icon(Icons.Outlined.DeleteForever),
                                 title = translate(Res.string.list_remove_confirmation_title),
                             ) {
@@ -3449,6 +3467,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
     sshKeyImportService: SshKeyImportService,
     showMessage: ShowMessage,
     filePickerIntentSink: EventFlow<FilePickerIntent<*>>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): TmpSshKey {
     val prefix = "sshKey"
 
@@ -3517,6 +3536,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
             val passphraseHint = translate(Res.string.ssh_key_import_passphrase_hint)
 
             val intent = createConfirmationDialogIntent(
+                confirmationRouteFactory = confirmationRouteFactory,
                 item = ConfirmationRoute.Args.Item.StringItem(
                     key = "$id.passphrase",
                     title = passphraseTitle,

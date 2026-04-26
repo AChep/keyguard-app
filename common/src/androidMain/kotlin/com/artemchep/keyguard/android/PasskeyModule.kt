@@ -10,10 +10,25 @@ fun passkeysModule() = DI.Module(
     name = "passkeys",
 ) {
     bindSingleton {
+        PasskeyBeginGetUnlockFlow(this)
+    }
+    bindSingleton {
+        PasswordProviderGetFlow(this)
+    }
+    bindSingleton {
+        PasskeyProviderGetFlow(this)
+    }
+    bindSingleton {
+        CredentialProviderGetRequestHandler(this)
+    }
+    bindSingleton {
         PasskeyCreateRequest(this)
     }
     bindSingleton {
         PasskeyBeginGetRequest(this)
+    }
+    bindSingleton {
+        PasswordProviderGetRequest(this)
     }
     bindSingleton {
         PasskeyProviderGetRequest(this)

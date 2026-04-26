@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
@@ -59,6 +60,7 @@ fun vaultViewPasswordHistoryScreenState(
         cipherRemovePasswordHistoryById = instance(),
         clipboardService = instance(),
         dateFormatter = instance(),
+        confirmationRouteFactory = instance(),
         itemId = itemId,
     )
 }
@@ -72,6 +74,7 @@ fun vaultViewPasswordHistoryScreenState(
     cipherRemovePasswordHistoryById: CipherRemovePasswordHistoryById,
     clipboardService: ClipboardService,
     dateFormatter: DateFormatter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     itemId: String,
 ) = produceScreenState(
     key = "vault_password_history",
@@ -133,6 +136,7 @@ fun vaultViewPasswordHistoryScreenState(
         val message = items
             .joinToString(separator = "\n") { it.password }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,
@@ -149,6 +153,7 @@ fun vaultViewPasswordHistoryScreenState(
 
     suspend fun onDeleteAll() {
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = translate(Res.string.passwordhistory_clear_history_confirmation_title),
             message = translate(Res.string.passwordhistory_clear_history_confirmation_text),

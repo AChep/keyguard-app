@@ -31,6 +31,7 @@ import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
@@ -115,6 +116,7 @@ fun produceDuplicatesListState(
         getCanWrite = instance(),
         cipherToolbox = instance(),
         cipherDuplicatesCheck = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -134,6 +136,7 @@ fun produceDuplicatesListState(
     getCanWrite: GetCanWrite,
     cipherToolbox: CipherToolbox,
     cipherDuplicatesCheck: CipherDuplicatesCheck,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): Loadable<DuplicatesListState> = produceScreenState(
     key = "duplicates_list",
     initial = Loadable.Loading,
@@ -363,6 +366,7 @@ fun produceDuplicatesListState(
         ciphersFlow = ciphersFlow,
         collectionsFlow = getCollections(),
         canWriteFlow = getCanWrite(),
+        confirmationRouteFactory = confirmationRouteFactory,
         toolbox = cipherToolbox,
     )
         .persistingStateIn(this, SharingStarted.WhileSubscribed())
@@ -396,6 +400,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     ciphersFlow: Flow<List<DSecret>>,
     collectionsFlow: Flow<List<DCollection>>,
     canWriteFlow: Flow<Boolean>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     //
     toolbox: CipherToolbox,
 ) = combine(
@@ -527,6 +532,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
 
     if (canEdit) {
         actions += cipherChangeNameAction(
+            confirmationRouteFactory = confirmationRouteFactory,
             changeCipherNameById = toolbox.changeCipherNameById,
             ciphers = selectedCiphers,
         )
@@ -538,6 +544,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
 
     if (canEdit && selectedCiphersAllLogins) {
         actions += cipherChangePasswordAction(
+            confirmationRouteFactory = confirmationRouteFactory,
             changeCipherPasswordById = toolbox.changeCipherPasswordById,
             ciphers = selectedCiphers,
         ).verify(verify)
@@ -552,6 +559,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
 
     if (canWrite) {
         actions += cipherSendAction(
+            confirmationRouteFactory = confirmationRouteFactory,
             ciphers = selectedCiphers,
         ).verify(verify)
     }
@@ -573,6 +581,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     }
 
     actions += cipherWatchtowerAlerts(
+        confirmationRouteFactory = confirmationRouteFactory,
         patchWatchtowerAlertCipher = toolbox.patchWatchtowerAlertCipher,
         ciphers = selectedCiphers,
     )
@@ -583,12 +592,14 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
 
     if (canEdit && selectedCiphers.any { it.archivedDate != null }) {
         actions += cipherUnarchiveAction(
+            confirmationRouteFactory = confirmationRouteFactory,
             unarchiveCipherById = toolbox.unarchiveCipherById,
             ciphers = selectedCiphers,
         )
     }
     if (canEdit && selectedCiphers.any { it.archivedDate == null }) {
         actions += cipherArchiveAction(
+            confirmationRouteFactory = confirmationRouteFactory,
             archiveCipherById = toolbox.archiveCipherById,
             ciphers = selectedCiphers,
         )
@@ -596,12 +607,14 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
 
     if (canDelete && selectedCiphers.any { it.deletedDate != null }) {
         actions += cipherRestoreAction(
+            confirmationRouteFactory = confirmationRouteFactory,
             restoreCipherById = toolbox.restoreCipherById,
             ciphers = selectedCiphers,
         )
     }
     if (canDelete && selectedCiphers.any { it.deletedDate == null && it.service.remote != null }) {
         actions += cipherTrashAction(
+            confirmationRouteFactory = confirmationRouteFactory,
             trashCipherById = toolbox.trashCipherById,
             ciphers = selectedCiphers,
         )
@@ -617,6 +630,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
             }
     ) {
         actions += cipherDeleteAction(
+            confirmationRouteFactory = confirmationRouteFactory,
             removeCipherById = toolbox.removeCipherById,
             ciphers = selectedCiphers,
         )

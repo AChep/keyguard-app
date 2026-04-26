@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.util.flow.foldAsList
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.filter.util.CipherFilterUtil
 import com.artemchep.keyguard.feature.filter.util.addShortcutActionOrNull
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
@@ -65,6 +66,7 @@ fun produceCipherFilterViewState(
         getTags = instance(),
         getFolders = instance(),
         getCiphers = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -81,6 +83,7 @@ fun produceCipherFilterViewState(
     getTags: GetTags,
     getFolders: GetFolders,
     getCiphers: GetCiphers,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): Loadable<CipherFilterViewState> = produceScreenState(
     key = "cipher_filter_view",
     initial = Loadable.Loading,
@@ -303,6 +306,7 @@ fun produceCipherFilterViewState(
                             title = Res.string.edit.wrap(),
                             onClick = onClick {
                                 CipherFilterUtil.onRename(
+                                    confirmationRouteFactory = confirmationRouteFactory,
                                     renameCipherFilter = renameCipherFilter,
                                     model = filter,
                                 )
@@ -318,6 +322,7 @@ fun produceCipherFilterViewState(
                             title = Res.string.delete.wrap(),
                             onClick = onClick {
                                 CipherFilterUtil.onDeleteByItems(
+                                    confirmationRouteFactory = confirmationRouteFactory,
                                     removeCipherFilterById = removeCipherFilterById,
                                     items = filterAsItems,
                                 )

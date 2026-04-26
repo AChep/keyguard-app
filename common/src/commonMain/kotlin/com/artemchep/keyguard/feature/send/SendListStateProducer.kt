@@ -38,11 +38,12 @@ import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
-import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
@@ -168,6 +169,8 @@ fun sendListScreenState(
         syncSupervisor = instance(),
         dateFormatter = instance(),
         clipboardService = instance(),
+        bitwardenLoginRouteFactory = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -190,6 +193,8 @@ fun sendListScreenState(
     syncSupervisor: SupervisorRead,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): SendListState = produceScreenState(
     key = "send_list",
     initial = SendListState(),
@@ -807,6 +812,7 @@ fun sendListScreenState(
         selectionHandle = selectionHandle,
         sendsFlow = ciphersRawFlow,
         canEditFlow = canEditFlow,
+        confirmationRouteFactory = confirmationRouteFactory,
         toolbox = toolbox,
     )
 
@@ -905,7 +911,7 @@ fun sendListScreenState(
             SendListState.Content.AddAccount(
                 onAddAccount = { type ->
                     val routeMain = when (type) {
-                        AccountType.BITWARDEN -> BitwardenLoginRoute()
+                        AccountType.BITWARDEN -> bitwardenLoginRouteFactory.create()
                         AccountType.KEEPASS -> KeePassLoginRoute
                     }
                     val route = registerRouteResultReceiver(routeMain) {
@@ -1200,7 +1206,9 @@ private fun hahah(
         }
         FilteredBoo(
             count = state.list.size,
-            list = out,
+            list = out.ifEmpty {
+                listOf(SendItem.NoItems)
+            },
             preferredList = out,
             orderConfig = state.orderConfig,
             filterConfig = state.filterConfig,

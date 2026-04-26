@@ -44,6 +44,7 @@ tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
 subprojects {
     if (
         name == "androidApp" ||
+        name == "wearApp" ||
         name == "desktopApp"
     ) {
         apply(plugin = rootProject.libs.plugins.license.check.get().pluginId)

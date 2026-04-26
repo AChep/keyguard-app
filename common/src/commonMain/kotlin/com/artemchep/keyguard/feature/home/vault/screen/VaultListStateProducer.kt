@@ -74,11 +74,13 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.AttachmentsRoute
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
-import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
+import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
@@ -127,6 +129,7 @@ import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
+import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRouteFactory
 import com.artemchep.keyguard.leof
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
@@ -249,6 +252,8 @@ internal fun vaultListScreenState(
         syncSupervisor = instance(),
         dateFormatter = instance(),
         clipboardService = instance(),
+        bitwardenLoginRouteFactory = instance(),
+        passkeysCredentialViewRouteFactory = instance(),
     )
 }
 
@@ -288,6 +293,8 @@ internal fun vaultListScreenState(
     syncSupervisor: SupervisorRead,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
+    passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
 ): VaultListState = produceScreenState(
     key = "vault_list",
     initial = VaultListState(),
@@ -299,6 +306,7 @@ internal fun vaultListScreenState(
         clipboardService,
     ),
 ) {
+    val confirmationRouteFactory: ConfirmationRouteFactory = directDI.instance()
     val storage = kotlin.run {
         val disk = loadDiskHandle("vault.list")
         PersistedStorage.InDisk(disk)
@@ -329,27 +337,25 @@ internal fun vaultListScreenState(
     fun onRename(
         folders: List<DFolder>,
     ) = action {
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(Icons.Outlined.Edit),
-                    title = if (folders.size > 1) {
-                        translate(Res.string.folder_action_change_names_title)
-                    } else {
-                        translate(Res.string.folder_action_change_name_title)
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(Icons.Outlined.Edit),
+                title = if (folders.size > 1) {
+                    translate(Res.string.folder_action_change_names_title)
+                } else {
+                    translate(Res.string.folder_action_change_name_title)
+                },
+                items = folders
+                    .sortedWith(StringComparatorIgnoreCase { it.name })
+                    .map { folder ->
+                        ConfirmationRoute.Args.Item.StringItem(
+                            key = folder.id,
+                            value = folder.name,
+                            title = folder.name,
+                            type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
+                            canBeEmpty = false,
+                        )
                     },
-                    items = folders
-                        .sortedWith(StringComparatorIgnoreCase { it.name })
-                        .map { folder ->
-                            ConfirmationRoute.Args.Item.StringItem(
-                                key = folder.id,
-                                value = folder.name,
-                                title = folder.name,
-                                type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
-                                canBeEmpty = false,
-                            )
-                        },
-                ),
             ),
         ) {
             if (it is ConfirmationResult.Confirm) {
@@ -1063,7 +1069,7 @@ internal fun vaultListScreenState(
                             } else {
                                 // lambda
                                 {
-                                    val route = PasskeysCredentialViewRoute(
+                                    val route = passkeysCredentialViewRouteFactory.create(
                                         args = PasskeysCredentialViewRoute.Args(
                                             cipherId = secret.id,
                                             credentialId = credential.credentialId,
@@ -1459,6 +1465,7 @@ internal fun vaultListScreenState(
         ciphersFlow = ciphersRawFlow,
         collectionsFlow = getCollections(),
         canWriteFlow = getCanWrite(),
+        confirmationRouteFactory = confirmationRouteFactory,
         toolbox = toolbox,
     )
 
@@ -1590,7 +1597,7 @@ internal fun vaultListScreenState(
             VaultListState.Content.AddAccount(
                 onAddAccount = { type ->
                     val routeMain = when (type) {
-                        AccountType.BITWARDEN -> BitwardenLoginRoute()
+                        AccountType.BITWARDEN -> bitwardenLoginRouteFactory.create()
                         AccountType.KEEPASS -> KeePassLoginRoute
                     }
                     val route = registerRouteResultReceiver(routeMain) {

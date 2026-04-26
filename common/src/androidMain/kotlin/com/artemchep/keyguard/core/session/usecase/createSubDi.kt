@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.export.ExportManager
+import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
@@ -56,13 +57,22 @@ actual fun DI.Builder.createSubDi(
         NotificationsImpl(this)
     }
     bindSingleton<VaultDatabaseManager> {
-        val sqlManager = DatabaseSqlManagerInFileAndroid<Database>(
-            context = instance<Application>(),
-            fileName = "database_v2",
-            onCreate = { database ->
-                ioUnit()
-            },
-        )
+        val sqlManager = if (instance<FlavorConfig>().persistVaultData) {
+            DatabaseSqlManagerInFileAndroid(
+                context = instance<Application>(),
+                fileName = "database_v2",
+                onCreate = { database: Database ->
+                    ioUnit()
+                },
+            )
+        } else {
+            DatabaseSqlManagerInMemoryAndroid(
+                context = instance<Application>(),
+                onCreate = { database: Database ->
+                    ioUnit()
+                },
+            )
+        }
 
         VaultDatabaseManagerImpl(
             logRepository = instance(),
@@ -98,7 +108,7 @@ class DatabaseSqlManagerInFileAndroid<Database>(
         val factory = SupportOpenHelperFactory(masterKey.byteArray, null, false)
         val openHelper = factory.create(
             SupportSQLiteOpenHelper.Configuration.builder(context)
-                .callback(Callback(databaseSchema, *callbacks))
+                .callback(DatabaseSqlManagerAndroidCallback(databaseSchema, *callbacks))
                 .name(fileName)
                 .noBackupDirectory(true)
                 .build(),
@@ -114,19 +124,6 @@ class DatabaseSqlManagerInFileAndroid<Database>(
         )
     }
 
-    private class Callback(
-        databaseSchema: SqlSchema<QueryResult.Value<Unit>>,
-        vararg callbacks: AfterVersion,
-    ) : AndroidSqliteDriver.Callback(
-        databaseSchema,
-        *callbacks,
-    ) {
-        override fun onConfigure(db: SupportSQLiteDatabase) {
-            super.onConfigure(db)
-            db.setForeignKeyConstraintsEnabled(true)
-        }
-    }
-
     private class Helper<Database>(
         override val driver: SqlDriver,
         override val database: Database,
@@ -136,5 +133,51 @@ class DatabaseSqlManagerInFileAndroid<Database>(
             val cipherDb = sqliteOpenHelper.writableDatabase as SQLiteDatabase
             cipherDb.changePassword(newMasterKey.byteArray)
         }
+    }
+}
+
+class DatabaseSqlManagerInMemoryAndroid<Database>(
+    private val context: Context,
+    private val onCreate: (Database) -> IO<Unit>,
+) : DatabaseSqlManager<Database> {
+    override fun create(
+        masterKey: MasterKey,
+        databaseFactory: (SqlDriver) -> Database,
+        databaseSchema: SqlSchema<QueryResult.Value<Unit>>,
+        vararg callbacks: AfterVersion,
+    ): IO<DatabaseSqlHelper<Database>> = ioEffect {
+        val driver: SqlDriver = AndroidSqliteDriver(
+            schema = databaseSchema,
+            context = context,
+            name = null,
+            callback = DatabaseSqlManagerAndroidCallback(databaseSchema, *callbacks),
+        )
+        val database = databaseFactory(driver)
+        onCreate(database)
+            .bind()
+        Helper(
+            driver = driver,
+            database = database,
+        )
+    }
+
+    private class Helper<Database>(
+        override val driver: SqlDriver,
+        override val database: Database,
+    ) : DatabaseSqlHelper<Database> {
+        override fun changePassword(newMasterKey: MasterKey): IO<Unit> = ioUnit()
+    }
+}
+
+private class DatabaseSqlManagerAndroidCallback(
+    databaseSchema: SqlSchema<QueryResult.Value<Unit>>,
+    vararg callbacks: AfterVersion,
+) : AndroidSqliteDriver.Callback(
+    databaseSchema,
+    *callbacks,
+) {
+    override fun onConfigure(db: SupportSQLiteDatabase) {
+        super.onConfigure(db)
+        db.setForeignKeyConstraintsEnabled(true)
     }
 }

@@ -22,6 +22,7 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
@@ -85,6 +86,7 @@ fun produceGeneratorHistoryState() = with(localDI().direct) {
         privateKeyExport = instance(),
         dateFormatter = instance(),
         clipboardService = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -98,6 +100,7 @@ fun produceGeneratorHistoryState(
     privateKeyExport: KeyPrivateExport,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): Loadable<GeneratorHistoryState> = produceScreenState(
     initial = Loadable.Loading,
     key = "generator_history",
@@ -143,6 +146,7 @@ fun produceGeneratorHistoryState(
         val message = items
             .joinToString(separator = "\n") { it.value.message() }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,
@@ -158,6 +162,7 @@ fun produceGeneratorHistoryState(
 
     suspend fun onDeleteAll() {
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = translate(Res.string.generatorhistory_clear_history_confirmation_title),
             message = translate(Res.string.generatorhistory_clear_history_confirmation_text),

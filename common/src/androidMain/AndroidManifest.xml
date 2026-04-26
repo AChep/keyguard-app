@@ -117,6 +117,24 @@
                 android:defaultHeight="480dp" />
         </activity>
         <activity
+            android:name="com.artemchep.keyguard.android.CompanionAuthActivity"
+            android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=":wear_companion_auth"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="wear-companion-auth"
+                    android:scheme="keyguard" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name="com.artemchep.keyguard.android.LargeTypeActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
             android:excludeFromRecents="true"
@@ -142,6 +160,15 @@
             android:windowSoftInputMode="adjustResize"
             tools:ignore="NewApi" />
         <activity
+            android:name="com.artemchep.keyguard.android.PasswordGetActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":password"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="NewApi" />
+        <activity
             android:name="com.artemchep.keyguard.android.PasskeyGetActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
             android:excludeFromRecents="true"
@@ -151,7 +178,7 @@
             android:windowSoftInputMode="adjustResize"
             tools:ignore="NewApi" />
         <activity
-            android:name="com.artemchep.keyguard.android.PasskeyGetUnlockActivity"
+            android:name="com.artemchep.keyguard.android.CredentialGetUnlockActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
             android:excludeFromRecents="true"
             android:exported="false"
@@ -262,6 +289,18 @@
             <meta-data
                 android:name="android.credentials.provider"
                 android:resource="@xml/config_credential_service" />
+        </service>
+        <service
+            android:name="com.artemchep.keyguard.feature.auth.companion.CompanionAuthListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <action android:name="com.google.android.gms.wearable.CHANNEL_EVENT" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/companion-auth" />
+            </intent-filter>
         </service>
 
         <service

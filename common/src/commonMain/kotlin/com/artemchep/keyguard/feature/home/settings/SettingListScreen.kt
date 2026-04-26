@@ -46,19 +46,19 @@ import androidx.graphics.shapes.RoundedPolygon
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.usecase.GetPurchased
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
-import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.AccountListState
 import com.artemchep.keyguard.feature.home.settings.accounts.AccountsSelection
 import com.artemchep.keyguard.feature.home.settings.accounts.accountListScreenState
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
-import com.artemchep.keyguard.feature.home.settings.autofill.AutofillSettingsRoute
+import com.artemchep.keyguard.feature.home.settings.autofill.AutofillSettingsRouteFactory
 import com.artemchep.keyguard.feature.home.settings.debug.DebugSettingsRoute
-import com.artemchep.keyguard.feature.home.settings.display.UiSettingsRoute
+import com.artemchep.keyguard.feature.home.settings.display.UiSettingsRouteFactory
 import com.artemchep.keyguard.feature.home.settings.notifications.NotificationsSettingsRoute
-import com.artemchep.keyguard.feature.home.settings.other.OtherSettingsRoute
+import com.artemchep.keyguard.feature.home.settings.other.OtherSettingsRouteFactory
 import com.artemchep.keyguard.feature.home.settings.search.SearchSettingsRoute
-import com.artemchep.keyguard.feature.home.settings.security.SecuritySettingsRoute
+import com.artemchep.keyguard.feature.home.settings.security.SecuritySettingsRouteFactory
 import com.artemchep.keyguard.feature.home.settings.subscriptions.SubscriptionsSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.watchtower.WatchtowerSettingsRoute
 import com.artemchep.keyguard.feature.home.vault.component.Section
@@ -88,7 +88,10 @@ import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
+import org.kodein.di.compose.localDI
 import org.kodein.di.compose.rememberInstance
+import org.kodein.di.direct
+import org.kodein.di.instance
 
 sealed interface SettingsItem2 {
     val id: String
@@ -121,7 +124,12 @@ data class SettingsAccountsItem(
 @Composable
 fun SettingListScreen() {
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val r1 = registerRouteResultReceiver(BitwardenLoginRoute()) {
+    val bitwardenLoginRouteFactory = localDI().direct.instance<BitwardenLoginRouteFactory>()
+    val autofillSettingsRouteFactory = localDI().direct.instance<AutofillSettingsRouteFactory>()
+    val securitySettingsRouteFactory = localDI().direct.instance<SecuritySettingsRouteFactory>()
+    val uiSettingsRouteFactory = localDI().direct.instance<UiSettingsRouteFactory>()
+    val otherSettingsRouteFactory = localDI().direct.instance<OtherSettingsRouteFactory>()
+    val r1 = registerRouteResultReceiver(bitwardenLoginRouteFactory.create()) {
         controller.queue(NavigationIntent.Pop)
     }
     val r2 = registerRouteResultReceiver(KeePassLoginRoute) {
@@ -151,124 +159,121 @@ fun SettingListScreen() {
     // Feed the accounts state to the account item.
     accountsState.value = accountListState
 
-    val config by rememberInstance<FlavorConfig>()
-    val items = remember(config) {
+    val securityRoute = remember(securitySettingsRouteFactory) {
+        securitySettingsRouteFactory.create()
+    }
+    val autofillRoute = remember(autofillSettingsRouteFactory) {
+        autofillSettingsRouteFactory.create()
+    }
+    val uiRoute = remember(uiSettingsRouteFactory) {
+        uiSettingsRouteFactory.create()
+    }
+    val otherRoute = remember(otherSettingsRouteFactory) {
+        otherSettingsRouteFactory.create()
+    }
+
+    val items = rememberSettingsItems(
+        accountsState = accountsState,
+        autofillRoute = autofillRoute,
+        securityRoute = securityRoute,
+        uiRoute = uiRoute,
+        otherRoute = otherRoute,
+    )
+    SettingListScreenContent(
+        accountsState = accountsState,
+        items = items,
+    )
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun rememberSettingsItems(
+    accountsState: State<AccountListState>,
+    autofillRoute: Route,
+    securityRoute: Route,
+    uiRoute: Route,
+    otherRoute: Route,
+): List<SettingsItem2> {
+    val routeItems = rememberSettingsRouteListItems(
+        autofillRoute = autofillRoute,
+        securityRoute = securityRoute,
+        uiRoute = uiRoute,
+        otherRoute = otherRoute,
+    )
+    val items = remember(accountsState, routeItems) {
         val premiumShape = MaterialShapes.SoftBurst
         val optionsShape = MaterialShapes.Square
+        val routeSettingsItems = routeItems
+            .map { item ->
+                when (item) {
+                    is SettingsRouteListSection -> SettingsSectionItem(
+                        id = item.id,
+                        title = item.title,
+                    )
 
-        val items = listOfNotNull<SettingsItem2>(
+                    is SettingsRouteListAction -> {
+                        val isSubscription = item.id == "subscription"
+                        SettingsItem(
+                            id = item.id,
+                            title = item.title,
+                            text = item.text,
+                            icon = item.icon,
+                            iconShape = if (isSubscription) premiumShape else optionsShape,
+                            leading = if (isSubscription) {
+                                {
+                                    val getPurchased by rememberInstance<GetPurchased>()
+                                    val isPurchased by remember(getPurchased) {
+                                        getPurchased()
+                                    }.collectAsState(false)
+
+                                    val targetTint =
+                                        if (isPurchased) MaterialTheme.colorScheme.primary else LocalContentColor.current
+                                    val tint by animateColorAsState(targetValue = targetTint)
+                                    Icon(
+                                        Icons.Outlined.KeyguardPremium,
+                                        null,
+                                        tint = tint,
+                                    )
+                                }
+                            } else {
+                                null
+                            },
+                            footer = if (isSubscription) {
+                                {
+                                    Row(
+                                        modifier = Modifier
+                                            .padding(vertical = 4.dp)
+                                            .horizontalScroll(rememberScrollState())
+                                            .padding(
+                                                start = Dimens.contentPadding + 42.dp,
+                                                end = Dimens.contentPadding,
+                                            ),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    ) {
+                                        onboardingItemsPremium.forEach { item ->
+                                            SmallOnboardingCard(
+                                                modifier = Modifier,
+                                                title = stringResource(item.title),
+                                                text = stringResource(item.text),
+                                                imageVector = item.icon,
+                                            )
+                                        }
+                                    }
+                                }
+                            } else {
+                                null
+                            },
+                            route = item.route,
+                        )
+                    }
+                }
+            }
+        val items = listOf<SettingsItem2>(
             SettingsAccountsItem(
                 id = "accounts",
                 state = accountsState,
             ),
-            SettingsSectionItem(
-                id = "section.premium",
-                title = TextHolder.Res(Res.string.pref_section_premium_title),
-            ).takeIf { CurrentPlatform.hasSubscription() && !config.isFreeAsBeer },
-            SettingsItem(
-                id = "subscription",
-                title = TextHolder.Res(Res.string.pref_item_subscription_title),
-                text = TextHolder.Res(Res.string.pref_item_subscription_text),
-                iconShape = premiumShape,
-                leading = {
-                    val getPurchased by rememberInstance<GetPurchased>()
-                    val isPurchased by remember(getPurchased) {
-                        getPurchased()
-                    }.collectAsState(false)
-
-                    val targetTint =
-                        if (isPurchased) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                    val tint by animateColorAsState(targetValue = targetTint)
-                    Icon(
-                        Icons.Outlined.KeyguardPremium,
-                        null,
-                        tint = tint,
-                    )
-                },
-                footer = {
-                    Row(
-                        modifier = Modifier
-                            .padding(vertical = 4.dp)
-                            .horizontalScroll(rememberScrollState())
-                            .padding(
-                                start = Dimens.contentPadding + 42.dp,
-                                end = Dimens.contentPadding,
-                            ),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        onboardingItemsPremium.forEach { item ->
-                            SmallOnboardingCard(
-                                modifier = Modifier,
-                                title = stringResource(item.title),
-                                text = stringResource(item.text),
-                                imageVector = item.icon,
-                            )
-                        }
-                    }
-                },
-                route = SubscriptionsSettingsRoute,
-            ).takeIf { CurrentPlatform.hasSubscription() && !config.isFreeAsBeer },
-            SettingsSectionItem(
-                id = "section.options",
-                title = TextHolder.Res(Res.string.pref_section_options_title),
-            ),
-            SettingsItem(
-                id = "autofill",
-                title = TextHolder.Res(Res.string.pref_item_autofill_title),
-                text = TextHolder.Res(Res.string.pref_item_autofill_text),
-                icon = Icons.Outlined.AutoAwesome,
-                iconShape = optionsShape,
-                route = AutofillSettingsRoute,
-            ).takeIf { CurrentPlatform.hasAutofill() || !isRelease },
-            SettingsItem(
-                id = "security",
-                title = TextHolder.Res(Res.string.pref_item_security_title),
-                text = TextHolder.Res(Res.string.pref_item_security_text),
-                icon = Icons.Outlined.Lock,
-                iconShape = optionsShape,
-                route = SecuritySettingsRoute,
-            ),
-            SettingsItem(
-                id = "watchtower",
-                title = TextHolder.Res(Res.string.pref_item_watchtower_title),
-                text = TextHolder.Res(Res.string.pref_item_watchtower_text),
-                icon = Icons.Outlined.Security,
-                iconShape = optionsShape,
-                route = WatchtowerSettingsRoute,
-            ),
-            SettingsItem(
-                id = "notifications",
-                title = TextHolder.Res(Res.string.pref_item_notifications_title),
-                text = TextHolder.Res(Res.string.pref_item_notifications_text),
-                icon = Icons.Outlined.Notifications,
-                iconShape = optionsShape,
-                route = NotificationsSettingsRoute,
-            ).takeIf { !isRelease },
-            SettingsItem(
-                id = "display",
-                title = TextHolder.Res(Res.string.pref_item_appearance_title),
-                text = TextHolder.Res(Res.string.pref_item_appearance_text),
-                icon = Icons.Outlined.ColorLens,
-                iconShape = optionsShape,
-                route = UiSettingsRoute,
-            ),
-            SettingsItem(
-                id = "debug",
-                title = TextHolder.Res(Res.string.pref_item_dev_title),
-                text = TextHolder.Res(Res.string.pref_item_dev_text),
-                icon = Icons.Outlined.Code,
-                iconShape = optionsShape,
-                route = DebugSettingsRoute,
-            ).takeIf { !isRelease },
-            SettingsItem(
-                id = "about",
-                title = TextHolder.Res(Res.string.pref_item_other_title),
-                text = TextHolder.Res(Res.string.pref_item_other_text),
-                icon = Icons.Outlined.Info,
-                iconShape = optionsShape,
-                route = OtherSettingsRoute,
-            ),
-        )
+        ) + routeSettingsItems
         items
             .mapIndexed { index, item ->
                 when (item) {
@@ -289,10 +294,7 @@ fun SettingListScreen() {
                 }
             }
     }
-    SettingListScreenContent(
-        accountsState = accountsState,
-        items = items,
-    )
+    return items
 }
 
 @OptIn(

@@ -347,7 +347,7 @@ interface FabScope {
     val expanded: State<Boolean>
 }
 
-private class MutableFabScope(
+class MutableFabScope(
     override val state: State<FabState?>,
     override val expanded: State<Boolean>,
 ) : FabScope

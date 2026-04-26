@@ -324,6 +324,10 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccount
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccountImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountUseCase
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfaImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
@@ -543,8 +547,13 @@ fun DI.Builder.createSubDi2(
     bindSingleton<AddKeePassAccount> {
         AddKeePassAccountImpl(this)
     }
-    bindSingleton<RequestEmailTfa> {
-        RequestEmailTfaImpl(this)
+    bindSingleton<ImportCompanionBitwardenAccount> {
+        ImportCompanionBitwardenAccountImpl(this)
+    }
+    bindSingleton<ImportCompanionKeePassAccountUseCase> {
+        ImportCompanionKeePassAccountImpl(
+            addKeePassAccount = instance(),
+        )
     }
     bindSingleton<RotateDeviceIdUseCase> {
         RotateDeviceIdUseCase(this)
@@ -676,9 +685,6 @@ fun DI.Builder.createSubDi2(
         WatchtowerUnsecureWebsite(
             directDI = this,
         )
-    }
-    bindSingleton<CipherUnsecureUrlCheck> {
-        CipherUnsecureUrlCheckImpl(this)
     }
     bindSingleton<CipherIncompleteCheck> {
         CipherIncompleteCheckImpl(this)

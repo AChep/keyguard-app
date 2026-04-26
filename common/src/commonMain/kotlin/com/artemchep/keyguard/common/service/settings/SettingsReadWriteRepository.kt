@@ -52,6 +52,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         advertisePasskeysSupport: Boolean,
     ): IO<Unit>
 
+    fun setAdvertisePasswordsSupport(
+        advertisePasswordsSupport: Boolean,
+    ): IO<Unit>
+
     fun setAutofillCopyTotp(
         copyTotp: Boolean,
     ): IO<Unit>

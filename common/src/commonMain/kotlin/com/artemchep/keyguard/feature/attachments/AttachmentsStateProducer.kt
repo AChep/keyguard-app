@@ -41,6 +41,7 @@ import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
+import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRouteFactory
 import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
@@ -99,6 +100,7 @@ fun produceAttachmentsScreenState() = with(localDI().direct) {
         downloadManager = instance(),
         downloadAttachment = instance(),
         removeAttachment = instance(),
+        vaultViewRouteFactory = instance(),
     )
 }
 
@@ -134,6 +136,7 @@ fun produceAttachmentsScreenState(
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
+    vaultViewRouteFactory: VaultViewRouteFactory,
 ): Loadable<AttachmentsState> = produceScreenState(
     key = "attachments",
     args = arrayOf(
@@ -221,6 +224,7 @@ fun produceAttachmentsScreenState(
                                 coroutineScope {
                                     val actualItem = createAttachmentItem(
                                         selectionHandle = selectionHandle,
+                                        vaultViewRouteFactory = vaultViewRouteFactory,
                                         tag = ref,
                                         sharingScope = this,
                                         attachment = attachment,
@@ -558,6 +562,7 @@ data class LaunchViewCipherData(
 
 fun foo(
     translatorScope: TranslatorScope,
+    vaultViewRouteFactory: VaultViewRouteFactory,
     fileName: String,
     status: FooStatus,
     launchViewCipherData: LaunchViewCipherData?,

@@ -27,9 +27,9 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.animatedCardNumberText
 import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
@@ -135,59 +135,10 @@ fun VaultViewCardItem(
             }
             Row {
                 if (cardNumber != null) {
-                    val progress by animateFloatAsState(
-                        targetValue = if (visibilityState.value.value) {
-                            1f
-                        } else {
-                            0f
-                        },
+                    val finalCardNumber = animatedCardNumberText(
+                        visible = visibilityState.value.value,
+                        cardNumber = cardNumber,
                     )
-
-                    val cardNumberFormatted = remember(cardNumber) {
-                        formatCardNumber(cardNumber)
-                    }
-
-                    val obscureToExclusive = remember(cardNumberFormatted) {
-                        var i = 0
-                        var count = 0
-                        for (j in (cardNumberFormatted.length - 1) downTo 0) {
-                            // Increment the counter of meaningful
-                            // characters.
-                            if (cardNumberFormatted[j].isLetterOrDigit()) {
-                                count++
-                            }
-                            if (count == 4) {
-                                i = j
-                                break
-                            }
-                        }
-                        i
-                    }
-                    val obscureFrom by remember(cardNumberFormatted) {
-                        derivedStateOf {
-                            val indexFloat = cardNumberFormatted.length.toFloat() * progress
-                            indexFloat.roundToInt()
-                        }
-                    }
-                    val finalCardNumber = remember(
-                        obscureFrom,
-                        obscureToExclusive,
-                        cardNumberFormatted,
-                    ) {
-                        val sb = StringBuilder()
-                        // Form a new card number that is semi-obscure.
-                        cardNumberFormatted.forEachIndexed { i, char ->
-                            val finalChar = if (
-                                i in obscureFrom until obscureToExclusive && char.isLetterOrDigit()
-                            ) {
-                                ObscureChar
-                            } else {
-                                char
-                            }
-                            sb.append(finalChar)
-                        }
-                        sb.toString()
-                    }
                     Text(
                         text = finalCardNumber,
                         style = MaterialTheme.typography.titleLarge,

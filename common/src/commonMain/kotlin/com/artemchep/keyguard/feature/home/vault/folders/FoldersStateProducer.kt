@@ -22,10 +22,14 @@ import com.artemchep.keyguard.common.usecase.RemoveFolderById
 import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.core.store.bitwarden.exists
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
+import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
+import com.artemchep.keyguard.feature.home.vault.by
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -71,6 +75,7 @@ fun foldersScreenState(
         mergeFolderById = instance(),
         removeFolderById = instance(),
         renameFolderById = instance(),
+        vaultRouteFactory = instance(),
     )
 }
 
@@ -85,6 +90,7 @@ fun foldersScreenState(
     mergeFolderById: MergeFolderById,
     removeFolderById: RemoveFolderById,
     renameFolderById: RenameFolderById,
+    vaultRouteFactory: VaultRouteFactory,
 ): FoldersState = produceScreenState(
     key = "folders",
     initial = FoldersState(),
@@ -99,6 +105,8 @@ fun foldersScreenState(
         renameFolderById,
     ),
 ) {
+    val confirmationRouteFactory: ConfirmationRouteFactory = directDI.instance()
+
     data class FolderWithCiphers(
         val folder: DFolder,
         val ciphers: List<DSecret>,
@@ -168,6 +176,7 @@ fun foldersScreenState(
             // is null.
             return
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             item = ConfirmationRoute.Args.Item.StringItem(
                 key = "name",
                 title = translate(Res.string.generic_name),
@@ -188,27 +197,25 @@ fun foldersScreenState(
     suspend fun onRename(
         folders: List<DFolder>,
     ) {
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(Icons.Outlined.Edit),
-                    title = if (folders.size > 1) {
-                        translate(Res.string.folder_action_change_names_title)
-                    } else {
-                        translate(Res.string.folder_action_change_name_title)
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(Icons.Outlined.Edit),
+                title = if (folders.size > 1) {
+                    translate(Res.string.folder_action_change_names_title)
+                } else {
+                    translate(Res.string.folder_action_change_name_title)
+                },
+                items = folders
+                    .sortedWith(StringComparatorIgnoreCase { it.name })
+                    .map { folder ->
+                        ConfirmationRoute.Args.Item.StringItem(
+                            key = folder.id,
+                            value = folder.name,
+                            title = folder.name,
+                            type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
+                            canBeEmpty = false,
+                        )
                     },
-                    items = folders
-                        .sortedWith(StringComparatorIgnoreCase { it.name })
-                        .map { folder ->
-                            ConfirmationRoute.Args.Item.StringItem(
-                                key = folder.id,
-                                value = folder.name,
-                                title = folder.name,
-                                type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
-                                canBeEmpty = false,
-                            )
-                        },
-                ),
             ),
         ) {
             if (it is ConfirmationResult.Confirm) {
@@ -235,14 +242,12 @@ fun foldersScreenState(
             canBeEmpty = false,
         )
 
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(Icons.Outlined.Merge),
-                    title = translate(Res.string.folder_action_merge_confirmation_title),
-                    items = listOfNotNull(
-                        folderNameItem,
-                    ),
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(Icons.Outlined.Merge),
+                title = translate(Res.string.folder_action_merge_confirmation_title),
+                items = listOfNotNull(
+                    folderNameItem,
                 ),
             ),
         ) { result ->
@@ -276,19 +281,17 @@ fun foldersScreenState(
             null
         }
 
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(Icons.Outlined.Delete),
-                    title = if (folderIds.size > 1) {
-                        translate(Res.string.folder_delete_many_confirmation_title)
-                    } else {
-                        translate(Res.string.folder_delete_one_confirmation_title)
-                    },
-                    message = translate(Res.string.folder_delete_confirmation_text),
-                    items = listOfNotNull(
-                        cascadeRemoveItem,
-                    ),
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(Icons.Outlined.Delete),
+                title = if (folderIds.size > 1) {
+                    translate(Res.string.folder_delete_many_confirmation_title)
+                } else {
+                    translate(Res.string.folder_delete_one_confirmation_title)
+                },
+                message = translate(Res.string.folder_delete_confirmation_text),
+                items = listOfNotNull(
+                    cascadeRemoveItem,
                 ),
             ),
         ) { result ->
@@ -355,7 +358,7 @@ fun foldersScreenState(
                         onClick = onClick {
                             val folders = selectedFolders.values
                                 .map { it.folder }
-                            val route = VaultRoute.by(
+                            val route = vaultRouteFactory.by(
                                 folders = folders,
                             )
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -443,7 +446,7 @@ fun foldersScreenState(
                                     ChevronIcon()
                                 },
                                 onClick = onClick {
-                                    val route = VaultRoute.by(
+                                    val route = vaultRouteFactory.by(
                                         folder = folder,
                                     )
                                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -486,6 +489,17 @@ fun foldersScreenState(
                     selected = selected,
                     synced = folder.synced,
                     failed = folder.service.error.exists(folder.revisionDate),
+                    onViewItemsClick = if (!folder.deleted) {
+                        onClick {
+                            val route = vaultRouteFactory.by(
+                                folder = folder,
+                            )
+                            val intent = NavigationIntent.NavigateToRoute(route)
+                            navigate(intent)
+                        }
+                    } else {
+                        null
+                    },
                     actions = actions.toImmutableList(),
                     onClick = if (!folder.deleted && selecting) {
                         // lambda

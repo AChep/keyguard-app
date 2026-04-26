@@ -23,12 +23,15 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewButtonItem
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
@@ -71,14 +74,9 @@ fun settingVaultLockProvider(
 fun SettingVaultLock(
     onClick: () -> Unit,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.Lock),
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_lock_vault_title),
-            )
-        },
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.Lock,
+        title = stringResource(Res.string.pref_item_lock_vault_title),
         onClick = onClick,
     )
 }

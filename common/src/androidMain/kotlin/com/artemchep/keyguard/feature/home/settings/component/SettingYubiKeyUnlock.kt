@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -30,7 +31,9 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -43,8 +46,11 @@ import com.artemchep.keyguard.feature.yubikey.YubiKeyProvisionEffect
 import com.artemchep.keyguard.feature.yubikey.YubiKeyProvisionProbeEffect
 import com.artemchep.keyguard.feature.yubikey.YubiKeyProvisionProbePrompt
 import com.artemchep.keyguard.feature.yubikey.YubiKeyProvisionPrompt
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalLeContext
+import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
@@ -52,6 +58,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.KeyguardYubiKey
+import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.flow.combine
@@ -89,11 +96,14 @@ fun settingYubiKeyUnlockProvider(
     fingerprintReadRepository.get(),
     getVaultSession(),
 ) { tokens, session ->
-    if (tokens == null || session !is MasterSession.Key) {
+    if (tokens == null || session !is MasterSession.Key || CurrentPlatform.hasWatch()) {
         return@combine null
     }
 
     SettingIi(
+        platformClasses = listOf(
+            Platform.Mobile.Android::class,
+        ),
         search = SettingIi.Search(
             group = "biometric",
             tokens = listOf(
@@ -258,36 +268,32 @@ private fun SettingYubiKeyUnlock(
     slot: Int?,
     dropdown: PersistentList<ContextItem>,
 ) {
-    FlatDropdownSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.KeyguardYubiKey),
-        content = {
-            val text = when (slot) {
-                null -> null
-                else -> stringResource(
-                    Res.string.pref_item_yubikey_unlock_text_on_slot_n,
-                    slot.toString(),
-                )
-            }
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.pref_item_yubikey_unlock_title),
-                    )
-                },
-                text = if (text != null) {
-                    // composable
-                    {
-                        Text(
-                            text = text,
-                        )
-                    }
-                } else {
-                    null
-                },
+    val title = stringResource(Res.string.pref_item_yubikey_unlock_title)
+    val text = when (slot) {
+        null -> null
+        else -> stringResource(
+            Res.string.pref_item_yubikey_unlock_text_on_slot_n,
+            slot.toString(),
+        )
+    }
+    LocalSettingPaneComponents.current.KgPicker(
+        icon = Icons.Outlined.KeyguardYubiKey,
+        title = {
+            Text(
+                text = title,
             )
         },
-        dropdown = dropdown,
+        titleText = title,
+        text = if (text != null) {
+            // composable
+            {
+                Text(
+                    text = text,
+                )
+            }
+        } else {
+            null
+        },
         trailing = {
             CompositionLocalProvider(
                 LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
@@ -299,5 +305,6 @@ private fun SettingYubiKeyUnlock(
                 )
             }
         },
+        dropdown = dropdown,
     )
 }

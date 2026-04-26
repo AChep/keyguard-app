@@ -32,13 +32,16 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsMap
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
+import com.artemchep.keyguard.feature.home.vault.folders.FoldersRouteFactory
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
 import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
+import com.artemchep.keyguard.feature.home.vault.watchtower
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServicesRoute
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataServicesRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -96,6 +99,8 @@ fun produceWatchtowerState(
         getWatchtowerUnreadAlerts = instance(),
         cipherDuplicatesCheck = instance(),
         dismissNotificationsByChannel = instance(),
+        foldersRouteFactory = instance(),
+        vaultRouteFactory = instance(),
     )
 }
 
@@ -133,6 +138,8 @@ fun produceWatchtowerState(
     getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
     cipherDuplicatesCheck: CipherDuplicatesCheck,
     dismissNotificationsByChannel: DismissNotificationsByChannel,
+    foldersRouteFactory: FoldersRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
 ): WatchtowerState = produceScreenState(
     initial = WatchtowerState(),
     key = "watchtower",
@@ -476,7 +483,7 @@ fun produceWatchtowerState(
         score: PasswordStrength.Score,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(score.formatH2()),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -623,7 +630,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_pwned_passwords_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -667,7 +674,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_unsecure_websites_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -710,7 +717,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_duplicate_websites_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -753,7 +760,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_broad_websites_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -796,7 +803,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_inactive_2fa_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -840,7 +847,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_inactive_passkey_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -884,7 +891,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_reused_passwords_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -932,7 +939,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_vulnerable_accounts_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -1047,7 +1054,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_incomplete_items_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -1090,7 +1097,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_expiring_items_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -1133,7 +1140,7 @@ fun produceWatchtowerState(
         filter: DFilter,
     ) {
         val intent = NavigationIntent.NavigateToRoute(
-            VaultRoute.watchtower(
+            vaultRouteFactory.watchtower(
                 title = translate(Res.string.watchtower_item_trashed_items_title),
                 subtitle = translate(Res.string.watchtower_header_title),
                 filter = DFilter.And(
@@ -1178,7 +1185,7 @@ fun produceWatchtowerState(
     fun onClickEmpty(
         filter: DFilter,
     ) {
-        val route = FoldersRoute(
+        val route = foldersRouteFactory.create(
             args = FoldersRoute.Args(
                 filter = DFilter.And(
                     filters = listOfNotNull(

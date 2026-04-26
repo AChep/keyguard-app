@@ -83,4 +83,16 @@ class FileServiceAndroid(
             .asSink()
             .buffered()
     }
+
+    override fun delete(uri: String): Boolean {
+        val parsedUri = uri.toUri()
+        return when (parsedUri.scheme) {
+            "file" -> parsedUri.toFile().deleteRecursively()
+            else -> {
+                runCatching {
+                    context.contentResolver.delete(parsedUri, null, null) > 0
+                }.getOrDefault(false)
+            }
+        }
+    }
 }

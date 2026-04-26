@@ -59,6 +59,7 @@ import kotlin.time.Duration
 fun produceLoginTwofaScreenState(
     args: BitwardenLoginTwofaRoute.Args,
     transmitter: RouteResultTransmitter<Unit>,
+    defaultRememberMe: Boolean = false,
 ) = with(localDI().direct) {
     produceLoginTwofaScreenState(
         cryptoGenerator = instance(),
@@ -69,6 +70,7 @@ fun produceLoginTwofaScreenState(
         requestEmailTfa = instance(),
         args = args,
         transmitter = transmitter,
+        defaultRememberMe = defaultRememberMe,
     )
 }
 
@@ -82,6 +84,7 @@ fun produceLoginTwofaScreenState(
     requestEmailTfa: RequestEmailTfa,
     args: BitwardenLoginTwofaRoute.Args,
     transmitter: RouteResultTransmitter<Unit>,
+    defaultRememberMe: Boolean = false,
 ): TwoFactorState = produceScreenState(
     key = "login_otp",
     initial = TwoFactorState(
@@ -154,6 +157,7 @@ fun produceLoginTwofaScreenState(
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.Authenticator,
                             transmitter = transmitter,
+                            defaultRememberMe = defaultRememberMe,
                         )
 
                     TwoFactorProviderType.YubiKey ->
@@ -163,6 +167,7 @@ fun produceLoginTwofaScreenState(
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.YubiKey,
                             transmitter = transmitter,
+                            defaultRememberMe = defaultRememberMe,
                         )
 
                     TwoFactorProviderType.Email ->
@@ -174,6 +179,7 @@ fun produceLoginTwofaScreenState(
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.Email,
                             transmitter = transmitter,
+                            defaultRememberMe = defaultRememberMe,
                         )
 
                     TwoFactorProviderType.EmailNewDevice ->
@@ -194,6 +200,7 @@ fun produceLoginTwofaScreenState(
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.Duo,
                             transmitter = transmitter,
+                            defaultRememberMe = defaultRememberMe,
                         )
 
                     TwoFactorProviderType.OrganizationDuo ->
@@ -203,6 +210,7 @@ fun produceLoginTwofaScreenState(
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.OrganizationDuo,
                             transmitter = transmitter,
+                            defaultRememberMe = defaultRememberMe,
                         )
 
                     TwoFactorProviderType.Fido2WebAuthn ->
@@ -216,6 +224,7 @@ fun produceLoginTwofaScreenState(
                             args = args,
                             provider = providerArgs as TwoFactorProviderArgument.Fido2WebAuthn,
                             transmitter = transmitter,
+                            defaultRememberMe = defaultRememberMe,
                         )
 
                     else ->
@@ -277,6 +286,7 @@ private fun RememberStateFlowScope.createStateFlowForAuthenticator(
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.Authenticator,
     transmitter: RouteResultTransmitter<Unit>,
+    defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> {
     val codeSink = mutablePersistedFlow("authenticator.code") { "" }
     val codeState = mutableComposeState(codeSink)
@@ -297,7 +307,7 @@ private fun RememberStateFlowScope.createStateFlowForAuthenticator(
             }
         }
 
-    val rememberMeSink = mutablePersistedFlow("remember_me") { false }
+    val rememberMeSink = mutablePersistedFlow("remember_me") { defaultRememberMe }
 
     return combine(
         codeValidatedFlow,
@@ -359,8 +369,9 @@ private fun RememberStateFlowScope.createStateFlowForYubiKey(
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.YubiKey,
     transmitter: RouteResultTransmitter<Unit>,
+    defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> {
-    val rememberMeSink = mutablePersistedFlow("remember_me") { false }
+    val rememberMeSink = mutablePersistedFlow("remember_me") { defaultRememberMe }
 
     fun onComplete(
         token: String,
@@ -428,6 +439,7 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.Email,
     transmitter: RouteResultTransmitter<Unit>,
+    defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> {
     val codeSink = mutablePersistedFlow("email.code") { "" }
     val codeState = mutableComposeState(codeSink)
@@ -448,7 +460,7 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
             }
         }
 
-    val rememberMeSink = mutablePersistedFlow("remember_me") { false }
+    val rememberMeSink = mutablePersistedFlow("remember_me") { defaultRememberMe }
 
     val onResendFlow = createResendFlow(
         cryptoGenerator = cryptoGenerator,
@@ -620,6 +632,7 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.Duo,
     transmitter: RouteResultTransmitter<Unit>,
+    defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> = createStateFlowForDuo(
     actionExecutor = actionExecutor,
     addAccount = addAccount,
@@ -628,6 +641,7 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
     providerSignature = provider.signature,
     providerType = TwoFactorProviderType.Duo,
     transmitter = transmitter,
+    defaultRememberMe = defaultRememberMe,
 )
 
 private fun RememberStateFlowScope.createStateFlowForOrganizationDuo(
@@ -636,6 +650,7 @@ private fun RememberStateFlowScope.createStateFlowForOrganizationDuo(
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.OrganizationDuo,
     transmitter: RouteResultTransmitter<Unit>,
+    defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> = createStateFlowForDuo(
     actionExecutor = actionExecutor,
     addAccount = addAccount,
@@ -644,6 +659,7 @@ private fun RememberStateFlowScope.createStateFlowForOrganizationDuo(
     providerSignature = provider.signature,
     providerType = TwoFactorProviderType.OrganizationDuo,
     transmitter = transmitter,
+    defaultRememberMe = defaultRememberMe,
 )
 
 private fun RememberStateFlowScope.createStateFlowForDuo(
@@ -654,6 +670,7 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
     providerSignature: String?,
     providerType: TwoFactorProviderType,
     transmitter: RouteResultTransmitter<Unit>,
+    defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> {
     val authUrl = run {
         val url = args.env.buildWebVaultUrl()
@@ -666,7 +683,7 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
         }.build()
     }
 
-    val rememberMeSink = mutablePersistedFlow("remember_me") { false }
+    val rememberMeSink = mutablePersistedFlow("remember_me") { defaultRememberMe }
 
     fun onComplete(
         result: Either<Throwable, String>,
@@ -731,6 +748,7 @@ private suspend fun RememberStateFlowScope.createStateFlowForFido2WebAuthn(
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.Fido2WebAuthn,
     transmitter: RouteResultTransmitter<Unit>,
+    defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> {
     val errorSink = mutablePersistedFlow("fido2webauthn.error") { "" }
 
@@ -767,7 +785,7 @@ private suspend fun RememberStateFlowScope.createStateFlowForFido2WebAuthn(
         }.build()
     }
 
-    val rememberMeSink = mutablePersistedFlow("remember_me") { false }
+    val rememberMeSink = mutablePersistedFlow("remember_me") { defaultRememberMe }
 
     fun onComplete(
         result: Either<Throwable, String>,

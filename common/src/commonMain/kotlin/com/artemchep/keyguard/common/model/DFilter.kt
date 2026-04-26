@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.model
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -446,6 +447,29 @@ sealed interface DFilter {
                 }
             } == id
         }
+    }
+
+    @Serializable
+    @SerialName("by_favorite")
+    data object ByFavorite : PrimitiveSimple {
+        @Transient
+        override val key: String = "favorite"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.string.home_favorites_label
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.Star,
+        )
+
+        override suspend fun prepare(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = ::predicate
+
+        private fun predicate(
+            cipher: DSecret,
+        ) = cipher.favorite
     }
 
     @Serializable

@@ -4,6 +4,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,13 +49,15 @@ import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.auth.common.autofill
-import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRouteFactory
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.BiFlatTextField
@@ -65,12 +68,14 @@ import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.EmailFlatTextField
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FabState
+import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.ScaffoldColumn
+import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.UrlFlatTextField
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
@@ -84,6 +89,9 @@ import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.map
+import org.kodein.di.compose.localDI
+import org.kodein.di.direct
+import org.kodein.di.instance
 import kotlin.collections.firstOrNull
 
 @Composable
@@ -113,6 +121,7 @@ fun BitwardenLoginScreen(
     state: LoginState,
 ) {
     val controller by rememberUpdatedState(LocalNavigationController.current)
+    val bitwardenLoginTwofaRouteFactory = localDI().direct.instance<BitwardenLoginTwofaRouteFactory>()
     CollectedEffect(state.effects.onSuccessFlow) {
         // Notify that we have successfully logged in, and that
         // the caller can now decide what to do.
@@ -124,7 +133,7 @@ fun BitwardenLoginScreen(
             // credentials and environment.
             is BitwardenLoginEvent.Error.OtpRequired -> {
                 val route = registerRouteResultReceiver(
-                    route = BitwardenLoginTwofaRoute(error.args),
+                    route = bitwardenLoginTwofaRouteFactory.create(error.args),
                 ) {
                     controller.queue(NavigationIntent.Pop)
                     transmitter.invoke(Unit)
@@ -135,7 +144,7 @@ fun BitwardenLoginScreen(
         }
     }
 
-    LoginContent(
+    LoginScaffold(
         loginState = state,
     )
 }
@@ -202,13 +211,9 @@ fun LoginContentSkeleton() {
     ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class,
 )
 @Composable
-fun LoginContent(
+fun LoginScaffold(
     loginState: LoginState,
 ) {
-    var isEnvironmentVisible by rememberSaveable {
-        mutableStateOf(false)
-    }
-
     val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldColumn(
         modifier = Modifier
@@ -262,171 +267,187 @@ fun LoginContent(
             )
         },
     ) {
-        val focusManager = LocalFocusManager.current
-        val focusRequester = remember { FocusRequester() }
-        // Auto focus the text field
-        // on launch.
-        LaunchedEffect(focusRequester) {
+        this.LoginContent(
+            loginState = loginState,
+        )
+    }
+}
+
+@Composable
+fun ColumnScope.LoginContent(
+    loginState: LoginState,
+) {
+    var isEnvironmentVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+    // Autofocus the text field
+    // on launch.
+    LaunchedEffect(focusRequester) {
+        val isWatch = CurrentPlatform.hasWatch()
+        if (!isWatch) {
             focusRequester.requestFocus()
         }
+    }
 
-        val keyboardOnGo: (KeyboardActionScope.() -> Unit)? =
-            if (loginState.onLoginClick != null) {
-                // lambda
-                {
-                    loginState.onLoginClick.invoke()
-                }
-            } else {
-                null
+    val keyboardOnGo: (KeyboardActionScope.() -> Unit)? =
+        if (loginState.onLoginClick != null) {
+            // lambda
+            {
+                loginState.onLoginClick.invoke()
             }
-        val keyboardOnNext: KeyboardActionScope.() -> Unit = {
-            focusManager.moveFocus(FocusDirection.Down)
+        } else {
+            null
         }
+    val keyboardOnNext: KeyboardActionScope.() -> Unit = {
+        focusManager.moveFocus(FocusDirection.Down)
+    }
 
-        Text(
-            modifier = Modifier
-                .padding(horizontal = Dimens.textHorizontalPadding),
-            text = stringResource(Res.string.addaccount_disclaimer_bitwarden_label),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Spacer(Modifier.height(16.dp))
-        val tabState = rememberUpdatedState(
-            newValue = loginState.regionItems
-                .firstOrNull { it.checked },
-        )
-        SegmentedButtonGroup(
-            modifier = Modifier
-                .padding(
-                    horizontal = Dimens.buttonHorizontalPadding,
+    Text(
+        modifier = Modifier
+            .padding(horizontal = Dimens.textHorizontalPadding),
+        text = stringResource(Res.string.addaccount_disclaimer_bitwarden_label),
+        style = MaterialTheme.typography.bodyMedium,
+    )
+    Spacer(Modifier.height(16.dp))
+    val tabState = rememberUpdatedState(
+        newValue = loginState.regionItems
+            .firstOrNull { it.checked },
+    )
+    SegmentedButtonGroup(
+        modifier = Modifier
+            .padding(
+                horizontal = Dimens.buttonHorizontalPadding,
+            ),
+        tabState = tabState,
+        tabs = loginState.regionItems,
+        onClick = { tab ->
+            tab.onClick?.invoke()
+        },
+    )
+    Spacer(Modifier.height(16.dp))
+    EmailFlatTextField(
+        modifier = Modifier
+            .padding(horizontal = Dimens.fieldHorizontalPadding)
+            .focusRequester(focusRequester),
+        fieldModifier = Modifier
+            .autofill(
+                value = loginState.email.state.value,
+                autofillTypes = listOf(
+                    AutofillType.EmailAddress,
                 ),
-            tabState = tabState,
-            tabs = loginState.regionItems,
-            onClick = { tab ->
-                tab.onClick?.invoke()
+                onFill = loginState.email.onChange,
+            ),
+        value = loginState.email,
+        shapeState = ShapeState.START,
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Next,
+        ),
+        keyboardActions = KeyboardActions(
+            onNext = keyboardOnNext,
+        ),
+    )
+    Spacer(Modifier.height(3.dp))
+    val passwordIsLastField = loginState.clientSecret == null && !isEnvironmentVisible
+    PasswordFlatTextField(
+        modifier = Modifier
+            .padding(horizontal = Dimens.fieldHorizontalPadding),
+        fieldModifier = Modifier
+            .autofill(
+                value = loginState.password.state.value,
+                autofillTypes = listOf(
+                    AutofillType.Password,
+                ),
+                onFill = loginState.password.onChange,
+            ),
+        value = loginState.password,
+        shapeState = ShapeState.END,
+        keyboardOptions = KeyboardOptions(
+            imeAction = when {
+                !passwordIsLastField -> ImeAction.Next
+                else -> ImeAction.Go
             },
-        )
-        Spacer(Modifier.height(16.dp))
-        EmailFlatTextField(
-            modifier = Modifier
-                .padding(horizontal = Dimens.fieldHorizontalPadding)
-                .focusRequester(focusRequester),
-            fieldModifier = Modifier
-                .autofill(
-                    value = loginState.email.state.value,
-                    autofillTypes = listOf(
-                        AutofillType.EmailAddress,
-                    ),
-                    onFill = loginState.email.onChange,
-                ),
-            value = loginState.email,
-            shapeState = ShapeState.START,
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Next,
-            ),
-            keyboardActions = KeyboardActions(
-                onNext = keyboardOnNext,
-            ),
-        )
-        Spacer(Modifier.height(3.dp))
-        val passwordIsLastField = loginState.clientSecret == null && !isEnvironmentVisible
-        PasswordFlatTextField(
-            modifier = Modifier
-                .padding(horizontal = Dimens.fieldHorizontalPadding),
-            fieldModifier = Modifier
-                .autofill(
-                    value = loginState.password.state.value,
-                    autofillTypes = listOf(
-                        AutofillType.Password,
-                    ),
-                    onFill = loginState.password.onChange,
-                ),
-            value = loginState.password,
-            shapeState = ShapeState.END,
-            keyboardOptions = KeyboardOptions(
-                imeAction = when {
-                    !passwordIsLastField -> ImeAction.Next
-                    else -> ImeAction.Go
-                },
-            ),
-            keyboardActions = KeyboardActions(
-                onGo = keyboardOnGo,
-                onNext = keyboardOnNext.takeUnless { passwordIsLastField },
-            ),
-        )
-        val clientSecretOrNull = loginState.clientSecret
-        ExpandedIfNotEmpty(
-            valueOrNull = clientSecretOrNull,
-        ) { clientSecret ->
-            Column {
-                Box(Modifier.height(32.dp))
-                Text(
-                    modifier = Modifier
-                        .padding(horizontal = Dimens.textHorizontalPadding),
-                    text = stringResource(Res.string.addaccount_captcha_need_client_secret_note),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Box(Modifier.height(16.dp))
-                val clientSecretIsLastField = !isEnvironmentVisible
-                ConcealedFlatTextField(
-                    modifier = Modifier
-                        .padding(horizontal = Dimens.fieldHorizontalPadding),
-                    label = stringResource(Res.string.addaccount_captcha_need_client_secret_label),
-                    value = clientSecret,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = when {
-                            !clientSecretIsLastField -> ImeAction.Next
-                            else -> ImeAction.Go
-                        },
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onGo = keyboardOnGo,
-                        onNext = keyboardOnNext.takeUnless { clientSecretIsLastField },
-                    ),
-                    singleLine = true,
-                    maxLines = 1,
-                    leading = {
-                        IconBox(
-                            main = Icons.Outlined.Security,
-                        )
-                    },
-                )
-            }
-        }
-        Spacer(Modifier.height(16.dp))
-        ExpandedIfNotEmpty(
-            valueOrNull = Unit.takeIf { loginState.showCustomEnv },
-        ) {
-            LoginItems(
+        ),
+        keyboardActions = KeyboardActions(
+            onGo = keyboardOnGo,
+            onNext = keyboardOnNext.takeUnless { passwordIsLastField },
+        ),
+    )
+    val clientSecretOrNull = loginState.clientSecret
+    ExpandedIfNotEmpty(
+        valueOrNull = clientSecretOrNull,
+    ) { clientSecret ->
+        Column {
+            Box(Modifier.height(32.dp))
+            Text(
                 modifier = Modifier
-                    .padding(
-                        top = 16.dp,
-                        bottom = 16.dp,
-                    ),
-                items = loginState.items,
+                    .padding(horizontal = Dimens.textHorizontalPadding),
+                text = stringResource(Res.string.addaccount_captcha_need_client_secret_note),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Box(Modifier.height(16.dp))
+            val clientSecretIsLastField = !isEnvironmentVisible
+            ConcealedFlatTextField(
+                modifier = Modifier
+                    .padding(horizontal = Dimens.fieldHorizontalPadding),
+                label = stringResource(Res.string.addaccount_captcha_need_client_secret_label),
+                value = clientSecret,
+                keyboardOptions = KeyboardOptions(
+                    imeAction = when {
+                        !clientSecretIsLastField -> ImeAction.Next
+                        else -> ImeAction.Go
+                    },
+                ),
+                keyboardActions = KeyboardActions(
+                    onGo = keyboardOnGo,
+                    onNext = keyboardOnNext.takeUnless { clientSecretIsLastField },
+                ),
+                singleLine = true,
+                maxLines = 1,
+                leading = {
+                    IconBox(
+                        main = Icons.Outlined.Security,
+                    )
+                },
             )
         }
-        loginState.onRegisterClick?.let { onClick ->
-            Button(
+    }
+    Spacer(Modifier.height(16.dp))
+    ExpandedIfNotEmpty(
+        valueOrNull = Unit.takeIf { loginState.showCustomEnv },
+    ) {
+        LoginItems(
+            modifier = Modifier
+                .padding(
+                    top = 16.dp,
+                    bottom = 16.dp,
+                ),
+            items = loginState.items,
+        )
+    }
+    loginState.onRegisterClick?.let { onClick ->
+        Button(
+            modifier = Modifier
+                .padding(horizontal = Dimens.buttonHorizontalPadding),
+            onClick = onClick,
+            colors = ButtonDefaults.filledTonalButtonColors(),
+            elevation = ButtonDefaults.filledTonalButtonElevation(),
+        ) {
+            Icon(
                 modifier = Modifier
-                    .padding(horizontal = Dimens.buttonHorizontalPadding),
-                onClick = onClick,
-                colors = ButtonDefaults.filledTonalButtonColors(),
-                elevation = ButtonDefaults.filledTonalButtonElevation(),
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .size(ButtonDefaults.IconSize),
-                    imageVector = Icons.Outlined.KeyguardWebsite,
-                    contentDescription = null,
-                )
-                Spacer(
-                    modifier = Modifier
-                        .width(ButtonDefaults.IconSpacing),
-                )
-                Text(
-                    text = stringResource(Res.string.addaccount_create_an_account_title),
-                )
-            }
+                    .size(ButtonDefaults.IconSize),
+                imageVector = Icons.Outlined.KeyguardWebsite,
+                contentDescription = null,
+            )
+            Spacer(
+                modifier = Modifier
+                    .width(ButtonDefaults.IconSpacing),
+            )
+            Text(
+                text = stringResource(Res.string.addaccount_create_an_account_title),
+            )
         }
     }
 }

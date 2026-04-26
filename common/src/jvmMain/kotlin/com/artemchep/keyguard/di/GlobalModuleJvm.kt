@@ -410,24 +410,29 @@ import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppListEntity
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceStatelessProxy
 import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockRepositoryExposed
 import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
+import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.GetAllowScreenshotsVariants
 import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
 import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
+import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
+import com.artemchep.keyguard.common.usecase.PutAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
 import com.artemchep.keyguard.common.usecase.impl.GetAllowScreenshotsVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasswordsEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetTotpCodeWithOffsetImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
+import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasswordsEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentFilterImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -444,9 +449,12 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
 import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlBroadCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfaImpl
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.CurlUserAgent
@@ -698,6 +706,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GetAutofillPasswordsEnabled> {
+        GetAutofillPasswordsEnabledImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<GetAutofillSaveRequest> {
         GetAutofillSaveRequestImpl(
             directDI = this,
@@ -913,6 +926,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PutAutofillPasskeysEnabled> {
         PutAutofillPasskeysEnabledImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutAutofillPasswordsEnabled> {
+        PutAutofillPasswordsEnabledImpl(
             directDI = this,
         )
     }
@@ -1384,6 +1402,9 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<CipherUnsecureUrlCheck> {
+        CipherUnsecureUrlCheckImpl(this)
+    }
     bindSingleton<AndroidAppGooglePlayParser> {
         AndroidAppGooglePlayParser(
             directDI = this,
@@ -1499,6 +1520,9 @@ fun globalModuleJvm() = DI.Module(
         SimilarityServiceJvm(
             directDI = this,
         )
+    }
+    bindSingleton<RequestEmailTfa> {
+        RequestEmailTfaImpl(this)
     }
     bindSingleton<IdRepository> {
         val store = instance<Files, KeyValueStore>(

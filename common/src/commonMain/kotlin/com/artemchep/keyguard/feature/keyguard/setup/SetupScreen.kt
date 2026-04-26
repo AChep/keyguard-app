@@ -298,7 +298,7 @@ fun ColumnScope.SetupContent(
 }
 
 @Composable
-private fun ColumnScope.SetupScreenCreateVaultTitle() {
+fun ColumnScope.SetupScreenCreateVaultTitle() {
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {

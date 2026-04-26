@@ -14,19 +14,18 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.sshagent.filter.SshAgentFiltersRoute
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardCipherFilter
-import com.artemchep.keyguard.ui.icons.KeyguardSshKey
-import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
@@ -42,6 +41,12 @@ fun settingSshAgentFiltersProvider(
 fun settingSshAgentFiltersProvider(
     getSshAgentFilter: GetSshAgentFilter,
 ): SettingComponent = getSshAgentFilter().map { filter ->
+    // I can not imagine many people running the
+    // SSH agent on their watch.
+    if (CurrentPlatform.hasWatch()) {
+        return@map null
+    }
+
     val active = filter.normalize().isActive
     SettingIi(
         platformClasses = listOf(
@@ -79,12 +84,8 @@ private fun SettingSshAgentFilters(
     active: Boolean,
     onClick: (() -> Unit)?,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.KeyguardCipherFilter),
-        trailing = {
-            ChevronIcon()
-        },
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.KeyguardCipherFilter,
         title = {
             Text(
                 text = stringResource(Res.string.pref_item_ssh_agent_filters_title),
@@ -113,7 +114,9 @@ private fun SettingSshAgentFilters(
                 )
             }
         },
+        trailing = {
+            ChevronIcon()
+        },
         onClick = onClick,
     )
 }
-

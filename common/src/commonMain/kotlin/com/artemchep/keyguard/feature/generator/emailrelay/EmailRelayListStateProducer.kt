@@ -20,9 +20,11 @@ import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
+import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
@@ -69,6 +71,7 @@ fun produceEmailRelayListState(
 ) = with(localDI().direct) {
     produceEmailRelayListState(
         emailRelays = allInstances(),
+        confirmationRouteFactory = instance(),
         addEmailRelay = instance(),
         removeEmailRelayById = instance(),
         getEmailRelays = instance(),
@@ -78,6 +81,7 @@ fun produceEmailRelayListState(
 @Composable
 fun produceEmailRelayListState(
     emailRelays: List<EmailRelay>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     addEmailRelay: AddEmailRelay,
     removeEmailRelayById: RemoveEmailRelayById,
     getEmailRelays: GetEmailRelays,
@@ -117,22 +121,20 @@ fun produceEmailRelayListState(
                 out += it
                 out
             }
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(
-                        main = Icons.Outlined.Email,
-                        secondary = if (entity != null) {
-                            Icons.Outlined.Edit
-                        } else {
-                            Icons.Outlined.Add
-                        },
-                    ),
-                    title = model.name,
-                    subtitle = translate(Res.string.emailrelay_integration_title),
-                    items = items2,
-                    docUrl = model.docUrl,
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(
+                    main = Icons.Outlined.Email,
+                    secondary = if (entity != null) {
+                        Icons.Outlined.Edit
+                    } else {
+                        Icons.Outlined.Add
+                    },
                 ),
+                title = model.name,
+                subtitle = translate(Res.string.emailrelay_integration_title),
+                items = items2,
+                docUrl = model.docUrl,
             ),
         ) { result ->
             if (result is ConfirmationResult.Confirm) {
@@ -186,6 +188,7 @@ fun produceEmailRelayListState(
         val message = items
             .joinToString(separator = "\n") { it.name }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,

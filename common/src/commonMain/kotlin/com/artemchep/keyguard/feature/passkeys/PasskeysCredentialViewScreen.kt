@@ -130,11 +130,135 @@ fun PasskeysCredentialViewScreen(
 private fun ColumnScope.ContentOk(
     state: PasskeysCredentialViewState.Content,
 ) {
+    state.passkeysCredentialViewItems().forEach { item ->
+        PasskeysCredentialItem(item = item)
+    }
+}
+
+@Composable
+private fun PasskeysCredentialItem(
+    item: PasskeysCredentialViewItem,
+) {
+    val navigationController by rememberUpdatedState(LocalNavigationController.current)
+    when (item) {
+        is PasskeysCredentialViewItem.Text -> {
+            PasskeysCredentialTextItem(
+                icon = item.icon,
+                title = stringResource(item.title),
+                value = item.value,
+            )
+        }
+
+        is PasskeysCredentialViewItem.Section -> {
+            Section(
+                text = stringResource(item.title),
+            )
+        }
+
+        is PasskeysCredentialViewItem.RelyingParty -> {
+            FlatItemLayout(
+                leading = {
+                    IconBox(item.icon)
+                },
+                content = {
+                    FlatItemTextContent2(
+                        title = {
+                            Text(
+                                text = stringResource(Res.string.passkey_relying_party),
+                            )
+                        },
+                        text = {
+                            Column {
+                                Text(
+                                    text = item.rpName
+                                        ?: stringResource(Res.string.empty_value),
+                                    color = if (item.rpName != null) {
+                                        LocalContentColor.current
+                                    } else {
+                                        LocalContentColor.current
+                                            .combineAlpha(DisabledEmphasisAlpha)
+                                    },
+                                )
+                                Text(
+                                    text = item.rpId,
+                                    fontFamily = FontFamily.Monospace,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                            }
+                        },
+                    )
+                },
+                trailing = {
+                    PasskeysCredentialInfoButton(
+                        url = item.infoUrlOrNull(),
+                        onOpen = { url ->
+                            navigationController.queue(NavigationIntent.NavigateToBrowser(url))
+                        },
+                    )
+                },
+                enabled = true,
+            )
+        }
+
+        is PasskeysCredentialViewItem.SignatureCounter -> {
+            PasskeysCredentialTextItem(
+                icon = item.icon,
+                title = stringResource(Res.string.passkey_signature_counter),
+                value = item.counter?.toString(),
+                infoUrl = item.infoUrlOrNull(),
+            )
+        }
+
+        is PasskeysCredentialViewItem.Discoverable -> {
+            PasskeysCredentialTextItem(
+                icon = item.icon,
+                title = stringResource(Res.string.passkey_discoverable),
+                value = if (item.value) {
+                    stringResource(Res.string.yes)
+                } else {
+                    stringResource(Res.string.no)
+                },
+                showEmptyValue = false,
+                infoUrl = item.infoUrlOrNull(),
+            )
+        }
+
+        is PasskeysCredentialViewItem.CreatedAt -> {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = Dimens.horizontalPadding,
+                        end = Dimens.horizontalPadding,
+                        top = 16.dp,
+                    ),
+                horizontalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = item.text,
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = LocalContentColor.current
+                        .combineAlpha(MediumEmphasisAlpha),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PasskeysCredentialTextItem(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    value: String?,
+    showEmptyValue: Boolean = true,
+    infoUrl: String? = null,
+) {
     val navigationController by rememberUpdatedState(LocalNavigationController.current)
     FlatItemLayout(
         leading = {
             Icon(
-                imageVector = Icons.Outlined.AccountCircle,
+                imageVector = icon,
                 contentDescription = null,
             )
         },
@@ -142,15 +266,14 @@ private fun ColumnScope.ContentOk(
             FlatItemTextContent2(
                 title = {
                     Text(
-                        text = stringResource(Res.string.passkey_user_display_name),
+                        text = title,
                     )
                 },
                 text = {
-                    val userDisplayName = state.model.userDisplayName
                     Text(
-                        text = userDisplayName
+                        text = value
                             ?: stringResource(Res.string.empty_value),
-                        color = if (userDisplayName != null) {
+                        color = if (value != null || !showEmptyValue) {
                             LocalContentColor.current
                         } else {
                             LocalContentColor.current
@@ -160,182 +283,34 @@ private fun ColumnScope.ContentOk(
                 },
             )
         },
-        enabled = true,
-    )
-    FlatItemLayout(
-        leading = {
-            Icon(
-                imageVector = Icons.Outlined.AlternateEmail,
-                contentDescription = null,
-            )
-        },
-        content = {
-            FlatItemTextContent2(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.passkey_user_username),
-                    )
-                },
-                text = {
-                    val userName = state.model.userName
-                    Text(
-                        text = userName
-                            ?: stringResource(Res.string.empty_value),
-                        color = if (userName != null) {
-                            LocalContentColor.current
-                        } else {
-                            LocalContentColor.current
-                                .combineAlpha(DisabledEmphasisAlpha)
-                        },
-                    )
-                },
-            )
-        },
-        enabled = true,
-    )
-    Section(
-        text = stringResource(Res.string.info),
-    )
-    FlatItemLayout(
-        leading = {
-            IconBox(Icons.Outlined.Business)
-        },
-        content = {
-            FlatItemTextContent2(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.passkey_relying_party),
-                    )
-                },
-                text = {
-                    val rpName = state.model.rpName
-                    val rpId = state.model.rpId
-                    Column {
-                        Text(
-                            text = rpName
-                                ?: stringResource(Res.string.empty_value),
-                            color = if (rpName != null) {
-                                LocalContentColor.current
-                            } else {
-                                LocalContentColor.current
-                                    .combineAlpha(DisabledEmphasisAlpha)
-                            },
-                        )
-                        Text(
-                            text = rpId,
-                            fontFamily = FontFamily.Monospace,
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-                },
-            )
-        },
-        trailing = {
-            IconButton(
-                onClick = {
-                    val url = "https://www.w3.org/TR/webauthn-2/#relying-party"
-                    val intent = NavigationIntent.NavigateToBrowser(url)
-                    navigationController.queue(intent)
-                },
-            ) {
-                Icon(Icons.Outlined.Info, null)
+        trailing = if (infoUrl != null) {
+            {
+                PasskeysCredentialInfoButton(
+                    url = infoUrl,
+                    onOpen = { url ->
+                        navigationController.queue(NavigationIntent.NavigateToBrowser(url))
+                    },
+                )
             }
+        } else {
+            null
         },
         enabled = true,
     )
-    FlatItemLayout(
-        leading = {
-            IconBox(Icons.Outlined.KeyguardView)
+}
+
+@Composable
+private fun PasskeysCredentialInfoButton(
+    url: String?,
+    onOpen: (String) -> Unit,
+) {
+    IconButton(
+        enabled = url != null,
+        onClick = {
+            url?.let(onOpen)
         },
-        content = {
-            FlatItemTextContent2(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.passkey_signature_counter),
-                    )
-                },
-                text = {
-                    val counter = state.model.counter?.toString()
-                    Text(
-                        text = counter
-                            ?: stringResource(Res.string.empty_value),
-                        color = if (counter != null) {
-                            LocalContentColor.current
-                        } else {
-                            LocalContentColor.current
-                                .combineAlpha(DisabledEmphasisAlpha)
-                        },
-                    )
-                },
-            )
-        },
-        trailing = {
-            IconButton(
-                onClick = {
-                    val url = "https://www.w3.org/TR/webauthn-2/#signature-counter"
-                    val intent = NavigationIntent.NavigateToBrowser(url)
-                    navigationController.queue(intent)
-                },
-            ) {
-                Icon(Icons.Outlined.Info, null)
-            }
-        },
-        enabled = true,
-    )
-    FlatItemLayout(
-        leading = {
-            IconBox(Icons.Outlined.Public)
-        },
-        content = {
-            FlatItemTextContent2(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.passkey_discoverable),
-                    )
-                },
-                text = {
-                    val discoverable = state.model.discoverable
-                        .let { discoverable ->
-                            if (discoverable) {
-                                stringResource(Res.string.yes)
-                            } else stringResource(Res.string.no)
-                        }
-                    Text(
-                        text = discoverable,
-                    )
-                },
-            )
-        },
-        trailing = {
-            IconButton(
-                onClick = {
-                    val url = "https://www.w3.org/TR/webauthn-2/#discoverable-credential"
-                    val intent = NavigationIntent.NavigateToBrowser(url)
-                    navigationController.queue(intent)
-                },
-            ) {
-                Icon(Icons.Outlined.Info, null)
-            }
-        },
-        enabled = true,
-    )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = Dimens.horizontalPadding,
-                end = Dimens.horizontalPadding,
-                top = 16.dp,
-            ),
-        horizontalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = state.createdAt,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelMedium,
-            color = LocalContentColor.current
-                .combineAlpha(MediumEmphasisAlpha),
-        )
+        Icon(Icons.Outlined.Info, null)
     }
 }
 

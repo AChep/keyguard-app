@@ -7,4 +7,9 @@ data class FlavorConfig(
      * is for the app store.
      */
     val isFreeAsBeer: Boolean,
+
+    /**
+     * `true` when vault data should be backed by durable storage.
+     */
+    val persistVaultData: Boolean = true,
 )

@@ -1,13 +1,17 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.usecase.unit
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import kotlinx.coroutines.Dispatchers
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -16,6 +20,7 @@ import org.kodein.di.instance
  */
 class RemoveAccountByIdImpl(
     private val db: VaultDatabaseManager,
+    private val fileService: FileService,
     private val watchdog: Watchdog,
 ) : RemoveAccountById {
     companion object {
@@ -24,6 +29,7 @@ class RemoveAccountByIdImpl(
 
     constructor(directDI: DirectDI) : this(
         db = directDI.instance(),
+        fileService = directDI.instance(),
         watchdog = directDI.instance(),
     )
 
@@ -46,8 +52,21 @@ class RemoveAccountByIdImpl(
     private fun performRemoveAccount(
         accountId: AccountId,
     ) = db
-        .mutate(TAG) { database ->
-            val dao = database.accountQueries
-            dao.deleteByAccountId(accountId.id)
+        .get()
+        .effectMap(Dispatchers.IO) { database ->
+            val token = database.accountQueries
+                .getByAccountId(accountId = accountId.id)
+                .executeAsOneOrNull()
+                ?.data_
+            cleanupManagedKeePassFiles(
+                fileService = fileService,
+                tokens = listOfNotNull(token),
+            )
+        }
+        .effectMap {
+            db.mutate(TAG) { database ->
+                val dao = database.accountQueries
+                dao.deleteByAccountId(accountId.id)
+            }.bind()
         }
 }

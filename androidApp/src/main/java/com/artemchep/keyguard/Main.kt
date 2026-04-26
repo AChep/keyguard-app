@@ -9,6 +9,8 @@ import androidx.lifecycle.lifecycleScope
 import coil3.SingletonImageLoader
 import com.artemchep.bindin.bindBlock
 import com.artemchep.keyguard.android.BaseApp
+import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
+import com.artemchep.keyguard.android.PhoneCredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.coil3.AppIconFetcher
 import com.artemchep.keyguard.android.coil3.AppIconKeyer
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
@@ -36,6 +38,7 @@ import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.worker.Wrker
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.lifecycle.toCommon
@@ -55,6 +58,9 @@ class Main : BaseApp(), DIAware {
         import(diFingerprintRepositoryModule())
         if (Build.VERSION.SDK_INT >= 34) {
             import(passkeysModule())
+            bindSingleton<CredentialProviderPlatformConfig> {
+                PhoneCredentialProviderPlatformConfig
+            }
         }
         val imageLoaderModule = kotlin.run {
             val packageManager = packageManager
@@ -111,6 +117,7 @@ class Main : BaseApp(), DIAware {
         val downloadRepository: DownloadRepository by instance()
         val cleanUpAttachment: CleanUpAttachment by instance()
         val appWorker: AppWorker by instance(tag = AppWorker.Feature.SYNC)
+        val companionAuthBridge: CompanionAuthBridgeAndroid = di.direct.instance()
 //        val cleanUpDownload: CleanUpDownloadImpl by instance()
 
         val processLifecycleOwner = ProcessLifecycleOwner.get()
@@ -124,6 +131,9 @@ class Main : BaseApp(), DIAware {
             }
         processLifecycleOwner.lifecycleScope.launch {
             appWorker.launch(this, processLifecycleFlow)
+        }
+        processLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
+            companionAuthBridge.sweepExpiredArtifacts()
         }
 
         AttachmentDownloadAllWorker.enqueue(this)

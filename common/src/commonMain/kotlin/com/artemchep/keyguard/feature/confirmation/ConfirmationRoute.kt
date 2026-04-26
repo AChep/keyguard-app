@@ -2,13 +2,10 @@ package com.artemchep.keyguard.feature.confirmation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.navigation.DialogRouteForResult
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
-import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.platform.LeUri
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import kotlinx.serialization.Serializable
@@ -111,18 +108,17 @@ class ConfirmationRoute(
 }
 
 fun RememberStateFlowScope.createConfirmationDialogIntent(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     icon: (@Composable () -> Unit)? = null,
     title: String? = null,
     message: String? = null,
     onSuccess: () -> Unit,
 ): NavigationIntent {
-    val route = registerRouteResultReceiver(
-        route = ConfirmationRoute(
-            args = ConfirmationRoute.Args(
-                icon = icon,
-                title = title,
-                message = message,
-            ),
+    val route = confirmationRouteFactory.registerRouteResultReceiver(
+        args = ConfirmationRoute.Args(
+            icon = icon,
+            title = title,
+            message = message,
         ),
     ) { result ->
         if (result is ConfirmationResult.Confirm) {
@@ -133,20 +129,19 @@ fun RememberStateFlowScope.createConfirmationDialogIntent(
 }
 
 inline fun <reified T> RememberStateFlowScope.createConfirmationDialogIntent(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     item: ConfirmationRoute.Args.Item<T>,
     noinline icon: (@Composable () -> Unit)? = null,
     title: String? = null,
     message: String? = null,
     noinline onSuccess: (T) -> Unit,
 ): NavigationIntent {
-    val route = registerRouteResultReceiver(
-        route = ConfirmationRoute(
-            args = ConfirmationRoute.Args(
-                icon = icon,
-                title = title,
-                message = message,
-                items = listOf(item),
-            ),
+    val route = confirmationRouteFactory.registerRouteResultReceiver(
+        args = ConfirmationRoute.Args(
+            icon = icon,
+            title = title,
+            message = message,
+            items = listOf(item),
         ),
     ) { result ->
         if (result is ConfirmationResult.Confirm) {

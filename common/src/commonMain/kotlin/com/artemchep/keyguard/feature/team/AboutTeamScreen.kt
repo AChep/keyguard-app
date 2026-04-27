@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -26,7 +27,7 @@ import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
-import com.artemchep.keyguard.ui.ScaffoldColumn
+import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -51,7 +52,7 @@ fun AboutTeamScreen() {
     val navController by rememberUpdatedState(LocalNavigationController.current)
     val content = rememberAboutTeamContent()
     val socialNetworks = rememberAboutTeamSocialNetworks()
-    val items = socialNetworks
+    val socialNetworkItems = socialNetworks
         .map { socialNetwork ->
             SocialNetworkItem(
                 title = socialNetwork.title,
@@ -69,7 +70,7 @@ fun AboutTeamScreen() {
         .toPersistentList()
 
     val scrollBehavior = ToolbarBehavior.behavior()
-    ScaffoldColumn(
+    ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         expressive = true,
@@ -88,23 +89,32 @@ fun AboutTeamScreen() {
             )
         },
     ) {
-        LargeSection(
-            text = content.name,
-            trailing = {
-                Text(
-                    text = content.flag,
-                )
-            },
-        )
-        Text(
-            modifier = Modifier
-                .padding(horizontal = Dimens.textHorizontalPadding),
-            text = content.about,
-        )
-        Section(
-            text = stringResource(Res.string.team_follow_me_section),
-        )
-        items.forEach { item ->
+        item("profile") {
+            LargeSection(
+                text = content.name,
+                trailing = {
+                    Text(
+                        text = content.flag,
+                    )
+                },
+            )
+        }
+        item("about") {
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = Dimens.textHorizontalPadding),
+                text = content.about,
+            )
+        }
+        item("social.section") {
+            Section(
+                text = stringResource(Res.string.team_follow_me_section),
+            )
+        }
+        items(
+            items = socialNetworkItems,
+            key = { item -> "social.${item.title}" },
+        ) { item ->
             FlatItemSimpleExpressive(
                 leading = item.leading,
                 shapeState = item.shapeState,
@@ -117,28 +127,21 @@ fun AboutTeamScreen() {
                 onClick = item.onClick,
             )
         }
-        Spacer(
-            modifier = Modifier
-                .height(16.dp),
-        )
-        Text(
-            modifier = Modifier
-                .padding(horizontal = Dimens.textHorizontalPadding),
-            text = content.thanks,
-            style = MaterialTheme.typography.bodyMedium,
-            color = LocalContentColor.current
-                .combineAlpha(MediumEmphasisAlpha),
-        )
-        /*
-        LargeSection(
-            text = "Community",
-        )
-        Section(
-            text = "Localization",
-        )
-        SkeletonItem()
-        SkeletonItem()
-        SkeletonItem()
-         */
+        item("thanks.spacer") {
+            Spacer(
+                modifier = Modifier
+                    .height(16.dp),
+            )
+        }
+        item("thanks") {
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = Dimens.textHorizontalPadding),
+                text = content.thanks,
+                style = MaterialTheme.typography.bodyMedium,
+                color = LocalContentColor.current
+                    .combineAlpha(MediumEmphasisAlpha),
+            )
+        }
     }
 }

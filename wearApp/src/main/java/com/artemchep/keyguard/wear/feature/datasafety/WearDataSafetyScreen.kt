@@ -31,6 +31,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.wear.ui.WearDotsDivider
 import com.artemchep.keyguard.wear.ui.WearListAction
 import com.artemchep.keyguard.wear.ui.WearListCard
+import com.artemchep.keyguard.wear.ui.WearListLabel
 import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
 import com.artemchep.keyguard.wear.ui.WearSectionHeader
 import com.artemchep.keyguard.wear.ui.surfaceTransformation
@@ -184,6 +185,16 @@ private fun WearDataSafetyText(
     secondary: Boolean,
     transformation: SurfaceTransformation? = null,
 ) {
+    if (secondary) {
+        WearListLabel(
+            modifier = modifier,
+            textAlign = TextAlign.Start,
+            text = text,
+            transformation = transformation,
+        )
+        return
+    }
+
     Card(
         modifier = modifier
             .heightIn(min = 16.dp),
@@ -199,12 +210,6 @@ private fun WearDataSafetyText(
                 .fillMaxWidth(),
             text = text,
             textAlign = TextAlign.Start,
-            color = if (secondary) {
-                LocalContentColor.current
-                    .combineAlpha(MediumEmphasisAlpha)
-            } else {
-                Color.Unspecified
-            },
         )
     }
 }

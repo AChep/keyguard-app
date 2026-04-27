@@ -233,7 +233,6 @@ private fun createPromptOrNull(
 ): PureBiometricAuthPrompt = run {
     BiometricAuthPromptSimple(
         title = TextHolder.Res(Res.string.elevatedaccess_biometric_auth_confirm_title),
-        text = TextHolder.Res(Res.string.elevatedaccess_biometric_auth_confirm_text),
         requireConfirmation = requireConfirmation,
         onComplete = { result ->
             result.fold(

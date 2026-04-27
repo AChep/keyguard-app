@@ -316,7 +316,6 @@ private suspend fun createPromptOrNull(
         )
     BiometricAuthPrompt(
         title = TextHolder.Res(Res.string.unlock_biometric_auth_confirm_title),
-        text = TextHolder.Res(Res.string.unlock_biometric_auth_confirm_text),
         cipher = cipher,
         requireConfirmation = fn.requireConfirmation,
         onComplete = { result ->

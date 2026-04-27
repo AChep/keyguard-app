@@ -643,14 +643,14 @@ jobs:
           mkdir whatsnew
           mv artifacts-changelog/changelog-summary.md whatsnew/whatsnew-en-US
       - name: "Distribute Android on Play Store"
-        uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
         with:
           serviceAccountJson: service-account-google.json
           whatsNewDirectory: whatsnew
           packageName: com.artemchep.keyguard
           releaseFiles: artifacts-android/**/*.aab
       - name: "Distribute WearOS on Play Store"
-        uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
         with:
           serviceAccountJson: service-account-google.json
           whatsNewDirectory: whatsnew

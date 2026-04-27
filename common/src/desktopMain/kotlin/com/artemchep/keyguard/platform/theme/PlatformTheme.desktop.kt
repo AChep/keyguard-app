@@ -6,42 +6,39 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import org.jetbrains.skiko.currentSystemTheme
 import com.artemchep.keyguard.platform.Platform
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import org.jetbrains.skiko.SystemTheme
 import java.util.concurrent.TimeUnit
 
 @Composable
 actual fun Platform.hasDarkThemeEnabled(): Boolean = when (this) {
     is Platform.Desktop.Linux -> isLinuxPortalInDarkTheme()
-    else -> isSystemInDarkTheme()
+    else -> isDesktopInDarkTheme()
 }
 
 @Composable
-private fun isLinuxPortalInDarkTheme(): Boolean {
-    val darkThemeDefault = isSystemInDarkTheme()
-    var darkThemeState by remember {
-        mutableStateOf(darkThemeDefault)
-    }
-    LaunchedEffect(Unit) {
-        while (true) {
-            kotlin.runCatching {
-                darkThemeState = readLinuxPortalInDarkTheme()
-            }.getOrElse {
-                // Stop checking for the appearance, just use
-                // whatever Compose provides.
-                darkThemeState = darkThemeDefault
-                return@LaunchedEffect
-            }
+private fun isDesktopInDarkTheme(): Boolean = rememberIsDarkThemeWithAutoUpdate(
+    initialValue = isSystemInDarkTheme(),
+) {
+    // We hook to the Skiko APIs, check the isSystemInDarkTheme()
+    // internals for the details/updates.
+    currentSystemTheme == SystemTheme.DARK
+}
 
-            delay(2000L)
-            ensureActive()
-        }
-    }
-    return darkThemeState
+@Composable
+private fun isLinuxPortalInDarkTheme(): Boolean = rememberIsDarkThemeWithAutoUpdate(
+    initialValue = isSystemInDarkTheme(),
+) {
+    readLinuxPortalInDarkTheme()
 }
 
 private suspend fun readLinuxPortalInDarkTheme() = withContext(Dispatchers.IO) {
@@ -66,4 +63,36 @@ private suspend fun readLinuxPortalInDarkTheme() = withContext(Dispatchers.IO) {
     // 1: Prefer dark appearance
     // 2: Prefer light appearance
     result[10] == '1'
+}
+
+@Composable
+private fun rememberIsDarkThemeWithAutoUpdate(
+    initialValue: Boolean,
+    block: suspend () -> Boolean,
+): Boolean {
+    var currentTheme by remember {
+        mutableStateOf(initialValue)
+    }
+
+    val updatedLifecycle by rememberUpdatedState(LocalLifecycleOwner.current.lifecycle)
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlin.runCatching {
+                currentTheme = block()
+            }.getOrElse {
+                // Stop checking for the updates
+                return@LaunchedEffect
+            }
+
+            val delayMs = if (updatedLifecycle.currentState >= Lifecycle.State.RESUMED) {
+                2000L
+            } else {
+                4000L
+            }
+            delay(delayMs)
+            ensureActive()
+        }
+    }
+
+    return currentTheme
 }

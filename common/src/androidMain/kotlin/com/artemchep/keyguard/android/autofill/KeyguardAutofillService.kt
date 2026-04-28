@@ -300,7 +300,12 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         if (assistStructureLatest == null) {
             throw AbortAutofillException("No structures to fill.")
         }
-        val focusedFieldId = latestFillContext.focusedId
+        val focusedFieldId =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                latestFillContext.focusedId
+            } else {
+                null
+            }
 
         val respectAutofillOff = prefRespectAutofillOffFlow.first()
         autofillStructureParser

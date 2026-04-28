@@ -173,7 +173,7 @@ data class CompanionKeePassPayload(
 
 object CompanionAuthProtocol {
     const val VERSION = 2
-    const val PHONE_CAPABILITY = "com.artemchep.keyguard.phone_companion_auth"
+    private const val PHONE_CAPABILITY_SUFFIX = "phone_companion_auth"
     const val LAUNCH_TIMEOUT_MS = 60_000L
     const val SESSION_TIMEOUT_MS = 5L * 60_000L
     const val MAX_RESPONSE_MESSAGE_BYTES = 128 * 1024
@@ -185,6 +185,9 @@ object CompanionAuthProtocol {
     const val RESPONSE_PATH = "/companion-auth/response"
 
     private const val CHANNEL_ROOT = "/companion-auth/channel"
+
+    fun phoneCapability(packageName: String): String =
+        "$packageName.$PHONE_CAPABILITY_SUFFIX"
 
     fun keepassDatabaseChannelPath(requestId: String): String =
         "$CHANNEL_ROOT/$requestId/database"

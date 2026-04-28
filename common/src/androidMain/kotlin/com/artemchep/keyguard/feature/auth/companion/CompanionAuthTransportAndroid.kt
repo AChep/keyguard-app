@@ -50,11 +50,12 @@ internal fun companionAuthPhoneAvailabilityFlow(
 
 private class GooglePlayCompanionAuthPhoneCapabilitySource(
     private val capabilityClient: CapabilityClient,
+    private val capability: String,
 ) : CompanionAuthPhoneCapabilitySource {
     override suspend fun getReachablePhoneNodes(): List<Node> =
         capabilityClient
             .getCapability(
-                CompanionAuthProtocol.PHONE_CAPABILITY,
+                capability,
                 CapabilityClient.FILTER_REACHABLE,
             )
             .await()
@@ -66,10 +67,10 @@ private class GooglePlayCompanionAuthPhoneCapabilitySource(
             trySend(it.nodes.toList())
         }
         capabilityClient
-            .addListener(listener, CompanionAuthProtocol.PHONE_CAPABILITY)
+            .addListener(listener, capability)
             .await()
         awaitClose {
-            capabilityClient.removeListener(listener, CompanionAuthProtocol.PHONE_CAPABILITY)
+            capabilityClient.removeListener(listener, capability)
         }
     }
 }
@@ -97,7 +98,11 @@ internal class CompanionAuthTransportAndroid(
         RemoteActivityHelper(application, remoteActivityExecutor)
     }
     private val phoneCapabilitySource by lazy {
-        GooglePlayCompanionAuthPhoneCapabilitySource(capabilityClient)
+        val capability = CompanionAuthProtocol.phoneCapability(application.packageName)
+        GooglePlayCompanionAuthPhoneCapabilitySource(
+            capabilityClient = capabilityClient,
+            capability = capability,
+        )
     }
 
     constructor(

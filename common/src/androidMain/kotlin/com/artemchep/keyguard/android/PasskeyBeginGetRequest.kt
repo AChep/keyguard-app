@@ -259,6 +259,7 @@ class PasskeyBeginGetRequest(
                             credentialId = credential.credentialId,
                         )
                         val requiresUserVerification = cipher.reprompt ||
+                                requestOptions.userVerification == PublicKeyCredentialRequestOptions.UserVerification.PREFERRED ||
                                 requestOptions.userVerification == PublicKeyCredentialRequestOptions.UserVerification.REQUIRED
 
                         val username = credential.userDisplayName

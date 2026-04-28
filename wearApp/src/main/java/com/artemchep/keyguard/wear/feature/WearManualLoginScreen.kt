@@ -62,6 +62,7 @@ import com.artemchep.keyguard.res.addaccount_captcha_need_client_secret_note
 import com.artemchep.keyguard.res.addaccount_create_an_account_title
 import com.artemchep.keyguard.res.addaccount_disclaimer_bitwarden_label
 import com.artemchep.keyguard.res.addaccount_header_title
+import com.artemchep.keyguard.res.addaccount_region_section
 import com.artemchep.keyguard.res.addaccount_sign_in_button
 import com.artemchep.keyguard.ui.BiFlatTextField
 import com.artemchep.keyguard.ui.ConcealedFlatTextField
@@ -206,6 +207,7 @@ private fun TransformingLazyColumnScope.WearBitwardenLoginContent(
     if (loginState.regionItems.isNotEmpty()) {
         item("regions") {
             val navigationController = LocalNavigationController.current
+            val titleRegionPicker = stringResource(Res.string.addaccount_region_section)
             val currentRegion = loginState.regionItems
                 .firstOrNull { it.checked }
                 ?: loginState.regionItems.firstOrNull()
@@ -240,7 +242,10 @@ private fun TransformingLazyColumnScope.WearBitwardenLoginContent(
                     )
                 },
                 onClick = {
-                    val route = WearPickerRoute(actions = actions)
+                    val route = WearPickerRoute(
+                        title = titleRegionPicker,
+                        actions = actions,
+                    )
                     val intent = NavigationIntent.NavigateToRoute(route = route)
                     navigationController.queue(intent)
                 },

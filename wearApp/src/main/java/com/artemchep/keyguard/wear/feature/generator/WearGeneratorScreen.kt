@@ -210,6 +210,7 @@ private fun WearGeneratorTypeItem(
     transformation: SurfaceTransformation? = null,
 ) {
     val type by state.typeState.collectAsStateWithLifecycle()
+    val titleGeneratorPicker = stringResource(Res.string.generator_header_title)
     val navigationController = LocalNavigationController.current
     val actions = type.items
     WearListAction(
@@ -227,7 +228,10 @@ private fun WearGeneratorTypeItem(
             )
         },
         onClick = {
-            val route = WearPickerRoute(actions = actions)
+            val route = WearPickerRoute(
+                title = titleGeneratorPicker,
+                actions = actions,
+            )
             val intent = NavigationIntent.NavigateToRoute(route = route)
             navigationController.queue(intent)
         },

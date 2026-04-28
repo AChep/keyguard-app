@@ -121,7 +121,10 @@ class WearSettingsComponents : SettingPaneComponents {
                 null
             },
             onClick = {
-                val route = WearPickerRoute(actions = dropdown)
+                val route = WearPickerRoute(
+                    title = titleText,
+                    actions = dropdown,
+                )
                 val intent = NavigationIntent.NavigateToRoute(route = route)
                 navigationController.queue(intent)
             },

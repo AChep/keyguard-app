@@ -8,11 +8,13 @@ import com.artemchep.keyguard.ui.ContextItem
 
 @Stable
 data class WearPickerRoute(
+    val title: String? = null,
     val actions: List<ContextItem>,
 ) : DialogRoute {
     @Composable
     override fun Content() {
         WearPickerScreen(
+            title = title,
             items = actions,
         )
     }

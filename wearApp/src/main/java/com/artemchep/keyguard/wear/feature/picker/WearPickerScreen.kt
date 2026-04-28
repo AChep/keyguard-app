@@ -25,6 +25,7 @@ import com.artemchep.keyguard.wear.ui.WearSectionHeader
 
 @Composable
 fun WearPickerScreen(
+    title: String?,
     items: List<ContextItem>,
 ) {
     val navigationController = LocalNavigationController.current
@@ -36,7 +37,7 @@ fun WearPickerScreen(
         }
     }
     WearScaffoldScreen(
-        title = "Keyguard",
+        title = title,
     ) { transformationSpec ->
         itemsIndexed(
             items,

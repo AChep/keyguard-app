@@ -191,6 +191,8 @@ fun WearSettingsListAccountAdd(
     item: WearSettingsListAccountAdd,
     transformation: SurfaceTransformation? = null,
 ) {
+    val titleText = stringResource(Res.string.account_main_add_account_title)
+
     val updatedItem by rememberUpdatedState(item)
     val updatedNavigationController by rememberUpdatedState(LocalNavigationController.current)
     OutlinedButton(
@@ -216,13 +218,18 @@ fun WearSettingsListAccountAdd(
                 0 -> {
                     // Do nothing.
                 }
+
                 1 -> {
                     // Open the action directly.
                     val item = actions.firstOrNull() as? FlatItemAction?
                     item?.onClick?.invoke()
                 }
+
                 else -> {
-                    val route = WearPickerRoute(actions = item.actions)
+                    val route = WearPickerRoute(
+                        title = titleText,
+                        actions = item.actions,
+                    )
                     val intent = NavigationIntent.NavigateToRoute(route = route)
                     updatedNavigationController.queue(intent)
                 }

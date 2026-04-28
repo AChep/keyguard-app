@@ -61,12 +61,12 @@ commonsCodec = "1.21.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.20.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.11.0-beta01"
-composeRuntime = "1.11.0-beta01"
-composeUi = "1.11.0-beta01"
-composeFoundation = "1.11.0-beta01"
-composeMaterial = "1.11.0-beta01"
-composeMaterial3 = "1.11.0-alpha05"
+composeMultiplatform = "1.11.0-beta03"
+composeRuntime = "1.11.0-beta03"
+composeUi = "1.11.0-beta03"
+composeFoundation = "1.11.0-beta03"
+composeMaterial = "1.11.0-beta03"
+composeMaterial3 = "1.11.0-alpha07"
 composeMaterialIconsExtended = "1.7.3"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
@@ -299,6 +299,7 @@ ktor-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor
 ktor-ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 ktor-ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx", version.ref = "ktor" }

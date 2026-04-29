@@ -78,6 +78,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingLogsProvide
 import com.artemchep.keyguard.feature.home.settings.component.settingMarkdownProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMasterPasswordProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavAnimationProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingNavHiddenSendProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavLabelProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingOpenSourceLicensesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingPermissionCameraProvider
@@ -149,6 +150,7 @@ object Setting {
     const val AUTOFILL_COPY_TOTP = "autofill_copy_totp"
     const val NAV_ANIMATION = "nav_animation"
     const val NAV_LABEL = "nav_label"
+    const val NAV_HIDDEN_SEND = "nav_hidden_send"
     const val FONT = "font"
     const val LOCALE = "locale"
     const val COLOR_SCHEME = "color_scheme"
@@ -253,6 +255,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.AUTOFILL_COPY_TOTP to ::settingAutofillCopyTotpProvider,
     Setting.NAV_ANIMATION to ::settingNavAnimationProvider,
     Setting.NAV_LABEL to ::settingNavLabelProvider,
+    Setting.NAV_HIDDEN_SEND to ::settingNavHiddenSendProvider,
     Setting.FONT to ::settingFontProvider,
     Setting.LOCALE to ::settingSelectLocaleProvider,
     Setting.COLOR_SCHEME to ::settingColorSchemeProvider,

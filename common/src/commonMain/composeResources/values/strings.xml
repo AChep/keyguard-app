@@ -154,6 +154,8 @@
     <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Select a type</string>
     <string name="select_file">Select a file</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Autofill</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>
     <string name="backup_disclaimer_title">Your data is your responsibility.</string>
@@ -479,6 +481,7 @@
     <string name="ssh_key_action_add_key_title">Add keys</string>
     <string name="ssh_key_action_replace_key_title">Replace keys</string>
     <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -1069,6 +1072,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">Search sends</string>
     <string name="send_main_new_item_button">New item</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">A password is required to access this share</string>
 
@@ -1252,6 +1256,7 @@
     <string name="pref_item_other_title">Other</string>
     <string name="pref_item_other_text">Community websites, app info</string>
     <string name="pref_item_nav_label_title">Show labels on navigation buttons</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">App version</string>
     <string name="pref_item_app_build_date_title">App build date</string>
     <!--

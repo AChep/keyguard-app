@@ -132,6 +132,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         premium: Boolean,
     ): IO<Unit>
 
+    fun setCacheHiddenSend(
+        hiddenSend: Boolean,
+    ): IO<Unit>
+
     fun setAppIcons(
         appIcons: Boolean,
     ): IO<Unit>
@@ -166,6 +170,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setNavLabel(
         visible: Boolean,
+    ): IO<Unit>
+
+    fun setNavHiddenSend(
+        hidden: Boolean,
     ): IO<Unit>
 
     fun setFont(

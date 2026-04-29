@@ -41,6 +41,7 @@ fun rememberSettingsUiItems(
                     SettingPaneItem.Item(Setting.FONT),
                     SettingPaneItem.Item(Setting.MARKDOWN),
                     SettingPaneItem.Item(Setting.NAV_ANIMATION),
+                    SettingPaneItem.Item(Setting.NAV_HIDDEN_SEND),
                     SettingPaneItem.Item(Setting.NAV_LABEL),
                 ),
             ),

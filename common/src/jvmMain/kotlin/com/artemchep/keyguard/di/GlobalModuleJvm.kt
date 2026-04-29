@@ -66,8 +66,6 @@ import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.settings.SettingsReadRepository
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.settings.impl.SettingsRepositoryImpl
-import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
-import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
 import com.artemchep.keyguard.common.service.state.StateRepository
 import com.artemchep.keyguard.common.service.state.impl.StateRepositoryImpl
@@ -407,7 +405,6 @@ import com.artemchep.keyguard.copy.SimilarityServiceJvm
 import com.artemchep.keyguard.copy.ZipServiceJvm
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppListEntity
-import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceStatelessProxy
 import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockRepositoryExposed
 import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
@@ -415,24 +412,32 @@ import com.artemchep.keyguard.common.usecase.GetAllowScreenshotsVariants
 import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
 import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
+import com.artemchep.keyguard.common.usecase.GetCacheHiddenSend
+import com.artemchep.keyguard.common.usecase.GetNavForceHiddenSend
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.PutAutofillPasswordsEnabled
+import com.artemchep.keyguard.common.usecase.PutCacheHiddenSend
+import com.artemchep.keyguard.common.usecase.PutNavForceHiddenSend
 import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
 import com.artemchep.keyguard.common.usecase.impl.GetAllowScreenshotsVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasswordsEnabledImpl
+import com.artemchep.keyguard.common.usecase.impl.GetCacheHiddenSendImpl
+import com.artemchep.keyguard.common.usecase.impl.GetNavForceHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetTotpCodeWithOffsetImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasswordsEnabledImpl
+import com.artemchep.keyguard.common.usecase.impl.PutCacheHiddenSendImpl
+import com.artemchep.keyguard.common.usecase.impl.PutNavForceForceHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentFilterImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -786,6 +791,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<PutNavForceHiddenSend> {
+        PutNavForceForceHiddenSendImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<PutTheme> {
         PutThemeImpl(
             directDI = this,
@@ -964,6 +974,11 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GetNavForceHiddenSend> {
+        GetNavForceHiddenSendImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<GetNavAnimationVariants> {
         GetNavAnimationVariantsImpl(
             directDI = this,
@@ -1041,8 +1056,18 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GetCacheHiddenSend> {
+        GetCacheHiddenSendImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<PutCachePremium> {
         PutCachePremiumImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutCacheHiddenSend> {
+        PutCacheHiddenSendImpl(
             directDI = this,
         )
     }

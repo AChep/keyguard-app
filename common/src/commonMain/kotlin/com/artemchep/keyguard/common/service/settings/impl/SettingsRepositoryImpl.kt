@@ -76,6 +76,7 @@ class SettingsRepositoryImpl(
         private const val KEY_DEBUG_PREMIUM = "debug_premium"
         private const val KEY_DEBUG_SCREEN_DELAY = "debug_screen_delay"
         private const val KEY_CACHE_PREMIUM = "cache_premium"
+        private const val KEY_CACHE_HIDDEN_SEND = "cache_hidden_send"
         private const val KEY_APP_ICONS = "app_icons"
         private const val KEY_WEBSITE_ICONS = "website_icons"
         private const val KEY_MARKDOWN = "markdown"
@@ -84,6 +85,7 @@ class SettingsRepositoryImpl(
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
         private const val KEY_NAV_LABEL = "nav_label"
+        private const val KEY_NAV_HIDDEN_SEND = "nav_hidden_send"
         private const val KEY_TWO_PANEL_LAYOUT_LANDSCAPE = "two_panel_layout_landscape"
         private const val KEY_TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
         private const val KEY_USE_EXTERNAL_BROWSER = "use_external_browser"
@@ -187,6 +189,9 @@ class SettingsRepositoryImpl(
     private val cachePremiumPref =
         store.getBoolean(KEY_CACHE_PREMIUM, false)
 
+    private val cacheHiddenSendPref =
+        store.getBoolean(KEY_CACHE_HIDDEN_SEND, true)
+
     private val appIconsPref =
         store.getBoolean(KEY_APP_ICONS, true)
 
@@ -220,6 +225,9 @@ class SettingsRepositoryImpl(
 
     private val navLabelPref =
         store.getBoolean(KEY_NAV_LABEL, true)
+
+    private val navHiddenSendPref =
+        store.getBoolean(KEY_NAV_HIDDEN_SEND, false)
 
     private val allowTwoPanelLayoutInLandscapePref =
         store.getBoolean(KEY_TWO_PANEL_LAYOUT_LANDSCAPE, true)
@@ -290,6 +298,7 @@ class SettingsRepositoryImpl(
         KEY_DEBUG_PREMIUM,
         KEY_DEBUG_SCREEN_DELAY,
         KEY_CACHE_PREMIUM,
+        KEY_CACHE_HIDDEN_SEND,
         KEY_ONBOARDING_LAST_VISIT,
         KEY_VERSION_LOG,
         KEY_DATABASE_EXPOSED_KEY,
@@ -331,6 +340,7 @@ class SettingsRepositoryImpl(
             keepScreenOnPref,
             gravatarPref,
             navLabelPref,
+            navHiddenSendPref,
             allowTwoPanelLayoutInLandscapePref,
             allowTwoPanelLayoutInPortraitPref,
             useExternalBrowserPref,
@@ -547,6 +557,11 @@ class SettingsRepositoryImpl(
 
     override fun getCachePremium() = cachePremiumPref
 
+    override fun setCacheHiddenSend(hiddenSend: Boolean) = cacheHiddenSendPref
+        .setAndCommit(hiddenSend)
+
+    override fun getCacheHiddenSend() = cacheHiddenSendPref
+
     override fun setAppIcons(appIcons: Boolean) = appIconsPref
         .setAndCommit(appIcons)
 
@@ -601,6 +616,11 @@ class SettingsRepositoryImpl(
         .setAndCommit(visible)
 
     override fun getNavLabel() = navLabelPref
+
+    override fun setNavHiddenSend(hidden: Boolean) = navHiddenSendPref
+        .setAndCommit(hidden)
+
+    override fun getNavHiddenSend() = navHiddenSendPref
 
     override fun setFont(font: AppFont?) = fontPref
         .setAndCommit(font)

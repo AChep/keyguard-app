@@ -76,7 +76,6 @@ import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistoryById
 import com.artemchep.keyguard.common.usecase.CipherToolbox
 import com.artemchep.keyguard.common.usecase.CipherToolboxImpl
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlAutoFix
-import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
@@ -105,13 +104,12 @@ import com.artemchep.keyguard.common.usecase.GetFolderTreeById
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.GetMetas
+import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetShouldRequestAppReview
-import com.artemchep.keyguard.common.usecase.GetSshAgent
-import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.GetUrlBlocks
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
@@ -175,9 +173,8 @@ import com.artemchep.keyguard.common.usecase.impl.GetBreachesLatestDateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
 import com.artemchep.keyguard.common.usecase.impl.GetEnvSendUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGeneratorHistoryImpl
+import com.artemchep.keyguard.common.usecase.impl.GetNavHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.GetShouldRequestAppReviewImpl
-import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
-import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchIndexImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchQualifierCatalogImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryByIdImpl
@@ -258,7 +255,6 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.CipherMergeImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherRemovePasswordHistoryByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherRemovePasswordHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlAutoFixImpl
-import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CopyCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ExportLogsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.FavouriteCipherByIdImpl
@@ -328,8 +324,6 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanio
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountUseCase
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfaImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenTokenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassToken
@@ -363,6 +357,11 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<GetEnvSendUrl> {
         GetEnvSendUrlImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetNavHiddenSend> {
+        GetNavHiddenSendImpl(
             directDI = this,
         )
     }

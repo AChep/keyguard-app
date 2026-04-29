@@ -88,6 +88,8 @@ interface SettingsReadRepository {
 
     fun getCachePremium(): Flow<Boolean>
 
+    fun getCacheHiddenSend(): Flow<Boolean>
+
     fun getAppIcons(): Flow<Boolean>
 
     fun getWebsiteIcons(): Flow<Boolean>
@@ -103,6 +105,8 @@ interface SettingsReadRepository {
     fun getNavAnimation(): Flow<NavAnimation?>
 
     fun getNavLabel(): Flow<Boolean>
+
+    fun getNavHiddenSend(): Flow<Boolean>
 
     fun getFont(): Flow<AppFont?>
 

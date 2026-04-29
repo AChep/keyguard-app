@@ -84,6 +84,9 @@ jobs:
         run: |
           echo "" >> gradle.properties
           echo "versionCode=${{ needs.generate-versions-code-google-play-store.outputs.wear-version-code }}" >> gradle.properties
+      - uses: ./.github/actions/build_wearos_licenses
+        with:
+          build-flavor: "PlayStore"
       - name: "Build WearOS"
         run: ./gradlew :wearApp:bundlePlayStoreRelease
       - name: 'Upload WearOS .aab'

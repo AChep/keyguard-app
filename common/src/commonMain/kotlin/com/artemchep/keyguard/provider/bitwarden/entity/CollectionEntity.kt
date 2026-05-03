@@ -14,7 +14,7 @@ data class CollectionEntity(
     @JsonNames("name")
     @SerialName("Name")
     val name: String,
-    @JsonNames("externalId")
+    @JsonNames("externalId", "ExternalId")
     @SerialName("externalId")
     val externalId: String? = null,
     @JsonNames("readOnly")

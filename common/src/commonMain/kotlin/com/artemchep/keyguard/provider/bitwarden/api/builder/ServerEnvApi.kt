@@ -13,16 +13,24 @@ import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherListEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FolderEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachResponse
+import com.artemchep.keyguard.provider.bitwarden.entity.OrganizationSubscriptionResponseModel
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileRequestEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.ProfileResponseModel
 import com.artemchep.keyguard.provider.bitwarden.entity.SendEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SendFileUploadEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SendFileUploadTarget
 import com.artemchep.keyguard.provider.bitwarden.entity.SendFileUploadType
+import com.artemchep.keyguard.provider.bitwarden.entity.SubscriptionResponseModel
 import com.artemchep.keyguard.provider.bitwarden.entity.TwoFactorEmailRequestEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherArchiveRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherAttachmentCreateRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherBulkShareRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherBulkUpdateCollectionsRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherCreateRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherDeleteRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherMoveRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRestoreRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUnarchiveRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.FolderRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.SendRequest
@@ -72,6 +80,8 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
     val twoFactor get() = TwoFactor(url = url + "two-factor/")
 
     val accounts get() = Accounts(url = url + "accounts/")
+
+    val organizations get() = Organizations(url = url + "organizations/")
 
     val ciphers get() = Ciphers(url = url + "ciphers/")
 
@@ -135,6 +145,22 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
          * Response: profile object.
          */
         val profile get() = url + "profile"
+
+        val subscription get() = url + "subscription"
+    }
+
+    @JvmInline
+    value class Organizations(
+        private val url: String,
+    ) {
+        fun focus(id: String) = Organization(url = url + id)
+
+        @JvmInline
+        value class Organization(
+            val url: String,
+        ) {
+            val subscription get() = "$url/subscription"
+        }
     }
 
     @JvmInline
@@ -146,6 +172,16 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
         val archive get() = url + "archive"
 
         val unarchive get() = url + "unarchive"
+
+        val trash get() = url + "delete"
+
+        val restore get() = url + "restore"
+
+        val move get() = url + "move"
+
+        val share get() = url + "share"
+
+        val bulkCollections get() = url + "bulk-collections"
 
         fun focus(id: String) = Cipher(url = url + id)
 
@@ -241,7 +277,7 @@ suspend fun ServerEnvApi.Accounts.avatar(
         setBody(model)
         attributes.put(routeAttribute, "put-avatar")
     }
-    .bodyOrApiException<Unit>()
+    .bodyOrApiException<ProfileResponseModel>()
 
 suspend fun ServerEnvApi.Accounts.profile(
     httpClient: HttpClient,
@@ -256,7 +292,43 @@ suspend fun ServerEnvApi.Accounts.profile(
         setBody(model)
         attributes.put(routeAttribute, "put-profile")
     }
-    .bodyOrApiException<Unit>()
+    .bodyOrApiException<ProfileResponseModel>()
+
+suspend fun ServerEnvApi.Accounts.subscription(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+) = httpClient
+    .get(subscription) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        attributes.put(routeAttribute, "get-account-subscription")
+    }
+    .bodyOrApiException<SubscriptionResponseModel>()
+
+suspend fun ServerEnvApi.Organizations.subscription(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    organizationId: String,
+) = focus(id = organizationId)
+    .subscription(
+        httpClient = httpClient,
+        env = env,
+        token = token,
+    )
+
+suspend fun ServerEnvApi.Organizations.Organization.subscription(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+) = httpClient
+    .get(subscription) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        attributes.put(routeAttribute, "get-organization-subscription")
+    }
+    .bodyOrApiException<OrganizationSubscriptionResponseModel>()
 
 suspend fun ServerEnvApi.HaveIBeenPwned.breach(
     httpClient: HttpClient,
@@ -339,6 +411,86 @@ suspend fun ServerEnvApi.Ciphers.unarchive(
     token = token,
     body = body,
     route = "put-unarchive-ciphers",
+)
+
+// Note: This is a soft delete that moves ciphers to trash.
+suspend fun ServerEnvApi.Ciphers.trash(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: CipherDeleteRequest,
+) = trash.put<CipherDeleteRequest, HttpResponse>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "put-delete-ciphers",
+)
+
+// Note: This is a hard delete that permanently removes ciphers.
+suspend fun ServerEnvApi.Ciphers.delete(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: CipherDeleteRequest,
+) = url.delete<CipherDeleteRequest>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "delete-ciphers",
+)
+
+suspend fun ServerEnvApi.Ciphers.restore(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: CipherRestoreRequest,
+) = restore.put<CipherRestoreRequest, CipherListEntity>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "put-restore-ciphers",
+)
+
+suspend fun ServerEnvApi.Ciphers.move(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: CipherMoveRequest,
+) = move.put<CipherMoveRequest, HttpResponse>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "put-move-ciphers",
+)
+
+suspend fun ServerEnvApi.Ciphers.share(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: CipherBulkShareRequest,
+) = share.put<CipherBulkShareRequest, CipherListEntity>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "put-share-ciphers",
+)
+
+suspend fun ServerEnvApi.Ciphers.bulkCollections(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: CipherBulkUpdateCollectionsRequest,
+) = bulkCollections.post<CipherBulkUpdateCollectionsRequest, HttpResponse>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "post-bulk-cipher-collections",
 )
 
 suspend fun ServerEnvApi.Ciphers.Cipher.get(
@@ -818,6 +970,22 @@ private suspend inline fun <reified Input, reified Output : Any> String.put(
         attributes.put(routeAttribute, route)
     }
     .bodyOrApiException<Output>()
+
+private suspend inline fun <reified Input> String.delete(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: Input,
+    route: String,
+) = httpClient
+    .delete(this) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        contentType(ContentType.Application.Json)
+        setBody(body)
+        attributes.put(routeAttribute, route)
+    }
+    .bodyOrApiException<HttpResponse>()
 
 private suspend inline fun String.delete(
     httpClient: HttpClient,

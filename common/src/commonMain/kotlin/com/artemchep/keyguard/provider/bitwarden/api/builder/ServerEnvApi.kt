@@ -333,7 +333,7 @@ suspend fun ServerEnvApi.Ciphers.unarchive(
     env: ServerEnv,
     token: String,
     body: CipherUnarchiveRequest,
-) = archive.put<CipherUnarchiveRequest, CipherListEntity>(
+) = unarchive.put<CipherUnarchiveRequest, CipherListEntity>(
     httpClient = httpClient,
     env = env,
     token = token,

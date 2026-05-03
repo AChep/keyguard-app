@@ -49,7 +49,6 @@ import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceImpl
-import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceStatelessProxy
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.TextService
@@ -77,7 +76,6 @@ import com.artemchep.keyguard.copy.PermissionServiceJvm
 import com.artemchep.keyguard.copy.PowerServiceJvm
 import com.artemchep.keyguard.copy.ReviewServiceJvm
 import com.artemchep.keyguard.copy.TextServiceJvm
-import com.artemchep.keyguard.core.session.BiometricStatusUseCaseImpl
 import com.artemchep.keyguard.core.store.DatabaseSqlManagerInFileJvm
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
@@ -88,6 +86,8 @@ import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.resolve
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderDesktop
 import com.artemchep.keyguard.util.traverse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -312,6 +312,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<CacheDirProvider> {
         CacheDirProviderJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<PendingUploadDirProvider> {
+        PendingUploadDirProviderDesktop(
             directDI = this,
         )
     }

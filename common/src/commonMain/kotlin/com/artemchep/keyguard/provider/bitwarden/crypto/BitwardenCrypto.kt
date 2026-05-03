@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.exception.DecodeException
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 
 private typealias Decoder = (String) -> DecodeResult
 
@@ -348,11 +349,37 @@ fun BitwardenCrFactoryScope.appendOrganizationToken2(
 
 fun CryptoGenerator.makeCipherCryptoKeyMaterial() = seed(length = 64)
 
+internal fun BitwardenCipher?.keyBase64OrGenerate(
+    cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
+): String = this?.keyBase64
+    ?: cryptoGenerator
+        .makeCipherCryptoKeyMaterial()
+        .let(base64Service::encodeToString)
+
+internal fun BitwardenCipher.withCipherKeyBase64(
+    cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
+): BitwardenCipher = if (keyBase64 != null) {
+    this
+} else {
+    copy(
+        keyBase64 = this.keyBase64OrGenerate(
+            cryptoGenerator = cryptoGenerator,
+            base64Service = base64Service,
+        ),
+    )
+}
+
+fun CryptoGenerator.makeCipherAttachmentCryptoKeyMaterial() = seed(length = 64)
+
 //
 // Sends
 //
 
 fun CryptoGenerator.makeSendCryptoKeyMaterial() = seed(length = 16)
+
+fun CryptoGenerator.makeSendFileCryptoKeyMaterial() = seed(length = 64)
 
 fun CryptoGenerator.makeSendCryptoKey(
     keyMaterial: ByteArray = makeSendCryptoKeyMaterial(),

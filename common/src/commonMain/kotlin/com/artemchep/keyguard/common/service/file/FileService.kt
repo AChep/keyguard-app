@@ -14,6 +14,8 @@ interface FileService {
     fun writeToFile(uri: String): Sink
 
     fun delete(uri: String): Boolean
+
+    fun deleteManagedSourceFile(uri: String): Boolean = false
 }
 
 class PureFileService : FileService {

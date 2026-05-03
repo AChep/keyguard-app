@@ -40,6 +40,7 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.UsernameVariation2
 import com.artemchep.keyguard.common.model.buildDocs
+import com.artemchep.keyguard.common.model.map
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.create.address1
 import com.artemchep.keyguard.common.model.create.address2
@@ -128,9 +129,12 @@ import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConf
 import com.artemchep.keyguard.feature.datepicker.DatePickerResult
 import com.artemchep.keyguard.feature.datepicker.DatePickerRoute
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachmentItemFactory
+import com.artemchep.keyguard.feature.home.vault.add.attachment.toSkeletonAttachmentOrNull
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -161,6 +165,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
@@ -275,6 +280,13 @@ fun produceAddScreenState(
         .combine(ownershipFlow) { profiles, ownership ->
             profiles
                 .firstOrNull { it.accountId == ownership.data.accountId }
+        }
+        .distinctUntilChanged()
+    val accountTypeFlow = getAccounts()
+        .combine(ownershipFlow) { accounts, ownership ->
+            accounts
+                .firstOrNull { it.id.id == ownership.data.accountId }
+                ?.type
         }
         .distinctUntilChanged()
 
@@ -429,6 +441,7 @@ fun produceAddScreenState(
         },
     )
 
+    val attachmentsFileDragFlow = MutableStateFlow<AddState.FileDrag?>(null)
     val attachmentsFactories = kotlin.run {
         val attachmentFactory = SkeletonAttachmentItemFactory()
         listOf(
@@ -461,6 +474,7 @@ fun produceAddScreenState(
                                 id = it.id,
                                 uri = uri,
                                 size = it.fileSize(),
+                                keyBase64 = it.keyBase64,
                             ),
                             name = it.fileName(),
                             size = it.fileSize()?.let(::humanReadableByteCountSI).orEmpty(),
@@ -484,38 +498,61 @@ fun produceAddScreenState(
             add(0, header)
         },
         extra = {
-            val action = FlatItemAction(
-                title = TextHolder.Value("Attachment"),
-                onClick = {
-                    val intent = FilePickerIntent.OpenDocument { info ->
-                        val msg = ToastMessage(
-                            title = "Picked a file!",
-                            text = info?.name?.toString(),
-                        )
-                        showMessage.copy(msg)
+            val bitwardenUploadLimitError = translate(Res.string.error_file_must_be_500_mb_or_smaller)
+            val keePassUploadLimitError = translate(Res.string.error_file_must_be_1_mb_or_smaller)
 
-                        if (info != null) {
-                            val model = SkeletonAttachment.Local(
-                                identity = SkeletonAttachment.Local.Identity(
-                                    id = Uuid.random().toString(),
-                                    uri = info.uri,
-                                    size = info.size,
-                                ),
-                                name = info.name ?: "File",
-                                size = info.size?.let(::humanReadableByteCountSI).orEmpty(),
-                            )
-                            add("attachment", model)
-                        }
+            fun addAttachmentFile(
+                info: FilePickerResult,
+                accountType: AccountType?,
+            ) {
+                val attachment = info.toSkeletonAttachmentOrNull(accountType)
+                if (attachment == null) {
+                    val title = when (accountType) {
+                        AccountType.KEEPASS -> keePassUploadLimitError
+                        AccountType.BITWARDEN,
+                        null,
+                        -> bitwardenUploadLimitError
                     }
-                    filePickerEvents.emit(intent)
-                },
-            )
-            val item = AddStateItem.Add(
-                id = "attachment.add",
-                text = translate(Res.string.list_add),
-                actions = persistentListOf(action),
-            )
-            flowOf(emptyList())
+                    val msg = ToastMessage(
+                        type = ToastMessage.Type.ERROR,
+                        title = title,
+                    )
+                    showMessage.copy(msg)
+                    return
+                }
+
+                add(
+                    type = "attachment",
+                    arg = attachment,
+                )
+            }
+
+            accountTypeFlow.map { accountType ->
+                attachmentsFileDragFlow.value = AddState.FileDrag(
+                    anchorItemId = "attachment.add",
+                    text = translate(Res.string.additem_attachments_drop_here),
+                    onFileDrop = { info ->
+                        addAttachmentFile(info, accountType)
+                    },
+                )
+                val action = FlatItemAction(
+                    title = TextHolder.Value("Attachment"),
+                    onClick = {
+                        val intent = FilePickerIntent.OpenDocument { info ->
+                            if (info != null) {
+                                addAttachmentFile(info, accountType)
+                            }
+                        }
+                        filePickerEvents.emit(intent)
+                    },
+                )
+                val item = AddStateItem.Add(
+                    id = "attachment.add",
+                    text = translate(Res.string.list_add),
+                    actions = persistentListOf(action),
+                )
+                listOf(item)
+            }
         },
     )
 
@@ -968,6 +1005,12 @@ fun produceAddScreenState(
             },
         )
         Loadable.Ok(state)
+    }.combine(attachmentsFileDragFlow) { state, fileDrag ->
+        state.map { value ->
+            value.copy(
+                fileDrag = fileDrag,
+            )
+        }
     }
     f
 }
@@ -3508,7 +3551,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
             is SshKeyImportResult.Success -> {
                 val msg = ToastMessage(
                     type = ToastMessage.Type.SUCCESS,
-                    title = translate(Res.string.ssh_key_import_passphrase_title),
+                    title = translate(Res.string.ssh_key_import_success_title),
                 )
                 showMessage.copy(msg)
                 // success!
@@ -3567,7 +3610,40 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
             navigate(intent)
         }
 
-        fun onImportKey() {
+        suspend fun onImportKey(
+            info: FilePickerResult,
+        ) {
+            handleSshKeyFileImport(
+                info = info,
+                readText = textService::readFromFileAsText,
+                importSshKey = sshKeyImportService::import,
+                onSuccess = { keyPair ->
+                    val msg = ToastMessage(
+                        type = ToastMessage.Type.SUCCESS,
+                        title = translate(Res.string.ssh_key_import_success_title),
+                    )
+                    showMessage.copy(msg)
+                    sink.value = keyPair.toDecor()
+                },
+                onNeedsPassphrase = { result, fileName, content ->
+                    onImportKeyWithPassphrase(
+                        result = result,
+                        fileName = fileName,
+                        content = content,
+                    )
+                },
+                onImportError = { reason ->
+                    val msg = createLocalizedSshKeyImportErrorToast(reason)
+                    showMessage.copy(msg)
+                },
+                onReadError = {
+                    val msg = createLocalizedSshKeyImportReadErrorToast()
+                    showMessage.copy(msg)
+                },
+            )
+        }
+
+        fun requestImportKey() {
             val intent = FilePickerIntent.OpenDocument(
                 mimeTypes = FilePickerIntent.mimeTypesAll,
             ) { info ->
@@ -3576,30 +3652,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                 }
 
                 appScope.launch {
-                    val content = kotlin.runCatching {
-                        val uri = info.uri.toString()
-                        textService.readFromFileAsText(uri)
-                    }.getOrElse {
-                        val msg = createLocalizedSshKeyImportReadErrorToast()
-                        showMessage.copy(msg)
-                        return@launch
-                    }
-
-                    val fileName = info.name
-                    importKey(
-                        content = content,
-                        fileName = fileName,
-                        passphrase = null,
-                        // callbacks
-                        onNeedsPassphrase = { result ->
-                            // redirect to a next flow
-                            onImportKeyWithPassphrase(
-                                result = result,
-                                fileName = fileName,
-                                content = content,
-                            )
-                        },
-                    )
+                    onImportKey(info)
                 }
             }
             filePickerIntentSink.emit(intent)
@@ -3613,7 +3666,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                         onChange = {
                             sink.value = it.toDecor()
                         },
-                        onImport = ::onImportKey,
+                        onImport = ::requestImportKey,
                     )
                 }
                 .persistingStateIn(
@@ -3623,7 +3676,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                         onChange = {
                             // Do nothing
                         },
-                        onImport = :: onImportKey,
+                        onImport = ::requestImportKey,
                     ),
                 ),
             populator = { state ->
@@ -3637,6 +3690,14 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
         )
         AddStateItem.SshKey(
             id = id,
+            fileDrop = AddStateItem.FileDrop(
+                text = translate(Res.string.ssh_key_import_drop_here),
+                onFileDrop = { info ->
+                    appScope.launch {
+                        onImportKey(info)
+                    }
+                },
+            ),
             state = stateItem,
         )
     }
@@ -3698,6 +3759,45 @@ private fun createSshKeyImportToast(
     title = title,
     text = text,
 )
+
+internal suspend fun handleSshKeyFileImport(
+    info: FilePickerResult,
+    readText: suspend (String) -> String,
+    importSshKey: suspend (SshKeyImportRequest) -> SshKeyImportResult,
+    onSuccess: suspend (KeyPair) -> Unit,
+    onNeedsPassphrase: suspend (SshKeyImportResult.NeedsPassphrase, String?, String) -> Unit,
+    onImportError: suspend (SshKeyImportError) -> Unit,
+    onReadError: suspend () -> Unit,
+) {
+    val content = kotlin.runCatching {
+        readText(info.uri.toString())
+    }.getOrElse {
+        onReadError()
+        return
+    }
+    val fileName = info.name
+    when (
+        val result = importSshKey(
+            SshKeyImportRequest(
+                content = content,
+                fileName = fileName,
+                passphrase = null,
+            ),
+        )
+    ) {
+        is SshKeyImportResult.Success -> {
+            onSuccess(result.keyPair)
+        }
+
+        is SshKeyImportResult.NeedsPassphrase -> {
+            onNeedsPassphrase(result, fileName, content)
+        }
+
+        is SshKeyImportResult.Error -> {
+            onImportError(result.reason)
+        }
+    }
+}
 
 private fun KeyPair.toDecor() = KeyPairDecor2(
     privateKey = privateKey.ssh,

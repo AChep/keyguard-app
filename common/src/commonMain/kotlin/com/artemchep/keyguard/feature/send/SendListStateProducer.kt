@@ -50,6 +50,7 @@ import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.find
@@ -81,7 +82,6 @@ import com.artemchep.keyguard.feature.send.search.filter.FilterSendHolder
 import com.artemchep.keyguard.feature.send.util.SendUtil
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
-import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -228,6 +228,28 @@ fun sendListScreenState(
         queryFocusSink.emit(Unit)
     }
 
+    fun navigateToNewSend(
+        type: DSend.Type,
+        selectedFile: FilePickerResult? = null,
+    ) {
+        // If the selected file exists, then
+        // the type of the send must be the file type.
+        if (selectedFile != null) {
+            require(type == DSend.Type.File) {
+                "When provided a file, the send must have the File type!"
+            }
+        }
+
+        val route = SendAddRoute(
+            args = SendAddRoute.Args(
+                type = type,
+                selectedFile = selectedFile,
+            ),
+        )
+        val intent = NavigationIntent.NavigateToRoute(route)
+        navigate(intent)
+    }
+
     // Intercept the back button while the
     // search query is not empty.
     interceptBackPress(
@@ -279,13 +301,9 @@ fun sendListScreenState(
                 if (enabled) {
                     // lambda
                     {
-                        val route = SendAddRoute(
-                            args = SendAddRoute.Args(
-                                type = DSend.Type.Text,
-                            ),
+                        navigateToNewSend(
+                            type = DSend.Type.Text,
                         )
-                        val intent = NavigationIntent.NavigateToRoute(route)
-                        navigate(intent)
                     }
                 } else {
                     null
@@ -776,35 +794,58 @@ fun sendListScreenState(
         leading = icon(type.iconImageVector()),
         title = type.titleH().wrap(),
         onClick = {
-            val route = SendAddRoute(
-                args = SendAddRoute.Args(
-                    type = type,
-                ),
-            )
-            val intent = NavigationIntent.NavigateToRoute(route)
-            navigate(intent)
+            navigateToNewSend(type = type)
         },
     )
-
-    val primaryActionsAll = buildContextItems {
-        this += createTypeAction(
-            type = DSend.Type.Text,
-        )
-        this += createTypeAction(
+    val createTextAction = createTypeAction(
+        type = DSend.Type.Text,
+    )
+    val createFileAction = createTypeAction(
+        type = DSend.Type.File,
+    )
+    val canCreateFileSendFlow = combine(
+        getAccounts(),
+        getProfiles(),
+    ) { accounts, profiles ->
+        hasEligibleAccountForSendType(
+            accounts = accounts,
+            profiles = profiles,
             type = DSend.Type.File,
-        ).takeIf { !isRelease }
+        )
     }
     val primaryActionsFlow = kotlin.run {
         combine(
             canEditFlow,
             selectionHandle.idsFlow,
-        ) { canEdit, selectedItemIds ->
+            canCreateFileSendFlow,
+        ) { canEdit, selectedItemIds, canCreateFileSend ->
             if (canEdit && selectedItemIds.isEmpty()) {
-                primaryActionsAll
+                buildContextItems {
+                    this += createTextAction
+                    if (canCreateFileSend) {
+                        this += createFileAction
+                    }
+                }
             } else {
                 // No items
                 persistentListOf()
             }
+        }
+    }
+    val onFileDropFlow = combine(
+        canEditFlow,
+        selectionHandle.idsFlow,
+        canCreateFileSendFlow,
+    ) { canEdit, selectedItemIds, canCreateFileSend ->
+        if (canEdit && selectedItemIds.isEmpty() && canCreateFileSend) {
+            { file: FilePickerResult ->
+                navigateToNewSend(
+                    type = DSend.Type.File,
+                    selectedFile = file,
+                )
+            }
+        } else {
+            null
         }
     }
 
@@ -959,6 +1000,10 @@ fun sendListScreenState(
     }.combine(primaryActionsFlow) { state, actions ->
         state.copy(
             primaryActions = actions,
+        )
+    }.combine(onFileDropFlow) { state, onFileDrop ->
+        state.copy(
+            onFileDrop = onFileDrop,
         )
     }.combine(actionsFlow) { state, actions ->
         state.copy(

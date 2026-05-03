@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -85,12 +86,15 @@ import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
+import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
+import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemTextContent2
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewTotpBadge2
+import com.artemchep.keyguard.feature.home.vault.component.defaultFlatItemPaddingValues
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.qr.ScanQrButton
@@ -418,6 +422,48 @@ fun AnyField(
             item = item,
         )
     }
+}
+
+@Composable
+private fun FileDropField(
+    modifier: Modifier = Modifier,
+    containerPadding: PaddingValues = PaddingValues(0.dp),
+    fileDrop: AddStateItem.FileDrop?,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    if (fileDrop == null) {
+        Box(
+            modifier = modifier,
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(containerPadding),
+                content = content,
+            )
+        }
+        return
+    }
+
+    FileDropTargetBox(
+        modifier = modifier,
+        enabled = true,
+        onFileDrop = fileDrop.onFileDrop,
+        content = {
+            Box(
+                modifier = Modifier
+                    .padding(containerPadding),
+                content = content,
+            )
+        },
+        overlay = {
+            FileDropOverlay(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(containerPadding),
+                text = fileDrop.text,
+            )
+        },
+    )
 }
 
 context(AddScreenScope)
@@ -780,58 +826,64 @@ private fun SshKeyField(
     shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
-    FlatItemLayoutExpressive(
+    FileDropField(
         modifier = modifier,
-        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-        leading = icon<RowScope>(Icons.Outlined.Terminal, Icons.Outlined.Key),
-        shapeState = shapeState,
-        content = {
-            val fingerprint = state.keyPair?.fingerprint
-            if (!fingerprint.isNullOrEmpty()) {
-                FlatItemTextContent(
-                    title = {
-                        Text(
-                            text = fingerprint,
-                        )
+        containerPadding = defaultFlatItemPaddingValues(),
+        fileDrop = item.fileDrop,
+    ) {
+        FlatItemLayoutExpressive(
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            leading = icon<RowScope>(Icons.Outlined.Terminal, Icons.Outlined.Key),
+            shapeState = shapeState,
+            padding = PaddingValues(0.dp),
+            content = {
+                val fingerprint = state.keyPair?.fingerprint
+                if (!fingerprint.isNullOrEmpty()) {
+                    FlatItemTextContent(
+                        title = {
+                            Text(
+                                text = fingerprint,
+                            )
+                        },
+                    )
+                } else {
+                    FlatItemTextContent(
+                        title = {
+                            Text(
+                                modifier = Modifier
+                                    .alpha(DisabledEmphasisAlpha),
+                                text = stringResource(Res.string.key_ssh_value_placeholder),
+                            )
+                        },
+                    )
+                }
+            },
+            trailing = {
+                AutofillButton(
+                    key = "sshKey",
+                    sshKey = true,
+                    provideUris = {
+                        this@AddScreenScope
+                            .obtainUriContext()
+                    },
+                    onResultChange = {
+                        if (it is GetPasswordResult.AsyncKey) {
+                            state.onChange(it.keyPair)
+                        }
                     },
                 )
-            } else {
-                FlatItemTextContent(
-                    title = {
-                        Text(
-                            modifier = Modifier
-                                .alpha(DisabledEmphasisAlpha),
-                            text = stringResource(Res.string.key_ssh_value_placeholder),
-                        )
-                    },
-                )
-            }
-        },
-        trailing = {
-            AutofillButton(
-                key = "sshKey",
-                sshKey = true,
-                provideUris = {
-                    this@AddScreenScope
-                        .obtainUriContext()
-                },
-                onResultChange = {
-                    if (it is GetPasswordResult.AsyncKey) {
-                        state.onChange(it.keyPair)
-                    }
-                },
-            )
-            IconButton(
-                onClick = state.onImport,
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.FileUpload,
-                    contentDescription = stringResource(Res.string.ssh_key_import_title),
-                )
-            }
-        },
-        enabled = true,
-    )
+                IconButton(
+                    onClick = state.onImport,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.FileUpload,
+                        contentDescription = stringResource(Res.string.ssh_key_import_title),
+                    )
+                }
+            },
+            enabled = true,
+        )
+    }
 }
 
 context(AddScreenScope)
@@ -891,77 +943,82 @@ private fun AttachmentTextField(
     shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
-    FlatTextField(
-        modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
-        label = "File",
-        shapeState = shapeState,
-        placeholder = "File name",
-        value = state.name,
-        keyboardOptions = KeyboardOptions(
-            autoCorrectEnabled = false,
-            keyboardType = KeyboardType.Text,
-        ),
-        singleLine = true,
-        maxLines = 1,
-        leading = {
-            Box {
-                Icon(
-                    imageVector = Icons.Outlined.KeyguardAttachment,
-                    contentDescription = null,
-                )
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .background(
-                            MaterialTheme.colorScheme.tertiaryContainer,
-                            MaterialTheme.shapes.extraSmall,
-                        ),
-                ) {
-                    if (state.synced) {
-                        Icon(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .padding(1.dp),
-                            imageVector = Icons.Outlined.CloudDone,
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                            contentDescription = null,
-                        )
-                    }
-                    if (!state.synced) {
-                        Icon(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .padding(1.dp),
-                            imageVector = Icons.Outlined.FileUpload,
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                            contentDescription = null,
-                        )
-                    }
-                }
-            }
-        },
-        content = {
-            ExpandedIfNotEmpty(
-                valueOrNull = state.size,
-            ) { fileSize ->
-                Column {
-                    Spacer(Modifier.height(8.dp))
-                    HorizontalDivider()
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = fileSize,
-                        style = MaterialTheme.typography.labelSmall,
+    FileDropField(
+        modifier = modifier,
+        containerPadding = defaultFlatItemPaddingValues(),
+        fileDrop = item.fileDrop,
+    ) {
+        FlatTextField(
+            modifier = Modifier,
+            label = stringResource(Res.string.file),
+            shapeState = shapeState,
+            placeholder = stringResource(Res.string.file_name_placeholder),
+            value = state.name,
+            keyboardOptions = KeyboardOptions(
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Text,
+            ),
+            singleLine = true,
+            maxLines = 1,
+            leading = {
+                Box {
+                    Icon(
+                        imageVector = Icons.Outlined.KeyguardAttachment,
+                        contentDescription = null,
                     )
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .background(
+                                MaterialTheme.colorScheme.tertiaryContainer,
+                                MaterialTheme.shapes.extraSmall,
+                            ),
+                    ) {
+                        if (state.synced) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .padding(1.dp),
+                                imageVector = Icons.Outlined.CloudDone,
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                contentDescription = null,
+                            )
+                        }
+                        if (!state.synced) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .padding(1.dp),
+                                imageVector = Icons.Outlined.FileUpload,
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                contentDescription = null,
+                            )
+                        }
+                    }
                 }
-            }
-        },
-        trailing = {
-            OptionsButton(
-                actions = item.options,
-            )
-        },
-    )
+            },
+            content = {
+                ExpandedIfNotEmpty(
+                    valueOrNull = state.size,
+                ) { fileSize ->
+                    Column {
+                        Spacer(Modifier.height(8.dp))
+                        HorizontalDivider()
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = fileSize,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+            },
+            trailing = {
+                OptionsButton(
+                    actions = item.options,
+                )
+            },
+        )
+    }
 }
 
 context(AddScreenScope)

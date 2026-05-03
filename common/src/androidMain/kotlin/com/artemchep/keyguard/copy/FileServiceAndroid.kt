@@ -7,6 +7,7 @@ import android.provider.OpenableColumns
 import androidx.core.net.toFile
 import androidx.core.net.toUri
 import com.artemchep.keyguard.common.service.file.FileService
+import com.artemchep.keyguard.feature.filepicker.AndroidFileDropStorage
 import kotlinx.io.Source
 import kotlinx.io.Sink
 import kotlinx.io.IOException
@@ -72,9 +73,18 @@ class FileServiceAndroid(
 
     override fun readFromFile(uri: String): Source {
         val parsedUri = uri.toUri()
-        return context.contentResolver.openInputStream(parsedUri)!!
-            .asSource()
-            .buffered()
+        return when (parsedUri.scheme) {
+            "file" -> {
+                parsedUri.toFile()
+                    .inputStream()
+                    .asSource()
+                    .buffered()
+            }
+
+            else -> context.contentResolver.openInputStream(parsedUri)!!
+                .asSource()
+                .buffered()
+        }
     }
 
     override fun writeToFile(uri: String): Sink {
@@ -95,4 +105,10 @@ class FileServiceAndroid(
             }
         }
     }
+
+    override fun deleteManagedSourceFile(uri: String): Boolean =
+        AndroidFileDropStorage.deleteIfManagedUri(
+            context = context,
+            uri = uri,
+        )
 }

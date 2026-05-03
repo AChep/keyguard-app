@@ -25,4 +25,11 @@ class AttachmentItemStatusTest {
 
         assertIs<AttachmentItem.Status.None>(status)
     }
+
+    @Test
+    fun `pending upload status has no preview url`() {
+        val status = AttachmentItem.Status.PendingUpload
+
+        assertEquals(null, status.previewUrl)
+    }
 }

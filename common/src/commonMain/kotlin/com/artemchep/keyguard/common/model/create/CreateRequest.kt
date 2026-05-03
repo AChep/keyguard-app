@@ -81,6 +81,7 @@ data class CreateRequest(
             val uri: LeUri,
             val name: String,
             val size: Long? = null,
+            val keyBase64: String? = null,
         ) : Attachment {
             companion object
         }

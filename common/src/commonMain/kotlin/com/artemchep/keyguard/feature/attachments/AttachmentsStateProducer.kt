@@ -537,6 +537,7 @@ sealed interface FooStatus {
             is AttachmentItem.Status.None -> None
             is AttachmentItem.Status.Loading -> Loading
             is AttachmentItem.Status.Failed -> Failed
+            is AttachmentItem.Status.PendingUpload -> PendingUpload
             is AttachmentItem.Status.Downloaded ->
                 Downloaded(
                     localUrl = attachmentStatus.localUrl,
@@ -549,6 +550,8 @@ sealed interface FooStatus {
     data object Loading : FooStatus
 
     data object Failed : FooStatus
+
+    data object PendingUpload : FooStatus
 
     data class Downloaded(
         val localUrl: String,
@@ -614,6 +617,10 @@ fun foo(
                         onClick = ::performDownload,
                         type = FlatItemAction.Type.DOWNLOAD,
                     )
+                }
+
+                is FooStatus.PendingUpload -> {
+                    // No actions
                 }
 
                 is FooStatus.Downloaded -> {

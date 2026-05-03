@@ -27,23 +27,37 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.fields
 import com.artemchep.keyguard.core.store.bitwarden.getMergeRules
 import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
+import com.artemchep.keyguard.core.store.bitwarden.hasPendingAttachmentMutations
 import com.artemchep.keyguard.core.store.bitwarden.login
 import com.artemchep.keyguard.core.store.bitwarden.name
+import com.artemchep.keyguard.core.store.bitwarden.PendingLocalAttachmentReconciliationResult
+import com.artemchep.keyguard.core.store.bitwarden.pendingLocalAttachments
+import com.artemchep.keyguard.core.store.bitwarden.pendingRemoteAttachmentDeletionIds
+import com.artemchep.keyguard.core.store.bitwarden.reconcilePendingSendFileUpload
+import com.artemchep.keyguard.core.store.bitwarden.reconcilePendingLocalAttachments
 import com.artemchep.keyguard.core.store.bitwarden.tags
 import com.artemchep.keyguard.core.store.bitwarden.uris
+import com.artemchep.keyguard.core.store.bitwarden.withPendingUpload
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
 import com.artemchep.keyguard.provider.bitwarden.api.builder.create
 import com.artemchep.keyguard.provider.bitwarden.api.builder.delete
 import com.artemchep.keyguard.provider.bitwarden.api.builder.get
+import com.artemchep.keyguard.provider.bitwarden.api.builder.getFileUploadTarget
 import com.artemchep.keyguard.provider.bitwarden.api.builder.post
+import com.artemchep.keyguard.provider.bitwarden.api.builder.postFileV2
+import com.artemchep.keyguard.provider.bitwarden.api.builder.postV2
 import com.artemchep.keyguard.provider.bitwarden.api.builder.put
+import com.artemchep.keyguard.provider.bitwarden.api.builder.renew
 import com.artemchep.keyguard.provider.bitwarden.api.builder.removePassword
 import com.artemchep.keyguard.provider.bitwarden.api.builder.restore
 import com.artemchep.keyguard.provider.bitwarden.api.builder.sync
 import com.artemchep.keyguard.provider.bitwarden.api.builder.trash
+import com.artemchep.keyguard.provider.bitwarden.api.builder.uploadCipherAttachment
+import com.artemchep.keyguard.provider.bitwarden.api.builder.uploadSendFile
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.SendFileUploadTarget
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCr
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrImpl
@@ -56,6 +70,7 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.decodeSymmetricOrThrow
 import com.artemchep.keyguard.provider.bitwarden.crypto.encrypted
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.transform
+import com.artemchep.keyguard.provider.bitwarden.crypto.withCipherKeyBase64
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CollectionEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FolderEntity
@@ -63,11 +78,14 @@ import com.artemchep.keyguard.provider.bitwarden.entity.GlobalEquivalentDomainEn
 import com.artemchep.keyguard.provider.bitwarden.entity.OrganizationEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SendEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherAttachmentCreateRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.FolderUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.SendUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.of
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import io.ktor.client.HttpClient
 import io.ktor.client.call.NoTransformationFoundException
 import kotlin.time.Clock
@@ -94,6 +112,7 @@ class SyncEngine(
     private val cipherEncryptor: CipherEncryptor,
     private val logRepository: LogRepository,
     private val getPasswordStrength: GetPasswordStrength,
+    private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val user: BitwardenToken,
     private val syncer: DatabaseSyncer,
 ) {
@@ -653,6 +672,38 @@ class SyncEngine(
             )
             .executeAsList()
             .map { it.data_ }
+        val existingCipherById = existingCipher
+            .associateBy { it.cipherId }
+        suspend fun decodeCipherRaw(
+            entity: CipherEntity,
+            localCipherId: String?,
+        ): BitwardenCipher {
+            val (
+                itemCrypto,
+                globalCrypto,
+            ) = getCipherCodecPairFromEncrypted(
+                mode = BitwardenCrCta.Mode.DECRYPT,
+                keyCipherText = entity.key,
+                organizationId = entity.organizationId,
+            )
+            return itemCrypto
+                .cipherDecoder(
+                    entity = entity,
+                    codec2 = globalCrypto,
+                    localCipherId = localCipherId,
+                )
+        }
+
+        suspend fun decodeCipher(
+            entity: CipherEntity,
+            local: BitwardenCipher?,
+        ): BitwardenCipher {
+            val remoteDecoded = decodeCipherRaw(
+                entity = entity,
+                localCipherId = local?.cipherId,
+            )
+            return merge(remoteDecoded, local, getPasswordStrength)
+        }
         val encryptedFor = require(newProfile.profileId.isNotBlank()) {
             "Bitwarden profile id must be present before uploading cipher changes."
         }.let { newProfile.profileId }
@@ -706,6 +757,10 @@ class SyncEngine(
                     fields + tagFields
                 }
                 local = BitwardenCipher.tags.set(local, emptyList())
+                local = local.withCipherKeyBase64(
+                    cryptoGenerator = cryptoGenerator,
+                    base64Service = base64Service,
+                )
 
                 val itemKey = local.keyBase64
                     ?.let(base64Service::decode)
@@ -728,11 +783,27 @@ class SyncEngine(
                 ) to local
             },
             localDeleteById = { ids ->
+                val pendingUploadsToDelete = ids
+                    .asSequence()
+                    .flatMap { cipherId ->
+                        existingCipherById[cipherId]
+                            ?.attachments
+                            .orEmpty()
+                            .asSequence()
+                    }
+                    .filterIsInstance<BitwardenCipher.Attachment.Local>()
+                    .mapNotNull { it.pendingUpload }
+                    .toList()
                 cipherDao.transaction {
                     ids.forEach { cipherId ->
                         cipherDao.deleteByCipherId(
                             cipherId = cipherId,
                         )
+                    }
+                }
+                pendingUploadsToDelete.forEach { pendingUpload ->
+                    runCatching {
+                        pendingUploadCoordinator.delete(pendingUpload)
                     }
                 }
             },
@@ -789,6 +860,9 @@ class SyncEngine(
                 if (local.remoteEntity == null) {
                     return@syncX true
                 }
+                if (local.hasPendingAttachmentMutations()) {
+                    return@syncX false
+                }
 
                 val remoteAttachments = remote.attachments
                     .orEmpty()
@@ -829,30 +903,19 @@ class SyncEngine(
                 if (passkeyCreatedAt) {
                     return@syncX true
                 }
+                if (local.hasPendingAttachmentMutations()) {
+                    return@syncX true
+                }
 
                 false
             },
             remoteItems = response.ciphers.orEmpty(),
             remoteLens = cipherRemoteLens,
             remoteDecoder = { remote, local ->
-                val (
-                    itemCrypto,
-                    globalCrypto,
-                ) = getCipherCodecPairFromEncrypted(
-                    mode = BitwardenCrCta.Mode.DECRYPT,
-                    keyCipherText = remote.key,
-                    organizationId = remote.organizationId,
+                decodeCipher(
+                    entity = remote,
+                    local = local,
                 )
-                itemCrypto
-                    .cipherDecoder(
-                        entity = remote,
-                        codec2 = globalCrypto,
-                        localCipherId = local?.cipherId,
-                    )
-                    .let { remoteDecoded ->
-                        // inject the local model into newly decoded remote one
-                        merge(remoteDecoded, local, getPasswordStrength)
-                    }
             },
             remoteDeleteById = { id ->
                 user.env.back().api.ciphers.focus(id).delete(
@@ -902,7 +965,60 @@ class SyncEngine(
             },
             remotePut = { (r, local) ->
                 val ciphersApi = user.env.back().api.ciphers
-                val cipherResponse = when (r) {
+                suspend fun refreshLocalFromResponse(
+                    cipherResponse: CipherEntity,
+                    baseLocal: BitwardenCipher,
+                ): BitwardenCipher {
+                    updateRemoteModel(cipherResponse)
+                    return decodeCipher(
+                        entity = cipherResponse,
+                        local = baseLocal,
+                    )
+                }
+
+                suspend fun persistAttachmentReconciliation(
+                    local: BitwardenCipher,
+                    remoteAttachments: List<BitwardenCipher.Attachment.Remote>,
+                    uploadedRemoteAttachmentIdsByLocalId: Map<String, String> = emptyMap(),
+                ): PendingLocalAttachmentReconciliationResult {
+                    val reconciliation = local.reconcilePendingLocalAttachments(
+                        remoteAttachments = remoteAttachments,
+                        uploadedRemoteAttachmentIdsByLocalId = uploadedRemoteAttachmentIdsByLocalId,
+                    )
+                    if (reconciliation.obsoletePendingUploads.isEmpty()) {
+                        return reconciliation
+                    }
+
+                    updateLocalModel(reconciliation.cipher)
+                    reconciliation.obsoletePendingUploads.forEach { pendingUpload ->
+                        afterLocalPut {
+                            pendingUploadCoordinator.delete(pendingUpload)
+                        }
+                    }
+                    return reconciliation
+                }
+
+                fun BitwardenCipher.withPendingAttachmentRemoteId(
+                    localAttachmentId: String,
+                    remoteAttachmentId: String,
+                ) = copy(
+                    attachments = attachments.map { attachment ->
+                        val localAttachment = attachment as? BitwardenCipher.Attachment.Local
+                            ?: return@map attachment
+                        if (localAttachment.id != localAttachmentId) {
+                            return@map attachment
+                        }
+                        val pendingUpload = localAttachment.pendingUpload
+                            ?: return@map attachment
+                        localAttachment.copy(
+                            pendingUpload = pendingUpload.copy(
+                                remoteId = remoteAttachmentId,
+                            ),
+                        )
+                    },
+                )
+
+                val initialResponse = when (r) {
                     is CipherUpdate.Modify -> {
                         val cipherApi = ciphersApi.focus(r.cipherId)
                         var cipherRequest = r.cipherRequest
@@ -995,26 +1111,191 @@ class SyncEngine(
                     }
                 }
 
-                val itemKey = local.keyBase64
-                    ?.let(base64Service::decode)
-                val (
-                    itemCrypto,
-                    globalCrypto,
-                ) = getCipherCodecPair(
-                    mode = BitwardenCrCta.Mode.DECRYPT,
-                    key = itemKey,
-                    organizationId = r.source.organizationId,
+                var currentLocal = refreshLocalFromResponse(
+                    cipherResponse = initialResponse,
+                    baseLocal = local,
                 )
-                itemCrypto
-                    .cipherDecoder(
-                        entity = cipherResponse,
-                        codec2 = globalCrypto,
-                        localCipherId = r.source.cipherId,
-                    )
-                    .let { remoteDecoded ->
-                        // inject the local model into newly decoded remote one
-                        merge(remoteDecoded, r.source, getPasswordStrength)
+                val remoteCipherId = requireNotNull(currentLocal.service.remote?.id) {
+                    "Bitwarden cipher id must be available before attachment sync."
+                }
+                val cipherApi = ciphersApi.focus(remoteCipherId)
+                val shouldSyncAttachments = currentLocal.deletedDate == null &&
+                        currentLocal.hasPendingAttachmentMutations()
+                if (!shouldSyncAttachments) {
+                    return@syncX currentLocal
+                }
+
+                updateLocalModel(currentLocal)
+
+                currentLocal.pendingRemoteAttachmentDeletionIds()
+                    .forEach { attachmentId ->
+                        cipherApi.attachments.delete(
+                            httpClient = httpClient,
+                            env = env,
+                            token = user.token.accessToken,
+                            id = attachmentId,
+                        )
+                        val refreshedResponse = runCatching {
+                            cipherApi.get(
+                                httpClient = httpClient,
+                                env = env,
+                                token = user.token.accessToken,
+                            )
+                        }.getOrNull()
+                        if (refreshedResponse != null) {
+                            currentLocal = refreshLocalFromResponse(
+                                cipherResponse = refreshedResponse,
+                                baseLocal = currentLocal,
+                            )
+                            updateLocalModel(currentLocal)
+                        }
                     }
+
+                val uploadedPendingAttachmentRemoteIdsByLocalId = mutableMapOf<String, String>()
+                currentLocal.pendingLocalAttachments()
+                    .forEach { attachment ->
+                        val pendingUpload = attachment.pendingUpload
+                            ?: return@forEach
+                        val remoteId = pendingUpload.remoteId
+                            ?: return@forEach
+                        val uploaded = pendingUploadCoordinator.isUploaded(pendingUpload)
+                        if (uploaded) {
+                            uploadedPendingAttachmentRemoteIdsByLocalId[attachment.id] = remoteId
+                        }
+                    }
+
+                currentLocal = persistAttachmentReconciliation(
+                    local = currentLocal,
+                    remoteAttachments = currentLocal.attachments
+                        .filterIsInstance<BitwardenCipher.Attachment.Remote>(),
+                    uploadedRemoteAttachmentIdsByLocalId = uploadedPendingAttachmentRemoteIdsByLocalId,
+                ).cipher
+
+                while (true) {
+                    val localAttachment = currentLocal.pendingLocalAttachments()
+                        .firstOrNull()
+                        ?: break
+                    val pendingUpload = requireNotNull(localAttachment.pendingUpload) {
+                        "A pending local cipher attachment must contain staged upload metadata."
+                    }
+                    val itemKey = currentLocal.keyBase64?.let(base64Service::decode)
+                    val (itemCrypto, _) = getCipherCodecPair(
+                        mode = BitwardenCrCta.Mode.ENCRYPT,
+                        key = itemKey,
+                        organizationId = currentLocal.organizationId,
+                    )
+                    val attachmentCreateRequest = CipherAttachmentCreateRequest.of(
+                        cipher = currentLocal,
+                        attachment = localAttachment,
+                        itemCrypto = itemCrypto,
+                    )
+                    val remoteAttachmentId = pendingUpload.remoteId
+                    val createResponse = if (remoteAttachmentId != null) {
+                        runCatching {
+                            cipherApi.attachments.focus(remoteAttachmentId).renew(
+                                httpClient = httpClient,
+                                env = env,
+                                token = user.token.accessToken,
+                            )
+                        }.getOrElse { e ->
+                            if (e !is HttpException || e.statusCode != io.ktor.http.HttpStatusCode.NotFound) {
+                                throw e
+                            }
+                            cipherApi.attachments.postV2(
+                                httpClient = httpClient,
+                                env = env,
+                                token = user.token.accessToken,
+                                body = attachmentCreateRequest,
+                            )
+                        }
+                    } else {
+                        cipherApi.attachments.postV2(
+                            httpClient = httpClient,
+                            env = env,
+                            token = user.token.accessToken,
+                            body = attachmentCreateRequest,
+                        )
+                    }
+                    val reservedRemoteAttachmentId = remoteAttachmentId
+                        ?: createResponse.requiredAttachmentId
+                    if (pendingUpload.remoteId == null) {
+                        currentLocal = currentLocal.withPendingAttachmentRemoteId(
+                            localAttachmentId = localAttachment.id,
+                            remoteAttachmentId = reservedRemoteAttachmentId,
+                        )
+                        updateLocalModel(currentLocal)
+                    }
+                    try {
+                        uploadCipherAttachment(
+                            httpClient = httpClient,
+                            env = env,
+                            token = user.token.accessToken,
+                            target = createResponse.uploadTarget,
+                            fileName = attachmentCreateRequest.fileName,
+                            filePath = pendingUpload.path,
+                            fileLength = pendingUpload.encryptedSize,
+                        )
+                    } catch (e: Throwable) {
+                        runCatching {
+                            cipherApi.attachments.delete(
+                                httpClient = httpClient,
+                                env = env,
+                                token = user.token.accessToken,
+                                id = reservedRemoteAttachmentId,
+                            )
+                        }
+                        throw e
+                    }
+                    pendingUploadCoordinator.markUploaded(
+                        pendingUpload.copy(
+                            remoteId = reservedRemoteAttachmentId,
+                        ),
+                    )
+
+                    val refreshedResponse = runCatching {
+                        cipherApi.get(
+                            httpClient = httpClient,
+                            env = env,
+                            token = user.token.accessToken,
+                        )
+                    }.getOrElse { e ->
+                        createResponse.cipherResponse
+                            ?: createResponse.cipherMiniResponse
+                            ?: throw e
+                    }
+                    val refreshedRemote = decodeCipherRaw(
+                        entity = refreshedResponse,
+                        localCipherId = currentLocal.cipherId,
+                    )
+                    val reconciliation = persistAttachmentReconciliation(
+                        local = currentLocal,
+                        remoteAttachments = refreshedRemote.attachments
+                            .filterIsInstance<BitwardenCipher.Attachment.Remote>(),
+                        uploadedRemoteAttachmentIdsByLocalId = mapOf(
+                            localAttachment.id to reservedRemoteAttachmentId,
+                        ),
+                    )
+                    requireNotNull(reconciliation.replacementsByLocalId[localAttachment.id]) {
+                        "Failed to locate the uploaded cipher attachment on remote."
+                    }
+                    updateRemoteModel(refreshedResponse)
+                    currentLocal = merge(
+                        remote = refreshedRemote,
+                        local = reconciliation.cipher,
+                        getPasswordStrength = getPasswordStrength,
+                    )
+                    updateLocalModel(currentLocal)
+                }
+
+                val finalResponse = cipherApi.get(
+                    httpClient = httpClient,
+                    env = env,
+                    token = user.token.accessToken,
+                )
+                refreshLocalFromResponse(
+                    cipherResponse = finalResponse,
+                    baseLocal = currentLocal,
+                )
             },
             onLog = { msg, logLevel ->
                 logRepository.add(TAG, msg, logLevel)
@@ -1278,6 +1559,71 @@ class SyncEngine(
             )
             .executeAsList()
             .map { it.data_ }
+        val existingSendsById = existingSends
+            .associateBy { it.sendId }
+        val uploadedPendingUploadPaths = mutableSetOf<String>()
+        for (send in existingSends) {
+            val pendingUpload = send.file?.pendingUpload
+                ?: continue
+            val uploaded = runCatching {
+                pendingUploadCoordinator.isUploaded(pendingUpload)
+            }.getOrDefault(false)
+            if (uploaded) {
+                uploadedPendingUploadPaths += pendingUpload.path
+            }
+        }
+
+        fun isUploadCompletedLocally(
+            send: BitwardenSend?,
+        ): Boolean {
+            val pendingUpload = send?.file?.pendingUpload
+                ?: return false
+            return pendingUpload.path in uploadedPendingUploadPaths
+        }
+
+        fun decodeRemoteSend(
+            entity: SendEntity,
+            local: BitwardenSend?,
+        ): BitwardenSend {
+            val (
+                itemCrypto,
+                globalCrypto,
+            ) = getCodecPairFromEncrypted(
+                mode = BitwardenCrCta.Mode.DECRYPT,
+                keyCipherText =
+                    requireNotNull(entity.key) {
+                        "Bitwarden send key must be present before decryption."
+                    },
+            )
+            return itemCrypto
+                .sendDecoder(
+                    entity = entity,
+                    codec2 = globalCrypto,
+                    localSyncId = local?.sendId,
+                )
+        }
+
+        suspend fun decodeSend(
+            entity: SendEntity,
+            local: BitwardenSend,
+        ): BitwardenSend {
+            val itemKey = requireNotNull(local.keyBase64)
+                .let(base64Service::decode)
+            val (
+                itemCrypto,
+                globalCrypto,
+            ) = getCodecPair(
+                mode = BitwardenCrCta.Mode.DECRYPT,
+                key = itemKey,
+            )
+            return itemCrypto
+                .sendDecoder(
+                    entity = entity,
+                    codec2 = globalCrypto,
+                    localSyncId = local.sendId,
+                )
+        }
+
         syncX(
             name = "send",
             localItems = existingSends,
@@ -1312,6 +1658,12 @@ class SyncEngine(
                 } to local
             },
             localDeleteById = { ids ->
+                val pendingUploadsToDelete = ids
+                    .mapNotNull { sendId ->
+                        existingSendsById[sendId]
+                            ?.file
+                            ?.pendingUpload
+                    }
                 sendDao.transaction {
                     ids.forEach { sendId ->
                         sendDao.deleteBySendId(
@@ -1319,8 +1671,24 @@ class SyncEngine(
                         )
                     }
                 }
+                pendingUploadsToDelete.forEach { pendingUpload ->
+                    runCatching {
+                        pendingUploadCoordinator.delete(pendingUpload)
+                    }
+                }
             },
             localPut = { models ->
+                val pendingUploadsToDelete = models
+                    .mapNotNull { send ->
+                        val existingPendingUpload = existingSendsById[send.sendId]
+                            ?.file
+                            ?.pendingUpload
+                            ?: return@mapNotNull null
+                        existingPendingUpload.takeUnless {
+                            send.file?.pendingUpload == existingPendingUpload
+                        }
+                    }
+                    .distinct()
                 sendDao.transaction {
                     models.forEach { send ->
                         sendDao.insert(
@@ -1330,26 +1698,22 @@ class SyncEngine(
                         )
                     }
                 }
+                pendingUploadsToDelete.forEach { pendingUpload ->
+                    runCatching {
+                        pendingUploadCoordinator.delete(pendingUpload)
+                    }
+                }
             },
             remoteItems = response.sends.orEmpty(),
             remoteLens = sendRemoteLens,
             remoteDecoder = { remote, local ->
-                val (
-                    itemCrypto,
-                    globalCrypto,
-                ) = getCodecPairFromEncrypted(
-                    mode = BitwardenCrCta.Mode.DECRYPT,
-                    keyCipherText =
-                        requireNotNull(remote.key) {
-                            "Bitwarden send key must be present before decryption."
-                        },
-                )
-                itemCrypto
-                    .sendDecoder(
-                        entity = remote,
-                        codec2 = globalCrypto,
-                        localSyncId = local?.sendId,
-                    )
+                decodeRemoteSend(
+                    entity = remote,
+                    local = local,
+                ).reconcilePendingSendFileUpload(
+                    local = local,
+                    uploadCompletedLocally = isUploadCompletedLocally(local),
+                ).send
             },
             remoteDeleteById = { id ->
                 user.env.back().api.sends.focus(id).delete(
@@ -1357,6 +1721,32 @@ class SyncEngine(
                     env = env,
                     token = user.token.accessToken,
                 )
+            },
+            shouldOverwriteLocal = { local, remote ->
+                local.file?.pendingUpload != null &&
+                        runCatching {
+                            decodeRemoteSend(
+                                entity = remote,
+                                local = local,
+                            ).reconcilePendingSendFileUpload(
+                                local = local,
+                                uploadCompletedLocally = isUploadCompletedLocally(local),
+                            )
+                                .obsoletePendingUpload != null
+                        }.getOrDefault(false)
+            },
+            shouldOverwriteRemote = { local, remote ->
+                local.file?.pendingUpload != null &&
+                        runCatching {
+                            decodeRemoteSend(
+                                entity = remote,
+                                local = local,
+                            ).reconcilePendingSendFileUpload(
+                                local = local,
+                                uploadCompletedLocally = isUploadCompletedLocally(local),
+                            )
+                                .obsoletePendingUpload == null
+                        }.getOrDefault(true)
             },
             remoteDecodedFallback = { remote, localOrNull, e ->
                 e.printStackTrace()
@@ -1381,66 +1771,218 @@ class SyncEngine(
             },
             remotePut = { (r, local) ->
                 val sendsApi = user.env.back().api.sends
-                val sendResponse = when (r) {
-                    is SendUpdate.Modify -> {
-                        val cipherApi = sendsApi.focus(r.sendId)
-                        var cipherRequest = r.sendRequest
+                suspend fun putSendIfChanged(
+                    update: SendUpdate.Modify,
+                ): SendEntity? {
+                    val sendApi = sendsApi.focus(update.sendId)
+                    val hasChanged =
+                        update.source.service.remote?.revisionDate != update.source.revisionDate
+                    if (!hasChanged) {
+                        return null
+                    }
 
-                        val hasChanged =
-                            r.source.service.remote?.revisionDate != r.source.revisionDate
-                        if (hasChanged) {
-                            val putCipher = cipherApi.put(
+                    var response = sendApi.put(
+                        httpClient = httpClient,
+                        env = env,
+                        token = user.token.accessToken,
+                        body = update.sendRequest,
+                    )
+                    val shouldRemovePassword = update.source.changes?.passwordBase64
+                        ?.let { it is BitwardenOptionalStringNullable.Some && it.value == null } == true
+                    if (shouldRemovePassword && response.password != null) {
+                        response = sendApi.removePassword(
+                            httpClient = httpClient,
+                            env = env,
+                            token = user.token.accessToken,
+                        )
+                    }
+
+                    return response
+                }
+
+                suspend fun uploadPendingFile(
+                    target: SendFileUploadTarget,
+                    send: BitwardenSend,
+                    pendingUpload: PendingUploadFile,
+                ) {
+                    val uploadFileName = requireNotNull(send.file?.fileName) {
+                        "Bitwarden send must contain a file name for upload."
+                    }
+                    uploadSendFile(
+                        httpClient = httpClient,
+                        env = env,
+                        token = token,
+                        target = target,
+                        fileName = uploadFileName,
+                        filePath = pendingUpload.path,
+                        fileLength = pendingUpload.encryptedSize,
+                    )
+                }
+
+                suspend fun finalizePendingUpload(
+                    sendApi: com.artemchep.keyguard.provider.bitwarden.api.builder.ServerEnvApi.Sends.Send,
+                    baseLocal: BitwardenSend,
+                ): BitwardenSend {
+                    val finalResponse = sendApi.get(
+                        httpClient = httpClient,
+                        env = env,
+                        token = user.token.accessToken,
+                    )
+                    val finalLocal = decodeSend(
+                        entity = finalResponse,
+                        local = baseLocal,
+                    ).withPendingUpload(null)
+                    return finalLocal
+                }
+
+                suspend fun markPendingUploadCompleted(
+                    baseLocal: BitwardenSend,
+                    pendingUpload: PendingUploadFile,
+                ): BitwardenSend {
+                    val completedLocal = baseLocal.withPendingUpload(null)
+                    updateLocalModel(completedLocal)
+                    pendingUploadCoordinator.markUploaded(pendingUpload)
+                    uploadedPendingUploadPaths += pendingUpload.path
+                    return completedLocal
+                }
+
+                suspend fun getCompletedRemoteUploadOrNull(
+                    sendApi: com.artemchep.keyguard.provider.bitwarden.api.builder.ServerEnvApi.Sends.Send,
+                    baseLocal: BitwardenSend,
+                ): BitwardenSend? {
+                    val refreshedResponse = runCatching {
+                        sendApi.get(
+                            httpClient = httpClient,
+                            env = env,
+                            token = user.token.accessToken,
+                        )
+                    }.getOrNull()
+                        ?: return null
+                    updateRemoteModel(refreshedResponse)
+                    val refreshedLocal = decodeSend(
+                        entity = refreshedResponse,
+                        local = baseLocal,
+                    )
+                    val reconciliation = refreshedLocal.reconcilePendingSendFileUpload(
+                        local = baseLocal,
+                        uploadCompletedLocally = isUploadCompletedLocally(baseLocal),
+                    )
+                    if (reconciliation.obsoletePendingUpload == null) {
+                        return null
+                    }
+                    updateLocalModel(reconciliation.send)
+                    return reconciliation.send
+                }
+
+                when (r) {
+                    is SendUpdate.Create -> {
+                        val pendingUpload = local.file?.pendingUpload
+                        if (local.type == BitwardenSend.Type.File && pendingUpload != null) {
+                            val fileCreateResponse = sendsApi.postFileV2(
                                 httpClient = httpClient,
                                 env = env,
                                 token = user.token.accessToken,
-                                body = cipherRequest,
+                                body = r.sendRequest,
                             )
+                            val sendResponse = fileCreateResponse.requiredSendResponse
+                            updateRemoteModel(sendResponse)
 
-                            // Removing a password has a separate endpoint and
-                            // requires an additional request.
-                            val shouldRemovePassword = r.source.changes?.passwordBase64
-                                ?.let { it is BitwardenOptionalStringNullable.Some && it.value == null } == true
-                            if (shouldRemovePassword && putCipher.password != null) {
-                                cipherApi.removePassword(
+                            val createdLocal = decodeSend(
+                                entity = sendResponse,
+                                local = local,
+                            ).withPendingUpload(pendingUpload)
+                            updateLocalModel(createdLocal)
+
+                            val sendApi = sendsApi.focus(sendResponse.id)
+                            uploadPendingFile(
+                                target = fileCreateResponse.uploadTarget,
+                                send = createdLocal,
+                                pendingUpload = pendingUpload,
+                            )
+                            val uploadedLocal = markPendingUploadCompleted(
+                                baseLocal = createdLocal,
+                                pendingUpload = pendingUpload,
+                            )
+                            finalizePendingUpload(
+                                sendApi = sendApi,
+                                baseLocal = uploadedLocal,
+                            )
+                        } else {
+                            val sendResponse = sendsApi.post(
+                                httpClient = httpClient,
+                                env = env,
+                                token = user.token.accessToken,
+                                body = r.sendRequest,
+                            )
+                            decodeSend(
+                                entity = sendResponse,
+                                local = local,
+                            )
+                        }
+                    }
+
+                    is SendUpdate.Modify -> {
+                        val sendApi = sendsApi.focus(r.sendId)
+                        val pendingUpload = local.file?.pendingUpload
+                        if (pendingUpload != null) {
+                            val intermediateResponse = putSendIfChanged(r)
+                            val intermediateLocal = intermediateResponse
+                                ?.let { response ->
+                                    updateRemoteModel(response)
+                                    decodeSend(
+                                        entity = response,
+                                        local = local,
+                                    ).withPendingUpload(pendingUpload)
+                                }
+                                ?: local.withPendingUpload(pendingUpload)
+                            if (intermediateResponse != null) {
+                                updateLocalModel(intermediateLocal)
+                            }
+                            val completedRemoteUpload = getCompletedRemoteUploadOrNull(
+                                sendApi = sendApi,
+                                baseLocal = intermediateLocal,
+                            )
+                            if (completedRemoteUpload != null) {
+                                completedRemoteUpload
+                            } else {
+                                val remoteFileId = requireNotNull(intermediateLocal.file?.id) {
+                                    "Bitwarden send file id must be available before upload."
+                                }
+                                val uploadTarget = sendApi.getFileUploadTarget(
                                     httpClient = httpClient,
                                     env = env,
-                                    token = user.token.accessToken,
+                                    token = token,
+                                    fileId = remoteFileId,
+                                ).uploadTarget
+
+                                uploadPendingFile(
+                                    target = uploadTarget,
+                                    send = intermediateLocal,
+                                    pendingUpload = pendingUpload,
+                                )
+                                val uploadedLocal = markPendingUploadCompleted(
+                                    baseLocal = intermediateLocal,
+                                    pendingUpload = pendingUpload,
+                                )
+                                finalizePendingUpload(
+                                    sendApi = sendApi,
+                                    baseLocal = uploadedLocal,
                                 )
                             }
+                        } else {
+                            putSendIfChanged(r)
+                            val sendResponse = sendApi.get(
+                                httpClient = httpClient,
+                                env = env,
+                                token = user.token.accessToken,
+                            )
+                            decodeSend(
+                                entity = sendResponse,
+                                local = local,
+                            )
                         }
-
-                        cipherApi.get(
-                            httpClient = httpClient,
-                            env = env,
-                            token = user.token.accessToken,
-                        )
-                    }
-
-                    is SendUpdate.Create -> {
-                        sendsApi.post(
-                            httpClient = httpClient,
-                            env = env,
-                            token = user.token.accessToken,
-                            body = r.sendRequest,
-                        )
                     }
                 }
-
-                val itemKey = requireNotNull(local.keyBase64)
-                    .let(base64Service::decode)
-                val (
-                    itemCrypto,
-                    globalCrypto,
-                ) = getCodecPair(
-                    mode = BitwardenCrCta.Mode.DECRYPT,
-                    key = itemKey,
-                )
-                itemCrypto
-                    .sendDecoder(
-                        entity = sendResponse,
-                        codec2 = globalCrypto,
-                        localSyncId = local.sendId,
-                    )
             },
             onLog = { msg, logLevel ->
                 logRepository.add(TAG, msg, logLevel)

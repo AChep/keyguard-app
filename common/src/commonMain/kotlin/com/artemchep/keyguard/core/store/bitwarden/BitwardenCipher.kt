@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffApplierByListValue
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffFinderNode
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher.Login.PasswordHistory
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -148,6 +149,8 @@ data class BitwardenCipher(
             override val url: String,
             val fileName: String,
             val size: Long? = null,
+            val keyBase64: String? = null,
+            val pendingUpload: PendingUploadFile? = null,
         ) : Attachment {
             companion object
         }

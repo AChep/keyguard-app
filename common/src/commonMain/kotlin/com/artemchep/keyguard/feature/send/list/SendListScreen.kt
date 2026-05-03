@@ -4,11 +4,13 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.minus
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -49,6 +51,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.model.DSend
@@ -56,6 +61,8 @@ import com.artemchep.keyguard.common.model.expiredFlow
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.EmptyView
+import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
+import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.home.vault.component.AddAccountView
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
@@ -255,6 +262,7 @@ private fun SendScreenContent(
     val dp = remember {
         mutableStateOf(false)
     }
+    val onFileDrop by rememberUpdatedState(state.onFileDrop)
     if (state.primaryActions.isEmpty()) {
         dp.value = false
     }
@@ -369,6 +377,41 @@ private fun SendScreenContent(
                 modifier = Modifier
                     .padding(contentPadding.value),
                 pullRefreshState = pullRefreshState,
+            )
+
+            val overlayPadding = remember(contentPadding.value) {
+                val topOnly = object : PaddingValues {
+                    override fun calculateLeftPadding(
+                        layoutDirection: LayoutDirection,
+                    ): Dp = 0.dp
+
+                    override fun calculateTopPadding(): Dp =
+                        contentPadding.value
+                            .calculateTopPadding()
+
+                    override fun calculateRightPadding(
+                        layoutDirection: LayoutDirection,
+                    ): Dp = 0.dp
+
+                    override fun calculateBottomPadding(): Dp = 0.dp
+                }
+                contentPadding.value - topOnly
+            }
+            FileDropTargetBox(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(overlayPadding),
+                enabled = onFileDrop != null,
+                onFileDrop = { file ->
+                    onFileDrop?.invoke(file)
+                },
+                overlay = {
+                    FileDropOverlay(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        text = stringResource(Res.string.send_main_drop_file_to_create),
+                    )
+                },
             )
         },
     ) {

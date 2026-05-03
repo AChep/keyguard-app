@@ -453,6 +453,10 @@ import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
+import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadService
+import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadServiceJvm
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
+import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadCoordinatorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlBroadCheckImpl
@@ -1368,6 +1372,16 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<FileEncryptor> {
         FileEncryptorJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<EncryptedFilePendingUploadService> {
+        EncryptedFilePendingUploadServiceJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<PendingUploadCoordinator> {
+        PendingUploadCoordinatorImpl(
             directDI = this,
         )
     }

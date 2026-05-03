@@ -3,11 +3,8 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.combine
-import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.flatTap
-import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.map
@@ -23,14 +20,18 @@ import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
-import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherCryptoKeyMaterial
+import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherAttachmentCryptoKeyMaterial
+import com.artemchep.keyguard.provider.bitwarden.crypto.keyBase64OrGenerate
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
+import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withPasswordChange
-import kotlinx.collections.immutable.toPersistentList
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import kotlin.time.Clock
 import kotlin.time.Instant
 import org.kodein.di.DirectDI
@@ -46,11 +47,11 @@ class AddCipherImpl(
     private val cryptoGenerator: CryptoGenerator,
     private val getPasswordStrength: GetPasswordStrength,
     private val base64Service: Base64Service,
+    private val pendingUploadCoordinator: PendingUploadCoordinator,
+    private val tokenRepository: ServiceTokenRepository,
 ) : AddCipher {
     companion object {
         private const val TAG = "AddCipher.bitwarden"
-
-        private const val FILES_DIR = "attachments_pending"
     }
 
     constructor(directDI: DirectDI) : this(
@@ -60,16 +61,14 @@ class AddCipherImpl(
         cryptoGenerator = directDI.instance(),
         getPasswordStrength = directDI.instance(),
         base64Service = directDI.instance(),
+        pendingUploadCoordinator = directDI.instance(),
+        tokenRepository = directDI.instance(),
     )
 
     override fun invoke(
         cipherIdsToRequests: Map<String?, CreateRequest>,
     ): IO<List<String>> = ioEffect {
         cipherIdsToRequests
-            .mapValues { (_, request) ->
-                copyLocalFilesToInternalStorageIo(request)
-                    .bind()
-            }
             .mapValues { (key, request) ->
                 val value = request.ownership2!!
                 val folderId = when (val folder = value.folder) {
@@ -95,9 +94,19 @@ class AddCipherImpl(
                 request.copy(ownership = own)
             }
     }.flatMap { map ->
-        modifyDatabase { database ->
-            val dao = database.cipherQueries
-            val now = Clock.System.now()
+        ioEffect {
+            map.values
+                .mapNotNull { it.ownership?.accountId }
+                .distinct()
+                .associateWith { accountId ->
+                    tokenRepository
+                        .getById(AccountId(accountId))
+                        .bind() !is KeePassToken
+                }
+        }.flatMap { stagePendingUploadsByAccountId ->
+            modifyDatabase { database ->
+                val dao = database.cipherQueries
+                val now = Clock.System.now()
 
             val oldCiphersMap = map
                 .keys
@@ -112,13 +121,21 @@ class AddCipherImpl(
             val models = map
                 .map { (cipherId, request) ->
                     val old = oldCiphersMap[cipherId]?.data_
-                    BitwardenCipher.of(
+                    val cipher = BitwardenCipher.of(
                         cryptoGenerator = cryptoGenerator,
                         base64Service = base64Service,
                         getPasswordStrength = getPasswordStrength,
                         now = now,
                         request = request,
                         old = old,
+                    )
+                    prepareCipherPendingUploads(
+                        request = request,
+                        old = old,
+                        cipher = cipher,
+                        base64Service = base64Service,
+                        pendingUploadCoordinator = pendingUploadCoordinator,
+                        stagePendingUploads = stagePendingUploadsByAccountId[cipher.accountId] ?: true,
                     )
                 }
             if (models.isEmpty()) {
@@ -127,26 +144,37 @@ class AddCipherImpl(
                     value = emptyList(),
                 )
             }
-            dao.transaction {
-                models.forEach { cipher ->
-                    dao.insert(
-                        cipherId = cipher.cipherId,
-                        accountId = cipher.accountId,
-                        folderId = cipher.folderId,
-                        data = cipher,
-                        updatedAt = cipher.revisionDate,
-                    )
+            val createdPendingUploads = models
+                .flatMap { it.createdPendingUploads }
+            val removedPendingUploads = models
+                .flatMap { it.removedPendingUploads }
+            pendingUploadCoordinator.persist(
+                createdPendingUploads = createdPendingUploads,
+                removedPendingUploads = removedPendingUploads,
+            ) {
+                dao.transaction {
+                    models.forEach { prepared ->
+                        val cipher = prepared.cipher
+                        dao.insert(
+                            cipherId = cipher.cipherId,
+                            accountId = cipher.accountId,
+                            folderId = cipher.folderId,
+                            data = cipher,
+                            updatedAt = cipher.revisionDate,
+                        )
+                    }
                 }
             }
 
             val changedAccountIds = models
-                .map { AccountId(it.accountId) }
+                .map { AccountId(it.cipher.accountId) }
                 .toSet()
             ModifyDatabase.Result(
                 changedAccountIds = changedAccountIds,
                 value = models
-                    .map { it.cipherId },
+                    .map { it.cipher.cipherId },
             )
+            }
         }
     }.flatTap {
         val cipherIdsToTrash = cipherIdsToRequests
@@ -176,69 +204,139 @@ class AddCipherImpl(
         }
         trashCipherById(cipherIdsToTrash)
     }
+}
 
-    private fun copyLocalFilesToInternalStorageIo(
-        request: CreateRequest,
-    ): IO<CreateRequest> = request
-        .attachments
+internal data class PreparedCipher(
+    val cipher: BitwardenCipher,
+    val createdPendingUploads: List<PendingUploadFile>,
+    val removedPendingUploads: List<PendingUploadFile>,
+)
+
+internal suspend fun prepareCipherPendingUploads(
+    request: CreateRequest,
+    old: BitwardenCipher?,
+    cipher: BitwardenCipher,
+    base64Service: Base64Service,
+    pendingUploadCoordinator: PendingUploadCoordinator,
+    stagePendingUploads: Boolean = true,
+): PreparedCipher {
+    val localRequestAttachmentsById = request.attachments
+        .asSequence()
+        .filterIsInstance<CreateRequest.Attachment.Local>()
+        .associateBy { it.id }
+    val oldPendingUploadsByPath = old?.attachments
+        .orEmpty()
+        .asSequence()
+        .filterIsInstance<BitwardenCipher.Attachment.Local>()
         .mapNotNull { attachment ->
-            when (attachment) {
-                is CreateRequest.Attachment.Remote -> io(attachment)
-                is CreateRequest.Attachment.Local -> null
-//                    copyLocalFileToInternalStorageIo(attachment.uri)
-//                        .effectMap { file ->
-//                            val uri = file.toUri()
-//                            val size = attachment.size
-//                                ?: withContext(Dispatchers.IO) { file.length() }
-//                            attachment.copy(
-//                                uri = uri,
-//                                size = size,
-//                            )
-//                        }
+            attachment.pendingUpload?.let { pendingUpload ->
+                pendingUpload.path to pendingUpload
             }
         }
-        .combine(bucket = 2)
-        .effectMap { attachments ->
-            val list = attachments
-                .toPersistentList()
-            request.copy(attachments = list)
-        }
+        .toMap()
 
-//    private fun copyLocalFileToInternalStorageIo(
-//        uri: Uri,
-//    ): IO<File> = ioEffect(Dispatchers.IO) {
-//        val dstDir = context.filesDir.resolve("$FILES_DIR/")
-//        // If the URI points to a file, check if it is already in the
-//        // internal storage.
-//        if (uri.scheme == "file") {
-//            val srcFile = uri.toFile()
-//
-//            // A parent directory must match the destination directory.
-//            val existsInDstDir = generateSequence(srcFile) { it.parentFile }
-//                .any { it == dstDir }
-//            if (existsInDstDir) {
-//                return@ioEffect srcFile
-//            }
-//        }
-//
-//        val dstFileName = cryptoGenerator.uuid() + ".tmp"
-//        val dstFile = dstDir.resolve(dstFileName)
-//        // In case the dst folder does not exist.
-//        dstFile.parentFile?.mkdirs()
-//
-//        // Copy source resource into the dst file.
-//        val srcInputStream = context.contentResolver.openInputStream(uri)
-//        requireNotNull(srcInputStream) {
-//            "The content provider has crashed, failed to access the resource!"
-//        }
-//        srcInputStream.use { input ->
-//            dstFile.outputStream().use { output ->
-//                input.copyTo(output)
-//            }
-//        }
-//
-//        dstFile
-//    }
+    if (!stagePendingUploads) {
+        return PreparedCipher(
+            cipher = cipher.copy(
+                attachments = cipher.attachments
+                    .map { attachment ->
+                        when (attachment) {
+                            is BitwardenCipher.Attachment.Remote -> attachment
+                            is BitwardenCipher.Attachment.Local -> attachment.copy(
+                                pendingUpload = null,
+                            )
+                        }
+                    },
+            ),
+            createdPendingUploads = emptyList(),
+            removedPendingUploads = oldPendingUploadsByPath
+                .values
+                .toList(),
+        )
+    }
+
+    val createdPendingUploads = mutableListOf<PendingUploadFile>()
+    val attachments = try {
+        cipher.attachments.map { attachment ->
+            when (attachment) {
+                is BitwardenCipher.Attachment.Remote -> attachment
+                is BitwardenCipher.Attachment.Local -> {
+                    val pendingUpload = attachment.pendingUpload
+                    if (pendingUpload != null) {
+                        attachment.copy(
+                            size = attachment.size ?: pendingUpload.plainSize,
+                        )
+                    } else {
+                        val requestAttachment = requireNotNull(localRequestAttachmentsById[attachment.id]) {
+                            "A local cipher attachment must have a source request."
+                        }
+                        val fileKey = requireNotNull(attachment.keyBase64) {
+                            "A local cipher attachment must have an encryption key."
+                        }.let(base64Service::decode)
+                        val stagedPendingUpload = pendingUploadCoordinator.stage(
+                            target = PendingUploadTarget.CipherAttachment(
+                                accountId = cipher.accountId,
+                                cipherId = cipher.cipherId,
+                                attachmentId = attachment.id,
+                            ),
+                            sourceUri = requestAttachment.uri.toString(),
+                            fileKey = fileKey,
+                        )
+                        createdPendingUploads += stagedPendingUpload
+                        attachment.copy(
+                            size = attachment.size ?: stagedPendingUpload.plainSize,
+                            pendingUpload = stagedPendingUpload,
+                        )
+                    }
+                }
+            }
+        }
+    } catch (e: Throwable) {
+        createdPendingUploads.forEach { pendingUpload ->
+            runCatching {
+                pendingUploadCoordinator.delete(pendingUpload)
+            }
+        }
+        throw e
+    }
+
+    val currentPendingUploadPaths = attachments
+        .asSequence()
+        .filterIsInstance<BitwardenCipher.Attachment.Local>()
+        .mapNotNull { it.pendingUpload?.path }
+        .toSet()
+    val removedPendingUploads = oldPendingUploadsByPath
+        .filterKeys { path -> path !in currentPendingUploadPaths }
+        .values
+        .toList()
+
+    return PreparedCipher(
+        cipher = cipher.copy(
+            attachments = attachments,
+        ),
+        createdPendingUploads = createdPendingUploads,
+        removedPendingUploads = removedPendingUploads,
+    )
+}
+
+internal fun CreateRequest.Attachment.Local.toBitwardenLocalAttachment(
+    existingAttachment: BitwardenCipher.Attachment.Local?,
+    cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
+): BitwardenCipher.Attachment.Local {
+    val attachmentKeyBase64 = keyBase64
+        ?: existingAttachment?.keyBase64
+        ?: cryptoGenerator
+            .makeCipherAttachmentCryptoKeyMaterial()
+            .let(base64Service::encodeToString)
+    return BitwardenCipher.Attachment.Local(
+        id = id,
+        url = uri.toString(),
+        fileName = name,
+        size = size,
+        keyBase64 = attachmentKeyBase64,
+        pendingUpload = existingAttachment?.pendingUpload,
+    )
 }
 
 private suspend fun BitwardenCipher.Companion.of(
@@ -391,11 +489,11 @@ private suspend fun BitwardenCipher.Companion.of(
                     }
 
                     is CreateRequest.Attachment.Local -> {
-                        BitwardenCipher.Attachment.Local(
-                            id = attachment.id,
-                            url = attachment.uri.toString(),
-                            fileName = attachment.name,
-                            size = attachment.size,
+                        val existingLocalAttachment = existingAttachment as? BitwardenCipher.Attachment.Local
+                        attachment.toBitwardenLocalAttachment(
+                            existingAttachment = existingLocalAttachment,
+                            cryptoGenerator = cryptoGenerator,
+                            base64Service = base64Service,
                         )
                     }
                 }
@@ -442,13 +540,10 @@ private suspend fun BitwardenCipher.Companion.of(
         emptyList()
     }
 
-    val keyBase64 = old?.keyBase64
-        ?: if (!isRelease) {
-            val key = cryptoGenerator.makeCipherCryptoKeyMaterial()
-            base64Service.encodeToString(key)
-        } else {
-            null
-        }
+    val keyBase64 = old.keyBase64OrGenerate(
+        cryptoGenerator = cryptoGenerator,
+        base64Service = base64Service,
+    )
     val cipherId = old?.cipherId ?: cryptoGenerator.uuid()
     val createdDate = old?.createdDate ?: request.now
     val deletedDate = old?.deletedDate

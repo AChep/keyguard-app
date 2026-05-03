@@ -17,7 +17,6 @@ import com.artemchep.keyguard.feature.auth.companion.CompanionAuthTransportAndro
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
-import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
@@ -45,12 +44,10 @@ import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
-import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.CleanUpAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPurchasedImpl
-import com.artemchep.keyguard.common.usecase.impl.GetSuggestionsImpl
 import com.artemchep.keyguard.copy.AutofillServiceAndroid
 import com.artemchep.keyguard.copy.ClearDataAndroid
 import com.artemchep.keyguard.copy.ClipboardServiceAndroid
@@ -76,13 +73,14 @@ import com.artemchep.keyguard.core.session.usecase.BiometricStatusUseCaseImpl
 import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileAndroid
 import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
 import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
-import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
 import com.artemchep.keyguard.feature.navigation.defaultNavigationModule
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderAndroid
 import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
 import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import db_key_value.datastore.DataStoreKeyValueStore
@@ -148,6 +146,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
 
     bindSingleton<CacheDirProvider> {
         CacheDirProviderAndroid(
+            directDI = this,
+        )
+    }
+    bindSingleton<PendingUploadDirProvider> {
+        PendingUploadDirProviderAndroid(
             directDI = this,
         )
     }

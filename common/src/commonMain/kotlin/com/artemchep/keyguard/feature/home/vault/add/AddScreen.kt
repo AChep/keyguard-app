@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.Checkbox
@@ -32,7 +31,9 @@ import com.artemchep.keyguard.feature.add.AnyField
 import com.artemchep.keyguard.feature.add.ToolbarContent
 import com.artemchep.keyguard.feature.add.ToolbarContentItemErrSkeleton
 import com.artemchep.keyguard.feature.add.getAnyFieldShapeState
+import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
+import com.artemchep.keyguard.feature.filepicker.fileDropTarget
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
@@ -47,6 +48,7 @@ import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.button.FavouriteToggleButton
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
@@ -91,8 +93,22 @@ private fun AddScreenContent(
     loadableState: Loadable<AddState>,
 ) {
     val scrollBehavior = ToolbarBehavior.behavior()
+    val fileDrag = loadableState.getOrNull()?.fileDrag
+    val fileDragState = rememberUpdatedState(fileDrag)
+    var fileDragActive by remember(fileDrag) {
+        mutableStateOf(false)
+    }
     ScaffoldLazyColumn(
         modifier = Modifier
+            .fileDropTarget(
+                enabled = fileDrag != null,
+                onDragActiveChange = { isActive ->
+                    fileDragActive = isActive
+                },
+                onFileDrop = { file ->
+                    fileDragState.value?.onFileDrop?.invoke(file)
+                },
+            )
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
@@ -174,6 +190,7 @@ private fun AddScreenContent(
         populateItems(
             addScreenScope = addScreenScope,
             loadableState = loadableState,
+            fileDragActive = fileDragActive,
         )
     }
 }
@@ -181,6 +198,7 @@ private fun AddScreenContent(
 private fun LazyListScope.populateItems(
     addScreenScope: AddScreenScope,
     loadableState: Loadable<AddState>,
+    fileDragActive: Boolean,
 ) = loadableState.fold(
     ifLoading = {
         populateItemsSkeleton(
@@ -191,6 +209,7 @@ private fun LazyListScope.populateItems(
         populateItemsContent(
             addScreenScope = addScreenScope,
             state = state,
+            fileDragActive = fileDragActive,
         )
     },
 )
@@ -218,6 +237,7 @@ private fun LazyListScope.populateItemsSkeleton(
 private fun LazyListScope.populateItemsContent(
     addScreenScope: AddScreenScope,
     state: AddState,
+    fileDragActive: Boolean,
 ) {
     item("ownership") {
         AddScreenToolbarItem(
@@ -246,23 +266,47 @@ private fun LazyListScope.populateItemsContent(
     }
 
     val items = state.items
-    itemsIndexed(
-        items = items,
-        key = { index, item -> item.id },
-    ) { index, item ->
-        with(addScreenScope) {
-            val shapeState = getAnyFieldShapeState(
-                list = items,
-                index = index,
-            )
-            AnyField(
-                modifier = Modifier
-                    .animateItem(),
-                item = item,
-                shapeState = shapeState,
-            )
+    val fileDrag = state.fileDrag
+    items.forEachIndexed { index, item ->
+        if (
+            fileDragActive &&
+            fileDrag != null &&
+            fileDrag.anchorItemId == item.id
+        ) {
+            item("${fileDrag.anchorItemId}.drop") {
+                AddScreenAttachmentFileDropItem(
+                    fileDrag = fileDrag,
+                )
+            }
+        }
+        item(item.id) {
+            with(addScreenScope) {
+                val shapeState = getAnyFieldShapeState(
+                    list = items,
+                    index = index,
+                )
+                AnyField(
+                    modifier = Modifier
+                        .animateItem(),
+                    item = item,
+                    shapeState = shapeState,
+                )
+            }
         }
     }
+}
+
+@Composable
+private fun AddScreenAttachmentFileDropItem(
+    modifier: Modifier = Modifier,
+    fileDrag: AddState.FileDrag,
+) {
+    FileDropOverlay(
+        modifier = modifier
+            .padding(horizontal = Dimens.buttonHorizontalPadding)
+            .fillMaxWidth(),
+        text = fileDrag.text,
+    )
 }
 
 @Composable

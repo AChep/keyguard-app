@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.api.builder
 
+import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.CHROME_MAJOR_VERSION
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
@@ -7,14 +8,19 @@ import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.AttachmentEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.AvatarRequestEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.CipherAttachmentUploadEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherListEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FolderEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachResponse
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileRequestEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SendEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.SendFileUploadEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.SendFileUploadTarget
+import com.artemchep.keyguard.provider.bitwarden.entity.SendFileUploadType
 import com.artemchep.keyguard.provider.bitwarden.entity.TwoFactorEmailRequestEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherArchiveRequest
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherAttachmentCreateRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherCreateRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUnarchiveRequest
@@ -33,8 +39,20 @@ import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.Url
+import io.ktor.http.escapeIfNeeded
+import io.ktor.http.content.OutgoingContent
 import io.ktor.http.contentType
+import io.ktor.utils.io.jvm.javaio.toByteReadChannel
+import io.ktor.utils.io.streams.asInput
 import io.ktor.util.AttributeKey
+import java.io.File
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 val routeAttribute = AttributeKey<String>("route")
@@ -146,12 +164,16 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
         value class Attachments(
             val url: String,
         ) {
+            fun postV2() = url + "v2"
+
             fun focus(id: String) = Attachment(url = url + id)
 
             @JvmInline
             value class Attachment(
                 val url: String,
-            )
+            ) {
+                val renew get() = "$url/renew"
+            }
         }
     }
 
@@ -174,6 +196,8 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
     ) {
         fun post() = url
 
+        fun postFileV2() = url + "file/v2"
+
         fun focus(id: String) = Send(url = url + id)
 
         @JvmInline
@@ -181,6 +205,8 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
             val url: String,
         ) {
             val removePassword get() = "$url/remove-password"
+
+            fun file(id: String) = "$url/file/$id"
         }
     }
 }
@@ -410,6 +436,19 @@ suspend fun ServerEnvApi.Ciphers.Attachments.post(
     )
 }
 
+suspend fun ServerEnvApi.Ciphers.Attachments.postV2(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: CipherAttachmentCreateRequest,
+) = postV2().post<CipherAttachmentCreateRequest, CipherAttachmentUploadEntity>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "post-cipher-attachment-v2",
+)
+
 suspend fun ServerEnvApi.Ciphers.Attachments.delete(
     httpClient: HttpClient,
     env: ServerEnv,
@@ -433,6 +472,18 @@ suspend fun ServerEnvApi.Ciphers.Attachments.Attachment.get(
         attributes.put(routeAttribute, "get-attachment")
     }
     .bodyOrApiException<AttachmentEntity>()
+
+suspend fun ServerEnvApi.Ciphers.Attachments.Attachment.renew(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+) = httpClient
+    .get(renew) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        attributes.put(routeAttribute, "renew-cipher-attachment-upload")
+    }
+    .bodyOrApiException<CipherAttachmentUploadEntity>()
 
 // Folders
 
@@ -490,6 +541,19 @@ suspend fun ServerEnvApi.Sends.post(
     route = "post-send",
 )
 
+suspend fun ServerEnvApi.Sends.postFileV2(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    body: SendRequest,
+) = postFileV2().post<SendRequest, SendFileUploadEntity>(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    body = body,
+    route = "post-send-file-v2",
+)
+
 suspend fun ServerEnvApi.Sends.Send.get(
     httpClient: HttpClient,
     env: ServerEnv,
@@ -501,6 +565,19 @@ suspend fun ServerEnvApi.Sends.Send.get(
         attributes.put(routeAttribute, "get-send")
     }
     .bodyOrApiException<SendEntity>()
+
+suspend fun ServerEnvApi.Sends.Send.getFileUploadTarget(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    fileId: String,
+) = httpClient
+    .get(file(id = fileId)) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        attributes.put(routeAttribute, "get-send-file-upload-target")
+    }
+    .bodyOrApiException<SendFileUploadEntity>()
 
 suspend fun ServerEnvApi.Sends.Send.put(
     httpClient: HttpClient,
@@ -526,6 +603,176 @@ suspend fun ServerEnvApi.Sends.Send.removePassword(
         attributes.put(routeAttribute, "remove-password-send")
     }
     .bodyOrApiException<SendEntity>()
+
+suspend fun uploadSendFile(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    target: SendFileUploadTarget,
+    fileName: String,
+    filePath: String,
+    fileLength: Long,
+) = uploadFileToTarget(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    target = target,
+    fileName = fileName,
+    filePath = filePath,
+    fileLength = fileLength,
+    directRoute = "post-send-file-data",
+    azureRoute = "put-send-file-data-azure",
+)
+
+suspend fun uploadCipherAttachment(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    target: SendFileUploadTarget,
+    fileName: String,
+    filePath: String,
+    fileLength: Long,
+) = uploadFileToTarget(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    target = target,
+    fileName = fileName,
+    filePath = filePath,
+    fileLength = fileLength,
+    directRoute = "post-cipher-attachment-data",
+    azureRoute = "put-cipher-attachment-data-azure",
+)
+
+private suspend fun uploadFileToTarget(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    target: SendFileUploadTarget,
+    fileName: String,
+    filePath: String,
+    fileLength: Long,
+    directRoute: String,
+    azureRoute: String,
+) = when (target.type) {
+    SendFileUploadType.Direct -> uploadFileToTargetDirect(
+        httpClient = httpClient,
+        env = env,
+        token = token,
+        target = target,
+        fileName = fileName,
+        filePath = filePath,
+        fileLength = fileLength,
+        route = directRoute,
+    )
+
+    SendFileUploadType.Azure -> {
+        uploadFileToTargetAzure(
+            httpClient = httpClient,
+            env = env,
+            target = target,
+            filePath = filePath,
+            fileLength = fileLength,
+            route = azureRoute,
+        )
+    }
+}
+
+internal fun multipartFilenameParameter(
+    fileName: String,
+): String = "filename=${fileName.escapeIfNeeded()}"
+
+private suspend fun uploadFileToTargetDirect(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    target: SendFileUploadTarget,
+    fileName: String,
+    filePath: String,
+    fileLength: Long,
+    route: String,
+) = httpClient
+    .post(target.resolveUrl(env)) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        setBody(
+            MultiPartFormDataContent(
+                formData {
+                    append(
+                        key = "data",
+                        value = io.ktor.client.request.forms.InputProvider(
+                            size = fileLength,
+                        ) {
+                            File(filePath)
+                                .inputStream()
+                                .asInput()
+                        },
+                        headers = Headers.build {
+                            append(
+                                HttpHeaders.ContentDisposition,
+                                multipartFilenameParameter(fileName),
+                            )
+                            append(
+                                HttpHeaders.ContentType,
+                                ContentType.Application.OctetStream.toString(),
+                            )
+                        },
+                    )
+                },
+            ),
+        )
+        attributes.put(routeAttribute, route)
+    }
+    .bodyOrApiExceptionUnitStrict()
+
+
+private suspend fun uploadFileToTargetAzure(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    target: SendFileUploadTarget,
+    filePath: String,
+    fileLength: Long,
+    route: String,
+) = httpClient
+    .put(target.resolveUrl(env)) {
+        val uploadUrl = Url(target.resolveUrl(env))
+        header("x-ms-blob-type", "BlockBlob")
+        header(
+            "x-ms-date",
+            DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC)),
+        )
+        uploadUrl.parameters["sv"]?.let { version ->
+            header("x-ms-version", version)
+        }
+        setBody(
+            object : OutgoingContent.ReadChannelContent() {
+                override val contentType = ContentType.Application.OctetStream
+                override val contentLength = fileLength
+
+                override fun readFrom() = File(filePath)
+                    .inputStream()
+                    .toByteReadChannel()
+            },
+        )
+        attributes.put(routeAttribute, route)
+    }
+    .bodyOrApiExceptionUnitStrict(expectedStatus = HttpStatusCode.Created)
+
+private suspend fun HttpResponse.bodyOrApiExceptionUnitStrict(
+    expectedStatus: HttpStatusCode? = null,
+) {
+    bodyOrApiException<Unit>()
+    val isSuccessful = expectedStatus
+        ?.let { status == it }
+        ?: (status.value in 200..299)
+    if (!isSuccessful) {
+        throw HttpException(
+            statusCode = status,
+            m = status.description,
+            e = null,
+        )
+    }
+}
 
 suspend fun ServerEnvApi.Sends.Send.delete(
     httpClient: HttpClient,

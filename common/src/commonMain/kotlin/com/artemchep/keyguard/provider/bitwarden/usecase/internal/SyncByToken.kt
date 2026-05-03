@@ -4,13 +4,17 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.keemobile.kotpass.constants.BasicField
 import app.keemobile.kotpass.constants.PredefinedIcon
 import app.keemobile.kotpass.cryptography.EncryptedValue
+import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.getEntries
 import app.keemobile.kotpass.database.modifiers.binaries
+import app.keemobile.kotpass.database.modifiers.modifyBinaries
 import app.keemobile.kotpass.database.modifiers.modifyContent
 import app.keemobile.kotpass.database.modifiers.modifyGroup
+import app.keemobile.kotpass.database.modifiers.removeUnusedBinaries
 import app.keemobile.kotpass.database.modifiers.removeEntry
 import app.keemobile.kotpass.database.modifiers.removeGroup
 import app.keemobile.kotpass.models.BinaryData
+import app.keemobile.kotpass.models.BinaryReference
 import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
@@ -34,6 +38,7 @@ import com.artemchep.keyguard.common.service.keepass.getPublicCustomDataStringOr
 import com.artemchep.keyguard.common.service.keepass.getVersionString
 import com.artemchep.keyguard.common.service.keepass.modifyEntryWithTimes
 import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
+import com.artemchep.keyguard.common.service.keepass.parseAttachmentUrl
 import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base32Service
@@ -51,6 +56,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
+import com.artemchep.keyguard.feature.fileupload.KEEPASS_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.provider.bitwarden.api.merge
 import com.artemchep.keyguard.provider.bitwarden.api.syncX
 import com.artemchep.keyguard.provider.bitwarden.sync.SyncManager
@@ -62,6 +68,7 @@ import kotlinx.serialization.json.Json
 import okio.ByteString
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import java.io.ByteArrayOutputStream
 import java.util.UUID
 import kotlin.String
 import kotlin.collections.filter
@@ -534,7 +541,12 @@ class SyncByKeePassTokenImpl(
                         }
                         val revisionDate = local.revisionDate
                             .to0DigitsNanosOfSecond()
-                        val newEntry = encodeCipherEntity(local, remote?.cipher)
+                        val encodedCipher = encodeCipherEntity(
+                            local = local,
+                            remote = remote?.cipher,
+                            database = keePassDb,
+                        )
+                        val newEntry = encodedCipher.entry
 
                         val newLocal = local.copy(
                             service = BitwardenService(
@@ -548,16 +560,19 @@ class SyncByKeePassTokenImpl(
                             revisionDate = revisionDate,
                             expiredDate = local.expiredDate?.to0DigitsNanosOfSecond(),
                             deletedDate = local.deletedDate?.to0DigitsNanosOfSecond(),
+                            attachments = encodedCipher.attachments,
                         )
 
                         if (remoteUuid !== null) kotlin.run update@{
                             // Check if we have actually found the entry in the
                             // database and have changed it.
                             var updated = false
-                            val database = keePassDb.modifyEntryWithTimes(remoteUuid) {
-                                updated = true
-                                newEntry
-                            }
+                            val database = encodedCipher.database
+                                .modifyEntryWithTimes(remoteUuid) {
+                                    updated = true
+                                    newEntry
+                                }
+                                .removeUnusedBinaries()
                             if (!updated) {
                                 return@update
                             }
@@ -573,16 +588,18 @@ class SyncByKeePassTokenImpl(
                         }
 
                         // Add a new group
-                        val database = keePassDb.modifyContent {
-                            val entries = buildList {
-                                addAll(group.entries)
-                                add(newEntry)
+                        val database = encodedCipher.database
+                            .modifyContent {
+                                val entries = buildList {
+                                    addAll(group.entries)
+                                    add(newEntry)
+                                }
+                                val group = group.copy(
+                                    entries = entries,
+                                )
+                                copy(group = group)
                             }
-                            val group = group.copy(
-                                entries = entries,
-                            )
-                            copy(group = group)
-                        }
+                            .removeUnusedBinaries()
                         keePassDb = saveKeePassDatabase(
                             fileService = fileService,
                             token = user,
@@ -711,10 +728,23 @@ class SyncByKeePassTokenImpl(
     ) {
     }
 
+    internal data class EncodedCipherEntity(
+        val entry: Entry,
+        val attachments: List<BitwardenCipher.Attachment.Remote>,
+        val database: KeePassDatabase,
+    )
+
+    private data class EncodedCipherAttachments(
+        val references: List<BinaryReference>,
+        val attachments: List<BitwardenCipher.Attachment.Remote>,
+        val database: KeePassDatabase,
+    )
+
     private suspend fun encodeCipherEntity(
         local: BitwardenCipher,
         remote: Entry?,
-    ): Entry {
+        database: KeePassDatabase,
+    ): EncodedCipherEntity {
         val scope = EncodeToCipherScope()
         val tags = buildSet {
             val nativeTagsSeq = local.tags
@@ -837,7 +867,11 @@ class SyncByKeePassTokenImpl(
         val backgroundColor = remote?.backgroundColor
         val overrideUrl = remote?.overrideUrl.orEmpty()
         val autoType = remote?.autoType
-        val binaries = remote?.binaries.orEmpty()
+        val encodedAttachments = encodeCipherAttachments(
+            local = local,
+            database = database,
+        )
+        val binaries = encodedAttachments.references
         val history = remote?.history.orEmpty()
         val customData = remote?.customData.orEmpty()
         val previousParentGroup = remote?.previousParentGroup
@@ -861,23 +895,134 @@ class SyncByKeePassTokenImpl(
                 lastModificationTime = revisionDateJvm,
             )
         }
-        return Entry(
-            uuid = uuid,
-            icon = icon,
-            customIconUuid = customIconUuid,
-            foregroundColor = foregroundColor,
-            backgroundColor = backgroundColor,
-            overrideUrl = overrideUrl,
-            times = times,
-            autoType = autoType,
-            fields = fields,
-            tags = tags,
-            binaries = binaries,
-            history = history,
-            customData = customData,
-            previousParentGroup = previousParentGroup,
-            qualityCheck = qualityCheck,
+        return EncodedCipherEntity(
+            entry = Entry(
+                uuid = uuid,
+                icon = icon,
+                customIconUuid = customIconUuid,
+                foregroundColor = foregroundColor,
+                backgroundColor = backgroundColor,
+                overrideUrl = overrideUrl,
+                times = times,
+                autoType = autoType,
+                fields = fields,
+                tags = tags,
+                binaries = binaries,
+                history = history,
+                customData = customData,
+                previousParentGroup = previousParentGroup,
+                qualityCheck = qualityCheck,
+            ),
+            attachments = encodedAttachments.attachments,
+            database = encodedAttachments.database,
         )
+    }
+
+    private suspend fun encodeCipherAttachments(
+        local: BitwardenCipher,
+        database: KeePassDatabase,
+    ): EncodedCipherAttachments {
+        val additions = mutableMapOf<ByteString, BinaryData>()
+        val references = mutableListOf<BinaryReference>()
+        val attachments = mutableListOf<BitwardenCipher.Attachment.Remote>()
+
+        local.attachments.forEach { attachment ->
+            when (attachment) {
+                is BitwardenCipher.Attachment.Remote -> {
+                    val url = attachment.url
+                        ?: return@forEach
+                    val binary = findKeePassBinaryByAttachmentUrl(
+                        binaries = database.binaries + additions,
+                        url = url,
+                    ) ?: return@forEach
+                    val data = binary.value.getContent()
+                    references += BinaryReference(
+                        hash = binary.key,
+                        name = attachment.fileName,
+                    )
+                    attachments += attachment.copy(
+                        url = url,
+                        keyBase64 = "",
+                        size = data.size.toLong(),
+                    )
+                }
+
+                is BitwardenCipher.Attachment.Local -> {
+                    val data = readKeePassAttachmentData(attachment.url)
+                    val binary = BinaryData.Uncompressed(
+                        memoryProtection = false,
+                        rawContent = data,
+                    )
+                    additions[binary.hash] = binary
+
+                    val url = KeePassUtil.generateAttachmentUrl(
+                        data = data,
+                        cryptoGenerator = cryptoGenerator,
+                        base32Service = base32Service,
+                    )
+                    references += BinaryReference(
+                        hash = binary.hash,
+                        name = attachment.fileName,
+                    )
+                    attachments += BitwardenCipher.Attachment.Remote(
+                        id = attachment.id,
+                        url = url,
+                        fileName = attachment.fileName,
+                        keyBase64 = "",
+                        size = data.size.toLong(),
+                    )
+                }
+            }
+        }
+
+        val updatedDatabase = if (additions.isEmpty()) {
+            database
+        } else {
+            database.modifyBinaries { binaries ->
+                binaries + additions
+            }
+        }
+        return EncodedCipherAttachments(
+            references = references,
+            attachments = attachments,
+            database = updatedDatabase,
+        )
+    }
+
+    private suspend fun findKeePassBinaryByAttachmentUrl(
+        binaries: Map<ByteString, BinaryData>,
+        url: String,
+    ): Map.Entry<ByteString, BinaryData>? {
+        val hash = KeePassUtil.parseAttachmentUrl(
+            url = url,
+            base32Service = base32Service,
+        )
+        return binaries.entries.firstOrNull { entry ->
+            val contentHash = entry.value
+                .getContent()
+                .let(cryptoGenerator::hashSha256)
+            contentHash.contentEquals(hash)
+        }
+    }
+
+    private fun readKeePassAttachmentData(
+        uri: String,
+    ): ByteArray = fileService.readFromFile(uri).use { source ->
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        val output = ByteArrayOutputStream()
+        var total = 0L
+        while (true) {
+            val read = source.readAtMostTo(buffer)
+            if (read == -1) {
+                break
+            }
+            total += read
+            require(total <= KEEPASS_FILE_UPLOAD_MAX_BYTES) {
+                "KeePass attachment file must be 1 MB or smaller."
+            }
+            output.write(buffer, 0, read)
+        }
+        output.toByteArray()
     }
 
     private suspend fun encodeCipherLoginEntity(
@@ -1286,30 +1431,40 @@ class SyncByKeePassTokenImpl(
             } else BitwardenCipher.RepromptType.None
         }
         val attachments = remote.binaries
-            .mapNotNull { binary ->
-                val id = cryptoGenerator.uuid()
-                val data = binaries
-                    .entries
-                    .firstOrNull { binaryContent ->
-                        binaryContent.key == binary.hash
-                    }
-                    ?.value?.getContent()
-                // could not find the referenced attachment
-                    ?: return@mapNotNull null
+            .let { remoteBinaries ->
+                val usedLocalAttachmentIds = mutableSetOf<String>()
+                remoteBinaries.mapNotNull { binary ->
+                    val data = binaries
+                        .entries
+                        .firstOrNull { binaryContent ->
+                            binaryContent.key == binary.hash
+                        }
+                        ?.value?.getContent()
+                    // could not find the referenced attachment
+                        ?: return@mapNotNull null
 
-                val url = KeePassUtil.generateAttachmentUrl(
-                    data = data,
-                    cryptoGenerator = cryptoGenerator,
-                    base32Service = base32Service,
-                )
-                val size = data.size.toLong()
-                BitwardenCipher.Attachment.Remote(
-                    id = id,
-                    url = url,
-                    fileName = binary.name,
-                    keyBase64 = "", // unencrypted
-                    size = size,
-                )
+                    val url = KeePassUtil.generateAttachmentUrl(
+                        data = data,
+                        cryptoGenerator = cryptoGenerator,
+                        base32Service = base32Service,
+                    )
+                    val size = data.size.toLong()
+                    val id = findKeePassAttachmentId(
+                        local = local,
+                        usedIds = usedLocalAttachmentIds,
+                        url = url,
+                        fileName = binary.name,
+                        size = size,
+                    ) ?: cryptoGenerator.uuid()
+                    usedLocalAttachmentIds += id
+                    BitwardenCipher.Attachment.Remote(
+                        id = id,
+                        url = url,
+                        fileName = binary.name,
+                        keyBase64 = "", // unencrypted
+                        size = size,
+                    )
+                }
             }
         return BitwardenCipher(
             accountId = accountId,
@@ -1354,6 +1509,46 @@ class SyncByKeePassTokenImpl(
             archivedDate = archivedDate,
             revisionDate = revisionDate,
         )
+    }
+
+    private fun findKeePassAttachmentId(
+        local: BitwardenCipher?,
+        usedIds: Set<String>,
+        url: String,
+        fileName: String,
+        size: Long,
+    ): String? {
+        val localAttachments = local?.attachments.orEmpty()
+            .filter { attachment ->
+                attachment.id !in usedIds
+            }
+        return localAttachments
+            .firstOrNull { attachment ->
+                attachment.url == url &&
+                        attachment.keepassFileName() == fileName
+            }
+            ?.id
+            ?: localAttachments
+                .firstOrNull { attachment ->
+                    attachment.url == url
+                }
+                ?.id
+            ?: localAttachments
+                .firstOrNull { attachment ->
+                    attachment.keepassFileName() == fileName &&
+                            attachment.keepassFileSize() == size
+                }
+                ?.id
+    }
+
+    private fun BitwardenCipher.Attachment.keepassFileName(): String = when (this) {
+        is BitwardenCipher.Attachment.Remote -> fileName
+        is BitwardenCipher.Attachment.Local -> fileName
+    }
+
+    private fun BitwardenCipher.Attachment.keepassFileSize(): Long? = when (this) {
+        is BitwardenCipher.Attachment.Remote -> size
+        is BitwardenCipher.Attachment.Local -> size
     }
 
     private suspend fun decodeToCipherLoginEntity(

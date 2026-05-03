@@ -154,6 +154,7 @@ import com.artemchep.keyguard.core.store.bitwarden.canRetry
 import com.artemchep.keyguard.core.store.bitwarden.expired
 import com.artemchep.keyguard.core.store.bitwarden.message
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
+import com.artemchep.keyguard.feature.attachments.util.createPendingAttachmentItem
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
@@ -2552,28 +2553,10 @@ private fun RememberStateFlowScope.oh(
                 }
 
                 is DSecret.Attachment.Local -> {
-                    val downloadIo = kotlin.run {
-                        ioUnit()
-                    }
-                    val removeIo = kotlin.run {
-                        ioUnit()
-                    }
-
-                    val actualItem = createAttachmentItem(
-                        tag = DownloadInfoEntity2.AttachmentDownloadTag(
-                            localCipherId = cipher.id,
-                            remoteCipherId = cipher.service.remote?.id,
-                            attachmentId = attachment.id,
-                        ),
-                        vaultViewRouteFactory = vaultViewRouteFactory,
+                    val actualItem = createPendingAttachmentItem(
                         selectionHandle = selectionHandle,
                         sharingScope = sharingScope,
                         attachment = attachment,
-                        launchViewCipherData = null,
-                        downloadManager = downloadManager,
-                        downloadIo = downloadIo,
-                        removeIo = removeIo,
-                        verify = verify,
                     )
                     val wrapperItem = VaultViewItem.Attachment(
                         id = actualItem.key,

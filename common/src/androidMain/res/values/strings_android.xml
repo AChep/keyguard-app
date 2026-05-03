@@ -1,11 +1,6 @@
 <resources>
     <string name="app_name">Keyguard</string>
 
-    <string name="notification_attachment_upload_channel_id" translatable="false">com.artemchep.keyguard.UPLOAD_ATTACHMENTS</string>
-    <string name="notification_attachment_upload_channel_name">Uploading attachments</string>
-    <string name="notification_attachment_upload_title">Uploading attachments</string>
-    <string name="notification_attachment_upload_content">Uploading attachments</string>
-
     <string name="notification_attachment_download_channel_id" translatable="false">com.artemchep.keyguard.DOWNLOAD_ATTACHMENTS</string>
     <string name="notification_attachment_download_channel_name">Download attachments</string>
     <string name="notification_attachment_download_title">Downloading attachments</string>

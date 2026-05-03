@@ -1,19 +1,20 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
+import com.artemchep.keyguard.crypto.FileEncryptionFormat.HEADER_LENGTH
+import com.artemchep.keyguard.crypto.util.createAesCbc
 import org.bouncycastle.crypto.BufferedBlockCipher
-import org.bouncycastle.crypto.CipherParameters
-import org.bouncycastle.crypto.engines.AESEngine
-import org.bouncycastle.crypto.modes.CBCBlockCipher
-import org.bouncycastle.crypto.paddings.PKCS7Padding
-import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher
-import org.bouncycastle.crypto.params.KeyParameter
-import org.bouncycastle.crypto.params.ParametersWithIV
+import org.bouncycastle.crypto.InvalidCipherTextException
+import javax.crypto.Mac
 
 class CipherInputStreamDecoder(
     private val key: ByteArray,
 ) : CipherInputStream2.Decoder {
+    private val headerBuffer = ByteArray(HEADER_LENGTH)
+    private var headerLength = 0
     private var bufferedBlockCipher: BufferedBlockCipher? = null
+    private var hmac: Mac? = null
+    private var expectedMac: ByteArray? = null
 
     override fun processBytes(
         `in`: ByteArray,
@@ -22,7 +23,7 @@ class CipherInputStreamDecoder(
         out: ByteArray,
         outOff: Int,
     ): Int {
-        val consumedLength = ensureInitialized(
+        val consumedLength = initIfReady(
             buffer = `in`,
             offset = inOff,
             length = len,
@@ -34,6 +35,7 @@ class CipherInputStreamDecoder(
             return 0
         }
 
+        hmac!!.update(`in`, newOffset, newLength)
         return bufferedBlockCipher!!.processBytes(
             `in`,
             newOffset,
@@ -44,10 +46,21 @@ class CipherInputStreamDecoder(
     }
 
     override fun doFinal(out: ByteArray, outOff: Int): Int {
+        check(headerLength == HEADER_LENGTH && bufferedBlockCipher != null) {
+            "Invalid encrypted data"
+        }
+        try {
+            FileEncryptionFormat.verifyMac(
+                expectedMac = expectedMac!!,
+                actualMac = hmac!!.doFinal(),
+            )
+        } catch (e: IllegalStateException) {
+            throw InvalidCipherTextException(e.message, e)
+        }
         return bufferedBlockCipher!!.doFinal(out, outOff)
     }
 
-    private fun ensureInitialized(
+    private fun initIfReady(
         buffer: ByteArray,
         offset: Int,
         length: Int,
@@ -56,91 +69,42 @@ class CipherInputStreamDecoder(
             return 0
         }
 
-        val type = buffer[offset].let { byte ->
-            CipherEncryptor.Type.entries
-                .first { it.byte == byte }
+        val headerRemaining = HEADER_LENGTH - headerLength
+        val consumedLength = minOf(headerRemaining, length)
+        buffer.copyInto(
+            destination = headerBuffer,
+            destinationOffset = headerLength,
+            startIndex = offset,
+            endIndex = offset + consumedLength,
+        )
+        headerLength += consumedLength
+        if (headerLength < HEADER_LENGTH) {
+            return consumedLength
         }
-        return when (type) {
+
+        val header = FileEncryptionFormat.parseAuthenticatedHeader(
+            buffer = headerBuffer,
+            offset = 0,
+        )
+        val keys = when (header.type) {
             CipherEncryptor.Type.AesCbc128_HmacSha256_B64 ->
-                initAesCbc128_HmacSha256_B64(
-                    buffer = buffer,
-                    offset = offset,
-                    length = length,
-                )
+                FileEncryptionFormat.requireAesCbc128HmacSha256Keys(key)
 
             CipherEncryptor.Type.AesCbc256_HmacSha256_B64 ->
-                initAesCbc256_HmacSha256_B64(
-                    buffer = buffer,
-                    offset = offset,
-                    length = length,
-                )
+                FileEncryptionFormat.requireAesCbc256HmacSha256Keys(key)
 
-            else -> throw IllegalArgumentException("Can not decrypt data with a type of '$type'!")
+            else -> throw IllegalArgumentException("Can not decrypt data with a type of '${header.type}'!")
         }
-    }
-
-    private fun initAesCbc128_HmacSha256_B64(
-        buffer: ByteArray,
-        offset: Int,
-        length: Int,
-    ): Int {
-        check(length >= 49) { "Invalid encrypted data" } // 1 + 16 + 32 + ctLength
-        val typeLength = 1
-        val ivLength = 16
-        val macLength = 32
-
-        val typeEnd = typeLength + offset
-        val ivEnd = typeEnd + ivLength
-        val macEnd = ivEnd + macLength
-        val iv = buffer.sliceArray(typeEnd until ivEnd)
-        val mac = buffer.sliceArray(ivEnd until macEnd)
-        initAesCbc(
-            iv = iv,
+        expectedMac = header.mac
+        hmac = FileEncryptionFormat.createHmac(keys.macKey).apply {
+            update(header.iv)
+        }
+        bufferedBlockCipher = createAesCbc(
+            iv = header.iv,
+            key = keys.encKey,
             forEncryption = false,
         )
-        // TODO: We need to compute MAC while decrypting the data,
-        //  allowing us to check if the output file is valid.
-        return typeLength + ivLength + macLength
-    }
-
-    private fun initAesCbc256_HmacSha256_B64(
-        buffer: ByteArray,
-        offset: Int,
-        length: Int,
-    ): Int {
-        check(length >= 49) { "Invalid encrypted data" } // 1 + 16 + 32 + ctLength
-        val typeLength = 1
-        val ivLength = 16
-        val macLength = 32
-
-        val typeEnd = typeLength + offset
-        val ivEnd = typeEnd + ivLength
-        val macEnd = ivEnd + macLength
-        val iv = buffer.sliceArray(typeEnd until ivEnd)
-        val mac = buffer.sliceArray(ivEnd until macEnd)
-        initAesCbc(
-            iv = iv,
-            forEncryption = false,
-        )
-        // TODO: We need to compute MAC while decrypting the data,
-        //  allowing us to check if the output file is valid.
-        return typeLength + ivLength + macLength
-    }
-
-    private fun initAesCbc(
-        iv: ByteArray,
-        forEncryption: Boolean,
-    ) {
-        val aes = PaddedBufferedBlockCipher(
-            CBCBlockCipher(
-                AESEngine(),
-            ),
-            PKCS7Padding(),
-        )
-        val ivAndKey: CipherParameters =
-            ParametersWithIV(KeyParameter(key.sliceArray(0 until 32)), iv)
-        aes.init(forEncryption, ivAndKey)
-        bufferedBlockCipher = aes
+        return consumedLength
     }
 
     override fun getOutputSize(length: Int) =

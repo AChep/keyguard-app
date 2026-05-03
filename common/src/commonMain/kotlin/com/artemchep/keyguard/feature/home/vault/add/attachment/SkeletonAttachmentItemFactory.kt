@@ -1,16 +1,20 @@
 package com.artemchep.keyguard.feature.home.vault.add.attachment
 
 import com.artemchep.keyguard.common.model.create.CreateRequest
-import com.artemchep.keyguard.common.model.create.CreateSendRequest
 import com.artemchep.keyguard.common.model.create.attachments
-import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.add.AddStateItem
-import com.artemchep.keyguard.feature.add.LocalStateItem
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.add.attachment.AttachmentItemStateConfig
+import com.artemchep.keyguard.feature.add.attachment.attachmentStatePopulator
+import com.artemchep.keyguard.feature.add.attachment.createAttachmentStateItem
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.fileupload.isVaultAttachmentFileSizeAllowed
+import com.artemchep.keyguard.feature.fileupload.toAttachmentFileMetadata
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.add.Foo2Factory
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOf
+import kotlin.uuid.Uuid
 
 class SkeletonAttachmentItemFactory : Foo2Factory<AddStateItem.Attachment<*>, SkeletonAttachment> {
     override val type: String = "attachment"
@@ -31,66 +35,80 @@ class SkeletonAttachmentItemFactory : Foo2Factory<AddStateItem.Attachment<*>, Sk
         val identity = identitySink.value
         val synced = identity is SkeletonAttachment.Remote.Identity
 
-        val nameKey = "$key.name"
-        val nameSink = mutablePersistedFlow(nameKey) {
-            initial?.name.orEmpty()
-        }
-        val nameMutableState = asComposeState<String>(nameKey)
-
-        val textFlow = nameSink
-            .map { uri ->
-                TextFieldModel2(
-                    text = uri,
-                    state = nameMutableState,
-                    onChange = nameMutableState::value::set,
-                )
-            }
-        val stateFlow = textFlow
-            .map { text ->
-                AddStateItem.Attachment.State(
-                    id = "id",
-                    name = text,
-                    size = initial?.size,
-                    synced = synced,
-                )
-            }
-            .persistingStateIn(
-                scope = screenScope,
-                started = SharingStarted.WhileSubscribed(),
-                initialValue = AddStateItem.Attachment.State(
-                    id = "id",
-                    name = TextFieldModel2.empty,
-                    size = null,
-                    synced = synced,
-                ),
-            )
         return AddStateItem.Attachment(
             id = key,
-            state = LocalStateItem(
-                flow = stateFlow,
-                populator = { state ->
-                    CreateRequest.attachments.modify(this) {
-                        val model = when (identity) {
-                            is SkeletonAttachment.Remote.Identity -> {
-                                CreateRequest.Attachment.Remote(
-                                    id = identity.id,
-                                    name = state.name.text,
-                                )
-                            }
-
-                            is SkeletonAttachment.Local.Identity -> {
-                                CreateRequest.Attachment.Local(
-                                    id = identity.id,
-                                    uri = identity.uri,
-                                    size = identity.size,
-                                    name = state.name.text,
-                                )
-                            }
-                        }
-                        it.add(model)
-                    }
-                },
+            state = createAttachmentStateItem(
+                key = key,
+                initialName = initial?.name.orEmpty(),
+                initialConfig = AttachmentItemStateConfig(
+                    id = "id",
+                    size = initial?.size,
+                    synced = synced,
+                ),
+                configFlow = flowOf(
+                    AttachmentItemStateConfig(
+                        id = "id",
+                        size = initial?.size,
+                        synced = synced,
+                    ),
+                ),
+                populator = attachmentStatePopulator(
+                    identity = identity,
+                    populator = CreateRequest::withSkeletonAttachment,
+                ),
             ),
         )
     }
+}
+
+internal fun CreateRequest.withSkeletonAttachment(
+    identity: SkeletonAttachment.Identity,
+    name: String,
+): CreateRequest = CreateRequest.attachments.modify(this) {
+    val model = when (identity) {
+        is SkeletonAttachment.Remote.Identity -> {
+            CreateRequest.Attachment.Remote(
+                id = identity.id,
+                name = name,
+            )
+        }
+
+        is SkeletonAttachment.Local.Identity -> {
+            CreateRequest.Attachment.Local(
+                id = identity.id,
+                uri = identity.uri,
+                size = identity.size,
+                name = name,
+                keyBase64 = identity.keyBase64,
+            )
+        }
+    }
+    it.add(model)
+}
+
+internal fun FilePickerResult.toSkeletonAttachment(): SkeletonAttachment.Local {
+    return requireNotNull(toSkeletonAttachmentOrNull()) {
+        "Vault attachment file is too large."
+    }
+}
+
+internal fun FilePickerResult.toSkeletonAttachmentOrNull(
+    accountType: AccountType? = null,
+): SkeletonAttachment.Local? {
+    if (!isVaultAttachmentFileSizeAllowed(size, accountType)) {
+        return null
+    }
+
+    val metadata = toAttachmentFileMetadata(
+        fallbackName = "File",
+    )
+    return SkeletonAttachment.Local(
+        identity = SkeletonAttachment.Local.Identity(
+            id = Uuid.random().toString(),
+            uri = metadata.uri,
+            size = metadata.size,
+        ),
+        name = metadata.name,
+        size = metadata.size?.let(::humanReadableByteCountSI).orEmpty(),
+    )
 }

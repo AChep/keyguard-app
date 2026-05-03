@@ -5,40 +5,17 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
+import com.artemchep.keyguard.core.store.bitwarden.pendingRemoteAttachmentDeletionIds
 
 suspend fun merge(
     remote: BitwardenCipher,
     local: BitwardenCipher?,
     getPasswordStrength: GetPasswordStrength,
 ): BitwardenCipher {
-    val attachments = remote.attachments.toMutableList()
-    local?.attachments?.forEachIndexed { localIndex, attachment ->
-        val localAttachment = attachment as? BitwardenCipher.Attachment.Local
-            ?: return@forEachIndexed
-
-        // Skip collisions.
-        val remoteIndex = attachments
-            .indexOfFirst { it.id == localAttachment.id }
-        if (remoteIndex >= 0) {
-            // This attachment already exists on remote, so
-            // we just keep it as is.
-            return@forEachIndexed
-        }
-
-        val parent = local.attachments
-            .getOrNull(localIndex - 1)
-        val parentIndex = attachments
-            .indexOfFirst { it.id == parent?.id }
-        if (parentIndex >= 0) {
-            attachments.add(parentIndex + 1, localAttachment)
-        } else {
-            if (parent != null) {
-                attachments.add(localAttachment)
-            } else {
-                attachments.add(0, localAttachment)
-            }
-        }
-    }
+    val attachments = mergeAttachments(
+        remote = remote,
+        local = local,
+    )
 
     var login = remote.login
     // Calculate or copy over the password strength of
@@ -71,6 +48,56 @@ suspend fun merge(
         attachments = attachments,
         ignoredAlerts = ignoredAlerts,
     )
+}
+
+private fun mergeAttachments(
+    remote: BitwardenCipher,
+    local: BitwardenCipher?,
+): List<BitwardenCipher.Attachment> {
+    val removedRemoteAttachmentIds = local
+        ?.pendingRemoteAttachmentDeletionIds()
+        .orEmpty()
+    val remoteAttachmentsById = remote.attachments
+        .asSequence()
+        .filterNot { it.id in removedRemoteAttachmentIds }
+        .associateByTo(LinkedHashMap()) { it.id }
+    val baseRemoteAttachmentsById = local
+        ?.remoteEntity
+        ?.attachments
+        .orEmpty()
+        .asSequence()
+        .filterIsInstance<BitwardenCipher.Attachment.Remote>()
+        .associateBy { it.id }
+    if (local == null) {
+        return remoteAttachmentsById.values.toList()
+    }
+
+    val orderedAttachments = mutableListOf<BitwardenCipher.Attachment>()
+    local.attachments.forEach { localAttachment ->
+        when (localAttachment) {
+            is BitwardenCipher.Attachment.Remote -> {
+                val remoteAttachment = remoteAttachmentsById
+                    .remove(localAttachment.id) as? BitwardenCipher.Attachment.Remote
+                    ?: return@forEach
+                val baseAttachment = baseRemoteAttachmentsById[localAttachment.id]
+                val hasLocalRename = baseAttachment != null &&
+                        localAttachment.fileName != baseAttachment.fileName
+                orderedAttachments += if (hasLocalRename) {
+                    remoteAttachment.copy(
+                        fileName = localAttachment.fileName,
+                    )
+                } else {
+                    remoteAttachment
+                }
+            }
+
+            is BitwardenCipher.Attachment.Local -> {
+                orderedAttachments += localAttachment
+            }
+        }
+    }
+    orderedAttachments += remoteAttachmentsById.values
+    return orderedAttachments
 }
 
 suspend fun merge(

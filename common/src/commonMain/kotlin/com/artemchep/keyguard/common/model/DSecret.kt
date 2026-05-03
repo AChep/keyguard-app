@@ -222,6 +222,7 @@ data class DSecret(
             override val url: String,
             val fileName: String,
             val size: Long? = null,
+            val keyBase64: String? = null,
         ) : Attachment {
             companion object
         }

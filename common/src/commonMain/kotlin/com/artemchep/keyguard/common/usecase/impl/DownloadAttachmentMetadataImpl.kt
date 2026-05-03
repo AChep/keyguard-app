@@ -27,9 +27,11 @@ import com.artemchep.keyguard.provider.bitwarden.api.builder.get
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrImpl
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrKey
+import com.artemchep.keyguard.provider.bitwarden.crypto.CryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendOrganizationToken2
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendProfileToken2
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendUserToken
+import com.artemchep.keyguard.provider.bitwarden.crypto.decodeSymmetricOrThrow
 import com.artemchep.keyguard.provider.bitwarden.crypto.encrypted
 import com.artemchep.keyguard.provider.bitwarden.crypto.transform
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenCipherRepository
@@ -185,7 +187,7 @@ class DownloadAttachmentMetadataImpl2(
                 throw RuntimeException(msg)
             }
         val source = DownloadAttachmentRequestData.DirectSource(
-            data = data.rawContent,
+            data = data.getContent(),
         )
         AttachmentData(
             source = source,
@@ -247,7 +249,26 @@ class DownloadAttachmentMetadataImpl2(
                 encryptionType = envEncryptionType,
             )
         }
-        val cta = cr.cta(env, BitwardenCrCta.Mode.DECRYPT)
+        val globalCta = cr.cta(env, BitwardenCrCta.Mode.DECRYPT)
+        val itemCta = cipher.keyBase64
+            ?.let(base64Service::decode)
+            ?.let(CryptoKey.Companion::decodeSymmetricOrThrow)
+            ?.let { symmetricCryptoKey ->
+                val cryptoKey = BitwardenCrKey.CryptoKey(
+                    symmetricCryptoKey = symmetricCryptoKey,
+                )
+                val cryptoKeyEnv = BitwardenCrCta.BitwardenCrCtaEnv(
+                    key = cryptoKey,
+                    encryptionType = envEncryptionType,
+                )
+                cr.cta(
+                    env = cryptoKeyEnv,
+                    mode = BitwardenCrCta.Mode.DECRYPT,
+                )
+            }
+        val attachmentCtas = itemCta
+            ?.let { listOf(it, globalCta) }
+            ?: listOf(globalCta)
 
         //
         kotlin.runCatching {
@@ -268,9 +289,13 @@ class DownloadAttachmentMetadataImpl2(
                         token = accessToken,
                     )
             }
-            val model = BitwardenCipher.Attachment
+            val encryptedAttachment = BitwardenCipher.Attachment
                 .encrypted(attachment = entity)
-                .transform(crypto = cta)
+            val model = BitwardenCipher.Attachment
+                .decryptMetadata(
+                    attachment = encryptedAttachment,
+                    cryptoCandidates = attachmentCtas,
+                )
             val source = DownloadAttachmentRequestData.UrlSource(
                 url = requireNotNull(model.url),
                 urlIsOneTime = true,
@@ -297,4 +322,20 @@ class DownloadAttachmentMetadataImpl2(
             )
         }
     }
+
+}
+
+internal fun BitwardenCipher.Attachment.Companion.decryptMetadata(
+    attachment: BitwardenCipher.Attachment.Remote,
+    cryptoCandidates: List<BitwardenCrCta>,
+): BitwardenCipher.Attachment.Remote {
+    var lastError: Throwable? = null
+    cryptoCandidates.forEach { crypto ->
+        runCatching {
+            return attachment.transform(crypto = crypto)
+        }.onFailure { e ->
+            lastError = e
+        }
+    }
+    throw lastError ?: IllegalStateException("Could not decrypt attachment metadata.")
 }

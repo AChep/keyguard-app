@@ -22,6 +22,7 @@ import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.api.SyncEngine
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
@@ -46,6 +47,7 @@ class SyncByBitwardenTokenImpl(
     private val httpClient: HttpClient,
     private val db: VaultDatabaseManager,
     private val dbSyncer: DatabaseSyncer,
+    private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val watchdog: Watchdog,
 ) : SyncByBitwardenToken {
     companion object {
@@ -64,6 +66,7 @@ class SyncByBitwardenTokenImpl(
         httpClient = directDI.instance(),
         db = directDI.instance(),
         dbSyncer = directDI.instance(),
+        pendingUploadCoordinator = directDI.instance(),
         watchdog = directDI.instance(),
     )
 
@@ -98,6 +101,7 @@ class SyncByBitwardenTokenImpl(
                     cipherEncryptor = cipherEncryptor,
                     logRepository = logRepository,
                     getPasswordStrength = getPasswordStrength,
+                    pendingUploadCoordinator = pendingUploadCoordinator,
                     user = latestUser,
                     syncer = dbSyncer,
                 )

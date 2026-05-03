@@ -77,5 +77,9 @@ data class AttachmentItem(
         ) : Status {
             override val previewUrl get() = localUrl
         }
+
+        data object PendingUpload : Status {
+            override val previewUrl get() = null
+        }
     }
 }

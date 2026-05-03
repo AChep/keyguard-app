@@ -3,51 +3,48 @@ package com.artemchep.keyguard.crypto
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
-import com.artemchep.keyguard.common.service.text.Base64Service
-import org.bouncycastle.crypto.BufferedBlockCipher
-import org.bouncycastle.crypto.CipherParameters
-import org.bouncycastle.crypto.engines.AESEngine
-import org.bouncycastle.crypto.modes.CBCBlockCipher
-import org.bouncycastle.crypto.paddings.PKCS7Padding
-import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher
-import org.bouncycastle.crypto.params.KeyParameter
-import org.bouncycastle.crypto.params.ParametersWithIV
+import com.artemchep.keyguard.crypto.FileEncryptionFormat.BUFFER_SIZE
+import com.artemchep.keyguard.crypto.FileEncryptionFormat.IV_LENGTH
+import com.artemchep.keyguard.crypto.FileEncryptionFormat.MAC_LENGTH
+import com.artemchep.keyguard.crypto.FileEncryptionFormat.TYPE_LENGTH
+import com.artemchep.keyguard.crypto.util.createAesCbc
+import com.artemchep.keyguard.crypto.util.encode
+import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.platform.toJavaFile
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.InputStream
+import java.io.RandomAccessFile
+import kotlinx.io.Buffer
+import kotlinx.io.Source
 
 class FileEncryptorJvm(
     private val cryptoGenerator: CryptoGenerator,
-    private val base64Service: Base64Service,
 ) : FileEncryptor {
-    companion object {
-        private const val TAG = "FileEncryptorImpl"
-    }
-
     constructor(
         directDI: DirectDI,
     ) : this(
         cryptoGenerator = directDI.instance(),
-        base64Service = directDI.instance(),
     )
 
     override fun decode(
-        data: ByteArray,
+        input: ByteArray,
         key: ByteArray,
     ): ByteArray {
-        val type = data[0].let { byte ->
-            CipherEncryptor.Type.entries.first { it.byte == byte }
-        }
+        val type = FileEncryptionFormat.readType(input)
 
         return when (type) {
-            CipherEncryptor.Type.AesCbc256_B64 ->
-                decodeAesCbc256_B64(data, key)
+            CipherEncryptor.Type.AesCbc256_B64 -> {
+                val msg = "The support for AES CBC 256 (enc-type 0) is not longer provided! " +
+                        "Please upgrade your vault to migrate to a newer encryption type!"
+                throw IllegalArgumentException(msg)
+            }
 
             CipherEncryptor.Type.AesCbc128_HmacSha256_B64 ->
-                decodeAesCbc128_HmacSha256_B64(data, key)
+                decodeAesCbc128_HmacSha256_B64(input, key)
 
             CipherEncryptor.Type.AesCbc256_HmacSha256_B64 ->
-                decodeAesCbc256_HmacSha256_B64(data, key)
+                decodeAesCbc256_HmacSha256_B64(input, key)
 
             else -> throw IllegalArgumentException("Can not decrypt data with a type of '$type'!")
         }
@@ -61,38 +58,17 @@ class FileEncryptorJvm(
         return CipherInputStream2(input, decoder)
     }
 
-    private fun decodeAesCbc256_B64(
-        data: ByteArray,
-        key: ByteArray,
-    ): ByteArray {
-        check(data.size >= 17) { "Invalid encrypted data" } // 1 + 16 + ctLength
-        val iv = data.sliceArray(1..17)
-        val ct = data.sliceArray(18 until data.size)
-        require(iv.size + ct.size + 1 == data.size)
-        TODO()
-    }
-
     private fun decodeAesCbc128_HmacSha256_B64(
         data: ByteArray,
         key: ByteArray,
     ): ByteArray {
-        check(data.size >= 49) { "Invalid encrypted data" } // 1 + 16 + 32 + ctLength
-        val typeLength = 1
-        val ivLength = 16
-        val macLength = 32
-
-        @Suppress("UnnecessaryVariable")
-        val typeEnd = typeLength
-        val ivEnd = typeLength + ivLength
-        val macEnd = ivEnd + macLength
-        val iv = data.sliceArray(typeEnd until ivEnd)
-        val mac = data.sliceArray(ivEnd until macEnd)
-        val ct = data.sliceArray(macEnd until data.size)
-        require(iv.size + mac.size + ct.size + 1 == data.size)
-        return decodeAesCbc256_HmacSha256_B64(
-            iv = iv,
-            ct = ct,
-            encKey = key,
+        val frame = FileEncryptionFormat.parseAuthenticatedFrame(data)
+        val keys = FileEncryptionFormat.requireAesCbc128HmacSha256Keys(key)
+        verifyMac(frame, keys)
+        return decryptAesCbc(
+            iv = frame.iv,
+            cipherText = frame.cipherText,
+            encKey = keys.encKey,
         )
     }
 
@@ -100,64 +76,116 @@ class FileEncryptorJvm(
         data: ByteArray,
         key: ByteArray,
     ): ByteArray {
-        check(data.size >= 49) { "Invalid encrypted data" } // 1 + 16 + 32 + ctLength
-        val typeLength = 1
-        val ivLength = 16
-        val macLength = 32
-
-        @Suppress("UnnecessaryVariable")
-        val typeEnd = typeLength
-        val ivEnd = typeLength + ivLength
-        val macEnd = ivEnd + macLength
-        val iv = data.sliceArray(typeEnd until ivEnd)
-        val mac = data.sliceArray(ivEnd until macEnd)
-        val ct = data.sliceArray(macEnd until data.size)
-        require(iv.size + mac.size + ct.size + 1 == data.size)
-        return decodeAesCbc256_HmacSha256_B64(
-            iv = iv,
-            ct = ct,
-            encKey = key.sliceArray(0 until 32),
+        val frame = FileEncryptionFormat.parseAuthenticatedFrame(data)
+        val keys = FileEncryptionFormat.requireAesCbc256HmacSha256Keys(key)
+        verifyMac(frame, keys)
+        return decryptAesCbc(
+            iv = frame.iv,
+            cipherText = frame.cipherText,
+            encKey = keys.encKey,
         )
     }
 
-    override fun encode(data: ByteArray, key: ByteArray): ByteArray {
-        TODO()
+    override fun encode(
+        data: ByteArray,
+        key: ByteArray,
+    ): ByteArray {
+        val keys = FileEncryptionFormat.requireAesCbc256HmacSha256Keys(key)
+        val iv = cryptoGenerator.seed(IV_LENGTH)
+        val aes = createAesCbc(iv, keys.encKey, forEncryption = true)
+        val cipherText = aes.encode(data)
+        val mac = cryptoGenerator.hmacSha256(keys.macKey, iv + cipherText)
+        return byteArrayOf(CipherEncryptor.Type.AesCbc256_HmacSha256_B64.byte) + iv + mac + cipherText
     }
 
-    private fun decodeAesCbc256_HmacSha256_B64(
+    override fun encode(
+        input: Source,
+        output: LocalPath,
+        key: ByteArray,
+    ): FileEncryptor.EncodeResult {
+        val keys = FileEncryptionFormat.requireAesCbc256HmacSha256Keys(key)
+        val iv = cryptoGenerator.seed(IV_LENGTH)
+        val aes = createAesCbc(iv, keys.encKey, forEncryption = true)
+        val hmac = FileEncryptionFormat.createHmac(keys.macKey).apply {
+            update(iv)
+        }
+
+        val outputFile = output.toJavaFile()
+        outputFile.parentFile?.mkdirs()
+
+        RandomAccessFile(outputFile, "rw").use { file ->
+            file.setLength(0L)
+            file.writeByte(CipherEncryptor.Type.AesCbc256_HmacSha256_B64.byte.toInt())
+            file.write(iv)
+            file.write(ByteArray(MAC_LENGTH))
+
+            val inputBuffer = Buffer()
+            val chunkBuffer = ByteArray(BUFFER_SIZE)
+            var plainSize = 0L
+
+            input.use { source ->
+                while (true) {
+                    val read = source.readAtMostTo(inputBuffer, BUFFER_SIZE.toLong())
+                    if (read == -1L) {
+                        break
+                    }
+                    plainSize += read
+
+                    while (!inputBuffer.exhausted()) {
+                        val chunkLength = minOf(inputBuffer.size.toInt(), chunkBuffer.size)
+                        inputBuffer.readAtMostTo(chunkBuffer, 0, chunkLength)
+
+                        val outputBuffer = ByteArray(aes.getUpdateOutputSize(chunkLength))
+                        val written = aes.processBytes(
+                            chunkBuffer,
+                            0,
+                            chunkLength,
+                            outputBuffer,
+                            0,
+                        )
+                        if (written > 0) {
+                            file.write(outputBuffer, 0, written)
+                            hmac.update(outputBuffer, 0, written)
+                        }
+                    }
+                }
+            }
+
+            val finalBuffer = ByteArray(aes.getOutputSize(0))
+            val finalWritten = aes.doFinal(finalBuffer, 0)
+            if (finalWritten > 0) {
+                file.write(finalBuffer, 0, finalWritten)
+                hmac.update(finalBuffer, 0, finalWritten)
+            }
+
+            val mac = hmac.doFinal()
+            file.seek((TYPE_LENGTH + IV_LENGTH).toLong())
+            file.write(mac)
+
+            return FileEncryptor.EncodeResult(
+                plainSize = plainSize,
+                encryptedSize = file.length(),
+            )
+        }
+    }
+
+    private fun verifyMac(
+        frame: FileEncryptionFormat.AuthenticatedFrame,
+        keys: FileEncryptionFormat.EncryptionKeys,
+    ) {
+        val actualMac = cryptoGenerator.hmacSha256(keys.macKey, frame.iv + frame.cipherText)
+        FileEncryptionFormat.verifyMac(
+            expectedMac = frame.mac,
+            actualMac = actualMac,
+        )
+    }
+
+    private fun decryptAesCbc(
         iv: ByteArray,
-        ct: ByteArray,
+        cipherText: ByteArray,
         encKey: ByteArray,
     ): ByteArray {
         val aes = createAesCbc(iv, encKey, forEncryption = false)
-        return cipherData(aes, ct)
-    }
-
-    private fun createAesCbc(
-        iv: ByteArray,
-        key: ByteArray,
-        forEncryption: Boolean,
-    ) = kotlin.run {
-        val aes = PaddedBufferedBlockCipher(
-            CBCBlockCipher(
-                AESEngine(),
-            ),
-            PKCS7Padding(),
-        )
-        val ivAndKey: CipherParameters = ParametersWithIV(KeyParameter(key), iv)
-        aes.init(forEncryption, ivAndKey)
-        aes
-    }
-
-    @Throws(Exception::class)
-    private fun cipherData(cipher: BufferedBlockCipher, data: ByteArray): ByteArray {
-        val minSize = cipher.getOutputSize(data.size)
-        val outBuf = ByteArray(minSize)
-        val length1 = cipher.processBytes(data, 0, data.size, outBuf, 0)
-        val length2 = cipher.doFinal(outBuf, length1)
-        val actualLength = length1 + length2
-        val result = ByteArray(actualLength)
-        System.arraycopy(outBuf, 0, result, 0, result.size)
-        return result
+        return aes.encode(cipherText)
     }
 }

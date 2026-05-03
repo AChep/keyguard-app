@@ -1,9 +1,6 @@
 package com.artemchep.keyguard.feature.filepicker
 
-import android.content.Context
 import android.content.Intent
-import android.net.Uri
-import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -13,7 +10,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
-import com.artemchep.keyguard.platform.LeUriImpl
 import com.artemchep.keyguard.ui.CollectedEffect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,11 +61,7 @@ actual fun FilePickerEffect(
                                 .takePersistableUriPermission(uri, f)
                         }
                 }
-                FilePickerResult(
-                    uri = LeUriImpl(uri),
-                    name = getFileName(context, uri),
-                    size = getFileSize(context, uri),
-                )
+                context.toFilePickerResult(uri)
             }
             intent.onResult(info)
         }
@@ -110,9 +102,8 @@ actual fun FilePickerEffect(
                                 .takePersistableUriPermission(uri, f)
                         }
                 }
-                FilePickerResult(
-                    uri = LeUriImpl(uri),
-                    name = getFileName(context, uri),
+                context.toFilePickerResult(
+                    uri = uri,
                     size = null,
                 )
             }
@@ -144,47 +135,4 @@ actual fun FilePickerEffect(
             }
         }
     }
-}
-
-private fun getFileName(context: Context, uri: Uri): String? {
-    var result: String? = null
-    if (uri.scheme == "content") {
-        val cursor = context
-            .contentResolver
-            .query(uri, null, null, null, null)
-        cursor?.use { x ->
-            if (x.moveToFirst()) {
-                val index = x.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (index >= 0) {
-                    result = x.getString(index)
-                }
-            }
-        }
-    }
-    if (result == null) {
-        val r = uri.path.orEmpty()
-        val cut = r.lastIndexOf('/')
-        if (cut != -1) {
-            result = r.substring(cut + 1)
-        }
-    }
-    return result
-}
-
-private fun getFileSize(context: Context, uri: Uri): Long? {
-    var result: Long? = null
-    if (uri.scheme == "content") {
-        val cursor = context
-            .contentResolver
-            .query(uri, null, null, null, null)
-        cursor?.use { x ->
-            if (x.moveToFirst()) {
-                val index = x.getColumnIndex(OpenableColumns.SIZE)
-                if (index >= 0) {
-                    result = x.getLong(index)
-                }
-            }
-        }
-    }
-    return result
 }

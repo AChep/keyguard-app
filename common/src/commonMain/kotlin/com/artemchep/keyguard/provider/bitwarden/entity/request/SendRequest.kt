@@ -45,6 +45,8 @@ data class SendRequest(
     val text: SendTextRequest?,
     @SerialName("file")
     val file: SendFileRequest?,
+    @SerialName("fileLength")
+    val fileLength: Long? = null,
     @SerialName("emails")
     val emails: String? = null,
 ) {
@@ -65,6 +67,8 @@ data class SendTextRequest(
 data class SendFileRequest(
     @SerialName("fileName")
     val fileName: String? = null,
+    @SerialName("key")
+    val key: String? = null,
 ) {
     companion object
 }
@@ -77,8 +81,14 @@ fun SendRequest.Companion.of(
     val type = SendTypeEntity.of(model.type)
     val text = model.text
         ?.let(SendTextRequest::of)
+    val remoteExists = model.service.remote != null
     val file = model.file
+        ?.takeIf { !remoteExists }
         ?.let(SendFileRequest::of)
+    val fileLength = model.file
+        ?.pendingUpload
+        ?.encryptedSize
+        ?.takeIf { !remoteExists }
     val deletionDate = model.deletedDate
         ?: Clock.System.now()
 
@@ -115,6 +125,7 @@ fun SendRequest.Companion.of(
         maxAccessCount = model.maxAccessCount,
         text = text,
         file = file,
+        fileLength = fileLength,
         emails = newEmails,
     )
 }
@@ -165,5 +176,6 @@ fun SendFileRequest.Companion.of(
 ) = kotlin.run {
     SendFileRequest(
         fileName = model.fileName,
+        key = model.keyBase64,
     )
 }

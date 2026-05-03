@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
@@ -305,6 +306,7 @@ private fun RowScope.VaultViewTotpCodeContent(
         }
         return
     }
+    val motionScheme = MaterialTheme.motionScheme
     codes.forEachIndexed { index, text ->
         if (index > 0) {
             Box(
@@ -333,14 +335,25 @@ private fun RowScope.VaultViewTotpCodeContent(
 
                             val to = this.targetState
                             val currentFavorite = from > to
-                            val enter = slideInVertically {
+                            val slideSpec = motionScheme.fastSpatialSpec<IntOffset>()
+                            val scaleSpec = motionScheme.fastSpatialSpec<Float>()
+                            val enter = slideInVertically(
+                                animationSpec = slideSpec,
+                            ) {
                                 if (currentFavorite) -it else it
-                            } + scaleIn()
-                            val exit = slideOutVertically {
+                            } + scaleIn(
+                                animationSpec = scaleSpec,
+                            )
+                            val exit = slideOutVertically(
+                                animationSpec = slideSpec,
+                            ) {
                                 if (currentFavorite) it else -it
-                            } + scaleOut()
+                            } + scaleOut(
+                                animationSpec = scaleSpec,
+                            )
                             enter togetherWith exit
                         },
+                        label = "TotpCode",
                     ) { text ->
                         Text(
                             text = text,

@@ -70,7 +70,11 @@ fun PullToSearch(
                 } else {
                     LocalContentColor.current.combineAlpha(DisabledEmphasisAlpha)
                 }
-            val tint by animateColorAsState(tintTarget)
+            val tint by animateColorAsState(
+                targetValue = tintTarget,
+                animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                label = "PullToSearchTint",
+            )
             Icon(
                 imageVector = Icons.Outlined.Search,
                 contentDescription = null,

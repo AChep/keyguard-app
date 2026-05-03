@@ -361,10 +361,19 @@ fun FabScope.DefaultFab(
 ) {
     val latestFabState = state.value
     val latestOnClick by rememberUpdatedState(latestFabState?.onClick)
+    val motionScheme = MaterialTheme.motionScheme
     ExpandedIfNotEmpty(
         valueOrNull = latestFabState,
-        enter = fadeIn() + scaleIn(),
-        exit = scaleOut() + fadeOut(),
+        enter = fadeIn(
+            animationSpec = motionScheme.fastEffectsSpec(),
+        ) + scaleIn(
+            animationSpec = motionScheme.fastSpatialSpec(),
+        ),
+        exit = scaleOut(
+            animationSpec = motionScheme.fastSpatialSpec(),
+        ) + fadeOut(
+            animationSpec = motionScheme.fastEffectsSpec(),
+        ),
     ) { fabState ->
         val enabled = fabState.onClick != null
         val containerColorTarget =
@@ -375,7 +384,11 @@ fun FabScope.DefaultFab(
                     .combineAlpha(DisabledEmphasisAlpha)
                     .compositeOver(MaterialTheme.colorScheme.surfaceVariant)
             }
-        val containerColor by animateColorAsState(containerColorTarget)
+        val containerColor by animateColorAsState(
+            targetValue = containerColorTarget,
+            animationSpec = motionScheme.fastEffectsSpec(),
+            label = "FabContainerColor",
+        )
         val contentColorTarget =
             if (enabled) {
                 contentColor
@@ -383,7 +396,11 @@ fun FabScope.DefaultFab(
                 MaterialTheme.colorScheme.onSurfaceVariant
                     .combineAlpha(DisabledEmphasisAlpha)
             }
-        val contentColor by animateColorAsState(contentColorTarget)
+        val contentColor by animateColorAsState(
+            targetValue = contentColorTarget,
+            animationSpec = motionScheme.fastEffectsSpec(),
+            label = "FabContentColor",
+        )
         ExtendedFloatingActionButton(
             expanded = expanded.value && enabled,
             icon = icon,
@@ -404,10 +421,19 @@ fun FabScope.SmallFab(
 ) {
     val latestFabState = state.value
     val latestOnClick by rememberUpdatedState(onClick)
+    val motionScheme = MaterialTheme.motionScheme
     ExpandedIfNotEmpty(
         valueOrNull = latestFabState,
-        enter = fadeIn() + scaleIn(),
-        exit = scaleOut() + fadeOut(),
+        enter = fadeIn(
+            animationSpec = motionScheme.fastEffectsSpec(),
+        ) + scaleIn(
+            animationSpec = motionScheme.fastSpatialSpec(),
+        ),
+        exit = scaleOut(
+            animationSpec = motionScheme.fastSpatialSpec(),
+        ) + fadeOut(
+            animationSpec = motionScheme.fastEffectsSpec(),
+        ),
     ) { fabState ->
         val enabled = fabState.onClick != null
         val containerColorTarget =
@@ -418,7 +444,11 @@ fun FabScope.SmallFab(
                     .combineAlpha(DisabledEmphasisAlpha)
                     .compositeOver(MaterialTheme.colorScheme.surfaceVariant)
             }
-        val containerColor by animateColorAsState(containerColorTarget)
+        val containerColor by animateColorAsState(
+            targetValue = containerColorTarget,
+            animationSpec = motionScheme.fastEffectsSpec(),
+            label = "SmallFabContainerColor",
+        )
         val contentColorTarget =
             if (enabled) {
                 MaterialTheme.colorScheme.onSecondaryContainer
@@ -426,7 +456,11 @@ fun FabScope.SmallFab(
                 MaterialTheme.colorScheme.onSurfaceVariant
                     .combineAlpha(DisabledEmphasisAlpha)
             }
-        val contentColor by animateColorAsState(contentColorTarget)
+        val contentColor by animateColorAsState(
+            targetValue = contentColorTarget,
+            animationSpec = motionScheme.fastEffectsSpec(),
+            label = "SmallFabContentColor",
+        )
         SmallFloatingActionButton(
             containerColor = containerColor,
             contentColor = contentColor,

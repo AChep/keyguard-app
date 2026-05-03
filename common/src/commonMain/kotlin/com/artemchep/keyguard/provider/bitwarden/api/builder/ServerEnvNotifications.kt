@@ -28,6 +28,8 @@ value class ServerEnvIdentity @Deprecated("Use the [ServerEnv.identity] property
         private val url: String,
     ) {
         val prelogin get() = url + "prelogin"
+
+        val preloginPassword get() = url + "prelogin/password"
     }
 }
 

@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.model
 
 data class PreLogin(
     val hash: Hash,
+    val salt: String,
 ) {
     sealed interface Hash {
         data class Pbkdf2(

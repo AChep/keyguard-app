@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.api
 
+import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.exception.OutOfMemoryKdfException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.Argon2Mode
@@ -31,6 +32,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.http.contentType
 import io.ktor.utils.io.InternalAPI
@@ -210,9 +212,9 @@ suspend fun obtainSecrets(
     )
     generateSecrets(
         cryptoGenerator,
-        email,
         password,
         hashConfig = prelogin.hash,
+        salt = prelogin.salt,
     )
 }
 
@@ -220,8 +222,47 @@ private suspend fun prelogin(
     httpClient: HttpClient,
     env: ServerEnv,
     email: String,
+): PreLogin {
+    val normalizedEmail = normalizePreloginEmail(email)
+    return try {
+        preloginAt(
+            httpClient = httpClient,
+            env = env,
+            email = normalizedEmail,
+            url = env.identity.accounts.preloginPassword,
+            route = "get-prelogin-password",
+        )
+    } catch (e: HttpException) {
+        val fallbackStatusCodes = setOf(
+            HttpStatusCode.NotFound,
+            HttpStatusCode.MethodNotAllowed,
+        )
+        if (e.statusCode !in fallbackStatusCodes) {
+            throw e
+        }
+
+        preloginAt(
+            httpClient = httpClient,
+            env = env,
+            email = normalizedEmail,
+            url = env.identity.accounts.prelogin,
+            route = "get-prelogin",
+        )
+    }
+}
+
+private fun normalizePreloginEmail(email: String) = email
+    .trim()
+    .lowercase(Locale.ENGLISH)
+
+private suspend fun preloginAt(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    email: String,
+    url: String,
+    route: String,
 ): PreLogin = httpClient
-    .post(env.identity.accounts.prelogin) {
+    .post(url) {
         headers(env)
         contentType(ContentType.Application.Json)
         setBody(
@@ -230,26 +271,24 @@ private suspend fun prelogin(
             ),
         )
 
-        attributes.put(routeAttribute, "get-prelogin")
+        attributes.put(routeAttribute, route)
     }
     .bodyOrApiException<AccountPreLoginResponse>()
-    .toDomain()
+    .toDomain(email)
 
 private fun generateSecrets(
     cryptoGenerator: CryptoGenerator,
-    email: String,
     password: String,
     hashConfig: PreLogin.Hash,
+    salt: String,
 ): PasswordResult {
     val passwordBytes = password.toByteArray()
-    val emailBytes = email
-        .lowercase(Locale.ENGLISH)
-        .toByteArray()
+    val saltBytes = salt.toByteArray()
 
     val masterKey = runCatching {
         cryptoGenerator.masterKeyHash(
             seed = passwordBytes,
-            salt = emailBytes,
+            salt = saltBytes,
             config = hashConfig,
         )
     }.getOrElse { e ->

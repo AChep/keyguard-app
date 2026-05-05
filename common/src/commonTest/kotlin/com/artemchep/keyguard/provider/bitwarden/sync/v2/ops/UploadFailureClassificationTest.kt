@@ -110,11 +110,18 @@ class UploadFailureClassificationTest {
             status = HttpStatusCode.NotFound,
             message = "Not Found",
         )
+        val directNotFoundError = httpError(
+            status = HttpStatusCode.NotFound,
+            message = "Not Found",
+            route = "post-send-file-data",
+        )
 
         assertFalse(forbiddenError.isNonRetryableCipherAttachmentUploadError())
         assertFalse(notFoundError.isNonRetryableCipherAttachmentUploadError())
+        assertFalse(directNotFoundError.isNonRetryableCipherAttachmentUploadError())
         assertFalse(forbiddenError.isNonRetryableSendFileUploadError())
         assertFalse(notFoundError.isNonRetryableSendFileUploadError())
+        assertFalse(directNotFoundError.isNonRetryableSendFileUploadError())
     }
 
     @Test

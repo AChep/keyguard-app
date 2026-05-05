@@ -72,7 +72,6 @@ private val terminalUploadFailureStatuses =
 private val terminalDirectUploadFailureStatuses =
     setOf(
         HttpStatusCode.BadRequest,
-        HttpStatusCode.NotFound,
         HttpStatusCode.Conflict,
     )
 

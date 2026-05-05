@@ -213,7 +213,7 @@ fun sendListScreenState(
     val ciphersRawFlow = filterHiddenProfiles(
         getProfiles = getProfiles,
         getSends = getSends,
-        filter = null,
+        filter = args.filter,
     )
 
     val querySink = mutablePersistedFlow("query") { "" }

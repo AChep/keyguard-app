@@ -359,9 +359,9 @@ class SyncEngine(
             )
             if (newMergedProfile != existingProfile?.data_) {
                 profileDao.insert(
-                    profileId = newProfile.profileId,
-                    accountId = newProfile.accountId,
-                    data = newProfile,
+                    profileId = newMergedProfile.profileId,
+                    accountId = newMergedProfile.accountId,
+                    data = newMergedProfile,
                 )
             }
         }

@@ -95,7 +95,6 @@ data class BitwardenSend(
     data class File(
         val id: String,
         val fileName: String,
-        val keyBase64: String? = null,
         val size: Long? = null,
         val sizeName: String? = null,
         val pendingUpload: PendingUploadFile? = null,

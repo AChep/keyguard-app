@@ -50,5 +50,6 @@ fun Int.canRetry(): Boolean =
             this == HttpStatusCode.PaymentRequired.value ||
             this == HttpStatusCode.ProxyAuthenticationRequired.value ||
             this == HttpStatusCode.RequestTimeout.value ||
+            this == HttpStatusCode.TooManyRequests.value ||
             // 500x
             this in 500..599

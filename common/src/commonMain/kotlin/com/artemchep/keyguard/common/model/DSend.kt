@@ -82,7 +82,6 @@ data class DSend(
     data class File(
         val id: String,
         val fileName: String,
-        val keyBase64: String?,
         val size: Long? = null,
         val sizeName: String? = null,
     ) {

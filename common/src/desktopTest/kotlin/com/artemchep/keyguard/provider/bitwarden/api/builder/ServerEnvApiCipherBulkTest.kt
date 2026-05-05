@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.api.builder
 
+import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherRepromptTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherTypeEntity
@@ -31,6 +32,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class ServerEnvApiCipherBulkTest {
     @Test
@@ -115,6 +117,43 @@ class ServerEnvApiCipherBulkTest {
         assertEquals("cipher-mini-1", shared.data.single().id)
     }
 
+    @Test
+    fun `cipher bulk hard delete validates non-success response`() = runTest {
+        val client = failingClient(
+            route = "delete-ciphers",
+            status = HttpStatusCode.Forbidden,
+        )
+
+        val error = assertFailsWith<HttpException> {
+            env.api.ciphers.delete(
+                httpClient = client,
+                env = env,
+                token = token,
+                body = CipherDeleteRequest(ids = listOf("cipher-delete")),
+            )
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, error.statusCode)
+    }
+
+    @Test
+    fun `cipher single hard delete validates non-success response`() = runTest {
+        val client = failingClient(
+            route = "delete-cipher",
+            status = HttpStatusCode.InternalServerError,
+        )
+
+        val error = assertFailsWith<HttpException> {
+            env.api.ciphers.focus("cipher-delete").delete(
+                httpClient = client,
+                env = env,
+                token = token,
+            )
+        }
+
+        assertEquals(HttpStatusCode.InternalServerError, error.statusCode)
+    }
+
     private fun recordingClient(
         requests: MutableList<RecordedRequest>,
     ) = HttpClient(
@@ -129,6 +168,29 @@ class ServerEnvApiCipherBulkTest {
             respond(
                 content = responseBodyForRoute(request.attributes.getOrNull(routeAttribute)),
                 status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+            )
+        },
+    ) {
+        install(ContentNegotiation) {
+            register(ContentType.Application.Json, KotlinxSerializationConverter(apiJson))
+        }
+    }
+
+    private fun failingClient(
+        route: String,
+        status: HttpStatusCode,
+    ) = HttpClient(
+        MockEngine { request ->
+            val responseStatus =
+                if (request.attributes.getOrNull(routeAttribute) == route) {
+                    status
+                } else {
+                    HttpStatusCode.OK
+                }
+            respond(
+                content = """{"message":"hard delete rejected"}""",
+                status = responseStatus,
                 headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
             )
         },

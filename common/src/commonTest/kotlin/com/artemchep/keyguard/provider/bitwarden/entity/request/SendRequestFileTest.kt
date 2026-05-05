@@ -29,7 +29,6 @@ class SendRequestFileTest {
         }
 
         assertEquals("invoice.pdf", request.file?.fileName)
-        assertEquals("file-key", request.file?.key)
         assertEquals(321L, request.fileLength)
     }
 
@@ -79,7 +78,6 @@ private fun createFileSend(
     file = BitwardenSend.File(
         id = "file-1",
         fileName = "invoice.pdf",
-        keyBase64 = "file-key",
         size = 123L,
         pendingUpload = PendingUploadFile(
             path = "/tmp/send-1.bin",

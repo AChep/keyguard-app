@@ -453,6 +453,7 @@ import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
+import com.artemchep.keyguard.provider.bitwarden.api.builder.configureBitwardenHttpRetry
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadService
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadServiceJvm
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
@@ -473,7 +474,6 @@ import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -1656,14 +1656,7 @@ fun globalModuleJvm() = DI.Module(
                 // In memory.
             }
             install(HttpRequestRetry) {
-                maxRetries = 5
-                retryIf { _, response ->
-                    response.status == HttpStatusCode.TooManyRequests ||
-                            response.status.value in 500..599
-                }
-                constantDelay(
-                    respectRetryAfterHeader = true,
-                )
+                configureBitwardenHttpRetry()
             }
         }
     }
@@ -1688,14 +1681,7 @@ fun globalModuleJvm() = DI.Module(
                 // In memory.
             }
             install(HttpRequestRetry) {
-                maxRetries = 5
-                retryIf { _, response ->
-                    response.status == HttpStatusCode.TooManyRequests ||
-                            response.status.value in 500..599
-                }
-                constantDelay(
-                    respectRetryAfterHeader = true,
-                )
+                configureBitwardenHttpRetry()
             }
         }
     }

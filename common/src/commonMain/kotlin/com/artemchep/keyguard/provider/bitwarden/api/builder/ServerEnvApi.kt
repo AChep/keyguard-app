@@ -46,6 +46,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
@@ -54,6 +55,7 @@ import io.ktor.http.Url
 import io.ktor.http.escapeIfNeeded
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import io.ktor.utils.io.streams.asInput
 import io.ktor.util.AttributeKey
@@ -62,6 +64,8 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 
 val routeAttribute = AttributeKey<String>("route")
 
@@ -147,6 +151,8 @@ value class ServerEnvApi @Deprecated("Use the [ServerEnv.api] property instead."
         val profile get() = url + "profile"
 
         val subscription get() = url + "subscription"
+
+        val revisionDate get() = url + "revision-date"
     }
 
     @JvmInline
@@ -306,6 +312,18 @@ suspend fun ServerEnvApi.Accounts.subscription(
     }
     .bodyOrApiException<SubscriptionResponseModel>()
 
+suspend fun ServerEnvApi.Accounts.revisionDate(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+) = httpClient
+    .get(revisionDate) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        attributes.put(routeAttribute, "get-accounts-revision-date")
+    }
+    .bodyOrApiException<String>()
+
 suspend fun ServerEnvApi.Organizations.subscription(
     httpClient: HttpClient,
     env: ServerEnv,
@@ -419,13 +437,15 @@ suspend fun ServerEnvApi.Ciphers.trash(
     env: ServerEnv,
     token: String,
     body: CipherDeleteRequest,
-) = trash.put<CipherDeleteRequest, HttpResponse>(
-    httpClient = httpClient,
-    env = env,
-    token = token,
-    body = body,
-    route = "put-delete-ciphers",
-)
+) = httpClient
+    .put(trash) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        contentType(ContentType.Application.Json)
+        setBody(body)
+        attributes.put(routeAttribute, "put-delete-ciphers")
+    }
+    .bodyOrApiExceptionUnitStrict()
 
 // Note: This is a hard delete that permanently removes ciphers.
 suspend fun ServerEnvApi.Ciphers.delete(
@@ -433,13 +453,15 @@ suspend fun ServerEnvApi.Ciphers.delete(
     env: ServerEnv,
     token: String,
     body: CipherDeleteRequest,
-) = url.delete<CipherDeleteRequest>(
-    httpClient = httpClient,
-    env = env,
-    token = token,
-    body = body,
-    route = "delete-ciphers",
-)
+) = httpClient
+    .delete(url) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        contentType(ContentType.Application.Json)
+        setBody(body)
+        attributes.put(routeAttribute, "delete-ciphers")
+    }
+    .bodyOrApiExceptionUnitStrict()
 
 suspend fun ServerEnvApi.Ciphers.restore(
     httpClient: HttpClient,
@@ -522,12 +544,13 @@ suspend fun ServerEnvApi.Ciphers.Cipher.delete(
     httpClient: HttpClient,
     env: ServerEnv,
     token: String,
-) = url.delete(
-    httpClient = httpClient,
-    env = env,
-    token = token,
-    route = "delete-cipher",
-)
+) = httpClient
+    .delete(url) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        attributes.put(routeAttribute, "delete-cipher")
+    }
+    .bodyOrApiExceptionUnitStrict()
 
 suspend fun ServerEnvApi.Ciphers.Cipher.trash(
     httpClient: HttpClient,
@@ -540,7 +563,7 @@ suspend fun ServerEnvApi.Ciphers.Cipher.trash(
         contentType(ContentType.Any)
         attributes.put(routeAttribute, "trash-cipher")
     }
-    .bodyOrApiException<HttpResponse>()
+    .bodyOrApiExceptionUnitStrict()
 
 suspend fun ServerEnvApi.Ciphers.Cipher.restore(
     httpClient: HttpClient,
@@ -606,12 +629,13 @@ suspend fun ServerEnvApi.Ciphers.Attachments.delete(
     env: ServerEnv,
     token: String,
     id: String,
-) = focus(id = id).url.delete(
-    httpClient = httpClient,
-    env = env,
-    token = token,
-    route = "delete-cipher",
-)
+) = httpClient
+    .delete(focus(id = id).url) {
+        headers(env)
+        header("Authorization", "Bearer $token")
+        attributes.put(routeAttribute, "delete-cipher")
+    }
+    .bodyOrApiExceptionUnitStrict()
 
 suspend fun ServerEnvApi.Ciphers.Attachments.Attachment.get(
     httpClient: HttpClient,
@@ -913,17 +937,56 @@ private suspend fun uploadFileToTargetAzure(
 private suspend fun HttpResponse.bodyOrApiExceptionUnitStrict(
     expectedStatus: HttpStatusCode? = null,
 ) {
-    bodyOrApiException<Unit>()
     val isSuccessful = expectedStatus
         ?.let { status == it }
         ?: (status.value in 200..299)
     if (!isSuccessful) {
+        val responseBody = bodyAsText()
+        val errorMessage = runCatching {
+            Json
+                .decodeFromString<JsonObject>(responseBody)
+                .tryGetErrorMessageBitwardenApi()
+        }.getOrNull()
+        val azureStorageError = responseBody.tryGetAzureStorageError()
         throw HttpException(
             statusCode = status,
-            m = status.description,
+            m = errorMessage ?: azureStorageError?.message ?: status.description,
             e = null,
+            errorCode = azureStorageError?.code,
+            route = call.attributes.getOrNull(routeAttribute),
         )
     }
+    bodyOrApiException<Unit>()
+}
+
+private data class AzureStorageError(
+    val code: String?,
+    val message: String?,
+)
+
+private fun String.tryGetAzureStorageError(): AzureStorageError? {
+    val code = getXmlTagValue("Code")
+    val message = getXmlTagValue("Message")
+    if (code == null && message == null) return null
+    return AzureStorageError(
+        code = code,
+        message = message,
+    )
+}
+
+private fun String.getXmlTagValue(
+    tagName: String,
+): String? {
+    val regex = Regex(
+        pattern = "<\\s*$tagName\\s*>(.*?)<\\s*/\\s*$tagName\\s*>",
+        options = setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL),
+    )
+    return regex
+        .find(this)
+        ?.groupValues
+        ?.getOrNull(1)
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
 }
 
 suspend fun ServerEnvApi.Sends.Send.delete(

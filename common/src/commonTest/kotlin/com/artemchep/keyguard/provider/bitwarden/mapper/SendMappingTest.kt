@@ -33,7 +33,6 @@ class SendMappingTest {
             file = BitwardenSend.File(
                 id = "file-1",
                 fileName = "invoice.pdf",
-                keyBase64 = "file-key",
                 pendingUpload = PendingUploadFile(
                     path = "/tmp/send-1.bin",
                     plainSize = 123L,

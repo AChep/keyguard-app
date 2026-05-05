@@ -14,8 +14,8 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.auth.common.util.ValidationEmail
 import com.artemchep.keyguard.feature.auth.common.util.validateEmail
+import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKeyMaterial
-import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendFileCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
@@ -81,6 +81,7 @@ class AddSendImpl(
                         request = request,
                         old = old,
                         send = model,
+                        cryptoGenerator = cryptoGenerator,
                         base64Service = base64Service,
                         pendingUploadCoordinator = pendingUploadCoordinator,
                     )
@@ -133,6 +134,7 @@ internal suspend fun prepareSendPendingUpload(
     request: CreateSendRequest,
     old: BitwardenSend?,
     send: BitwardenSend,
+    cryptoGenerator: CryptoGenerator,
     base64Service: Base64Service,
     pendingUploadCoordinator: PendingUploadCoordinator,
 ): PreparedSend {
@@ -156,8 +158,9 @@ internal suspend fun prepareSendPendingUpload(
             createdPendingUploads = emptyList(),
             removedPendingUploads = emptyList(),
         )
-    val fileKey = requireNotNull(file.keyBase64)
+    val fileKey = requireNotNull(send.keyBase64)
         .let(base64Service::decode)
+        .let(cryptoGenerator::makeSendCryptoKey)
     val pendingUpload = pendingUploadCoordinator.stage(
         target = PendingUploadTarget.SendFile(
             accountId = send.accountId,
@@ -212,7 +215,6 @@ private suspend fun BitwardenSend.Companion.of(
         BitwardenSend.Type.File -> {
             file = BitwardenSend.File.of(
                 cryptoGenerator = cryptoGenerator,
-                base64Service = base64Service,
                 request = request,
                 old = old,
             )
@@ -374,7 +376,6 @@ private suspend fun BitwardenSend.Text.Companion.of(
 
 private suspend fun BitwardenSend.File.Companion.of(
     cryptoGenerator: CryptoGenerator,
-    base64Service: Base64Service,
     request: CreateSendRequest,
     old: BitwardenSend? = null,
 ): BitwardenSend.File {
@@ -386,13 +387,9 @@ private suspend fun BitwardenSend.File.Companion.of(
     val fileName = request.file.name
         ?.takeIf { it.isNotBlank() }
         ?: error("Creating a file send requires a file name.")
-    val fileKeyBase64 = base64Service.encodeToString(
-        cryptoGenerator.makeSendFileCryptoKeyMaterial(),
-    )
     return BitwardenSend.File(
         id = cryptoGenerator.uuid(),
         fileName = fileName,
-        keyBase64 = fileKeyBase64,
         size = request.file.size,
         pendingUpload = null,
     ).also {

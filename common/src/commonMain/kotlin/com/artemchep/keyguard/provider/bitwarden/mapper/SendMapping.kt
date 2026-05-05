@@ -52,7 +52,6 @@ fun BitwardenSend.Text.toDomain() = DSend.Text(
 fun BitwardenSend.File.toDomain() = DSend.File(
     id = id,
     fileName = fileName,
-    keyBase64 = keyBase64,
     size = size,
     sizeName = sizeName,
 )

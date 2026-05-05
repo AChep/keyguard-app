@@ -79,7 +79,6 @@ class SendAddStateProducerTest {
             file = DSend.File(
                 id = "file-1",
                 fileName = "invoice.pdf",
-                keyBase64 = "file-key",
                 sizeName = "12 KB",
             ),
         )
@@ -279,6 +278,5 @@ private fun createExistingFileSend() = DSend(
     file = DSend.File(
         id = "file-1",
         fileName = "invoice.pdf",
-        keyBase64 = "file-key",
     ),
 )

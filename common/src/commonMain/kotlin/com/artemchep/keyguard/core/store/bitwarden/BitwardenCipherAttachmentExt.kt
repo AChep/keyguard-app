@@ -35,26 +35,84 @@ fun BitwardenCipher.hasPendingAttachmentMutations(): Boolean =
     pendingLocalAttachments().isNotEmpty() ||
             pendingRemoteAttachmentDeletionIds().isNotEmpty()
 
+internal fun BitwardenCipher.pendingAttachmentUploads(): Set<PendingUploadFile> =
+    pendingLocalAttachments()
+        .mapNotNull { it.pendingUpload }
+        .toSet()
+
+internal fun BitwardenCipher.withPendingAttachmentRemoteId(
+    localAttachmentId: String,
+    remoteAttachmentId: String,
+): BitwardenCipher = copy(
+    attachments = attachments.map { attachment ->
+        val localAttachment = attachment as? BitwardenCipher.Attachment.Local
+            ?: return@map attachment
+        if (localAttachment.id != localAttachmentId) {
+            return@map attachment
+        }
+        val pendingUpload = localAttachment.pendingUpload
+            ?: return@map attachment
+        localAttachment.copy(
+            pendingUpload = pendingUpload.copy(
+                remoteId = remoteAttachmentId,
+            ),
+        )
+    },
+)
+
+internal fun BitwardenCipher.mergePendingAttachmentRemoteIdsFrom(
+    other: BitwardenCipher,
+): BitwardenCipher {
+    val otherLocalAttachmentsById =
+        other.attachments
+            .asSequence()
+            .filterIsInstance<BitwardenCipher.Attachment.Local>()
+            .associateBy { it.id }
+    return copy(
+        attachments = attachments.map { attachment ->
+            val localAttachment = attachment as? BitwardenCipher.Attachment.Local
+                ?: return@map attachment
+            val otherPendingUpload =
+                otherLocalAttachmentsById[localAttachment.id]
+                    ?.pendingUpload
+                    ?: return@map attachment
+            val pendingUpload =
+                localAttachment.pendingUpload
+                    ?: return@map attachment
+            if (pendingUpload.remoteId != null || otherPendingUpload.remoteId == null) {
+                return@map attachment
+            }
+            localAttachment.copy(
+                pendingUpload = pendingUpload.copy(
+                    remoteId = otherPendingUpload.remoteId,
+                ),
+            )
+        },
+    )
+}
+
 internal fun findRemoteAttachmentReplacement(
     localAttachment: BitwardenCipher.Attachment.Local,
     remoteAttachments: List<BitwardenCipher.Attachment.Remote>,
     preferredRemoteAttachmentId: String? = null,
     excludedRemoteAttachmentIds: Set<String> = emptySet(),
 ): BitwardenCipher.Attachment.Remote? {
-    preferredRemoteAttachmentId
-        ?.let { remoteAttachmentId ->
-            remoteAttachments.firstOrNull { attachment ->
-                attachment.id == remoteAttachmentId &&
-                        attachment.id !in excludedRemoteAttachmentIds
-            }
+    if (preferredRemoteAttachmentId != null) {
+        return remoteAttachments.firstOrNull { attachment ->
+            attachment.id == preferredRemoteAttachmentId &&
+                    attachment.id !in excludedRemoteAttachmentIds
         }
-        ?.let { return it }
+    }
 
     val localKeyBase64 = localAttachment.keyBase64
         ?: return null
+    val pendingUpload = localAttachment.pendingUpload
+        ?: return null
     return remoteAttachments.firstOrNull { attachment ->
         attachment.id !in excludedRemoteAttachmentIds &&
-                attachment.keyBase64 == localKeyBase64
+                attachment.keyBase64 == localKeyBase64 &&
+                attachment.size == pendingUpload.encryptedSize &&
+                attachment.fileName == localAttachment.fileName
     }
 }
 

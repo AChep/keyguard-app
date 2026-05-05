@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.reconcilePendingLocalAttachments
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
@@ -15,6 +16,19 @@ import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
 
 class SyncMergeUtilsTest {
+    @Test
+    fun `merge keeps local profile hidden flag`() = runTest {
+        val remote = createProfile(hidden = false)
+        val local = createProfile(hidden = true)
+
+        val merged = merge(
+            remote = remote,
+            local = local,
+        )
+
+        assertEquals(true, merged.hidden)
+    }
+
     @Test
     fun `merge keeps local attachment order, rename, deletion and pending uploads`() = runTest {
         val baseRemote = createCipher(
@@ -142,7 +156,7 @@ class SyncMergeUtilsTest {
                 remoteAttachment(id = "remote-a", fileName = "a.txt"),
                 remoteAttachment(
                     id = "remote-uploaded",
-                    fileName = "uploaded.bin",
+                    fileName = "new.bin",
                     keyBase64 = "shared-key",
                 ),
                 remoteAttachment(id = "remote-b", fileName = "b.txt"),
@@ -218,7 +232,7 @@ class SyncMergeUtilsTest {
                 remoteAttachment(id = "remote-b", fileName = "b.txt"),
                 remoteAttachment(
                     id = "remote-uploaded",
-                    fileName = "uploaded.bin",
+                    fileName = "new.bin",
                     keyBase64 = "shared-key",
                 ),
                 remoteAttachment(id = "remote-c", fileName = "c.txt"),
@@ -273,7 +287,7 @@ class SyncMergeUtilsTest {
         val pendingUpload = pendingUploadFile(path = "/tmp/local-upload.bin")
         val remoteReplacement = remoteAttachment(
             id = "remote-uploaded",
-            fileName = "uploaded.bin",
+            fileName = "new.bin",
             keyBase64 = "shared-key",
         )
         val cipher = createCipher(
@@ -300,7 +314,7 @@ class SyncMergeUtilsTest {
     }
 
     @Test
-    fun `reconcile falls back to key when uploaded attachment id is missing`() {
+    fun `reconcile preserves pending upload when uploaded attachment id is missing`() {
         val cipher = createCipher(
             attachments = listOf(
                 localAttachment(
@@ -316,7 +330,7 @@ class SyncMergeUtilsTest {
             remoteAttachments = listOf(
                 remoteAttachment(
                     id = "fallback-by-key",
-                    fileName = "fallback.bin",
+                    fileName = "new.bin",
                     keyBase64 = "shared-key",
                 ),
             ),
@@ -325,8 +339,8 @@ class SyncMergeUtilsTest {
             ),
         )
 
-        assertEquals("fallback-by-key", reconciliation.replacementsByLocalId["local-upload"]?.id)
-        assertEquals(listOf("fallback-by-key"), reconciliation.cipher.attachments.map { it.id })
+        assertEquals(emptyMap(), reconciliation.replacementsByLocalId)
+        assertEquals(listOf("local-upload"), reconciliation.cipher.attachments.map { it.id })
     }
 }
 
@@ -363,7 +377,7 @@ private fun remoteAttachment(
     url = null,
     fileName = fileName,
     keyBase64 = keyBase64,
-    size = 123L,
+    size = 42L,
 )
 
 private fun localAttachment(
@@ -397,3 +411,17 @@ private val fakeGetPasswordStrength = object : GetPasswordStrength {
         error("unused in attachment merge tests")
     }
 }
+
+private fun createProfile(
+    hidden: Boolean,
+) = BitwardenProfile(
+    accountId = "account-1",
+    profileId = "profile-1",
+    name = "Alice",
+    keyBase64 = "key",
+    privateKeyBase64 = "private-key",
+    email = "alice@example.com",
+    hidden = hidden,
+    securityStamp = "stamp",
+    masterPasswordHint = null,
+)

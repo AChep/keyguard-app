@@ -67,8 +67,6 @@ data class SendTextRequest(
 data class SendFileRequest(
     @SerialName("fileName")
     val fileName: String? = null,
-    @SerialName("key")
-    val key: String? = null,
 ) {
     companion object
 }
@@ -176,6 +174,5 @@ fun SendFileRequest.Companion.of(
 ) = kotlin.run {
     SendFileRequest(
         fileName = model.fileName,
-        key = model.keyBase64,
     )
 }

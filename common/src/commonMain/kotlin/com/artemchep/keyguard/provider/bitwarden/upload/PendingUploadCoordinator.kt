@@ -5,8 +5,8 @@ package com.artemchep.keyguard.provider.bitwarden.upload
  * later Bitwarden sync upload.
  *
  * A selected source file is staged immediately, before the local cipher/send
- * model is written. Staging encrypts the source bytes with the attachment/send
- * file key and stores the resulting ciphertext in a deterministic local path
+ * model is written. Staging encrypts the source bytes with the raw upload
+ * encryption key and stores the resulting ciphertext in a deterministic local path
  * derived from [PendingUploadTarget]. The returned [PendingUploadFile] is then
  * embedded into the local model so sync can upload it later.
  *
@@ -69,8 +69,9 @@ interface PendingUploadCoordinator {
      * @param target Stable local destination for the staged encrypted file.
      * @param sourceUri URI of the plain source file selected by the user. This
      * can be a `content:` URI on Android or a `file:` URI on desktop.
-     * @param fileKey Raw attachment/send file key used to encrypt the staged
-     * bytes.
+     * @param fileKey Raw key used to encrypt the staged bytes. Cipher
+     * attachments pass their attachment key; Send files pass the derived Send
+     * item key.
      */
     suspend fun stage(
         target: PendingUploadTarget,

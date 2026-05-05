@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.api.builder
 
+import com.artemchep.keyguard.common.exception.ApiException
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.entity.AvatarRequestEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileRequestEntity
@@ -21,6 +22,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class ServerEnvApiAccountsTest {
     @Test
@@ -67,8 +69,58 @@ class ServerEnvApiAccountsTest {
         assertEquals("security-stamp-1", profile.securityStamp)
     }
 
+    @Test
+    fun `account revision date decodes string response`() = runTest {
+        val requests = mutableListOf<RecordedRequest>()
+        val client = recordingClient(
+            requests = requests,
+            responseContent = "rev-1",
+        )
+
+        val revisionDate = env.api.accounts.revisionDate(
+            httpClient = client,
+            env = env,
+            token = token,
+        )
+
+        assertEquals("rev-1", revisionDate)
+        assertEquals(
+            listOf(
+                RecordedRequest(
+                    HttpMethod.Get,
+                    "$baseApiUrl/accounts/revision-date",
+                    "get-accounts-revision-date",
+                ),
+            ),
+            requests.map { it.copy(authorization = null, body = "") },
+        )
+        assertEquals("Bearer $token", requests.single().authorization)
+    }
+
+    @Test
+    fun `account revision date surfaces parsed api error`() = runTest {
+        val requests = mutableListOf<RecordedRequest>()
+        val client = recordingClient(
+            requests = requests,
+            responseContent = revisionDateErrorResponse,
+            status = HttpStatusCode.BadRequest,
+        )
+
+        val error = assertFailsWith<ApiException> {
+            env.api.accounts.revisionDate(
+                httpClient = client,
+                env = env,
+                token = token,
+            )
+        }
+
+        assertEquals("Detailed revision failure", error.message)
+    }
+
     private fun recordingClient(
         requests: MutableList<RecordedRequest>,
+        responseContent: String = profileResponse,
+        status: HttpStatusCode = HttpStatusCode.OK,
     ) = HttpClient(
         MockEngine { request ->
             requests += RecordedRequest(
@@ -79,8 +131,8 @@ class ServerEnvApiAccountsTest {
                 body = request.body.asText(),
             )
             respond(
-                content = profileResponse,
-                status = HttpStatusCode.OK,
+                content = responseContent,
+                status = status,
                 headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
             )
         },
@@ -140,6 +192,15 @@ class ServerEnvApiAccountsTest {
               "organizations": [],
               "providers": [],
               "providerOrganizations": []
+            }
+        """.trimIndent()
+
+        val revisionDateErrorResponse = """
+            {
+              "error": "invalid_revision",
+              "errorModel": {
+                "message": "Detailed revision failure"
+              }
             }
         """.trimIndent()
     }

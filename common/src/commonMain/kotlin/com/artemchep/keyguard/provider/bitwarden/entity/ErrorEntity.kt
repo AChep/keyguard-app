@@ -157,6 +157,7 @@ private fun JsonElement.toDomainFido2WebAuthn(
 fun ErrorEntity.toException(
     exception: Exception,
     code: HttpStatusCode,
+    route: String? = null,
 ) = kotlin.run {
     val type = kotlin.run {
         if (hCaptchaSiteKey != null) {
@@ -241,6 +242,7 @@ fun ErrorEntity.toException(
         error = error,
         type = type,
         message = message,
+        route = route,
     )
 }
 

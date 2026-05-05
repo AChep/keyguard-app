@@ -325,7 +325,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanio
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountUseCase
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenTokenImpl
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.SyncByBitwardenTokenV2Impl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassTokenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByToken
@@ -884,7 +884,7 @@ fun DI.Builder.createSubDi2(
         SyncByTokenImpl(this)
     }
     bindSingleton<SyncByBitwardenToken> {
-        SyncByBitwardenTokenImpl(this)
+        SyncByBitwardenTokenV2Impl(this)
     }
     bindSingleton<SyncByKeePassToken> {
         SyncByKeePassTokenImpl(this)

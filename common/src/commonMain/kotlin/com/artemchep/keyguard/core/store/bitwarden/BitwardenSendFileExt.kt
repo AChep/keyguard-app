@@ -18,6 +18,15 @@ internal fun BitwardenSend.withPendingUpload(
     )
 }
 
+internal fun BitwardenSend.hasPendingFileUpload(): Boolean =
+    file?.pendingUpload != null
+
+internal fun BitwardenSend.pendingFileUploads(): Set<PendingUploadFile> =
+    file
+        ?.pendingUpload
+        ?.let(::setOf)
+        ?: emptySet()
+
 internal fun BitwardenSend.reconcilePendingSendFileUpload(
     local: BitwardenSend?,
     uploadCompletedLocally: Boolean,
@@ -75,16 +84,13 @@ private fun BitwardenSend.hasCompletedPendingSendFileUpload(
 
     val remoteFile = file
         ?: return false
-    val localFileKey = localFile.keyBase64
-        ?: return false
-    if (remoteFile.keyBase64 != localFileKey) {
+
+    if (remoteFile.size != pendingUpload.encryptedSize) {
         return false
     }
 
-    remoteFile.size?.let { remoteSize ->
-        if (remoteSize != pendingUpload.encryptedSize) {
-            return false
-        }
+    if (remoteFile.fileName != localFile.fileName) {
+        return false
     }
 
     if (local.service.remote != null && remoteFile.id != localFile.id) {

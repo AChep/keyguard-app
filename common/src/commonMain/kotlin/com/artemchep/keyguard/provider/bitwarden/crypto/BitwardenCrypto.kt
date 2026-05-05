@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import kotlinx.coroutines.CancellationException
 
 private typealias Decoder = (String) -> DecodeResult
 
@@ -211,6 +212,9 @@ private fun Decoder.withExceptionHandling(
         val result = kotlin.runCatching {
             this(cipherText)
         }.getOrElse { e ->
+            if (e is CancellationException) {
+                throw e
+            }
             val type = cipherText.substringBefore('.')
                 // If the cipher text for some reason doesn't have a
                 // dot separated type, then take only first N symbols
@@ -378,8 +382,6 @@ fun CryptoGenerator.makeCipherAttachmentCryptoKeyMaterial() = seed(length = 64)
 //
 
 fun CryptoGenerator.makeSendCryptoKeyMaterial() = seed(length = 16)
-
-fun CryptoGenerator.makeSendFileCryptoKeyMaterial() = seed(length = 64)
 
 fun CryptoGenerator.makeSendCryptoKey(
     keyMaterial: ByteArray = makeSendCryptoKeyMaterial(),

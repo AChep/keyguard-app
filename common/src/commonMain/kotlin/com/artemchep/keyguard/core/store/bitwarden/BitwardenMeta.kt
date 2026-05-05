@@ -16,6 +16,8 @@ data class BitwardenMeta(
     // common
     val lastSyncTimestamp: Instant? = null,
     val lastSyncResult: LastSyncResult? = null,
+    val lastServerRevisionDate: String? = null,
+    val lastSyncServiceVersion: Int? = null,
 ) {
     companion object;
 

@@ -14,7 +14,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = pendingUpload,
             ),
@@ -23,7 +22,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = null,
             ),
@@ -45,7 +43,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = pendingUpload,
             ),
@@ -54,7 +51,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = null,
             ),
@@ -70,13 +66,12 @@ class BitwardenSendFileExtTest {
     }
 
     @Test
-    fun `reconcile preserves pending upload when remote file key differs`() {
+    fun `reconcile clears pending upload when remote file matches local upload completion`() {
         val pendingUpload = pendingUploadFile()
         val local = fileSend(
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = pendingUpload,
             ),
@@ -85,7 +80,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "other-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = null,
             ),
@@ -96,8 +90,8 @@ class BitwardenSendFileExtTest {
             uploadCompletedLocally = true,
         )
 
-        assertEquals(pendingUpload, reconciliation.send.file?.pendingUpload)
-        assertNull(reconciliation.obsoletePendingUpload)
+        assertNull(reconciliation.send.file?.pendingUpload)
+        assertEquals(pendingUpload, reconciliation.obsoletePendingUpload)
     }
 
     @Test
@@ -107,7 +101,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = pendingUpload,
             ),
@@ -116,7 +109,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize + 1L,
                 pendingUpload = null,
             ),
@@ -138,7 +130,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = pendingUpload,
             ),
@@ -147,7 +138,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-2",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = null,
             ),
@@ -169,7 +159,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = pendingUpload,
             ),
@@ -195,7 +184,6 @@ class BitwardenSendFileExtTest {
             service = remoteService(),
             file = sendFile(
                 id = "file-1",
-                keyBase64 = "file-key",
                 size = pendingUpload.encryptedSize,
                 pendingUpload = pendingUpload,
             ),
@@ -243,13 +231,11 @@ private fun fileSend(
 
 private fun sendFile(
     id: String,
-    keyBase64: String,
     size: Long?,
     pendingUpload: PendingUploadFile?,
 ) = BitwardenSend.File(
     id = id,
     fileName = "invoice.pdf",
-    keyBase64 = keyBase64,
     size = size,
     pendingUpload = pendingUpload,
 )

@@ -32,6 +32,7 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.transform
 import com.artemchep.keyguard.provider.bitwarden.entity.SendEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.request.SendUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.of
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.BitwardenSyncV2Diagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.hasHttpStatusCode
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncOps
@@ -72,6 +73,7 @@ class SendSyncOps(
     private val token: String,
     private val sendsApi: ServerEnvApi.Sends,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
+    private val diagnostics: BitwardenSyncV2Diagnostics = BitwardenSyncV2Diagnostics.NoOp,
 ) : EntitySyncOps<BitwardenSend, SendEntity> {
     override suspend fun readLocal(localId: String): BitwardenSend? =
         db.sendQueries
@@ -378,7 +380,7 @@ class SendSyncOps(
                 env = env,
                 token = token,
             )
-        return reconcileCompletedPendingSendUploadOrNull(
+        val reconciled = reconcileCompletedPendingSendUploadOrNull(
             remote =
                 decodeServerSendForPush(
                     response = refreshedResponse,
@@ -387,6 +389,15 @@ class SendSyncOps(
                 ),
             local = intermediateLocal,
         )
+        reconciled?.let {
+            diagnostics.sendFileReconciled(
+                sendLocalId = intermediateLocal.sendId,
+                sendRemoteId = intermediateLocal.service.remote?.id,
+                fileRemoteId = intermediateLocal.file?.id,
+                uploadCompletedLocally = true,
+            )
+        }
+        return reconciled
     }
 
     private suspend fun uploadPendingSendFile(
@@ -395,30 +406,66 @@ class SendSyncOps(
         intermediateLocal: BitwardenSend,
         itemKey: ByteArray,
     ): BitwardenSend {
+        val fileRemoteId = intermediateLocal.requireRemoteFileId()
+        diagnostics.sendFileUploadTargetRequested(
+            sendLocalId = intermediateLocal.sendId,
+            sendRemoteId = intermediateLocal.service.remote?.id,
+            fileRemoteId = fileRemoteId,
+        )
         val uploadTarget =
             sendApi.getFileUploadTarget(
                 httpClient = httpClient,
                 env = env,
                 token = token,
-                fileId = intermediateLocal.requireRemoteFileId(),
+                fileId = fileRemoteId,
             ).uploadTarget
-        uploadSendFile(
-            httpClient = httpClient,
-            env = env,
-            token = token,
-            target = uploadTarget,
-            fileName = intermediateLocal.requireFileName(),
-            filePath = pendingUpload.path,
-            fileLength = pendingUpload.encryptedSize,
-        )
+        try {
+            diagnostics.sendFileUploadStarted(
+                sendLocalId = intermediateLocal.sendId,
+                sendRemoteId = intermediateLocal.service.remote?.id,
+                fileRemoteId = fileRemoteId,
+                encryptedSize = pendingUpload.encryptedSize,
+                isCreate = false,
+            )
+            uploadSendFile(
+                httpClient = httpClient,
+                env = env,
+                token = token,
+                target = uploadTarget,
+                fileName = intermediateLocal.requireFileName(),
+                filePath = pendingUpload.path,
+                fileLength = pendingUpload.encryptedSize,
+            )
+            diagnostics.sendFileUploadCompleted(
+                sendLocalId = intermediateLocal.sendId,
+                sendRemoteId = intermediateLocal.service.remote?.id,
+                fileRemoteId = fileRemoteId,
+                isCreate = false,
+            )
+        } catch (e: Throwable) {
+            diagnostics.sendFileUploadFailed(
+                sendLocalId = intermediateLocal.sendId,
+                sendRemoteId = intermediateLocal.service.remote?.id,
+                fileRemoteId = fileRemoteId,
+                isCreate = false,
+                cleanupSucceeded = null,
+                error = e,
+            )
+            throw e
+        }
         pendingUploadCoordinator.markUploaded(pendingUpload)
+        diagnostics.sendFileMarkedUploaded(
+            sendLocalId = intermediateLocal.sendId,
+            sendRemoteId = intermediateLocal.service.remote?.id,
+            fileRemoteId = fileRemoteId,
+        )
         val refreshedResponse =
             sendApi.get(
                 httpClient = httpClient,
                 env = env,
                 token = token,
             )
-        return reconcilePendingSendUpload(
+        val reconciled = reconcilePendingSendUpload(
             remote =
                 decodeServerSendForPush(
                     response = refreshedResponse,
@@ -428,6 +475,13 @@ class SendSyncOps(
             local = intermediateLocal,
             uploadCompletedLocally = true,
         )
+        diagnostics.sendFileReconciled(
+            sendLocalId = intermediateLocal.sendId,
+            sendRemoteId = intermediateLocal.service.remote?.id,
+            fileRemoteId = fileRemoteId,
+            uploadCompletedLocally = true,
+        )
+        return reconciled
     }
 
     private suspend fun pushCreatedSend(
@@ -486,8 +540,21 @@ class SendSyncOps(
             requireNotNull(createdLocal.service.remote?.id) {
                 "Bitwarden send id must be available after file send creation."
             }
+        val fileRemoteId = createdLocal.file?.id
         val sendApi = sendsApi.focus(sendRemoteId)
+        diagnostics.sendFileUploadTargetRequested(
+            sendLocalId = createdLocal.sendId,
+            sendRemoteId = sendRemoteId,
+            fileRemoteId = fileRemoteId,
+        )
         try {
+            diagnostics.sendFileUploadStarted(
+                sendLocalId = createdLocal.sendId,
+                sendRemoteId = sendRemoteId,
+                fileRemoteId = fileRemoteId,
+                encryptedSize = pendingUpload.encryptedSize,
+                isCreate = true,
+            )
             uploadSendFile(
                 httpClient = httpClient,
                 env = env,
@@ -497,8 +564,23 @@ class SendSyncOps(
                 filePath = pendingUpload.path,
                 fileLength = pendingUpload.encryptedSize,
             )
+            diagnostics.sendFileUploadCompleted(
+                sendLocalId = createdLocal.sendId,
+                sendRemoteId = sendRemoteId,
+                fileRemoteId = fileRemoteId,
+                isCreate = true,
+            )
         } catch (e: Throwable) {
-            if (cleanupCreatedRemoteSend(sendApi)) {
+            val cleanupSucceeded = cleanupCreatedRemoteSend(sendApi)
+            diagnostics.sendFileUploadFailed(
+                sendLocalId = createdLocal.sendId,
+                sendRemoteId = sendRemoteId,
+                fileRemoteId = fileRemoteId,
+                isCreate = true,
+                cleanupSucceeded = cleanupSucceeded,
+                error = e,
+            )
+            if (cleanupSucceeded) {
                 updatePartialRemoteLocal(null)
             }
             e.throwIfCancellation()
@@ -506,13 +588,18 @@ class SendSyncOps(
             throw e
         }
         pendingUploadCoordinator.markUploaded(pendingUpload)
+        diagnostics.sendFileMarkedUploaded(
+            sendLocalId = createdLocal.sendId,
+            sendRemoteId = sendRemoteId,
+            fileRemoteId = fileRemoteId,
+        )
         val refreshedResponse =
             sendApi.get(
                 httpClient = httpClient,
                 env = env,
                 token = token,
             )
-        return reconcilePendingSendUpload(
+        val reconciled = reconcilePendingSendUpload(
             remote =
                 decodeServerSendForPush(
                     response = refreshedResponse,
@@ -522,6 +609,13 @@ class SendSyncOps(
             local = createdLocal,
             uploadCompletedLocally = true,
         )
+        diagnostics.sendFileReconciled(
+            sendLocalId = createdLocal.sendId,
+            sendRemoteId = sendRemoteId,
+            fileRemoteId = fileRemoteId,
+            uploadCompletedLocally = true,
+        )
+        return reconciled
     }
 
     private suspend fun cleanupCreatedRemoteSend(sendApi: ServerEnvApi.Sends.Send): Boolean {

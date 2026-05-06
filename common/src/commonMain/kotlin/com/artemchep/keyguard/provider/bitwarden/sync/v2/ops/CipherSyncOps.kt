@@ -54,6 +54,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherDeleteRequ
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRestoreRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.of
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.BitwardenSyncV2Diagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.hasHttpStatusCode
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.BulkRemoteOps
@@ -118,6 +119,7 @@ class CipherSyncOps(
     private val localToRemoteFolders: Map<String, String?>,
     private val serverFolders: List<FolderEntity>,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
+    private val diagnostics: BitwardenSyncV2Diagnostics = BitwardenSyncV2Diagnostics.NoOp,
 ) : EntitySyncOps<BitwardenCipher, CipherEntity>,
     BulkRemoteOps<BitwardenCipher> {
     companion object {
@@ -563,11 +565,21 @@ class CipherSyncOps(
 
         currentLocal.pendingRemoteAttachmentDeletionIds()
             .forEach { attachmentId ->
+                diagnostics.cipherAttachmentRemoteDeletionStarted(
+                    cipherLocalId = currentLocal.cipherId,
+                    cipherRemoteId = remoteCipherId,
+                    attachmentRemoteId = attachmentId,
+                )
                 cipherApi.attachments.delete(
                     httpClient = httpClient,
                     env = env,
                     token = token,
                     id = attachmentId,
+                )
+                diagnostics.cipherAttachmentRemoteDeletionCompleted(
+                    cipherLocalId = currentLocal.cipherId,
+                    cipherRemoteId = remoteCipherId,
+                    attachmentRemoteId = attachmentId,
                 )
                 val refreshedResponse =
                     runCatching {
@@ -639,6 +651,12 @@ class CipherSyncOps(
             val remoteAttachmentId = pendingUpload.remoteId
             val createResponse =
                 try {
+                    diagnostics.cipherAttachmentSlotRequested(
+                        cipherLocalId = currentLocal.cipherId,
+                        cipherRemoteId = remoteCipherId,
+                        attachmentLocalId = localAttachment.id,
+                        requestedRemoteId = remoteAttachmentId,
+                    )
                     if (remoteAttachmentId != null) {
                         runCatching {
                             cipherApi.attachments.focus(remoteAttachmentId).renew(
@@ -675,6 +693,12 @@ class CipherSyncOps(
             val reservedRemoteAttachmentId =
                 remoteAttachmentId
                     ?: createResponse.requiredAttachmentId
+            diagnostics.cipherAttachmentSlotReserved(
+                cipherLocalId = currentLocal.cipherId,
+                cipherRemoteId = remoteCipherId,
+                attachmentLocalId = localAttachment.id,
+                attachmentRemoteId = reservedRemoteAttachmentId,
+            )
             if (pendingUpload.remoteId == null) {
                 currentLocal =
                     currentLocal.withPendingAttachmentRemoteId(
@@ -685,6 +709,13 @@ class CipherSyncOps(
             }
 
             try {
+                diagnostics.cipherAttachmentUploadStarted(
+                    cipherLocalId = currentLocal.cipherId,
+                    cipherRemoteId = remoteCipherId,
+                    attachmentLocalId = localAttachment.id,
+                    attachmentRemoteId = reservedRemoteAttachmentId,
+                    encryptedSize = pendingUpload.encryptedSize,
+                )
                 uploadCipherAttachment(
                     httpClient = httpClient,
                     env = env,
@@ -693,6 +724,12 @@ class CipherSyncOps(
                     fileName = attachmentCreateRequest.fileName,
                     filePath = pendingUpload.path,
                     fileLength = pendingUpload.encryptedSize,
+                )
+                diagnostics.cipherAttachmentUploadCompleted(
+                    cipherLocalId = currentLocal.cipherId,
+                    cipherRemoteId = remoteCipherId,
+                    attachmentLocalId = localAttachment.id,
+                    attachmentRemoteId = reservedRemoteAttachmentId,
                 )
             } catch (e: Throwable) {
                 val cleanupSucceeded =
@@ -722,6 +759,14 @@ class CipherSyncOps(
                     currentLocal = currentLocal.withoutPendingLocalAttachmentUpload(localAttachment.id)
                     updatePartialRemoteLocal(currentLocal)
                 }
+                diagnostics.cipherAttachmentUploadFailed(
+                    cipherLocalId = currentLocal.cipherId,
+                    cipherRemoteId = remoteCipherId,
+                    attachmentLocalId = localAttachment.id,
+                    attachmentRemoteId = reservedRemoteAttachmentId,
+                    cleanupSucceeded = cleanupSucceeded,
+                    error = e,
+                )
                 e.throwIfCancellation()
                 coroutineContext.ensureActive()
                 throw e
@@ -731,6 +776,12 @@ class CipherSyncOps(
                 pendingUpload.copy(
                     remoteId = reservedRemoteAttachmentId,
                 ),
+            )
+            diagnostics.cipherAttachmentMarkedUploaded(
+                cipherLocalId = currentLocal.cipherId,
+                cipherRemoteId = remoteCipherId,
+                attachmentLocalId = localAttachment.id,
+                attachmentRemoteId = reservedRemoteAttachmentId,
             )
 
             val refreshedResponse =
@@ -762,6 +813,12 @@ class CipherSyncOps(
             requireNotNull(reconciliation.replacementsByLocalId[localAttachment.id]) {
                 "Failed to locate the uploaded cipher attachment on remote."
             }
+            diagnostics.cipherAttachmentReconciled(
+                cipherLocalId = currentLocal.cipherId,
+                cipherRemoteId = remoteCipherId,
+                attachmentLocalId = localAttachment.id,
+                attachmentRemoteId = reservedRemoteAttachmentId,
+            )
             currentLocal =
                 merge(
                     remote = refreshedRemote,
@@ -792,14 +849,12 @@ class CipherSyncOps(
     ): RemoteWriteOutcome<BitwardenCipher> {
         val now = Clock.System.now()
 
-        logRepository.add(
-            TAG,
-            "[local] Merging ${server.id} cipher entry " +
-                    "with ${local.cipherId}... " +
-                    "remote_rev_date=${server.revisionDate}, " +
-                    "local_local_rev_date=${local.revisionDate}, " +
-                    "local_remote_rev_date=${local.service.remote?.revisionDate}",
-            LogLevel.DEBUG,
+        diagnostics.cipherMergeStarted(
+            localId = local.cipherId,
+            remoteId = server.id,
+            remoteRevisionDate = server.revisionDate,
+            localRevisionDate = local.revisionDate,
+            localRemoteRevisionDate = local.service.remote?.revisionDate,
         )
 
         val remoteDecoded =
@@ -827,12 +882,9 @@ class CipherSyncOps(
                 } as BitwardenCipher?
 
             if (merged != null) {
-                logRepository.add(
-                    TAG,
-                    "Merged local with remote correctly! " +
-                            "remote_id=${remoteDecoded.cipherId}, " +
-                            "local_id=${local.cipherId}",
-                    LogLevel.DEBUG,
+                diagnostics.cipherMergeSucceeded(
+                    localId = local.cipherId,
+                    remoteId = remoteDecoded.cipherId,
                 )
                 val mergedWithTimestamp = merged.copy(revisionDate = now)
                 return pushToServer(

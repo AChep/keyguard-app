@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline
 
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.BitwardenSyncV2Diagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.ActionFailure
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntitySyncPlan
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.LocalItemMeta
@@ -65,6 +66,8 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
     private val strategy: EntitySyncStrategy<Local, Server>,
     private val ops: EntitySyncOps<Local, Server>,
     private val bulkRemoteOps: BulkRemoteOps<Local>? = null,
+    private val entityName: String = "unknown",
+    private val diagnostics: BitwardenSyncV2Diagnostics = BitwardenSyncV2Diagnostics.NoOp,
 ) {
     companion object {
         /** Chunk size for local database batch writes. */
@@ -94,6 +97,10 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
 
     /** Executes all actions from the [plan] and returns an aggregate result. */
     suspend fun execute(plan: EntitySyncPlan<Local, Server>): SyncExecutionResult {
+        diagnostics.executorStarted(
+            entityName = entityName,
+            actionCount = plan.actions.size,
+        )
         val snapshotMetaByLocalId =
             plan.localSnapshot.metadata
                 .associateBy { it.localId }
@@ -119,31 +126,66 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
         }
 
         // --- Phase 1: Delete locally ---
+        phaseStarted(
+            phaseName = PHASE_DELETE_LOCALLY,
+            actionCount = deleteLocallyActions.size,
+            tracker = tracker,
+        )
         executeDeleteLocally(
             actions = deleteLocallyActions,
             snapshotMetaByLocalId = snapshotMetaByLocalId,
             tracker = tracker,
         )
+        phaseCompleted(
+            phaseName = PHASE_DELETE_LOCALLY,
+            before = tracker.lastPhaseSnapshot,
+            tracker = tracker,
+        )
         coroutineContext.ensureActive()
 
         // --- Phase 2a: Insert locally (no concurrency check) ---
+        phaseStarted(
+            phaseName = PHASE_INSERT_LOCALLY,
+            actionCount = insertLocallyActions.size,
+            tracker = tracker,
+        )
         executeInsertLocally(
             actions = insertLocallyActions,
             plan = plan,
             tracker = tracker,
         )
+        phaseCompleted(
+            phaseName = PHASE_INSERT_LOCALLY,
+            before = tracker.lastPhaseSnapshot,
+            tracker = tracker,
+        )
         coroutineContext.ensureActive()
 
         // --- Phase 2b: Update locally (with concurrency check) ---
+        phaseStarted(
+            phaseName = PHASE_UPDATE_LOCALLY,
+            actionCount = updateLocallyActions.size,
+            tracker = tracker,
+        )
         executeUpdateLocally(
             actions = updateLocallyActions,
             plan = plan,
             snapshotMetaByLocalId = snapshotMetaByLocalId,
             tracker = tracker,
         )
+        phaseCompleted(
+            phaseName = PHASE_UPDATE_LOCALLY,
+            before = tracker.lastPhaseSnapshot,
+            tracker = tracker,
+        )
         coroutineContext.ensureActive()
 
         // --- Phase 3: Merge conflicts ---
+        phaseStarted(
+            phaseName = PHASE_MERGE_CONFLICT,
+            actionCount = mergeConflictActions.size,
+            tracker = tracker,
+        )
         for (action in mergeConflictActions) {
             coroutineContext.ensureActive()
             executeRemoteWithFinalization(
@@ -158,9 +200,25 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 ops.mergeConflict(currentEntity, serverEntity)
             }
         }
+        phaseCompleted(
+            phaseName = PHASE_MERGE_CONFLICT,
+            before = tracker.lastPhaseSnapshot,
+            tracker = tracker,
+        )
         coroutineContext.ensureActive()
 
         // --- Phase 4: Delete on server ---
+        val deleteOnServerPhase =
+            if (bulkRemoteOps != null && deleteOnServerActions.isNotEmpty()) {
+                PHASE_DELETE_ON_SERVER_BULK
+            } else {
+                PHASE_DELETE_ON_SERVER
+            }
+        phaseStarted(
+            phaseName = deleteOnServerPhase,
+            actionCount = deleteOnServerActions.size,
+            tracker = tracker,
+        )
         if (bulkRemoteOps != null && deleteOnServerActions.isNotEmpty()) {
             executeBulkDeleteOnServer(
                 actions = deleteOnServerActions,
@@ -180,9 +238,19 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 }
             }
         }
+        phaseCompleted(
+            phaseName = deleteOnServerPhase,
+            before = tracker.lastPhaseSnapshot,
+            tracker = tracker,
+        )
         coroutineContext.ensureActive()
 
         // --- Phase 5: Push to server ---
+        phaseStarted(
+            phaseName = PHASE_PUSH_TO_SERVER,
+            actionCount = pushToServerActions.size,
+            tracker = tracker,
+        )
         for (action in pushToServerActions) {
             coroutineContext.ensureActive()
             executeRemoteWithFinalization(
@@ -197,8 +265,39 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 ops.pushToServer(currentEntity, serverEntity, action.force)
             }
         }
+        phaseCompleted(
+            phaseName = PHASE_PUSH_TO_SERVER,
+            before = tracker.lastPhaseSnapshot,
+            tracker = tracker,
+        )
 
         return tracker.toResult()
+    }
+
+    private suspend fun phaseStarted(
+        phaseName: String,
+        actionCount: Int,
+        tracker: ResultTracker,
+    ) {
+        tracker.lastPhaseSnapshot = tracker.toResult()
+        diagnostics.executorPhaseStarted(
+            entityName = entityName,
+            phaseName = phaseName,
+            actionCount = actionCount,
+        )
+    }
+
+    private suspend fun phaseCompleted(
+        phaseName: String,
+        before: SyncExecutionResult,
+        tracker: ResultTracker,
+    ) {
+        diagnostics.executorPhaseCompleted(
+            entityName = entityName,
+            phaseName = phaseName,
+            before = before,
+            after = tracker.toResult(),
+        )
     }
 
     // ---------------------------------------------------------------
@@ -224,7 +323,15 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 val result = checkConcurrency(action.localId, snapshotMeta)
                 when (result.outcome) {
                     ConcurrencyOutcome.SAFE -> finalSafeActions.add(action)
-                    ConcurrencyOutcome.MODIFIED -> tracker.skipped++
+                    ConcurrencyOutcome.MODIFIED -> {
+                        diagnostics.occSkipped(
+                            entityName = entityName,
+                            action = action,
+                            outcome = OCC_MODIFIED,
+                            snapshotMeta = snapshotMeta,
+                        )
+                        tracker.skipped++
+                    }
                     ConcurrencyOutcome.DELETED -> tracker.succeeded++
                 }
             }
@@ -237,6 +344,11 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
             } catch (e: Throwable) {
                 e.throwIfCancellation()
                 for (action in finalSafeActions) {
+                    diagnostics.localActionFailed(
+                        entityName = entityName,
+                        action = action,
+                        error = e,
+                    )
                     tracker.fail(action, e)
                 }
             }
@@ -270,6 +382,11 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 } catch (e: Throwable) {
                     e.throwIfCancellation()
                     for (action in attemptedActions) {
+                        diagnostics.localActionFailed(
+                            entityName = entityName,
+                            action = action,
+                            error = e,
+                        )
                         tracker.fail(action, e)
                     }
                 }
@@ -318,10 +435,22 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                     }
 
                     ConcurrencyOutcome.MODIFIED -> {
+                        diagnostics.occSkipped(
+                            entityName = entityName,
+                            action = action,
+                            outcome = OCC_MODIFIED,
+                            snapshotMeta = snapshotMeta,
+                        )
                         tracker.skipped++
                     }
 
                     ConcurrencyOutcome.DELETED -> {
+                        diagnostics.occSkipped(
+                            entityName = entityName,
+                            action = action,
+                            outcome = OCC_DELETED,
+                            snapshotMeta = snapshotMeta,
+                        )
                         tracker.skipped++
                     }
                 }
@@ -334,6 +463,11 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 } catch (e: Throwable) {
                     e.throwIfCancellation()
                     for (action in passedActions) {
+                        diagnostics.localActionFailed(
+                            entityName = entityName,
+                            action = action,
+                            error = e,
+                        )
                         tracker.fail(action, e)
                     }
                 }
@@ -374,8 +508,24 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                     val meta = strategy.toLocalItemMeta(entity)
                     safeEntries.add(SafeEntry(action, entity, meta))
                 }
-                ConcurrencyOutcome.MODIFIED -> tracker.skipped++
-                ConcurrencyOutcome.DELETED -> tracker.skipped++
+                ConcurrencyOutcome.MODIFIED -> {
+                    diagnostics.occSkipped(
+                        entityName = entityName,
+                        action = action,
+                        outcome = OCC_MODIFIED,
+                        snapshotMeta = snapshotMeta,
+                    )
+                    tracker.skipped++
+                }
+                ConcurrencyOutcome.DELETED -> {
+                    diagnostics.occSkipped(
+                        entityName = entityName,
+                        action = action,
+                        outcome = OCC_DELETED,
+                        snapshotMeta = snapshotMeta,
+                    )
+                    tracker.skipped++
+                }
             }
         }
 
@@ -384,6 +534,12 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
             coroutineContext.ensureActive()
             try {
                 val pairs = chunk.map { it.currentEntity to it.action.serverId }
+                diagnostics.bulkDeleteChunk(
+                    entityName = entityName,
+                    size = chunk.size,
+                    localIds = chunk.map { it.action.localId },
+                    remoteIds = chunk.map { it.action.serverId },
+                )
                 bulk.bulkDeleteOnServer(pairs)
                 for (entry in chunk) {
                     finalizeRemoteSuccess(
@@ -397,6 +553,11 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 }
             } catch (e: Throwable) {
                 e.throwIfCancellation()
+                diagnostics.bulkFallback(
+                    entityName = entityName,
+                    size = chunk.size,
+                    error = e,
+                )
                 // Bulk API not supported or failed — fall back to individual.
                 for (entry in chunk) {
                     coroutineContext.ensureActive()
@@ -476,10 +637,22 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
             }
 
             ConcurrencyOutcome.MODIFIED -> {
+                diagnostics.occSkipped(
+                    entityName = entityName,
+                    action = action,
+                    outcome = OCC_MODIFIED,
+                    snapshotMeta = snapshotMeta,
+                )
                 tracker.skipped++
             }
 
             ConcurrencyOutcome.DELETED -> {
+                diagnostics.occSkipped(
+                    entityName = entityName,
+                    action = action,
+                    outcome = OCC_DELETED,
+                    snapshotMeta = snapshotMeta,
+                )
                 tracker.skipped++
             }
         }
@@ -509,14 +682,29 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                         )
                         RemoteWriteOutcome.DeleteLocal -> ops.deleteLocally(listOf(localId))
                     }
+                    diagnostics.remoteActionSucceeded(
+                        entityName = entityName,
+                        action = action,
+                    )
                     tracker.succeeded++
                 } catch (e: Throwable) {
                     e.throwIfCancellation()
+                    diagnostics.localActionFailed(
+                        entityName = entityName,
+                        action = action,
+                        error = e,
+                    )
                     tracker.fail(action, e)
                 }
             }
 
             ConcurrencyOutcome.MODIFIED -> {
+                diagnostics.occSkipped(
+                    entityName = entityName,
+                    action = action,
+                    outcome = OCC_MODIFIED,
+                    snapshotMeta = operationStartMeta,
+                )
                 val current = currentResult.currentEntity
                 if (current == null) {
                     tracker.skipped++
@@ -544,14 +732,29 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                             )
                         }
                     }
+                    diagnostics.remoteActionSucceeded(
+                        entityName = entityName,
+                        action = action,
+                    )
                     tracker.skipped++
                 } catch (e: Throwable) {
                     e.throwIfCancellation()
+                    diagnostics.localActionFailed(
+                        entityName = entityName,
+                        action = action,
+                        error = e,
+                    )
                     tracker.fail(action, e)
                 }
             }
 
             ConcurrencyOutcome.DELETED -> {
+                diagnostics.occSkipped(
+                    entityName = entityName,
+                    action = action,
+                    outcome = OCC_DELETED,
+                    snapshotMeta = operationStartMeta,
+                )
                 tracker.skipped++
             }
         }
@@ -588,6 +791,12 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 }
 
                 ConcurrencyOutcome.MODIFIED -> {
+                    diagnostics.occSkipped(
+                        entityName = entityName,
+                        action = action,
+                        outcome = OCC_MODIFIED,
+                        snapshotMeta = operationStartMeta,
+                    )
                     val current = currentResult.currentEntity
                     if (current != null && partialRemoteLocal != null) {
                         val reconciled =
@@ -604,6 +813,12 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 }
 
                 ConcurrencyOutcome.DELETED -> {
+                    diagnostics.occSkipped(
+                        entityName = entityName,
+                        action = action,
+                        outcome = OCC_DELETED,
+                        snapshotMeta = operationStartMeta,
+                    )
                 }
             }
         } catch (e: Throwable) {
@@ -611,6 +826,11 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
             // The remote action already failed. A secondary failure while
             // persisting failure metadata must not count as another action.
         }
+        diagnostics.remoteActionFailed(
+            entityName = entityName,
+            action = action,
+            error = error,
+        )
         tracker.fail(action, error)
     }
 
@@ -663,6 +883,7 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
         var succeeded: Int = 0
         var skipped: Int = 0
         val failures: MutableList<ActionFailure> = mutableListOf()
+        var lastPhaseSnapshot: SyncExecutionResult = SyncExecutionResult()
 
         fun fail(
             action: SyncAction,
@@ -679,3 +900,14 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
             )
     }
 }
+
+private const val PHASE_DELETE_LOCALLY = "delete_locally"
+private const val PHASE_INSERT_LOCALLY = "insert_locally"
+private const val PHASE_UPDATE_LOCALLY = "update_locally"
+private const val PHASE_MERGE_CONFLICT = "merge_conflict"
+private const val PHASE_DELETE_ON_SERVER = "delete_on_server"
+private const val PHASE_DELETE_ON_SERVER_BULK = "delete_on_server_bulk"
+private const val PHASE_PUSH_TO_SERVER = "push_to_server"
+
+private const val OCC_MODIFIED = "modified"
+private const val OCC_DELETED = "deleted"

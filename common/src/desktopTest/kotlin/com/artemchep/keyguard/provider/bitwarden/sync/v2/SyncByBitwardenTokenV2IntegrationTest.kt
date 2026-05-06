@@ -80,6 +80,9 @@ class SyncByBitwardenTokenV2IntegrationTest {
                 "Syncing send entities.",
             ).all { it in logMessages },
         )
+        assertTrue(logMessages.any { it.contains("sync_response_received account_id=$ACCOUNT_ID") })
+        assertTrue(logMessages.any { it.contains("entity_plan_built entity=folders") })
+        assertTrue(logMessages.any { it.contains("entity_plan_built entity=ciphers") })
         assertEquals(
             listOf(HttpMethod.Get to "/api/accounts/revision-date", HttpMethod.Get to "/api/sync"),
             server.requests.map { it.method to it.path },

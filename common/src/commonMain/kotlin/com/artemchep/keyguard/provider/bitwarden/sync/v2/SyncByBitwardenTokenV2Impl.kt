@@ -132,6 +132,8 @@ class SyncByBitwardenTokenV2Impl(
         private const val TAG = "SyncByIdV2.bitwarden"
     }
 
+    private val diagnostics = BitwardenSyncV2Diagnostics(logRepository)
+
     constructor(directDI: DirectDI) : this(
         logRepository = directDI.instance(),
         cipherEncryptor = directDI.instance(),
@@ -267,14 +269,26 @@ class SyncByBitwardenTokenV2Impl(
                     token = token,
                 )
             }
+        diagnostics.revisionPrecheck(
+            accountId = user.id,
+            serverRevisionDate = serverRevisionDate,
+        )
 
         if (entityTypesToSync == null &&
             shouldSkipFullSync(user.id, database, serverRevisionDate)
         ) {
+            diagnostics.fullSyncSkipped(
+                accountId = user.id,
+                serverRevisionDate = serverRevisionDate,
+            )
             post(title = "Server revision date unchanged, skipping full sync.")
             return
         }
 
+        diagnostics.fullSyncStarted(
+            accountId = user.id,
+            serverRevisionDate = serverRevisionDate,
+        )
         post(title = "Send sync request.")
         val response =
             api.sync(
@@ -282,6 +296,16 @@ class SyncByBitwardenTokenV2Impl(
                 env = env,
                 token = token,
             )
+        diagnostics.syncResponseReceived(
+            accountId = user.id,
+            cipherCount = response.ciphers.orEmpty().size,
+            folderCount = response.folders.orEmpty().size,
+            collectionCount = response.collections.orEmpty().size,
+            organizationCount = response.profile.organizations.orEmpty().size,
+            sendCount = response.sends.orEmpty().size,
+            customEquivalentDomainCount = response.domains?.equivalentDomains.orEmpty().size,
+            globalEquivalentDomainCount = response.domains?.globalEquivalentDomains.orEmpty().size,
+        )
 
         checkForEmptyVault(database, user, env, response)
 
@@ -313,7 +337,7 @@ class SyncByBitwardenTokenV2Impl(
         )
         coroutineContext.ensureActive()
 
-        val coordinator = SyncCoordinator()
+        val coordinator = SyncCoordinator(diagnostics)
         val outcomes = mutableMapOf<String, EntityTypeOutcome>()
 
         fun shouldSync(type: SyncEntityType): Boolean =
@@ -415,6 +439,7 @@ class SyncByBitwardenTokenV2Impl(
                     localToRemoteFolders = folderIdMappings.localToRemoteFolders,
                     serverFolders = response.folders.orEmpty(),
                     pendingUploadCoordinator = pendingUploadCoordinator,
+                    diagnostics = diagnostics,
                 )
             val cipherResult =
                 coordinator.safeSyncEntityType(
@@ -511,6 +536,7 @@ class SyncByBitwardenTokenV2Impl(
                     token = token,
                     sendsApi = api.sends,
                     pendingUploadCoordinator = pendingUploadCoordinator,
+                    diagnostics = diagnostics,
                 )
             val sendResult =
                 coordinator.safeSyncEntityType(
@@ -528,6 +554,7 @@ class SyncByBitwardenTokenV2Impl(
 
         // --- Aggregate results and log ---
         val syncResult = SyncResult(outcomes = outcomes)
+        diagnostics.syncResult(syncResult)
         logSyncResult(syncResult)
         syncResult.requireCleanForRevisionCache()
 

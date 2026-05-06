@@ -629,6 +629,14 @@
     "email_body": "Hello, I would like to request access to or deletion of my personal data associated with my account on your site. Please confirm receipt of this request. Thank you."
   },
   {
+    "name": "QuickSEO",
+    "domains": [],
+    "url": "https://quickseo.ai/docs/get-your-data",
+    "difficulty": "hard",
+    "notes": "Email support@quickseo.ai to request your account data. They will send it to you by email.",
+    "email": "support@quickseo.ai"
+  },
+  {
     "name": "Reddit",
     "domains": [],
     "url": "https://www.reddit.com/settings/data-request",
@@ -854,6 +862,13 @@
     "url": "https://virtcloud.net",
     "difficulty": "hard",
     "notes": "To request your account data, please send an email to info@virtcloud.net with the subject 'Account Data Request'. Include your full name and registered email address. Once verified, a copy of all data associated with your account will be sent to you within 48 hours."
+  },
+  {
+    "name": "VRChat",
+    "domains": [],
+    "url": "https://help.vrchat.com/hc/requests/new",
+    "difficulty": "hard",
+    "notes": "Go to the linked website, make a ZenDesk account, and submit a request to download your account data. IMPORTANT: After VRChat makes your data available, the download URL will be kept active indefinitely, even if you delete your VRChat account at a later date. This effectively means VRChat will still have a copy of your data after account deletion. YOU MUST make a separate request asking for your ZenDesk account, support tickets, and data packages be deleted to fully remove all information from VRChat."
   },
   {
     "name": "Walmart",

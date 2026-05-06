@@ -77,6 +77,7 @@ fun WearVaultListScreen(
                 items(
                     items = list,
                     key = { model -> model.id },
+                    contentType = { model -> model.contentType },
                 ) { model ->
                     if (model is VaultItem2.QuickFilters) {
                         // Do nothing

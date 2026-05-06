@@ -240,6 +240,7 @@ fun JustDeleteMeListScreen(
                         items(
                             items = items,
                             key = { it.key },
+                            contentType = { it.contentType },
                         ) { item ->
                             when (item) {
                                 is JustDeleteMeServiceListState.Item.Content -> {

@@ -69,6 +69,7 @@ fun WearCredentialProviderTestApp(
                 items(
                     items = CredentialRequestPreset.entries,
                     key = { it.name },
+                    contentType = { "credential_request_preset" },
                 ) { preset ->
                     val isLoading = state is CredentialRunState.Loading
                     Button(

@@ -35,12 +35,15 @@ data class TwoFaServiceListState(
     @Immutable
     sealed interface Item {
         val key: String
+        val contentType: String
 
         @Immutable
         data class Section(
             override val key: String,
             val name: String,
-        ) : Item
+        ) : Item {
+            override val contentType: String get() = "two_fa_section"
+        }
 
         @Immutable
         data class Content(
@@ -51,6 +54,8 @@ data class TwoFaServiceListState(
             val data: TwoFaServiceInfo,
             val onClick: (() -> Unit)? = null,
         ) : Item, GroupableShapeItem<Content> {
+            override val contentType: String get() = "two_fa_content"
+
             override fun withShape(shape: Int) = copy(shapeState = shape)
         }
     }

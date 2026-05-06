@@ -83,7 +83,11 @@ fun WearSettingsScreen() {
     WearScaffoldScreen(
         title = stringResource(Res.string.settings_main_header_title),
     ) { transformationSpec ->
-        items(items, key = { it.id }) {
+        items(
+            items = items,
+            key = { it.id },
+            contentType = { it.contentType },
+        ) {
             when (it) {
                 is WearSettingsListItem -> {
                     WearSettingsListItem(

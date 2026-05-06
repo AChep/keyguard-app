@@ -41,7 +41,11 @@ fun WearHomeScreen() {
             }
         },
     ) { transformationSpec ->
-        items(state.items, key = { it.id }) {
+        items(
+            items = state.items,
+            key = { it.id },
+            contentType = { it.contentType },
+        ) {
             when (it) {
                 is WearHomeState.Item.Action -> {
                     HomeListItem(

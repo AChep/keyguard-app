@@ -46,6 +46,7 @@ import org.jetbrains.compose.resources.stringResource
 
 sealed interface WearSettingsListItemBase {
     val id: String
+    val contentType: String
 }
 
 data class WearSettingsListItem(
@@ -54,22 +55,30 @@ data class WearSettingsListItem(
     val text: TextHolder,
     val icon: ImageVector? = null,
     val route: Route,
-) : WearSettingsListItemBase
+) : WearSettingsListItemBase {
+    override val contentType: String get() = "wear_settings_item"
+}
 
 data class WearSettingsListSection(
     override val id: String,
     val title: TextHolder?,
-) : WearSettingsListItemBase
+) : WearSettingsListItemBase {
+    override val contentType: String get() = "wear_settings_section"
+}
 
 data class WearSettingsListAccountItem(
     override val id: String,
     val item: AccountItem.Item,
-) : WearSettingsListItemBase
+) : WearSettingsListItemBase {
+    override val contentType: String get() = "wear_settings_account"
+}
 
 data class WearSettingsListAccountAdd(
     override val id: String,
     val actions: List<ContextItem>,
-) : WearSettingsListItemBase
+) : WearSettingsListItemBase {
+    override val contentType: String get() = "wear_settings_account_add"
+}
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable

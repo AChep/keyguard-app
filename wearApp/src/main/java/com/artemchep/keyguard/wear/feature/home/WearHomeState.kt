@@ -11,17 +11,22 @@ data class WearHomeState(
 ) {
     sealed interface Item {
         val id: String
+        val contentType: String
 
         data class Section(
             override val id: String,
             val title: TextHolder?,
-        ) : Item
+        ) : Item {
+            override val contentType: String get() = "wear_home_section"
+        }
 
         data class Action(
             override val id: String,
             val title: TextHolder,
             val icon: ImageVector? = null,
             val onClick: () -> Unit,
-        ) : Item
+        ) : Item {
+            override val contentType: String get() = "wear_home_action"
+        }
     }
 }

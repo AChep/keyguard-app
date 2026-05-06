@@ -154,6 +154,7 @@ fun SearchSettingsScreenContent(
         items(
             items = items,
             key = { it.key },
+            contentType = { it.contentType },
         ) {
             when (it) {
                 is SearchSettingsState.Item.Settings -> {

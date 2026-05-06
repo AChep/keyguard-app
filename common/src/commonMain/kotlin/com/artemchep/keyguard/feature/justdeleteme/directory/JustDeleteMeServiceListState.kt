@@ -34,12 +34,15 @@ data class JustDeleteMeServiceListState(
     @Immutable
     sealed interface Item {
         val key: String
+        val contentType: String
 
         @Immutable
         data class Section(
             override val key: String,
             val name: String,
-        ) : Item
+        ) : Item {
+            override val contentType: String get() = "just_delete_me_section"
+        }
 
         @Immutable
         data class Content(
@@ -50,6 +53,8 @@ data class JustDeleteMeServiceListState(
             val data: JustDeleteMeServiceInfo,
             val onClick: (() -> Unit)? = null,
         ) : Item, GroupableShapeItem<Content> {
+            override val contentType: String get() = "just_delete_me_content"
+
             override fun withShape(shape: Int) = copy(shapeState = shape)
         }
     }

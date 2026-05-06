@@ -240,6 +240,7 @@ fun JustGetMyDataListScreen(
                         items(
                             items = items,
                             key = { it.key },
+                            contentType = { it.contentType },
                         ) { item ->
                             when (item) {
                                 is JustGetMyDataListState.Item.Content -> {

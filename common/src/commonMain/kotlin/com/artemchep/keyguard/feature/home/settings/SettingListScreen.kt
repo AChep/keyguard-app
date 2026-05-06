@@ -95,6 +95,7 @@ import org.kodein.di.instance
 
 sealed interface SettingsItem2 {
     val id: String
+    val contentType: String
 }
 
 data class SettingsItem(
@@ -108,17 +109,23 @@ data class SettingsItem(
     val trailing: (@Composable RowScope.() -> Unit)? = null,
     val footer: (@Composable ColumnScope.() -> Unit)? = null,
     val route: Route,
-) : SettingsItem2
+) : SettingsItem2 {
+    override val contentType: String get() = "settings_item"
+}
 
 data class SettingsSectionItem(
     override val id: String,
     val title: TextHolder?,
-) : SettingsItem2
+) : SettingsItem2 {
+    override val contentType: String get() = "settings_section"
+}
 
 data class SettingsAccountsItem(
     override val id: String,
     val state: State<AccountListState>,
-) : SettingsItem2
+) : SettingsItem2 {
+    override val contentType: String get() = "settings_accounts"
+}
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -363,7 +370,11 @@ private fun SettingListScreenContent(
             )
         },
     ) {
-        items(items, key = { it.id }) {
+        items(
+            items = items,
+            key = { it.id },
+            contentType = { it.contentType },
+        ) {
             when (it) {
                 is SettingsItem -> {
                     val backgroundColor = run {

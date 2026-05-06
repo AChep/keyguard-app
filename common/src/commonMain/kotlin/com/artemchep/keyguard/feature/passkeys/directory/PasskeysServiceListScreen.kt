@@ -238,6 +238,7 @@ fun PasskeysListScreen(
                         items(
                             items = items,
                             key = { it.key },
+                            contentType = { it.contentType },
                         ) { item ->
                             when (item) {
                                 is PasskeysServiceListState.Item.Content -> {

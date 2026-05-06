@@ -29,6 +29,7 @@ sealed interface VaultItem2 {
     companion object
 
     val id: String
+    val contentType: String
 
     @Immutable
     data class QuickFilters(
@@ -36,6 +37,8 @@ sealed interface VaultItem2 {
         val items: ImmutableList<Item>,
     ) : VaultItem2 {
         companion object;
+
+        override val contentType: String get() = "quick_filters"
 
         data class Item(
             val key: String = Uuid.random().toString(),
@@ -58,17 +61,21 @@ sealed interface VaultItem2 {
     ) : VaultItem2, GroupableShapeItem<Button> {
         companion object;
 
+        override val contentType: String get() = "button"
+
         override fun withShape(shape: Int) = copy(shapeState = shape)
     }
 
     @Immutable
     data object NoSuggestions : VaultItem2 {
         override val id: String get() = "vault_item:no_suggestions"
+        override val contentType: String get() = "no_suggestions"
     }
 
     @Immutable
     data object NoItems : VaultItem2 {
         override val id: String get() = "vault_item:no_items"
+        override val contentType: String get() = "no_items"
     }
 
     @Immutable
@@ -77,7 +84,9 @@ sealed interface VaultItem2 {
         val text: TextHolder? = null,
         val caps: Boolean = true,
     ) : VaultItem2 {
-        companion object
+        companion object;
+
+        override val contentType: String get() = "section"
     }
 
     @Immutable
@@ -117,6 +126,8 @@ sealed interface VaultItem2 {
         val localStateFlow: StateFlow<LocalState>,
     ) : VaultItem2, GroupableShapeItem<Item> {
         companion object;
+
+        override val contentType: String get() = "item"
 
         override fun withShape(shape: Int) = copy(shapeState = shape)
 

@@ -215,6 +215,7 @@ class SendSyncOps(
                         pushModifiedSend(
                             update = update,
                             local = local,
+                            server = server,
                             itemKey = itemKey,
                             force = force,
                             updatePartialRemoteLocal = { partialRemoteLocal = it },
@@ -267,6 +268,7 @@ class SendSyncOps(
     private suspend fun pushModifiedSend(
         update: SendUpdate.Modify,
         local: BitwardenSend,
+        server: SendEntity?,
         itemKey: ByteArray,
         force: Boolean,
         updatePartialRemoteLocal: (BitwardenSend?) -> Unit,
@@ -305,6 +307,9 @@ class SendSyncOps(
             sendApi = sendApi,
             pendingUpload = pendingUpload,
             intermediateLocal = intermediateLocal,
+            uploadFileName = intermediateResponse?.file?.fileName
+                ?: server?.file?.fileName
+                ?: error("Bitwarden send response must contain a file name for upload."),
             itemKey = itemKey,
         )
     }
@@ -404,6 +409,7 @@ class SendSyncOps(
         sendApi: ServerEnvApi.Sends.Send,
         pendingUpload: PendingUploadFile,
         intermediateLocal: BitwardenSend,
+        uploadFileName: String,
         itemKey: ByteArray,
     ): BitwardenSend {
         val fileRemoteId = intermediateLocal.requireRemoteFileId()
@@ -432,7 +438,7 @@ class SendSyncOps(
                 env = env,
                 token = token,
                 target = uploadTarget,
-                fileName = intermediateLocal.requireFileName(),
+                fileName = uploadFileName,
                 filePath = pendingUpload.path,
                 fileLength = pendingUpload.encryptedSize,
             )
@@ -560,7 +566,7 @@ class SendSyncOps(
                 env = env,
                 token = token,
                 target = fileCreateResponse.uploadTarget,
-                fileName = createdLocal.requireFileName(),
+                fileName = fileCreateResponse.requiredSendResponse.requireFileName(),
                 filePath = pendingUpload.path,
                 fileLength = pendingUpload.encryptedSize,
             )
@@ -679,6 +685,11 @@ class SendSyncOps(
     private fun BitwardenSend.requireFileName(): String =
         requireNotNull(file?.fileName) {
             "Bitwarden send must contain a file name for upload."
+        }
+
+    private fun SendEntity.requireFileName(): String =
+        requireNotNull(file?.fileName) {
+            "Bitwarden send response must contain a file name for upload."
         }
 
     override suspend fun deleteOnServer(

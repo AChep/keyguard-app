@@ -1545,7 +1545,7 @@ private class SendUploadIntegrationOps(
                             env = this.server.env,
                             token = this.server.token,
                             target = response.uploadTarget,
-                            fileName = requireNotNull(local.file).fileName,
+                            fileName = requireNotNull(remoteSend.file?.fileName),
                             filePath = pendingUpload.path,
                             fileLength = pendingUpload.encryptedSize,
                         )
@@ -1626,7 +1626,9 @@ private class SendUploadIntegrationOps(
                             env = this.server.env,
                             token = this.server.token,
                             target = uploadTarget.uploadTarget,
-                            fileName = local.file.fileName,
+                            fileName = putResponse.file?.fileName
+                                ?: server.file?.fileName
+                                ?: error("Bitwarden send response must contain a file name for upload."),
                             filePath = pendingUpload.path,
                             fileLength = pendingUpload.encryptedSize,
                         )

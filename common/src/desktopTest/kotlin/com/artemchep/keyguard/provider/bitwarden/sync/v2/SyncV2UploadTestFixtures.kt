@@ -95,6 +95,7 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.http.ContentDisposition
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -124,6 +125,7 @@ internal class UploadTestServer {
     val sends = linkedMapOf<String, SendEntity>()
     val uploadedCipherAttachmentBodies = linkedMapOf<String, String>()
     val uploadedSendFileBodies = linkedMapOf<String, String>()
+    val uploadedSendFileNames = linkedMapOf<String, String?>()
     val deletedCipherAttachmentIds = mutableListOf<String>()
     val deletedSendIds = mutableListOf<String>()
     val renewNotFoundAttachmentIds = mutableSetOf<String>()
@@ -604,7 +606,7 @@ internal class UploadTestServer {
 
         request.method == HttpMethod.Post &&
             request.path.contains("/file/") -> {
-            val (_, fileId) = parseSendFilePath(request.path)
+            val (sendId, fileId) = parseSendFilePath(request.path)
             val failure = nextSendFileUploadFailure
             if (failure != null) {
                 nextSendFileUploadFailure = null
@@ -613,8 +615,18 @@ internal class UploadTestServer {
                     description = nextSendFileUploadFailureMessage,
                 )
             } else {
-                uploadedSendFileBodies[fileId] = request.body
-                respondText("")
+                val uploadedFileName = request.body.extractMultipartFilename()
+                uploadedSendFileNames[fileId] = uploadedFileName
+                val expectedFileName = sends[sendId]?.file?.fileName
+                if (expectedFileName != null && uploadedFileName != expectedFileName) {
+                    respondApiError(
+                        status = HttpStatusCode.BadRequest,
+                        description = "Send file name does not match.",
+                    )
+                } else {
+                    uploadedSendFileBodies[fileId] = request.body
+                    respondText("")
+                }
             }
         }
 
@@ -806,6 +818,16 @@ private suspend fun OutgoingContent.WriteChannelContent.readString(): String {
     writeTo(channel)
     channel.close()
     return channel.readRemaining().readByteArray().decodeToString()
+}
+
+private fun String.extractMultipartFilename(): String? {
+    val disposition = lineSequence()
+        .firstOrNull { it.startsWith("Content-Disposition: ") }
+        ?.removePrefix("Content-Disposition: ")
+        ?: return null
+    return ContentDisposition
+        .parse(disposition)
+        .parameter(ContentDisposition.Parameters.FileName)
 }
 
 internal inline fun withTempUploadFile(

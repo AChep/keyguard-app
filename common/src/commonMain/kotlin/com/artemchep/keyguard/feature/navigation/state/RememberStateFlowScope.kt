@@ -115,7 +115,7 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
     ): () -> Unit
 
     fun launchUi(
-        block: CoroutineScope.() -> Unit,
+        block: suspend CoroutineScope.() -> Unit,
     ): () -> Unit
 
     fun action(block: suspend () -> Unit)

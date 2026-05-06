@@ -208,7 +208,7 @@ class RememberStateFlowScopeImpl(
         }
     }
 
-    override fun launchUi(block: CoroutineScope.() -> Unit): () -> Unit {
+    override fun launchUi(block: suspend CoroutineScope.() -> Unit): () -> Unit {
         val job = isStartedFlow
             .mapLatest { active ->
                 if (!active) {

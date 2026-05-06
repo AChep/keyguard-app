@@ -22,6 +22,11 @@
     <string name="new_password">新密码</string>
     <string name="no_password">暂无密码</string>
     <string name="advanced_options">高级选项</string>
+    <string name="file">文件</string>
+    <string name="file_name_placeholder">文件名</string>
+    <string name="file_status_pending_upload">待上传</string>
+    <string name="file_status_auto_resume">自动恢复</string>
+    <string name="file_status_downloading_failed">下载失败</string>
     <string name="email">电子邮件</string>
     <string name="email_verified">已验证</string>
     <string name="email_not_verified">未验证</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">有效期至</string>
     <string name="company">公司</string>
     <string name="sync">同步</string>
+    <string name="sync_requested">已请求同步</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">隐藏</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">暂无组织</string>
     <string name="equivalent_domains">等效域名</string>
     <string name="equivalent_domains_empty_label">暂无等效域名</string>
+    <string name="retry">重试</string>
     <string name="misc">杂项</string>
     <string name="category">分类</string>
     <string name="command">命令</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">从不</string>
     <string name="select_linked_type">选择类型</string>
     <string name="select_file">选择文件</string>
+    <string name="additem_attachments_drop_here">将文件拖放到此处即可添加附件</string>
+    <string name="addsend_drop_file_to_replace">拖放文件以替换选定文件</string>
     <string name="autofill">自动填充</string>
     <string name="autofill_and_save_uri">自动填充并保存应用或网站信息</string>
     <string name="backup_disclaimer_title">您的数据由您自己负责。</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">替换数据库文件</string>
     <string name="open_database">打开数据库</string>
     <string name="create_database">创建数据库</string>
+    <string name="addaccount_method_header_title">添加账户</string>
+    <string name="addaccount_method_manual_title">手动登录</string>
+    <string name="addaccount_method_manual_text">请在此手表上输入凭据</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear 目前仅支持一次性数据库同步。不支持从手表选择本地数据库。</string>
+    <string name="addaccount_method_phone_title">手机登录</string>
+    <string name="addaccount_method_phone_text">使用已配对的安卓手机</string>
+    <string name="addaccount_method_phone_unavailable">未找到已配对的安卓手机</string>
+    <string name="addaccount_method_phone_waiting">正在等待手机</string>
+    <string name="addaccount_method_phone_importing">导入账户中</string>
+    <string name="addaccount_method_phone_failed">手机登录失败</string>
+    <string name="addaccount_method_phone_pick">选择手机</string>
+    <string name="companionauth_header_title">手表设置</string>
+    <string name="companionauth_header_text">登录即可将此帐户添加到您的手表</string>
     <string name="qr_wifi_description_text">使用另一台设备扫描此二维码即可加入此 WiFi 网络。</string>
     <string name="qr_generate_button">生成二维码</string>
     <string name="pro_tip">专业提示: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">导出个人密码库</string>
     <string name="account_action_hide_title">隐藏条目</string>
     <string name="account_action_hide_text">隐藏应用主页面上的条目</string>
+    <string name="account_action_hide_success_on_title">项目已隐藏</string>
+    <string name="account_action_hide_success_off_title">项目已显示</string>
     <string name="account_action_email_verify_instructions_title">访问网页密码库来验证您的电子邮件地址</string>
     <string name="account_action_premium_purchase_instructions_title">将您的账户升级至高级会员，解锁一些强大的附加功能。</string>
     <string name="account_action_tfa_title">双因素认证</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">添加密钥</string>
     <string name="ssh_key_action_replace_key_title">替换密钥</string>
     <string name="ssh_key_import_title">导入 SSH 密钥</string>
+    <string name="ssh_key_import_drop_here">拖放文件以导入 SSH 密钥</string>
     <string name="ssh_key_import_failed_title">导入 SSH 密钥失败</string>
     <string name="ssh_key_import_success_title">已导入 SSH 密钥</string>
     <string name="ssh_key_import_error_unsupported_format">不支持的 SSH 私钥格式。</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_incorrect_password">密码错误</string>
     <string name="error_not_found">未找到</string>
+    <string name="error_file_must_be_500_mb_or_smaller">文件大小必须小于等于 500 MB</string>
+    <string name="error_file_must_be_1_mb_or_smaller">文件大小必须小于等于 1 MB</string>
     <string name="error_otp_key_must_not_be_empty">一次性密码的密钥不能为空</string>
     <string name="error_otp_key_is_invalid">一次性密码的密钥无效</string>
     <string name="error_failed_file_already_exists">无法创建文件。不允许替换现有文件</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">逗号分隔的电子邮件地址</string>
     <string name="addsend_auth_emails_note">收件人打开链接后，需完成一次性电子邮件验证。</string>
     <string name="addaccount_promo_title">您的密码库是空的。连接一个账户以开始：</string>
+    <string name="addaccount_promo_title_no_direct_action">您的密码库是空的。请前往“设置”并添加帐户以开始使用。</string>
     <string name="addaccount_promo_features">想获得最佳体验？我们已在下方为您列出了该应用的所有主要功能。请查看以下内容，了解它如何为您服务。</string>
     <string name="addaccount_description_short_bitwarden_text">将加密的密码库存储在云端。</string>
     <string name="addaccount_description_short_keepass_text">使用 KDBX 文件格式在本地存储加密的密码库。</string>
@@ -786,8 +814,8 @@
     <string name="addaccount_custom_env_identity_url_label">身份验证器 URL</string>
     <string name="addaccount_custom_env_notifications_url_label">通知服务器 URL</string>
     <string name="addaccount_mutual_tls_section">双向 TLS</string>
-    <string name="addaccount_mutual_tls_file_label">客户都安证书</string>
-    <string name="addaccount_mutual_tls_note">客户端验证证书。</string>
+    <string name="addaccount_mutual_tls_file_label">客户端证书</string>
+    <string name="addaccount_mutual_tls_note">用于客户端身份验证的证书。</string>
     <string name="addaccount_mutual_tls_password_label">PKCS#12 密码</string>
     <string name="addaccount_mutual_tls_password_dialog_title">输入PKCS#12 密码</string>
     <string name="addaccount_mutual_tls_password_dialog_message">该 PKCS#12 包已加密。</string>
@@ -796,7 +824,7 @@
     <!-- Explains that the text next to it is the Issuer of the certificate -->
     <string name="addaccount_mutual_tls_issuer_label">颁发者</string>
     <!-- Explains that the text next to it is the Expiry date of the certificate -->
-    <string name="addaccount_mutual_tls_expires_on_label">过期于</string>
+    <string name="addaccount_mutual_tls_expires_on_label">有效期至</string>
     <string name="addaccount_mutual_tls_status_imported">已导入</string>
     <string name="addaccount_mutual_tls_status_failed">导入失败</string>
     <string name="addaccount2fa_header_title">验证</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">使用生物识别认证来确认您的访问权限并解锁这些数据。</string>
     <string name="home_vault_label">密码库</string>
+    <string name="home_favorites_label">收藏</string>
+    <string name="home_other_label">其它</string>
     <string name="home_send_label">Send</string>
     <string name="home_generator_label">生成器</string>
     <string name="home_watchtower_label">概况</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">搜索 Sends</string>
     <string name="send_main_new_item_button">新项目</string>
+    <string name="send_main_drop_file_to_create">拖放文件即可创建 Send</string>
     <string name="send_email_is_required_to_access_label">通过电子邮件验证的收件人可访问此分享</string>
     <string name="send_password_is_required_to_access_label">需要密码以访问此共享</string>
     <string name="generator_header_title">生成器</string>
@@ -1141,6 +1172,7 @@
     <string name="pref_item_other_title">其它</string>
     <string name="pref_item_other_text">社区网站、应用信息</string>
     <string name="pref_item_nav_label_title">在导航按钮上显示标签</string>
+    <string name="pref_item_nav_hidden_send_title">隐藏 Send 选项卡</string>
     <string name="pref_item_app_version_title">应用版本</string>
     <string name="pref_item_app_build_date_title">应用构建日期</string>
     <!--
@@ -1207,6 +1239,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">允许</string>
     <string name="pref_item_data_safety_title">数据安全</string>
     <string name="pref_item_logs_title">日志</string>
+    <string name="pref_item_clear_vault_title">清空密码库</string>
     <string name="pref_item_lock_vault_title">锁定密码库</string>
     <string name="pref_item_lock_vault_after_reboot_title">重启后锁定</string>
     <string name="pref_item_lock_vault_after_reboot_text">设备重启后锁定密码库</string>
@@ -1270,6 +1303,8 @@
     <string name="pref_item_autofill_save_request_text">填写完成后提示更新保险库</string>
     <string name="pref_item_autofill_passkeys_enabled_title">通行密钥支持</string>
     <string name="pref_item_autofill_passkeys_enabled_text">向凭证管理器声明支持通行密钥，从而允许应用程序满足请求</string>
+    <string name="pref_item_autofill_passwords_enabled_title">密码支持</string>
+    <string name="pref_item_autofill_passwords_enabled_text">向凭证管理器声明支持密码，从而允许应用程序完成请求</string>
     <string name="pref_item_autofill_auto_save_source_title">自动保存应用或网站信息</string>
     <string name="pref_item_autofill_block_uri_title">阻止自动填充</string>
     <string name="pref_item_autofill_block_uri_text">阻止为这些 URI 提供自动填充</string>

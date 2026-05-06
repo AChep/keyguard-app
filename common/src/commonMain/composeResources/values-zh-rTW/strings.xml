@@ -22,6 +22,11 @@
     <string name="new_password">新密碼</string>
     <string name="no_password">暫無密碼</string>
     <string name="advanced_options">進階</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">電子郵件</string>
     <string name="email_verified">已驗證</string>
     <string name="email_not_verified">未驗證</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">有效期至</string>
     <string name="company">公司</string>
     <string name="sync">同步</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">隱藏</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">暫無組織</string>
     <string name="equivalent_domains">等效域名</string>
     <string name="equivalent_domains_empty_label">暫無等效域名</string>
+    <string name="retry">Retry</string>
     <string name="misc">雜項</string>
     <string name="category">分類</string>
     <string name="command">命令</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">從不</string>
     <string name="select_linked_type">選擇型別</string>
     <string name="select_file">選擇檔案</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">自動填充</string>
     <string name="autofill_and_save_uri">自動填充並儲存應用或網站資訊</string>
     <string name="backup_disclaimer_title">自己的資料由自己負責。</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">取代資料庫檔案</string>
     <string name="open_database">開啟資料庫</string>
     <string name="create_database">建立資料庫</string>
+    <string name="addaccount_method_header_title">Add account</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">使用其他裝置掃描這個二維條碼加入這個 Wi-Fi 網路。</string>
     <string name="qr_generate_button">建立二維條碼</string>
     <string name="pro_tip">專業提示: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">匯出個人密碼庫</string>
     <string name="account_action_hide_title">隱藏條目</string>
     <string name="account_action_hide_text">隱藏應用主頁面上的條目</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">訪問網頁密碼庫來驗證您的電子郵件地址</string>
     <string name="account_action_premium_purchase_instructions_title">將您的帳號升級至高階會員，解鎖一些強大的附加功能。</string>
     <string name="account_action_tfa_title">雙因素認證</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">新增金鑰</string>
     <string name="ssh_key_action_replace_key_title">替換金鑰</string>
     <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">卡號無效</string>
     <string name="error_incorrect_password">密碼錯誤</string>
     <string name="error_not_found">未找到</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">一次性密碼的金鑰不能為空</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">無法建立檔案。不允許取代現有檔案</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">Comma-separated emails</string>
     <string name="addsend_auth_emails_note">Recipients will be asked to complete a one-time email verification after opening the link.</string>
     <string name="addaccount_promo_title">您的密碼庫是空的。連線到一個帳號開始：</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
     <string name="addaccount_promo_features">想取得最佳體驗？我們已在下方未您列出了該應用程式所有主要的功能。請檢視以下內容，了解它如何為您服務。</string>
     <string name="addaccount_description_short_bitwarden_text">將加密的密碼庫存到雲端。</string>
     <string name="addaccount_description_short_keepass_text">使用 KDBX 檔案格式在本地儲存加密的資料庫。</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">使用生物識別認證來確認您的訪問權限並解鎖這些資料。</string>
     <string name="home_vault_label">密碼庫</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
     <string name="home_send_label">傳送</string>
     <string name="home_generator_label">生成器</string>
     <string name="home_watchtower_label">概況</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">傳送</string>
     <string name="send_main_search_placeholder">搜尋 Sends</string>
     <string name="send_main_new_item_button">新專案</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">需要密碼以訪問此共享</string>
     <string name="generator_header_title">生成器</string>
@@ -1141,6 +1172,7 @@
     <string name="pref_item_other_title">其它</string>
     <string name="pref_item_other_text">社群網站、應用資訊</string>
     <string name="pref_item_nav_label_title">在導航按鈕上顯示標籤</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">應用版本</string>
     <string name="pref_item_app_build_date_title">應用構建日期</string>
     <!--
@@ -1207,6 +1239,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">資料安全</string>
     <string name="pref_item_logs_title">日誌</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">鎖定密碼庫</string>
     <string name="pref_item_lock_vault_after_reboot_title">重啟後鎖定</string>
     <string name="pref_item_lock_vault_after_reboot_text">裝置重啟後鎖定密碼庫</string>
@@ -1270,6 +1303,8 @@
     <string name="pref_item_autofill_save_request_text">填寫完成後提示更新保險庫</string>
     <string name="pref_item_autofill_passkeys_enabled_title">密碼金鑰支援</string>
     <string name="pref_item_autofill_passkeys_enabled_text">向憑證管理器宣告支援密碼金鑰支援，以允許應用程式處理驗證請求</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">自動儲存應用或網站資訊</string>
     <string name="pref_item_autofill_block_uri_title">封鎖自動填入</string>
     <string name="pref_item_autofill_block_uri_text">阻止為這些 URI 提供自動填入</string>

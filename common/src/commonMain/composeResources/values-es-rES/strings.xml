@@ -22,6 +22,11 @@
     <string name="new_password">Nueva contraseña</string>
     <string name="no_password">Sin contraseña</string>
     <string name="advanced_options">Avanzado</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">Correo electrónico</string>
     <string name="email_verified">Verificado</string>
     <string name="email_not_verified">No verificado</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">Fecha de expiración</string>
     <string name="company">Compañía</string>
     <string name="sync">Sincronizar</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Oculto</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">Sin organizaciones</string>
     <string name="equivalent_domains">Dominios equivalentes</string>
     <string name="equivalent_domains_empty_label">No hay dominios equivalentes</string>
+    <string name="retry">Retry</string>
     <string name="misc">Varios</string>
     <string name="category">Categoría</string>
     <string name="command">Comando</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">Nunca</string>
     <string name="select_linked_type">Seleccionar tipo</string>
     <string name="select_file">Selecciona un archivo</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Autocompletar</string>
     <string name="autofill_and_save_uri">Enlace web para autocompletar y guardar</string>
     <string name="backup_disclaimer_title">Tus datos son tu responsabilidad.</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">Reemplazar un archivo de base de datos</string>
     <string name="open_database">Abrir una base de datos</string>
     <string name="create_database">Crear una base de datos</string>
+    <string name="addaccount_method_header_title">Add account</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">Escanea este código QR con otro dispositivo para unirte a esta red WiFi.</string>
     <string name="qr_generate_button">Generar código QR</string>
     <string name="pro_tip">Consejo: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">Exportar caja fuerte individual</string>
     <string name="account_action_hide_title">Ocultar elementos</string>
     <string name="account_action_hide_text">Ocultar los elementos de las pantallas principales de la aplicación</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">Visita la caja fuerte web para verificar tu correo electrónico</string>
     <string name="account_action_premium_purchase_instructions_title">Mejora tu cuenta a prémium y desbloquea algunas excelentes características adicionales</string>
     <string name="account_action_tfa_title">Autenticación de dos factores</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">Añadir claves</string>
     <string name="ssh_key_action_replace_key_title">Reemplazar claves</string>
     <string name="ssh_key_import_title">Importar clave SSH</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Error al importar la clave SSH</string>
     <string name="ssh_key_import_success_title">Clave SSH importada</string>
     <string name="ssh_key_import_error_unsupported_format">Formato de clave privada SSH no soportado.</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">Número de tarjeta no válido</string>
     <string name="error_incorrect_password">Contraseña incorrecta</string>
     <string name="error_not_found">No encontrado</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">La clave secreta de contraseñas de un solo uso debe no estar vacía</string>
     <string name="error_otp_key_is_invalid">Clave secreta de una sola vez no válida</string>
     <string name="error_failed_file_already_exists">Error al crear un archivo. No se permite reemplazar el archivo existente</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">Correos electrónicos separados por comas</string>
     <string name="addsend_auth_emails_note">A los destinatarios se les pedirá que completen una verificación única por correo electrónico después de abrir el enlace.</string>
     <string name="addaccount_promo_title">Tu caja fuerte está vacía. Conecta una cuenta para empezar:</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
     <string name="addaccount_promo_features">¿Quieres sacar el máximo provecho de tu experiencia? Te hemos esbozado todas las características principales de la aplicación a continuación. Echa un vistazo para ver cómo puede funcionar para ti.</string>
     <string name="addaccount_description_short_bitwarden_text">Almacena la caja fuerte cifrada en la nube.</string>
     <string name="addaccount_description_short_keepass_text">Almacena la caja fuerte cifrada localmente usando el formato de archivo KDBX.</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Usa la autenticación biométrica para confirmar su acceso y desbloquear estos datos.</string>
     <string name="home_vault_label">Caja fuerte</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
     <string name="home_send_label">Envío</string>
     <string name="home_generator_label">Generador</string>
     <string name="home_watchtower_label">Informes</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">Envíos</string>
     <string name="send_main_search_placeholder">Buscar Sends</string>
     <string name="send_main_new_item_button">Nuevo elemento</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">Los destinatarios verificados por correo electrónico pueden acceder a esta parte</string>
     <string name="send_password_is_required_to_access_label">Se requiere una contraseña para acceder a esta parte</string>
     <string name="generator_header_title">Generador</string>
@@ -1139,6 +1170,7 @@
     <string name="pref_item_other_title">Otros</string>
     <string name="pref_item_other_text">Sitios web de la comunidad, información de la app</string>
     <string name="pref_item_nav_label_title">Mostrar etiquetas en los botones de navegación</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">Versión de la app</string>
     <string name="pref_item_app_build_date_title">Fecha de compilación</string>
     <!--
@@ -1205,6 +1237,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">Permitido</string>
     <string name="pref_item_data_safety_title">Seguridad de los datos</string>
     <string name="pref_item_logs_title">Registros</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">Bloquear caja fuerte</string>
     <string name="pref_item_lock_vault_after_reboot_title">Bloquear después de reiniciar</string>
     <string name="pref_item_lock_vault_after_reboot_text">Bloquear la caja fuerte después de reiniciar el dispositivo</string>
@@ -1268,6 +1301,8 @@
     <string name="pref_item_autofill_save_request_text">Pregunta para actualizar la caja fuerte cuando se completa el llenado de un formulario</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Soporte para claves de acceso</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Anuncia el soporte de claves de acceso al gestor de credenciales, permitiendo que la aplicación cumpla las solicitudes</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Auto-guardar app o información de un sitio</string>
     <string name="pref_item_autofill_block_uri_title">Bloquear autocompletado</string>
     <string name="pref_item_autofill_block_uri_text">Evita ofrecer autocompletado para estas URIs</string>

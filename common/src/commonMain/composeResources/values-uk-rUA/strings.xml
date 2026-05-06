@@ -22,6 +22,11 @@
     <string name="new_password">Новий пароль</string>
     <string name="no_password">Без пароля</string>
     <string name="advanced_options">Додатково</string>
+    <string name="file">Файл</string>
+    <string name="file_name_placeholder">Назва файлу</string>
+    <string name="file_status_pending_upload">Очікування завантаження</string>
+    <string name="file_status_auto_resume">Автовідновлення</string>
+    <string name="file_status_downloading_failed">Не вдалося завантажити</string>
     <string name="email">Ел. пошта</string>
     <string name="email_verified">Підтверджено</string>
     <string name="email_not_verified">Не підтверджено</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">Чинна до</string>
     <string name="company">Компанія</string>
     <string name="sync">Синхронізувати</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Приховано</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">Організації відсутні</string>
     <string name="equivalent_domains">Еквівалентні домени</string>
     <string name="equivalent_domains_empty_label">Немає еквівалентних доменів</string>
+    <string name="retry">Повторити спробу</string>
     <string name="misc">Різне</string>
     <string name="category">Категорія</string>
     <string name="command">Команда</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">Ніколи</string>
     <string name="select_linked_type">Оберіть тип</string>
     <string name="select_file">Виберіть файл</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Автозаповнити</string>
     <string name="autofill_and_save_uri">Автоматично заповнити та зберегти інформацію про застосунок або вебсайт</string>
     <string name="backup_disclaimer_title">Ваші дані — це ваша відповідальність.</string>
@@ -188,8 +197,8 @@
     <string name="delete">Видалити</string>
     <string name="remove">Видалити</string>
     <string name="remove_from_history">Видалити з історії</string>
-    <string name="pkcs12_password">PKCS#12 password</string>
-    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password">Пароль PKCS#12</string>
+    <string name="pkcs12_password_title">Введіть пароль PKCS#12</string>
     <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">Повторюваний пароль</string>
     <string name="reused_passwords">Повторювані паролі</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">Замінити файл бази даних</string>
     <string name="open_database">Відкрити базу даних</string>
     <string name="create_database">Створити базу даних</string>
+    <string name="addaccount_method_header_title">Додати обліковий запис</string>
+    <string name="addaccount_method_manual_title">Увійти вручну</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Виберіть телефон</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">Проскануйте цей QR-код іншим пристроєм, щоб приєднатися до цієї мережі Wi-Fi.</string>
     <string name="qr_generate_button">Згенерувати QR-код</string>
     <string name="pro_tip">Порада: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">Експорт особистого сховища</string>
     <string name="account_action_hide_title">Приховати записи</string>
     <string name="account_action_hide_text">Приховати записи з основних екранів застосунку</string>
+    <string name="account_action_hide_success_on_title">Елементи були приховані</string>
+    <string name="account_action_hide_success_off_title">Предмети були розкриті</string>
     <string name="account_action_email_verify_instructions_title">Відвідайте вебсховище для підтвердження вашої адреси електронної пошти</string>
     <string name="account_action_premium_purchase_instructions_title">Оновіть свій обліковий запис до тарифного плану преміум й отримайте чудові додаткові можливості</string>
     <string name="account_action_tfa_title">Двофакторна автентифікація</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">Додати ключі</string>
     <string name="ssh_key_action_replace_key_title">Замінити ключі</string>
     <string name="ssh_key_import_title">Імпортувати SSH ключ</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Не вдалося імпортувати SSH ключ</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -455,8 +480,8 @@
     <string name="ssh_key_import_error_read">Unable to read the selected file.</string>
     <string name="ssh_key_import_error_passphrase_required">A passphrase is required to unlock this SSH key.</string>
     <string name="ssh_key_import_passphrase_title">Парольна фраза</string>
-    <string name="ssh_key_import_passphrase_hint">Enter SSH key passphrase</string>
-    <string name="ssh_key_import_passphrase_dialog_title">Enter SSH key passphrase</string>
+    <string name="ssh_key_import_passphrase_hint">Введіть ключову фразу SSH ключа</string>
+    <string name="ssh_key_import_passphrase_dialog_title">Введіть ключову фразу SSH ключа</string>
     <string name="ssh_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> key is encrypted.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> вибрано</string>
     <string name="copy">Скопіювати</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">Недійсний номер картки</string>
     <string name="error_incorrect_password">Невірний пароль</string>
     <string name="error_not_found">Не знайдено</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">Секретний ключ одноразового пароля не може бути порожнім</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Не вдалося створити файл. Заміна наявного файлу заборонена</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">Електронні пошти, розділені комами</string>
     <string name="addsend_auth_emails_note">Після відкриття посилання одержувачам потрібно буде пройти одноразове підтвердження електронної пошти.</string>
     <string name="addaccount_promo_title">У вашому сховищі порожньо. Додайте обліковий запис, щоб розпочати:</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
     <string name="addaccount_promo_features">Хочете повною мірою скористатися всіма можливостями? Нижче ми виклали огляд основних функцій додатку. Подивіться, щоб дізнатися, як вони можуть вам допомогти.</string>
     <string name="addaccount_description_short_bitwarden_text">Зберігайте зашифроване сховище в хмарі.</string>
     <string name="addaccount_description_short_keepass_text">Зберігайте зашифроване сховище локально у форматі KDBX.</string>
@@ -792,13 +820,13 @@
     <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
     <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
     <!-- Explains that the text next to it is the Display name of the certificate -->
-    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <string name="addaccount_mutual_tls_display_name_label">Видиме ім'я</string>
     <!-- Explains that the text next to it is the Issuer of the certificate -->
     <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
     <!-- Explains that the text next to it is the Expiry date of the certificate -->
-    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
-    <string name="addaccount_mutual_tls_status_imported">Imported</string>
-    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
+    <string name="addaccount_mutual_tls_expires_on_label">Діє до</string>
+    <string name="addaccount_mutual_tls_status_imported">Імпортовано</string>
+    <string name="addaccount_mutual_tls_status_failed">Не вдалось імпортувати</string>
     <string name="addaccount2fa_header_title">Підтвердження</string>
     <string name="addaccount2fa_unsupported_note">Цей метод аутентифікації ще не підтримується.</string>
     <string name="addaccount2fa_otp_note">Введіть код підтвердження з програми для автентифікації.</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Підтвердити ваш доступ та розблокувати дані за допомогою біометричної автентифікації.</string>
     <string name="home_vault_label">Сховище</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
     <string name="home_send_label">Відправл.</string>
     <string name="home_generator_label">Генератор</string>
     <string name="home_watchtower_label">Варт. вежа</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">Відправлення</string>
     <string name="send_main_search_placeholder">Пошук відправлень</string>
     <string name="send_main_new_item_button">Нове відправлення</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">Доступ до цього ресурсу мають одержувачі з підтвердженою електронною поштою</string>
     <string name="send_password_is_required_to_access_label">Для доступу до цього відправлення необхідно буде ввести пароль</string>
     <string name="generator_header_title">Генератор</string>
@@ -1139,6 +1170,7 @@
     <string name="pref_item_other_title">Інше</string>
     <string name="pref_item_other_text">Вебсайти спільноти, інформація про застосунок</string>
     <string name="pref_item_nav_label_title">Показувати підписи на кнопках навігації</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">Версія застосунку</string>
     <string name="pref_item_app_build_date_title">Дата збірки застосунку</string>
     <!--
@@ -1205,6 +1237,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">Дозволено</string>
     <string name="pref_item_data_safety_title">Безпека даних</string>
     <string name="pref_item_logs_title">Журнал подій</string>
+    <string name="pref_item_clear_vault_title">Очистити сховище</string>
     <string name="pref_item_lock_vault_title">Заблокувати сховище</string>
     <string name="pref_item_lock_vault_after_reboot_title">Блокувати після перезавантаження</string>
     <string name="pref_item_lock_vault_after_reboot_text">Блокувати сховище після перезавантаження пристрою</string>
@@ -1268,6 +1301,8 @@
     <string name="pref_item_autofill_save_request_text">Запитує, чи оновлювати сховище після заповнення форми</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Підтримка ключів доступу</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Повідомляє системний менеджер облікових даних про підтримку ключів доступу</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Підтримка паролів</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Автозбереження інформації про застосунок або сайт</string>
     <string name="pref_item_autofill_block_uri_title">Блокувати автозаповнення</string>
     <string name="pref_item_autofill_block_uri_text">Запобігає показу пропозицій автозаповнення для цих URI</string>

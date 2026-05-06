@@ -22,6 +22,11 @@
     <string name="new_password">Nuova password</string>
     <string name="no_password">Nessuna password</string>
     <string name="advanced_options">Avanzate</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">Email</string>
     <string name="email_verified">Verificata</string>
     <string name="email_not_verified">Non verificata</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">Data di scadenza</string>
     <string name="company">Azienda</string>
     <string name="sync">Sincronizza</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Nascosto</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">Nessuna organizzazione</string>
     <string name="equivalent_domains">Domini equivalenti</string>
     <string name="equivalent_domains_empty_label">Nessun dominio equivalente</string>
+    <string name="retry">Retry</string>
     <string name="misc">Varie</string>
     <string name="category">Categoria</string>
     <string name="command">Comando</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">Mai</string>
     <string name="select_linked_type">Seleziona un tipo</string>
     <string name="select_file">Seleziona un file</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Riempimento automatico</string>
     <string name="autofill_and_save_uri">Salvataggio automatico dell'app o informazioni del sito</string>
     <string name="backup_disclaimer_title">I tuoi dati sono sotto la tua responsabilità.</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">Sostituisci un database</string>
     <string name="open_database">Apri un database</string>
     <string name="create_database">Crea un database</string>
+    <string name="addaccount_method_header_title">Add account</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">Scansiona questo codice QR con un altro dispositivo per accedere alla rete WIFI.</string>
     <string name="qr_generate_button">Genera codice QR</string>
     <string name="pro_tip">Suggerimento: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">Esporta cassaforte individuale</string>
     <string name="account_action_hide_title">Nascondi elementi</string>
     <string name="account_action_hide_text">Nascondi gli elementi dalle schermate principali dell'app</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">Vai nella cassaforte web per verificare il tuo indirizzo e-mail</string>
     <string name="account_action_premium_purchase_instructions_title">Aggiorna il tuo account a un abbonamento premium per sbloccare alcune funzioni aggiuntive</string>
     <string name="account_action_tfa_title">Autenticazione a due fattori</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">Aggiungi chiavi</string>
     <string name="ssh_key_action_replace_key_title">Sostituisci chiavi</string>
     <string name="ssh_key_import_title">Importa chiave SSH</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
     <string name="ssh_key_import_success_title">Chiave SSH importata</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">Numero carta non valido</string>
     <string name="error_incorrect_password">Password errata</string>
     <string name="error_not_found">Non trovato</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">La chiave segreta della password monouso non può essere vuota</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Impossibile creare il file. La sostituzione del file esistente non è consentita</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">Email separate da virgole</string>
     <string name="addsend_auth_emails_note">Ai destinatari verrà chiesto di completare una verifica via e-mail una tantum dopo aver aperto il link.</string>
     <string name="addaccount_promo_title">La tua cassaforte è vuota. Collega un account per iniziare:</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
     <string name="addaccount_promo_features">Vuoi ottenere il massimo dalla tua esperienza? Abbiamo riassunto per te qui sotto tutte le funzionalità principali dell'app. Dai un'occhiata per scoprire come può esserti utile.</string>
     <string name="addaccount_description_short_bitwarden_text">Salva la cassaforte crittografata su cloud.</string>
     <string name="addaccount_description_short_keepass_text">Memorizza la cassaforte crittografata localmente utilizzando il formato KDBX.</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Usa l'autenticazione biometrica per confermare l'accesso e sbloccare questi dati.</string>
     <string name="home_vault_label">Cassaforte</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
     <string name="home_send_label">Send</string>
     <string name="home_generator_label">Generatore</string>
     <string name="home_watchtower_label">Watchtower</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">Send</string>
     <string name="send_main_search_placeholder">Cerca Send</string>
     <string name="send_main_new_item_button">Nuovo elemento</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">I destinatari che hanno verificato l'e-mail possono accedere a questa condivisione</string>
     <string name="send_password_is_required_to_access_label">Una password è necessaria per accedere a questa condivisione</string>
     <string name="generator_header_title">Generatore</string>
@@ -1139,6 +1170,7 @@
     <string name="pref_item_other_title">Altro</string>
     <string name="pref_item_other_text">Community, informazioni app</string>
     <string name="pref_item_nav_label_title">Mostra etichette sui pulsanti di navigazione</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">Versione app</string>
     <string name="pref_item_app_build_date_title">Data di compilazione app</string>
     <!--
@@ -1205,6 +1237,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">Permesso</string>
     <string name="pref_item_data_safety_title">Sicurezza dei dati</string>
     <string name="pref_item_logs_title">Registri</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">Blocca cassaforte</string>
     <string name="pref_item_lock_vault_after_reboot_title">Blocca dopo un riavvio</string>
     <string name="pref_item_lock_vault_after_reboot_text">Blocca la cassaforte dopo un riavvio del dispositivo</string>
@@ -1268,6 +1301,8 @@
     <string name="pref_item_autofill_save_request_text">Chiede di aggiornare la cassaforte quando il modulo è stato compilato</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Supporto passkey</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Comunica al Gestore credenziali il supporto per le passkey, in modo da consentire all'app di soddisfare le richieste</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Salvataggio automatico dell'app o informazioni del sito</string>
     <string name="pref_item_autofill_block_uri_title">Blocca riempimento automatico</string>
     <string name="pref_item_autofill_block_uri_text">Evita di suggerire la compilazione automatica per questi URI</string>

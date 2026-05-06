@@ -235,7 +235,10 @@ fun rememberSettingsItems(
 
                                     val targetTint =
                                         if (isPurchased) MaterialTheme.colorScheme.primary else LocalContentColor.current
-                                    val tint by animateColorAsState(targetValue = targetTint)
+                                    val tint by animateColorAsState(
+                                        targetValue = targetTint,
+                                        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+                                    )
                                     Icon(
                                         Icons.Outlined.KeyguardPremium,
                                         null,

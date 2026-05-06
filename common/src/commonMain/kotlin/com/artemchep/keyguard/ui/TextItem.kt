@@ -936,6 +936,7 @@ private fun TextFieldLabel(
         .combineAlpha(HighEmphasisAlpha)
     val textColor by animateColorAsState(
         targetValue = if (expanded) expandedTextColor else normalTextColor,
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
     )
 
     Text(
@@ -1485,7 +1486,10 @@ private fun FlatTextFieldSurface(
                 .combineAlpha(0.1f)
                 .compositeOver(MaterialTheme.colorScheme.surfaceVariant)
     }
-    val borderColor by animateColorAsState(targetValue = borderColorTarget)
+    val borderColor by animateColorAsState(
+        targetValue = borderColorTarget,
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+    )
     val shape = surfaceShape(
         shapeState = shapeState,
         expressive = expressive,
@@ -1551,7 +1555,10 @@ fun FlatTextFieldBadge(
     text: String,
     icon: ImageVector? = null,
 ) {
-    val backgroundColorState = animateColorAsState(backgroundColor)
+    val backgroundColorState = animateColorAsState(
+        targetValue = backgroundColor,
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+    )
     val contentColor = run {
         val color = if (backgroundColor.luminance() > 0.5f) {
             Color.Black
@@ -1561,7 +1568,10 @@ fun FlatTextFieldBadge(
         val tint = backgroundColor.copy(alpha = 0.1f)
         tint.compositeOver(color)
     }
-    val contentColorState = animateColorAsState(contentColor)
+    val contentColorState = animateColorAsState(
+        targetValue = contentColor,
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+    )
     Row(
         modifier = modifier
             .clip(MaterialTheme.shapes.small)

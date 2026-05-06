@@ -176,7 +176,10 @@ internal class SshRequestActivity : BaseActivity() {
             val initialY = 48.dp
             mutableStateOf(initialY)
         }
-        val dimColor by animateColorAsState(dimColorTarget)
+        val dimColor by animateColorAsState(
+            targetValue = dimColorTarget,
+            animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+        )
         val contentScale by animateFloatAsState(
             targetValue = contentScaleTarget,
             animationSpec = tween(durationMillis = 300),

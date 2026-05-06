@@ -389,6 +389,7 @@ private fun Modifier.searchTextFieldBackground(
         val colorState =
             animateColorAsState(
                 targetValue = if (isHighlightedState.value) colorTarget else colorTarget.combineAlpha(0f),
+                animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
                 label = "SearchFieldBackground",
             )
 

@@ -474,7 +474,10 @@ private fun ConfirmationFileItem(
             } else {
                 MaterialTheme.colorScheme.error
             }
-            val colorState = animateColorAsState(colorTarget)
+            val colorState = animateColorAsState(
+                targetValue = colorTarget,
+                animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+            )
             Icon(
                 imageVector = Icons.Outlined.AttachFile,
                 contentDescription = null,

@@ -11,6 +11,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -121,7 +122,10 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
         setContent {
             KeyguardTheme {
                 val containerColor = activityContainerColor()
-                val containerColorAnimatedState = animateColorAsState(containerColor)
+                val containerColorAnimatedState = animateColorAsState(
+                    targetValue = containerColor,
+                    animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+                )
                 val contentColor = activityContentColor(containerColorAnimatedState.value)
                 Surface(
                     modifier = Modifier.semantics {

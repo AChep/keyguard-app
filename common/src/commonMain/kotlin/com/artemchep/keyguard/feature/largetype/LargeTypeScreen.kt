@@ -181,7 +181,10 @@ private fun SymbolItem(
             MaterialTheme.colorScheme
                 .surfaceColorAtElevation(backgroundElevation)
         }
-        val backgroundColorState = animateColorAsState(targetBackgroundColor)
+        val backgroundColorState = animateColorAsState(
+            targetValue = targetBackgroundColor,
+            animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+        )
         Modifier
             .padding(2.dp)
             .clip(RoundedCornerShape(4.dp))

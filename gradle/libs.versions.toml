@@ -2,7 +2,7 @@
 # @keep
 androidMinSdk = "26"
 # @keep
-androidCompileSdk = "36"
+androidCompileSdk = "37"
 # @keep
 androidTargetSdk = "36"
 # @keep

@@ -1377,6 +1377,18 @@
     "created_at": "2024-03-27T10:38:36.26944+00:00"
   },
   {
+    "id": "85f87923946be9ccef94b43d38ebbd26",
+    "name": "haveibeenpwned",
+    "domain": "haveibeenpwned.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://haveibeenpwned.com/Dashboard/Redirect/Passkeys",
+    "setup": "https://haveibeenpwned.com/Dashboard/Redirect/Passkeys",
+    "category": "Information Technology",
+    "created_at": "2026-04-08T11:16:35.672789+00:00"
+  },
+  {
     "id": "a4a39e43c8becd7c08c6a6ad39174e55",
     "name": "hCaptcha",
     "domain": "hcaptcha.com",

@@ -22,6 +22,11 @@
     <string name="new_password">Új jelszó</string>
     <string name="no_password">Nincs jelszó</string>
     <string name="advanced_options">Speciális</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">Email cím</string>
     <string name="email_verified">Megerősítve</string>
     <string name="email_not_verified">Nincs megerősítve</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">Lejárat dátuma</string>
     <string name="company">Cég</string>
     <string name="sync">Szinkronizálás</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Rejtve</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">Nincsenek szervezetek</string>
     <string name="equivalent_domains">Azonos domainek</string>
     <string name="equivalent_domains_empty_label">Nem azonos domainek</string>
+    <string name="retry">Retry</string>
     <string name="misc">Egyéb</string>
     <string name="category">Kategória</string>
     <string name="command">Parancs</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">Soha</string>
     <string name="select_linked_type">Típus kiválasztása</string>
     <string name="select_file">Fájl kiválasztása</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Automatikus kitöltés</string>
     <string name="autofill_and_save_uri">Kitöltés és app vagy weboldal infó mentése</string>
     <string name="backup_disclaimer_title">Az Ön adatai az Ön felelőssége.</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">Adatbázisfájl cseréje</string>
     <string name="open_database">Adatbázis megnyitása</string>
     <string name="create_database">Adatbázis létrehozása</string>
+    <string name="addaccount_method_header_title">Add account</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">Olvassa be ezt a QR kódot egy másik eszközzel, hogy csatlakozzon ehhez a Wi-Fi hálózathoz.</string>
     <string name="qr_generate_button">QR kód generálása</string>
     <string name="pro_tip">Profi tipp: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">Egyéni széf exportálása</string>
     <string name="account_action_hide_title">Elemek elrejtése</string>
     <string name="account_action_hide_text">Az elemek elrejtése az alkalmazás fő képernyőiről</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">Látogasson el a Webes széfhez az e-mail címe megerősítéséhez</string>
     <string name="account_action_premium_purchase_instructions_title">Frissítse fiókját prémium tagságra, és oldjon fel további nagyszerű funkciókat</string>
     <string name="account_action_tfa_title">Kétlépcsős hitelesítés</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">Kulcsok hozzáadása</string>
     <string name="ssh_key_action_replace_key_title">Kulcsok cseréje</string>
     <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">Érvénytelen kártyaszám</string>
     <string name="error_incorrect_password">Helytelen jelszó</string>
     <string name="error_not_found">Nem található</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">Az egyszeri jelszó titkos kulcsa nem lehet üres</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Nem sikerült létrehozni a fájlt. A meglévő fájl cseréje nem engedélyezett</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">Vesszővel elválasztott email címek</string>
     <string name="addsend_auth_emails_note">A címzetteket a link megnyitása után egy egyszeri e-mailes hitelesítésre kérjük.</string>
     <string name="addaccount_promo_title">A széfje üres. Csatlakoztasson egy fiókot a kezdéshez:</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
     <string name="addaccount_promo_features">Szeretné a legtöbbet kihozni a használatból? Alább összefoglaltuk az alkalmazás összes elsődleges funkcióját. Vessen rá egy pillantást, hogy lássa, hogyan működhet ez az Ön számára.</string>
     <string name="addaccount_description_short_bitwarden_text">Titkosított széf tárolása a felhőben.</string>
     <string name="addaccount_description_short_keepass_text">Titkosított széf helyi tárolása KDBX fájlformátum használatával.</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Használjon biometrikus hitelesítést a hozzáférés megerősítéséhez és az adatok zárolásának feloldásához.</string>
     <string name="home_vault_label">Széf</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
     <string name="home_send_label">Küldés</string>
     <string name="home_generator_label">Generátor</string>
     <string name="home_watchtower_label">Őrtorony</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">Küldések</string>
     <string name="send_main_search_placeholder">Küldés keresése</string>
     <string name="send_main_new_item_button">Új elem</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">Ezt a megosztást e-mailben hitelesített címzettek érhetik el</string>
     <string name="send_password_is_required_to_access_label">A megosztás eléréséhez jelszó szükséges</string>
     <string name="generator_header_title">Generátor</string>
@@ -1139,6 +1170,7 @@
     <string name="pref_item_other_title">Egyéb</string>
     <string name="pref_item_other_text">Közösségi weboldalak, alkalmazásinformációk</string>
     <string name="pref_item_nav_label_title">Címkék megjelenítése a navigációs gombokon</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">Alkalmazás verzió</string>
     <string name="pref_item_app_build_date_title">Alkalmazás build dátuma</string>
     <!--
@@ -1205,6 +1237,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">Engedélyezve</string>
     <string name="pref_item_data_safety_title">Adat biztonság</string>
     <string name="pref_item_logs_title">Naplók</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">Széf zárolása</string>
     <string name="pref_item_lock_vault_after_reboot_title">Zárolás újraindítás után</string>
     <string name="pref_item_lock_vault_after_reboot_text">Széf zárolása az eszköz újraindítása után</string>
@@ -1268,6 +1301,8 @@
     <string name="pref_item_autofill_save_request_text">Rákérdez a széf frissítésére, amikor egy űrlap kitöltése befejeződött</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Hozzáférési kulcsok támogatása</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Hozzáférési kulcs támogatás hirdetése a Hitelesítőadat-kezelő (Credential Manager) számára, lehetővé téve a kérések teljesítését az alkalmazásnak</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Alkalmazás- vagy webhelyadatok automatikus mentése</string>
     <string name="pref_item_autofill_block_uri_title">Automatikus kitöltés blokkolása</string>
     <string name="pref_item_autofill_block_uri_text">Megakadályozza az automatikus kitöltés felajánlását ezeknél az URI-knál</string>

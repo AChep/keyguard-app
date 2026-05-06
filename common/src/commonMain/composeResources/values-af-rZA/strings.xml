@@ -22,6 +22,11 @@
     <string name="new_password">Nuwe wagwoord</string>
     <string name="no_password">Geen wagwoord</string>
     <string name="advanced_options">Advanced</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">E-pos</string>
     <string name="email_verified">Verified</string>
     <string name="email_not_verified">Nie geverifieer nie</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">Vervaldatum</string>
     <string name="company">Maatskappy</string>
     <string name="sync">Sinchroniseer</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Versteek</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">Geen organisasies</string>
     <string name="equivalent_domains">Ekwivalente domeine</string>
     <string name="equivalent_domains_empty_label">Geen ekwivalente domeine</string>
+    <string name="retry">Retry</string>
     <string name="misc">Diverse</string>
     <string name="category">Kategorie</string>
     <string name="command">Opdrag</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">Nooit</string>
     <string name="select_linked_type">Kies 'n tipe</string>
     <string name="select_file">Kies 'n lêer</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Outovul</string>
     <string name="autofill_and_save_uri">Outovul en stoor toep- of webwerfinligting</string>
     <string name="backup_disclaimer_title">Jou data is jou eie verantwoordelikheid.</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">Vervang 'n databasislêer</string>
     <string name="open_database">Maak 'n databasis oop</string>
     <string name="create_database">Skep 'n databasis</string>
+    <string name="addaccount_method_header_title">Add account</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">Skandeer hierdie QR-kode met 'n ander toestel om by hierdie WiFi-netwerk aan te sluit.</string>
     <string name="qr_generate_button">Genereer QR-kode</string>
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">Voer individuele kluis uit</string>
     <string name="account_action_hide_title">Versteek items</string>
     <string name="account_action_hide_text">Versteek die items van die tuisskerms van die toep af</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">Besoek die Webkluis om jou e-posadres te verifieer</string>
     <string name="account_action_premium_purchase_instructions_title">Gradeer jou rekening op na 'n premium-lidmaatskap en ontsluit wonderlike bykomende kenmerke</string>
     <string name="account_action_tfa_title">Tweefaktor-verifikasie</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">Voeg sleutels by</string>
     <string name="ssh_key_action_replace_key_title">Vervang sleutels</string>
     <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">Ongeldige kaartnommer</string>
     <string name="error_incorrect_password">Verkeerde wagwoord</string>
     <string name="error_not_found">Nie gevind nie</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">Eenmalige wagwoord se geheime sleutel mag nie leeg wees nie</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Kon nie 'n lêer skep nie. Vervanging van bestaande lêer is nie toegelaat nie</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">Kommageskeide e-posse</string>
     <string name="addsend_auth_emails_note">Ontvangers sal gevra word om 'n eenmalige e-posverifikasie te voltooi nadat die skakel oopgemaak is.</string>
     <string name="addaccount_promo_title">Jou kluis is leeg. Koppel 'n rekening om te begin:</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
     <string name="addaccount_promo_features">Wil jy die meeste uit jou ervaring kry? Ons het al die hoofkenmerke van die toep vir jou hieronder uiteengesit. Kyk daarna om te sien hoe dit vir jou kan werk.</string>
     <string name="addaccount_description_short_bitwarden_text">Stoor geënkripteerde kluis in 'n wolk.</string>
     <string name="addaccount_description_short_keepass_text">Stoor geënkripteerde kluis plaaslik met de gebruik van die KDBX-lêerformaat.</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Gebruik biometriese verifikasie om jou toegang te bevestig en hierdie data te ontsluit.</string>
     <string name="home_vault_label">Kluis</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
     <string name="home_send_label">Stuur</string>
     <string name="home_generator_label">Genereerder</string>
     <string name="home_watchtower_label">Wagtoring</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">Sturings</string>
     <string name="send_main_search_placeholder">Soek sturings</string>
     <string name="send_main_new_item_button">Nuwe item</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">E-pos-geverifieerde ontvangers het toegang tot hierdie aandeel</string>
     <string name="send_password_is_required_to_access_label">'n Wagwoord word vereis om toegang tot hierdie aandeel te verkry</string>
     <string name="generator_header_title">Genereerder</string>
@@ -1139,6 +1170,7 @@
     <string name="pref_item_other_title">Ander</string>
     <string name="pref_item_other_text">Gemeenskap-webwerwe, toepinligting</string>
     <string name="pref_item_nav_label_title">Wys etikette op navigasieknoppies</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">Toepweergawe</string>
     <string name="pref_item_app_build_date_title">Toep bou-datum</string>
     <!--
@@ -1205,6 +1237,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">Toegelaat</string>
     <string name="pref_item_data_safety_title">Datasekuriteit</string>
     <string name="pref_item_logs_title">Loglêers</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">Sluit kluis</string>
     <string name="pref_item_lock_vault_after_reboot_title">Lock after a reboot</string>
     <string name="pref_item_lock_vault_after_reboot_text">Sluit die kluis na 'n toestel herbegin</string>
@@ -1268,6 +1301,8 @@
     <string name="pref_item_autofill_save_request_text">Vra om kluis op te dateer wanneer die voltooiings van 'n vorm verlang word</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Ondersteuning vir passkeys</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Adverteer passkey-ondersteuning aan die Credential Manager, wat die toep toelaat om versoeke uit te voer</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Stoor outomaties toep- of webwerf-inligting</string>
     <string name="pref_item_autofill_block_uri_title">Blokkeer outovul</string>
     <string name="pref_item_autofill_block_uri_text">Voorkom die aanbod van outovul vir hierdie URI's</string>

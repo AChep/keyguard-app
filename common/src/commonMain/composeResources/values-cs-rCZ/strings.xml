@@ -22,6 +22,11 @@
     <string name="new_password">Nové heslo</string>
     <string name="no_password">Žádné heslo</string>
     <string name="advanced_options">Pokročilé</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Ověřeno</string>
     <string name="email_not_verified">Neověřeno</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">Datum expirace</string>
     <string name="company">Firma</string>
     <string name="sync">Synchronizace</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Skryté</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">Žádné organizace</string>
     <string name="equivalent_domains">Ekvivalentní domény</string>
     <string name="equivalent_domains_empty_label">Žádné ekvivalentní domény</string>
+    <string name="retry">Retry</string>
     <string name="misc">Různé</string>
     <string name="category">Kategorie</string>
     <string name="command">Příkaz</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">Nikdy</string>
     <string name="select_linked_type">Vybrat typ</string>
     <string name="select_file">Vybrat soubor</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Automatické vyplňování</string>
     <string name="autofill_and_save_uri">Automaticky vyplnit a uložit informace o aplikaci nebo webu</string>
     <string name="backup_disclaimer_title">Your data is your responsibility.</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">Nahradit soubor databáze</string>
     <string name="open_database">Otevřít databázi</string>
     <string name="create_database">Vytvořit databázi</string>
+    <string name="addaccount_method_header_title">Add account</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">Naskenujte tento QR kód jiným zařízením pro připojení k této Wi-Fi síti.</string>
     <string name="qr_generate_button">Vygenerovat QR kód</string>
     <string name="pro_tip">Profi tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">Exportovat individuální trezor</string>
     <string name="account_action_hide_title">Skrýt položky</string>
     <string name="account_action_hide_text">Skrýt položky z hlavních obrazovek aplikace</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">Pro ověření vaší e-mailové adresy navštivte Webový trezor</string>
     <string name="account_action_premium_purchase_instructions_title">Upgradujte svůj účet na předplatné Premium a odemkněte pár skvělých doplňkových funkcí</string>
     <string name="account_action_tfa_title">Dvoufaktorové ověřování</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">Přidat klíče</string>
     <string name="ssh_key_action_replace_key_title">Nahradit klíče</string>
     <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">Neplatné číslo karty</string>
     <string name="error_incorrect_password">Neplatné heslo</string>
     <string name="error_not_found">Nenalezeno</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">Tajný klíč OTP kódu nesmí být prázdný</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Soubor nelze vytvořit. Přepisování existujícího souboru není povoleno</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">E-maily oddělené čárkou</string>
     <string name="addsend_auth_emails_note">Po otevření odkazu budou příjemci požádáni o dokončení jednorázového ověření e-mailu.</string>
     <string name="addaccount_promo_title">Váš trezor je prázdný. Připojte účet, abyste mohli začít:</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
     <string name="addaccount_promo_features">Chcete z aplikace vytěžit maximum? Níže jsme pro vás shrnuli hlavní funkce. Podívejte se, jak by vám mohly posloužit.</string>
     <string name="addaccount_description_short_bitwarden_text">Uložit šifrovaný trezor v cloudu.</string>
     <string name="addaccount_description_short_keepass_text">Uložit šifrovaný trezor lokálně pomocí formátu souboru KDBX.</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Použijte biometrické přihlášení pro potvrzení vašeho přístupu a odemčení těchto dat.</string>
     <string name="home_vault_label">Trezor</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
     <string name="home_send_label">Odeslané</string>
     <string name="home_generator_label">Generátor</string>
     <string name="home_watchtower_label">Kontroly</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">Odeslané</string>
     <string name="send_main_search_placeholder">Hledat v Sends</string>
     <string name="send_main_new_item_button">Nová položka</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">Příjemci s ověřeným e-mailem mají přístup k tomuto sdílení</string>
     <string name="send_password_is_required_to_access_label">Pro přístupu k tomuto sdílení je vyžadováno heslo</string>
     <string name="generator_header_title">Generátor</string>
@@ -1139,6 +1170,7 @@
     <string name="pref_item_other_title">Ostatní</string>
     <string name="pref_item_other_text">Komunitní weby, informace o aplikaci</string>
     <string name="pref_item_nav_label_title">Zobrazit popisky na navigačních tlačítkách</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">Verze aplikace</string>
     <string name="pref_item_app_build_date_title">Datum sestavení aplikace</string>
     <!--
@@ -1205,6 +1237,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">Povoleno</string>
     <string name="pref_item_data_safety_title">Bezpečnost dat</string>
     <string name="pref_item_logs_title">Protokoly</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">Uzamknout trezor</string>
     <string name="pref_item_lock_vault_after_reboot_title">Uzamknout po restartu</string>
     <string name="pref_item_lock_vault_after_reboot_text">Uzamknout trezor po restartu zařízení</string>
@@ -1268,6 +1301,8 @@
     <string name="pref_item_autofill_save_request_text">Zeptá se na aktualizaci trezoru po dokončení vyplnění formuláře</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Podpora přístupových klíčů (passkeys)</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Automaticky uložit informace o aplikaci nebo webu</string>
     <string name="pref_item_autofill_block_uri_title">Blokovat automatické vyplňování</string>
     <string name="pref_item_autofill_block_uri_text">Zamezí nabízení automatického vyplňování pro tato URI</string>

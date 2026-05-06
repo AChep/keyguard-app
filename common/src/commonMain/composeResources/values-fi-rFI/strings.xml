@@ -22,6 +22,11 @@
     <string name="new_password">Uusi salasana</string>
     <string name="no_password">Ei salasanaa</string>
     <string name="advanced_options">Advanced</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">Sähköposti</string>
     <string name="email_verified">Vahvistettu</string>
     <string name="email_not_verified">Ei vahvistettu</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">Expiry date</string>
     <string name="company">Company</string>
     <string name="sync">Sync</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Hidden</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">No organizations</string>
     <string name="equivalent_domains">Equivalent domains</string>
     <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="retry">Retry</string>
     <string name="misc">Miscellaneous</string>
     <string name="category">Category</string>
     <string name="command">Command</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Select a type</string>
     <string name="select_file">Select a file</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Autofill</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>
     <string name="backup_disclaimer_title">Your data is your responsibility.</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">Replace a database file</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
+    <string name="addaccount_method_header_title">Add account</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
     <string name="qr_generate_button">Generate QR code</string>
     <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">Export individual vault</string>
     <string name="account_action_hide_title">Hide items</string>
     <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">Visit Web vault to verify your email address</string>
     <string name="account_action_premium_purchase_instructions_title">Upgrade your account to a premium membership and unlock some great additional features</string>
     <string name="account_action_tfa_title">Two-factor authentication</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">Add keys</string>
     <string name="ssh_key_action_replace_key_title">Replace keys</string>
     <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_incorrect_password">Incorrect password</string>
     <string name="error_not_found">Not found</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">Comma-separated emails</string>
     <string name="addsend_auth_emails_note">Recipients will be asked to complete a one-time email verification after opening the link.</string>
     <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
     <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
     <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
     <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Use biometric authentication to confirm your access and unlock this data.</string>
     <string name="home_vault_label">Vault</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
     <string name="home_send_label">Send</string>
     <string name="home_generator_label">Generator</string>
     <string name="home_watchtower_label">Watchtower</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">Search sends</string>
     <string name="send_main_new_item_button">New item</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
     <string name="send_password_is_required_to_access_label">A password is required to access this share</string>
     <string name="generator_header_title">Generator</string>
@@ -1139,6 +1170,7 @@
     <string name="pref_item_other_title">Muu</string>
     <string name="pref_item_other_text">Yhteisön verkkosivustot, sovelluksen tiedot</string>
     <string name="pref_item_nav_label_title">Näytä otsikot navigointipainikkeissa</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">Sovelluksen versio</string>
     <string name="pref_item_app_build_date_title">Sovelluksen koontipäivämäärä</string>
     <!--
@@ -1205,6 +1237,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">Allowed</string>
     <string name="pref_item_data_safety_title">Tietoturvallisuus</string>
     <string name="pref_item_logs_title">Lokit</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">Lukitse holvi</string>
     <string name="pref_item_lock_vault_after_reboot_title">Lukitse uudelleenkäynnistyksen jälkeen</string>
     <string name="pref_item_lock_vault_after_reboot_text">Lukitse holvi laitteen uudelleenkäynnistyksen jälkeen</string>
@@ -1268,6 +1301,8 @@
     <string name="pref_item_autofill_save_request_text">Kysyy holvin päivittämistä, kun lomakkeen täyttö on valmis</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Tallenna automaattisesti sovelluksen tai verkkosivuston tiedot</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>

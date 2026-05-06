@@ -22,6 +22,11 @@
     <string name="new_password">새 비밀번호</string>
     <string name="no_password">비밀번호 없음</string>
     <string name="advanced_options">고급</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">이메일</string>
     <string name="email_verified">확인됨</string>
     <string name="email_not_verified">확인되지 않음</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">만료 날짜</string>
     <string name="company">회사</string>
     <string name="sync">동기화</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">숨김</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">조직 없음</string>
     <string name="equivalent_domains">Equivalent domains</string>
     <string name="equivalent_domains_empty_label">No equivalent domains</string>
+    <string name="retry">다시 시도</string>
     <string name="misc">기타</string>
     <string name="category">카테고리</string>
     <string name="command">명령어</string>
@@ -142,8 +149,8 @@
     <string name="address1">주소 1</string>
     <string name="address2">주소 2</string>
     <string name="address3">주소 3</string>
-    <string name="ssh_agent">SSH agent</string>
-    <string name="ssh_client">SSH client</string>
+    <string name="ssh_agent">SSH 에이전트</string>
+    <string name="ssh_client">SSH 클라이언트</string>
     <string name="rename">이름 바꾸기</string>
     <string name="deletion_date">삭제 날짜</string>
     <string name="deletion_date_custom">사용자 지정</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">없음</string>
     <string name="select_linked_type">유형 선택</string>
     <string name="select_file">파일 선택</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">자동 완성</string>
     <string name="autofill_and_save_uri">자동 완성하고 앱 또는 웹사이트 정보 저장</string>
     <string name="backup_disclaimer_title">데이터의 책임은 사용자에게 있습니다.</string>
@@ -188,8 +197,8 @@
     <string name="delete">삭제</string>
     <string name="remove">제거</string>
     <string name="remove_from_history">기록에서 제거</string>
-    <string name="pkcs12_password">PKCS#12 password</string>
-    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password">PKCS#12 비밀번호</string>
+    <string name="pkcs12_password_title">PKCS#12 비밀번호 입력</string>
     <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">재사용 비밀번호</string>
     <string name="reused_passwords">재사용 비밀번호</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">데이터베이스 파일 교체</string>
     <string name="open_database">데이터베이스 파일 열기</string>
     <string name="create_database">데이터베이스 만들기</string>
+    <string name="addaccount_method_header_title">계정 추가</string>
+    <string name="addaccount_method_manual_title">직접 로그인</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">이 QR 코드를 다른 기기에서 스캔하면 이 Wi-Fi 네트워크를 사용할 수 있습니다.</string>
     <string name="qr_generate_button">QR 코드 생성</string>
     <string name="pro_tip">팁: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">개별 보관함 내보내기</string>
     <string name="account_action_hide_title">항목 숨기기</string>
     <string name="account_action_hide_text">앱 메인 화면에서 이 항목 숨기기</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">웹 보관함에 접속하여 이메일 주소를 인증하세요.</string>
     <string name="account_action_premium_purchase_instructions_title">계정을 프리미엄으로 업그레이드하고 다양한 추가 기능을 잠금 해제하세요.</string>
     <string name="account_action_tfa_title">2단계 인증</string>
@@ -318,7 +342,7 @@
     <string name="ciphers_action_change_folder_title">폴더로 이동</string>
     <string name="ciphers_action_change_name_title">이름 바꾸기</string>
     <string name="ciphers_action_change_names_title">이름 바꾸기</string>
-    <string name="ciphers_action_change_tags_title">Change tags</string>
+    <string name="ciphers_action_change_tags_title">태그 바꾸기</string>
     <string name="ciphers_action_add_password_title">비밀번호 추가</string>
     <string name="ciphers_action_add_passwords_title">비밀번호 추가</string>
     <string name="ciphers_action_change_password_title">비밀번호 변경</string>
@@ -445,7 +469,8 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">암호화되지 않은 개인 키를 다운로드 폴더에 저장했습니다.</string>
     <string name="ssh_key_action_add_key_title">키 추가</string>
     <string name="ssh_key_action_replace_key_title">키 교체</string>
-    <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_title">SSH 키 가져오기</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">잘못된 카드 번호입니다.</string>
     <string name="error_incorrect_password">잘못된 비밀번호입니다.</string>
     <string name="error_not_found">찾을 수 없음</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">OTP 비밀 키는 비워둘 수 없습니다.</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">파일을 만들지 못했습니다. 이미 존재하는 파일은 교체할 수 없습니다.</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">쉼표로 구분된 이메일</string>
     <string name="addsend_auth_emails_note">수신자는 링크를 연 후 1회성 이메일 인증을 완료해야 합니다.</string>
     <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
     <string name="addaccount_promo_features">앱의 주요 기능을 최대한 활용하고 싶으신가요? 아래에서 주요 기능을 확인해 보세요.</string>
     <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
     <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">생체 정보를 사용하여 이 데이터를 잠금 해제합니다.</string>
     <string name="home_vault_label">보관함</string>
+    <string name="home_favorites_label">즐겨찾기</string>
+    <string name="home_other_label">기타</string>
     <string name="home_send_label">Send</string>
     <string name="home_generator_label">생성기</string>
     <string name="home_watchtower_label">감시탑</string>
@@ -876,23 +906,23 @@
     <string name="customfilters_add_filter_title">사용자 정의 필터 추가</string>
     <string name="filter_header_title">필터</string>
     <string name="filter_empty_label">사용할 수 있는 필터 없음</string>
-    <string name="ssh_agent_filters_header_title">SSH agent filters</string>
+    <string name="ssh_agent_filters_header_title">SSH 에이전트 필터</string>
     <string name="ssh_agent_filters_note_save_to_apply">변경 사항은 저장을 누른 후 적용됩니다.</string>
-    <string name="ssh_agent_setup_header_title">SSH client setup</string>
-    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Security settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
+    <string name="ssh_agent_setup_header_title">SSH 클라이언트 설정</string>
+    <string name="ssh_agent_setup_intro">SSH 클라이언트에서 Keyguard의 SSH 에이전트에 연결할 수 있게 설정합니다. 개인 키를 노출시키지 않고 로그인 또는 인증이 가능합니다.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Keyguard에서 SSH 에이전트 켜기</string>
+    <string name="ssh_agent_setup_step_1_text">보안 설정을 열어 SSH 에이전트 옵션을 켭니다.</string>
+    <string name="ssh_agent_setup_step_2_title">2. SSH 클라이언트 설정</string>
+    <string name="ssh_agent_setup_step_2_text">SSH 클라이언트에 Keyguard의 소켓 경로를 지정합니다.</string>
     <string name="ssh_agent_setup_linux_socket_fallback_note">대체 경로: 세션에서 XDG_RUNTIME_DIR을 사용할 수 없는 경우 사용하세요.</string>
     <string name="ssh_agent_setup_option_env_tab">환경변수</string>
     <string name="ssh_agent_setup_option_identityagent_tab">구성</string>
     <string name="ssh_agent_setup_option_env_label">SSH_AUTH_SOCK을 Keyguard의 소켓 경로로 설정하세요.</string>
     <string name="ssh_agent_setup_option_identityagent_label">SSH 구성에서 IdentityAgent를 설정하세요.</string>
     <string name="ssh_agent_setup_step_3_title">3. 확인</string>
-    <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_step_3_text">에이전트를 설정한 세션과 같은 세션에서 다음 명령어를 실행합니다.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
+    <string name="ssh_agent_setup_windows_text">Windows에서는 현재 Keyguard 데스크톱 SSH 에이전트 런타임을 사용할 수 없습니다.</string>
     <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
     <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
     <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">Send</string>
     <string name="send_main_search_placeholder">Send 검색</string>
     <string name="send_main_new_item_button">새 항목</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">이메일 인증이 완료된 수신자만 접근 가능합니다</string>
     <string name="send_password_is_required_to_access_label">이 공유 항목을 보려면 비밀번호가 필요합니다.</string>
     <string name="generator_header_title">생성기</string>
@@ -1139,6 +1170,7 @@
     <string name="pref_item_other_title">기타</string>
     <string name="pref_item_other_text">커뮤니티 웹사이트, 앱 정보</string>
     <string name="pref_item_nav_label_title">내비게이션 버튼에 라벨 보이기</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">앱 버전</string>
     <string name="pref_item_app_build_date_title">앱 빌드 날짜</string>
     <!--
@@ -1205,6 +1237,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">허용됨</string>
     <string name="pref_item_data_safety_title">데이터 안전성</string>
     <string name="pref_item_logs_title">로그</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">보관함 잠그기</string>
     <string name="pref_item_lock_vault_after_reboot_title">다시 시작 이후 잠그기</string>
     <string name="pref_item_lock_vault_after_reboot_text">기기 다시 시작 이후 보관함을 잠급니다.</string>
@@ -1220,7 +1253,7 @@
     <string name="pref_item_permissions_title">권한</string>
     <string name="pref_item_features_overview_title">기능 살펴보기</string>
     <string name="pref_item_url_override_title">URL 덮어쓰기</string>
-    <string name="pref_item_ssh_agent_title">SSH agent</string>
+    <string name="pref_item_ssh_agent_title">SSH 에이전트</string>
     <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
     <string name="pref_item_ssh_agent_status_unsupported">지원되지 않음</string>
     <string name="pref_item_ssh_agent_status_stopped">중지됨</string>
@@ -1228,7 +1261,7 @@
     <string name="pref_item_ssh_agent_status_ready">준비됨</string>
     <string name="pref_item_ssh_agent_status_failed">실패</string>
     <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
-    <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
+    <string name="pref_item_ssh_agent_filters_title">SSH 에이전트 필터</string>
     <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
     <string name="pref_item_ssh_agent_filters_summary_all">모든 키에 접근 가능</string>
     <string name="pref_item_ssh_agent_filters_summary_active">필터 작동 중</string>
@@ -1268,6 +1301,8 @@
     <string name="pref_item_autofill_save_request_text">양식을 입력한 뒤에 보관함을 업데이트할 것인지 물어봅니다.</string>
     <string name="pref_item_autofill_passkeys_enabled_title">패스키 지원</string>
     <string name="pref_item_autofill_passkeys_enabled_text">인증 관리자에 패스키 지원을 알리고 요청을 처리할 수 있도록 허용합니다</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">앱 또는 웹사이트 정보 자동 저장</string>
     <string name="pref_item_autofill_block_uri_title">자동 완성 차단</string>
     <string name="pref_item_autofill_block_uri_text">설정한 URI에 대한 자동 완성을 차단합니다.</string>

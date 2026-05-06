@@ -22,6 +22,11 @@
     <string name="new_password">Nova palavra-passe</string>
     <string name="no_password">Nenhuma palavra-passe</string>
     <string name="advanced_options">Avançado</string>
+    <string name="file">Ficheiro</string>
+    <string name="file_name_placeholder">Nome do ficheiro</string>
+    <string name="file_status_pending_upload">Envio pendente</string>
+    <string name="file_status_auto_resume">Resumo automático</string>
+    <string name="file_status_downloading_failed">Transferência falhou</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Verificado</string>
     <string name="email_not_verified">Não verificado</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">Data de validade</string>
     <string name="company">Empresa</string>
     <string name="sync">Sincronizar</string>
+    <string name="sync_requested">A sincronização foi solicitada</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Oculto</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">Sem organizações</string>
     <string name="equivalent_domains">Domínios equivalentes</string>
     <string name="equivalent_domains_empty_label">Nenhum domínio equivalente</string>
+    <string name="retry">Tentar novamente</string>
     <string name="misc">Diversos</string>
     <string name="category">Categoria</string>
     <string name="command">Comando</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">Nunca</string>
     <string name="select_linked_type">Selecionar tipo</string>
     <string name="select_file">Selecionar ficheiro</string>
+    <string name="additem_attachments_drop_here">Arraste e largue um ficheiro aqui para o adicionar como anexo</string>
+    <string name="addsend_drop_file_to_replace">Arraste e largue um ficheiro para substituir o ficheiro selecionado</string>
     <string name="autofill">Preenchimento automático</string>
     <string name="autofill_and_save_uri">Preencher automaticamente e guardar dados da app ou informações do site</string>
     <string name="backup_disclaimer_title">Os seus dados são da sua responsabilidade.</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">Substitua um ficheiro de base de dados</string>
     <string name="open_database">Abra uma base de dados</string>
     <string name="create_database">Criar uma base de dados</string>
+    <string name="addaccount_method_header_title">Adicionar conta</string>
+    <string name="addaccount_method_manual_title">Início de sessão manual</string>
+    <string name="addaccount_method_manual_text">Insira as credenciais neste relógio</string>
+    <string name="addaccount_method_keepass_wear_note">Atualmente, o KeePass no Wear permite apenas uma sincronização única da base de dados. Não é possível selecionar uma base de dados local a partir do relógio.</string>
+    <string name="addaccount_method_phone_title">Início de sessão no telemóvel </string>
+    <string name="addaccount_method_phone_text">Utilize o seu telemóvel Android emparelhado</string>
+    <string name="addaccount_method_phone_unavailable">Não foi encontrado nenhum telemóvel Android emparelhado</string>
+    <string name="addaccount_method_phone_waiting">Esperando pelo telemóvel </string>
+    <string name="addaccount_method_phone_importing">Importando conta</string>
+    <string name="addaccount_method_phone_failed">Falha no início de sessão pelo telemóvel</string>
+    <string name="addaccount_method_phone_pick">Escolher telemóvel </string>
+    <string name="companionauth_header_title">Configuração do relógio</string>
+    <string name="companionauth_header_text">Inicie sessão para adicionar esta conta ao relógio</string>
     <string name="qr_wifi_description_text">Digitalize este código QR com outro dispositivo para se ligar a esta rede WiFi.</string>
     <string name="qr_generate_button">Gerar código QR</string>
     <string name="pro_tip">Dica top: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">Exportar cofre individual</string>
     <string name="account_action_hide_title">Esconder item</string>
     <string name="account_action_hide_text">Ocultar os itens no écran principal da aplicação</string>
+    <string name="account_action_hide_success_on_title">Os itens foram ocultos</string>
+    <string name="account_action_hide_success_off_title">Itens foram revelados</string>
     <string name="account_action_email_verify_instructions_title">Visite o cofre web para verificar o seu endereço de e-mail</string>
     <string name="account_action_premium_purchase_instructions_title">Atualize conta para uma adesão premium e desbloqueie funcionalidades adicionais fantásticas</string>
     <string name="account_action_tfa_title">Autenticação de dois fatores</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">Adicionar chaves</string>
     <string name="ssh_key_action_replace_key_title">Substituir chaves</string>
     <string name="ssh_key_import_title">Importar chave SSH</string>
+    <string name="ssh_key_import_drop_here">Arraste e largue um ficheiro para importar uma chave SSH</string>
     <string name="ssh_key_import_failed_title">Falha ao importar chave SSH</string>
     <string name="ssh_key_import_success_title">Chave SSH importada</string>
     <string name="ssh_key_import_error_unsupported_format">Formato de chave privada SSH não suportado.</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">Número de cartão inválido</string>
     <string name="error_incorrect_password">Palavra-passe incorreta</string>
     <string name="error_not_found">Não encontrado</string>
+    <string name="error_file_must_be_500_mb_or_smaller">O ficheiro deve ter 500 MB ou menos</string>
+    <string name="error_file_must_be_1_mb_or_smaller">O ficheiro deve ter 1 MB ou menos</string>
     <string name="error_otp_key_must_not_be_empty">A chave secreta da palavra-passe única não pode estar vazia</string>
     <string name="error_otp_key_is_invalid">A chave secreta da palavra-passe de utilização única é inválida</string>
     <string name="error_failed_file_already_exists">Falha ao criar o ficheiro. Não é permitido substituir um ficheiro existente</string>
@@ -754,6 +781,7 @@
     <string name="addsend_auth_emails_placeholder">E-mails separados por vírgulas</string>
     <string name="addsend_auth_emails_note">Os destinatários serão solicitados a completar uma verificação de e-mail única após abrirem a ligação.</string>
     <string name="addaccount_promo_title">O seu cofre está vazio. Ligue uma conta para começar:</string>
+    <string name="addaccount_promo_title_no_direct_action">O seu cofre está vazio. Vá a Configurações e adicione uma conta para começar.</string>
     <string name="addaccount_promo_features">Quer aproveitar ao máximo a sua experiência? Descrevemos abaixo todas as principais funcionalidades da aplicação. Verifique como pode ser útil para si.</string>
     <string name="addaccount_description_short_bitwarden_text">Armazene o cofre encriptado numa nuvem.</string>
     <string name="addaccount_description_short_keepass_text">Armazene o cofre encriptado localmente utilizando o formato de ficheiro KDBX.</string>
@@ -831,6 +859,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Usar autenticação biométrica para confirmar acesso e desbloquear os dados.</string>
     <string name="home_vault_label">Cofre</string>
+    <string name="home_favorites_label">Favoritos</string>
+    <string name="home_other_label">Outro</string>
     <string name="home_send_label">Partilhar</string>
     <string name="home_generator_label">Gerador</string>
     <string name="home_watchtower_label">Guardião</string>
@@ -972,6 +1002,7 @@
     <string name="send_main_header_title">Envios</string>
     <string name="send_main_search_placeholder">Pesquisar partilhas</string>
     <string name="send_main_new_item_button">Novo item</string>
+    <string name="send_main_drop_file_to_create">Arraste e largue um ficheiro para criar uma partilha</string>
     <string name="send_email_is_required_to_access_label">Os destinatários com e-mail verificado podem aceder a esta partilha</string>
     <string name="send_password_is_required_to_access_label">É necessário uma palavra-passe para aceder esta partilha</string>
     <string name="generator_header_title">Gerador automático</string>
@@ -1140,6 +1171,7 @@
     <string name="pref_item_other_title">Outros</string>
     <string name="pref_item_other_text">Sites da comunidade, informações do aplicativo</string>
     <string name="pref_item_nav_label_title">Mostrar rótulos nos botões de navegação</string>
+    <string name="pref_item_nav_hidden_send_title">Ocultar separador Partilhar</string>
     <string name="pref_item_app_version_title">Versão da aplicação</string>
     <string name="pref_item_app_build_date_title">Data de instalação da aplicação</string>
     <!--
@@ -1206,6 +1238,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">Permitido</string>
     <string name="pref_item_data_safety_title">Segurança de dados</string>
     <string name="pref_item_logs_title">Registos</string>
+    <string name="pref_item_clear_vault_title">Limpar o cofre</string>
     <string name="pref_item_lock_vault_title">Bloquear cofre</string>
     <string name="pref_item_lock_vault_after_reboot_title">Bloquear após uma reinicialização</string>
     <string name="pref_item_lock_vault_after_reboot_text">Bloquear o cofre após o dispositivo reiniciar</string>
@@ -1269,6 +1302,8 @@
     <string name="pref_item_autofill_save_request_text">Pede para atualizar o cofre quando o preenchimento de um formulário tiver sido concluído</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Suporte a chaves de acesso</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Anuncia suporte de chaves de acesso para o gestor de credenciais, permitindo que a aplicação atenda às solicitações</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Suporte para palavras-passe</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Anunciar que há suporte para palavras-passe no Gestor de Credenciais, permitindo que a aplicação atenda a pedidos</string>
     <string name="pref_item_autofill_auto_save_source_title">Salvar automaticamente dados do aplicativo ou informações do site</string>
     <string name="pref_item_autofill_block_uri_title">Bloquear preenchimento automático</string>
     <string name="pref_item_autofill_block_uri_text">Impede o preenchimento automático para estes URIs</string>

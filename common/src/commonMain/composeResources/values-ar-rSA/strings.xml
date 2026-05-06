@@ -22,6 +22,11 @@
     <string name="new_password">كلمة السر الجديدة</string>
     <string name="no_password">لا كلمة المرور</string>
     <string name="advanced_options">خيارات متقدمة</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">البريد الإلكتروني</string>
     <string name="email_verified">تم التحقق</string>
     <string name="email_not_verified">لم يتم التحقق منها</string>
@@ -58,6 +63,7 @@
     <string name="expiry_date">تاريخ انتهاء الصلاحية</string>
     <string name="company">شركة</string>
     <string name="sync">مزامنة</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">مختفي</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">لا منظمات</string>
     <string name="equivalent_domains">نطاقات معادلة</string>
     <string name="equivalent_domains_empty_label">لا توجد نطاقات معادلة</string>
+    <string name="retry">Retry</string>
     <string name="misc">متنوع</string>
     <string name="category">فئة</string>
     <string name="command">يأمر</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">أبداً</string>
     <string name="select_linked_type">حدد النوع</string>
     <string name="select_file">حدد ملفًا</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">الملء التلقائي</string>
     <string name="autofill_and_save_uri">الملء التلقائي وحفظ معلومات التطبيق أو موقع الويب</string>
     <string name="backup_disclaimer_title">بياناتك هي مسؤوليتك.</string>
@@ -269,6 +278,19 @@
     <string name="replace_database_file">استبدال ملف قاعدة البيانات</string>
     <string name="open_database">فتح قاعدة بيانات</string>
     <string name="create_database">إنشاء قاعدة بيانات</string>
+    <string name="addaccount_method_header_title">Add account</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">امسح رمز الاستجابة السريعة هذا باستخدام جهاز آخر للانضمام إلى شبكة Wi-Fi هذه.</string>
     <string name="qr_generate_button">توليد رمز استجابة سريعة</string>
     <string name="pro_tip">نصيحة احترافية: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -283,6 +305,8 @@
     <string name="account_action_export_individual_vault_title">تصدير قبو فردي</string>
     <string name="account_action_hide_title">إخفاء العناصر</string>
     <string name="account_action_hide_text">إخفاء العناصر من الشاشات الرئيسية للتطبيق</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">تفضل بزيارة Web vault للتحقق من عنوان بريدك الإلكتروني</string>
     <string name="account_action_premium_purchase_instructions_title">قم بترقية حسابك إلى عضوية متميزة واحصل على بعض الميزات الإضافية الرائعة</string>
     <string name="account_action_tfa_title">المصادقة الثنائية</string>
@@ -446,6 +470,7 @@
     <string name="ssh_key_action_add_key_title">إضافة مفاتيح</string>
     <string name="ssh_key_action_replace_key_title">استبدال المفاتيح</string>
     <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -560,6 +585,8 @@
     <string name="error_invalid_card_number">رقم البطاقة غير صالح</string>
     <string name="error_incorrect_password">كلمة مرور غير صحيحة</string>
     <string name="error_not_found">غير موجود</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">يجب ألا يكون المفتاح السري لكلمة المرور لمرة واحدة فارغًا</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">فشل إنشاء ملف. استبدال ملف موجود غير مسموح به</string>
@@ -753,6 +780,7 @@
     <string name="addsend_auth_emails_placeholder">عناوين بريد إلكتروني مفصولة بفواصل</string>
     <string name="addsend_auth_emails_note">سيُطلب من المستلمين إكمال تحقق بريد إلكتروني لمرة واحدة بعد فتح الرابط.</string>
     <string name="addaccount_promo_title">قبوك فارغ. قم بربط حساب للبدء:</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
     <string name="addaccount_promo_features">هل ترغب في الحصول على أقصى استفادة من تجربتك؟ لقد أوجزنا جميع الميزات الأساسية للتطبيق أدناه. ألق نظرة لتعرف كيف يمكن أن يساعدك.</string>
     <string name="addaccount_description_short_bitwarden_text">تخزين قبو مشفر في سحابة.</string>
     <string name="addaccount_description_short_keepass_text">تخزين قبو مشفر محليًا باستخدام صيغة ملف KDBX.</string>
@@ -830,6 +858,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">استخدم المصادقة البيومترية لتأكيد وصولك وفتح هذه البيانات.</string>
     <string name="home_vault_label">قبو</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
     <string name="home_send_label">يرسل</string>
     <string name="home_generator_label">مولد</string>
     <string name="home_watchtower_label">برج المراقبة</string>
@@ -971,6 +1001,7 @@
     <string name="send_main_header_title">الإرسال</string>
     <string name="send_main_search_placeholder">البحث في الإرسال</string>
     <string name="send_main_new_item_button">عنصر جديد</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">المستلمون الذين أثبتوا ملكية بريدهم الإلكتروني يمكنهم الوصول لهذه المشاركة</string>
     <string name="send_password_is_required_to_access_label">كلمة المرور مطلوبة للوصول إلى هذه المشاركة</string>
     <string name="generator_header_title">مولد</string>
@@ -1139,6 +1170,7 @@
     <string name="pref_item_other_title">آخر</string>
     <string name="pref_item_other_text">مواقع المجتمع، معلومات التطبيق</string>
     <string name="pref_item_nav_label_title">إظهار التسميات على أزرار التنقل</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">نسخة التطبيق</string>
     <string name="pref_item_app_build_date_title">تاريخ إنشاء التطبيق</string>
     <!--
@@ -1205,6 +1237,7 @@
     <string name="pref_item_allow_screenshots_mode_full_title">مسموح</string>
     <string name="pref_item_data_safety_title">سلامة البيانات</string>
     <string name="pref_item_logs_title">سجلات</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">قفل قبو</string>
     <string name="pref_item_lock_vault_after_reboot_title">قفل بعد إعادة التشغيل</string>
     <string name="pref_item_lock_vault_after_reboot_text">قفل القبو بعد إعادة تشغيل الجهاز</string>
@@ -1268,6 +1301,8 @@
     <string name="pref_item_autofill_save_request_text">يطلب تحديث القبو عند اكتمال ملء النموذج</string>
     <string name="pref_item_autofill_passkeys_enabled_title">دعم مفاتيح المرور</string>
     <string name="pref_item_autofill_passkeys_enabled_text">يعلن عن دعم مفتاح المرور لمدير بيانات الاعتماد، مما يسمح للتطبيق بتلبية الطلبات</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">الحفظ التلقائي لمعلومات التطبيق أو موقع الويب</string>
     <string name="pref_item_autofill_block_uri_title">حظر التعبئة التلقائية</string>
     <string name="pref_item_autofill_block_uri_text">يمنع تقديم التعبئة التلقائية لعناوين URI هذه</string>

@@ -138,7 +138,7 @@ okHttp = "5.3.2"
 playReviewKtx = "2.0.2"
 # https://developers.google.com/android/guides/setup
 playServicesBase = "18.10.0"
-playServicesWearable = "19.0.0"
+playServicesWearable = "20.0.1"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha03"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr

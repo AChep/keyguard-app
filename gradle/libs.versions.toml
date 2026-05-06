@@ -104,7 +104,7 @@ kotlinDatetime = "0.7.1-0.6.x-compat"
 kotlinIo = "0.9.0"
 kotlinDsl = "4.3.0"
 # https://github.com/Kotlin/kotlinx.serialization
-kotlinSerialization = "1.10.0"
+kotlinSerialization = "1.11.0"
 # https://github.com/google/ksp/releases
 kspPlugin = "2.3.6"
 # https://github.com/pinterest/ktlint/releases

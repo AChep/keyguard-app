@@ -8053,6 +8053,17 @@
     "name": "HypoVereinsbank"
   },
   {
+    "domain": "hytale.com",
+    "additional-domains": [
+      "hytale.net"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.hytale.com/hc/articles/44212029550491",
+    "name": "Hytale"
+  },
+  {
     "domain": "icabanken.se",
     "tfa": [
       "custom-software"
@@ -9423,7 +9434,8 @@
     "domain": "linktr.ee",
     "tfa": [
       "sms",
-      "call"
+      "call",
+      "totp"
     ],
     "documentation": "https://linktr.ee/help/articles/6108442",
     "name": "Linktree"
@@ -12273,6 +12285,15 @@
     "name": "Parallels"
   },
   {
+    "domain": "paribu.com",
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://destek.paribu.com/hc/articles/360010998153",
+    "name": "Paribu"
+  },
+  {
     "domain": "parimatch.com",
     "url": "https://www.parimatch.com/",
     "tfa": [
@@ -14791,6 +14812,17 @@
     "name": "Servus Credit Union"
   },
   {
+    "domain": "settle.com",
+    "additional-domains": [
+      "settle.co"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.settle.com/articles/6801735",
+    "name": "Settle"
+  },
+  {
     "domain": "seznam.cz",
     "tfa": [
       "totp",
@@ -14861,6 +14893,15 @@
     ],
     "documentation": "https://support.3dcart.com/knowledgebase/article/View/866/11/",
     "name": "Shift4Shop"
+  },
+  {
+    "domain": "shop.app",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://help.shop.app/en/shop/shop-pay-settings/security/verification-code",
+    "name": "Shop"
   },
   {
     "domain": "shopify.com",
@@ -16402,6 +16443,16 @@
     "name": "Stiftung Warentest"
   },
   {
+    "domain": "texas.gov",
+    "url": "https://www.texas.gov/texas-by-texas/",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.texas.gov/help-support/frequently-asked-questions/#what-services-can-i-complete-on-txt-",
+    "name": "Texas by Texas (TxT)"
+  },
+  {
     "domain": "textlocal.com",
     "tfa": [
       "sms",
@@ -16750,6 +16801,20 @@
       "Transperth app"
     ],
     "name": "Transperth"
+  },
+  {
+    "domain": "transport.vic.gov.au",
+    "additional-domains": [
+      "ptv.vic.gov.au",
+      "myki.com.au",
+      "mymyki.com.au"
+    ],
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://transport.vic.gov.au/help-and-support/ptv-app-help/set-up-multi-factor-authentication-for-myki-in-the-ptv-app",
+    "name": "Transport Victoria"
   },
   {
     "domain": "travala.com",

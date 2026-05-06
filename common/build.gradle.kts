@@ -283,7 +283,7 @@ tasks.configureEach {
     }
 }
 kotlin.compilerOptions {
-    freeCompilerArgs.add("-Xcontext-receivers")
+    freeCompilerArgs.add("-Xcontext-parameters")
 }
 kotlin.compilerOptions.freeCompilerArgs.addAll(
     "-P",

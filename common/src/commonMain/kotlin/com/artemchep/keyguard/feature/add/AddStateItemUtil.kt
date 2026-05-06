@@ -19,13 +19,13 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
-context(RememberStateFlowScope)
+context(stateScope: RememberStateFlowScope)
 suspend fun <Request> AddStateItem.Switch.Companion.produceItemFlow(
     key: String,
     initialValue: Boolean,
     populator: Request.(SwitchFieldModel) -> Request,
     factory: suspend (String, LocalStateItem<SwitchFieldModel, Request>) -> AddStateItem.Switch<Request>,
-): AddStateItem.Switch<Request> {
+): AddStateItem.Switch<Request> = with(stateScope) {
     val sink = mutablePersistedFlow(key) { initialValue }
     val stateItem = LocalStateItem<SwitchFieldModel, Request>(
         flow = sink
@@ -44,7 +44,7 @@ suspend fun <Request> AddStateItem.Switch.Companion.produceItemFlow(
     return factory(key, stateItem)
 }
 
-context(RememberStateFlowScope)
+context(stateScope: RememberStateFlowScope)
 suspend fun <Request> AddStateItem.DateTime.Companion.produceItemFlow(
     key: String,
     initialValue: LocalDateTime?,
@@ -53,7 +53,7 @@ suspend fun <Request> AddStateItem.DateTime.Companion.produceItemFlow(
     badge: ((LocalDateTime) -> TextFieldModel2.Vl?)? = null,
     populator: Request.(AddStateItem.DateTime.State) -> Request,
     factory: (String, LocalStateItem<AddStateItem.DateTime.State, Request>) -> AddStateItem.DateTime<Request>,
-): AddStateItem.DateTime<Request> {
+): AddStateItem.DateTime<Request> = with(stateScope) {
     val now = initialValue
         ?: Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
     val localDateTimeSink = mutablePersistedFlow("$key.datetime") {

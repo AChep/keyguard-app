@@ -28,12 +28,12 @@ import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
 
 object CipherFilterUtil {
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     suspend fun onRename(
         confirmationRouteFactory: ConfirmationRouteFactory,
         renameCipherFilter: RenameCipherFilter,
         model: DCipherFilter,
-    ) {
+    ) = with(stateScope) {
         val nameKey = "name"
         val nameItem = ConfirmationRoute.Args.Item.StringItem(
             key = nameKey,
@@ -73,12 +73,12 @@ object CipherFilterUtil {
         navigate(intent)
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     suspend fun onDeleteByItems(
         confirmationRouteFactory: ConfirmationRouteFactory,
         removeCipherFilterById: RemoveCipherFilterById,
         items: List<DCipherFilter>,
-    ) {
+    ) = with(stateScope) {
         val title = if (items.size > 1) {
             translate(Res.string.customfilters_delete_many_confirmation_title)
         } else {
@@ -102,7 +102,7 @@ object CipherFilterUtil {
     }
 }
 
-context(RememberStateFlowScope)
+context(stateScope: RememberStateFlowScope)
 expect fun CipherFilterUtil.addShortcutActionOrNull(
     filter: DCipherFilter,
 ): FlatItemAction?

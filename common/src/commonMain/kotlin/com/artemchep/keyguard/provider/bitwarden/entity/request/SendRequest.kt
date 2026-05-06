@@ -71,7 +71,7 @@ data class SendFileRequest(
     companion object
 }
 
-context(CryptoGenerator, Base64Service)
+context(cryptoGenerator: CryptoGenerator, base64Service: Base64Service)
 fun SendRequest.Companion.of(
     model: BitwardenSend,
     key: ByteArray,
@@ -134,7 +134,7 @@ private fun getNewEmails(
     .takeUnless { it.isEmpty() }
     ?.joinToString(",")
 
-context(CryptoGenerator, Base64Service)
+context(cryptoGenerator: CryptoGenerator, base64Service: Base64Service)
 private fun getNewPass(
     model: BitwardenSend,
     key: ByteArray,
@@ -144,15 +144,15 @@ private fun getNewPass(
         // Bitwarden doesn't allow us to remove the password
         // within the PUT request.
             ?: return@run null
-        val password = decode(pwd.value)
+        val password = base64Service.decode(pwd.value)
         // Send the hash code of that password, instead of
         // sending the actual password.
-        val passwordHash = pbkdf2(
+        val passwordHash = cryptoGenerator.pbkdf2(
             seed = password,
             salt = key,
             iterations = 100_000,
         )
-        encodeToString(passwordHash)
+        base64Service.encodeToString(passwordHash)
     }
 
     is BitwardenOptionalStringNullable.None,

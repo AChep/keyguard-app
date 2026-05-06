@@ -150,8 +150,8 @@ class SyncEngine(
         )
     }
 
-    context(SyncScope)
-    suspend fun sync() = kotlin.run {
+    context(syncScope: SyncScope)
+    suspend fun sync() = with(syncScope) {
         val env = user.env.back()
         val api = env.api
         val token = requireNotNull(user.token).accessToken

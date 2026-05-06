@@ -57,7 +57,7 @@ internal fun <Request, Identity> attachmentStatePopulator(
     populator(identity, state.name.text)
 }
 
-context(RememberStateFlowScope)
+context(stateScope: RememberStateFlowScope)
 internal fun <Request> createAttachmentStateItem(
     key: String,
     initialName: String,
@@ -70,7 +70,7 @@ internal fun <Request> createAttachmentStateItem(
         )
     },
     populator: Request.(AddStateItem.Attachment.State) -> Request,
-): LocalStateItem<AddStateItem.Attachment.State, Request> {
+): LocalStateItem<AddStateItem.Attachment.State, Request> = with(stateScope) {
     val nameKey = "$key.name"
     val resolvedNameSink = nameSink
         ?: mutablePersistedFlow(nameKey) {

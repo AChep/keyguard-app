@@ -251,7 +251,7 @@ class SyncByBitwardenTokenV2Impl(
      *   entity types are synced (profile and equivalent domains
      *   are always included). When `null`, all types are synced.
      */
-    context(SyncScope)
+    context(syncScope: SyncScope)
     private suspend fun syncV2(
         user: BitwardenToken,
         entityTypesToSync: Set<SyncEntityType>? = null,
@@ -281,7 +281,7 @@ class SyncByBitwardenTokenV2Impl(
                 accountId = user.id,
                 serverRevisionDate = serverRevisionDate,
             )
-            post(title = "Server revision date unchanged, skipping full sync.")
+            syncScope.post(title = "Server revision date unchanged, skipping full sync.")
             return
         }
 
@@ -289,7 +289,7 @@ class SyncByBitwardenTokenV2Impl(
             accountId = user.id,
             serverRevisionDate = serverRevisionDate,
         )
-        post(title = "Send sync request.")
+        syncScope.post(title = "Send sync request.")
         val response =
             api.sync(
                 httpClient = httpClient,
@@ -317,7 +317,7 @@ class SyncByBitwardenTokenV2Impl(
         val crypto = buildCrypto(user = user, profile = response.profile)
 
         // --- Profile (inline, always synced) ---
-        post(title = "Syncing a profile entity.")
+        syncScope.post(title = "Syncing a profile entity.")
         val newProfile =
             syncProfile(
                 database = database,
@@ -328,7 +328,7 @@ class SyncByBitwardenTokenV2Impl(
         coroutineContext.ensureActive()
 
         // --- Equivalent Domains (inline, always synced) ---
-        post(title = "Syncing equivalent domains entities.")
+        syncScope.post(title = "Syncing equivalent domains entities.")
         syncEquivalentDomains(
             database = database,
             user = user,
@@ -352,7 +352,7 @@ class SyncByBitwardenTokenV2Impl(
         // --- Folders ---
         val folderResult: EntityTypeOutcome?
         if (shouldSyncFolders) {
-            post(title = "Syncing folder entities.")
+            syncScope.post(title = "Syncing folder entities.")
             val existingFolders =
                 database.folderQueries
                     .getByAccountId(accountId = user.id)
@@ -406,7 +406,7 @@ class SyncByBitwardenTokenV2Impl(
                 requireFolderSyncCompletedBeforeCiphers(folderResult)
             }
 
-            post(title = "Syncing cipher entities.")
+            syncScope.post(title = "Syncing cipher entities.")
             val existingCiphers =
                 database.cipherQueries
                     .getByAccountId(accountId = user.id)
@@ -458,7 +458,7 @@ class SyncByBitwardenTokenV2Impl(
 
         // --- Collections ---
         if (shouldSync(SyncEntityType.COLLECTIONS)) {
-            post(title = "Syncing collection entities.")
+            syncScope.post(title = "Syncing collection entities.")
             val existingCollections =
                 database.collectionQueries
                     .getByAccountId(accountId = user.id)
@@ -487,7 +487,7 @@ class SyncByBitwardenTokenV2Impl(
 
         // --- Organizations ---
         if (shouldSync(SyncEntityType.ORGANIZATIONS)) {
-            post(title = "Syncing organization entities.")
+            syncScope.post(title = "Syncing organization entities.")
             val existingOrganizations =
                 database.organizationQueries
                     .getByAccountId(accountId = user.id)
@@ -517,7 +517,7 @@ class SyncByBitwardenTokenV2Impl(
 
         // --- Sends ---
         if (shouldSync(SyncEntityType.SENDS)) {
-            post(title = "Syncing send entities.")
+            syncScope.post(title = "Syncing send entities.")
             val existingSends =
                 database.sendQueries
                     .getByAccountId(accountId = user.id)
@@ -576,7 +576,7 @@ class SyncByBitwardenTokenV2Impl(
             )
         }
 
-        post(title = "Syncing complete.")
+        syncScope.post(title = "Syncing complete.")
     }
 
     /**

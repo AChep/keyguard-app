@@ -12,7 +12,7 @@ object ReadWordlistUtil {
                 !it.startsWith('/')
     }.toImmutableList()
 
-    context(String)
-    fun parseAsWordlist(): ImmutableList<String> = lineSequence()
+    context(text: String)
+    fun parseAsWordlist(): ImmutableList<String> = text.lineSequence()
         .parseAsWordlist()
 }

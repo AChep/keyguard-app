@@ -778,7 +778,7 @@ class WatchtowerInactivePasskey(
     private val getCheckPasskeys: GetCheckPasskeys,
 ) : WatchtowerClientTyped {
     companion object {
-        context(TldService)
+        context(tldService: TldService)
         suspend fun hasAlert(
             cipher: DSecret,
             passkeyLibrary: List<PassKeyServiceInfo>,
@@ -802,7 +802,7 @@ class WatchtowerInactivePasskey(
             return group.takeIf { it.isNotEmpty() }
         }
 
-        context(TldService)
+        context(tldService: TldService)
         suspend fun match(
             cipher: DSecret,
             passkeyLibrary: List<PassKeyServiceInfo>,
@@ -813,7 +813,7 @@ class WatchtowerInactivePasskey(
             .mapNotNull { uri ->
                 val host = parseHost(uri)
                     ?: return@mapNotNull null
-                val domain = getDomainName(host)
+                val domain = tldService.getDomainName(host)
                     .bind()
                 val domainEq = equivalentDomains.findEqDomains(domain)
 
@@ -1102,7 +1102,7 @@ class WatchtowerInactiveTfa(
     private val getCheckTwoFA: GetCheckTwoFA,
 ) : WatchtowerClientTyped {
     companion object {
-        context(TldService)
+        context(tldService: TldService)
         suspend fun hasAlert(
             cipher: DSecret,
             tfaLibrary: List<TwoFaServiceInfo>,
@@ -1129,7 +1129,7 @@ class WatchtowerInactiveTfa(
             return group.takeIf { it.isNotEmpty() }
         }
 
-        context(TldService)
+        context(tldService: TldService)
         fun match(
             cipher: DSecret,
             tfaLibrary: List<TwoFaServiceInfo>,
@@ -1140,7 +1140,7 @@ class WatchtowerInactiveTfa(
             .mapNotNull { uri ->
                 val host = parseHost(uri)
                     ?: return@mapNotNull null
-                val domain = getDomainName(host)
+                val domain = tldService.getDomainName(host)
                     .bind()
                 val domainEq = equivalentDomains.findEqDomains(domain)
                 val result = tfaLibrary

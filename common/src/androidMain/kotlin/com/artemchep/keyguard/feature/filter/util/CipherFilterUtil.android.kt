@@ -13,11 +13,11 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.iconSmall
 
-context(RememberStateFlowScope)
+context(stateScope: RememberStateFlowScope)
 actual fun CipherFilterUtil.addShortcutActionOrNull(
     filter: DCipherFilter,
 ): FlatItemAction? {
-    val androidContext = context.context
+    val androidContext = stateScope.context.context
     if (!ShortcutManagerCompat.isRequestPinShortcutSupported(androidContext)) {
         return null
     }

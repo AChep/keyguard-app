@@ -26,12 +26,12 @@ import com.artemchep.keyguard.ui.icons.KeyguardWordlist
 import com.artemchep.keyguard.ui.icons.icon
 
 object WordlistUtil {
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     suspend fun onRename(
         confirmationRouteFactory: ConfirmationRouteFactory,
         editWordlist: EditWordlist,
         entity: DGeneratorWordlist,
-    ) {
+    ) = with(stateScope) {
         val nameKey = "name"
         val nameItem = ConfirmationRoute.Args.Item.StringItem(
             key = nameKey,
@@ -71,11 +71,11 @@ object WordlistUtil {
         navigate(intent)
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     suspend fun onNewFromFile(
         confirmationRouteFactory: ConfirmationRouteFactory,
         addWordlist: AddWordlist,
-    ) {
+    ) = with(stateScope) {
         val nameKey = "name"
         val nameItem = ConfirmationRoute.Args.Item.StringItem(
             key = nameKey,
@@ -128,11 +128,11 @@ object WordlistUtil {
         navigate(intent)
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     suspend fun onNewFromUrl(
         confirmationRouteFactory: ConfirmationRouteFactory,
         addWordlist: AddWordlist,
-    ) {
+    ) = with(stateScope) {
         val nameKey = "name"
         val nameItem = ConfirmationRoute.Args.Item.StringItem(
             key = nameKey,
@@ -187,12 +187,12 @@ object WordlistUtil {
         navigate(intent)
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     suspend fun onDeleteByItems(
         confirmationRouteFactory: ConfirmationRouteFactory,
         removeWordlistById: RemoveWordlistById,
         items: List<DGeneratorWordlist>,
-    ) {
+    ) = with(stateScope) {
         val title = if (items.size > 1) {
             translate(Res.string.wordlist_delete_many_confirmation_title)
         } else {

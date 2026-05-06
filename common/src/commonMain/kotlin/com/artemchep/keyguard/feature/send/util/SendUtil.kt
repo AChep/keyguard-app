@@ -48,7 +48,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 object SendUtil {
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun renameActionOrNull(
         confirmationRouteFactory: ConfirmationRouteFactory,
         patchSendById: PatchSendById,
@@ -56,9 +56,9 @@ object SendUtil {
         canEdit: Boolean,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         if (!canEdit) {
-            return@run null
+            return@with null
         }
 
         val icon = icon(Icons.Outlined.Edit)
@@ -111,7 +111,7 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun renameFileActionOrNull(
         confirmationRouteFactory: ConfirmationRouteFactory,
         patchSendById: PatchSendById,
@@ -119,18 +119,18 @@ object SendUtil {
         canEdit: Boolean,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         if (!canEdit) {
-            return@run null
+            return@with null
         }
 
         val allFiles = sends.all { it.file != null }
         if (!allFiles) {
-            return@run null
+            return@with null
         }
 
         // TODO: Seems like at this moment we can not change the file name
-        if (isRelease) return@run null
+        if (isRelease) return@with null
 
         val icon = iconSmall(Icons.Outlined.Attachment, Icons.Outlined.Edit)
         val title = if (sends.size > 1) {
@@ -182,7 +182,7 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     suspend fun changePasswordActionOrNull(
         confirmationRouteFactory: ConfirmationRouteFactory,
         patchSendById: PatchSendById,
@@ -190,9 +190,9 @@ object SendUtil {
         canEdit: Boolean,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         if (!canEdit) {
-            return@run null
+            return@with null
         }
 
         val hasPasswords = sends.any { it.hasPassword }
@@ -261,7 +261,7 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun removePasswordActionOrNull(
         confirmationRouteFactory: ConfirmationRouteFactory,
         patchSendById: PatchSendById,
@@ -269,14 +269,14 @@ object SendUtil {
         canEdit: Boolean,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         if (!canEdit) {
-            return@run null
+            return@with null
         }
 
         val hasPasswords = sends.any { it.hasPassword }
         if (!hasPasswords) {
-            return@run null
+            return@with null
         }
 
         val icon = iconSmall(Icons.Outlined.Password, Icons.Outlined.Remove)
@@ -321,20 +321,20 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun showEmailActionOrNull(
         patchSendById: PatchSendById,
         sends: List<DSend>,
         canEdit: Boolean,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         if (!canEdit) {
-            return@run null
+            return@with null
         }
         val canShowEmail = sends.any { it.hideEmail }
         if (!canShowEmail) {
-            return@run null
+            return@with null
         }
         showEmailAction(
             patchSendById = patchSendById,
@@ -344,13 +344,13 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun showEmailAction(
         patchSendById: PatchSendById,
         sends: List<DSend>,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         val icon = iconSmall(Icons.Outlined.Email, Icons.Outlined.Visibility)
         val title = Res.string.sends_action_show_email_title.wrap()
         FlatItemAction(
@@ -370,20 +370,20 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun hideEmailActionOrNull(
         patchSendById: PatchSendById,
         sends: List<DSend>,
         canEdit: Boolean,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         if (!canEdit) {
-            return@run null
+            return@with null
         }
         val canHideEmail = sends.any { !it.hideEmail }
         if (!canHideEmail) {
-            return@run null
+            return@with null
         }
         hideEmailAction(
             patchSendById = patchSendById,
@@ -393,13 +393,13 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun hideEmailAction(
         patchSendById: PatchSendById,
         sends: List<DSend>,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         val icon = iconSmall(Icons.Outlined.Email, Icons.Outlined.VisibilityOff)
         val title = Res.string.sends_action_hide_email_title.wrap()
         FlatItemAction(
@@ -419,7 +419,7 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun enableActionOrNull(
         confirmationRouteFactory: ConfirmationRouteFactory,
         patchSendById: PatchSendById,
@@ -427,13 +427,13 @@ object SendUtil {
         canEdit: Boolean,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         if (!canEdit) {
-            return@run null
+            return@with null
         }
         val canEnable = sends.any { it.disabled }
         if (!canEnable) {
-            return@run null
+            return@with null
         }
         enableAction(
             confirmationRouteFactory = confirmationRouteFactory,
@@ -444,14 +444,14 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun enableAction(
         confirmationRouteFactory: ConfirmationRouteFactory,
         patchSendById: PatchSendById,
         sends: List<DSend>,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         val icon = icon(Icons.Stub)
         val title = Res.string.sends_action_enable_title.wrap()
         val text = Res.string.sends_action_enable_text.wrap()
@@ -486,7 +486,7 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun disableActionOrNull(
         confirmationRouteFactory: ConfirmationRouteFactory,
         patchSendById: PatchSendById,
@@ -494,13 +494,13 @@ object SendUtil {
         canEdit: Boolean,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         if (!canEdit) {
-            return@run null
+            return@with null
         }
         val canDisable = sends.any { !it.disabled }
         if (!canDisable) {
-            return@run null
+            return@with null
         }
         disableAction(
             confirmationRouteFactory = confirmationRouteFactory,
@@ -511,14 +511,14 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun disableAction(
         confirmationRouteFactory: ConfirmationRouteFactory,
         patchSendById: PatchSendById,
         sends: List<DSend>,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         val icon = icon(Icons.Stub)
         val title = Res.string.sends_action_disable_title.wrap()
         val text = Res.string.sends_action_disable_text.wrap()
@@ -553,7 +553,7 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun deleteActionOrNull(
         confirmationRouteFactory: ConfirmationRouteFactory,
         removeSendById: RemoveSendById,
@@ -561,9 +561,9 @@ object SendUtil {
         canDelete: Boolean,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         if (!canDelete) {
-            return@run null
+            return@with null
         }
         deleteAction(
             confirmationRouteFactory = confirmationRouteFactory,
@@ -574,14 +574,14 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun deleteAction(
         confirmationRouteFactory: ConfirmationRouteFactory,
         removeSendById: RemoveSendById,
         sends: List<DSend>,
         before: (() -> Unit)? = null,
         after: ((Boolean) -> Unit)? = null,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         val icon = icon(Icons.Outlined.DeleteForever)
         val title = Res.string.sends_action_delete_title.wrap()
         FlatItemAction(
@@ -643,13 +643,13 @@ object SendUtil {
         )
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     suspend fun actions(
         confirmationRouteFactory: ConfirmationRouteFactory,
         toolbox: SendToolbox,
         sends: List<DSend>,
         canEdit: Boolean,
-    ) = kotlin.run {
+    ) = with(stateScope) {
         buildContextItems {
             section {
                 this += renameActionOrNull(
@@ -743,7 +743,7 @@ object SendUtil {
             .distinctUntilChanged()
     }
 
-    context(RememberStateFlowScope)
+    context(stateScope: RememberStateFlowScope)
     fun selectionFlow(
         selectionHandle: SelectionHandle,
         sendsFlow: Flow<List<DSend>>,

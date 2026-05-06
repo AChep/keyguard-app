@@ -73,7 +73,7 @@ composeOpenIcons = "1.1.1"
 # https://github.com/coil-kt/coil
 coil3 = "3.4.0"
 # https://github.com/kdroidFilter/ComposeNativeTray
-composeNativeTray = "1.1.0"
+composeNativeTray = "1.3.0"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.6"
 dbusJava = "5.1.1"

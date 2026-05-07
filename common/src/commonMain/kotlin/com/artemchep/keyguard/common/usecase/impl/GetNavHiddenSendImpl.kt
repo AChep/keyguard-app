@@ -6,15 +6,20 @@ import com.artemchep.keyguard.common.service.settings.SettingsReadRepository
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCacheHiddenSend
 import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
+import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.PutCacheHiddenSend
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.runningReduce
@@ -24,6 +29,7 @@ import org.kodein.di.instance
 
 class GetNavHiddenSendImpl(
     private val getAccounts: GetAccounts,
+    private val getProfiles: GetProfiles,
     private val getCacheHiddenSend: GetCacheHiddenSend,
     private val putCacheHiddenSend: PutCacheHiddenSend,
     private val settingsReadRepository: SettingsReadRepository,
@@ -58,6 +64,7 @@ class GetNavHiddenSendImpl(
 
     constructor(directDI: DirectDI) : this(
         getAccounts = directDI.instance(),
+        getProfiles = directDI.instance(),
         getCacheHiddenSend = directDI.instance(),
         putCacheHiddenSend = directDI.instance(),
         settingsReadRepository = directDI.instance(),
@@ -102,11 +109,28 @@ class GetNavHiddenSendImpl(
      * Returns a flow of Booleans whether we have any account
      * that can theoretically have sends or not.
      */
-    private fun getHasAccountsWithSendSupportFlow() = getAccounts()
-        .map { accounts ->
+    private fun getHasAccountsWithSendSupportFlow() = combine(
+        getAccounts(),
+        getProfiles(),
+    ) { accounts, profiles ->
+        val shownAccountIds = profiles.asSequence()
+            .filter { !it.hidden }
+            .map { it.accountId }
+            .toSet()
+        accounts.filter { it.accountId() in shownAccountIds }
+    }
+        .mapNotNull { accounts ->
+            // If the accounts read as empty, then do not change the
+            // current value.
+            if (accounts.isEmpty()) {
+                return@mapNotNull null
+            }
+
             accounts
                 .any { account ->
                     account.type == AccountType.BITWARDEN
                 }
         }
+        .debounce(2000L) // for slow loading accounts
+        .distinctUntilChanged()
 }

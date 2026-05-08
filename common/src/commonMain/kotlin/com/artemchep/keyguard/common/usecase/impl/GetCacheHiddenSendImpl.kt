@@ -9,7 +9,7 @@ class GetCacheHiddenSendImpl(
     settingsReadRepository: SettingsReadRepository,
 ) : GetCacheHiddenSend {
     private val sharedFlow = settingsReadRepository
-        .getCachePremium()
+        .getCacheHiddenSend()
 
     constructor(directDI: DirectDI) : this(
         settingsReadRepository = directDI.instance(),

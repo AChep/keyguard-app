@@ -272,6 +272,37 @@ class SshAgentRequestProcessingTest {
         assertEquals(0, getListPromptCount)
     }
 
+    @Test
+    fun `handleListKeys omits trashed ssh keys`() = runTest {
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSession(
+                    createSshSecret(
+                        name = "Active key",
+                        publicKey = "ssh-ed25519 AAAA... active@example",
+                        fingerprint = "SHA256:active",
+                    ),
+                    createSshSecret(
+                        name = "Trashed key",
+                        publicKey = "ssh-ed25519 AAAA... trashed@example",
+                        fingerprint = "SHA256:trashed",
+                        deletedDate = Instant.parse("2024-02-01T00:00:00Z"),
+                    ),
+                ),
+            ),
+        )
+
+        val response = server.handleListKeys(
+            requestId = 22L,
+            req = SshAgentMessages.ListKeysRequest(),
+        )
+
+        val payload = requireNotNull(response.listKeys)
+        assertEquals(22L, response.id)
+        assertNull(response.error)
+        assertEquals(listOf("Active key"), payload.keys.map { it.name })
+    }
+
     // ================================================================
     // handleSignData with locked vault
     // ================================================================
@@ -391,6 +422,44 @@ class SshAgentRequestProcessingTest {
     }
 
     @Test
+    fun `handleSignData returns key not found for trashed ssh key without approval`() = runTest {
+        var approvalPromptCount = 0
+        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
+        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val unlockedSession = MutableVaultSession(
+            createUnlockedSession(
+                createSshSecret(
+                    name = "Trashed signer",
+                    publicKey = "$publicKey signer@example",
+                    fingerprint = "SHA256:trashed-signer",
+                    privateKey = "private-key-placeholder",
+                    deletedDate = Instant.parse("2024-02-01T00:00:00Z"),
+                ),
+            ),
+        )
+        val server = createServer(
+            vaultSession = unlockedSession,
+            onApprovalRequest = { _, _, _ ->
+                approvalPromptCount++
+                true
+            },
+        )
+        val req = SshAgentMessages.SignDataRequest(
+            publicKey = publicKey,
+            data = byteArrayOf(1, 2, 3),
+            flags = 0,
+        )
+
+        val response = server.handleSignData(requestId = 35L, req = req)
+
+        assertEquals(35L, response.id)
+        assertNotNull(response.error)
+        assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error!!.code)
+        assertNull(response.signData)
+        assertEquals(0, approvalPromptCount)
+    }
+
+    @Test
     fun `handleSignData does not ask twice after approval unlocks the vault`() = runTest {
         var approvalPromptCount = 0
         val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
@@ -507,6 +576,7 @@ class SshAgentRequestProcessingTest {
         publicKey: String,
         fingerprint: String,
         privateKey: String = "private-key-placeholder",
+        deletedDate: Instant? = null,
     ): DSecret = DSecret(
         id = name.lowercase().replace(' ', '-'),
         accountId = "account",
@@ -516,7 +586,7 @@ class SshAgentRequestProcessingTest {
         revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
         createdDate = Instant.parse("2024-01-01T00:00:00Z"),
         archivedDate = null,
-        deletedDate = null,
+        deletedDate = deletedDate,
         service = com.artemchep.keyguard.core.store.bitwarden.BitwardenService(),
         name = name,
         notes = "",

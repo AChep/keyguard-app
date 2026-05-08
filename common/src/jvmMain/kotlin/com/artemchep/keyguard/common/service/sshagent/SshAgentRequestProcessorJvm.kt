@@ -269,7 +269,7 @@ class SshAgentRequestProcessorJvm(
         val getCiphers = key.di.direct.instance<GetCiphers>()
         val sshKeys = getCiphers()
             .map { ciphers ->
-                ciphers.filter { it.type == DSecret.Type.SshKey }
+                ciphers.filter { it.isEligibleForSshAgent() }
             }
             .first()
 

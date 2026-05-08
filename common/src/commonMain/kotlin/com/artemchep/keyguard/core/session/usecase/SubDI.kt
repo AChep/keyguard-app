@@ -73,6 +73,7 @@ import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
 import com.artemchep.keyguard.common.usecase.CipherMerge
 import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistory
 import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistoryById
+import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.CipherToolbox
 import com.artemchep.keyguard.common.usecase.CipherToolboxImpl
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlAutoFix
@@ -187,6 +188,7 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerIncomplete
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordPwned
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordStrength
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshKeyStrength
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerUnsecureWebsite
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerWebsitePwned
 import com.artemchep.keyguard.feature.home.vault.search.engine.Bm25SearchScorer
@@ -254,6 +256,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.CipherIncompleteCheckIm
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherMergeImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherRemovePasswordHistoryByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherRemovePasswordHistoryImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.CipherSshKeyWeakCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlAutoFixImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CopyCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ExportLogsImpl
@@ -660,6 +663,11 @@ fun DI.Builder.createSubDi2(
             directDI = this,
         )
     }
+    bindSingleton<WatchtowerSshKeyStrength>() {
+        WatchtowerSshKeyStrength(
+            directDI = this,
+        )
+    }
     bindSingleton<WatchtowerPasswordPwned>() {
         WatchtowerPasswordPwned(
             directDI = this,
@@ -687,6 +695,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<CipherIncompleteCheck> {
         CipherIncompleteCheckImpl(this)
+    }
+    bindSingleton<CipherSshKeyWeakCheck> {
+        CipherSshKeyWeakCheckImpl(this)
     }
     bindSingleton<CipherMerge> {
         CipherMergeImpl(this)

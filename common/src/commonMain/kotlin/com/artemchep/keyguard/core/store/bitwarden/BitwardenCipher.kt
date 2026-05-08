@@ -245,6 +245,8 @@ data class BitwardenCipher(
         INCOMPLETE,
         @SerialName("expiring")
         EXPIRING,
+        @SerialName("weakSshKey")
+        WEAK_SSH_KEY,
     }
 
     @Serializable

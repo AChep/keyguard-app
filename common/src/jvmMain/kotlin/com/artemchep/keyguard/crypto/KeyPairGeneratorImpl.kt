@@ -98,17 +98,7 @@ class KeyPairGeneratorJvm(
             encodedKey
         }
         val parsedPublicKey = OpenSSHPublicKeyUtil.parsePublicKey(encodedPublicKey)
-        val encodedPrivateKey = kotlin.run {
-            val encodedKeyBase64 = privateKey
-                .replace("-{1,5}(BEGIN|END) (|RSA |OPENSSH )PRIVATE KEY-{1,5}".toRegex(), "")
-                // Remove all line breaks
-                .lineSequence()
-                .map { it.trim() }
-                .joinToString(separator = "")
-            val encodedKey = encodedKeyBase64
-                .decodeAsBase64()
-            encodedKey
-        }
+        val encodedPrivateKey = privateKey.decodePrivateKey()
         // We parse it to confirm that we do understand
         // it and can manipulate it in the future if we
         // need to.
@@ -226,10 +216,29 @@ class KeyPairGeneratorJvm(
     private fun String.decodeAsBase64() = Base64
         .decode(this)
 
+    private fun String.decodePrivateKey(): ByteArray {
+        val encodedKeyBase64 = replace("-{1,5}(BEGIN|END) (|RSA |OPENSSH )PRIVATE KEY-{1,5}".toRegex(), "")
+            .lineSequence()
+            .map { it.trim() }
+            .joinToString(separator = "")
+        return encodedKeyBase64.decodeAsBase64()
+    }
+
     override fun getPrivateKeyLengthOrNull(
         keyPair: KeyParameterRawZero,
+    ): Int? = getPrivateKeyLengthOrNull(keyPair.privateKey.encoded)
+
+    override fun getPrivateKeyLengthOrNull(
+        privateKey: String,
     ): Int? = kotlin.runCatching {
-        val key = parsePrivateKeyBlob(keyPair.privateKey.encoded)
+        privateKey.decodePrivateKey()
+    }.getOrNull()
+        ?.let(::getPrivateKeyLengthOrNull)
+
+    private fun getPrivateKeyLengthOrNull(
+        encodedPrivateKey: ByteArray,
+    ): Int? = kotlin.runCatching {
+        val key = parsePrivateKeyBlob(encodedPrivateKey)
         when (key) {
             is RSAPrivateCrtKeyParameters -> key.modulus.bitLength()
             is RSAKeyParameters -> key.modulus.bitLength()

@@ -37,6 +37,7 @@ import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
+import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
@@ -573,6 +574,38 @@ class WatchtowerPasswordStrength(
                 )
             }
     }
+}
+
+class WatchtowerSshKeyStrength(
+    private val cipherSshKeyWeakCheck: CipherSshKeyWeakCheck,
+) : WatchtowerClientTyped {
+    override val type: Long
+        get() = DWatchtowerAlertType.WEAK_SSH_KEY.value
+
+    constructor(directDI: DirectDI) : this(
+        cipherSshKeyWeakCheck = directDI.instance(),
+    )
+
+    override fun version() = flowOf("1")
+
+    override suspend fun process(
+        ciphers: List<DSecret>,
+    ): List<WatchtowerClientResult> {
+        return ciphers
+            .map { cipher ->
+                val threat = !shouldIgnore(cipher) &&
+                        cipherSshKeyWeakCheck(cipher)
+                WatchtowerClientResult(
+                    value = cipher.sshKey?.privateKey,
+                    threat = threat,
+                    cipher = cipher,
+                )
+            }
+    }
+
+    private fun shouldIgnore(
+        cipher: DSecret,
+    ) = cipher.ignores(DWatchtowerAlertType.WEAK_SSH_KEY)
 }
 
 class WatchtowerPasswordPwned(

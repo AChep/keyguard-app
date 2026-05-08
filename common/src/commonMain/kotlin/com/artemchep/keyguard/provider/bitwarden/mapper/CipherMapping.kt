@@ -92,6 +92,7 @@ fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
     BitwardenCipher.IgnoreAlertType.BROAD_URIS -> DWatchtowerAlertType.BROAD_URIS
     BitwardenCipher.IgnoreAlertType.INCOMPLETE -> DWatchtowerAlertType.INCOMPLETE
     BitwardenCipher.IgnoreAlertType.EXPIRING -> DWatchtowerAlertType.EXPIRING
+    BitwardenCipher.IgnoreAlertType.WEAK_SSH_KEY -> DWatchtowerAlertType.WEAK_SSH_KEY
 }
 
 fun BitwardenCipher.Login.Uri.MatchType.toDomain() = when (this) {

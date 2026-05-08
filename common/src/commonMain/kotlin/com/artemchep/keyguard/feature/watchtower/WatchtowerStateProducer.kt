@@ -935,6 +935,49 @@ fun produceWatchtowerState(
         },
     )
 
+    suspend fun onClickWeakSshKeys(
+        filter: DFilter,
+    ) {
+        val intent = NavigationIntent.NavigateToRoute(
+            vaultRouteFactory.watchtower(
+                title = translate(Res.string.watchtower_item_weak_ssh_keys_title),
+                subtitle = translate(Res.string.watchtower_header_title),
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        DFilter.ByWeakSshKeys,
+                        filter,
+                        args.filter,
+                    ),
+                ),
+            ),
+        )
+        navigate(intent)
+    }
+
+    val weakSshKeysFlow = createCipherAlertStateFlow(
+        key = DFilter.ByWeakSshKeys.key,
+        type = DWatchtowerAlertType.WEAK_SSH_KEY,
+        onCreate = { holder, count, new ->
+            val onClick = if (count > 0) {
+                val filter = holder?.filterConfig?.filter
+                    ?: DFilter.All
+                onClick {
+                    onClickWeakSshKeys(
+                        filter = filter,
+                    )
+                }
+            } else {
+                null
+            }
+            WatchtowerState.Content.WeakSshKeys(
+                revision = holder?.filterConfig?.id ?: 0,
+                count = count,
+                new = new,
+                onClick = onClick,
+            )
+        },
+    )
+
     suspend fun onClickWebsitePwned(
         filter: DFilter,
     ) {
@@ -1254,6 +1297,7 @@ fun produceWatchtowerState(
         pwned = passwordPwnedFlow,
         pwnedWebsites = websitePwnedFlow,
         reused = passwordReusedFlow,
+        weakSshKeys = weakSshKeysFlow,
         incompleteItems = incompleteItemsFlow,
         expiringItems = expiringItemsFlow,
         duplicateItems = duplicateItemsFlow,

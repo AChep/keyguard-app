@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
+import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
@@ -48,6 +49,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardPendingSyncItems
 import com.artemchep.keyguard.ui.icons.KeyguardPwnedPassword
 import com.artemchep.keyguard.ui.icons.KeyguardPwnedWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardReusedPassword
+import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
 import kotlinx.coroutines.flow.asFlow
@@ -621,6 +623,52 @@ sealed interface DFilter {
         private fun predicate(
             cipher: DSecret,
         ) = cipher.login?.passwordStrength?.score == score
+    }
+
+    @Serializable
+    @SerialName("by_weak_ssh_keys")
+    data object ByWeakSshKeys : PrimitiveSimple {
+        @Transient
+        override val key: String = "weak_ssh_keys"
+
+        @Transient
+        override val content
+            get() = PrimitiveSimple.Content(
+                title = Res.string.watchtower_item_weak_ssh_keys_title
+                    .let(TextHolder::Res),
+                icon = Icons.Outlined.KeyguardSshKey,
+            )
+
+        override suspend fun prepare(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val ids = filterWeakSshKeys(directDI, ciphers)
+                .map { it.id }
+                .toSet()
+            ::predicate.partially1(ids)
+        }
+
+        private fun predicate(
+            ids: Set<String>,
+            cipher: DSecret,
+        ) = cipher.id in ids
+
+        /** Counts a number of SSH key ciphers with weak key material. */
+        fun count(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = filterWeakSshKeys(directDI, ciphers).count()
+
+        private fun filterWeakSshKeys(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val cipherSshKeyWeakCheck = directDI.instance<CipherSshKeyWeakCheck>()
+            ciphers
+                .asSequence()
+                .filter(cipherSshKeyWeakCheck::invoke)
+        }
     }
 
     @Serializable

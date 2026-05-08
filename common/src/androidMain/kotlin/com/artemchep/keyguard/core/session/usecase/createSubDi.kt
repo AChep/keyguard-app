@@ -57,22 +57,13 @@ actual fun DI.Builder.createSubDi(
         NotificationsImpl(this)
     }
     bindSingleton<VaultDatabaseManager> {
-        val sqlManager = if (instance<FlavorConfig>().persistVaultData) {
-            DatabaseSqlManagerInFileAndroid(
-                context = instance<Application>(),
-                fileName = "database_v2",
-                onCreate = { database: Database ->
-                    ioUnit()
-                },
-            )
-        } else {
-            DatabaseSqlManagerInMemoryAndroid(
-                context = instance<Application>(),
-                onCreate = { database: Database ->
-                    ioUnit()
-                },
-            )
-        }
+        val sqlManager = DatabaseSqlManagerInFileAndroid(
+            context = instance<Application>(),
+            fileName = "database_v2",
+            onCreate = { database: Database ->
+                ioUnit()
+            },
+        )
 
         VaultDatabaseManagerImpl(
             logRepository = instance(),

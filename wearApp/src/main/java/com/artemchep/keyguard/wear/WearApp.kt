@@ -55,7 +55,6 @@ class WearApp : BaseApp(), org.kodein.di.DIAware {
         bindSingleton {
             FlavorConfig(
                 isFreeAsBeer = true,
-                persistVaultData = false,
             )
         }
         bindSingleton<BillingManager> {

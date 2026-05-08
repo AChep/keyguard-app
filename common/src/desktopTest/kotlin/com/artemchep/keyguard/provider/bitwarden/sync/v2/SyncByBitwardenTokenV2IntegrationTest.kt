@@ -70,7 +70,7 @@ class SyncByBitwardenTokenV2IntegrationTest {
 
         fixture.sync.invoke(fixture.user).invoke()
 
-        val logMessages = fixture.logRepository.entries.map { it.message }
+        val logMessages = fixture.logRepository.messages()
         assertTrue(
             listOf(
                 "Syncing folder entities.",
@@ -312,18 +312,50 @@ private fun createFullSyncFixture(
 }
 
 private class CapturingLogRepository : LogRepository {
-    val entries = mutableListOf<LogEntry>()
+    private val lock = Any()
+
+    private val entries = mutableListOf<LogEntry>()
+
+    fun messages(): List<String> = synchronized(lock) {
+        entries.map { it.message }
+    }
+
+    override fun post(
+        tag: String,
+        message: String,
+        level: LogLevel,
+    ) {
+        record(
+            tag = tag,
+            message = message,
+            level = level,
+        )
+    }
 
     override suspend fun add(
         tag: String,
         message: String,
         level: LogLevel,
     ) {
-        entries += LogEntry(
+        record(
             tag = tag,
             message = message,
             level = level,
         )
+    }
+
+    private fun record(
+        tag: String,
+        message: String,
+        level: LogLevel,
+    ) {
+        synchronized(lock) {
+            entries += LogEntry(
+                tag = tag,
+                message = message,
+                level = level,
+            )
+        }
     }
 }
 

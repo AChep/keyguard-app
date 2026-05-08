@@ -18,6 +18,7 @@ class WearHomeStateProducerTest {
         val content = createWearHomeContentSpec(
             ciphers = emptyList(),
             folders = emptyList(),
+            navHiddenSend = false,
         )
 
         assertEquals(
@@ -61,6 +62,7 @@ class WearHomeStateProducerTest {
                     name = "Folder 1",
                 ),
             ),
+            navHiddenSend = false,
         )
 
         assertEquals(
@@ -107,6 +109,7 @@ class WearHomeStateProducerTest {
                     name = "Gamma",
                 ),
             ),
+            navHiddenSend = false,
         )
 
         assertEquals(
@@ -117,6 +120,25 @@ class WearHomeStateProducerTest {
                 "section.other",
                 "home",
                 "send",
+                "generator",
+                "settings",
+            ),
+            content.items.map { it.id },
+        )
+    }
+
+    @Test
+    fun `send action is omitted when nav hidden send is enabled`() {
+        val content = createWearHomeContentSpec(
+            ciphers = emptyList(),
+            folders = emptyList(),
+            navHiddenSend = true,
+        )
+
+        assertEquals(
+            listOf(
+                "section.other",
+                "home",
                 "generator",
                 "settings",
             ),

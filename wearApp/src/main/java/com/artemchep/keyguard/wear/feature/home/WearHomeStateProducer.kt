@@ -8,6 +8,7 @@ import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
@@ -15,6 +16,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetFolders
+import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
@@ -39,6 +41,7 @@ import com.artemchep.keyguard.res.home_vault_label
 import com.artemchep.keyguard.wear.feature.generator.WearGeneratorRoute
 import com.artemchep.keyguard.wear.feature.settings.WearSettingsRoute
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
@@ -78,7 +81,12 @@ internal sealed interface Destination {
 
 @Composable
 internal fun wearHomeScreenState(): WearHomeState = with(localDI().direct) {
+    val getNavHiddenSend: GetNavHiddenSend = instance()
+    val navHiddenSendFlow = remember(getNavHiddenSend) {
+        getNavHiddenSend()
+    }
     wearHomeScreenState(
+        navHiddenSendFlow = navHiddenSendFlow,
         getProfiles = instance(),
         getCiphers = instance(),
         getFolders = instance(),
@@ -89,6 +97,7 @@ internal fun wearHomeScreenState(): WearHomeState = with(localDI().direct) {
 
 @Composable
 internal fun wearHomeScreenState(
+    navHiddenSendFlow: StateFlow<Boolean>,
     getProfiles: GetProfiles,
     getCiphers: GetCiphers,
     getFolders: GetFolders,
@@ -101,6 +110,9 @@ internal fun wearHomeScreenState(
         getProfiles,
         getCiphers,
         getFolders,
+    ),
+    rargs = arrayOf(
+        navHiddenSendFlow,
     ),
 ) {
     val visibleCiphersFlow = filterHiddenProfiles(
@@ -123,10 +135,12 @@ internal fun wearHomeScreenState(
     combine(
         visibleCiphersFlow,
         visibleFoldersFlow,
-    ) { ciphers, folders ->
+        navHiddenSendFlow,
+    ) { ciphers, folders, navHiddenSend ->
         val content = createWearHomeContentSpec(
             ciphers = ciphers,
             folders = folders,
+            navHiddenSend = navHiddenSend,
         )
         WearHomeState(
             headerItem = content.headerItem?.let { item ->
@@ -224,6 +238,7 @@ private suspend fun RememberStateFlowScope.routeForDestination(
 internal fun createWearHomeContentSpec(
     ciphers: List<DSecret>,
     folders: List<DFolder>,
+    navHiddenSend: Boolean,
 ): WearHomeContentSpec {
     val nonEmptyFolderKeys = ciphers
         .asSequence()
@@ -264,12 +279,14 @@ internal fun createWearHomeContentSpec(
             icon = Icons.Outlined.Home,
             destination = Destination.Vault,
         )
-        this += WearHomeItemSpec.Action(
-            id = "send",
-            title = TextHolder.Res(Res.string.home_send_label),
-            icon = Icons.AutoMirrored.Outlined.Send,
-            destination = Destination.Sends,
-        )
+        if (!navHiddenSend) {
+            this += WearHomeItemSpec.Action(
+                id = "send",
+                title = TextHolder.Res(Res.string.home_send_label),
+                icon = Icons.AutoMirrored.Outlined.Send,
+                destination = Destination.Sends,
+            )
+        }
         this += WearHomeItemSpec.Action(
             id = "generator",
             title = TextHolder.Res(Res.string.home_generator_label),

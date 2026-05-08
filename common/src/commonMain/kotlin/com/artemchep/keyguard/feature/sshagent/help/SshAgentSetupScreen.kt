@@ -74,17 +74,13 @@ import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
 
 private const val SSH_AGENT_SETUP_MACOS_SOCKET =
-    "\$HOME/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
+    $$"$HOME/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET =
-    "\$XDG_RUNTIME_DIR/keyguard-ssh-agent.sock"
+    $$"$XDG_RUNTIME_DIR/keyguard-ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET_FALLBACK =
     "/tmp/keyguard-<UID>/ssh-agent.sock"
-private const val SSH_AGENT_SETUP_OPTION_ENV_UNIX =
-    "export SSH_AUTH_SOCK=\"/path/to/keyguard-agent.sock\""
 private const val SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_FILE =
     "~/.ssh/config"
-private const val SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_CONTENT =
-    "Host *\n  IdentityAgent /path/to/keyguard-agent.sock"
 private const val SSH_AGENT_SETUP_VERIFY_CMD_LIST =
     "ssh-add -L"
 private const val SSH_AGENT_SETUP_VERIFY_CMD_CONNECT =
@@ -171,6 +167,12 @@ private fun ColumnScope.SshAgentSetupScreenContent() {
 private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
     isMacOS: Boolean,
 ) {
+    val sshAgentSocketPath = if (isMacOS) {
+        SSH_AGENT_SETUP_MACOS_SOCKET
+    } else {
+        SSH_AGENT_SETUP_LINUX_SOCKET
+    }
+
     Section(
         text = stringResource(Res.string.ssh_agent_setup_step_1_title),
     )
@@ -192,7 +194,7 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
                 .height(4.dp),
         )
         CopyableCodeBlock(
-            text = SSH_AGENT_SETUP_MACOS_SOCKET,
+            text = sshAgentSocketPath,
         )
     } else {
         Spacer(
@@ -200,7 +202,7 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
                 .height(4.dp),
         )
         CopyableCodeBlock(
-            text = SSH_AGENT_SETUP_LINUX_SOCKET,
+            text = sshAgentSocketPath,
         )
         Spacer(
             modifier = Modifier
@@ -254,7 +256,7 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
                     .height(4.dp),
             )
             CopyableCodeBlock(
-                text = SSH_AGENT_SETUP_OPTION_ENV_UNIX,
+                text = sshAuthSockCommand(sshAgentSocketPath),
             )
         }
 
@@ -268,7 +270,7 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
             )
             CopyableCodeBlock(
                 file = SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_FILE,
-                text = SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_CONTENT,
+                text = identityAgentConfig(sshAgentSocketPath),
             )
         }
     }
@@ -406,6 +408,16 @@ private fun ColumnScope.SshAgentSetupAndroidPlatformContent() {
         text = stringResource(Res.string.ssh_agent_setup_android_how_does_it_work_2),
     )
 }
+
+private fun sshAuthSockCommand(socketPath: String): String =
+    "export SSH_AUTH_SOCK=\"${socketPath.escapeDoubleQuoted()}\""
+
+private fun identityAgentConfig(socketPath: String): String =
+    "Host *\n  IdentityAgent \"${socketPath.escapeDoubleQuoted()}\""
+
+private fun String.escapeDoubleQuoted(): String =
+    replace("\\", "\\\\")
+        .replace("\"", "\\\"")
 
 @Composable
 private fun ColumnScope.SshAgentSetupUnsupportedPlatformContent() {

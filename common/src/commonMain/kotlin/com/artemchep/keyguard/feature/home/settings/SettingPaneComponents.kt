@@ -209,28 +209,9 @@ object SettingPaneComponentsDefault : SettingPaneComponents {
     override fun KgBlock(
         content: @Composable (ColumnScope.() -> Unit),
     ) {
-        val expressive = LocalExpressive.current
-        val color = rememberFlatSurfaceExpressiveColor(
-            backgroundColor = Color.Unspecified,
-            expressive = expressive,
-        )
-        val shape = surfaceShape(
-            shapeState = LocalSettingItemShape.current,
-            expressive = expressive,
-        )
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    start = Dimens.contentPadding,
-                    end = Dimens.contentPadding,
-                    top = 1.dp,
-                    bottom = 2.dp,
-                )
-                .clip(shape)
-                .drawBehind {
-                    drawRect(color)
-                },
+                .fillMaxWidth(),
         ) {
             content()
         }

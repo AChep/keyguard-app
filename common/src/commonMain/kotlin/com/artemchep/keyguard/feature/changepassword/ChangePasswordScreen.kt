@@ -1,11 +1,11 @@
 package com.artemchep.keyguard.feature.changepassword
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Save
@@ -36,7 +36,7 @@ import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordFlatTextField
-import com.artemchep.keyguard.ui.ScaffoldColumn
+import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonCheckbox
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
@@ -65,7 +65,7 @@ fun ChangePasswordScreen() {
 @Composable
 fun ChangePasswordScaffoldSkeleton() {
     val scrollBehavior = ToolbarBehavior.behavior()
-    ScaffoldColumn(
+    ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topAppBarScrollBehavior = scrollBehavior,
@@ -87,68 +87,169 @@ fun ChangePasswordScaffoldSkeleton() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+private fun LazyListScope.ChangePasswordContentSkeleton() {
+    item("password.current.skeleton") {
+        SkeletonTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimens.horizontalPadding),
+        )
+    }
+    item("password.current.new.spacer.skeleton") {
+        Spacer(Modifier.height(8.dp))
+    }
+    item("password.new.skeleton") {
+        SkeletonTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimens.horizontalPadding),
+        )
+    }
+    item("password.new.biometric.spacer.skeleton") {
+        Spacer(Modifier.height(8.dp))
+    }
+    item("biometric.skeleton") {
+        FlatItemLayout(
+            leading = {
+                SkeletonCheckbox(
+                    clickable = false,
+                )
+            },
+            content = {
+                SkeletonText(
+                    modifier = Modifier
+                        .fillMaxWidth(0.3f),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            },
+            enabled = true,
+        )
+    }
+    item("biometric.disclaimer.spacer.skeleton") {
+        Spacer(
+            modifier = Modifier
+                .height(32.dp),
+        )
+    }
+    item("disclaimer.icon.spacer.skeleton") {
+        Spacer(
+            modifier = Modifier
+                .height(24.dp),
+        )
+    }
+    item("disclaimer.text.spacer.skeleton") {
+        Spacer(
+            modifier = Modifier
+                .height(16.dp),
+        )
+    }
+    item("disclaimer.local.skeleton") {
+        SkeletonText(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPadding)
+                .fillMaxWidth(),
+            style = MaterialTheme.typography.bodyMedium,
+            emphasis = MediumEmphasisAlpha,
+        )
+    }
+    item("disclaimer.local.line2.skeleton") {
+        SkeletonText(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPadding)
+                .fillMaxWidth(),
+            style = MaterialTheme.typography.bodyMedium,
+            emphasis = MediumEmphasisAlpha,
+        )
+    }
+    item("disclaimer.abuse.skeleton") {
+        SkeletonText(
+            modifier = Modifier
+                .padding(horizontal = Dimens.horizontalPadding)
+                .fillMaxWidth(0.6f),
+            style = MaterialTheme.typography.bodyMedium,
+            emphasis = MediumEmphasisAlpha,
+        )
+    }
+}
+
 @Composable
-fun ColumnScope.ChangePasswordContentSkeleton() {
-    SkeletonTextField(
+private fun ChangePasswordCurrentPasswordItem(
+    state: ChangePasswordState,
+) {
+    PasswordFlatTextField(
         modifier = Modifier
-            .fillMaxWidth()
             .padding(horizontal = Dimens.horizontalPadding),
+        value = state.password.current,
+        label = stringResource(Res.string.current_password),
     )
-    Spacer(Modifier.height(8.dp))
-    SkeletonTextField(
+}
+
+@Composable
+private fun ChangePasswordNewPasswordItem(
+    state: ChangePasswordState,
+) {
+    PasswordFlatTextField(
         modifier = Modifier
-            .fillMaxWidth()
             .padding(horizontal = Dimens.horizontalPadding),
+        value = state.password.new,
+        label = stringResource(Res.string.new_password),
+        trailing = {
+            AutofillButton(
+                key = "password",
+                password = true,
+                onValueChange = state.password.new.onChange,
+            )
+        },
     )
-    Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+private fun ChangePasswordBiometricItem(
+    biometric: ChangePasswordState.Biometric,
+) {
     FlatItemLayout(
         leading = {
-            SkeletonCheckbox(
-                clickable = false,
+            Checkbox(
+                enabled = biometric.onChange != null,
+                checked = biometric.checked,
+                onCheckedChange = {
+                    biometric.onChange?.invoke(it)
+                },
             )
         },
         content = {
-            SkeletonText(
-                modifier = Modifier
-                    .fillMaxWidth(0.3f),
+            Text(
+                text = stringResource(Res.string.changepassword_biometric_auth_checkbox),
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
-        enabled = true,
+        onClick = biometric.onChange?.partially1(!biometric.checked),
     )
-    Spacer(
+}
+
+@Composable
+private fun ChangePasswordDisclaimerIconItem() {
+    Icon(
         modifier = Modifier
-            .height(32.dp),
+            .padding(horizontal = Dimens.horizontalPadding),
+        imageVector = Icons.Outlined.Info,
+        contentDescription = null,
+        tint = LocalContentColor.current
+            .combineAlpha(alpha = MediumEmphasisAlpha),
     )
-    Spacer(
+}
+
+@Composable
+private fun ChangePasswordDisclaimerTextItem(
+    text: String,
+) {
+    Text(
         modifier = Modifier
-            .height(24.dp),
-    )
-    Spacer(
-        modifier = Modifier
-            .height(16.dp),
-    )
-    SkeletonText(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding)
-            .fillMaxWidth(),
+            .padding(horizontal = Dimens.horizontalPadding),
+        text = text,
         style = MaterialTheme.typography.bodyMedium,
-        emphasis = MediumEmphasisAlpha,
-    )
-    SkeletonText(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding)
-            .fillMaxWidth(),
-        style = MaterialTheme.typography.bodyMedium,
-        emphasis = MediumEmphasisAlpha,
-    )
-    SkeletonText(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding)
-            .fillMaxWidth(0.6f),
-        style = MaterialTheme.typography.bodyMedium,
-        emphasis = MediumEmphasisAlpha,
+        color = LocalContentColor.current
+            .combineAlpha(MediumEmphasisAlpha),
     )
 }
 
@@ -160,7 +261,7 @@ fun ChangePasswordScreen(
     BiometricPromptEffect(state.sideEffects.showBiometricPromptFlow)
 
     val scrollBehavior = ToolbarBehavior.behavior()
-    ScaffoldColumn(
+    ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topAppBarScrollBehavior = scrollBehavior,
@@ -233,86 +334,58 @@ fun FabScope.ChangePasswordFab(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ColumnScope.ChangePasswordContent(
+private fun LazyListScope.ChangePasswordContent(
     state: ChangePasswordState,
 ) {
-    PasswordFlatTextField(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
-        value = state.password.current,
-        label = stringResource(Res.string.current_password),
-    )
-    Spacer(Modifier.height(8.dp))
-    PasswordFlatTextField(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
-        value = state.password.new,
-        label = stringResource(Res.string.new_password),
-        trailing = {
-            AutofillButton(
-                key = "password",
-                password = true,
-                onValueChange = state.password.new.onChange,
-            )
-        },
-    )
-    if (state.biometric != null) {
+    item("password.current") {
+        ChangePasswordCurrentPasswordItem(state = state)
+    }
+    item("password.current.new.spacer") {
         Spacer(Modifier.height(8.dp))
-        FlatItemLayout(
-            leading = {
-                Checkbox(
-                    enabled = state.biometric.onChange != null,
-                    checked = state.biometric.checked,
-                    onCheckedChange = {
-                        state.biometric.onChange?.invoke(it)
-                    },
-                )
-            },
-            content = {
-                Text(
-                    text = stringResource(Res.string.changepassword_biometric_auth_checkbox),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            },
-            onClick = state.biometric.onChange?.partially1(!state.biometric.checked),
+    }
+    item("password.new") {
+        ChangePasswordNewPasswordItem(state = state)
+    }
+    val biometric = state.biometric
+    if (biometric != null) {
+        item("password.new.biometric.spacer") {
+            Spacer(Modifier.height(8.dp))
+        }
+        item("biometric") {
+            ChangePasswordBiometricItem(
+                biometric = biometric,
+            )
+        }
+    }
+    item("biometric.disclaimer.spacer") {
+        Spacer(
+            modifier = Modifier
+                .height(32.dp),
         )
     }
-    Spacer(
-        modifier = Modifier
-            .height(32.dp),
-    )
-    Icon(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
-        imageVector = Icons.Outlined.Info,
-        contentDescription = null,
-        tint = LocalContentColor.current
-            .combineAlpha(alpha = MediumEmphasisAlpha),
-    )
-    Spacer(
-        modifier = Modifier
-            .height(16.dp),
-    )
-    Text(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
-        text = stringResource(Res.string.changepassword_disclaimer_local_note),
-        style = MaterialTheme.typography.bodyMedium,
-        color = LocalContentColor.current
-            .combineAlpha(MediumEmphasisAlpha),
-    )
-    Spacer(
-        modifier = Modifier
-            .height(16.dp),
-    )
-    Text(
-        modifier = Modifier
-            .padding(horizontal = Dimens.horizontalPadding),
-        text = stringResource(Res.string.changepassword_disclaimer_abuse_note),
-        style = MaterialTheme.typography.bodyMedium,
-        color = LocalContentColor.current
-            .combineAlpha(MediumEmphasisAlpha),
-    )
+    item("disclaimer.icon") {
+        ChangePasswordDisclaimerIconItem()
+    }
+    item("disclaimer.local.spacer") {
+        Spacer(
+            modifier = Modifier
+                .height(16.dp),
+        )
+    }
+    item("disclaimer.local") {
+        ChangePasswordDisclaimerTextItem(
+            text = stringResource(Res.string.changepassword_disclaimer_local_note),
+        )
+    }
+    item("disclaimer.abuse.spacer") {
+        Spacer(
+            modifier = Modifier
+                .height(16.dp),
+        )
+    }
+    item("disclaimer.abuse") {
+        ChangePasswordDisclaimerTextItem(
+            text = stringResource(Res.string.changepassword_disclaimer_abuse_note),
+        )
+    }
 }

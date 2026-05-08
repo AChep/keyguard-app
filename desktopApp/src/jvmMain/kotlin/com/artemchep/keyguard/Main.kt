@@ -84,6 +84,7 @@ import com.artemchep.keyguard.platform.lifecycle.LaunchLifecycleProviderEffect
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.platform.lifecycle.onState
+import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.LocalComposeWindow
@@ -177,6 +178,11 @@ fun main() {
     // Construct the image loader singleton to match what
     // we have set in the application's DI.
     SingletonImageLoader.setFromDi(appDi)
+
+    // Allow different builds to be run side-by-side.
+    SingleInstanceManager.configuration = SingleInstanceManager.Configuration(
+        lockIdentifier = if (isRelease) "keyguard" else "keyguard-dev",
+    )
 
     val processLifecycleProvider = LePlatformLifecycleProvider(
         scope = GlobalScope,

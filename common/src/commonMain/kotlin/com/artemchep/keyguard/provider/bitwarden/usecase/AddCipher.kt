@@ -29,7 +29,6 @@ import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
-import com.artemchep.keyguard.provider.bitwarden.usecase.util.withPasswordChange
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import kotlin.time.Clock
@@ -360,6 +359,11 @@ private suspend fun BitwardenCipher.Companion.of(
                 "least one collection!"
     }
 
+    // We may want to preserve the metadata of the origin ciphers
+    // during the merge process -- for example merging the password
+    // history.
+    val originCiphers = request.merge?.ciphers.orEmpty()
+
     val favourite = request.favorite!!
     val reprompt = when (request.reprompt!!) {
         true -> BitwardenCipher.RepromptType.Password
@@ -501,15 +505,51 @@ private suspend fun BitwardenCipher.Companion.of(
             }
     }
 
-    val passwordHistory = if (old != null) {
-        val list = old.passwordHistory
-            .withPasswordChange(
-                previousPassword = old.login?.password,
-                nextPassword = request.login.password
-                    ?.takeIf { it.isNotEmpty() },
-                at = now,
-            )
-            .toMutableList()
+    val passwordHistory = if (old != null || originCiphers.isNotEmpty()) {
+        val list: MutableList<BitwardenCipher.Login.PasswordHistory> = mutableListOf()
+
+        // 1. Add all the password histories from the source
+        // ciphers to preserve those.
+        originCiphers
+            .flatMap { it.passwordHistory }
+            .map {
+                BitwardenCipher.Login.PasswordHistory(
+                    password = it.password,
+                    lastUsedDate = it.lastUsedDate,
+                )
+            }
+            .toCollection(list)
+
+        // 2. Add all the password histories from the old cipher.
+        old?.passwordHistory
+            ?.toCollection(list)
+
+        // 3. Reflect the changes in the old -> current passwords.
+        val newPassword = request.login.password
+            ?.takeIf { it.isNotEmpty() }
+        sequence {
+            val oldPassword = old?.login?.password
+            if (oldPassword != null) {
+                yield(oldPassword)
+            }
+
+            val originPasswords = originCiphers
+                .asSequence()
+                .mapNotNull { it.login?.password }
+            yieldAll(originPasswords)
+        }
+            .distinct()
+            .filter { oldPassword ->
+                oldPassword != newPassword &&
+                        oldPassword.isNotEmpty()
+            }
+            .map { oldPassword ->
+                BitwardenCipher.Login.PasswordHistory(
+                    password = oldPassword,
+                    lastUsedDate = now,
+                )
+            }
+            .toCollection(list)
 
         //
         // Track changed fields as well.
@@ -519,11 +559,36 @@ private suspend fun BitwardenCipher.Companion.of(
             this.type == BitwardenCipher.Field.Type.Hidden &&
                     !this.value.isNullOrBlank()
 
-        val oldFieldsNoDuplicates = old.fields
-            .filter { oldField ->
-                oldField.shouldBeTracked()
+        val oldFieldsNoDuplicates = kotlin.run {
+            val originCiphersFields = originCiphers
+                .asSequence()
+                .flatMap { it.fields }
+                .map {
+                    val linkedId = it.linkedId?.let(BitwardenCipher.Field.LinkedId::of)
+                    val type = when (it.type) {
+                        DSecret.Field.Type.Text -> BitwardenCipher.Field.Type.Text
+                        DSecret.Field.Type.Hidden -> BitwardenCipher.Field.Type.Hidden
+                        DSecret.Field.Type.Boolean -> BitwardenCipher.Field.Type.Boolean
+                        DSecret.Field.Type.Linked -> BitwardenCipher.Field.Type.Linked
+                    }
+                    BitwardenCipher.Field(
+                        name = it.name,
+                        value = it.value,
+                        linkedId = linkedId,
+                        type = type,
+                    )
+                }
+            val oldFields = old?.fields
+                .orEmpty()
+            sequence {
+                yieldAll(originCiphersFields)
+                yieldAll(oldFields)
             }
-            .distinct()
+                .filter { oldField ->
+                    oldField.shouldBeTracked()
+                }
+                .distinct()
+        }
         oldFieldsNoDuplicates.forEach { oldField ->
             val shouldBeTracked = fields
                 .none { oldField == it }
@@ -535,7 +600,16 @@ private suspend fun BitwardenCipher.Companion.of(
                 )
             }
         }
-        list
+
+        val shouldDeDuplicateAndSort =
+            originCiphers.isNotEmpty()
+        if (shouldDeDuplicateAndSort) {
+            list
+                .distinctBy { it.id }
+                .sortedBy { it.lastUsedDate }
+        } else {
+            list
+        }
     } else {
         emptyList()
     }

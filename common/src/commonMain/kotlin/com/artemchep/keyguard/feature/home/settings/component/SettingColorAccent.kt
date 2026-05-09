@@ -43,7 +43,9 @@ import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.composable
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.theme.appColorScheme
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.ui.theme.isDark
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
@@ -87,7 +89,15 @@ fun settingColorAccentProvider(
                 },
                 trailing = if (colorsVariant != null) {
                     composable {
-                        val accentColor = Color(colorsVariant.color)
+                        // For an accurate re-presentation of the color we create a
+                        // proper color scheme object the same way we do it for the
+                        // root keyguard theme.
+                        val materialColorScheme = appColorScheme(
+                            colors = colorsVariant,
+                            isDarkColorScheme = MaterialTheme.colorScheme.isDark,
+                        )
+
+                        val accentColor = materialColorScheme.primary
                         Box(
                             Modifier
                                 .background(accentColor, CircleShape)

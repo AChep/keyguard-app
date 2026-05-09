@@ -156,7 +156,7 @@ class CipherSshKeyWeakCheckTest {
     }
 
     @Test
-    fun `watchtower processor reports weak ssh key threat with fingerprint value`() = runTest {
+    fun `watchtower processor reports weak ssh key threat with private key value`() = runTest {
         val weak = createSshSecret("weak", rsa1024)
         val strong = createSshSecret("strong", rsa2048)
         val processor = WatchtowerSshKeyStrength(check)
@@ -166,13 +166,13 @@ class CipherSshKeyWeakCheckTest {
         val weakResult = results.single { it.cipher.id == weak.id }
         val strongResult = results.single { it.cipher.id == strong.id }
         assertTrue(weakResult.threat)
-        assertEquals(rsa1024.publicKey.fingerprint, weakResult.value)
+        assertEquals(rsa1024.privateKey.ssh, weakResult.value)
         assertFalse(strongResult.threat)
-        assertEquals(rsa2048.publicKey.fingerprint, strongResult.value)
+        assertEquals(rsa2048.privateKey.ssh, strongResult.value)
     }
 
     @Test
-    fun `watchtower processor reports raw threat for ignored weak ssh key`() = runTest {
+    fun `watchtower processor suppresses threat for ignored weak ssh key`() = runTest {
         val ignored = createSshSecret(
             id = "ignored",
             keyPair = rsa1024,
@@ -182,8 +182,8 @@ class CipherSshKeyWeakCheckTest {
 
         val result = processor.process(listOf(ignored)).single()
 
-        assertTrue(result.threat)
-        assertEquals(rsa1024.publicKey.fingerprint, result.value)
+        assertFalse(result.threat)
+        assertEquals(rsa1024.privateKey.ssh, result.value)
     }
 
     @Test
@@ -207,8 +207,8 @@ class CipherSshKeyWeakCheckTest {
 
         assertTrue(predicate(weak))
         assertFalse(predicate(strong))
-        assertTrue(predicate(ignored))
-        assertEquals(2, DFilter.ByWeakSshKeys.count(directDI, ciphers))
+        assertFalse(predicate(ignored))
+        assertEquals(1, DFilter.ByWeakSshKeys.count(directDI, ciphers))
     }
 
     private fun generateKeyPair(

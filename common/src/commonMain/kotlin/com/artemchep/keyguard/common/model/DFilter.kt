@@ -667,8 +667,13 @@ sealed interface DFilter {
             val cipherSshKeyWeakCheck = directDI.instance<CipherSshKeyWeakCheck>()
             ciphers
                 .asSequence()
+                .filter { !shouldIgnore(it) }
                 .filter(cipherSshKeyWeakCheck::invoke)
         }
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlertType.WEAK_SSH_KEY)
     }
 
     @Serializable

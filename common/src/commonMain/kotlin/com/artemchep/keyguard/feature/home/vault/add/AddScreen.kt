@@ -5,6 +5,7 @@ package com.artemchep.keyguard.feature.home.vault.add
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,10 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Save
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.add.AddScreenItems
@@ -34,23 +38,30 @@ import com.artemchep.keyguard.feature.add.getAnyFieldShapeState
 import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.filepicker.fileDropTarget
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FabState
-import com.artemchep.keyguard.ui.FlatItemLayout
+import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.button.FavouriteToggleButton
+import com.artemchep.keyguard.ui.icons.DropdownIcon
+import com.artemchep.keyguard.ui.icons.Stub
+import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
+import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -384,21 +395,63 @@ private fun AddScreenMergeItem(
         modifier = Modifier
             .height(8.dp),
     )
-    FlatItemLayout(
-        leading = {
-            Checkbox(
-                checked = state.removeOrigin.checked,
-                onCheckedChange = null,
-            )
-        },
+
+    val updatedOnChangeState by rememberUpdatedState(state.onChangePostAction)
+    val postActionIconImageVector = remember(state.postAction) {
+        state.postAction.iconImageVector()
+            .takeIf { it !== Icons.Stub }
+    }
+    val postActionTitleStringRes = remember(state.postAction) {
+        state.postAction.titleStringRes()
+    }
+    val postActionDropdown = remember {
+        sequence {
+            yield(null)
+            yieldAll(CreateRequest.Merge.PostAction.entries)
+        }
+            .map { postAction ->
+                val titleRes = postAction.titleStringRes()
+                val icon = postAction.iconImageVector()
+                FlatItemAction(
+                    icon = icon,
+                    title = TextHolder.Res(titleRes),
+                    onClick = {
+                        updatedOnChangeState?.invoke(postAction)
+                    },
+                )
+            }
+            .toImmutableList()
+    }
+    FlatDropdownSimpleExpressive(
+        dropdown = postActionDropdown,
+        leading = postActionIconImageVector
+            ?.let { icon ->
+                icon<RowScope>(icon)
+            },
         content = {
-            Text(
-                text = stringResource(Res.string.additem_merge_remove_origin_ciphers_title),
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(postActionTitleStringRes),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                },
             )
         },
-        onClick = {
-            val newValue = !state.removeOrigin.checked
-            state.removeOrigin.onChange?.invoke(newValue)
+        trailing = {
+            DropdownIcon()
         },
     )
+}
+
+private fun CreateRequest.Merge.PostAction?.titleStringRes() = when (this) {
+    null -> Res.string.additem_merge_keep_origin_ciphers_title
+    CreateRequest.Merge.PostAction.TRASH -> Res.string.additem_merge_remove_origin_ciphers_title
+    CreateRequest.Merge.PostAction.ARCHIVE -> Res.string.additem_merge_archive_origin_ciphers_title
+}
+
+private fun CreateRequest.Merge.PostAction?.iconImageVector() = when (this) {
+    null -> Icons.Stub
+    CreateRequest.Merge.PostAction.TRASH -> Icons.Outlined.Delete
+    CreateRequest.Merge.PostAction.ARCHIVE -> Icons.Outlined.Archive
 }

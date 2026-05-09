@@ -68,6 +68,7 @@ data class AddState(
     data class Merge(
         val ciphers: List<DSecret>,
         val note: SimpleNote?,
-        val removeOrigin: SwitchFieldModel,
+        val postAction: CreateRequest.Merge.PostAction?,
+        val onChangePostAction: ((CreateRequest.Merge.PostAction?) -> Unit)? = null,
     )
 }

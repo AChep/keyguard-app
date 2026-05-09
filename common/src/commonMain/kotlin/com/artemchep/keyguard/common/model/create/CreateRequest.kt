@@ -56,9 +56,14 @@ data class CreateRequest(
     @optics
     data class Merge(
         val ciphers: List<DSecret>,
-        val removeOrigin: Boolean,
+        val postAction: PostAction?,
     ) {
         companion object;
+
+        enum class PostAction {
+            ARCHIVE,
+            TRASH,
+        }
     }
 
     @optics

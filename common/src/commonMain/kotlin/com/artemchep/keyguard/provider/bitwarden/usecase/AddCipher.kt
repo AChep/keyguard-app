@@ -11,11 +11,13 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.canDelete
+import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
+import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -42,6 +44,7 @@ import org.kodein.di.instance
 class AddCipherImpl(
     private val modifyDatabase: ModifyDatabase,
     private val addFolder: AddFolder,
+    private val archiveCipherById: ArchiveCipherById,
     private val trashCipherById: TrashCipherById,
     private val cryptoGenerator: CryptoGenerator,
     private val getPasswordStrength: GetPasswordStrength,
@@ -56,6 +59,7 @@ class AddCipherImpl(
     constructor(directDI: DirectDI) : this(
         modifyDatabase = directDI.instance(),
         addFolder = directDI.instance(),
+        archiveCipherById = directDI.instance(),
         trashCipherById = directDI.instance(),
         cryptoGenerator = directDI.instance(),
         getPasswordStrength = directDI.instance(),
@@ -176,32 +180,46 @@ class AddCipherImpl(
             }
         }
     }.flatTap {
-        val cipherIdsToTrash = cipherIdsToRequests
-            .values
-            .asSequence()
-            .mapNotNull {
-                val ciphers = it.merge?.ciphers
-                    ?: return@mapNotNull null
-                // Ignore the request if we do not need to trash the
-                // origin ciphers.
-                if (!it.merge.removeOrigin) {
-                    return@mapNotNull null
+        val ciphersIdsToTrash = mutableSetOf<String>()
+        val ciphersIdsToArchive = mutableSetOf<String>()
+
+        cipherIdsToRequests.values.forEach {
+            val ciphers = it.merge?.ciphers
+                ?: return@forEach
+
+            val postAction = it.merge.postAction
+                ?: return@forEach
+            when (postAction) {
+                CreateRequest.Merge.PostAction.TRASH -> {
+                    ciphers.forEach { cipher ->
+                        val allow = cipher.canDelete() &&
+                                !cipher.deleted
+                        if (!allow) return@forEach
+                        ciphersIdsToTrash += cipher.id
+                    }
                 }
-                ciphers
+
+                CreateRequest.Merge.PostAction.ARCHIVE -> {
+                    ciphers.forEach { cipher ->
+                        val allow = cipher.canEdit() &&
+                                !cipher.archived
+                        if (!allow) return@forEach
+                        ciphersIdsToArchive += cipher.id
+                    }
+                }
             }
-            .flatten()
-            .filter { cipher ->
-                cipher.canDelete() &&
-                        !cipher.deleted
-            }
-            .map { cipher ->
-                cipher.id
-            }
-            .toSet()
-        if (cipherIdsToTrash.isEmpty()) {
-            return@flatTap ioUnit()
         }
-        trashCipherById(cipherIdsToTrash)
+
+        ioEffect {
+            if (ciphersIdsToArchive.isNotEmpty()) {
+                archiveCipherById(ciphersIdsToArchive)
+                    .bind()
+            }
+            if (ciphersIdsToTrash.isNotEmpty()) {
+                trashCipherById(ciphersIdsToTrash)
+                    .bind()
+            }
+        }
     }
 }
 

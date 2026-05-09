@@ -304,19 +304,16 @@ fun produceAddScreenState(
             else -> null
         }
 
-        val mergeRemoveCiphers = mutablePersistedFlow("merge.remove_ciphers") {
-            false
+        val mergePostActionSink = mutablePersistedFlow<CreateRequest.Merge.PostAction?>("merge.post_action") {
+            null
         }
-        mergeRemoveCiphers
-            .map { removeCiphers ->
-                val removeOrigin = SwitchFieldModel(
-                    checked = removeCiphers,
-                    onChange = mergeRemoveCiphers::value::set,
-                )
+        mergePostActionSink
+            .map { mergePostAction ->
                 AddState.Merge(
                     ciphers = args.merge.ciphers,
                     note = note,
-                    removeOrigin = removeOrigin,
+                    postAction = mergePostAction,
+                    onChangePostAction = mergePostActionSink::value::set,
                 )
             }
     } else {
@@ -940,7 +937,7 @@ fun produceAddScreenState(
 
                             val requestMerge = CreateRequest.Merge(
                                 ciphers = merge.ciphers,
-                                removeOrigin = merge.removeOrigin.checked,
+                                postAction = merge.postAction,
                             )
                             return r.copy(merge = requestMerge)
                         }

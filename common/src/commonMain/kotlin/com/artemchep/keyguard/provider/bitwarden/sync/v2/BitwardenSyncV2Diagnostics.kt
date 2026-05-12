@@ -12,7 +12,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncResult
 
 class BitwardenSyncV2Diagnostics(
     private val logRepository: LogRepository?,
-    private val enabled: Boolean = !isRelease,
+    private val enabled: Boolean = true,
 ) {
     companion object {
         private const val TAG = "SyncV2Diagnostics.bitwarden"

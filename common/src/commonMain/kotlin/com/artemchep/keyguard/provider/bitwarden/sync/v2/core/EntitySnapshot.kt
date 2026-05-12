@@ -33,4 +33,5 @@ data class EntitySyncPlan<Local, Server>(
     val actions: List<SyncAction>,
     val localSnapshot: LocalEntitySnapshot<Local>,
     val serverSnapshot: ServerEntitySnapshot<Server>,
+    val staleServerEntities: Int = 0,
 )

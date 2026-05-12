@@ -105,7 +105,9 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
             plan.localSnapshot.metadata
                 .associateBy { it.localId }
 
-        val tracker = ResultTracker()
+        val tracker = ResultTracker(
+            staleServerEntities = plan.staleServerEntities,
+        )
 
         val deleteLocallyActions = mutableListOf<SyncAction.DeleteLocally>()
         val insertLocallyActions = mutableListOf<SyncAction.InsertLocally>()
@@ -879,7 +881,9 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
     // ---------------------------------------------------------------
 
     /** Mutable accumulator for succeeded/skipped/failed action counts. */
-    private class ResultTracker {
+    private class ResultTracker(
+        var staleServerEntities: Int = 0,
+    ) {
         var succeeded: Int = 0
         var skipped: Int = 0
         val failures: MutableList<ActionFailure> = mutableListOf()
@@ -897,6 +901,7 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
                 succeeded = succeeded,
                 skipped = skipped,
                 failures = failures.toList(),
+                staleServerEntities = staleServerEntities,
             )
     }
 }

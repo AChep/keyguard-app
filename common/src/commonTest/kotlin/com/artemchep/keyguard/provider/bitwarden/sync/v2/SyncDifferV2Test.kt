@@ -91,6 +91,50 @@ class SyncDifferV2Test {
     }
 
     @Test
+    fun `stale server snapshot on clean local item is ignored and recorded`() {
+        val result =
+            SyncDiffer.diffResult(
+                localItems =
+                    listOf(
+                        localMeta(
+                            revisionDate = T2,
+                            lastSyncedRevisionDate = T2,
+                        ),
+                    ),
+                serverItems = listOf(serverMeta(revisionDate = T1)),
+            )
+
+        assertEquals(emptyList(), result.actions)
+        assertEquals(1, result.staleServerEntities)
+    }
+
+    @Test
+    fun `stale server snapshot on dirty local item pushes local and records stale entity`() {
+        val result =
+            SyncDiffer.diffResult(
+                localItems =
+                    listOf(
+                        localMeta(
+                            revisionDate = T3,
+                            lastSyncedRevisionDate = T2,
+                        ),
+                    ),
+                serverItems = listOf(serverMeta(revisionDate = T1)),
+            )
+
+        assertEquals(
+            listOf(
+                SyncAction.PushToServer(
+                    localId = "local-1",
+                    serverId = "remote-1",
+                ),
+            ),
+            result.actions,
+        )
+        assertEquals(1, result.staleServerEntities)
+    }
+
+    @Test
     fun `pending local deletion is sent as a remote delete`() {
         val actions = diff(
             local = listOf(

@@ -52,15 +52,16 @@ class EntitySyncPlanBuilder<Local : BitwardenService.Has<Local>, Server : Any>(
     ): EntitySyncPlan<Local, Server> {
         val localSnapshot = buildLocalSnapshot(localEntities)
         val serverSnapshot = buildServerSnapshot(serverEntities)
-        val actions =
-            SyncDiffer.diff(
+        val diff =
+            SyncDiffer.diffResult(
                 localItems = localSnapshot.metadata,
                 serverItems = serverSnapshot.metadata,
             )
         return EntitySyncPlan(
-            actions = actions,
+            actions = diff.actions,
             localSnapshot = localSnapshot,
             serverSnapshot = serverSnapshot,
+            staleServerEntities = diff.staleServerEntities,
         )
     }
 }

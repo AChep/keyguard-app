@@ -674,6 +674,17 @@ class SyncCoordinatorAndRevisionV2Test {
                         ),
                 ),
         ).requireCleanForRevisionCache()
+        assertTrue(
+            SyncResult(
+                outcomes =
+                    mapOf(
+                        "ciphers" to
+                            EntityTypeOutcome.Completed(
+                                SyncExecutionResult(succeeded = 1),
+                            ),
+                    ),
+            ).canCacheServerRevisionDate,
+        )
 
         assertFailsWith<IllegalStateException> {
             SyncResult(
@@ -713,9 +724,33 @@ class SyncCoordinatorAndRevisionV2Test {
                             EntityTypeOutcome.Failed(
                                 IllegalStateException("entity type failed"),
                             ),
-                ),
+                    ),
             ).requireCleanForRevisionCache()
         }
+        SyncResult(
+            outcomes =
+                mapOf(
+                    "ciphers" to
+                        EntityTypeOutcome.Completed(
+                            SyncExecutionResult(
+                                staleServerEntities = 1,
+                            ),
+                        ),
+                ),
+        ).requireCleanForRevisionCache()
+        assertFalse(
+            SyncResult(
+                outcomes =
+                    mapOf(
+                        "ciphers" to
+                            EntityTypeOutcome.Completed(
+                                SyncExecutionResult(
+                                    staleServerEntities = 1,
+                                ),
+                            ),
+                    ),
+            ).canCacheServerRevisionDate,
+        )
         val firstFailure = IllegalStateException("first entity type failed")
         val thrown =
             assertFailsWith<IllegalStateException> {
@@ -757,6 +792,18 @@ class SyncCoordinatorAndRevisionV2Test {
                     ),
             ).isFullySuccessful,
         )
+        val staleResult =
+            SyncResult(
+                outcomes =
+                    mapOf(
+                        "ciphers" to
+                            EntityTypeOutcome.Completed(
+                                SyncExecutionResult(staleServerEntities = 1),
+                            ),
+                    ),
+            )
+        assertTrue(staleResult.isFullySuccessful)
+        assertFalse(staleResult.canCacheServerRevisionDate)
         assertFalse(
             SyncResult(
                 outcomes =

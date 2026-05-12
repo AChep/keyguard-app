@@ -33,44 +33,57 @@ data class SyncResult(
      * the server revision date must not be cached; otherwise the next cycle
      * could skip the full sync while some entities still need reconciliation.
      */
-    val isFullySuccessful: Boolean
-        get() =
-            outcomes.values.all { outcome ->
-                outcome is EntityTypeOutcome.Completed &&
-                    outcome.result.skipped == 0 &&
-                    outcome.result.failures.isEmpty()
-            }
+    val isFullySuccessful: Boolean by lazy {
+        outcomes.values.all { outcome ->
+            outcome is EntityTypeOutcome.Completed &&
+                outcome.result.skipped == 0 &&
+                outcome.result.failures.isEmpty()
+        }
+    }
 
-    val totalSucceeded: Int
-        get() =
-            outcomes.values.sumOf {
-                (it as? EntityTypeOutcome.Completed)?.result?.succeeded ?: 0
-            }
+    /**
+     * Stale server snapshots are not sync failures, but the revision-date
+     * shortcut must not be advanced after observing one.
+     */
+    val canCacheServerRevisionDate: Boolean by lazy {
+        isFullySuccessful && totalStaleServerEntities == 0
+    }
 
-    val totalSkipped: Int
-        get() =
-            outcomes.values.sumOf {
-                (it as? EntityTypeOutcome.Completed)?.result?.skipped ?: 0
-            }
+    val totalSucceeded: Int by lazy {
+        outcomes.values.sumOf {
+            (it as? EntityTypeOutcome.Completed)?.result?.succeeded ?: 0
+        }
+    }
 
-    val totalActionFailures: Int
-        get() =
-            outcomes.values.sumOf {
-                (it as? EntityTypeOutcome.Completed)?.result?.failures?.size ?: 0
-            }
+    val totalSkipped: Int by lazy {
+        outcomes.values.sumOf {
+            (it as? EntityTypeOutcome.Completed)?.result?.skipped ?: 0
+        }
+    }
 
-    val totalEntityTypeFailures: Int
-        get() = outcomes.values.count { it is EntityTypeOutcome.Failed }
+    val totalActionFailures: Int by lazy {
+        outcomes.values.sumOf {
+            (it as? EntityTypeOutcome.Completed)?.result?.failures?.size ?: 0
+        }
+    }
+
+    val totalStaleServerEntities: Int by lazy {
+        outcomes.values.sumOf {
+            (it as? EntityTypeOutcome.Completed)?.result?.staleServerEntities ?: 0
+        }
+    }
+
+    val totalEntityTypeFailures: Int by lazy {
+        outcomes.values.count { it is EntityTypeOutcome.Failed }
+    }
 }
 
 /**
- * Throws if the sync result is not fully clean, preventing the
- * server revision date from being cached.
+ * Throws if the sync result has action/entity failures or skipped actions.
  *
  * A cached revision date tells the next sync cycle "nothing changed"
- * — so we must only cache it when every entity type completed with
- * zero failures and zero skips. Otherwise the next sync would skip
- * work that still needs to happen.
+ * — callers must also check [SyncResult.canCacheServerRevisionDate]
+ * before caching it.
  */
 internal fun SyncResult.requireCleanForRevisionCache() {
     val firstEntityTypeFailure =

@@ -10,11 +10,14 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.core
  * @param skipped number of actions skipped due to optimistic
  *   concurrency checks (the entity was modified concurrently).
  * @param failures actions that failed, with their associated errors.
+ * @param staleServerEntities number of server entities older than the
+ *   locally recorded last-synced revision.
  */
 data class SyncExecutionResult(
     val succeeded: Int = 0,
     val skipped: Int = 0,
     val failures: List<ActionFailure> = emptyList(),
+    val staleServerEntities: Int = 0,
 ) {
     val total: Int get() = succeeded + skipped + failures.size
 }

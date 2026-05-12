@@ -256,6 +256,46 @@ class SyncV2PipelineIntegrationTest {
     }
 
     @Test
+    fun `stale cached sync response does not overwrite newer local folder or cache revision`() = runTest {
+        val server = BitwardenSyncV2TestServer()
+        server.seedFolder("folder-remote-1", "New server name", INSTANT_2)
+        server.syncFoldersOverride =
+            listOf(
+                FolderEntity(
+                    id = "folder-remote-1",
+                    name = "Cached old name",
+                    revisionDate = INSTANT_1,
+                ),
+            )
+        server.revisionDate = "rev-after-newer-write"
+        val store = FolderIntegrationStore()
+        store.addSynced(
+            localId = "local-folder-1",
+            remoteId = "folder-remote-1",
+            name = "New server name",
+            localRevisionDate = INSTANT_2,
+            remoteRevisionDate = INSTANT_2,
+        )
+        val runner = FolderSyncV2IntegrationRunner(server, store)
+        runner.meta = cleanMeta("rev-before-stale-cache")
+
+        val result = runner.run()
+
+        assertNull(result.failure)
+        assertEquals(0, result.executionResult?.succeeded)
+        assertEquals(0, result.executionResult?.skipped)
+        assertEquals(1, result.executionResult?.staleServerEntities)
+        assertEquals("rev-before-stale-cache", runner.meta?.lastServerRevisionDate)
+        assertEquals(BitwardenMeta.LastSyncResult.Success, runner.meta?.lastSyncResult)
+        assertEquals("New server name", server.folders.getValue("folder-remote-1").name)
+        val local = store.locals.getValue("local-folder-1")
+        assertEquals("New server name", local.name)
+        assertEquals(INSTANT_2, local.revisionDate)
+        assertEquals(INSTANT_2, local.service.remote?.revisionDate)
+        assertEquals(emptyList(), server.requests.filter { it.method == HttpMethod.Put })
+    }
+
+    @Test
     fun `pending local folder deletion sends official DELETE and removes local live record`() = runTest {
         val server = BitwardenSyncV2TestServer()
         server.seedFolder("folder-remote-1", "Remote folder", INSTANT_0)
@@ -569,8 +609,9 @@ private class FolderSyncV2IntegrationRunner(
             executionResult =
                 (outcome as? EntityTypeOutcome.Completed)
                     ?.result
-            SyncResult(mapOf("folders" to outcome)).requireCleanForRevisionCache()
-            if (serverRevisionDate != null) {
+            val syncResult = SyncResult(mapOf("folders" to outcome))
+            syncResult.requireCleanForRevisionCache()
+            if (serverRevisionDate != null && syncResult.canCacheServerRevisionDate) {
                 meta =
                     (meta ?: BitwardenMeta(accountId = ACCOUNT_ID)).copy(
                         lastServerRevisionDate = serverRevisionDate,

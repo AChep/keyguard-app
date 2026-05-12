@@ -34,6 +34,7 @@ internal class BitwardenSyncV2TestServer(
     val requests = mutableListOf<RecordedBitwardenRequest>()
     val retryDelays = mutableListOf<Long>()
     val folders = linkedMapOf<String, FolderEntity>()
+    var syncFoldersOverride: List<FolderEntity>? = null
 
     var revisionDate: String = "2024-01-01T00:00:00Z"
     var revisionDateFailure: TestHttpFailure? = null
@@ -123,7 +124,7 @@ internal class BitwardenSyncV2TestServer(
                 respondJson(
                     SyncEntity(
                         profile = testProfile,
-                        folders = folders.values.toList(),
+                        folders = syncFoldersOverride ?: folders.values.toList(),
                         ciphers = emptyList(),
                         collections = emptyList(),
                         sends = emptyList(),

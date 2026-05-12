@@ -58,6 +58,25 @@ class EntitySyncPlanBuilderV2Test {
     }
 
     @Test
+    fun `build plan carries stale server observations from the sync differ`() {
+        val local =
+            syncedLocal(
+                localId = "local-stale",
+                remoteId = "remote-stale",
+                revisionDate = T2,
+            )
+        val builder = EntitySyncPlanBuilder(TestSyncStrategy)
+
+        val plan = builder.buildPlan(
+            localEntities = listOf(local),
+            serverEntities = listOf(TestServer(id = "remote-stale", revisionDate = T1)),
+        )
+
+        assertEquals(emptyList(), plan.actions)
+        assertEquals(1, plan.staleServerEntities)
+    }
+
+    @Test
     fun `build plan emits primary differ actions from extracted metadata`() {
         val remoteChanged = syncedLocal(localId = "local-update", remoteId = "remote-update")
         val localDeleted =

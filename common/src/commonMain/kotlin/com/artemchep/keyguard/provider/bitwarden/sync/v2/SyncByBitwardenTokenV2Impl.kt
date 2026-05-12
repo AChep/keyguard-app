@@ -558,7 +558,7 @@ class SyncByBitwardenTokenV2Impl(
         logSyncResult(syncResult)
         syncResult.requireCleanForRevisionCache()
 
-        if (serverRevisionDate != null) {
+        if (serverRevisionDate != null && syncResult.canCacheServerRevisionDate) {
             val metaDao = database.metaQueries
             val existingMeta =
                 metaDao

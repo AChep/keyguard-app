@@ -4,6 +4,11 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import kotlin.math.roundToLong
 import kotlin.time.Instant
 
+data class SyncDiffResult(
+    val actions: List<SyncAction>,
+    val staleServerEntities: Int = 0,
+)
+
 /**
  * Pure diff engine that compares local and server metadata to produce
  * a list of [SyncAction]s.
@@ -20,6 +25,7 @@ import kotlin.time.Instant
  * - **Date-rounding mismatches** → forces a local refresh
  * - **Service-version upgrades** → forces re-decode via
  *   [SyncAction.UpdateLocally] with `force = true`
+ * - **Stale server snapshots** → never overwrite newer local state
  *
  * Dates are normalized via [roundToDeciseconds] to absorb sub-second
  * precision differences between server and local storage.
@@ -59,8 +65,22 @@ object SyncDiffer {
         serverItems: List<ServerItemMeta>,
         dateNormalizer: (Instant) -> Long = ::roundToDeciseconds,
         currentServiceVersion: Int = BitwardenService.VERSION,
-    ): List<SyncAction> {
+    ): List<SyncAction> =
+        diffResult(
+            localItems = localItems,
+            serverItems = serverItems,
+            dateNormalizer = dateNormalizer,
+            currentServiceVersion = currentServiceVersion,
+        ).actions
+
+    fun diffResult(
+        localItems: List<LocalItemMeta>,
+        serverItems: List<ServerItemMeta>,
+        dateNormalizer: (Instant) -> Long = ::roundToDeciseconds,
+        currentServiceVersion: Int = BitwardenService.VERSION,
+    ): SyncDiffResult {
         val actions = mutableListOf<SyncAction>()
+        var staleServerEntities = 0
 
         val existingByRemoteId = mutableMapOf<String, MutableList<LocalItemMeta>>()
         val newLocalItems = mutableListOf<LocalItemMeta>()
@@ -88,13 +108,17 @@ object SyncDiffer {
                 )
 
             if (localItem != null) {
-                diffExistingPair(
-                    localItem = localItem,
-                    serverItem = serverItem,
-                    dateNormalizer = dateNormalizer,
-                    currentServiceVersion = currentServiceVersion,
-                    actions = actions,
-                )
+                val diffVerdict =
+                    diffExistingPair(
+                        localItem = localItem,
+                        serverItem = serverItem,
+                        dateNormalizer = dateNormalizer,
+                        currentServiceVersion = currentServiceVersion,
+                        actions = actions,
+                    )
+                if (diffVerdict == DiffPairVerdict.STALE_SERVER_ITEM) {
+                    staleServerEntities++
+                }
             } else {
                 actions += SyncAction.InsertLocally(serverId = serverId)
             }
@@ -110,7 +134,10 @@ object SyncDiffer {
             diffNewLocalItem(item, dateNormalizer, actions)
         }
 
-        return actions
+        return SyncDiffResult(
+            actions = actions,
+            staleServerEntities = staleServerEntities,
+        )
     }
 
     private fun resolveLocalGroup(
@@ -141,19 +168,9 @@ object SyncDiffer {
         dateNormalizer: (Instant) -> Long,
         currentServiceVersion: Int,
         actions: MutableList<SyncAction>,
-    ) {
+    ): DiffPairVerdict {
         val localId = localItem.localId
         val serverId = serverItem.id
-
-        if (localItem.serviceVersion < currentServiceVersion) {
-            actions +=
-                SyncAction.UpdateLocally(
-                    localId = localId,
-                    serverId = serverId,
-                    force = true,
-                )
-            return
-        }
 
         val lastSyncedDate =
             effectiveDate(
@@ -173,21 +190,57 @@ object SyncDiffer {
                 deletedDate = serverItem.deletedDate,
             ).let(dateNormalizer)
 
-        if (serverDate != lastSyncedDate) {
-            if (lastSyncedDate != localDate && localItem.isMergeable) {
-                actions +=
-                    SyncAction.MergeConflict(
+        // The server returned an entity older than the last revision we
+        // accepted locally. This can happen with cached or eventually
+        // consistent self-hosted servers, so never pull that payload locally.
+        //
+        // https://github.com/AChep/keyguard-app/issues/1305#issuecomment-4427923459
+        if (serverDate < lastSyncedDate) {
+            // If the user changed the local row after the last good sync,
+            // preserve that work by pushing it over the stale server copy.
+            if (lastSyncedDate != localDate) {
+                if (localItem.isLocallyDeleted) {
+                    actions += SyncAction.DeleteOnServer(
                         localId = localId,
                         serverId = serverId,
                     )
-            } else {
-                actions +=
-                    SyncAction.UpdateLocally(
-                        localId = localId,
-                        serverId = serverId,
-                    )
+                } else {
+                    if (localItem.canRetryError || !localItem.hasError) {
+                        actions += SyncAction.PushToServer(
+                            localId = localId,
+                            serverId = serverId,
+                        )
+                    }
+                }
             }
-            return
+            return DiffPairVerdict.STALE_SERVER_ITEM
+        }
+
+        // A service-version repair is still a local overwrite, so only allow
+        // it after ruling out a stale server payload.
+        if (localItem.serviceVersion < currentServiceVersion) {
+            actions +=
+                SyncAction.UpdateLocally(
+                    localId = localId,
+                    serverId = serverId,
+                    force = true,
+                )
+            return DiffPairVerdict.OK
+        }
+
+        if (serverDate > lastSyncedDate) {
+            actions += if (lastSyncedDate != localDate && localItem.isMergeable) {
+                SyncAction.MergeConflict(
+                    localId = localId,
+                    serverId = serverId,
+                )
+            } else {
+                SyncAction.UpdateLocally(
+                    localId = localId,
+                    serverId = serverId,
+                )
+            }
+            return DiffPairVerdict.OK
         }
 
         val diff = localDate.compareTo(serverDate)
@@ -308,6 +361,12 @@ object SyncDiffer {
                 }
             }
         }
+        return DiffPairVerdict.OK
+    }
+
+    private enum class DiffPairVerdict {
+        OK,
+        STALE_SERVER_ITEM,
     }
 
     private fun diffNewLocalItem(

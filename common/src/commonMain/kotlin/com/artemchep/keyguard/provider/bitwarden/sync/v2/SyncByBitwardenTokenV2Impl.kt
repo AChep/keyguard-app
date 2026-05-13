@@ -307,8 +307,6 @@ class SyncByBitwardenTokenV2Impl(
             globalEquivalentDomainCount = response.domains?.globalEquivalentDomains.orEmpty().size,
         )
 
-        checkForEmptyVault(database, user, env, response)
-
         requireTrustedProfile(
             database = database,
             user = user,
@@ -799,48 +797,6 @@ class SyncByBitwardenTokenV2Impl(
     }
 
     // ---------------------------------------------------------------
-    // Empty vault check
-    // ---------------------------------------------------------------
-
-    /**
-     * Logs a diagnostic exception if the server returns an empty
-     * cipher/folder list while the local database has existing ciphers.
-     * This can indicate a server-side data loss or misconfiguration.
-     */
-    private fun checkForEmptyVault(
-        database: Database,
-        user: BitwardenToken,
-        env: com.artemchep.keyguard.provider.bitwarden.ServerEnv,
-        response: SyncEntity,
-    ) {
-        if (
-            response.ciphers.isNullOrEmpty() &&
-            response.folders.isNullOrEmpty()
-        ) {
-            val existingCiphers =
-                database.cipherQueries
-                    .getByAccountId(user.id)
-                    .executeAsList()
-            if (existingCiphers.isNotEmpty()) {
-                val isSelfHosted = env.webVaultUrl.isNotBlank()
-                val isUnofficial = response.unofficialServer == true
-
-                val e =
-                    suspiciousEmptySyncExceptionOrNull(
-                        existingCipherCount = existingCiphers.size,
-                        remoteCiphersEmpty = true,
-                        remoteFoldersEmpty = true,
-                        isSelfHosted = isSelfHosted,
-                        isUnofficial = isUnofficial,
-                    )
-                        ?: return
-                recordException(e)
-                throw e
-            }
-        }
-    }
-
-    // ---------------------------------------------------------------
     // Crypto
     // ---------------------------------------------------------------
 
@@ -987,23 +943,6 @@ internal fun requireTrustedProfileSecurityStamp(
                 "You might be in a man-in-the-middle attack!",
         )
     }
-}
-
-internal fun suspiciousEmptySyncExceptionOrNull(
-    existingCipherCount: Int,
-    remoteCiphersEmpty: Boolean,
-    remoteFoldersEmpty: Boolean,
-    isSelfHosted: Boolean,
-    isUnofficial: Boolean,
-): SyncEngine.EmptyVaultException? {
-    if (existingCipherCount <= 0) return null
-    if (!remoteCiphersEmpty || !remoteFoldersEmpty) return null
-
-    val message =
-        "Backend returned empty cipher list, while there's " +
-            "$existingCipherCount ciphers in the local storage: " +
-            "official=${!isUnofficial}, self-hosted=$isSelfHosted"
-    return SyncEngine.EmptyVaultException(message)
 }
 
 /**

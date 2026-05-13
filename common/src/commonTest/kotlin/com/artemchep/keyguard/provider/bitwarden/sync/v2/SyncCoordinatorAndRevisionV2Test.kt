@@ -628,42 +628,6 @@ class SyncCoordinatorAndRevisionV2Test {
     }
 
     @Test
-    fun `suspicious empty full sync response becomes retryable empty vault error`() {
-        assertNull(
-            suspiciousEmptySyncExceptionOrNull(
-                existingCipherCount = 0,
-                remoteCiphersEmpty = true,
-                remoteFoldersEmpty = true,
-                isSelfHosted = false,
-                isUnofficial = false,
-            ),
-        )
-        assertNull(
-            suspiciousEmptySyncExceptionOrNull(
-                existingCipherCount = 5,
-                remoteCiphersEmpty = false,
-                remoteFoldersEmpty = true,
-                isSelfHosted = false,
-                isUnofficial = false,
-            ),
-        )
-
-        val error = suspiciousEmptySyncExceptionOrNull(
-            existingCipherCount = 5,
-            remoteCiphersEmpty = true,
-            remoteFoldersEmpty = true,
-            isSelfHosted = true,
-            isUnofficial = true,
-        )
-
-        assertEquals(
-            "Backend returned empty cipher list, while there's " +
-                "5 ciphers in the local storage: official=false, self-hosted=true",
-            error?.message,
-        )
-    }
-
-    @Test
     fun `clean sync result is required before caching revision date`() {
         SyncResult(
             outcomes =

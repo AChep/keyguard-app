@@ -120,8 +120,6 @@ class SyncEngine(
         private const val TAG = "SyncEngine"
     }
 
-    class EmptyVaultException(message: String) : RuntimeException(message)
-
     class DecodeVaultException(message: String, e: Throwable) : RuntimeException(message, e)
 
     private inline fun <reified T> createDecodingFailedServiceModel(
@@ -165,30 +163,6 @@ class SyncEngine(
             token = token,
         )
         val db = dbManager.get().bind()
-
-        // There's a bug in the web vault that sometimes displays a
-        // user empty vault. This check logs these kind of events, I need
-        // it to know if that's what once caused a user sync to completely
-        // empty vault.
-        if (
-            response.ciphers.isNullOrEmpty() &&
-            response.folders.isNullOrEmpty()
-        ) {
-            val existingCiphers = db.cipherQueries
-                .getByAccountId(user.id)
-                .executeAsList()
-            if (existingCiphers.isNotEmpty()) {
-                val isSelfHosted = env.webVaultUrl.isNotBlank()
-                val isUnofficial = response.unofficialServer == true
-
-                val m = "Backend returned empty cipher list, while there's " +
-                        "${existingCiphers.size} ciphers in the local storage: " +
-                        "official=${!isUnofficial}, self-hosted=${isSelfHosted}"
-                val e = EmptyVaultException(m)
-                recordException(e)
-            }
-        }
-
         val now = Clock.System.now()
         val crypto = crypto(
             profile = response.profile,

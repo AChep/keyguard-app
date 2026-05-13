@@ -90,6 +90,7 @@ class ServerEnvApiAccountsTest {
                     HttpMethod.Get,
                     "$baseApiUrl/accounts/revision-date",
                     "get-accounts-revision-date",
+                    cacheControl = "no-cache, no-store",
                 ),
             ),
             requests.map { it.copy(authorization = null, body = "") },
@@ -128,6 +129,7 @@ class ServerEnvApiAccountsTest {
                 url = request.url.toString(),
                 route = request.attributes.getOrNull(routeAttribute),
                 authorization = request.headers[HttpHeaders.Authorization],
+                cacheControl = request.headers[HttpHeaders.CacheControl],
                 body = request.body.asText(),
             )
             respond(
@@ -156,6 +158,7 @@ class ServerEnvApiAccountsTest {
         val url: String,
         val route: String?,
         val authorization: String? = null,
+        val cacheControl: String? = null,
         val body: String = "",
     )
 

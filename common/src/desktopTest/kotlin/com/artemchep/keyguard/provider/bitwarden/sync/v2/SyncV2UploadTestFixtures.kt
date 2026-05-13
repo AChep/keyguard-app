@@ -174,6 +174,7 @@ internal class UploadTestServer {
                 url = request.url.toString(),
                 route = request.attributes.getOrNull(routeAttribute),
                 authorization = request.headers[HttpHeaders.Authorization],
+                cacheControl = request.headers[HttpHeaders.CacheControl],
                 body = request.body.asText(),
             )
             requests += recorded
@@ -732,6 +733,7 @@ internal class UploadTestServer {
         val url: String,
         val route: String?,
         val authorization: String?,
+        val cacheControl: String?,
         val body: String,
     ) {
         val path: String

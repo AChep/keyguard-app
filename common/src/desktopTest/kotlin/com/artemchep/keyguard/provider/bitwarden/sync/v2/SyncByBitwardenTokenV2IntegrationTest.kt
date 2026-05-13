@@ -88,6 +88,12 @@ class SyncByBitwardenTokenV2IntegrationTest {
             server.requests.map { it.method to it.path },
         )
         assertEquals(
+            listOf("no-cache, no-store", "no-cache, no-store"),
+            server.requests
+                .filter { it.path == "/api/accounts/revision-date" || it.path == "/api/sync" }
+                .map { it.cacheControl },
+        )
+        assertEquals(
             listOf("Remote folder"),
             fixture.database.folderQueries
                 .getByAccountId(ACCOUNT_ID)

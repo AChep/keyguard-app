@@ -55,7 +55,6 @@ import io.ktor.http.Url
 import io.ktor.http.escapeIfNeeded
 import io.ktor.http.content.OutgoingContent
 import io.ktor.http.contentType
-import io.ktor.http.isSuccess
 import io.ktor.utils.io.jvm.javaio.toByteReadChannel
 import io.ktor.utils.io.streams.asInput
 import io.ktor.util.AttributeKey
@@ -319,6 +318,7 @@ suspend fun ServerEnvApi.Accounts.revisionDate(
 ) = httpClient
     .get(revisionDate) {
         headers(env)
+        headersNoCache()
         header("Authorization", "Bearer $token")
         attributes.put(routeAttribute, "get-accounts-revision-date")
     }
@@ -371,6 +371,7 @@ suspend fun ServerEnvApi.sync(
 ) = httpClient
     .get(sync) {
         headers(env)
+        headersNoCache()
         header("Authorization", "Bearer $token")
         parameter("excludeDomains", false)
         attributes.put(routeAttribute, "sync")
@@ -1101,4 +1102,8 @@ fun HttpRequestBuilder.headers(env: ServerEnv) {
             value = header.value,
         )
     }
+}
+
+private fun HttpRequestBuilder.headersNoCache() {
+    header(HttpHeaders.CacheControl, "no-cache, no-store")
 }

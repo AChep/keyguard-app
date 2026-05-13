@@ -55,6 +55,7 @@ internal class BitwardenSyncV2TestServer(
                     url = request.url.toString(),
                     route = request.attributes.getOrNull(routeAttribute),
                     authorization = request.headers[HttpHeaders.Authorization],
+                    cacheControl = request.headers[HttpHeaders.CacheControl],
                     body = body,
                 )
             requests += recorded
@@ -242,6 +243,7 @@ internal class BitwardenSyncV2TestServer(
         val url: String,
         val route: String?,
         val authorization: String?,
+        val cacheControl: String?,
         val body: String,
     ) {
         val path: String

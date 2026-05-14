@@ -162,6 +162,24 @@ internal fun existingSendFileAttachmentConfig(
     editable = false,
 )
 
+private const val DURATION_INFINITE_MILLISECONDS = Long.MAX_VALUE
+
+internal fun encodeDurationForPersistedState(
+    duration: Duration?,
+): Long? = when (duration) {
+    null -> null
+    Duration.INFINITE -> DURATION_INFINITE_MILLISECONDS
+    else -> duration.inWholeMilliseconds
+}
+
+internal fun decodeDurationFromPersistedState(
+    duration: Long?,
+): Duration? = when (duration) {
+    null -> null
+    DURATION_INFINITE_MILLISECONDS -> Duration.INFINITE
+    else -> with(Duration) { duration.milliseconds }
+}
+
 internal fun applySelectedSendFile(
     result: FilePickerResult,
     uriSink: MutableStateFlow<String?>,
@@ -1070,7 +1088,11 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
     val deletionDateAsDurationItem = kotlin.run {
         val id = "$prefix.deletion_date_as_duration"
 
-        val sink = mutablePersistedFlow<Duration?>(id) {
+        val sink = mutablePersistedFlow<Duration?, Long?>(
+            key = id,
+            serialize = { _, value -> encodeDurationForPersistedState(value) },
+            deserialize = { _, value -> decodeDurationFromPersistedState(value) },
+        ) {
             val defaultValue = with(Duration) { 7.days }
             defaultValue
                 .takeIf { args.initialValue?.deletedDate == null }
@@ -1164,7 +1186,11 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
     val expirationDateAsDurationItem = kotlin.run {
         val id = "$prefix.expiration_date_as_duration"
 
-        val sink = mutablePersistedFlow<Duration?>(id) {
+        val sink = mutablePersistedFlow<Duration?, Long?>(
+            key = id,
+            serialize = { _, value -> encodeDurationForPersistedState(value) },
+            deserialize = { _, value -> decodeDurationFromPersistedState(value) },
+        ) {
             val defaultValue = with(Duration) { INFINITE }
             defaultValue
                 .takeIf { args.initialValue?.expirationDate == null }

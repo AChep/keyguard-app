@@ -101,12 +101,24 @@ class ModelDiffUtil {
             a: T,
             b: T,
         ): T {
-            return b.takeIf { it != base }
-                ?: a.takeIf { it != base }
-                // Otherwise return the value that is
-                // the same between all the values.
-                ?: base
+            return when {
+                !b.isSameDiffValueAs(base) -> b
+                !a.isSameDiffValueAs(base) -> a
+                else -> base
+            }
         }
+
+        private fun Any?.isSameDiffValueAs(
+            other: Any?,
+        ): Boolean {
+            if (this == other)
+                return true
+            // Treat "" (empty string) and null as the same values during
+            // the diff-ing. Semantically those are the same to a user.
+            return this.isNullOrEmptyString() && other.isNullOrEmptyString()
+        }
+
+        private fun Any?.isNullOrEmptyString(): Boolean = this == null || this == ""
     }
 
     class DiffApplierByListValue<T> : DiffFinder<List<T>> {

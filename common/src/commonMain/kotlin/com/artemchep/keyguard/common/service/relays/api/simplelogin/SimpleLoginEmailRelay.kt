@@ -21,6 +21,7 @@ import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.jetbrains.compose.resources.DrawableResource
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -42,6 +43,9 @@ class SimpleLoginEmailRelay(
     override val type = "SimpleLogin"
 
     override val name = "SimpleLogin"
+
+    override val iconRes: DrawableResource
+        get() = Res.drawable.ic_logo_email_relay_simplelogin
 
     override val docUrl =
         "https://bitwarden.com/help/generator/#tab-simplelogin-3Uj911RtQsJD9OAhUuoKrz"

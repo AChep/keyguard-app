@@ -29,6 +29,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.booleanOrNull
+import org.jetbrains.compose.resources.DrawableResource
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -54,6 +55,9 @@ class CloudflareEmailRelay(
     }
 
     override val type = "CloudflareEmailRouting"
+
+    override val iconRes: DrawableResource
+        get() = Res.drawable.ic_logo_email_relay_cloudflare
 
     override val name = "Cloudflare Email Routing"
 

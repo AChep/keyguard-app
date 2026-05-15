@@ -26,6 +26,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import org.jetbrains.compose.resources.DrawableResource
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -47,6 +48,9 @@ class FastmailEmailRelay(
     override val type = "Fastmail"
 
     override val name = "Fastmail"
+
+    override val iconRes: DrawableResource
+        get() = Res.drawable.ic_logo_email_relay_fastmail
 
     override val docUrl =
         "https://bitwarden.com/help/generator/#tab-fastmail-3Uj911RtQsJD9OAhUuoKrz"

@@ -570,7 +570,7 @@ private suspend fun BitwardenCipher.Companion.of(
             .toCollection(list)
 
         //
-        // Track changed fields as well.
+        // Track changed fields
         //
 
         fun BitwardenCipher.Field.shouldBeTracked() =
@@ -618,6 +618,36 @@ private suspend fun BitwardenCipher.Companion.of(
                 )
             }
         }
+
+        //
+        // Track changed TOTP token
+        //
+
+        val newTotpToken = request.login.totp
+            ?.takeIf { it.isNotEmpty() }
+        sequence {
+            val oldToken = old?.login?.totp
+            if (oldToken != null) {
+                yield(oldToken)
+            }
+
+            val originTokens = originCiphers
+                .asSequence()
+                .mapNotNull { it.login?.totp?.raw }
+            yieldAll(originTokens)
+        }
+            .distinct()
+            .filter { oldToken ->
+                oldToken != newTotpToken &&
+                        oldToken.isNotEmpty()
+            }
+            .map { oldToken ->
+                BitwardenCipher.Login.PasswordHistory(
+                    password = "totp: $oldToken",
+                    lastUsedDate = now,
+                )
+            }
+            .toCollection(list)
 
         val shouldDeDuplicateAndSort =
             originCiphers.isNotEmpty()

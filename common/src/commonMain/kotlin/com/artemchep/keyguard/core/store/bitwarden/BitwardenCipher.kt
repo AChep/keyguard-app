@@ -1,13 +1,17 @@
 package com.artemchep.keyguard.core.store.bitwarden
 
 import arrow.optics.Getter
+import arrow.optics.Lens
 import arrow.optics.optics
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.patch.ModelDiffUtil
+import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.Companion.isSameDiffValueAs
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffApplierByListValue
+import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffFinder
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffFinderNode
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher.Login.PasswordHistory
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.serialization.SerialName
@@ -427,10 +431,10 @@ fun BitwardenCipher.Companion.getMergeRules() = kotlin.run {
                 children = listOf(
                     DiffFinderNode.Leaf(BitwardenCipher.Login.username),
                     DiffFinderNode.Leaf(BitwardenCipher.Login.totp),
-                    // FIXME: Use the second login merger to
-                    //  merge these two fields at once.
-                    DiffFinderNode.Leaf(BitwardenCipher.Login.password),
-                    DiffFinderNode.Leaf(BitwardenCipher.Login.passwordRevisionDate),
+                    DiffFinderNode.Leaf(
+                        lens = loginPasswordRevision,
+                        finder = DiffApplierByLoginPasswordRevision,
+                    ),
                     DiffFinderNode.Leaf(
                         lens = BitwardenCipher.Login.uris,
                         finder = DiffApplierByListValue(),
@@ -486,6 +490,70 @@ fun BitwardenCipher.Companion.getMergeRules() = kotlin.run {
             DiffFinderNode.Leaf(BitwardenCipher.sshKey),
         ),
     )
+}
+
+private data class LoginPasswordRevision(
+    val password: String?,
+    val passwordRevisionDate: Instant?,
+)
+
+private val loginPasswordRevision: Lens<BitwardenCipher.Login, LoginPasswordRevision> =
+    Lens(
+        get = { login: BitwardenCipher.Login ->
+            LoginPasswordRevision(
+                password = login.password,
+                passwordRevisionDate = login.passwordRevisionDate,
+            )
+        },
+        set = { login, value ->
+            login.copy(
+                password = value.password,
+                passwordRevisionDate = value.passwordRevisionDate,
+            )
+        },
+    )
+
+private object DiffApplierByLoginPasswordRevision : DiffFinder<LoginPasswordRevision> {
+    override fun compare(
+        base: LoginPasswordRevision,
+        a: LoginPasswordRevision,
+        b: LoginPasswordRevision,
+    ): LoginPasswordRevision {
+        val aPasswordChanged = !a.password.isSamePasswordAs(base.password)
+        val bPasswordChanged = !b.password.isSamePasswordAs(base.password)
+        return when {
+            aPasswordChanged && bPasswordChanged -> {
+                if (a.password.isSamePasswordAs(b.password)) {
+                    a.takeIfNewerRevisionThan(b)
+                        ?: b
+                } else {
+                    b
+                }
+            }
+
+            bPasswordChanged -> b
+            aPasswordChanged -> a
+            b.passwordRevisionDate != base.passwordRevisionDate -> b
+            a.passwordRevisionDate != base.passwordRevisionDate -> a
+            else -> base
+        }
+    }
+
+    private fun String?.isSamePasswordAs(
+        other: String?,
+    ): Boolean = isSameDiffValueAs(this, other)
+
+    private fun LoginPasswordRevision.takeIfNewerRevisionThan(
+        other: LoginPasswordRevision,
+    ): LoginPasswordRevision? {
+        val revisionDate = passwordRevisionDate
+            ?: return null
+        val otherRevisionDate = other.passwordRevisionDate
+            ?: return this
+        return takeIf {
+            revisionDate > otherRevisionDate
+        }
+    }
 }
 
 fun BitwardenCipher.Login.Uri.Companion.getUrlChecksum(

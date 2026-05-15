@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.relays.di
 
 import com.artemchep.keyguard.common.service.relays.api.anonaddy.AnonAddyEmailRelay
+import com.artemchep.keyguard.common.service.relays.api.cloudflare.CloudflareEmailRelay
 import com.artemchep.keyguard.common.service.relays.api.duckduckgo.DuckDuckGoEmailRelay
 import com.artemchep.keyguard.common.service.relays.api.firefoxrelay.FirefoxRelayEmailRelay
 import com.artemchep.keyguard.common.service.relays.api.forwardemail.ForwardEmailEmailRelay
@@ -14,6 +15,9 @@ fun emailRelayDiModule() = DI.Module("emailRelay") {
     //
     bindSingleton {
         AnonAddyEmailRelay(this)
+    }
+    bindSingleton {
+        CloudflareEmailRelay(this)
     }
     bindSingleton {
         DuckDuckGoEmailRelay(this)

@@ -72,8 +72,14 @@ import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CollectionEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.ConnectTokenResponse
+import com.artemchep.keyguard.provider.bitwarden.entity.FieldEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.FieldTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FolderEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
+import com.artemchep.keyguard.provider.bitwarden.entity.LinkedIdTypeEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.LoginEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.LoginUriEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.PasswordHistoryEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SendEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SendFileEntity
@@ -81,6 +87,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.SendFileUploadEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SendFileUploadType
 import com.artemchep.keyguard.provider.bitwarden.entity.SendTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.UriMatchTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.of
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherAttachmentCreateRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherCreateRequest
@@ -705,7 +712,36 @@ internal class UploadTestServer {
         type = request.type,
         name = request.name,
         notes = request.notes,
+        login = request.login?.let { login ->
+            LoginEntity(
+                uris = login.uris.map { uri ->
+                    LoginUriEntity(
+                        uri = uri.uri,
+                        uriChecksum = uri.uriChecksum,
+                        match = uri.match,
+                    )
+                },
+                username = login.username,
+                password = login.password,
+                passwordRevisionDate = login.passwordRevisionDate,
+                totp = login.totp,
+            )
+        },
+        fields = request.fields?.map { field ->
+            FieldEntity(
+                type = field.type,
+                name = field.name,
+                value = field.value,
+                linkedId = field.linkedId,
+            )
+        },
         attachments = emptyList(),
+        passwordHistory = request.passwordHistory?.map { history ->
+            PasswordHistoryEntity(
+                password = history.password,
+                lastUsedDate = history.lastUsedDate,
+            )
+        },
         collectionIds = emptyList(),
         encryptedFor = request.encryptedFor,
         archivedDate = request.archivedDate,
@@ -941,6 +977,29 @@ internal fun BitwardenCipher.toEncryptedCipherEntity(
         name = encrypted.name,
         notes = encrypted.notes,
         favorite = encrypted.favorite,
+        login = encrypted.login?.let { login ->
+            LoginEntity(
+                uris = login.uris.map { uri ->
+                    LoginUriEntity(
+                        uri = uri.uri,
+                        uriChecksum = uri.uriChecksumBase64,
+                        match = uri.match?.let(UriMatchTypeEntity::of),
+                    )
+                },
+                username = login.username,
+                password = login.password,
+                passwordRevisionDate = login.passwordRevisionDate,
+                totp = login.totp,
+            )
+        },
+        fields = encrypted.fields.map { field ->
+            FieldEntity(
+                type = FieldTypeEntity.of(field.type),
+                name = field.name,
+                value = field.value,
+                linkedId = field.linkedId?.let(LinkedIdTypeEntity::of),
+            )
+        },
         attachments =
             encrypted.attachments
                 .filterIsInstance<BitwardenCipher.Attachment.Remote>()
@@ -955,6 +1014,12 @@ internal fun BitwardenCipher.toEncryptedCipherEntity(
                     )
                 },
         deletedDate = encrypted.deletedDate,
+        passwordHistory = encrypted.passwordHistory.map { history ->
+            PasswordHistoryEntity(
+                password = history.password,
+                lastUsedDate = history.lastUsedDate,
+            )
+        },
         encryptedFor = encrypted.encryptedFor,
         archivedDate = encrypted.archivedDate,
     )

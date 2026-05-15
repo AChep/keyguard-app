@@ -56,6 +56,7 @@ import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.coroutineContext
+import kotlin.time.Instant
 
 private suspend fun assertCipherFailure(
     block: suspend () -> RemoteWriteOutcome<BitwardenCipher>,
@@ -2014,6 +2015,139 @@ class SyncV2CipherUploadIntegrationTest {
     }
 
     @Test
+    fun `production CipherSyncOps merge conflict pushes three way password history merge`() = runTest {
+        val server = UploadTestServer()
+        server.cipherPutAppliesRequestBody = true
+        val fixture = createProductionCipherOpsFixture(server)
+        val sharedHistory = passwordHistory("shared-history", T0)
+        val base =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "cipher-remote-1",
+                localRevisionDate = T0,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).toLoginCipher(
+                keyBase64 = fixture.cipherKeyBase64(),
+                password = "base-password",
+                passwordRevisionDate = T0,
+                totp = "base-totp",
+                passwordHistory = listOf(sharedHistory),
+            )
+        val local =
+            base.copy(
+                revisionDate = T2,
+                remoteEntity = base,
+                login = requireNotNull(base.login).copy(
+                    password = "local-password",
+                    passwordRevisionDate = T2,
+                    totp = "local-totp",
+                ),
+                passwordHistory = listOf(
+                    sharedHistory,
+                    passwordHistory("local-history", T2),
+                ),
+            )
+        val remote =
+            base.copy(
+                revisionDate = T3,
+                service = requireNotNull(base.service.remote)
+                    .copy(revisionDate = T3)
+                    .let { base.service.copy(remote = it) },
+                login = requireNotNull(base.login).copy(
+                    password = "remote-password",
+                    passwordRevisionDate = T3,
+                    totp = "remote-totp",
+                ),
+                passwordHistory = listOf(
+                    sharedHistory,
+                    passwordHistory("remote-history", T3),
+                ),
+            )
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.mergeConflict(
+                local = local,
+                server = remote.toEncryptedCipherEntity(
+                    crypto = fixture.crypto,
+                    base64Service = fixture.base64Service,
+                ),
+            ),
+        )
+
+        val mergedPasswords = outcome.local.passwordHistory.map { it.password }
+        assertEquals("remote-password", outcome.local.login?.password)
+        assertTrue("shared-history" in mergedPasswords)
+        assertTrue("remote-history" in mergedPasswords)
+        assertTrue("local-history" in mergedPasswords)
+        assertTrue("local-password" in mergedPasswords)
+        assertTrue("totp: local-totp" in mergedPasswords)
+        assertEquals(
+            listOf(
+                HttpMethod.Put to "/api/ciphers/cipher-remote-1",
+                HttpMethod.Get to "/api/ciphers/cipher-remote-1",
+            ),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
+    fun `production CipherSyncOps merge conflict fallback pushes merged local password history`() = runTest {
+        val server = UploadTestServer()
+        server.cipherPutAppliesRequestBody = true
+        val fixture = createProductionCipherOpsFixture(server)
+        val local =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "cipher-remote-1",
+                localRevisionDate = T2,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).toLoginCipher(
+                keyBase64 = fixture.cipherKeyBase64(),
+                password = "local-password",
+                passwordRevisionDate = T2,
+                passwordHistory = listOf(passwordHistory("local-history", T2)),
+            )
+        val remote =
+            testCipher(
+                localId = "cipher-local-1",
+                remoteId = "cipher-remote-1",
+                localRevisionDate = T3,
+                remoteRevisionDate = T3,
+                attachments = emptyList(),
+            ).toLoginCipher(
+                keyBase64 = fixture.cipherKeyBase64(),
+                password = "remote-password",
+                passwordRevisionDate = T3,
+                passwordHistory = listOf(passwordHistory("remote-history", T3)),
+            )
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.mergeConflict(
+                local = local,
+                server = remote.toEncryptedCipherEntity(
+                    crypto = fixture.crypto,
+                    base64Service = fixture.base64Service,
+                ),
+            ),
+        )
+
+        val mergedPasswords = outcome.local.passwordHistory.map { it.password }
+        assertEquals("remote-password", outcome.local.login?.password)
+        assertTrue("remote-history" in mergedPasswords)
+        assertTrue("local-history" in mergedPasswords)
+        assertTrue("local-password" in mergedPasswords)
+        assertEquals(
+            listOf(
+                HttpMethod.Put to "/api/ciphers/cipher-remote-1",
+                HttpMethod.Get to "/api/ciphers/cipher-remote-1",
+            ),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
     fun `production CipherSyncOps propagates cancellation during decrypt`() = runTest {
         val server = UploadTestServer()
         val fixture = createProductionCipherOpsFixture(server)
@@ -2774,6 +2908,34 @@ private suspend fun runCipherUploadSync(
         serverEntities = server.ciphers.values.toList(),
         ops = CipherUploadIntegrationOps(server, store, pendingUploadCoordinator),
     ),
+)
+
+private fun passwordHistory(
+    password: String,
+    lastUsedDate: Instant,
+) = BitwardenCipher.Login.PasswordHistory(
+    password = password,
+    lastUsedDate = lastUsedDate,
+)
+
+private fun BitwardenCipher.toLoginCipher(
+    keyBase64: String,
+    password: String,
+    passwordRevisionDate: Instant,
+    passwordHistory: List<BitwardenCipher.Login.PasswordHistory>,
+    totp: String? = null,
+) = copy(
+    keyBase64 = keyBase64,
+    type = BitwardenCipher.Type.Login,
+    secureNote = null,
+    login = BitwardenCipher.Login(
+        username = "user@example.com",
+        password = password,
+        passwordRevisionDate = passwordRevisionDate,
+        uris = emptyList(),
+        totp = totp,
+    ),
+    passwordHistory = passwordHistory,
 )
 
 private data class ProductionCipherOpsFixture(

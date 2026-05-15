@@ -64,6 +64,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateRes
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOutcome
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.provider.bitwarden.usecase.util.with3WayMergePasswordHistoryOrNull
 import io.ktor.client.HttpClient
 import io.ktor.client.call.NoTransformationFoundException
 import io.ktor.http.HttpStatusCode
@@ -867,6 +868,11 @@ class CipherSyncOps(
                     error = e,
                     isMerge = true,
                 )
+
+                // If the remote cipher cannot be decoded during conflict
+                // resolution, preserve the local cipher content and only
+                // replace sync metadata with a decode-failure marker for the
+                // remote revision.
                 val service = server.toDecodingFailedService(now)
                 val fallback = local.copy(service = service)
                 val fallbackMerged = merge(fallback, local, getPasswordStrength)
@@ -886,16 +892,44 @@ class CipherSyncOps(
                     localId = local.cipherId,
                     remoteId = remoteDecoded.cipherId,
                 )
-                val mergedWithTimestamp = merged.copy(revisionDate = now)
+
+                var finalMerged = merged
+                // TODO: Password history merge re-introduces deleted password-history
+                //  entries during conflict merge. A remote/user deletion can be undone
+                //  and uploaded again if the local side still has that base entry.
+                finalMerged = finalMerged.with3WayMergePasswordHistoryOrNull(
+                    at = now,
+                    remoteDecoded,
+                    local,
+                ) ?: finalMerged
+                finalMerged = finalMerged.copy(revisionDate = now)
                 return pushToServer(
-                    local = mergedWithTimestamp,
+                    local = finalMerged,
                     server = server,
                     force = false,
                 )
             }
         }
 
-        return RemoteWriteOutcome.Upsert(remoteDecoded)
+        diagnostics.cipherMergeFallback(
+            localId = local.cipherId,
+            remoteId = remoteDecoded.cipherId,
+        )
+
+        var finalFallback = remoteDecoded
+        finalFallback = finalFallback.with3WayMergePasswordHistoryOrNull(
+            at = now,
+            local,
+        )
+            // We did not do any changes to the model with the password history
+            // merge, so we can skip pushing the update back to a server.
+            ?: return RemoteWriteOutcome.Upsert(remoteDecoded)
+        finalFallback = finalFallback.copy(revisionDate = now)
+        return pushToServer(
+            local = finalFallback,
+            server = server,
+            force = false,
+        )
     }
 
     // ---------------------------------------------------------------

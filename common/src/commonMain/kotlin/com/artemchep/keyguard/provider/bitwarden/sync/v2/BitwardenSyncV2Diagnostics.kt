@@ -207,6 +207,13 @@ class BitwardenSyncV2Diagnostics(
         "cipher_merge_succeeded local_id=$localId remote_id=$remoteId"
     }
 
+    suspend fun cipherMergeFallback(
+        localId: String,
+        remoteId: String,
+    ) = debug {
+        "cipher_merge_fallback local_id=$localId remote_id=$remoteId"
+    }
+
     suspend fun cipherAttachmentRemoteDeletionStarted(
         cipherLocalId: String,
         cipherRemoteId: String,

@@ -2105,10 +2105,13 @@
     "domain": "bmo.com",
     "tfa": [
       "sms",
-      "email",
-      "call"
+      "call",
+      "custom-software"
     ],
-    "documentation": "https://www.bmoinvestorline.com/General_Info/MFA_preEnroll_SD_EN.html",
+    "custom-software": [
+      "BMO App Push Notification"
+    ],
+    "documentation": "https://www.bmo.com/en-ca/main/personal/security-centre/how-to-protect-yourself/",
     "name": "BMO Bank of Montreal"
   },
   {
@@ -16746,6 +16749,16 @@
       "totp"
     ],
     "name": "Tower Federal Credit Union"
+  },
+  {
+    "domain": "toya.net.pl",
+    "tfa": [
+      "email",
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://toya.net.pl/dokumenty/pobierz/instrukcja-2fa",
+    "name": "Toya"
   },
   {
     "domain": "tpg.com.au",

@@ -103,6 +103,7 @@ import com.artemchep.keyguard.ui.GridLayout
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ProvideScaffoldLocalValues
 import com.artemchep.keyguard.ui.animatedNumberText
+import com.artemchep.keyguard.ui.grid.calculateSimpleGridLayoutColumnsCount
 import com.artemchep.keyguard.ui.grid.preferredGridWidth
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardBroadWebsites
@@ -1220,15 +1221,12 @@ private fun ContentLayout(
                     .verticalScroll(scrollState)
                     .padding(contentPadding),
             ) {
-                val columns = (this@BoxWithConstraints.maxWidth / preferredGridWidth)
-                    .roundToInt()
-                    .coerceAtLeast(1)
-                val dashboardWidth = this@BoxWithConstraints.maxWidth / columns *
-                        2.coerceAtMost(columns)
-
+                val columns = calculateSimpleGridLayoutColumnsCount(
+                    maxWidth = this@BoxWithConstraints.maxWidth,
+                    minCellWidth = 188.dp, // tuned specifically for the screen
+                )
                 Column(
                     modifier = Modifier
-                        //   .widthIn(max = dashboardWidth)
                         .fillMaxWidth(),
                 ) {
                     dashboardContent()

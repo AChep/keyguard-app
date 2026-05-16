@@ -34,6 +34,7 @@ fun rememberSettingsSecurityItems(
                 key = "ssh_agent",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.SSH_AGENT),
+                    SettingPaneItem.Item(Setting.SSH_AGENT_APPROVAL_WINDOW),
                     SettingPaneItem.Item(Setting.SSH_AGENT_FILTERS),
                     SettingPaneItem.Item(Setting.SSH_AGENT_SETUP),
                 ),

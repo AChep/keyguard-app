@@ -415,6 +415,8 @@ import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.GetCacheHiddenSend
 import com.artemchep.keyguard.common.usecase.GetNavForceHiddenSend
 import com.artemchep.keyguard.common.usecase.GetSshAgent
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
@@ -423,6 +425,7 @@ import com.artemchep.keyguard.common.usecase.PutAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.PutCacheHiddenSend
 import com.artemchep.keyguard.common.usecase.PutNavForceHiddenSend
 import com.artemchep.keyguard.common.usecase.PutSshAgent
+import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
 import com.artemchep.keyguard.common.usecase.impl.GetAllowScreenshotsVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
@@ -430,6 +433,8 @@ import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasswordsEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCacheHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavForceHiddenSendImpl
+import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentStatusImpl
@@ -438,6 +443,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasswordsEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCacheHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.PutNavForceForceHiddenSendImpl
+import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentFilterImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -828,11 +834,20 @@ fun globalModuleJvm() = DI.Module(
     bindSingleton<PutSshAgent> {
         PutSshAgentImpl(this)
     }
+    bindSingleton<PutSshAgentApprovalWindow> {
+        PutSshAgentApprovalWindowImpl(this)
+    }
     bindSingleton<PutSshAgentFilter> {
         PutSshAgentFilterImpl(this)
     }
     bindSingleton<GetSshAgent> {
         GetSshAgentImpl(this)
+    }
+    bindSingleton<GetSshAgentApprovalWindow> {
+        GetSshAgentApprovalWindowImpl(this)
+    }
+    bindSingleton<GetSshAgentApprovalWindowVariants> {
+        GetSshAgentApprovalWindowVariantsImpl(this)
     }
     bindSingleton<GetSshAgentFilter> {
         GetSshAgentFilterImpl(this)

@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.seedHex
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -31,6 +32,7 @@ class SshAgentManager(
     private val logRepository: LogRepository,
     private val cryptoGenerator: CryptoGenerator,
     private val getVaultSession: GetVaultSession,
+    private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
     private val getSshAgentFilter: GetSshAgentFilter,
 ) {
     companion object {
@@ -168,6 +170,7 @@ class SshAgentManager(
         val ipcServer = SshAgentIpcServer(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
+            getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentFilter = getSshAgentFilter,
             authToken = authToken,
             scope = serverScope,

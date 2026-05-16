@@ -1357,6 +1357,9 @@
     <string name="pref_item_ssh_agent_status_starting">Starting</string>
     <string name="pref_item_ssh_agent_status_ready">Ready</string>
     <string name="pref_item_ssh_agent_status_failed">Failed</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
     <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
     <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>

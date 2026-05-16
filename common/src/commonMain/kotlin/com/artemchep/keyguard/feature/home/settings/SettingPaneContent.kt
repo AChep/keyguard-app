@@ -95,6 +95,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingScreenDelay
 import com.artemchep.keyguard.feature.home.settings.component.settingScreenshotsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocaleProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalWindowProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSetupProvider
@@ -203,6 +204,7 @@ object Setting {
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
     const val SSH_AGENT = "ssh_agent"
+    const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
     const val SSH_AGENT_SETUP = "ssh_agent_setup"
     const val SSH_AGENT_FILTERS = "ssh_agent_filters"
     const val RATE_APP = "rate_app"
@@ -308,6 +310,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
+    Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
     Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
     Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,
     Setting.RATE_APP to ::settingRateAppProvider,

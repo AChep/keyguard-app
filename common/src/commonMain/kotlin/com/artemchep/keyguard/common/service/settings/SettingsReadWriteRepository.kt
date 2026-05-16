@@ -152,6 +152,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         sshAgent: Boolean,
     ): IO<Unit>
 
+    fun setSshAgentApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
     fun setSshAgentFilter(
         filter: SshAgentFilter,
     ): IO<Unit>

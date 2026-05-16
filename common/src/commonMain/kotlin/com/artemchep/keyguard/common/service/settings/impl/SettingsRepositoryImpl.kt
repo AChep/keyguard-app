@@ -81,6 +81,7 @@ class SettingsRepositoryImpl(
         private const val KEY_WEBSITE_ICONS = "website_icons"
         private const val KEY_MARKDOWN = "markdown"
         private const val KEY_SSH_AGENT = "ssh_agent"
+        private const val KEY_SSH_AGENT_APPROVAL_WINDOW = "ssh_agent.approval_window"
         private const val KEY_SSH_AGENT_FILTER = "ssh_agent.filters"
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
@@ -203,6 +204,14 @@ class SettingsRepositoryImpl(
 
     private val sshAgentPref =
         store.getBoolean(KEY_SSH_AGENT, false)
+
+    private val sshAgentApprovalWindowPref =
+        store.getLong(
+            key = KEY_SSH_AGENT_APPROVAL_WINDOW,
+            with(Duration) {
+                5L.minutes
+            }.inWholeMilliseconds,
+        )
 
     private val sshAgentFilterPref =
         store.getSerializable(
@@ -335,6 +344,7 @@ class SettingsRepositoryImpl(
             websiteIconsPref,
             markdownPref,
             sshAgentPref,
+            sshAgentApprovalWindowPref,
             sshAgentFilterPref,
             themeUseAmoledDarkPref,
             keepScreenOnPref,
@@ -581,6 +591,13 @@ class SettingsRepositoryImpl(
         .setAndCommit(sshAgent)
 
     override fun getSshAgent() = sshAgentPref
+
+    override fun setSshAgentApprovalWindow(duration: Duration) = sshAgentApprovalWindowPref
+        .setAndCommit(duration)
+
+    override fun getSshAgentApprovalWindow() = sshAgentApprovalWindowPref
+        .asDuration()
+        .map { it ?: Duration.ZERO }
 
     override fun setSshAgentFilter(filter: SshAgentFilter) = sshAgentFilterPref
         .setAndCommit(filter)

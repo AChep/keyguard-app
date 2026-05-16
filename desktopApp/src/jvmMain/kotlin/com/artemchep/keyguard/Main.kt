@@ -55,6 +55,7 @@ import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetSshAgent
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -284,6 +285,7 @@ fun main() {
 
     val getCloseToTray: GetCloseToTray = appDi.direct.instance()
     val getSshAgent: GetSshAgent = appDi.direct.instance()
+    val getSshAgentApprovalWindow: GetSshAgentApprovalWindow = appDi.direct.instance()
     val getSshAgentFilter: GetSshAgentFilter = appDi.direct.instance()
     val sshAgentStatusService: SshAgentStatusService = appDi.direct.instance()
 
@@ -350,6 +352,7 @@ fun main() {
                     logRepository = logRepository,
                     cryptoGenerator = cryptoGenerator,
                     getVaultSession = getVaultSession,
+                    getSshAgentApprovalWindow = getSshAgentApprovalWindow,
                     getSshAgentFilter = getSshAgentFilter,
                 )
             }

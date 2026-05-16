@@ -24,6 +24,7 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorJvm
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.decodeOrNull
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.util.toHex
@@ -79,6 +80,7 @@ class SshAgentService : Service(), DIAware {
     private val logRepository: LogRepository by instance()
     private val base64Service: Base64Service by instance()
     private val getVaultSession: GetVaultSession by instance()
+    private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow by instance()
     private val getSshAgentFilter: GetSshAgentFilter by instance()
 
     private val notificationIdPool = Notifications.sshAgent
@@ -119,6 +121,7 @@ class SshAgentService : Service(), DIAware {
         SshAgentRequestProcessorJvm(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
+            getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
             sessionId = sessionId,

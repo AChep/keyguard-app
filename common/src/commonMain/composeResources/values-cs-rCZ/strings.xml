@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Upravit položku</string>
     <string name="additem_header_merge_title">Spojit položky</string>
     <string name="additem_merge_remove_origin_ciphers_title">Přesunout původní položky do koše</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Spojení položek nespojí jejich přílohy! Vytvořená položka nebude mít žádné přidané přílohy.</string>
     <string name="additem_note_placeholder">Sem přidejte jakékoli informace o této položce</string>
     <string name="additem_markdown_note">Stylujte text <xliff:g id="italic" example="italic">%1$s</xliff:g> nebo <xliff:g id="bold" example="bold">%2$s</xliff:g> a dalšími. Je podporována omezená syntaxe Markdown.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Hesla, která byla odhalena při úniku dat. Taková hesla je třeba okamžitě změnit.</string>
     <string name="watchtower_item_reused_passwords_title">Opakovaně použitá hesla</string>
     <string name="watchtower_item_reused_passwords_text">Nepoužívejte stejné heslo na více webech. Vygenerujte si náhodná hesla pro zlepšení bezpečnosti.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Zranitelné účty</string>
     <string name="watchtower_item_vulnerable_accounts_text">Weby ovlivněné únikem dat od poslední změny vašeho hesla. Změňte si své heslo, aby váš účet zůstal v bezpečí.</string>
     <string name="watchtower_item_unsecure_websites_title">Nezabezpečené weby</string>

@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Element bearbeiten</string>
     <string name="additem_header_merge_title">Elemente zusammenführen</string>
     <string name="additem_merge_remove_origin_ciphers_title">Ursprüngliche Elemente in den Papierkorb verschieben</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Beim Zusammenführen von Elementen werden deren Anhänge nicht zusammengeführt! Dem erstellten Element werden keine Anhänge hinzugefügt.</string>
     <string name="additem_note_placeholder">Notizen zu diesem Element hinzufügen</string>
     <string name="additem_markdown_note">Text mit <xliff:g id="italic" example="italic">%1$s</xliff:g> oder <xliff:g id="bold" example="bold">%2$s</xliff:g> und mehr visuell aufarbeiten. Limitierter Markdown-Syntax wird unterstützt.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Bei Datenlecks aufgedeckte Passwörter sollten unverzüglich geändert werden.</string>
     <string name="watchtower_item_reused_passwords_title">Wiederverwendete Passwörter</string>
     <string name="watchtower_item_reused_passwords_text">Benutzen Sie nicht dasselbe Passwort auf mehreren Webseiten. Generieren Sie einzigartige Passwörter, um die Sicherheit zu verbessern.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Anfällige Konten</string>
     <string name="watchtower_item_vulnerable_accounts_text">Seiten, die von einem Datenleck betroffen waren, seit Sie zuletzt ein Passwort geändert haben. Ändern Sie Ihr Passwort, um Ihr Konto sicher zu halten.</string>
     <string name="watchtower_item_unsecure_websites_title">Unsichere Websites</string>

@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Ögeyi düzenle</string>
     <string name="additem_header_merge_title">Ögeleri birleştir</string>
     <string name="additem_merge_remove_origin_ciphers_title">Orijinal ögeleri çöp kutusuna taşı</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Ögeleri birleştirmek eklerini birleştirmez! Oluşturulan ögeye herhangi bir ek eklenmeyecektir.</string>
     <string name="additem_note_placeholder">Bu ögeyle ilgili notlarınızı buraya ekleyin</string>
     <string name="additem_markdown_note">Metni <xliff:g id="italic" example="italic">%1$s</xliff:g> veya <xliff:g id="bold" example="bold">%2$s</xliff:g> ve daha fazlasıyla şekillendirin. Sınırlı Markdown sözdizimi desteklenir.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Veri ihlallerinde ifşa olan parolalar. Bu tür parolalar derhal değiştirilmelidir.</string>
     <string name="watchtower_item_reused_passwords_title">Yeniden Kullanılan Parolalar</string>
     <string name="watchtower_item_reused_passwords_text">Aynı parolayı birden fazla web sitesinde kullanmayın. Güvenliği artırmak için benzersiz parolalar oluşturun.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Savunmasız Hesaplar</string>
     <string name="watchtower_item_vulnerable_accounts_text">Parolanızı en son değiştirdiğinizden beri veri ihlalinden etkilenen siteler. Hesabınızı güvende tutmak için parolanızı değiştirin.</string>
     <string name="watchtower_item_unsecure_websites_title">Güvensiz Web Siteleri</string>

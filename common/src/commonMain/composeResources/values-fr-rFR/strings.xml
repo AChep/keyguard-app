@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Modifier l'élément</string>
     <string name="additem_header_merge_title">Fusionner les éléments</string>
     <string name="additem_merge_remove_origin_ciphers_title">Déplacer les éléments d'origine vers la corbeille</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Fusionner les éléments ne fusionnent pas leurs pièces jointes ! L'élément créé n'aura pas de pièces jointes ajoutées.</string>
     <string name="additem_note_placeholder">Ajouter des notes sur cet élément ici</string>
     <string name="additem_markdown_note">Formater le texte avec <xliff:g id="italic" example="italic">%1$s</xliff:g> ou <xliff:g id="bold" example="bold">%2$s</xliff:g> et plus. La syntaxe Markdown limitée est prise en charge.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Les mots de passe qui ont été exposés dans des violations de données. Ces mots de passe devraient être modifiés immédiatement.</string>
     <string name="watchtower_item_reused_passwords_title">Mot de passe réutilisé</string>
     <string name="watchtower_item_reused_passwords_text">N'utilisez pas le même mot de passe sur plusieurs sites Web. Générez des mots de passe uniques pour améliorer la sécurité.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Comptes vulnérables</string>
     <string name="watchtower_item_vulnerable_accounts_text">Les sites qui ont été affectés par une violation des données depuis votre dernière modification d'un mot de passe. Changez votre mot de passe pour garder votre compte en sécurité.</string>
     <string name="watchtower_item_unsecure_websites_title">Sites web non sécurisés</string>

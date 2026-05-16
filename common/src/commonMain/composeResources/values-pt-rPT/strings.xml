@@ -763,6 +763,8 @@
     <string name="additem_header_edit_title">Editar entrada</string>
     <string name="additem_header_merge_title">Unir entradas</string>
     <string name="additem_merge_remove_origin_ciphers_title">Mover entradas de origem para a reciclagem</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Mova os itens de origem para o arquivo</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Manter itens de origem</string>
     <string name="additem_merge_attachments_note">Unir entradas não une os anexos! A entrada criada não terá nenhum anexo adicionado.</string>
     <string name="additem_note_placeholder">Adicione quaisquer notas sobre esta entrada aqui</string>
     <string name="additem_markdown_note">Estilizar texto com <xliff:g id="italic" example="italic">%1$s</xliff:g> ou <xliff:g id="bold" example="bold">%2$s</xliff:g> e muito mais. Sintaxe de Markdown limitada é suportada.</string>
@@ -1082,6 +1084,8 @@
     <string name="watchtower_item_pwned_passwords_text">Palavras-passe que foram expostas em violações de dados. Essas palavras-passe devem ser alteradas imediatamente.</string>
     <string name="watchtower_item_reused_passwords_title">Palavras-passe reutilizadas</string>
     <string name="watchtower_item_reused_passwords_text">Não usar a mesma palavra-passe em vários sites. Criar palavras-passe únicas para melhorar a segurança.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Chaves SSH fracas</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Itens que não cumprem as recomendações do NIST.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Contas vulneráveis</string>
     <string name="watchtower_item_vulnerable_accounts_text">Sites que foram afetados por uma violação de dados desde a última vez que foi alterada a palavra-passe. Alterar palavra-passe para manter a conta segura.</string>
     <string name="watchtower_item_unsecure_websites_title">Sites inseguros</string>

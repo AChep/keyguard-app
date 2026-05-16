@@ -22,9 +22,9 @@
     <string name="new_password">새 비밀번호</string>
     <string name="no_password">비밀번호 없음</string>
     <string name="advanced_options">고급</string>
-    <string name="file">File</string>
-    <string name="file_name_placeholder">File name</string>
-    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file">파일</string>
+    <string name="file_name_placeholder">파일 이름</string>
+    <string name="file_status_pending_upload">업로드 대기</string>
     <string name="file_status_auto_resume">Auto-resumes</string>
     <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">이메일</string>
@@ -199,7 +199,7 @@
     <string name="remove_from_history">기록에서 제거</string>
     <string name="pkcs12_password">PKCS#12 비밀번호</string>
     <string name="pkcs12_password_title">PKCS#12 비밀번호 입력</string>
-    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
+    <string name="pkcs12_password_note">이 PKCS#12 번들은 암호화되어 있습니다.</string>
     <string name="reused_password">재사용 비밀번호</string>
     <string name="reused_passwords">재사용 비밀번호</string>
     <string name="one_time_password">OTP</string>
@@ -225,7 +225,7 @@
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">이 설정 기억</string>
     <!-- An Archive screen -->
-    <string name="archive">보관</string>
+    <string name="archive">아카이브</string>
     <!-- A Trash screen -->
     <string name="trash">휴지통</string>
     <!-- To download something -->
@@ -282,14 +282,14 @@
     <string name="addaccount_method_manual_title">직접 로그인</string>
     <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
     <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
-    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_title">휴대전화에서 로그인</string>
     <string name="addaccount_method_phone_text">Use your paired Android phone</string>
     <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
-    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_waiting">휴대전화 대기 중</string>
     <string name="addaccount_method_phone_importing">Importing account</string>
-    <string name="addaccount_method_phone_failed">Phone login failed</string>
-    <string name="addaccount_method_phone_pick">Choose phone</string>
-    <string name="companionauth_header_title">Watch setup</string>
+    <string name="addaccount_method_phone_failed">휴대전화 로그인에 실패했습니다.</string>
+    <string name="addaccount_method_phone_pick">휴대전화 선택</string>
+    <string name="companionauth_header_title">워치 설정</string>
     <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">이 QR 코드를 다른 기기에서 스캔하면 이 Wi-Fi 네트워크를 사용할 수 있습니다.</string>
     <string name="qr_generate_button">QR 코드 생성</string>
@@ -348,10 +348,10 @@
     <string name="ciphers_action_change_password_title">비밀번호 변경</string>
     <string name="ciphers_action_change_passwords_title">비밀번호 변경</string>
     <string name="ciphers_action_view_password_history_title">비밀번호 생성 기록</string>
-    <string name="ciphers_action_archive_title">보관</string>
-    <string name="ciphers_action_archive_confirmation_title">보관소로 이동하시겠습니까?</string>
-    <string name="ciphers_action_unarchive_title">보관소에서 복원</string>
-    <string name="ciphers_action_unarchive_confirmation_title">보관소에서 복원하시겠습니까?</string>
+    <string name="ciphers_action_archive_title">아카이브</string>
+    <string name="ciphers_action_archive_confirmation_title">아카이브로 보낼까요?</string>
+    <string name="ciphers_action_unarchive_title">아카이브에서 복원</string>
+    <string name="ciphers_action_unarchive_confirmation_title">아카이브에서 복원할까요?</string>
     <string name="ciphers_action_trash_title">휴지통</string>
     <string name="ciphers_action_trash_confirmation_title">휴지통으로 보낼까요?</string>
     <string name="ciphers_action_trash_confirmation_text">휴지통으로 간 항목은 30일 이후 자동으로 삭제됩니다.</string>
@@ -471,18 +471,18 @@
     <string name="ssh_key_action_replace_key_title">키 교체</string>
     <string name="ssh_key_import_title">SSH 키 가져오기</string>
     <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
-    <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
+    <string name="ssh_key_import_failed_title">SSH 키를 가져오지 못했습니다.</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
-    <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
-    <string name="ssh_key_import_error_unsupported_algorithm">Only RSA and Ed25519 SSH keys are supported.</string>
-    <string name="ssh_key_import_error_invalid_passphrase">The SSH key passphrase is invalid.</string>
-    <string name="ssh_key_import_error_malformed_key">The SSH key file is malformed.</string>
-    <string name="ssh_key_import_error_read">Unable to read the selected file.</string>
-    <string name="ssh_key_import_error_passphrase_required">A passphrase is required to unlock this SSH key.</string>
-    <string name="ssh_key_import_passphrase_title">Passphrase</string>
-    <string name="ssh_key_import_passphrase_hint">Enter SSH key passphrase</string>
-    <string name="ssh_key_import_passphrase_dialog_title">Enter SSH key passphrase</string>
-    <string name="ssh_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> key is encrypted.</string>
+    <string name="ssh_key_import_error_unsupported_format">지원하지 않는 SSH 개인 키 형식입니다.</string>
+    <string name="ssh_key_import_error_unsupported_algorithm">RSA 및 Ed25519 SSH 키만 지원합니다.</string>
+    <string name="ssh_key_import_error_invalid_passphrase">잘못된 SSH 키 비밀 문구입니다.</string>
+    <string name="ssh_key_import_error_malformed_key">잘못된 SSH 키 파일입니다.</string>
+    <string name="ssh_key_import_error_read">선택한 파일을 읽지 못했습니다.</string>
+    <string name="ssh_key_import_error_passphrase_required">이 SSH 키를 잠금 해제하려면 비밀 문구가 필요합니다.</string>
+    <string name="ssh_key_import_passphrase_title">비밀 문구</string>
+    <string name="ssh_key_import_passphrase_hint">SSH 키 비밀 문구 입력</string>
+    <string name="ssh_key_import_passphrase_dialog_title">SSH 키 비밀 문구 입력</string>
+    <string name="ssh_key_import_passphrase_dialog_message">이 <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> 키는 암호화되어 있습니다.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g>개 항목 선택됨</string>
     <string name="copy">복사</string>
     <string name="copy_value">값 복사</string>
@@ -602,7 +602,7 @@
     <string name="error_failed_unknown">알 수 없는 오류가 발생했습니다.</string>
     <string name="error_failed_encrypt_biometric_key">생체 정보 키를 암호화하지 못했습니다.</string>
     <string name="error_failed_decrypt_biometric_key">생체 정보 키를 복호화하지 못했습니다.</string>
-    <string name="error_failed_ssh_agent_start">Failed to start the SSH agent</string>
+    <string name="error_failed_ssh_agent_start">SSH 에이전트를 시작하지 못했습니다.</string>
     <string name="error_credential_calling_app_not_privileged">호출한 앱이 권한 목록에 없어 다른 앱을 대신해 인증을 요청할 수 없습니다.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -614,7 +614,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">앱을 신뢰하면 모든 서비스에 대한 인증 정보를 요청할 수 있습니다. 악성 앱이 이를 악용하여 사용자의 인증 정보를 탈취할 위험이 있습니다.</string>
     <string name="scanqr_title">QR 코드 스캔</string>
-    <string name="scanqr_load_from_image">Load from a file</string>
+    <string name="scanqr_load_from_image">파일에서 불러오기</string>
     <string name="scanqr_load_from_image_note">이미지 파일에서 QR 코드를 읽을 수 있습니다.</string>
     <string name="scanqr_camera_permission_required_text">QR 코드를 스캔하기 위해 카메라 권한이 필요합니다.</string>
     <string name="post_notifications_permission_banner_title">알림이 꺼져 있음</string>
@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">항목 편집</string>
     <string name="additem_header_merge_title">항목 병합</string>
     <string name="additem_merge_remove_origin_ciphers_title">원본 항목을 휴지통으로 이동</string>
+    <string name="additem_merge_archive_origin_ciphers_title">원본 항목을 아카이브로 이동</string>
+    <string name="additem_merge_keep_origin_ciphers_title">원본 항목 유지</string>
     <string name="additem_merge_attachments_note">항목을 병합할 때 첨부파일은 병합되지 않습니다! 병합한 항목은 첨부파일 없이 생성됩니다.</string>
     <string name="additem_note_placeholder">이 항목에 대한 메모 추가</string>
     <string name="additem_markdown_note"><xliff:g id="italic" example="italic">%1$s</xliff:g> 또는 <xliff:g id="bold" example="bold">%2$s</xliff:g> 등을 사용하여 텍스트를 꾸밀 수 있습니다. 일부 마크다운 문법을 지원합니다.</string>
@@ -779,11 +781,11 @@
     <string name="addsend_auth_emails_label">이메일</string>
     <string name="addsend_auth_emails_placeholder">쉼표로 구분된 이메일</string>
     <string name="addsend_auth_emails_note">수신자는 링크를 연 후 1회성 이메일 인증을 완료해야 합니다.</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
+    <string name="addaccount_promo_title">보관함이 비어 있습니다. 계정을 연결하여 시작해 보세요.</string>
+    <string name="addaccount_promo_title_no_direct_action">보관함이 비어 있습니다. 설정에서 계정을 추가하여 시작해 보세요.</string>
     <string name="addaccount_promo_features">앱의 주요 기능을 최대한 활용하고 싶으신가요? 아래에서 주요 기능을 확인해 보세요.</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addaccount_description_short_bitwarden_text">암호화된 보관함을 클라우드에 보관합니다.</string>
+    <string name="addaccount_description_short_keepass_text">암호화된 보관함을 KDBX 파일 형식을 사용해 기기에 오프라인으로 보관합니다.</string>
     <string name="addaccount_header_title">Bitwarden 계정 추가</string>
     <string name="addaccount_disclaimer_bitwarden_label">Keyguard 팀은 Bitwarden, Inc. 또는 그 계열사와 제휴, 연관, 승인, 보증 또는 공식적으로 어떤 식으로든 연결되어 있지 않습니다.</string>
     <!--
@@ -812,21 +814,21 @@
     <string name="addaccount_custom_env_api_url_label">API 서버 URL</string>
     <string name="addaccount_custom_env_icons_url_label">아이콘 서버 URL</string>
     <string name="addaccount_custom_env_identity_url_label">ID 서버 URL</string>
-    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_custom_env_notifications_url_label">알림 서버 URL</string>
     <string name="addaccount_mutual_tls_section">Mutual TLS</string>
-    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
-    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
-    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
-    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
-    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <string name="addaccount_mutual_tls_file_label">클라이언트 인증서</string>
+    <string name="addaccount_mutual_tls_note">클라이언트 인증에 쓰이는 인증서입니다.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 비밀번호</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">PKCS#12 비밀번호 입력</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">이 PKCS#12 번들은 암호화되어 있습니다.</string>
     <!-- Explains that the text next to it is the Display name of the certificate -->
-    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <string name="addaccount_mutual_tls_display_name_label">표시할 이름</string>
     <!-- Explains that the text next to it is the Issuer of the certificate -->
-    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <string name="addaccount_mutual_tls_issuer_label">발급자</string>
     <!-- Explains that the text next to it is the Expiry date of the certificate -->
-    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_expires_on_label">만료 날짜</string>
     <string name="addaccount_mutual_tls_status_imported">Imported</string>
-    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
+    <string name="addaccount_mutual_tls_status_failed">가져오지 못했습니다.</string>
     <string name="addaccount2fa_header_title">인증</string>
     <string name="addaccount2fa_unsupported_note">이 인증 방법은 아직 지원하지 않습니다.</string>
     <string name="addaccount2fa_otp_note">인증 앱에서 인증 코드를 입력하세요.</string>
@@ -848,7 +850,7 @@
     <string name="yubikey_error_failed_to_read">YubiKey를 읽지 못했습니다.</string>
     <string name="yubikey_unlock_error_unsupported_title">YubiKey 잠금 해제가 지원되지 않습니다</string>
     <string name="yubikey_unlock_error_unsupported_text">이 YubiKey 또는 연결 방식은 챌린지-리스폰스 방식의 잠금 해제를 지원하지 않습니다.</string>
-    <string name="yubikey_unlock_error_failed_title">YubiKey를 사용할 수 없습니다</string>
+    <string name="yubikey_unlock_error_failed_title">YubiKey를 사용하지 못했습니다.</string>
     <string name="yubikey_unlock_error_failed_text">Try the YubiKey again or unlock the vault with your password.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">FIDO2 WebAuthn을 사용하려면 Bitwarden 웹 보관함 <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> 버전 이상이 필요합니다. 이 버전보다 낮을 경우 인증 결과가 Bitwarden 공식 앱에 잘못 전달될 수 있습니다.</string>
     <string name="elevatedaccess_header_title">접근 확인</string>
@@ -869,7 +871,7 @@
     <string name="lock_reason_manually">사용자에 의해 잠김</string>
     <string name="send_type_text">텍스트</string>
     <string name="send_type_file">파일</string>
-    <string name="send_auth_title">볼 수 있는 사람</string>
+    <string name="send_auth_title">접근 가능 대상</string>
     <string name="send_auth_type_none">링크가 있는 모든 사람</string>
     <string name="send_auth_type_password">링크 및 비밀번호가 있는 모든 사람</string>
     <string name="send_auth_type_email">특정 사용자</string>
@@ -920,26 +922,26 @@
     <string name="ssh_agent_setup_option_env_label">SSH_AUTH_SOCK을 Keyguard의 소켓 경로로 설정하세요.</string>
     <string name="ssh_agent_setup_option_identityagent_label">SSH 구성에서 IdentityAgent를 설정하세요.</string>
     <string name="ssh_agent_setup_step_3_title">3. 확인</string>
-    <string name="ssh_agent_setup_step_3_text">에이전트를 설정한 세션과 같은 세션에서 다음 명령어를 실행합니다.</string>
+    <string name="ssh_agent_setup_step_3_text">에이전트를 설정한 세션과 같은 세션에서 다음 명령어를 실행하세요.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">Windows에서는 현재 Keyguard 데스크톱 SSH 에이전트 런타임을 사용할 수 없습니다.</string>
-    <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
-    <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
-    <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
-    <string name="ssh_agent_setup_android_termux_step_2_title">Install package</string>
-    <string name="ssh_agent_setup_android_termux_step_2_text">Open Termux and install the package from a custom APT repository:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_title">Configure your SSH client</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Start the package and export the socket into your current shell:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">If you want to auto-start the package every time Termux starts, add it to your shell startup file:</string>
-    <string name="ssh_agent_setup_android_termux_step_4_title">Verify</string>
-    <string name="ssh_agent_setup_android_termux_step_4_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_android_termux_text">Android에서는 Keyguard가 추가 패키지를 통해 SSH 에이전트를 사용합니다. Keyguard에서 SSH 에이전트를 켠 뒤 추가 패키지를 설치하고 설정한 다음, SSH 클라이언트를 연결할 때 요청을 승인하세요.</string>
+    <string name="ssh_agent_setup_android_termux_step_1_title">Termux 설치</string>
+    <string name="ssh_agent_setup_android_termux_step_1_text">Termux는 Android 터미널 앱 및 Linux 환경을 제공합니다.</string>
+    <string name="ssh_agent_setup_android_termux_step_2_title">패키지 설치</string>
+    <string name="ssh_agent_setup_android_termux_step_2_text">Termux를 열고 추가 APT 저장소에서 패키지를 설치하세요.</string>
+    <string name="ssh_agent_setup_android_termux_step_3_title">SSH 클라이언트 설정</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_current">패키지를 시작하고 소켓을 현재 사용 중인 셸에 노출시키세요.</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">Termux를 켤 때마다 패키지가 자동으로 시작되게 하려면 다음 내용을 셸 시작 파일에 추가하세요.</string>
+    <string name="ssh_agent_setup_android_termux_step_4_title">검증</string>
+    <string name="ssh_agent_setup_android_termux_step_4_text">에이전트를 설정한 세션과 같은 세션에서 다음 명령어를 실행하세요.</string>
     <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work</string>
     <string name="ssh_agent_setup_android_how_does_it_work_1">The SSH agent receives requests from SSH tools, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
     <string name="ssh_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The SSH agent acts as a relay, while the Keyguard app performs the actual operations.</string>
     <string name="ssh_agent_request_approval_sign_title">SSH 서명 요청</string>
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g>이(가) 데이터를 서명하기 위해 다음 SSH 키를 사용하려고 합니다:</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">애플리케이션이 데이터를 서명하기 위해 다음 SSH 키를 사용하려고 합니다:</string>
-    <string name="ssh_client_request">SSH client request</string>
+    <string name="ssh_client_request">SSH 클라이언트 요청</string>
     <string name="sort_header_title">정렬 기준</string>
     <string name="sort_empty_label">사용할 수 있는 정렬 방식 없음</string>
     <string name="sortby_title_title">제목</string>
@@ -985,7 +987,7 @@
     <string name="vault_view_passkey_created_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만든 패스키</string>
     <string name="vault_view_revision_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 마지막으로 변경함</string>
     <string name="vault_view_created_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만듦</string>
-    <string name="vault_view_archived_at_label">보관 일시: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 아카이브됨</string>
     <string name="vault_view_deleted_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 삭제됨</string>
     <string name="vault_view_expired_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만료됨</string>
     <string name="vault_view_expiration_scheduled_at_label"><xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g>에 만료될 예정</string>
@@ -1012,8 +1014,8 @@
     <string name="generator_regenerate_button">다시 생성</string>
     <!-- 'Use' generated password as a password -->
     <string name="generator_use_button">사용</string>
-    <string name="generator_passphrase_type">비밀번호 문구</string>
-    <string name="generator_passphrase_note">무작위 비밀번호 문구는 외우기 쉽고 보안성이 뛰어난 문구 조합을 제공합니다.</string>
+    <string name="generator_passphrase_type">비밀 문구</string>
+    <string name="generator_passphrase_note">무작위 비밀 문구는 외우기 쉽고 보안성이 뛰어난 문구 조합을 제공합니다.</string>
     <string name="generator_passphrase_delimiter_title">구분 기호</string>
     <string name="generator_passphrase_capitalize_title">첫 글자를 대문자로</string>
     <string name="generator_passphrase_number_title">숫자 포함</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">유출 데이터베이스에 포함된 비밀번호입니다. 유출된 비밀번호는 지금 당장 변경해야 합니다.</string>
     <string name="watchtower_item_reused_passwords_title">재사용 비밀번호</string>
     <string name="watchtower_item_reused_passwords_text">여러 웹사이트에 같은 비밀번호를 사용하지 마세요. 웹사이트마다 다른 비밀번호를 생성하여 보안을 강화할 수 있습니다.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">약한 SSH 키</string>
+    <string name="watchtower_item_weak_ssh_keys_text">NIST 권장 사항을 따르지 않는 항목입니다.</string>
     <string name="watchtower_item_vulnerable_accounts_title">취약한 계정</string>
     <string name="watchtower_item_vulnerable_accounts_text">비밀번호를 마지막으로 변경한 뒤에 데이터가 유출된 사이트입니다. 계정을 안전하게 유지하기 위해 비밀번호를 변경하세요.</string>
     <string name="watchtower_item_unsecure_websites_title">안전하지 않은 웹사이트</string>
@@ -1170,7 +1174,7 @@
     <string name="pref_item_other_title">기타</string>
     <string name="pref_item_other_text">커뮤니티 웹사이트, 앱 정보</string>
     <string name="pref_item_nav_label_title">내비게이션 버튼에 라벨 보이기</string>
-    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
+    <string name="pref_item_nav_hidden_send_title">Send 탭 숨기기</string>
     <string name="pref_item_app_version_title">앱 버전</string>
     <string name="pref_item_app_build_date_title">앱 빌드 날짜</string>
     <!--
@@ -1230,8 +1234,8 @@
     <string name="pref_item_allow_screenshots_title">스크린샷 촬영 허용</string>
     <string name="pref_item_allow_screenshots_text_on">앱 전환 화면에 앱 내용을 표시하고 스크린샷 캡처를 허용합니다.</string>
     <string name="pref_item_allow_screenshots_text_off">앱 전환 화면에서 앱 내용을 숨기고 스크린샷 캡처를 금지합니다.</string>
-    <string name="pref_item_allow_screenshots_badge">스크린샷 캡처가 허용됨, 탭하여 비활성화할 수 있습니다</string>
-    <string name="pref_item_allow_screenshots_disabled_notification">스크린샷 캡처가 비활성화되었습니다</string>
+    <string name="pref_item_allow_screenshots_badge">스크린샷 촬영이 허용되어 있습니다. 여기를 눌러 끌 수 있습니다.</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">스크린샷 촬영을 껐습니다.</string>
     <string name="pref_item_allow_screenshots_mode_disabled_title">비활성화됨</string>
     <string name="pref_item_allow_screenshots_mode_limited_title">허용됨 (시각적 표시 포함)</string>
     <string name="pref_item_allow_screenshots_mode_full_title">허용됨</string>
@@ -1260,9 +1264,9 @@
     <string name="pref_item_ssh_agent_status_starting">시작 중</string>
     <string name="pref_item_ssh_agent_status_ready">준비됨</string>
     <string name="pref_item_ssh_agent_status_failed">실패</string>
-    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
+    <string name="pref_item_ssh_agent_setup_title">SSH 클라이언트 설정</string>
     <string name="pref_item_ssh_agent_filters_title">SSH 에이전트 필터</string>
-    <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
+    <string name="pref_item_ssh_agent_filters_text">SSH 에이전트가 어떤 SSH 키에 접근 가능하게 할 것인지 설정합니다.</string>
     <string name="pref_item_ssh_agent_filters_summary_all">모든 키에 접근 가능</string>
     <string name="pref_item_ssh_agent_filters_summary_active">필터 작동 중</string>
     <string name="pref_item_biometric_unlock_title">생체 정보 잠금 해제</string>
@@ -1274,7 +1278,7 @@
     <string name="pref_item_yubikey_unlock_disable_title">비활성화</string>
     <string name="pref_item_yubikey_unlock_confirm_title">YubiKey 슬롯을 구성하시겠습니까?</string>
     <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock?</string>
-    <string name="pref_item_yubikey_unlock_confirm_message_configured">슬롯 <xliff:g id="slot_number" example="1">%1$s</xliff:g>이(가) 이미 구성되어 있습니다. 다시 구성하려면 USB 연결이 필요하며, 현재 슬롯의 구성 내용이 덮어쓰기됩니다.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured"><xliff:g id="slot_number" example="1">%1$s</xliff:g> 슬롯은 이미 구성되어 있습니다. 슬롯을 다시 구성하면 현재 슬롯의 설정이 덮어쓰기됩니다.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -1300,13 +1304,13 @@
     <string name="pref_item_autofill_save_request_title">데이터 저장 확인</string>
     <string name="pref_item_autofill_save_request_text">양식을 입력한 뒤에 보관함을 업데이트할 것인지 물어봅니다.</string>
     <string name="pref_item_autofill_passkeys_enabled_title">패스키 지원</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">인증 관리자에 패스키 지원을 알리고 요청을 처리할 수 있도록 허용합니다</string>
-    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
-    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">인증 관리자에 패스키 지원을 알리고 요청을 처리할 수 있도록 허용합니다.</string>
+    <string name="pref_item_autofill_passwords_enabled_title">비밀번호 지원</string>
+    <string name="pref_item_autofill_passwords_enabled_text">인증 관리자에 비밀번호 지원을 알리고 요청을 처리할 수 있도록 허용합니다.</string>
     <string name="pref_item_autofill_auto_save_source_title">앱 또는 웹사이트 정보 자동 저장</string>
     <string name="pref_item_autofill_block_uri_title">자동 완성 차단</string>
     <string name="pref_item_autofill_block_uri_text">설정한 URI에 대한 자동 완성을 차단합니다.</string>
-    <string name="pref_item_autofill_privileged_apps_title">권한 있는 앱</string>
+    <string name="pref_item_autofill_privileged_apps_title">독점 권한 앱</string>
     <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">클립보드 자동 비우기</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">즉시</string>
@@ -1350,12 +1354,12 @@
     <string name="feat_item_offline_editing_title">오프라인 편집</string>
     <string name="feat_item_offline_editing_text">인터넷 연결 없이 항목을 추가하거나 편집합니다.</string>
     <string name="feat_section_search_title">검색</string>
-    <string name="feat_item_search_by_anything_title">아무거나 검색</string>
+    <string name="feat_item_search_by_anything_title">뭐든지 검색 가능</string>
     <string name="feat_item_search_by_anything_text">이름, 이메일, 비밀번호, 전화번호 등</string>
     <string name="feat_item_filter_title">필터</string>
     <string name="feat_item_filter_text">폴더, 조직, 유형 등으로 항목을 필터링합니다.</string>
     <string name="feat_item_multiple_keywords_title">다중 키워드</string>
-    <string name="feat_item_multiple_keywords_text">예를 들어 'Bitwarden Test Account' 항목을 검색하려면 'bitw test'를 입력하세요.</string>
+    <string name="feat_item_multiple_keywords_text">'bitw test'만 입력하면 'Bitwarden Test Account' 항목을 찾을 수 있습니다.</string>
     <string name="feat_section_watchtower_title">감시탑</string>
     <string name="feat_item_pwned_passwords_title">유출된 비밀번호</string>
     <string name="feat_item_pwned_passwords_text">알려진 유출 데이터베이스를 통해 비밀번호가 유출된 항목을 찾습니다.</string>

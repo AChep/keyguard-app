@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">アイテムの編集</string>
     <string name="additem_header_merge_title">アイテムを統合</string>
     <string name="additem_merge_remove_origin_ciphers_title">オリジナルのアイテムをごみ箱に移動</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">アイテムを統合しても添付ファイルは統合されません！作成されたアイテムには添付ファイルは追加されません。</string>
     <string name="additem_note_placeholder">このアイテムに関するメモをここに追加します</string>
     <string name="additem_markdown_note">テキストを <xliff:g id="italic" example="italic">%1$s</xliff:g> または <xliff:g id="bold" example="bold">%2$s</xliff:g> のように修飾します。 一部の Markdown シンタックスがサポートされています。</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">データ漏洩で公開されたパスワード。このようなパスワードはすぐに変更すべきです。</string>
     <string name="watchtower_item_reused_passwords_title">再利用パスワード</string>
     <string name="watchtower_item_reused_passwords_text">複数のウェブサイトで同じパスワードを使用しないでください。セキュリティを向上させるために、一意のパスワードを生成してください。</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">脆弱なアカウント</string>
     <string name="watchtower_item_vulnerable_accounts_text">パスワードを最後に変更してから、データ漏洩の影響を受けたサイトです。アカウントの安全性を保つために、パスワードを変更してください。</string>
     <string name="watchtower_item_unsecure_websites_title">安全でないウェブサイト</string>

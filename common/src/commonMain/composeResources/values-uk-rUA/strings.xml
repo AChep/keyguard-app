@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Редагувати запис</string>
     <string name="additem_header_merge_title">Об'єднати елементи</string>
     <string name="additem_merge_remove_origin_ciphers_title">Перемістити початкові записи до кошика</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Об’єднання елементів не об'єднує їх вкладення! Створений запис не буде мати доданих вкладень.</string>
     <string name="additem_note_placeholder">Додайте будь-які примітки про цей запис</string>
     <string name="additem_markdown_note">Стилізуйте текст використовуючи <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> та інше. Обмежена підтримка синтаксису Markdown.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Паролі, які було знайдено в витоках даних. Такі паролі мають бути негайно змінені.</string>
     <string name="watchtower_item_reused_passwords_title">Повторювані паролі</string>
     <string name="watchtower_item_reused_passwords_text">Не використовуйте однаковий пароль на кількох вебсайтах. Генеруйте унікальні паролі для підвищення безпеки.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Вразливі облікові записи</string>
     <string name="watchtower_item_vulnerable_accounts_text">Сайти, які постраждали від витоку даних після вашої останньої зміни пароля. Змініть пароль, щоб убезпечити ваші облікові записи.</string>
     <string name="watchtower_item_unsecure_websites_title">Незахищені вебсайти</string>

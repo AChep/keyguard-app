@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">編輯專案</string>
     <string name="additem_header_merge_title">合併專案</string>
     <string name="additem_merge_remove_origin_ciphers_title">移動源專案到回收站</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">合併專案不會合並其附件！建立的專案將不會新增任何附件。</string>
     <string name="additem_note_placeholder">在此處新增關於此專案的備註</string>
     <string name="additem_markdown_note">包括 <xliff:g id="italic" example="italic">%1$s</xliff:g> 或 <xliff:g id="bold" example="bold">%2$s</xliff:g> 等樣式的文字。支援有限的 Markdown 語法。</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">密碼存在於已知的資料洩露事件中，應立即更改此密碼。</string>
     <string name="watchtower_item_reused_passwords_title">重複使用的密碼</string>
     <string name="watchtower_item_reused_passwords_text">不要在多個網站上使用相同的密碼，生成唯一的密碼來提高安全性。</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">安全性低的帳號</string>
     <string name="watchtower_item_vulnerable_accounts_text">自您上次修改密碼以來受資料洩露影響的站點，更改您的密碼以保證帳號安全。</string>
     <string name="watchtower_item_unsecure_websites_title">不安全的網站</string>

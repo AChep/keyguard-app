@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Editar item</string>
     <string name="additem_header_merge_title">Mesclar itens</string>
     <string name="additem_merge_remove_origin_ciphers_title">Mover itens de origem para a lixeira</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Mover itens de origem para arquivo</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Manter itens de origem</string>
     <string name="additem_merge_attachments_note">Mesclar itens não faz com que seus anexos sejam mesclados! O item criado não terá nenhum anexo adicionado.</string>
     <string name="additem_note_placeholder">Adicione qualquer nota a este item</string>
     <string name="additem_markdown_note">Estilize o texto com <xliff:g id="italic" example="italic">%1$s</xliff:g> ou <xliff:g id="bold" example="bold">%2$s</xliff:g> e muito mais. Suporte à sintaxe Markdown limitada.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Senhas que foram expostas em vazamentos de dados. Essas senhas devem ser alteradas imediatamente.</string>
     <string name="watchtower_item_reused_passwords_title">Senhas reutilizadas</string>
     <string name="watchtower_item_reused_passwords_text">Não use a mesma senha em vários sites. Gere senhas únicas para melhorar a segurança.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Chaves SSH fracas</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Itens que não atendem às recomendações do NIST.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Contas Vulneráveis</string>
     <string name="watchtower_item_vulnerable_accounts_text">Sites que foram afetados por um vazamento de dados desde a última vez que você alterou a senha. Altere sua senha para manter sua conta segura.</string>
     <string name="watchtower_item_unsecure_websites_title">Sites inseguros</string>

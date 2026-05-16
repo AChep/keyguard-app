@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Редактировать запись</string>
     <string name="additem_header_merge_title">Объединить элементы</string>
     <string name="additem_merge_remove_origin_ciphers_title">Переместить исходные элементы в корзину</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Объединение элементов не объединяет их вложения! Созданный элемент не будет добавлен.</string>
     <string name="additem_note_placeholder">Добавьте заметки об этом элементе здесь</string>
     <string name="additem_markdown_note">Стилизуйте текст используя <xliff:g id="italic" example="italic">%1$s</xliff:g>, <xliff:g id="bold" example="bold">%2$s</xliff:g> и другое. Ограниченная поддержка синтаксиса Markdown.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Пароли, раскрытые в результате утечки данных. Такие пароли следует немедленно изменить.</string>
     <string name="watchtower_item_reused_passwords_title">Повторно использованные пароли</string>
     <string name="watchtower_item_reused_passwords_text">Не используйте один и тот же пароль на разных сайтах. Создавайте уникальные пароли для повышения безопасности.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Уязвимые аккаунты</string>
     <string name="watchtower_item_vulnerable_accounts_text">Сайты, на которых произошла утечка данных с момента последней смены пароля. Измените пароль, чтобы сохранить свою учетную запись в безопасности.</string>
     <string name="watchtower_item_unsecure_websites_title">Небезопасные сайты</string>

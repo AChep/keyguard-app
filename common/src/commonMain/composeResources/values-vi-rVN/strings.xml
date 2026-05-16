@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Chỉnh sửa mục</string>
     <string name="additem_header_merge_title">Gộp các mục</string>
     <string name="additem_merge_remove_origin_ciphers_title">Dời các mục gốc vô sọt rác</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Việc gộp các mục không gộp các tệp đính kèm của chúng! Mục đã tạo sẽ không có bất kỳ tệp đính kèm nào được thêm vào.</string>
     <string name="additem_note_placeholder">Thêm bất kỳ ghi chú nào về mục này ở đây</string>
     <string name="additem_markdown_note">Tạo kiểu cho văn bản bằng <xliff:g id="italic" example="italic">%1$s</xliff:g> hoặc <xliff:g id="bold" example="bold">%2$s</xliff:g> và hơn thế nữa. Hỗ trợ cú pháp Markdown giới hạn.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Những mật khẩu đã bị lộ trong các vụ vi phạm dữ liệu. Những mật khẩu như vậy nên được thay đổi ngay lập tức.</string>
     <string name="watchtower_item_reused_passwords_title">Mật khẩu dùng lại</string>
     <string name="watchtower_item_reused_passwords_text">Không sử dụng cùng một mật khẩu trên nhiều trang web. Tạo mật khẩu duy nhất để cải thiện bảo mật.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Tài khoản dễ bị tổn thương</string>
     <string name="watchtower_item_vulnerable_accounts_text">Các trang web bị ảnh hưởng do vi phạm dữ liệu kể từ lần cuối bạn thay đổi mật khẩu. Thay đổi mật khẩu để giữ an toàn cho tài khoản của bạn.</string>
     <string name="watchtower_item_unsecure_websites_title">Các trang web không an toàn</string>

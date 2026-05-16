@@ -142,7 +142,7 @@ playReviewKtx = "2.0.2"
 playServicesBase = "18.10.0"
 playServicesWearable = "20.0.1"
 # https://github.com/halilozercan/compose-richtext/releases
-richtext = "1.0.0-alpha03"
+richtext = "1.0.0-alpha04"
 # https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
 signalr = "9.0.12"
 # https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle

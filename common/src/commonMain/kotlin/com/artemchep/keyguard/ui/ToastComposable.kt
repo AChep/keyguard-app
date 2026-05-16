@@ -152,7 +152,7 @@ fun ToastMessageHost(
                         onDisposed = {
                             messagesState.update { l ->
                                 l.toMutableList()
-                                    .apply { removeIf { it.drawable.key == message.id } }
+                                    .apply { removeAll { it.drawable.key == message.id } }
                             }
                         },
                     ),

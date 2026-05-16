@@ -89,9 +89,9 @@ fun produceTwoFaServiceListState(
         return this
             .sortedWith(modelComparator)
             .map { appInfo ->
-                val key = kotlin.run {
-                    val newPackageNameCollisionCounter = nameCollisions
-                        .getOrDefault(appInfo.name, 0) + 1
+                    val key = kotlin.run {
+                        val newPackageNameCollisionCounter = nameCollisions
+                            .getOrElse(appInfo.name) { 0 } + 1
                     nameCollisions[appInfo.name] =
                         newPackageNameCollisionCounter
                     appInfo.name + ":" + newPackageNameCollisionCounter

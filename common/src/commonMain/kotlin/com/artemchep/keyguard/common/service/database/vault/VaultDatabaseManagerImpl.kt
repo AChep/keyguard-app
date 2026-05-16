@@ -48,6 +48,7 @@ import com.artemchep.keyguard.data.pwnage.AccountBreach
 import com.artemchep.keyguard.data.pwnage.PasswordBreach
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

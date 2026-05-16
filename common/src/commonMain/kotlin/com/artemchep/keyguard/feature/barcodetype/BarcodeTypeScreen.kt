@@ -194,7 +194,8 @@ fun BarcodeImage(
                 Text(
                     modifier = Modifier
                         .padding(8.dp),
-                    text = e.localizedMessage,
+                    text = e.message
+                        ?: stringResource(Res.string.error_failed_unknown),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 6,

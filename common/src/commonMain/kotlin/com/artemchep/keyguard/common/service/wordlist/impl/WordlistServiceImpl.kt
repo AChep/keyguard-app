@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.wordlist.WordlistService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance

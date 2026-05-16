@@ -22,8 +22,8 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
-import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
-import com.halilibo.richtext.markdown.node.AstNode
+import com.artemchep.keyguard.ui.markdown.MarkdownDocument
+import com.artemchep.keyguard.ui.markdown.MarkdownParser
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
@@ -202,15 +202,15 @@ sealed interface VaultViewItem {
         sealed interface Content {
             companion object {
                 fun of(
-                    parser: CommonmarkAstNodeParser,
+                    parser: MarkdownParser,
                     markdown: Boolean,
                     text: String,
                 ): Content =
                     if (markdown) {
                         kotlin.runCatching {
                             val data = text.trimIndent()
-                            val node = parser.parse(data)
-                            Markdown(node)
+                            val document = parser.parse(data)
+                            Markdown(document)
                         }.getOrNull()
                     } else {
                         null
@@ -218,7 +218,7 @@ sealed interface VaultViewItem {
             }
 
             data class Markdown(
-                val node: AstNode,
+                val document: MarkdownDocument,
             ) : Content
 
             data class Text(

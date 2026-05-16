@@ -1,7 +1,10 @@
 package com.artemchep.keyguard.provider.bitwarden.api.builder
 
+import kotlin.jvm.JvmInline
+
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.LeLocale
 import com.artemchep.keyguard.platform.util.CHROME_MAJOR_VERSION
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
@@ -48,21 +51,11 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.Url
 import io.ktor.http.escapeIfNeeded
-import io.ktor.http.content.OutgoingContent
 import io.ktor.http.contentType
-import io.ktor.utils.io.jvm.javaio.toByteReadChannel
-import io.ktor.utils.io.streams.asInput
 import io.ktor.util.AttributeKey
-import java.io.File
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -868,39 +861,16 @@ private suspend fun uploadFileToTargetDirect(
     filePath: String,
     fileLength: Long,
     route: String,
-) = httpClient
-    .post(target.resolveUrl(env)) {
-        headers(env)
-        header("Authorization", "Bearer $token")
-        setBody(
-            MultiPartFormDataContent(
-                formData {
-                    append(
-                        key = "data",
-                        value = io.ktor.client.request.forms.InputProvider(
-                            size = fileLength,
-                        ) {
-                            File(filePath)
-                                .inputStream()
-                                .asInput()
-                        },
-                        headers = Headers.build {
-                            append(
-                                HttpHeaders.ContentDisposition,
-                                multipartFilenameParameter(fileName),
-                            )
-                            append(
-                                HttpHeaders.ContentType,
-                                ContentType.Application.OctetStream.toString(),
-                            )
-                        },
-                    )
-                },
-            ),
-        )
-        attributes.put(routeAttribute, route)
-    }
-    .bodyOrApiExceptionUnitStrict()
+): Unit = platformUploadFileToTargetDirect(
+    httpClient = httpClient,
+    env = env,
+    token = token,
+    target = target,
+    fileName = fileName,
+    filePath = filePath,
+    fileLength = fileLength,
+    route = route,
+)
 
 
 private suspend fun uploadFileToTargetAzure(
@@ -910,32 +880,36 @@ private suspend fun uploadFileToTargetAzure(
     filePath: String,
     fileLength: Long,
     route: String,
-) = httpClient
-    .put(target.resolveUrl(env)) {
-        val uploadUrl = Url(target.resolveUrl(env))
-        header("x-ms-blob-type", "BlockBlob")
-        header(
-            "x-ms-date",
-            DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now(ZoneOffset.UTC)),
-        )
-        uploadUrl.parameters["sv"]?.let { version ->
-            header("x-ms-version", version)
-        }
-        setBody(
-            object : OutgoingContent.ReadChannelContent() {
-                override val contentType = ContentType.Application.OctetStream
-                override val contentLength = fileLength
+): Unit = platformUploadFileToTargetAzure(
+    httpClient = httpClient,
+    env = env,
+    target = target,
+    filePath = filePath,
+    fileLength = fileLength,
+    route = route,
+)
 
-                override fun readFrom() = File(filePath)
-                    .inputStream()
-                    .toByteReadChannel()
-            },
-        )
-        attributes.put(routeAttribute, route)
-    }
-    .bodyOrApiExceptionUnitStrict(expectedStatus = HttpStatusCode.Created)
+internal expect suspend fun platformUploadFileToTargetDirect(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    token: String,
+    target: SendFileUploadTarget,
+    fileName: String,
+    filePath: String,
+    fileLength: Long,
+    route: String,
+)
 
-private suspend fun HttpResponse.bodyOrApiExceptionUnitStrict(
+internal expect suspend fun platformUploadFileToTargetAzure(
+    httpClient: HttpClient,
+    env: ServerEnv,
+    target: SendFileUploadTarget,
+    filePath: String,
+    fileLength: Long,
+    route: String,
+)
+
+internal suspend fun HttpResponse.bodyOrApiExceptionUnitStrict(
     expectedStatus: HttpStatusCode? = null,
 ) {
     val isSuccessful = expectedStatus
@@ -979,8 +953,8 @@ private fun String.getXmlTagValue(
     tagName: String,
 ): String? {
     val regex = Regex(
-        pattern = "<\\s*$tagName\\s*>(.*?)<\\s*/\\s*$tagName\\s*>",
-        options = setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL),
+        pattern = "<\\s*$tagName\\s*>([\\s\\S]*?)<\\s*/\\s*$tagName\\s*>",
+        options = setOf(RegexOption.IGNORE_CASE),
     )
     return regex
         .find(this)
@@ -1076,8 +1050,7 @@ fun HttpRequestBuilder.headers(env: ServerEnv) {
     // Cloudflare-pleasing headers that do
     // nothing except let Keyguard pass their
     // bot detection.
-    val language = Locale.getDefault().toLanguageTag()
-        ?: "en-US"
+    val language = LeLocale.languageTag
     header("Accept-Language", language)
     header("Sec-Ch-Ua", """"Not.A/Brand";v="8", "Chromium";v="$CHROME_MAJOR_VERSION"""")
     header("Sec-Ch-Ua-Mobile", persona.chUaMobile)

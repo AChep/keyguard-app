@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.api
 
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.exception.OutOfMemoryKdfException
+import com.artemchep.keyguard.common.exception.isOutOfMemoryError
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -39,7 +40,6 @@ import io.ktor.utils.io.InternalAPI
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import java.util.Locale
 
 private const val PBKDF2_KEY_LENGTH = 32
 
@@ -253,7 +253,7 @@ private suspend fun prelogin(
 
 private fun normalizePreloginEmail(email: String) = email
     .trim()
-    .lowercase(Locale.ENGLISH)
+    .lowercase()
 
 private suspend fun preloginAt(
     httpClient: HttpClient,
@@ -282,8 +282,8 @@ private fun generateSecrets(
     hashConfig: PreLogin.Hash,
     salt: String,
 ): PasswordResult {
-    val passwordBytes = password.toByteArray()
-    val saltBytes = salt.toByteArray()
+    val passwordBytes = password.encodeToByteArray()
+    val saltBytes = salt.encodeToByteArray()
 
     val masterKey = runCatching {
         cryptoGenerator.masterKeyHash(
@@ -292,9 +292,9 @@ private fun generateSecrets(
             config = hashConfig,
         )
     }.getOrElse { e ->
-        if (e is OutOfMemoryError) {
+        if (e.isOutOfMemoryError()) {
             val newError = OutOfMemoryKdfException(
-                m = e.localizedMessage ?: e.message,
+                m = e.message ?: "Out of memory",
                 e = e,
             )
             throw newError
@@ -326,11 +326,11 @@ private fun stretchMasterKey(
 ): Pair<ByteArray, ByteArray> {
     val encryptionKey = cryptoGenerator.hkdf(
         seed = key,
-        info = "enc".toByteArray(),
+        info = "enc".encodeToByteArray(),
     )
     val macKey = cryptoGenerator.hkdf(
         seed = key,
-        info = "mac".toByteArray(),
+        info = "mac".encodeToByteArray(),
     )
     return encryptionKey to macKey
 }

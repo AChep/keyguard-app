@@ -98,7 +98,7 @@ internal class DefaultVaultSearchIndexBuilder(
             result.fieldDocFrequencies.forEach { (field, terms) ->
                 val fieldFrequencies = fieldDocFrequencies.getOrPut(field) { mutableMapOf() }
                 terms.forEach { term ->
-                    fieldFrequencies[term] = fieldFrequencies.getOrDefault(term, 0) + 1
+                    fieldFrequencies[term] = fieldFrequencies.getOrElse(term) { 0 } + 1
                 }
             }
         }
@@ -210,11 +210,11 @@ internal class DefaultVaultSearchIndexBuilder(
             var totalTerms = 0
             normalizedValues.forEach { (_, tokenization) ->
                 tokenization.terms.forEach { term ->
-                    termFrequencies[term] = termFrequencies.getOrDefault(term, 0) + 1
+                    termFrequencies[term] = termFrequencies.getOrElse(term) { 0 } + 1
                     totalTerms += 1
                 }
                 tokenization.exactTerms.forEach { term ->
-                    exactTermFrequencies[term] = exactTermFrequencies.getOrDefault(term, 0) + 1
+                    exactTermFrequencies[term] = exactTermFrequencies.getOrElse(term) { 0 } + 1
                 }
             }
             hotFields[field] =
@@ -251,11 +251,11 @@ internal class DefaultVaultSearchIndexBuilder(
             var totalTerms = 0
             normalizedValues.forEach { (_, tokenization) ->
                 tokenization.terms.forEach { term ->
-                    termFrequencies[term] = termFrequencies.getOrDefault(term, 0) + 1
+                    termFrequencies[term] = termFrequencies.getOrElse(term) { 0 } + 1
                     totalTerms += 1
                 }
                 tokenization.exactTerms.forEach { term ->
-                    exactTermFrequencies[term] = exactTermFrequencies.getOrDefault(term, 0) + 1
+                    exactTermFrequencies[term] = exactTermFrequencies.getOrElse(term) { 0 } + 1
                 }
             }
             if (normalizedValues.isNotEmpty()) {

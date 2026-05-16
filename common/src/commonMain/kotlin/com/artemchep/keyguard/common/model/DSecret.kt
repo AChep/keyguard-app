@@ -2,6 +2,8 @@
 
 package com.artemchep.keyguard.common.model
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.Password

@@ -9,7 +9,7 @@ import com.artemchep.keyguard.platform.Platform
 import kotlinx.coroutines.coroutineScope
 import org.kodein.di.DirectDI
 
-class ExecuteCommandImpl(
+class ExecuteCommandJvm(
 ) : ExecuteCommand {
     private val executor: ExecuteCommand? = when (CurrentPlatform) {
         is Platform.Desktop.Windows -> ExecuteCommandCmd()
@@ -39,6 +39,10 @@ class ExecuteCommandImpl(
             .bind()
     }
 }
+
+//
+// Actual implementation
+//
 
 private class ExecuteCommandCmd : ExecuteCommand {
     override val interpreter: String get() = "cmd"

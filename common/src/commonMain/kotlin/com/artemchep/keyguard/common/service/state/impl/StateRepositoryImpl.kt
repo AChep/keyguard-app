@@ -1,12 +1,19 @@
 package com.artemchep.keyguard.common.service.state.impl
 
+import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.flatten
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AnyMap
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getObject
 import com.artemchep.keyguard.common.service.state.StateRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -26,11 +33,13 @@ class StateRepositoryImpl(
     private val store: KeyValueStore,
     private val json: Json,
 ) : StateRepository {
+    private val mutex = Mutex()
+
     private val registry = mutableMapOf<String, KeyValuePreference<AnyMap?>>()
 
-    private fun createOrGetPref(
+    private suspend fun createOrGetPref(
         key: String,
-    ): KeyValuePreference<AnyMap?> = synchronized(this) {
+    ): KeyValuePreference<AnyMap?> = mutex.withLock {
         registry.getOrPut(key) {
             createPref(key)
         }
@@ -54,18 +63,21 @@ class StateRepositoryImpl(
         },
     )
 
-    override fun put(key: String, model: Map<String, Any?>) = kotlin.run {
+    override fun put(key: String, model: Map<String, Any?>) = ioEffect {
         val anyMap = AnyMap(
             value = model,
         )
         createOrGetPref(key)
             .setAndCommit(anyMap)
-    }
+    }.flatten()
 
-    override fun get(key: String): Flow<Map<String, Any?>> = createOrGetPref(key)
-        .map {
-            it?.value.orEmpty()
-        }
+    override fun get(key: String): Flow<Map<String, Any?>> = flow {
+        val flow = createOrGetPref(key)
+            .map {
+                it?.value.orEmpty()
+            }
+        emitAll(flow)
+    }
 }
 
 fun JsonObject.toMap(): Map<String, Any?> = this

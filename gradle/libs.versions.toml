@@ -94,6 +94,8 @@ m3color = "2025.4"
 kodeinDi = "7.26.1"
 # https://github.com/JetBrains/kotlin
 kotlin = "2.3.21"
+# https://github.com/Kotlin/kotlinx-atomicfu
+atomicfu = "0.32.1"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.4.0"
 # https://github.com/Kotlin/kotlinx.coroutines
@@ -285,6 +287,7 @@ kodein-kodein-di-framework-compose = { module = "org.kodein.di:kodein-di-framewo
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
+kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinCollections" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }

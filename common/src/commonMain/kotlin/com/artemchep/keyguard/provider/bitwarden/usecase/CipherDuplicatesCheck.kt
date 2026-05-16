@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
+import com.artemchep.keyguard.platform.LeSystem
 import com.artemchep.keyguard.platform.util.isRelease
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -147,7 +148,7 @@ class CipherDuplicatesCheckImpl(
                         val groupId = group
                             .joinToString(separator = "") { it.source.id }
                             .let {
-                                val data = it.toByteArray()
+                                val data = it.encodeToByteArray()
                                 val hash = cryptoGenerator.hashSha256(data)
                                 base64Service.encodeToString(hash)
                             }
@@ -166,7 +167,7 @@ class CipherDuplicatesCheckImpl(
                             id = finalGroupId,
                             accuracy = finalAccuracy,
                             summary = summary
-                                ?.joinToString(separator = System.lineSeparator()),
+                                ?.joinToString(separator = LeSystem.lineSeparator),
                             ciphers = group
                                 .map { it.source },
                         )

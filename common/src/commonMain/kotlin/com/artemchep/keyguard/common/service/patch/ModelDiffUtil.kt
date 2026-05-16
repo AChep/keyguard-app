@@ -105,8 +105,7 @@ class ModelDiffUtil {
         ) : DiffFinderNode<Input>
     }
 
-    @FunctionalInterface
-    interface DiffFinder<T> {
+    fun interface DiffFinder<T> {
         fun compare(base: T, a: T, b: T): T
     }
 

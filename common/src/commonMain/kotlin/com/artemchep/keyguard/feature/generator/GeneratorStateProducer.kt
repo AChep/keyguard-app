@@ -140,7 +140,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlin.time.Clock
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -225,7 +225,7 @@ fun produceGeneratorState(
         getCanWrite = instance(),
         tldService = instance(),
         clipboardService = instance(),
-        emailRelays = allInstances(),
+        emailRelays = leAllInstances(),
     )
 }
 

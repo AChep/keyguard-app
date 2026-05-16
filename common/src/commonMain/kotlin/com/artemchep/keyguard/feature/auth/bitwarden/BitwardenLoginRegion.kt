@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.auth.bitwarden
 
+import kotlin.jvm.JvmInline
+
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.addaccount_region_custom_type

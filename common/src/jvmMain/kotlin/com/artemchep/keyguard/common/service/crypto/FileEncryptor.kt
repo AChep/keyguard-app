@@ -1,9 +1,9 @@
 package com.artemchep.keyguard.common.service.crypto
 
-import java.io.ByteArrayInputStream
-import java.io.InputStream
 import com.artemchep.keyguard.platform.LocalPath
 import kotlinx.io.Source
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 
 interface FileEncryptor {
     data class EncodeResult(

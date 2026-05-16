@@ -75,7 +75,7 @@ fun VaultViewNoteItem(
                     when (item.content) {
                         is VaultViewItem.Note.Content.Markdown -> {
                             MarkdownText(
-                                markdown = item.content.node,
+                                markdown = item.content.document,
                             )
                         }
                         is VaultViewItem.Note.Content.Text -> {

@@ -690,7 +690,7 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
     ) {
         result.fold(
             ifLeft = { e ->
-                val text = e.localizedMessage ?: e.message
+                val text = e.message
                 val msg = ToastMessage(
                     type = ToastMessage.Type.ERROR,
                     title = text.orEmpty(),
@@ -792,7 +792,7 @@ private suspend fun RememberStateFlowScope.createStateFlowForFido2WebAuthn(
     ) {
         result.fold(
             ifLeft = { e ->
-                val text = e.localizedMessage ?: e.message
+                val text = e.message
                 val msg = ToastMessage(
                     type = ToastMessage.Type.ERROR,
                     title = text.orEmpty(),

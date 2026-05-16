@@ -124,7 +124,7 @@ private fun HttpException.hasTerminalDirectUploadFailureStatus(): Boolean =
 private fun HttpException.hasKnownTerminalUploadMessage(
     messages: List<String>,
 ): Boolean =
-    listOfNotNull(message, localizedMessage)
+    listOfNotNull(message)
         .any { text ->
             messages.any { message ->
                 text.contains(message, ignoreCase = true)

@@ -2,6 +2,8 @@
 
 package com.artemchep.keyguard.feature.watchtower.alerts
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.runtime.Immutable
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlert
@@ -14,7 +16,6 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import kotlinx.collections.immutable.ImmutableList
-import java.util.*
 
 @Immutable
 data class WatchtowerNewAlertsState(

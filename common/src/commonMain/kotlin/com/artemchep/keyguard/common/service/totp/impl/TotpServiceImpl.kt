@@ -15,7 +15,6 @@ import com.artemchep.keyguard.common.util.millis
 import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.Locale
 import kotlin.experimental.and
 import kotlin.math.pow
 import kotlin.math.roundToLong
@@ -279,11 +278,11 @@ class TotpServiceImpl(
                 append(token.pin)
             }
         }
-        val hash = cryptoGenerator.hashMd5(data.toByteArray())
+        val hash = cryptoGenerator.hashMd5(data.encodeToByteArray())
 
         val code = hash
             .toHexString()
-            .lowercase(Locale.ENGLISH)
+            .lowercase()
             .take(token.digits)
         return TotpCode(
             code = code,

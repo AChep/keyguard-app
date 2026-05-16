@@ -7,7 +7,6 @@ import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultQuer
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
 import com.artemchep.keyguard.res.*
 import org.jetbrains.compose.resources.StringResource
-import java.util.Locale
 
 internal data class VaultSearchQualifierMetadata(
     val canonicalName: String,
@@ -31,7 +30,7 @@ class VaultSearchQualifierCatalog internal constructor(
 
     internal fun findDefinition(
         qualifier: String,
-    ): VaultSearchQualifierDefinition? = definitionsByAlias[qualifier.lowercase(Locale.ROOT)]
+    ): VaultSearchQualifierDefinition? = definitionsByAlias[qualifier.lowercase()]
 }
 
 internal data class VaultSearchQualifierSuggestion(
@@ -82,7 +81,7 @@ internal fun bestVaultSearchQualifierSuggestion(
     val fragment =
         activeVaultSearchQualifierFragment(query)
             ?: return null
-    val normalizedFragment = fragment.text.lowercase(Locale.ROOT)
+    val normalizedFragment = fragment.text.lowercase()
     val match =
         catalog.definitions
             .withIndex()
@@ -201,12 +200,12 @@ private fun qualifierMetadata(
     semanticKind: VaultQueryClauseSemanticKind,
 ): VaultSearchQualifierMetadata {
     val normalizedAliases = buildSet {
-        add(canonicalName.lowercase(Locale.ROOT))
+        add(canonicalName.lowercase())
         aliases.forEach { alias ->
-            add(alias.lowercase(Locale.ROOT))
+            add(alias.lowercase())
         }
         localizedAliases.forEach { alias ->
-            add(alias.lowercase(Locale.ROOT))
+            add(alias.lowercase())
         }
     }
     return VaultSearchQualifierMetadata(

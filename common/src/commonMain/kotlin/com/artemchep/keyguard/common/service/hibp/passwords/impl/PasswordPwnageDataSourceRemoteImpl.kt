@@ -15,9 +15,9 @@ import io.ktor.util.hex
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.Locale
 
 /**
  * @author Artem Chepurnyi
@@ -34,9 +34,9 @@ class PasswordPwnageDataSourceRemoteImpl(
     override fun check(
         password: String,
     ): IO<PasswordPwnage> = ioEffect(Dispatchers.Default) {
-        val hash = cryptoGenerator.hashSha1(password.toByteArray())
+        val hash = cryptoGenerator.hashSha1(password.encodeToByteArray())
             .let(::hex)
-            .uppercase(Locale.ENGLISH)
+            .uppercase()
         hash
     }
         .flatMap(::pwnedPasswordsRequestIo)

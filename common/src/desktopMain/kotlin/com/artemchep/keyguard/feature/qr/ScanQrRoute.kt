@@ -6,7 +6,7 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 
 actual object ScanQrRoute : RouteForResult<String> {
     @Composable
-    override fun Content(transmitter: RouteResultTransmitter<String>) {
+    actual override fun Content(transmitter: RouteResultTransmitter<String>) {
         // Does nothing on Desktop
     }
 }

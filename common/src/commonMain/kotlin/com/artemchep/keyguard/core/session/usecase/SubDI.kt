@@ -166,7 +166,6 @@ import com.artemchep.keyguard.common.usecase.impl.AddUrlBlockImpl
 import com.artemchep.keyguard.common.usecase.impl.AddUrlOverrideImpl
 import com.artemchep.keyguard.common.usecase.impl.BackupSettingsImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
-import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentMetadataImpl2
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBreachesImpl
@@ -298,8 +297,14 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.PatchWatchtowerAlertCip
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountColorByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountMasterPasswordHintByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountNameByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutBitwardenAccountColorByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutBitwardenAccountNameByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountColorById
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountNameById
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutProfileHiddenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RePromptCipherByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.createPutKeePassAccountColorById
+import com.artemchep.keyguard.provider.bitwarden.usecase.createPutKeePassAccountNameById
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveAccountByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveAccountsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveCipherByIdImpl
@@ -322,7 +327,6 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.UnarchiveCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountImpl
@@ -330,7 +334,6 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanio
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.SyncByBitwardenTokenV2Impl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassToken
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassTokenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByTokenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
@@ -353,7 +356,7 @@ fun DI.Builder.createSubDi2(
         DownloadAttachmentImpl2(this)
     }
     bindSingleton<DownloadAttachmentMetadata> {
-        DownloadAttachmentMetadataImpl2(this)
+        createDownloadAttachmentMetadata(this)
     }
     bindSingleton<GetCanAddAccount> {
         GetCanAddAccountImpl(this)
@@ -547,7 +550,7 @@ fun DI.Builder.createSubDi2(
         AddAccountImpl(this)
     }
     bindSingleton<AddKeePassAccount> {
-        AddKeePassAccountImpl(this)
+        createAddKeePassAccount(this)
     }
     bindSingleton<ImportCompanionBitwardenAccount> {
         ImportCompanionBitwardenAccountImpl(this)
@@ -729,11 +732,23 @@ fun DI.Builder.createSubDi2(
     bindSingleton<ExportLogs> {
         ExportLogsImpl(this)
     }
+    bindSingleton<PutBitwardenAccountColorByIdImpl> {
+        PutBitwardenAccountColorByIdImpl(this)
+    }
+    bindSingleton<PutKeePassAccountColorById> {
+        createPutKeePassAccountColorById(this)
+    }
     bindSingleton<PutAccountColorById> {
         PutAccountColorByIdImpl(this)
     }
     bindSingleton<PutAccountMasterPasswordHintById> {
         PutAccountMasterPasswordHintByIdImpl(this)
+    }
+    bindSingleton<PutBitwardenAccountNameByIdImpl> {
+        PutBitwardenAccountNameByIdImpl(this)
+    }
+    bindSingleton<PutKeePassAccountNameById> {
+        createPutKeePassAccountNameById(this)
     }
     bindSingleton<PutAccountNameById> {
         PutAccountNameByIdImpl(this)
@@ -898,7 +913,7 @@ fun DI.Builder.createSubDi2(
         SyncByBitwardenTokenV2Impl(this)
     }
     bindSingleton<SyncByKeePassToken> {
-        SyncByKeePassTokenImpl(this)
+        createSyncByKeePassToken(this)
     }
     bindSingleton<WatchdogImpl> {
         WatchdogImpl(this)

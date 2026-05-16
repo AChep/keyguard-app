@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.crypto
 
+import kotlin.jvm.JvmName
+
 import arrow.core.partially2
 import arrow.core.partially3
 import com.artemchep.keyguard.common.exception.DecodeException
@@ -90,7 +92,7 @@ fun BitwardenCrCta.transformString(
 ): String = whatIf(
     isEncrypt = {
         val encryptionType = env.encryptionType
-        val data = value.toByteArray()
+        val data = value.encodeToByteArray()
         encoder(env.key).invoke(encryptionType, data)
     },
     isDecrypt = {
@@ -100,7 +102,7 @@ fun BitwardenCrCta.transformString(
             return@whatIf value
         }
         val data = decoder(env.key).invoke(value).data
-        String(data)
+        data.decodeToString()
     },
 )
 
@@ -225,7 +227,7 @@ private fun Decoder.withExceptionHandling(
                 symmetricCryptoKey?.let { "symmetric key is ${it.data.size}b long" },
                 asymmetricCryptoKey?.let { "asymmetric key is ${it.privateKey.size}b long" },
             ).joinToString()
-            val cause = e.localizedMessage ?: e.message
+            val cause = e.message
             val msg = "Failed to decode a cipher-text with the type '$type': $key, $info. " +
                     "$cause"
             throw DecodeException(msg, e)
@@ -388,8 +390,8 @@ fun CryptoGenerator.makeSendCryptoKey(
 ): ByteArray {
     return hkdf(
         seed = keyMaterial,
-        salt = "bitwarden-send".toByteArray(),
-        info = "send".toByteArray(),
+        salt = "bitwarden-send".encodeToByteArray(),
+        info = "send".encodeToByteArray(),
         length = 64,
     )
 }

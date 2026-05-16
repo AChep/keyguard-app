@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.localization
 
+import kotlin.jvm.JvmName
+
 import com.artemchep.keyguard.platform.LeContext
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource

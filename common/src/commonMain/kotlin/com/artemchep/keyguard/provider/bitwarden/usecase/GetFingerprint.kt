@@ -46,7 +46,7 @@ class GetFingerprintImpl(
         }
         val fingerprint = cryptoGenerator.hkdf(
             seed = publicKeyHash,
-            info = profileId.toByteArray(),
+            info = profileId.encodeToByteArray(),
         )
         generateHashPhrase(
             hash = fingerprint,

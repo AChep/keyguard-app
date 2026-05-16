@@ -2,7 +2,7 @@ package com.artemchep.keyguard.common.service.logging
 
 import com.artemchep.keyguard.platform.util.isRelease
 import org.kodein.di.DirectDI
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 
 interface LogRepository : LogRepositoryBase
 
@@ -26,7 +26,7 @@ class LogRepositoryBridge(
     constructor(
         directDI: DirectDI,
     ) : this(
-        logRepositoryList = directDI.allInstances(),
+        logRepositoryList = directDI.leAllInstances(),
     )
 
     override fun post(

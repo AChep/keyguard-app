@@ -11,6 +11,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.http.userAgent
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

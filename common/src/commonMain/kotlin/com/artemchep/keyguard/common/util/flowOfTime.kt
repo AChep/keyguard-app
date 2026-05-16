@@ -4,14 +4,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlin.time.Clock
 import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
-import kotlin.time.toTimeUnit
+import kotlin.time.toDuration
 
 fun flowOfTime(
     unit: DurationUnit = DurationUnit.SECONDS,
     duration: Long = 1L,
 ) = flow {
-    val delayMs = unit.toTimeUnit().toMillis(duration)
+    val delayMs = duration.toDuration(unit).inWholeMilliseconds
     while (true) {
         val time = Clock.System.now()
         emit(time)

@@ -67,6 +67,8 @@ import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.concurrent.Volatile
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 open class ExportManagerBase(
     private val directDI: DirectDI,
@@ -319,6 +321,7 @@ open class ExportManagerBase(
         return DownloadProgress.Complete(fileUri.right())
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
     private fun createDownloadFileZipEntry(
         entry: AttachmentWithLiveProgress,
         onDownloadUpdated: () -> Unit,
@@ -368,7 +371,7 @@ open class ExportManagerBase(
                         }
                     }
                     if (downloaded != null) {
-                        entry.downloaded = downloaded
+                        entry.downloaded.store(downloaded)
                         onDownloadUpdated()
                     }
                 }
@@ -447,14 +450,15 @@ open class ExportManagerBase(
         }
         .first()
 
+    @OptIn(ExperimentalAtomicApi::class)
     private class AttachmentWithLiveProgress(
         val cipher: DSecret,
         val attachment: DSecret.Attachment,
-        @Volatile
-        var downloaded: Long,
+        val downloaded: AtomicLong,
         val total: Long,
     )
 
+    @OptIn(ExperimentalAtomicApi::class)
     private class AttachmentList(
         val attachments: List<AttachmentWithLiveProgress>,
         val total: Long,
@@ -463,9 +467,10 @@ open class ExportManagerBase(
          * Compute a current number of downloaded
          * bytes. The value is not static.
          */
-        fun downloaded() = attachments.sumOf { it.downloaded.coerceAtMost(it.total) }
+        fun downloaded() = attachments.sumOf { it.downloaded.load().coerceAtMost(it.total) }
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
     private fun createAttachmentList(
         ciphers: List<DSecret>,
     ): AttachmentList {
@@ -477,7 +482,7 @@ open class ExportManagerBase(
                         AttachmentWithLiveProgress(
                             cipher = cipher,
                             attachment = attachment,
-                            downloaded = 0L,
+                            downloaded = AtomicLong(0L),
                             total = attachment.fileSize() ?: 0L,
                         )
                     }

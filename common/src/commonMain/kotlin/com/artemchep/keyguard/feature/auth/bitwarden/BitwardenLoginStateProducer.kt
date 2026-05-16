@@ -35,6 +35,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.LeSerializable
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.platform.util.hasWatch
@@ -67,7 +68,6 @@ import kotlinx.coroutines.flow.update
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
-import java.io.Serializable
 import kotlin.uuid.Uuid
 
 private const val TAG = "login"
@@ -865,7 +865,7 @@ data class Foo2Type(
 data class Foo2Persistable(
     val key: String,
     val type: String,
-) : Serializable
+) : LeSerializable
 
 data class Foo2InitialState<Argument>(
     val items: List<Item<Argument>>,

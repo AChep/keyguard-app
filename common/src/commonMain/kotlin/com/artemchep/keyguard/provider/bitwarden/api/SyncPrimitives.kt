@@ -183,8 +183,7 @@ suspend fun <
         }
         val newError = BitwardenService.Error(
             code = code,
-            message = e.localizedMessage
-                ?: e.message,
+            message = e.message,
             revisionDate = Clock.System.now(),
         )
         val newRemote = remote

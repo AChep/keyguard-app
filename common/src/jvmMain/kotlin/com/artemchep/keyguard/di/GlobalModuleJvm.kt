@@ -19,7 +19,7 @@ import com.artemchep.keyguard.common.service.deeplink.impl.DeeplinkServiceImpl
 import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.service.download.DownloadServiceImpl
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
-import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandImpl
+import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandJvm
 import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
@@ -1460,7 +1460,7 @@ fun globalModuleJvm() = DI.Module(
         )
     }
     bindSingleton<ExecuteCommand> {
-        ExecuteCommandImpl(
+        ExecuteCommandJvm(
             directDI = this,
         )
     }

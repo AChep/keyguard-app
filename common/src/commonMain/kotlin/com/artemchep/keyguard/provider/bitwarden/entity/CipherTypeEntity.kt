@@ -2,8 +2,9 @@ package com.artemchep.keyguard.provider.bitwarden.entity
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import com.artemchep.keyguard.provider.bitwarden.entity.serializer.CommonEnumIntSerializer
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.IntEnum
+import com.artemchep.keyguard.provider.bitwarden.entity.serializer.commonEnumIntSerializer
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable(CipherTypeEntitySerializer::class)
@@ -21,7 +22,7 @@ enum class CipherTypeEntity(
 }
 
 object CipherTypeEntitySerializer :
-    CommonEnumIntSerializer<CipherTypeEntity>(CipherTypeEntity::class)
+    KSerializer<CipherTypeEntity> by commonEnumIntSerializer<CipherTypeEntity>()
 
 fun CipherTypeEntity.Companion.of(
     model: BitwardenCipher.Type,

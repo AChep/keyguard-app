@@ -2,6 +2,8 @@
 
 package com.artemchep.keyguard.common.model
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.runtime.Composable
 import arrow.optics.optics
 import com.artemchep.keyguard.res.Res

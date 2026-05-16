@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import kotlin.time.Clock
 
 fun <T> Flow<T>.throttle(timeoutMillis: Long, sendLastEvent: Boolean = true): Flow<T> =
     if (sendLastEvent) {
@@ -20,7 +21,7 @@ fun <T> Flow<T>.throttle(timeoutMillis: Long, sendLastEvent: Boolean = true): Fl
         flow {
             var lastTime = 0L
             collect { value ->
-                val now = System.currentTimeMillis()
+                val now = Clock.System.now().toEpochMilliseconds()
                 if (lastTime + timeoutMillis > now) {
                     return@collect
                 }
@@ -50,7 +51,7 @@ private class FlowThrottle<T>(
     private var lastTime = 0L
 
     suspend fun send(value: T) {
-        val now = System.currentTimeMillis()
+        val now = Clock.System.now().toEpochMilliseconds()
         val dt = lastTime + timeoutMillis - now
         if (dt > 0L) {
             // We can not send this value, so remember it and maybe send
@@ -70,7 +71,7 @@ private class FlowThrottle<T>(
             return
         }
 
-        lastTime = System.currentTimeMillis()
+        lastTime = Clock.System.now().toEpochMilliseconds()
         unsentValue = NOTHING
         tickerJob?.cancel()
 

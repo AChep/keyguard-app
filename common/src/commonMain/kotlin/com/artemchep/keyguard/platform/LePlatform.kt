@@ -9,6 +9,8 @@ sealed interface Platform {
             val isWatch: Boolean,
             val sdk: Int,
         ) : Mobile
+
+        data object Ios : Mobile
     }
 
     sealed interface Desktop : Platform {

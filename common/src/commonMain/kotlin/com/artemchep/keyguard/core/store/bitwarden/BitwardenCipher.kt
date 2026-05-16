@@ -560,7 +560,7 @@ fun BitwardenCipher.Login.Uri.Companion.getUrlChecksum(
     cryptoGenerator: CryptoGenerator,
     uri: String?,
 ): ByteArray {
-    return cryptoGenerator.hashSha256(uri.orEmpty().toByteArray())
+    return cryptoGenerator.hashSha256(uri.orEmpty().encodeToByteArray())
 }
 
 fun BitwardenCipher.Login.Uri.Companion.getUrlChecksumBase64(
@@ -600,7 +600,7 @@ fun BitwardenCipher.Companion.generated(): BitwardenCipher {
         folderId = folderIds.random(),
         revisionDate = Clock.System.now().minus(20L.days),
         service = BitwardenService(),
-        favorite = Math.random() > 0.5f,
+        favorite = kotlin.random.Random.nextBoolean(),
         reprompt = BitwardenCipher.RepromptType.None,
         name = name.random(),
         notes = name.random(),

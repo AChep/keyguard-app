@@ -102,10 +102,8 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
             .groupBy {
                 it.service.remote != null
             }
-        val localItemsNew = localItemsGrouped
-            .getOrDefault(false, emptyList()) // no remote
-        val localItemsExistingByRemoteId = localItemsGrouped
-            .getOrDefault(true, emptyList()) // remote
+        val localItemsNew = localItemsGrouped[false].orEmpty() // no remote
+        val localItemsExistingByRemoteId = localItemsGrouped[true].orEmpty() // remote
             .groupBy { localItem ->
                 val remoteId = requireNotNull(localItem.service.remote?.id)
                 remoteId

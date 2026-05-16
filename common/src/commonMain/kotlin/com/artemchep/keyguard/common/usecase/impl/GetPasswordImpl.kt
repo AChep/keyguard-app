@@ -105,7 +105,7 @@ class GetPasswordImpl(
                     .take(config.length)
                     .let(cryptoGenerator::listShuffled)
                     .toCharArray()
-                val p = String(r)
+                val p = r.concatToString()
                 GetPasswordResult.Value(p)
             }
         }

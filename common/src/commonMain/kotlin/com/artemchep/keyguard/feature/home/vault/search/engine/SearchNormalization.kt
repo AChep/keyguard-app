@@ -1,11 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.search.engine
 
-import java.text.Normalizer
-import java.util.Locale
-
-private const val NON_SPACING_MARK = Character.NON_SPACING_MARK.toInt()
-private const val COMBINING_SPACING_MARK = Character.COMBINING_SPACING_MARK.toInt()
-private const val ENCLOSING_MARK = Character.ENCLOSING_MARK.toInt()
+import kotlin.text.CharCategory
 
 private val foldedCharacterReplacements =
     mapOf(
@@ -49,7 +44,7 @@ internal fun normalizeSearchValue(
     val exact =
         value
             .compatibilityNormalize()
-            .lowercase(Locale.ROOT)
+            .lowercase()
     val folded =
         if (foldAliases) {
             exact.foldSearchAliases()
@@ -68,13 +63,10 @@ internal data class SearchNormalizedValue(
 )
 
 private fun String.compatibilityNormalize(): String =
-    Normalizer.normalize(
-        this,
-        Normalizer.Form.NFKC,
-    )
+    searchCompatibilityNormalize(this)
 
 private fun String.foldSearchAliases(): String {
-    val decomposed = Normalizer.normalize(this, Normalizer.Form.NFKD)
+    val decomposed = searchDecomposeNormalize(this)
     return buildString(decomposed.length) {
         decomposed.forEach { char ->
             val replacement = foldedCharacterReplacements[char]
@@ -82,10 +74,10 @@ private fun String.foldSearchAliases(): String {
                 append(replacement)
                 return@forEach
             }
-            when (Character.getType(char)) {
-                NON_SPACING_MARK,
-                COMBINING_SPACING_MARK,
-                ENCLOSING_MARK,
+            when (char.category) {
+                CharCategory.NON_SPACING_MARK,
+                CharCategory.COMBINING_SPACING_MARK,
+                CharCategory.ENCLOSING_MARK,
                 -> Unit
 
                 else -> append(char)

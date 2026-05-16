@@ -1,34 +1,60 @@
 package com.artemchep.keyguard.feature.filepicker
 
-import java.text.CharacterIterator
-import java.text.StringCharacterIterator
+import kotlin.math.abs
+import kotlin.math.roundToLong
 
-fun humanReadableByteCountBin(bytes: Long): String? {
-    val absB = if (bytes == Long.MIN_VALUE) Long.MAX_VALUE else Math.abs(bytes)
-    if (absB < 1024) {
+fun humanReadableByteCountBin(bytes: Long): String =
+    humanReadableByteCount(
+        bytes = bytes,
+        unit = 1024L,
+        units = "KMGTPE",
+        unitSuffix = "iB",
+    )
+
+fun humanReadableByteCountSI(bytes: Long): String =
+    humanReadableByteCount(
+        bytes = bytes,
+        unit = 1000L,
+        units = "kMGTPE",
+        unitSuffix = "B",
+    )
+
+private fun humanReadableByteCount(
+    bytes: Long,
+    unit: Long,
+    units: String,
+    unitSuffix: String,
+): String {
+    val absoluteBytes = bytes.absoluteValueWithoutOverflow()
+    if (absoluteBytes < unit) {
         return "$bytes B"
     }
-    var value = absB
-    val ci: CharacterIterator = StringCharacterIterator("KMGTPE")
-    var i = 40
-    while (i >= 0 && absB > 0xfffccccccccccccL shr i) {
-        value = value shr 10
-        ci.next()
-        i -= 10
+
+    var divider = unit
+    var unitIndex = 0
+    while (
+        unitIndex < units.lastIndex &&
+        absoluteBytes.roundedTenths(divider) >= unit * 10L
+    ) {
+        divider *= unit
+        unitIndex += 1
     }
-    value *= java.lang.Long.signum(bytes).toLong()
-    return java.lang.String.format("%.1f %ciB", value / 1024.0, ci.current())
+
+    return "${formatOneDecimal(bytes / divider.toDouble())} ${units[unitIndex]}$unitSuffix"
 }
 
-fun humanReadableByteCountSI(bytes: Long): String {
-    var bytes = bytes
-    if (-1000 < bytes && bytes < 1000) {
-        return "$bytes B"
-    }
-    val ci: CharacterIterator = StringCharacterIterator("kMGTPE")
-    while (bytes <= -999950 || bytes >= 999950) {
-        bytes /= 1000
-        ci.next()
-    }
-    return String.format("%.1f %cB", bytes / 1000.0, ci.current())
+private fun Long.absoluteValueWithoutOverflow(): Long =
+    if (this == Long.MIN_VALUE) Long.MAX_VALUE else abs(this)
+
+private fun Long.roundedTenths(divider: Long): Long {
+    val whole = this / divider
+    val remainder = this % divider
+    return whole * 10L + (remainder * 10L + divider / 2L) / divider
+}
+
+private fun formatOneDecimal(value: Double): String {
+    val scaled = (value * 10.0).roundToLong()
+    val sign = if (scaled < 0) "-" else ""
+    val absScaled = abs(scaled)
+    return "$sign${absScaled / 10}.${absScaled % 10}"
 }

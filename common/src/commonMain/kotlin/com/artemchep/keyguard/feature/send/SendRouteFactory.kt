@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.send
 
+import kotlin.jvm.JvmName
+
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DSendFilter
 import com.artemchep.keyguard.feature.localization.TextHolder

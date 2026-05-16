@@ -318,9 +318,8 @@ private fun PasskeysCredentialInfoButton(
 private fun ColumnScope.ContentError(
     exception: Throwable,
 ) {
-    val message = exception.localizedMessage
-        ?: exception.message
-        ?: "Something went wrong"
+    val message = exception.message
+        ?: stringResource(Res.string.error_failed_unknown)
     Text(
         modifier = Modifier
             .padding(horizontal = 16.dp)

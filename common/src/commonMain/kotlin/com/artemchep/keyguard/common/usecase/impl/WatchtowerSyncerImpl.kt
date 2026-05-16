@@ -106,7 +106,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Instant
 import org.kodein.di.DirectDI
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.direct
 import org.kodein.di.instance
 
@@ -273,7 +273,7 @@ private class WatchtowerClient(
         databaseManager = directDI.instance(),
         logRepository = directDI.instance(),
         syncSupervisor = directDI.instance(),
-        list = directDI.allInstances(),
+        list = directDI.leAllInstances(),
         defaultDispatcher = Dispatchers.Default.limitedParallelism(1),
         dbDispatcher = directDI.instance(tag = DatabaseDispatcher),
     )
@@ -830,7 +830,8 @@ class WatchtowerInactivePasskey(
                 .getAndCache(cipher.accountId)
             val group = match(cipher, passkeyLibrary, equivalentDomains)
                 .map { info -> info.domain }
-                .toSet(destination = sortedSetOf())
+                .toSet()
+                .sorted()
                 .joinToString()
             return group.takeIf { it.isNotEmpty() }
         }
@@ -1157,7 +1158,8 @@ class WatchtowerInactiveTfa(
             val equivalentDomains = equivalentDomainsBuilder.getAndCache(cipher.accountId)
             val group = match(cipher, tfaLibrary, equivalentDomains)
                 .map { info -> info.domain }
-                .toSet(destination = sortedSetOf())
+                .toSet()
+                .sorted()
                 .joinToString()
             return group.takeIf { it.isNotEmpty() }
         }

@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.home.vault
 
+import kotlin.jvm.JvmName
+
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter

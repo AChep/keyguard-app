@@ -18,7 +18,7 @@ class DeviceEncryptionKeyUseCase(
 
     override fun invoke() = deviceIdUseCase()
         .effectMap(Dispatchers.Default) { deviceId ->
-            val seed = deviceId.toByteArray()
+            val seed = deviceId.encodeToByteArray()
             cryptoGenerator.hkdf(seed = seed)
         }
 }

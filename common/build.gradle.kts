@@ -62,6 +62,8 @@ kotlin {
         }
     }
     jvm("desktop")
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         all {
@@ -87,8 +89,7 @@ kotlin {
                 implementation(libs.jetbrains.compose.ui.tooling.preview)
                 api(libs.jetbrains.compose.components.resources)
                 api(libs.kotlin.stdlib)
-                api(libs.kdrag0n.colorkt)
-                api(libs.kyant0.m3color)
+                implementation(libs.kotlinx.atomicfu)
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.datetime)
@@ -110,27 +111,55 @@ kotlin {
                 api(libs.ktor.ktor.client.content.negotiation)
                 api(libs.ktor.ktor.client.websockets)
                 api(libs.ktor.ktor.serialization.kotlinx)
-                api(libs.keemobile.kotpass)
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
                 api(libs.cash.sqldelight.coroutines.extensions)
-                api(libs.halilibo.richtext.ui.material3)
-                api(libs.halilibo.richtext.commonmark)
-                api(libs.halilibo.richtext.markdown)
                 api(libs.devsrsouza.feather)
-                api(libs.mm2d.touchicon)
                 api(libs.html.text)
                 api(libs.ksoup.html)
                 api(libs.snipme.highlights)
                 api(libs.kdroidfilter.platformtools.darkmodedetector)
             }
         }
-        commonTest.dependencies {
-            implementation(kotlin("test"))
-            implementation(libs.kotlinx.coroutines.test)
+        val commonTest by getting {
+            kotlin.setSrcDirs(emptyList<String>())
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
+
+        val jvmTest by creating {
+            dependsOn(commonTest)
+            kotlin.srcDir("src/commonTest/kotlin")
+        }
+
+        val iosMain by creating {
+            dependsOn(commonMain)
+        }
+
+        val iosArm64Main by getting {
+            dependsOn(iosMain)
+        }
+
+        val iosSimulatorArm64Main by getting {
+            dependsOn(iosMain)
+        }
+
+        val iosTest by creating {
+            dependsOn(commonTest)
+        }
+
+        val iosArm64Test by getting {
+            dependsOn(iosTest)
+        }
+
+        val iosSimulatorArm64Test by getting {
+            dependsOn(iosTest)
         }
 
         val androidHostTest by getting {
+            dependsOn(jvmTest)
             kotlin.srcDir("src/androidUnitTest/kotlin")
             dependencies {
                 implementation(kotlin("test"))
@@ -139,6 +168,7 @@ kotlin {
         }
 
         val desktopTest by getting {
+            dependsOn(jvmTest)
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)
@@ -153,10 +183,17 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.lingala.zip4j)
+                implementation(libs.kdrag0n.colorkt)
+                implementation(libs.kyant0.m3color)
                 implementation(libs.nulabinc.zxcvbn)
                 implementation(libs.commons.codec)
                 implementation(libs.bouncycastle.bcpkix)
                 implementation(libs.bouncycastle.bcprov)
+                implementation(libs.keemobile.kotpass)
+                implementation(libs.halilibo.richtext.ui.material3)
+                implementation(libs.halilibo.richtext.commonmark)
+                implementation(libs.halilibo.richtext.markdown)
+                implementation(libs.mm2d.touchicon)
                 implementation(libs.hierynomus.sshj)
                 implementation(libs.ricecode.string.similarity)
                 implementation(libs.google.zxing.core)

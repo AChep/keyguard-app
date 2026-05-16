@@ -1,8 +1,9 @@
 package com.artemchep.keyguard.provider.bitwarden.entity
 
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
-import com.artemchep.keyguard.provider.bitwarden.entity.serializer.CommonEnumIntSerializer
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.IntEnum
+import com.artemchep.keyguard.provider.bitwarden.entity.serializer.commonEnumIntSerializer
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable(SendTypeEntitySerializer::class)
@@ -16,7 +17,8 @@ enum class SendTypeEntity(
     companion object
 }
 
-object SendTypeEntitySerializer : CommonEnumIntSerializer<SendTypeEntity>(SendTypeEntity::class)
+object SendTypeEntitySerializer :
+    KSerializer<SendTypeEntity> by commonEnumIntSerializer<SendTypeEntity>()
 
 fun SendTypeEntity.Companion.of(
     model: BitwardenSend.Type,

@@ -146,6 +146,7 @@ import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.platform.LeSerializable
 import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
@@ -188,7 +189,6 @@ import kotlinx.serialization.SerialName
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
-import java.io.Serializable
 import kotlin.uuid.Uuid
 
 // TODO: Support hide password option
@@ -1767,7 +1767,7 @@ data class Foo2Type(
 data class Foo2Persistable(
     val key: String,
     val type: String,
-) : Serializable
+) : LeSerializable
 
 data class Foo2InitialState<Argument>(
     val items: List<Item<Argument>>,

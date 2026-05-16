@@ -8,7 +8,10 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.login
 import com.artemchep.keyguard.data.bitwarden.Cipher
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -35,6 +38,7 @@ class ModifyCipherById(
         transform: suspend CipherModifyScope.(Cipher) -> Cipher,
     ): IO<Set<String>> = modifyDatabase { database ->
         val accountHasPremiumMap = mutableMapOf<String, IO<Boolean>>()
+        val accountHasPremiumMapLock = SynchronizedObject()
 
         val dao = database.cipherQueries
         val now = Clock.System.now()
@@ -54,7 +58,7 @@ class ModifyCipherById(
                 val scope = CipherModifyScopeImpl(
                     hasPremiumProvider = {
                         val accountId = model.accountId
-                        synchronized(accountHasPremiumMap) {
+                        synchronized(accountHasPremiumMapLock) {
                             accountHasPremiumMap.getOrPut(accountId) {
                                 ioEffect(Dispatchers.IO) {
                                     val profile = database.profileQueries

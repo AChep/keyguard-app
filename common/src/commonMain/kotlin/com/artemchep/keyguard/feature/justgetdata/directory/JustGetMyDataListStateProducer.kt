@@ -89,9 +89,9 @@ fun produceJustGetMyDataListState(
         return this
             .sortedWith(modelComparator)
             .map { serviceInfo ->
-                val key = kotlin.run {
-                    val newNameCollisionCounter = nameCollisions
-                        .getOrDefault(serviceInfo.name, 0) + 1
+                    val key = kotlin.run {
+                        val newNameCollisionCounter = nameCollisions
+                            .getOrElse(serviceInfo.name) { 0 } + 1
                     nameCollisions[serviceInfo.name] =
                         newNameCollisionCounter
                     serviceInfo.name + ":" + newNameCollisionCounter

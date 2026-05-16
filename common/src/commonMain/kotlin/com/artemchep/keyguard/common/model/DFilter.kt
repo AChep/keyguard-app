@@ -87,6 +87,7 @@ import kotlin.collections.mapValues
 import kotlin.collections.mutableMapOf
 import kotlin.collections.orEmpty
 import kotlin.collections.toSet
+import kotlin.reflect.KClass
 
 @Serializable
 sealed interface DFilter {
@@ -96,13 +97,13 @@ sealed interface DFilter {
             noinline predicate: (T) -> Boolean = { true },
         ): T? = findOne(
             filter = filter,
-            target = T::class.java,
+            target = T::class,
             predicate = predicate,
         )
 
         fun <T> findOne(
             filter: DFilter,
-            target: Class<T>,
+            target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): T? = _findOne(
             filter = filter,
@@ -112,7 +113,7 @@ sealed interface DFilter {
 
         private fun <T> _findOne(
             filter: DFilter,
-            target: Class<T>,
+            target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): Either<Unit, T?> = when (filter) {
             is Or<*> -> {
@@ -166,7 +167,7 @@ sealed interface DFilter {
             }
 
             else -> {
-                if (filter.javaClass == target) {
+                if (filter::class == target) {
                     val f = filter as T
                     val v = predicate(f)
                     if (v) {
@@ -185,13 +186,13 @@ sealed interface DFilter {
             noinline predicate: (T) -> Boolean = { true },
         ): T? = findAny(
             filter = filter,
-            target = T::class.java,
+            target = T::class,
             predicate = predicate,
         )
 
         fun <T> findAny(
             filter: DFilter,
-            target: Class<T>,
+            target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): T? = _findAny(
             filter = filter,
@@ -201,7 +202,7 @@ sealed interface DFilter {
 
         private fun <T> _findAny(
             filter: DFilter,
-            target: Class<T>,
+            target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): T? = when (filter) {
             is Or<*> -> filter
@@ -217,7 +218,7 @@ sealed interface DFilter {
                 }
 
             else -> {
-                if (filter.javaClass == target) {
+                if (filter::class == target) {
                     val f = filter as T
                     f.takeIf(predicate)
                 } else {

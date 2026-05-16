@@ -184,7 +184,7 @@ class SyncByBitwardenTokenV2Impl(
                             .firstOrNull()
                             ?.data_
 
-                        val reason = e.localizedMessage ?: e.message
+                        val reason = e.message
                         val requiresAuthentication = requiresAuthenticationForSyncFailure(e)
 
                         val now = Clock.System.now()

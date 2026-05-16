@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.home.vault.screen
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
@@ -238,7 +240,8 @@ import com.artemchep.keyguard.ui.text.annotate
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.totp.formatCode2
-import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.artemchep.keyguard.ui.markdown.MarkdownParser
+import io.ktor.http.Url
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -263,11 +266,10 @@ import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
-import java.net.URI
 
 typealias RevealConcealFlow = Flow<Unit>
 
@@ -338,8 +340,8 @@ fun vaultViewScreenState(
         getJustDeleteMeByUrl = instance(),
         getJustGetMyDataByUrl = instance(),
         windowCoroutineScope = instance(),
-        placeholderFactories = allInstances(),
-        linkInfoExtractors = allInstances(),
+        placeholderFactories = leAllInstances(),
+        linkInfoExtractors = leAllInstances(),
         iosAppAppStoreParser = instance(),
         androidAppGooglePlayParser = instance(),
         androidAppFDroidParser = instance(),
@@ -484,7 +486,7 @@ fun vaultViewScreenState(
     val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
     val selectionHandle = selectionHandle("selection")
     val markdown = getMarkdown().first()
-    val markdownParser = CommonmarkAstNodeParser()
+    val markdownParser = MarkdownParser()
 
     val accountFlow = getAccounts()
         .map { accounts ->
@@ -1296,7 +1298,7 @@ fun vaultViewScreenState(
 
 private fun RememberStateFlowScope.oh(
     mode: AppMode,
-    markdownParser: CommonmarkAstNodeParser,
+    markdownParser: MarkdownParser,
     vaultViewRouteFactory: VaultViewRouteFactory,
     vaultRouteFactory: VaultRouteFactory,
     collectionsRouteFactory: CollectionsRouteFactory,
@@ -3084,7 +3086,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                     else -> {
                         kotlin.runCatching {
                             val url = uri.uri
-                            val host = URI(url).host
+                            val host = Url(url).host
 
                             buildAnnotatedString {
                                 append(uri.uri)

@@ -76,7 +76,7 @@ import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardView
 import com.artemchep.keyguard.ui.text.annotate
-import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.artemchep.keyguard.ui.markdown.MarkdownParser
 import io.ktor.http.Url
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.combine
@@ -86,7 +86,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -120,7 +120,7 @@ fun sendViewScreenState(
         getEnvSendUrl = instance(),
         dateFormatter = instance(),
         windowCoroutineScope = instance(),
-        linkInfoExtractors = allInstances(),
+        linkInfoExtractors = leAllInstances(),
         confirmationRouteFactory = instance(),
         contentColor = contentColor,
         disabledContentColor = disabledContentColor,
@@ -190,7 +190,7 @@ fun sendViewScreenState(
     )
 
     val markdown = getMarkdown().first()
-    val markdownParser = CommonmarkAstNodeParser()
+    val markdownParser = MarkdownParser()
 
     val accountFlow = getAccounts()
         .map { accounts ->
@@ -447,7 +447,7 @@ fun sendViewScreenState(
 }
 
 private fun RememberStateFlowScope.oh(
-    markdownParser: CommonmarkAstNodeParser,
+    markdownParser: MarkdownParser,
     canEdit: Boolean,
     contentColor: Color,
     disabledContentColor: Color,

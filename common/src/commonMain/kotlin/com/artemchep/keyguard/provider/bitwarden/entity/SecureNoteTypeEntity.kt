@@ -1,8 +1,9 @@
 package com.artemchep.keyguard.provider.bitwarden.entity
 
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import com.artemchep.keyguard.provider.bitwarden.entity.serializer.CommonEnumIntSerializer
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.IntEnum
+import com.artemchep.keyguard.provider.bitwarden.entity.serializer.commonEnumIntSerializer
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable(SecureNoteTypeEntitySerializer::class)
@@ -16,7 +17,7 @@ enum class SecureNoteTypeEntity(
 }
 
 object SecureNoteTypeEntitySerializer :
-    CommonEnumIntSerializer<SecureNoteTypeEntity>(SecureNoteTypeEntity::class)
+    KSerializer<SecureNoteTypeEntity> by commonEnumIntSerializer<SecureNoteTypeEntity>()
 
 fun SecureNoteTypeEntity.Companion.of(
     model: BitwardenCipher.SecureNote.Type,

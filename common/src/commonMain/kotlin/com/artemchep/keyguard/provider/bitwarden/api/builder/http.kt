@@ -137,7 +137,6 @@ internal suspend fun HttpResponse.buildApiException(
             statusCode = status,
             m = message
                 ?: status.takeUnless { it.isSuccess() }?.description
-                ?: exception.localizedMessage
                 ?: exception.message,
             e = exception,
             route = call.attributes.getOrNull(routeAttribute),

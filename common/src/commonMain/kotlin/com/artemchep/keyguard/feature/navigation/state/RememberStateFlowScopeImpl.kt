@@ -28,7 +28,8 @@ import com.artemchep.keyguard.platform.contains
 import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
 import com.artemchep.keyguard.platform.util.isRelease
-import org.jetbrains.compose.resources.StringResource
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -66,6 +67,8 @@ class RememberStateFlowScopeImpl(
 ) : RememberStateFlowScopeZygote,
     TranslatorScope by TranslatorScope.of(context),
     CoroutineScope by scope {
+    private val lock = SynchronizedObject()
+
     private val registry = mutableMapOf<String, Entry<Any?, Any?>>()
 
     override val colorScheme get() = colorSchemeState.value
@@ -267,7 +270,7 @@ class RememberStateFlowScopeImpl(
         serialize: (Json, T) -> S,
         deserialize: (Json, S) -> T,
         initialValue: () -> T,
-    ): MutableStateFlow<T> = synchronized(this) {
+    ): MutableStateFlow<T> = synchronized(lock) {
         registry.getOrPut(key) {
             val value = kotlin.run {
                 val bundleKey = getBundleKey(key)
@@ -334,15 +337,18 @@ class RememberStateFlowScopeImpl(
                 storage.disk.link(key, flow)
             }
             entry
-        }.sink as MutableStateFlow<T>
+        }.sink.let {
+            @Suppress("UNCHECKED_CAST")
+            it as MutableStateFlow<T>
+        }
     }
 
-    override fun <T> asComposeState(key: String) = synchronized(this) {
+    override fun <T> asComposeState(key: String) = synchronized(lock) {
         registry[key]!!.composeState.mutableState as MutableState<T>
     }
 
     override fun clearPersistedFlow(key: String) {
-        val entry = synchronized(this) {
+        val entry = synchronized(lock) {
             registry.remove(key)
         }
         @Suppress("IfThenToSafeAccess")
@@ -352,17 +358,18 @@ class RememberStateFlowScopeImpl(
     }
 
     override fun <T> mutableComposeState(sink: MutableStateFlow<T>): MutableState<T> {
-        val entry = synchronized(this) {
+        val entry = synchronized(lock) {
             registry.values.firstOrNull { it.sink === sink }
         }
         requireNotNull(entry) {
             "Provided sink must be created using mutablePersistedFlow(...)!"
         }
+        @Suppress("UNCHECKED_CAST")
         return entry.composeState.mutableState as MutableState<T>
     }
 
     override fun persistedState(): LeBundle {
-        val state = synchronized(this) {
+        val state = synchronized(lock) {
             registry
                 .map { (key, entry) ->
                     val fullKey = getBundleKey(key)

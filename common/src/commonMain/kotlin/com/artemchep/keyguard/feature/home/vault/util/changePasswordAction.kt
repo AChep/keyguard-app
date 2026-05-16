@@ -70,6 +70,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
+import com.artemchep.keyguard.platform.LeSystem
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
@@ -506,7 +507,7 @@ fun RememberStateFlowScope.cipherSendAction(
                                 yield("")
                             }
                         }
-                        .joinToString(separator = System.lineSeparator())
+                        .joinToString(separator = LeSystem.lineSeparator)
                         .trimEnd()
                     val args = SendAddRoute.Args(
                         type = DSend.Type.Text,

@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.text
 
 import com.artemchep.keyguard.common.model.FileResource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import kotlinx.io.Source
 import kotlinx.io.readString

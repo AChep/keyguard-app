@@ -15,6 +15,8 @@ import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -25,6 +27,8 @@ class FlowHolderViewModel(
     private val navigationEntry: NavigationEntry,
 ) {
     var bundle: LeBundle = leBundleOf()
+
+    private val lock = SynchronizedObject()
 
     private val store = mutableMapOf<String, Some<Entry>>()
 
@@ -38,9 +42,9 @@ class FlowHolderViewModel(
 
     fun getScopeOrNull(
         key: String,
-    ): RememberStateFlowScope? = synchronized(this) {
-        store[key]
-    }?.value?.scope
+    ): RememberStateFlowScope? = synchronized(lock) {
+        store[key]?.value?.scope
+    }
 
     fun <T> getOrPut(
         key: String,
@@ -55,7 +59,7 @@ class FlowHolderViewModel(
         context: LeContext,
         colorSchemeState: State<ColorScheme>,
         init: RememberStateFlowScopeZygote.() -> T,
-    ): T = synchronized(this) {
+    ): T = synchronized(lock) {
         store.getOrPut(key) {
             val vmCoroutineScopeJob = SupervisorJob(parent = scope.job)
             val vmCoroutineScope = WindowCoroutineScopeImpl(
@@ -95,9 +99,9 @@ class FlowHolderViewModel(
     }
 
     fun clear(key: String) {
-        synchronized(this) {
-            store.remove(key)?.map { it.job.cancel() }
-        }
+        synchronized(lock) {
+            store.remove(key)
+        }?.map { it.job.cancel() }
     }
 
     fun destroy() {
@@ -106,9 +110,11 @@ class FlowHolderViewModel(
     }
 
     fun persistedState(): LeBundle {
-        val state = store
-            .map { (key, sink) -> key to sink.value.scope.persistedState() }
-            .toTypedArray()
+        val state = synchronized(lock) {
+            store
+                .map { (key, sink) -> key to sink.value.scope.persistedState() }
+                .toTypedArray()
+        }
         return leBundleOf(*state)
     }
 }

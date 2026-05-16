@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.ui
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background

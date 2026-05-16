@@ -191,7 +191,7 @@ interface EntitySyncOps<Local : BitwardenService.Has<Local>, Server : Any> {
             }
         return BitwardenService.Error(
             code = code,
-            message = error.localizedMessage ?: error.message,
+            message = error.message,
             revisionDate = Clock.System.now(),
         )
     }

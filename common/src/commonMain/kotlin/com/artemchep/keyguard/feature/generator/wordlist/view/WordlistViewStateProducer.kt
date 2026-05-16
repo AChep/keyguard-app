@@ -132,7 +132,7 @@ fun produceWordlistViewState(
             .map { word ->
                 val key = kotlin.run {
                     val newPackageNameCollisionCounter = nameCollisions
-                        .getOrDefault(word, 0) + 1
+                        .getOrElse(word) { 0 } + 1
                     nameCollisions[word] =
                         newPackageNameCollisionCounter
                     word + ":" + newPackageNameCollisionCounter

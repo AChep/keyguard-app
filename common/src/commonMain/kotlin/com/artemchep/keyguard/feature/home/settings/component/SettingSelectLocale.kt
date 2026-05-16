@@ -32,6 +32,7 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.LeLocale
 import com.artemchep.keyguard.platform.util.hasBrowser
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -45,7 +46,6 @@ import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.Locale
 
 fun settingSelectLocaleProvider(
     directDI: DirectDI,
@@ -133,10 +133,7 @@ private data class LocaleItem(
 
 private suspend fun getLocaleTitle(locale: String?, context: LeContext) = locale
     ?.let {
-        Locale.forLanguageTag(it).let { locale ->
-            locale.getDisplayName(locale)
-                .capitalize(locale)
-        }
+        LeLocale.displayName(it)
     }
     ?: textResource(Res.string.follow_system_settings, context)
 

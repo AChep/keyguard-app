@@ -14,10 +14,10 @@ import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.tld.TldService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.Locale
 
 class TldServiceImpl(
     private val textService: TextService,
@@ -51,7 +51,7 @@ class TldServiceImpl(
         host: String,
     ): IO<String> = dataIo
         .effectMap { node ->
-            val parts = host.trim().lowercase(Locale.US).split(".").asReversed()
+            val parts = host.trim().lowercase().split(".").asReversed()
             val length = node.match(parts)
             parts
                 // Take N parts of TLD and then one

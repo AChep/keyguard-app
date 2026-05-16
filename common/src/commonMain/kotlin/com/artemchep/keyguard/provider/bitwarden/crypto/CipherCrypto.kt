@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.crypto
 
+import kotlin.jvm.JvmName
+
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 
 fun BitwardenCipher.transform(

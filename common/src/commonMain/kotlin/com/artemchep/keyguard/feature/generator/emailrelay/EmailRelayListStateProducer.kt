@@ -56,7 +56,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlin.time.Clock
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -70,7 +70,7 @@ private class EmailRelayListUiException(
 fun produceEmailRelayListState(
 ) = with(localDI().direct) {
     produceEmailRelayListState(
-        emailRelays = allInstances(),
+        emailRelays = leAllInstances(),
         confirmationRouteFactory = instance(),
         addEmailRelay = instance(),
         removeEmailRelayById = instance(),

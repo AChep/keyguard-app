@@ -3,7 +3,6 @@ package com.artemchep.keyguard.feature.home.vault.search.engine
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultFacetField
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
-import java.util.Locale
 
 internal fun VaultTextField.profile(): SearchTokenizerProfile =
     when (this) {
@@ -84,7 +83,7 @@ internal fun VaultFacetField.profile(): SearchTokenizerProfile =
 
 internal fun typeKey(type: DSecret.Type): String =
     type.name
-        .lowercase(Locale.ROOT)
+        .lowercase()
         .replace("_", "")
         .replace("-", "")
         .replace(" ", "")

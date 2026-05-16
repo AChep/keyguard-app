@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.usecase.RemoveAccounts
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

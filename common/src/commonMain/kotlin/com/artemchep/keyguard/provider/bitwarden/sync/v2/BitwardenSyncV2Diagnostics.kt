@@ -416,7 +416,7 @@ class BitwardenSyncV2Diagnostics(
 
     private fun Throwable.summary(): String {
         val name = this::class.simpleName ?: "Throwable"
-        val text = localizedMessage ?: this.message
+        val text = this.message
         return if (text.isNullOrBlank()) {
             name
         } else {

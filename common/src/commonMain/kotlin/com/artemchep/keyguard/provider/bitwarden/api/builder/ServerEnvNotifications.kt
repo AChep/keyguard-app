@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.api.builder
 
+import kotlin.jvm.JvmInline
+
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 
 /**

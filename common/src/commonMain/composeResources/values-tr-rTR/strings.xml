@@ -1151,6 +1151,7 @@
     <string name="settings_permissions_header_title">İzinler</string>
     <string name="settings_security_header_title">Güvenlik</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_open_source_licenses_header_title">Açık kaynak lisansları</string>
     <string name="pref_section_premium_title">Premium</string>
@@ -1161,6 +1162,8 @@
     <string name="pref_item_autofill_text">Android Otomatik Doldurma ve Kimlik Bilgisi (Credential) servisleri</string>
     <string name="pref_item_security_title">Güvenlik</string>
     <string name="pref_item_security_text">Biyometri, parola değiştirme, kasa zaman aşımı</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard Premium</string>
     <string name="pref_item_subscription_text">Özelliklerin kilidini açın ve geliştirme sürecini destekleyin</string>
     <string name="pref_item_watchtower_title">Watchtower</string>
@@ -1264,6 +1267,9 @@
     <string name="pref_item_ssh_agent_status_starting">Başlatılıyor</string>
     <string name="pref_item_ssh_agent_status_ready">Hazır</string>
     <string name="pref_item_ssh_agent_status_failed">Başarısız</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">SSH istemci kurulumu</string>
     <string name="pref_item_ssh_agent_filters_title">SSH aracısı filtreleri</string>
     <string name="pref_item_ssh_agent_filters_text">SSH aracısı tarafından hangi SSH anahtarlarına erişilebileceğini seçin</string>

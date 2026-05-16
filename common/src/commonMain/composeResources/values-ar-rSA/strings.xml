@@ -1151,6 +1151,7 @@
     <string name="settings_permissions_header_title">الأذونات</string>
     <string name="settings_security_header_title">حماية</string>
     <string name="settings_subscriptions_header_title">بريميوم حارس المفاتيح</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">برج المراقبة</string>
     <string name="settings_open_source_licenses_header_title">تراخيص مفتوحة المصدر</string>
     <string name="pref_section_premium_title">Premium</string>
@@ -1161,6 +1162,8 @@
     <string name="pref_item_autofill_text">الملء التلقائي لنظام Android &amp; خدمات بيانات الاعتماد</string>
     <string name="pref_item_security_title">حماية</string>
     <string name="pref_item_security_text">القياسات الحيوية، تغيير كلمة المرور، مهلة القبو</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">بريميوم حارس المفاتيح</string>
     <string name="pref_item_subscription_text">فتح الميزات &amp; يدعم تطوير التطبيقات</string>
     <string name="pref_item_watchtower_title">برج المراقبة</string>
@@ -1264,6 +1267,9 @@
     <string name="pref_item_ssh_agent_status_starting">جارِ البدء</string>
     <string name="pref_item_ssh_agent_status_ready">جاهز</string>
     <string name="pref_item_ssh_agent_status_failed">فشل</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">إعداد عميل SSH</string>
     <string name="pref_item_ssh_agent_filters_title">عوامل تصفية وكيل SSH</string>
     <string name="pref_item_ssh_agent_filters_text">اختر مفاتيح SSH التي يمكن لوكيل SSH الوصول إليها</string>

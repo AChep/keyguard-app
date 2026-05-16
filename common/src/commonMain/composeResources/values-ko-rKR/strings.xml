@@ -1151,6 +1151,7 @@
     <string name="settings_permissions_header_title">권한</string>
     <string name="settings_security_header_title">보안</string>
     <string name="settings_subscriptions_header_title">Keyguard 프리미엄</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">감시탑</string>
     <string name="settings_open_source_licenses_header_title">오픈 소스 라이선스</string>
     <string name="pref_section_premium_title">프리미엄</string>
@@ -1161,6 +1162,8 @@
     <string name="pref_item_autofill_text">Android 자동 완성 서비스</string>
     <string name="pref_item_security_title">보안</string>
     <string name="pref_item_security_text">생체 정보, 비밀번호 변경, 보관함 시간 제한</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard 프리미엄</string>
     <string name="pref_item_subscription_text">추가 기능 잠금 해제, 앱 개발 지원</string>
     <string name="pref_item_watchtower_title">감시탑</string>
@@ -1264,6 +1267,9 @@
     <string name="pref_item_ssh_agent_status_starting">시작 중</string>
     <string name="pref_item_ssh_agent_status_ready">준비됨</string>
     <string name="pref_item_ssh_agent_status_failed">실패</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">SSH 클라이언트 설정</string>
     <string name="pref_item_ssh_agent_filters_title">SSH 에이전트 필터</string>
     <string name="pref_item_ssh_agent_filters_text">SSH 에이전트가 어떤 SSH 키에 접근 가능하게 할 것인지 설정합니다.</string>

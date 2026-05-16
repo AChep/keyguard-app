@@ -1151,6 +1151,7 @@
     <string name="settings_permissions_header_title">Permissions</string>
     <string name="settings_security_header_title">Sécurité</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_open_source_licenses_header_title">Licences Open Source</string>
     <string name="pref_section_premium_title">Premium</string>
@@ -1161,6 +1162,8 @@
     <string name="pref_item_autofill_text">Remplissage automatique d'Android &amp; Services d'authentification</string>
     <string name="pref_item_security_title">Sécurité</string>
     <string name="pref_item_security_text">Données biométriques, changement de mot de passe, délai d'attente du coffre-fort</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard Premium</string>
     <string name="pref_item_subscription_text">Débloquer les fonctionnalités &amp; support du développement d'applications</string>
     <string name="pref_item_watchtower_title">Watchtower</string>
@@ -1264,6 +1267,9 @@
     <string name="pref_item_ssh_agent_status_starting">Démarrage en cours</string>
     <string name="pref_item_ssh_agent_status_ready">Prêt</string>
     <string name="pref_item_ssh_agent_status_failed">Échec</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">Configuration du client SSH</string>
     <string name="pref_item_ssh_agent_filters_title">Filtres de l'agent SSH</string>
     <string name="pref_item_ssh_agent_filters_text">Choisissez quelles clés SSH sont accessibles à l'agent SSH</string>

@@ -112,6 +112,7 @@ class CloudflareEmailRelay(
             )
             .trim()
             .lowercase()
+            .removePrefix("@")
             .also { value ->
                 require(REGEX_DOMAIN.matches(value)) {
                     "Invalid domain."

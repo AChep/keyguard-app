@@ -35,7 +35,7 @@ class CloudflareEmailRelayTest {
         val relay = CloudflareEmailRelay(
             httpClient = recordingClient(requests),
             cryptoGenerator = FakeCryptoGenerator(
-                values = (0 until 16).toMutableList(),
+                values = (0 until 8).toMutableList(),
             ),
         )
 
@@ -51,7 +51,7 @@ class CloudflareEmailRelayTest {
             )
             .bind()
 
-        assertEquals("abcdefghijklmnop@example.com", alias)
+        assertEquals("abcdefgh@example.com", alias)
         assertEquals(
             listOf(
                 RecordedRequest(
@@ -78,7 +78,7 @@ class CloudflareEmailRelayTest {
         val matcher = body["matchers"]!!.jsonArray.single().jsonObject
         assertEquals("literal", matcher["type"]!!.jsonPrimitive.content)
         assertEquals("to", matcher["field"]!!.jsonPrimitive.content)
-        assertEquals("abcdefghijklmnop@example.com", matcher["value"]!!.jsonPrimitive.content)
+        assertEquals("abcdefgh@example.com", matcher["value"]!!.jsonPrimitive.content)
     }
 
     @Test
@@ -87,7 +87,7 @@ class CloudflareEmailRelayTest {
         val relay = CloudflareEmailRelay(
             httpClient = recordingClient(requests),
             cryptoGenerator = FakeCryptoGenerator(
-                values = MutableList(16) { 0 },
+                values = MutableList(8) { 0 },
             ),
         )
 
@@ -103,11 +103,11 @@ class CloudflareEmailRelayTest {
             )
             .bind()
 
-        assertEquals("aaaaaaaaaaaaaaaa@example.com", alias)
+        assertEquals("aaaaaaaa@example.com", alias)
         val matcher = requests.single().json["matchers"]!!
             .jsonArray.single()
             .jsonObject
-        assertEquals("aaaaaaaaaaaaaaaa@example.com", matcher["value"]!!.jsonPrimitive.content)
+        assertEquals("aaaaaaaa@example.com", matcher["value"]!!.jsonPrimitive.content)
     }
 
     @Test

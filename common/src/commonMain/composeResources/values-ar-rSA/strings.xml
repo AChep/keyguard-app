@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">تحرير العنصر</string>
     <string name="additem_header_merge_title">دمج العناصر</string>
     <string name="additem_merge_remove_origin_ciphers_title">نقل العناصر الأصلية إلى سلة المهملات</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">دمج العناصر لا يدمج مرفقاتها! لن يحتوي العنصر الذي تم إنشاؤه على أي مرفقات مضافة.</string>
     <string name="additem_note_placeholder">أضف أي ملاحظات حول هذا العنصر هنا</string>
     <string name="additem_markdown_note">يمكنك تنسيق النص كـ <xliff:g id="italic" example="italic">%1$s</xliff:g> أو <xliff:g id="bold" example="bold">%2$s</xliff:g> وغيرها. يتوفر دعم محدود لنص ماركداون (Markdown).</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">كلمات المرور التي تم الكشف عنها في خروقات البيانات. يجب تغيير كلمات المرور هذه على الفور.</string>
     <string name="watchtower_item_reused_passwords_title">إعادة استخدام كلمات المرور</string>
     <string name="watchtower_item_reused_passwords_text">لا تستخدم نفس كلمة المرور على مواقع ويب متعددة. قم بإنشاء كلمات مرور فريدة لتحسين الأمان.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">الحسابات الضعيفة</string>
     <string name="watchtower_item_vulnerable_accounts_text">المواقع التي تأثرت بخرق البيانات منذ آخر مرة قمت فيها بتغيير كلمة المرور. قم بتغيير كلمة المرور الخاصة بك للحفاظ على أمان حسابك.</string>
     <string name="watchtower_item_unsecure_websites_title">مواقع الويب غير الآمنة</string>

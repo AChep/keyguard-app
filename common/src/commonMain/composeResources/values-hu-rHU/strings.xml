@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Elem szerkesztése</string>
     <string name="additem_header_merge_title">Elemek egyesítése</string>
     <string name="additem_merge_remove_origin_ciphers_title">Eredeti elemek áthelyezése a lomtárba</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Az elemek egyesítése nem egyesíti a mellékleteiket! A létrehozott elemhez nem lesznek hozzáadva mellékletek.</string>
     <string name="additem_note_placeholder">Adjon hozzá bármilyen megjegyzést az elemhez itt</string>
     <string name="additem_markdown_note">Formázd a szöveget <xliff:g id="italic" example="italic">%1$s</xliff:g> vagy <xliff:g id="bold" example="bold">%2$s</xliff:g> stílusban és még többféleképpen. Korlátozott Markdown szintaxis támogatott.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Az adatszivárgások során nyilvánosságra került jelszavak. Az ilyen jelszavakat azonnal meg kell változtatni.</string>
     <string name="watchtower_item_reused_passwords_title">Újrahasznált jelszavak</string>
     <string name="watchtower_item_reused_passwords_text">Ne használja ugyanazt a jelszót több weboldalon. A biztonság növelése érdekében hozzon létre egyedi jelszavakat.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Veszélyeztetett fiókok</string>
     <string name="watchtower_item_vulnerable_accounts_text">Olyan webhelyek, amelyeket az utolsó jelszómódosítás óta adatszivárgás érintett. Fiókja biztonságának megőrzése érdekében változtassa meg jelszavát.</string>
     <string name="watchtower_item_unsecure_websites_title">Nem biztonságos webhelyek</string>

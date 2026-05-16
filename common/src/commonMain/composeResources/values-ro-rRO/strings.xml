@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Editează elementul</string>
     <string name="additem_header_merge_title">Combină elementele</string>
     <string name="additem_merge_remove_origin_ciphers_title">Mută elementele de origine în coșul de gunoi</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Fuzionarea elementelor nu combină fișierele lor atașate! Elementul nou creat nu va conține niciun atașament adăugat.</string>
     <string name="additem_note_placeholder">Adaugă aici orice notițe despre acest element</string>
     <string name="additem_markdown_note">Afișare fonturi cu anumite stiluri: poți folosi text <xliff:g id="italic" example="italic">%1$s</xliff:g> sau <xliff:g id="bold" example="bold">%2$s</xliff:g> și altele. Se acceptă sintaxă restrânsă de tip Markdown.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Parole implicate în scurgeri de date. Astfel de parole ar trebui schimbate imediat.</string>
     <string name="watchtower_item_reused_passwords_title">Parole refolosite</string>
     <string name="watchtower_item_reused_passwords_text">Nu utiliza aceeași parolă pe mai multe site-uri web. Generează parole unice pentru un plus de securitate.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Conturi vulnerabile</string>
     <string name="watchtower_item_vulnerable_accounts_text">Website-uri afectate de o breșă de date de când ți-ai actualizat ultima oară parola. Evită riscurile și schimbă parola contului.</string>
     <string name="watchtower_item_unsecure_websites_title">Site-uri nesigure</string>

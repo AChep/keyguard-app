@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Editar elemento</string>
     <string name="additem_header_merge_title">Combinar elementos</string>
     <string name="additem_merge_remove_origin_ciphers_title">Mover elementos asociados a la papelera</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">¡La fusión de elementos no fusiona sus archivos adjuntos! El elemento creado no tendrá ningún archivo adjunto.</string>
     <string name="additem_note_placeholder">Añade cualquier nota sobre este elemento aquí</string>
     <string name="additem_markdown_note">Texto de estilo con <xliff:g id="italic" example="italic">%1$s</xliff:g> o <xliff:g id="bold" example="bold">%2$s</xliff:g> y más. Sintaxis de Markdown limitada es compatible.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Las contraseñas que han sido vulneradas en las filtraciones de datos. Deben ser modificadas inmediatamente.</string>
     <string name="watchtower_item_reused_passwords_title">Contraseñas reutilizadas</string>
     <string name="watchtower_item_reused_passwords_text">No uses la misma contraseña en varios sitios web. Genera contraseñas únicas para una mejor seguridad.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Cuentas vulnerables</string>
     <string name="watchtower_item_vulnerable_accounts_text">Sitios que se vieron afectados por una filtración de datos desde la última vez que cambiaste una contraseña. Cambia tu contraseña para mantener tu cuenta segura.</string>
     <string name="watchtower_item_unsecure_websites_title">Sitios web inseguros</string>

@@ -762,6 +762,8 @@
     <string name="additem_header_edit_title">Wysig item</string>
     <string name="additem_header_merge_title">Voeg items saam</string>
     <string name="additem_merge_remove_origin_ciphers_title">Skuif oorsprongitems na asblik</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Die samevoeging van items voeg nie hul aanhangsels saam nie! Die geskepte item sal geen aanhangsels bygevoeg hê nie.</string>
     <string name="additem_note_placeholder">Voeg enige notas oor hierdie item hier by</string>
     <string name="additem_markdown_note">Stileer teks met <xliff:g id="italic" example="italic">%1$s</xliff:g> of <xliff:g id="bold" example="bold">%2$s</xliff:g> en meer. Beperkte Markdown-sintaks word ondersteun.</string>
@@ -1081,6 +1083,8 @@
     <string name="watchtower_item_pwned_passwords_text">Wagwoorde wat in databreuke blootgelê is. Sulke wagwoorde moet onmiddellik verander word.</string>
     <string name="watchtower_item_reused_passwords_title">Hergebruikte wagwoorde</string>
     <string name="watchtower_item_reused_passwords_text">Moenie dieselfde wagwoord op verskeie webwerwe gebruik nie. Genereer unieke wagwoorde om sekuriteit te verbeter.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Kwesbare rekeninge</string>
     <string name="watchtower_item_vulnerable_accounts_text">Werwe wat deur 'n databreuk geraak is sedert jy laas 'n wagwoord verander het. Verander jou wagwoord om jou rekening veilig te hou.</string>
     <string name="watchtower_item_unsecure_websites_title">Onveilige webwerwe</string>

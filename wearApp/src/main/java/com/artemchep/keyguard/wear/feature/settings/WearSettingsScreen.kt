@@ -169,6 +169,7 @@ fun rememberWearSettingsItems(
         otherRoute = otherRoute,
         includeAutofill = true,
         includeWatchtower = !isRelease,
+        includeDeveloper = !isRelease,
         includeNotifications = false,
         includeDebug = !isRelease,
     )

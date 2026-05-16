@@ -4,6 +4,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ColorLens
+import androidx.compose.material.icons.outlined.DeveloperBoard
+import androidx.compose.material.icons.outlined.DeveloperMode
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
@@ -13,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.feature.home.settings.debug.DebugSettingsRoute
+import com.artemchep.keyguard.feature.home.settings.developer.DeveloperSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.notifications.NotificationsSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.subscriptions.SubscriptionsSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.watchtower.WatchtowerSettingsRoute
@@ -29,6 +32,8 @@ import com.artemchep.keyguard.res.pref_item_autofill_text
 import com.artemchep.keyguard.res.pref_item_autofill_title
 import com.artemchep.keyguard.res.pref_item_dev_text
 import com.artemchep.keyguard.res.pref_item_dev_title
+import com.artemchep.keyguard.res.pref_item_developer_text
+import com.artemchep.keyguard.res.pref_item_developer_title
 import com.artemchep.keyguard.res.pref_item_notifications_text
 import com.artemchep.keyguard.res.pref_item_notifications_title
 import com.artemchep.keyguard.res.pref_item_other_text
@@ -68,6 +73,7 @@ fun rememberSettingsRouteListItems(
     otherRoute: Route,
     includeAutofill: Boolean = CurrentPlatform.hasAutofill() || !isRelease,
     includeWatchtower: Boolean = true,
+    includeDeveloper: Boolean = true,
     includeNotifications: Boolean = !isRelease,
     includeDebug: Boolean = !isRelease,
 ): List<SettingsRouteListItem> {
@@ -80,6 +86,7 @@ fun rememberSettingsRouteListItems(
         otherRoute,
         includeAutofill,
         includeWatchtower,
+        includeDeveloper,
         includeNotifications,
         includeDebug,
     ) {
@@ -113,6 +120,13 @@ fun rememberSettingsRouteListItems(
                 route = securityRoute,
             ),
             SettingsRouteListAction(
+                id = "developer",
+                title = TextHolder.Res(Res.string.pref_item_developer_title),
+                text = TextHolder.Res(Res.string.pref_item_developer_text),
+                icon = Icons.Outlined.Code,
+                route = DeveloperSettingsRoute,
+            ).takeIf { includeDeveloper },
+            SettingsRouteListAction(
                 id = "watchtower",
                 title = TextHolder.Res(Res.string.pref_item_watchtower_title),
                 text = TextHolder.Res(Res.string.pref_item_watchtower_text),
@@ -137,7 +151,7 @@ fun rememberSettingsRouteListItems(
                 id = "debug",
                 title = TextHolder.Res(Res.string.pref_item_dev_title),
                 text = TextHolder.Res(Res.string.pref_item_dev_text),
-                icon = Icons.Outlined.Code,
+                icon = Icons.Outlined.DeveloperBoard,
                 route = DebugSettingsRoute,
             ).takeIf { includeDebug },
             SettingsRouteListAction(

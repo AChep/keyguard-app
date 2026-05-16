@@ -31,15 +31,6 @@ fun rememberSettingsSecurityItems(
             SettingPaneItem.Item(Setting.VAULT_LOCK_AFTER_REBOOT),
             SettingPaneItem.Item(Setting.VAULT_LOCK),
             SettingPaneItem.Group(
-                key = "ssh_agent",
-                list = persistentListOf(
-                    SettingPaneItem.Item(Setting.SSH_AGENT),
-                    SettingPaneItem.Item(Setting.SSH_AGENT_APPROVAL_WINDOW),
-                    SettingPaneItem.Item(Setting.SSH_AGENT_FILTERS),
-                    SettingPaneItem.Item(Setting.SSH_AGENT_SETUP),
-                ),
-            ),
-            SettingPaneItem.Group(
                 key = "clipboard",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.CLIPBOARD_AUTO_REFRESH),

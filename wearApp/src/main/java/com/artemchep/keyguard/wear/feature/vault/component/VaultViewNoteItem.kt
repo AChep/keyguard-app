@@ -37,7 +37,7 @@ fun WearVaultViewNoteItem(
                 when (val content = item.content) {
                     is VaultViewItem.Note.Content.Markdown -> {
                         MarkdownText(
-                            markdown = content.node,
+                            markdown = content.document,
                         )
                     }
 

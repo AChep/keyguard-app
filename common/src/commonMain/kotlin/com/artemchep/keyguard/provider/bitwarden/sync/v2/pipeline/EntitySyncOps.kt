@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline
 import com.artemchep.keyguard.common.exception.ApiException
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.provider.bitwarden.localizedMessageOrNull
 import kotlin.time.Clock
 
 /**
@@ -191,7 +192,7 @@ interface EntitySyncOps<Local : BitwardenService.Has<Local>, Server : Any> {
             }
         return BitwardenService.Error(
             code = code,
-            message = error.message,
+            message = error.localizedMessageOrNull(),
             revisionDate = Clock.System.now(),
         )
     }

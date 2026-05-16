@@ -135,6 +135,10 @@ dependencies {
     baselineProfile(project(":androidBenchmark"))
     coreLibraryDesugaring(libs.android.desugarjdklibs)
 
+    // Unit tests
+    testImplementation(kotlin("test"))
+    testImplementation(libs.junit)
+
     // Android tests
     androidTestImplementation(project(":androidTest"))
     androidTestImplementation(libs.androidx.arch.core.testing)

@@ -737,6 +737,16 @@
     "notes": "Go to the Account Info page, Click the Delete Account button to delete your AirDroid account."
   },
   {
+    "name": "AirGPU",
+    "domains": [
+      "airgpu.com",
+      "app.airgpu.com"
+    ],
+    "url": "https://app.airgpu.com/account",
+    "difficulty": "easy",
+    "notes": "Scroll to the \"Danger Zone\", click \"Delete Account\", and in the confirmation dialog click \"Delete Account\" again to confirm."
+  },
+  {
     "name": "AirMeet",
     "domains": [
       "airmeet.com",
@@ -2718,6 +2728,15 @@
     "notes": "Only residents of California and Nevada are allowed to make official data removal requests. However, if you contact Customer Service via one of the methods listed, they may submit a 30-day account deletion request for you anyway."
   },
   {
+    "name": "BloxIDs.com",
+    "domains": [
+      "bloxids.com"
+    ],
+    "url": "https://bloxids.com",
+    "difficulty": "impossible",
+    "notes": "BloxIDs.com doesn't have an account deletion page, and there is no support email address."
+  },
+  {
     "name": "Blue Apron",
     "domains": [
       "blueapron.com"
@@ -4188,6 +4207,16 @@
     "url": "https://share.getcloudapp.com/dashboard",
     "difficulty": "easy",
     "notes": "Visit the linked page. Click your name in the top right corner, then click 'Settings'. In the left column, select 'Account Details' and click the red 'Remove account' button."
+  },
+  {
+    "name": "CloudDeck",
+    "domains": [
+      "clouddeck.app",
+      "portal.clouddeck.app"
+    ],
+    "url": "https://portal.clouddeck.app/account",
+    "difficulty": "easy",
+    "notes": "Click \"Delete Account\", and in the confirmation dialog click \"Delete Account\" again to confirm."
   },
   {
     "name": "Cloudflare",
@@ -13421,6 +13450,96 @@
     "notes": "Follow the link and use the form to request the deletion of your personal data. Subsequent identity verification may be required. The deletion process should complete within 30 days."
   },
   {
+    "name": "Matrix",
+    "domains": [
+      "matrix.org",
+      "matrix.to",
+      "cinny.in",
+      "app.cinny.in",
+      "commet.chat",
+      "app.commet.chat",
+      "element.io",
+      "app.element.io",
+      "develop.element.io",
+      "fluffychat.im",
+      "fluffy.chat",
+      "polycule.im",
+      "schildi.chat",
+      "app.schildi.chat",
+      "tammy.connect2x.de",
+      "app.tammy.connect2x.de",
+      "extera.xyz",
+      "app.extera.xyz",
+      "hydrogen.element.io",
+      "quadrix.chat",
+      "chooj.app",
+      "gomuks.app",
+      "css.gomuks.app",
+      "iamb.chat",
+      "kazv.chat",
+      "mlm-hames.github.io",
+      "nheko-reborn.github.io",
+      "syphon.org",
+      "thunderbird.net",
+      "wanchat.info",
+      "4d2.org",
+      "bark.lgbt",
+      "catgirl.cloud",
+      "communick.com",
+      "converser.eu",
+      "data.coop",
+      "deuxfleurs.fr",
+      "dewrito,net",
+      "electrologic.org",
+      "exarius.org",
+      "fachschaften.org",
+      "federated.nexus",
+      "frei.chat",
+      "freiburg.social",
+      "fsfe.org",
+      "g42.at",
+      "gemeinsam.jetzt",
+      "glasgow.social",
+      "gnulinux.club",
+      "grin.hu",
+      "hadoly.fr",
+      "hashi.sbs",
+      "hot-chilli.im",
+      "hyteck.de",
+      "imagisphe.re",
+      "jonasled.de",
+      "magdeburg.jetzt",
+      "mtux.nl",
+      "nhjkl.com",
+      "nope.chat",
+      "norge.chat",
+      "oblak.be",
+      "pikaviestin.fi",
+      "private.coffee",
+      "pub.solar",
+      "rollenspiel.chat",
+      "sans-nuage.fr",
+      "secure-channel.net",
+      "sk.community",
+      "socialnetwork24.com",
+      "synod.im",
+      "tchncs.de",
+      "the-apothecary.club",
+      "thursdaycouncil.org",
+      "transgirl.cafe",
+      "unredacted.org",
+      "etke.cc",
+      "app.etke.cc",
+      "admin.etke.cc",
+      "matrixrooms.info",
+      "joinmatrix.org",
+      "servers.joinmatrix.org"
+    ],
+    "url": "https://docs.element.io/latest/element-support/matrix-account-management/deactivating-a-matrix-account",
+    "difficulty": "easy",
+    "notes": "Exact placement of option depends on client. In L-ement and its forks: at the very bottom of Settings \u2b95 General."
+  },
+  {
     "name": "Maxdome",
     "domains": [
       "maxdome.de",
@@ -13822,6 +13941,17 @@
     "notes": "Contact customer support to delete your account."
   },
   {
+    "name": "MetaMask Card",
+    "domains": [
+      "metamask.io",
+      "card.metamask.io"
+    ],
+    "url": "https://support.metamask.io/manage-crypto/metamask-card/card-faq/",
+    "difficulty": "hard",
+    "notes": "Contact customer support to delete your account.",
+    "email": "metamask@cl-cards.com"
+  },
+  {
     "name": "MetLife",
     "domains": [
       "metlife.com.br"
@@ -14174,6 +14304,15 @@
     "url": "https://modrinth.com/settings/account",
     "difficulty": "easy",
     "notes": "Go to the profile icon in the top right corner and select \"Settings\", then \"Account\", click \"Delete account\" at the bottom of the page, type your username and confirm. Your projects will not be deleted."
+  },
+  {
+    "name": "Moises.ai",
+    "domains": [
+      "moises.ai"
+    ],
+    "url": "https://help.moises.ai/hc/en-us/articles/5440087821330-How-to-delete-my-Moises-account",
+    "difficulty": "hard",
+    "notes": "Download the Moises.ai app onto your smartphone and log into your account. Then visit \"Profile\", click the Settings cog in the top right corner, and click \"Account info\". You must give a reason on why you're deleting your account. If you don't have a subscription you can tick the checkbox to proceed with account deletion, which requires your password. Otherwise, you'll need to cancel your subscription. Finally, the account will be deleted."
   },
   {
     "name": "Mojang",
@@ -14996,6 +15135,15 @@
     "url": "https://nearpod.com/contact/",
     "difficulty": "hard",
     "notes": "Requires to fill out contact form. Will still get Promotional emails until you also unsubscribe from them"
+  },
+  {
+    "name": "Neocities.org",
+    "domains": [
+      "neocities.org"
+    ],
+    "url": "https://neocities.org/settings#delete",
+    "difficulty": "easy",
+    "notes": "You'll be prompted to give a reason on why you're deleting your site, as well as typing in the name of your website to delete it."
   },
   {
     "name": "NeoDB",
@@ -20326,7 +20474,8 @@
       "soundcloud.com"
     ],
     "url": "https://soundcloud.com/settings/account#delete-user",
-    "difficulty": "easy"
+    "difficulty": "medium",
+    "notes": "Delete your songs manually first before attempting to delete your account, in case it gets 'frozen', which means that you would have to message a nonexistent chatbot to 'unfreeze' your own account."
   },
   {
     "name": "Soundtrap",
@@ -22019,9 +22168,9 @@
   {
     "name": "Threads",
     "domains": [
-      "threads.net"
+      "threads.com"
     ],
-    "url": "https://www.threads.net/settings/account",
+    "url": "https://www.threads.com/settings/account",
     "difficulty": "easy",
     "notes": "In the app go to your profile, click on the right top corner and go to \"Account \u2b95 Deactivate or delete profile \u2b95 Delete profile\""
   },
@@ -24941,6 +25090,16 @@
     "url": "https://www.woltlab.com/account-management/",
     "difficulty": "easy",
     "notes": "Your account will be deleted after a 7-day grace period. Created content, like forum posts, will not be deleted. Your username will be anonymized and protected against re-registration for a year."
+  },
+  {
+    "name": "Wondershare",
+    "domains": [
+      "accounts.wondershare.com",
+      "wondershare.com"
+    ],
+    "url": "https://accounts.wondershare.com/web/web-account-verify",
+    "difficulty": "hard",
+    "notes": "Log into your account, then visit the \"Account\" tab and go to Profile. There will be a \"Delete Account\" button in the top right that'll let you delete your account. You'll enter a 6 digit code sent to your email to proceed with account deletion. Wondershare will hold your account for a week before deleting it, but you can force it as there's a button on screen that lets you delete it immediately."
   },
   {
     "name": "Woolworths",

@@ -7,11 +7,11 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.PasswordPwnage
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.hibp.passwords.PasswordPwnageDataSourceRemote
+import com.artemchep.keyguard.common.util.toHex
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.userAgent
-import io.ktor.util.hex
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readUTF8Line
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +35,7 @@ class PasswordPwnageDataSourceRemoteImpl(
         password: String,
     ): IO<PasswordPwnage> = ioEffect(Dispatchers.Default) {
         val hash = cryptoGenerator.hashSha1(password.encodeToByteArray())
-            .let(::hex)
+            .toHex()
             .uppercase()
         hash
     }

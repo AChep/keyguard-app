@@ -72,6 +72,7 @@ class SshAgentIpcServer(
         getSshAgentFilter: GetSshAgentFilter,
         authToken: ByteArray,
         scope: CoroutineScope,
+        sessionId: String = "",
         maxConcurrentConnections: Int = 8,
         onApprovalRequest: suspend (
             caller: SshAgentMessages.CallerIdentity?,
@@ -90,6 +91,7 @@ class SshAgentIpcServer(
             getVaultSession = getVaultSession,
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
+            sessionId = sessionId,
             onApprovalRequest = onApprovalRequest,
             onGetListRequest = onGetListRequest,
         ),

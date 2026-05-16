@@ -26,6 +26,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.decodeOrNull
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.util.toHex
 import java.util.LinkedHashSet
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -112,6 +113,7 @@ class SshAgentService : Service(), DIAware {
 
     private fun createRequestProcessor(
         requestFlow: AndroidSshAgentRequestFlow,
+        sessionId: String,
         notificationTag: String,
     ): SshAgentRequestProcessor =
         SshAgentRequestProcessorJvm(
@@ -119,6 +121,7 @@ class SshAgentService : Service(), DIAware {
             getVaultSession = getVaultSession,
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
+            sessionId = sessionId,
             onApprovalRequest = { caller, keyName, keyFingerprint ->
                 requestSigningApproval(
                     requestFlow = requestFlow,
@@ -217,6 +220,7 @@ class SshAgentService : Service(), DIAware {
         val requestFlow = createRequestFlow(notificationTag)
         val requestProcessor = createRequestProcessor(
             requestFlow = requestFlow,
+            sessionId = sessionId.toHex(),
             notificationTag = notificationTag,
         )
         val bridgeFailureHandler = CoroutineExceptionHandler { _, error ->

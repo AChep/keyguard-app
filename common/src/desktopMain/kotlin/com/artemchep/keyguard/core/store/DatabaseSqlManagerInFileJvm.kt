@@ -11,7 +11,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.database.DatabaseSqlHelper
 import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
-import io.ktor.util.*
+import com.artemchep.keyguard.common.util.toHex
 import org.sqlite.mc.SQLiteMCSqlCipherConfig
 import java.io.File
 import java.sql.DriverManager
@@ -95,7 +95,7 @@ class DatabaseSqlManagerInFileJvm<Database>(
             override fun changePassword(
                 newMasterKey: MasterKey,
             ): IO<Unit> = ioEffect {
-                val hex = hex(newMasterKey.byteArray)
+                val hex = newMasterKey.byteArray.toHex()
                 // This is specific to a cipher that i'm using!
                 // See:
                 // https://github.com/Willena/sqlite-jdbc-crypt/blob/master/USAGE.md#encryption-key-manipulations

@@ -1,10 +1,17 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.common.model.AddSshUsageHistoryRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -15,6 +22,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.serialization.json.Json
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.RSAKeyParameters
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters
@@ -27,6 +35,7 @@ import org.bouncycastle.crypto.util.OpenSSHPrivateKeyUtil
 import org.bouncycastle.util.encoders.Base64
 import org.kodein.di.direct
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
 import java.security.KeyFactory
 import java.security.PrivateKey
 import java.security.Signature as JcaSignature
@@ -37,6 +46,8 @@ class SshAgentRequestProcessorJvm(
     private val getVaultSession: GetVaultSession,
     private val getSshAgentFilter: GetSshAgentFilter,
     scope: CoroutineScope,
+    private val sessionId: String = "",
+    private val json: Json = Json,
     private val onApprovalRequest: suspend (caller: SshAgentMessages.CallerIdentity?, keyName: String, keyFingerprint: String) -> Boolean =
         { _, _, _ -> true },
     private val onGetListRequest: suspend (caller: SshAgentMessages.CallerIdentity?) -> Boolean = { _ -> false },
@@ -178,10 +189,10 @@ class SshAgentRequestProcessorJvm(
     override suspend fun listKeys(
         caller: SshAgentMessages.CallerIdentity?,
     ): SshAgentRequestProcessor.ListKeysResult {
-        val sshKeys = getSshKeysFromVaultOrRequestGetList(caller)
+        val vault = getSshKeysFromVaultOrRequestGetList(caller)
             ?: return SshAgentRequestProcessor.ListKeysResult.VaultLocked
 
-        val keys = sshKeys.mapNotNull { secret ->
+        val keys = vault.sshKeys.mapNotNull { secret ->
             val sshKey = secret.sshKey ?: return@mapNotNull null
             val publicKey = sshKey.publicKey ?: return@mapNotNull null
             val keyType = extractKeyType(publicKey) ?: "unknown"
@@ -192,17 +203,27 @@ class SshAgentRequestProcessorJvm(
                 fingerprint = sshKey.fingerprint.orEmpty(),
             )
         }
+        recordSshUsage(
+            vault = vault,
+            cipherId = null,
+            caller = caller,
+            request = SshUsageHistoryRequestType.AGENT_LIST_KEYS,
+            response = SshUsageHistoryResponseType.SUCCESS,
+            fingerprint = null,
+        )
 
         return SshAgentRequestProcessor.ListKeysResult.Success(
-            response = SshAgentMessages.ListKeysResponse(keys = keys),
+            response = SshAgentMessages.ListKeysResponse(
+                keys = keys,
+            ),
         )
     }
 
     override suspend fun signData(
         request: SshAgentMessages.SignDataRequest,
     ): SshAgentRequestProcessor.SignDataResult {
-        var sshKeys = getSshKeysFromVault()
-        val wasVaultLocked = sshKeys == null
+        var vault = getSshKeysFromVault()
+        val wasVaultLocked = vault == null
 
         if (wasVaultLocked) {
             logRepository.post(TAG, "Vault is locked, requesting approval before SSH signing", LogLevel.INFO)
@@ -216,21 +237,46 @@ class SshAgentRequestProcessorJvm(
                 return SshAgentRequestProcessor.SignDataResult.UserDenied
             }
 
-            sshKeys = getSshKeysFromVault()
-            if (sshKeys == null) {
+            vault = getSshKeysFromVault()
+            if (vault == null) {
                 return SshAgentRequestProcessor.SignDataResult.VaultLocked
             }
         }
 
-        val availableSshKeys: List<DSecret> = sshKeys
+        val availableSshKeys: List<DSecret> = vault.sshKeys
         val matchingSecret = availableSshKeys.find { secret ->
-            val publicKey = secret.sshKey?.publicKey ?: return@find false
+            val publicKey = secret.sshKey?.publicKey
+                ?: return@find false
             publicKeysMatch(publicKey, request.publicKey)
-        } ?: return SshAgentRequestProcessor.SignDataResult.KeyNotFound
+        } ?: run {
+            recordSshUsage(
+                vault = vault,
+                cipherId = null,
+                caller = request.caller,
+                request = SshUsageHistoryRequestType.AGENT_SIGN_DATA,
+                response = SshUsageHistoryResponseType.KEY_NOT_FOUND,
+                fingerprint = null,
+            )
+            return SshAgentRequestProcessor.SignDataResult.KeyNotFound
+        }
+
+        // Record the SSH usage for this
+        // specific sign data request.
+        suspend fun recordSshUsageSignData(
+            response: SshUsageHistoryResponseType,
+        ) = recordSshUsage(
+            vault = vault,
+            cipherId = matchingSecret.id,
+            caller = request.caller,
+            request = SshUsageHistoryRequestType.AGENT_SIGN_DATA,
+            response = response,
+            fingerprint = matchingSecret.sshKey?.fingerprint,
+        )
 
         val sshKey = matchingSecret.sshKey ?: return SshAgentRequestProcessor.SignDataResult.KeyNotFound
         val privateKeyPem = sshKey.privateKey
         if (privateKeyPem.isNullOrBlank()) {
+            recordSshUsageSignData(SshUsageHistoryResponseType.KEY_NOT_FOUND)
             return SshAgentRequestProcessor.SignDataResult.KeyNotFound
         }
 
@@ -242,27 +288,30 @@ class SshAgentRequestProcessorJvm(
             )
             if (!approved) {
                 logRepository.post(TAG, "User denied the signing request", LogLevel.INFO)
+                recordSshUsageSignData(SshUsageHistoryResponseType.USER_DENIED)
                 return SshAgentRequestProcessor.SignDataResult.UserDenied
             }
         }
 
         return try {
-            SshAgentRequestProcessor.SignDataResult.Success(
-                response = signWithPrivateKey(
-                    privateKeyPem = privateKeyPem,
-                    data = request.data,
-                    flags = request.flags,
-                ),
+            val response = signWithPrivateKey(
+                privateKeyPem = privateKeyPem,
+                data = request.data,
+                flags = request.flags,
             )
+            recordSshUsageSignData(SshUsageHistoryResponseType.SUCCESS)
+            SshAgentRequestProcessor.SignDataResult.Success(response = response)
         } catch (e: Exception) {
+            e.throwIfFatalOrCancellation()
             logRepository.post(TAG, "Signing failed: ${e.message}", LogLevel.ERROR)
+            recordSshUsageSignData(SshUsageHistoryResponseType.FAILURE)
             SshAgentRequestProcessor.SignDataResult.Failure(
                 message = "Signing failed: ${e.message}",
             )
         }
     }
 
-    private suspend fun getSshKeysFromVault(): List<DSecret>? {
+    private suspend fun getSshKeysFromVault(): SshVaultContext? {
         val session = getVaultSession.valueOrNull
         val key = session as? MasterSession.Key ?: return null
 
@@ -272,22 +321,30 @@ class SshAgentRequestProcessorJvm(
                 ciphers.filter { it.isEligibleForSshAgent() }
             }
             .first()
+        val addSshUsageHistory = key.di.direct.instanceOrNull<AddSshUsageHistory>()
+            ?: NoOpAddSshUsageHistory
 
         val sshAgentFilter = sshAgentFilterState.value.normalize()
         if (!sshAgentFilter.isActive) {
-            return sshKeys
+            return SshVaultContext(
+                sshKeys = sshKeys,
+                addSshUsageHistory = addSshUsageHistory,
+            )
         }
 
         val predicate = sshAgentFilter.toDFilter().prepare(
             directDI = key.di.direct,
             ciphers = sshKeys,
         )
-        return sshKeys.filter(predicate)
+        return SshVaultContext(
+            sshKeys = sshKeys.filter(predicate),
+            addSshUsageHistory = addSshUsageHistory,
+        )
     }
 
     private suspend fun getSshKeysFromVaultOrRequestGetList(
         caller: SshAgentMessages.CallerIdentity?,
-    ): List<DSecret>? {
+    ): SshVaultContext? {
         getSshKeysFromVault()?.let { return it }
 
         logRepository.post(TAG, "Vault is locked, requesting list-keys unlock from user", LogLevel.INFO)
@@ -299,6 +356,40 @@ class SshAgentRequestProcessorJvm(
 
         logRepository.post(TAG, "Vault unlocked, retrying key retrieval", LogLevel.INFO)
         return getSshKeysFromVault()
+    }
+
+    private suspend fun recordSshUsage(
+        vault: SshVaultContext,
+        cipherId: String?,
+        caller: SshAgentMessages.CallerIdentity?,
+        request: SshUsageHistoryRequestType,
+        response: SshUsageHistoryResponseType,
+        fingerprint: String?,
+    ) {
+        val callerJson = encodeCaller(caller)
+        try {
+            val request = AddSshUsageHistoryRequest(
+                cipherId = cipherId,
+                sessionId = sessionId,
+                caller = callerJson,
+                request = request,
+                response = response,
+                fingerprint = fingerprint,
+            )
+            vault.addSshUsageHistory(request).bind()
+        } catch (e: Exception) {
+            e.throwIfFatalOrCancellation()
+            logRepository.post(TAG, "Failed to record SSH usage history: ${e.message}", LogLevel.ERROR)
+        }
+    }
+
+    private fun encodeCaller(
+        caller: SshAgentMessages.CallerIdentity?,
+    ): String? {
+        caller ?: return null
+        return runCatching {
+            json.encodeToString(caller)
+        }.getOrNull()
     }
 
     private suspend fun requestVaultUnlock(
@@ -330,5 +421,16 @@ class SshAgentRequestProcessorJvm(
         if (e is CancellationException) throw e
         logRepository.post(TAG, "Approval request failed: ${e.message}", LogLevel.ERROR)
         false
+    }
+
+    private data class SshVaultContext(
+        val sshKeys: List<DSecret>,
+        val addSshUsageHistory: AddSshUsageHistory,
+    )
+
+    private object NoOpAddSshUsageHistory : AddSshUsageHistory {
+        override fun invoke(request: AddSshUsageHistoryRequest): IO<Unit> = {
+            // Do nothing
+        }
     }
 }

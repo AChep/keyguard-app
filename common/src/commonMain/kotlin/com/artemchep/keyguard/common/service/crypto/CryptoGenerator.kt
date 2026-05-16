@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
+import com.artemchep.keyguard.common.util.toHex
 
 interface CryptoGenerator {
     fun hkdf(
@@ -58,6 +59,11 @@ interface CryptoGenerator {
 
     fun random(range: IntRange): Int
 }
+
+fun CryptoGenerator.seedHex(
+    length: Int = 32,
+): String = seed(length)
+    .toHex()
 
 fun <T> CryptoGenerator.listRandomOrThrow(list: List<T>) = kotlin.run {
     val index = random(0..list.lastIndex)

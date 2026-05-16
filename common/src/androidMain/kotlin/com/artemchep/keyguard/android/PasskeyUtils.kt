@@ -11,6 +11,8 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
 import com.artemchep.keyguard.common.usecase.impl.isSubdomain
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskeyAttestation
+import com.artemchep.keyguard.common.util.hexToByteArray
+import com.artemchep.keyguard.common.util.toHex
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -122,9 +124,11 @@ class PasskeyUtils(
             cryptoService: CryptoGenerator,
         ): String {
             val certHash = cryptoService.hashSha256(data)
-            return certHash.joinToString(separator = ":") { byte ->
-                "%02X".format(byte)
-            }
+            return certHash
+                .toHex()
+                .uppercase()
+                .chunked(2)
+                .joinToString(separator = ":")
         }
     }
 
@@ -314,7 +318,6 @@ class PasskeyUtils(
         val fingerprints: List<ByteArray>,
     )
 
-    @OptIn(ExperimentalStdlibApi::class)
     private suspend fun obtainAllowedAndroidAppTargets(
         rpId: String,
     ): Map<AndroidAppRelation, Map<AndroidAppPackageName, AndroidAppTarget>> {

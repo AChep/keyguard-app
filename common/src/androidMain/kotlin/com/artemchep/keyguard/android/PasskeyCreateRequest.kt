@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasswordDat
 import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
+import com.artemchep.keyguard.common.util.hexToByteArray
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.add
@@ -254,9 +255,9 @@ class PasskeyCreateRequest(
         val byteY = bigIntToByteArray32(ecPoint.affineY)
 
         // refer to RFC9052 Section 7 for details
-        return "A5010203262001215820".chunked(2).map { it.toInt(16).toByte() }.toByteArray() +
+        return "A5010203262001215820".hexToByteArray() +
                 byteX +
-                "225820".chunked(2).map { it.toInt(16).toByte() }.toByteArray() +
+                "225820".hexToByteArray() +
                 byteY
     }
 

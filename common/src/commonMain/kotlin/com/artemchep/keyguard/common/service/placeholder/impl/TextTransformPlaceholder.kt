@@ -5,9 +5,9 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.util.Parser
+import com.artemchep.keyguard.common.util.toHex
 import io.ktor.http.URLDecodeException
 import io.ktor.http.decodeURLQueryComponent
-import io.ktor.util.hex
 import org.kodein.di.DirectDI
 import kotlin.io.encoding.Base64
 
@@ -70,7 +70,7 @@ class TextTransformPlaceholder(
         value: String,
     ): String {
         val bytes = value.encodeToByteArray()
-        return hex(bytes)
+        return bytes.toHex()
     }
 
     private fun transformUriEncode(

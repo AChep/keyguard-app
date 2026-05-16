@@ -1,17 +1,24 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.model.AddSshUsageHistoryRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
+import java.security.KeyPairGenerator
+import java.security.PrivateKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -71,6 +78,7 @@ class SshAgentRequestProcessingTest {
 
     private fun createServer(
         vaultSession: GetVaultSession = lockedVaultSession,
+        sessionId: String = "test-session",
         onApprovalRequest: suspend (
             caller: SshAgentMessages.CallerIdentity?,
             keyName: String,
@@ -83,6 +91,7 @@ class SshAgentRequestProcessingTest {
         getSshAgentFilter = sshAgentFilter,
         authToken = authToken,
         scope = CoroutineScope(Dispatchers.Unconfined),
+        sessionId = sessionId,
         onApprovalRequest = onApprovalRequest,
         onGetListRequest = onGetListRequest,
     )
@@ -303,6 +312,73 @@ class SshAgentRequestProcessingTest {
         assertEquals(listOf("Active key"), payload.keys.map { it.name })
     }
 
+    @Test
+    fun `handleListKeys records list request in usage history`() = runTest {
+        val history = mutableListOf<AddSshUsageHistoryRequest>()
+        val caller = SshAgentMessages.CallerIdentity(appName = "Termux")
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSessionWithHistory(
+                    history,
+                    createSshSecret(
+                        name = "Primary key",
+                        publicKey = "ssh-ed25519 AAAA... primary@example",
+                        fingerprint = "SHA256:primary",
+                    ),
+                    createSshSecret(
+                        name = "Secondary key",
+                        publicKey = "ssh-ed25519 AAAA... secondary@example",
+                        fingerprint = "SHA256:secondary",
+                    ),
+                ),
+            ),
+            sessionId = "session-list",
+        )
+
+        val response = server.handleListKeys(
+            requestId = 23L,
+            req = SshAgentMessages.ListKeysRequest(caller = caller),
+        )
+
+        assertNull(response.error)
+        assertEquals(2, response.listKeys?.keys?.size)
+        assertEquals(1, history.size)
+        val event = history.single()
+        assertNull(event.cipherId)
+        assertEquals("session-list", event.sessionId)
+        assertTrue(event.caller?.contains("Termux") == true)
+        assertEquals(SshUsageHistoryRequestType.AGENT_LIST_KEYS, event.request)
+        assertEquals(SshUsageHistoryResponseType.SUCCESS, event.response)
+        assertNull(event.fingerprint)
+    }
+
+    @Test
+    fun `handleListKeys records empty successful list request in usage history`() = runTest {
+        val history = mutableListOf<AddSshUsageHistoryRequest>()
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSessionWithHistory(history),
+            ),
+            sessionId = "session-empty-list",
+        )
+
+        val response = server.handleListKeys(
+            requestId = 24L,
+            req = SshAgentMessages.ListKeysRequest(),
+        )
+
+        assertNull(response.error)
+        assertEquals(0, response.listKeys?.keys?.size)
+        assertEquals(1, history.size)
+        val event = history.single()
+        assertNull(event.cipherId)
+        assertEquals("session-empty-list", event.sessionId)
+        assertNull(event.caller)
+        assertEquals(SshUsageHistoryRequestType.AGENT_LIST_KEYS, event.request)
+        assertEquals(SshUsageHistoryResponseType.SUCCESS, event.response)
+        assertNull(event.fingerprint)
+    }
+
     // ================================================================
     // handleSignData with locked vault
     // ================================================================
@@ -499,6 +575,196 @@ class SshAgentRequestProcessingTest {
         assertEquals(1, approvalPromptCount)
     }
 
+    @Test
+    fun `handleSignData records user denied after matching ssh key`() = runTest {
+        val history = mutableListOf<AddSshUsageHistoryRequest>()
+        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
+        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSessionWithHistory(
+                    history,
+                    createSshSecret(
+                        name = "Signer",
+                        publicKey = "$publicKey signer@example",
+                        fingerprint = "SHA256:signer",
+                    ),
+                ),
+            ),
+            onApprovalRequest = { _, _, _ -> false },
+        )
+
+        val response = server.handleSignData(
+            requestId = 36L,
+            req = SshAgentMessages.SignDataRequest(
+                publicKey = publicKey,
+                data = byteArrayOf(1, 2, 3),
+                flags = 0,
+            ),
+        )
+
+        assertEquals(SshAgentMessages.ErrorCode.USER_DENIED, response.error?.code)
+        val event = history.single()
+        assertEquals("signer", event.cipherId)
+        assertEquals(SshUsageHistoryRequestType.AGENT_SIGN_DATA, event.request)
+        assertEquals(SshUsageHistoryResponseType.USER_DENIED, event.response)
+    }
+
+    @Test
+    fun `handleSignData records key not found for unmatched public key`() = runTest {
+        val history = mutableListOf<AddSshUsageHistoryRequest>()
+        var approvalPromptCount = 0
+        val storedPublicKey = buildOpenSshPublicKey("ssh-ed25519")
+        val requestedPublicKey = buildOpenSshPublicKey("ssh-rsa")
+        val caller = SshAgentMessages.CallerIdentity(appName = "Terminal")
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSessionWithHistory(
+                    history,
+                    createSshSecret(
+                        name = "Signer",
+                        publicKey = "$storedPublicKey signer@example",
+                        fingerprint = "SHA256:signer",
+                    ),
+                ),
+            ),
+            sessionId = "session-missing-key",
+            onApprovalRequest = { _, _, _ ->
+                approvalPromptCount++
+                true
+            },
+        )
+
+        val response = server.handleSignData(
+            requestId = 40L,
+            req = SshAgentMessages.SignDataRequest(
+                publicKey = requestedPublicKey,
+                data = byteArrayOf(1, 2, 3),
+                flags = 0,
+                caller = caller,
+            ),
+        )
+
+        assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
+        assertEquals(0, approvalPromptCount)
+        val event = history.single()
+        assertNull(event.cipherId)
+        assertEquals("session-missing-key", event.sessionId)
+        assertTrue(event.caller?.contains("Terminal") == true)
+        assertEquals(SshUsageHistoryRequestType.AGENT_SIGN_DATA, event.request)
+        assertEquals(SshUsageHistoryResponseType.KEY_NOT_FOUND, event.response)
+        assertNull(event.fingerprint)
+    }
+
+    @Test
+    fun `handleSignData records missing private key after matching ssh key`() = runTest {
+        val history = mutableListOf<AddSshUsageHistoryRequest>()
+        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
+        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSessionWithHistory(
+                    history,
+                    createSshSecret(
+                        name = "Signer",
+                        publicKey = "$publicKey signer@example",
+                        fingerprint = "SHA256:signer",
+                        privateKey = "",
+                    ),
+                ),
+            ),
+        )
+
+        val response = server.handleSignData(
+            requestId = 37L,
+            req = SshAgentMessages.SignDataRequest(
+                publicKey = publicKey,
+                data = byteArrayOf(1, 2, 3),
+                flags = 0,
+            ),
+        )
+
+        assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
+        val event = history.single()
+        assertEquals(SshUsageHistoryRequestType.AGENT_SIGN_DATA, event.request)
+        assertEquals(SshUsageHistoryResponseType.KEY_NOT_FOUND, event.response)
+    }
+
+    @Test
+    fun `handleSignData records signing failure after matching ssh key`() = runTest {
+        val history = mutableListOf<AddSshUsageHistoryRequest>()
+        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
+        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSessionWithHistory(
+                    history,
+                    createSshSecret(
+                        name = "Signer",
+                        publicKey = "$publicKey signer@example",
+                        fingerprint = "SHA256:signer",
+                        privateKey = "not a valid PEM key",
+                    ),
+                ),
+            ),
+            onApprovalRequest = { _, _, _ -> true },
+        )
+
+        val response = server.handleSignData(
+            requestId = 38L,
+            req = SshAgentMessages.SignDataRequest(
+                publicKey = publicKey,
+                data = byteArrayOf(1, 2, 3),
+                flags = 0,
+            ),
+        )
+
+        assertEquals(SshAgentMessages.ErrorCode.UNSPECIFIED, response.error?.code)
+        val event = history.single()
+        assertEquals(SshUsageHistoryRequestType.AGENT_SIGN_DATA, event.request)
+        assertEquals(SshUsageHistoryResponseType.FAILURE, event.response)
+    }
+
+    @Test
+    fun `handleSignData records successful signing after matching ssh key`() = runTest {
+        val history = mutableListOf<AddSshUsageHistoryRequest>()
+        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
+        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSessionWithHistory(
+                    history,
+                    createSshSecret(
+                        name = "Signer",
+                        publicKey = "$publicKey signer@example",
+                        fingerprint = "SHA256:signer",
+                        privateKey = generatePkcs8RsaPrivateKeyPem(),
+                    ),
+                ),
+            ),
+            sessionId = "session-sign",
+            onApprovalRequest = { _, _, _ -> true },
+        )
+
+        val response = server.handleSignData(
+            requestId = 39L,
+            req = SshAgentMessages.SignDataRequest(
+                publicKey = publicKey,
+                data = byteArrayOf(1, 2, 3),
+                flags = 0x02,
+            ),
+        )
+
+        assertNull(response.error)
+        assertNotNull(response.signData)
+        val event = history.single()
+        assertEquals("session-sign", event.sessionId)
+        assertEquals("signer", event.cipherId)
+        assertEquals(SshUsageHistoryRequestType.AGENT_SIGN_DATA, event.request)
+        assertEquals(SshUsageHistoryResponseType.SUCCESS, event.response)
+        assertEquals("SHA256:signer", event.fingerprint)
+    }
+
     // ================================================================
     // Response ID propagation
     // ================================================================
@@ -555,6 +821,14 @@ class SshAgentRequestProcessingTest {
 
     private fun createUnlockedSession(
         vararg secrets: DSecret,
+    ): MasterSession.Key = createUnlockedSessionWithHistory(
+        null,
+        *secrets,
+    )
+
+    private fun createUnlockedSessionWithHistory(
+        history: MutableList<AddSshUsageHistoryRequest>?,
+        vararg secrets: DSecret,
     ): MasterSession.Key = MasterSession.Key(
         masterKey = MasterKey(
             version = MasterKdfVersion.LATEST,
@@ -564,6 +838,15 @@ class SshAgentRequestProcessingTest {
             bindSingleton<GetCiphers> {
                 object : GetCiphers {
                     override fun invoke(): Flow<List<DSecret>> = flowOf(secrets.toList())
+                }
+            }
+            if (history != null) {
+                bindSingleton<AddSshUsageHistory> {
+                    object : AddSshUsageHistory {
+                        override fun invoke(request: AddSshUsageHistoryRequest): IO<Unit> = {
+                            history += request
+                        }
+                    }
                 }
             }
         },
@@ -622,5 +905,20 @@ class SshAgentRequestProcessingTest {
             dataOutput.flush()
         }
         output.toByteArray()
+    }
+
+    private fun generatePkcs8RsaPrivateKeyPem(): String {
+        val generator = KeyPairGenerator.getInstance("RSA")
+        generator.initialize(2048)
+        return toPkcs8PrivateKeyPem(generator.generateKeyPair().private)
+    }
+
+    private fun toPkcs8PrivateKeyPem(privateKey: PrivateKey): String {
+        val encoded = Base64.getEncoder().encodeToString(privateKey.encoded)
+        return buildString {
+            appendLine("-----BEGIN PRIVATE KEY-----")
+            encoded.chunked(70).forEach(::appendLine)
+            appendLine("-----END PRIVATE KEY-----")
+        }
     }
 }

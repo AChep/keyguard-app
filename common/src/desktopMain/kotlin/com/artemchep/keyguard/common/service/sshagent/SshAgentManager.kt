@@ -1,18 +1,19 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.seedHex
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.util.flow.EventFlow
+import com.artemchep.keyguard.common.util.toHex
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.nio.file.Files
 import java.nio.file.Path
-import java.security.SecureRandom
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -145,7 +146,8 @@ class SshAgentManager(
 
         // Generate cryptographically random auth token.
         val authToken = cryptoGenerator.seed(AUTH_TOKEN_BYTES)
-        val authTokenHex = authToken.joinToString("") { "%02x".format(it) }
+        val authTokenHex = authToken.toHex()
+        val agentSessionId = cryptoGenerator.seedHex(length = 16)
 
         // Determine IPC socket path (temporary file).
         val ipcSocketPath = createTempSocketPath("keyguard-ipc")
@@ -169,6 +171,7 @@ class SshAgentManager(
             getSshAgentFilter = getSshAgentFilter,
             authToken = authToken,
             scope = serverScope,
+            sessionId = agentSessionId,
             onApprovalRequest = { caller, keyName, keyFingerprint ->
                 val deferred = CompletableDeferred<Boolean>()
                 val request = SshAgentApprovalRequest(
@@ -387,10 +390,8 @@ class SshAgentManager(
      */
     private fun createTempSocketPath(prefix: String): Path {
         val tempDir = Path.of(System.getProperty("java.io.tmpdir"))
-        val randomHex = ByteArray(16)
-            .also { SecureRandom().nextBytes(it) }
-            .joinToString("") { "%02x".format(it) }
-        val socketName = "$prefix-$randomHex.sock"
+        val suffix = cryptoGenerator.seedHex(length = 16)
+        val socketName = "$prefix-$suffix.sock"
         return tempDir.resolve(socketName)
     }
 }

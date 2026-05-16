@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.totp.TotpService
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.common.util.millis
+import com.artemchep.keyguard.common.util.toHex
 import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -256,7 +257,6 @@ class TotpServiceImpl(
         return key
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     private fun generateMobileAuthCode(
         token: TotpToken.MobileAuth,
         timestamp: Instant,
@@ -281,8 +281,7 @@ class TotpServiceImpl(
         val hash = cryptoGenerator.hashMd5(data.encodeToByteArray())
 
         val code = hash
-            .toHexString()
-            .lowercase()
+            .toHex()
             .take(token.digits)
         return TotpCode(
             code = code,

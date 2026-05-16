@@ -15,6 +15,8 @@ import com.artemchep.keyguard.common.service.database.AfterVersionWithTransactio
 import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
 import com.artemchep.keyguard.common.service.database.ObjectToStringAdapter
+import com.artemchep.keyguard.common.service.database.SshUsageHistoryRequestTypeToLongAdapter
+import com.artemchep.keyguard.common.service.database.SshUsageHistoryResponseTypeToLongAdapter
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
@@ -32,6 +34,7 @@ import com.artemchep.keyguard.data.GeneratorWordlist
 import com.artemchep.keyguard.data.GeneratorEmailRelay
 import com.artemchep.keyguard.data.GeneratorHistory
 import com.artemchep.keyguard.data.PrivilegedApp
+import com.artemchep.keyguard.data.SshUsageHistory
 import com.artemchep.keyguard.data.UrlBlock
 import com.artemchep.keyguard.data.UrlOverride
 import com.artemchep.keyguard.data.WatchtowerThreat
@@ -88,6 +91,11 @@ class VaultDatabaseManagerImpl(
                 Database(
                     driver = driver,
                     cipherUsageHistoryAdapter = CipherUsageHistory.Adapter(InstantToLongAdapter),
+                    sshUsageHistoryAdapter = SshUsageHistory.Adapter(
+                        requestAdapter = SshUsageHistoryRequestTypeToLongAdapter,
+                        responseAdapter = SshUsageHistoryResponseTypeToLongAdapter,
+                        createdAtAdapter = InstantToLongAdapter,
+                    ),
                     cipherFilterAdapter = CipherFilter.Adapter(
                         updatedAtAdapter = InstantToLongAdapter,
                         createdAtAdapter = InstantToLongAdapter,

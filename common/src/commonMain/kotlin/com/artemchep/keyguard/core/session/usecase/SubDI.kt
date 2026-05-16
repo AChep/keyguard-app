@@ -4,6 +4,8 @@ import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepo
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepository
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepositoryImpl
+import com.artemchep.keyguard.android.downloader.journal.SshUsageHistoryRepository
+import com.artemchep.keyguard.android.downloader.journal.SshUsageHistoryRepositoryImpl
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
@@ -54,6 +56,7 @@ import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
 import com.artemchep.keyguard.common.usecase.AddCredentialCipher
 import com.artemchep.keyguard.common.usecase.AddPrivilegedApp
 import com.artemchep.keyguard.common.usecase.AddSend
+import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.AddUriCipher
 import com.artemchep.keyguard.common.usecase.AddUrlBlock
 import com.artemchep.keyguard.common.usecase.AddUrlOverride
@@ -239,6 +242,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.AddFolderImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCredentialCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddPrivilegedAppImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddSendImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.AddSshUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddUriCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ArchiveCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ChangeCipherNameByIdImpl
@@ -791,6 +795,9 @@ fun DI.Builder.createSubDi2(
     bindSingleton<AddCipherUsedPasskeyHistory> {
         AddCipherUsedPasskeyHistoryImpl(this)
     }
+    bindSingleton<AddSshUsageHistory> {
+        AddSshUsageHistoryImpl(this)
+    }
     bindSingleton<GetCipherOpenedHistory> {
         GetCipherOpenedHistoryImpl(this)
     }
@@ -802,6 +809,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<CipherHistoryOpenedRepository> {
         CipherHistoryOpenedRepositoryImpl(this)
+    }
+    bindSingleton<SshUsageHistoryRepository> {
+        SshUsageHistoryRepositoryImpl(this)
     }
     bindSingleton<GeneratorHistoryRepository> {
         GeneratorHistoryRepositoryImpl(this)

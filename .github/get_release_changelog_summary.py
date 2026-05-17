@@ -19,6 +19,8 @@ from google.genai import types
 # --- Configuration Constants ---
 MODEL_NAME = "gemini-2.5-pro"
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+CHANGELOG_SUMMARY_LENGTH_LIMIT = 500
+TRUNCATION_SUFFIX = "…"
 
 PROMPT_TEMPLATE = """
 You are an expert release-note writer. Convert raw git commit messages into concise, fluent app-store release notes for Keyguard. Write natural English that sounds edited by a human, not like a categorized digest.
@@ -50,7 +52,7 @@ Key features include:
 * Do not include introductory text (e.g., "Here is your changelog").
 * Do not include concluding text.
 * Do not use markdown code blocks or quotes. Start directly with the first word of the changelog.
-* Limit the output by 500 characters at MAX.
+* Keep the output under 500 characters.
 * Zero-Tolerance Policy for Hallucination: If the commits do not provide enough information for a specific feature, do not fill in the gaps.
 
 **Input Commits:**
@@ -61,6 +63,25 @@ Key features include:
 
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt="%H:%M:%S")
 logger = logging.getLogger(__name__)
+
+
+def truncate_changelog_summary(text: str) -> str:
+    text = text.strip()
+    if len(text) < CHANGELOG_SUMMARY_LENGTH_LIMIT:
+        return text
+
+    max_length = CHANGELOG_SUMMARY_LENGTH_LIMIT - 1
+    text_length = max_length - len(TRUNCATION_SUFFIX)
+    truncated = text[:text_length].rstrip()
+
+    if text_length < len(text) and text[text_length].isspace():
+        return truncated + TRUNCATION_SUFFIX
+
+    parts = truncated.rsplit(maxsplit=1)
+    if len(parts) > 1:
+        truncated = parts[0].rstrip()
+
+    return truncated + TRUNCATION_SUFFIX
 
 
 class GeminiSummarizer:
@@ -105,6 +126,7 @@ def main():
 
     summarizer = GeminiSummarizer(api_token=args.token)
     summary = summarizer.summarize(commit_text)
+    summary = truncate_changelog_summary(summary)
 
     if args.output:
         args.output.write_text(summary + "\n", encoding="utf-8")

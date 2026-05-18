@@ -19,9 +19,6 @@ data class CipherEntity(
     @JsonNames("folderId")
     @SerialName("FolderId")
     val folderId: String? = null,
-    @JsonNames("userId")
-    @SerialName("UserId")
-    val userId: String? = null,
     @JsonNames("key")
     @SerialName("Key")
     val key: String? = null,
@@ -47,9 +44,6 @@ data class CipherEntity(
     @SerialName("Data")
     @Serializable(with = CipherDataEntitySerializer::class)
     val data: CipherDataEntity? = null,
-    @JsonNames("sizeName")
-    @SerialName("SizeName")
-    val sizeName: String? = null,
     @JsonNames("name")
     @SerialName("Name")
     val name: String? = null,
@@ -89,9 +83,6 @@ data class CipherEntity(
     @JsonNames("deletedDate")
     @SerialName("DeletedDate")
     val deletedDate: Instant? = null,
-    @JsonNames("encryptedFor")
-    @SerialName("EncryptedFor")
-    val encryptedFor: String? = null,
     @JsonNames("archivedDate")
     @SerialName("ArchivedDate")
     val archivedDate: Instant? = null,

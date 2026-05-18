@@ -72,7 +72,6 @@ fun BitwardenCipher.Companion.encrypted(
         name = if (data != null) data.name else entity.name,
         notes = if (data != null) data.notes else entity.notes,
         favorite = entity.favorite,
-        encryptedFor = entity.encryptedFor,
         fields = fields
             .map {
                 val type = it.type.domain()

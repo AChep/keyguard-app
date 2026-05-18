@@ -755,7 +755,6 @@ internal class UploadTestServer {
             )
         },
         collectionIds = emptyList(),
-        encryptedFor = request.encryptedFor,
         archivedDate = request.archivedDate,
         reprompt = request.reprompt,
     )
@@ -1032,7 +1031,6 @@ internal fun BitwardenCipher.toEncryptedCipherEntity(
                 lastUsedDate = history.lastUsedDate,
             )
         },
-        encryptedFor = encrypted.encryptedFor,
         archivedDate = encrypted.archivedDate,
     )
 }

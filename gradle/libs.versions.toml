@@ -55,7 +55,7 @@ arrow = "2.2.2.1"
 # https://github.com/AChep/bindin
 bindIn = "1.4.0"
 # https://github.com/yshrsmz/BuildKonfig
-buildkonfigPlugin = "0.20.0"
+buildkonfigPlugin = "0.21.0"
 # https://mvnrepository.com/artifact/commons-codec/commons-codec
 commonsCodec = "1.22.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3

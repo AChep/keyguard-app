@@ -1039,6 +1039,17 @@ private suspend inline fun String.delete(
     .bodyOrApiException<HttpResponse>()
 
 fun HttpRequestBuilder.headers(env: ServerEnv) {
+    headers(
+        env = env,
+    ) { key, value ->
+        header(key, value)
+    }
+}
+
+fun headers(
+    env: ServerEnv,
+    header: (String, String) -> Unit,
+) {
     // Let Bitwarden know who we are.
     header("Keyguard-Client", "1")
     // Seems like now Bitwarden now requires you to specify
@@ -1063,17 +1074,12 @@ fun HttpRequestBuilder.headers(env: ServerEnv) {
     // a subdirectory. We should specify the 'referer' so the server
     // generates correct urls for us.
     if (env.baseUrl.isNotEmpty()) {
-        header(
-            key = "referer",
-            value = env.baseUrl
-                .ensureSuffix("/"),
-        )
+        val key = "referer"
+        val value = env.baseUrl.ensureSuffix("/")
+        header(key, value)
     }
     env.headers.forEach { header ->
-        header(
-            key = header.key,
-            value = header.value,
-        )
+        header(header.key, header.value)
     }
 }
 

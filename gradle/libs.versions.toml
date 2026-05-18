@@ -107,6 +107,8 @@ kotlinIo = "0.9.0"
 kotlinDsl = "4.3.0"
 # https://github.com/Kotlin/kotlinx.serialization
 kotlinSerialization = "1.11.0"
+# https://github.com/esensar/kotlinx-serialization-msgpack/releases
+kotlinSerializationMsgpack = "0.6.1"
 # https://github.com/google/ksp/releases
 kspPlugin = "2.3.6"
 # https://github.com/pinterest/ktlint/releases
@@ -143,10 +145,6 @@ playServicesBase = "18.10.0"
 playServicesWearable = "20.0.1"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha03"
-# https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "9.0.12"
-# https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle
-msgpack = "0.8.20"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.17"
 # https://github.com/bcgit/bc-java
@@ -298,9 +296,11 @@ kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.re
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 kotlinx-serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serialization-cbor", version.ref = "kotlinSerialization" }
 kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "kotlinSerialization" }
+kotlinx-serialization-msgpack = { module = "com.ensarsarajcic.kotlinx:serialization-msgpack", version.ref = "kotlinSerializationMsgpack" }
 ktor-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
@@ -318,10 +318,6 @@ bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref 
 bouncycastle-bctls = { module = "org.bouncycastle:bctls-jdk18on", version.ref = "bouncycastle" }
 hierynomus-sshj = { module = "com.hierynomus:sshj", version.ref = "sshj" }
 mayakapps-window-styler = { module = "com.mayakapps.compose:window-styler", version.ref = "windowStyler" }
-microsoft-signalr = { module = "com.microsoft.signalr:signalr", version.ref = "signalr" }
-microsoft-signalr-messagepack = { module = "com.microsoft.signalr.messagepack:signalr-messagepack", version.ref = "signalr" }
-msgpack-core = { module = "org.msgpack:msgpack-core", version.ref = "msgpack" }
-msgpack-jackson-dataformat = { module = "org.msgpack:jackson-dataformat-msgpack", version.ref = "msgpack" }
 mm2d-touchicon = { module = "net.mm2d.touchicon:touchicon", version.ref = "touchIcon" }
 mm2d-touchicon-http-okhttp = { module = "net.mm2d.touchicon:touchicon-http-okhttp", version.ref = "touchIcon" }
 lingala-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }

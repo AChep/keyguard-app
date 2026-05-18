@@ -111,6 +111,7 @@ kotlin {
                 api(libs.ktor.ktor.client.content.negotiation)
                 api(libs.ktor.ktor.client.websockets)
                 api(libs.ktor.ktor.serialization.kotlinx)
+                api(project(":util:signalr"))
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
                 api(libs.cash.sqldelight.coroutines.extensions)
@@ -136,6 +137,9 @@ kotlin {
 
         val iosMain by creating {
             dependsOn(commonMain)
+            dependencies {
+                api(libs.ktor.ktor.client.darwin)
+            }
         }
 
         val iosArm64Main by getting {
@@ -197,13 +201,6 @@ kotlin {
                 implementation(libs.hierynomus.sshj)
                 implementation(libs.ricecode.string.similarity)
                 implementation(libs.google.zxing.core)
-                // SignalR
-                implementation(libs.microsoft.signalr)
-                implementation(libs.microsoft.signalr.messagepack)
-                implementation(libs.msgpack.core)
-                implementation(libs.msgpack.jackson.dataformat)
-                // ...implicitly added by SignalR, so we might as well opt-in
-                // for the latest and 'best-est' version.
                 implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
                 implementation(libs.squareup.okhttp)
                 implementation(libs.squareup.logging.interceptor)

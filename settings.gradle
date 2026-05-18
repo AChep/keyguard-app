@@ -25,6 +25,8 @@ dependencyResolutionManagement {
 rootProject.name = "keyguard"
 
 include ':common'
+include ':util:messagepack'
+include ':util:signalr'
 include ':androidApp'
 include ':androidBenchmark'
 include ':androidSshAgent'

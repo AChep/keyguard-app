@@ -2,28 +2,32 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.NotificationsWorker
 import com.artemchep.keyguard.common.io.attempt
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
+import com.artemchep.keyguard.common.service.file.toLocalPathFromFileUriOrNull
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.util.ReconnectBackoff
+import com.artemchep.keyguard.common.util.ReconnectFatalException
 import com.artemchep.keyguard.common.util.canRetry
 import com.artemchep.keyguard.common.util.getHttpCode
+import com.artemchep.keyguard.common.util.withRunForever
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
-import com.artemchep.keyguard.platform.toLocalPath
 import com.artemchep.keyguard.platform.recordException
+import com.artemchep.keyguard.provider.bitwarden.api.NotificationsHubMessageAction
 import com.artemchep.keyguard.provider.bitwarden.api.notificationsHub
+import com.artemchep.keyguard.provider.bitwarden.api.resolveNotificationsHubMessageAction
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
-import com.artemchep.keyguard.common.util.ReconnectBackoff
-import com.artemchep.keyguard.common.util.ReconnectFatalException
-import com.artemchep.keyguard.common.util.withRunForever
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CancellationException
@@ -33,6 +37,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
@@ -45,8 +50,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.net.URI
-import kotlin.io.path.toPath
 
 /**
  * @author Artem Chepurnyi
@@ -54,6 +57,7 @@ import kotlin.io.path.toPath
 class NotificationsImpl(
     private val tokenRepository: ServiceTokenRepository,
     private val logRepository: LogRepository,
+    private val deviceIdUseCase: DeviceIdUseCase,
     private val base64Service: Base64Service,
     private val connectivityService: ConnectivityService,
     private val fileWatcherService: FileWatcherService,
@@ -72,6 +76,7 @@ class NotificationsImpl(
     constructor(directDI: DirectDI) : this(
         tokenRepository = directDI.instance(),
         logRepository = directDI.instance(),
+        deviceIdUseCase = directDI.instance(),
         base64Service = directDI.instance(),
         connectivityService = directDI.instance(),
         fileWatcherService = directDI.instance(),
@@ -192,6 +197,9 @@ class NotificationsImpl(
                         delay(1500L)
                     }
 
+                    val currentDeviceId = runCatching {
+                        deviceIdUseCase().bind()
+                    }.getOrNull()
                     val reconnectBackoff = ReconnectBackoff()
                     reconnectBackoff.withRunForever {
                         // We must have internet access to connect to the
@@ -201,11 +209,8 @@ class NotificationsImpl(
                         try {
                             notificationsHub(
                                 user = latestUser,
-                                onMessage = {
-                                    this.reset()
-                                    launchSyncById(latestUser)
-                                },
-                                onHeartbeat = {
+                                httpClient = httpClient,
+                                onConnected = {
                                     // After a successful re-connect we want to immediately
                                     // sync the account. We do not know what has happened in-between
                                     // the syncs.
@@ -213,6 +218,34 @@ class NotificationsImpl(
                                         launchSyncById(latestUser)
                                     }
 
+                                    this.reset()
+                                },
+                                onMessage = {
+                                    val action = resolveNotificationsHubMessageAction(
+                                        message = it,
+                                        currentDeviceId = currentDeviceId,
+                                    )
+                                    when (action) {
+                                        NotificationsHubMessageAction.SYNC -> {
+                                            this.reset()
+                                            launchSyncById(latestUser)
+                                        }
+
+                                        NotificationsHubMessageAction.LOG_OUT -> {
+                                            this.reset()
+                                            logRepository.post(
+                                                tag = TAG,
+                                                message = "Received log out notification.",
+                                            )
+                                            launchSyncById(latestUser)
+                                        }
+
+                                        NotificationsHubMessageAction.IGNORE -> {
+                                            this.reset()
+                                        }
+                                    }
+                                },
+                                onHeartbeat = {
                                     this.reset()
                                 },
                             )
@@ -242,20 +275,18 @@ class NotificationsImpl(
         fun launchJob(
             user: KeePassToken,
         ): Job = subScope.launch {
-            val databaseFile = runCatching {
-                user.files.databaseUri
-                    .let(::URI).toPath().toFile()
-            }.getOrElse { e ->
+            val databaseFile = user.databaseLocalPathOrNull()
+            if (databaseFile == null) {
                 // This database URI is not supported, aborting
                 // the watch service.
-                val msg = "Skipping launching file watcher, database URI is not a file: $e"
+                val msg = "Skipping launching file watcher, database URI is not a local file."
                 logRepository.post(TAG, msg)
                 return@launch
             }
 
             val reconnectBackoff = ReconnectBackoff()
             reconnectBackoff.withRunForever {
-                val dbChangedFlow = fileWatcherService.fileChangedFlow(databaseFile.toLocalPath())
+                val dbChangedFlow = fileWatcherService.fileChangedFlow(databaseFile)
                     .filter { it.kind != FileWatchEvent.Kind.INITIALIZED }
                     .debounce(1000L)
                 dbChangedFlow
@@ -285,6 +316,17 @@ class NotificationsImpl(
         tokenRepository
             .get()
             .onEach { accountsController.reconcile(it) }
+            .catch { e ->
+                if (e is CancellationException) {
+                    throw e
+                }
+
+                logRepository.add(
+                    tag = TAG,
+                    message = "Notifications token stream failed: ${e.message.orEmpty()}",
+                )
+                recordException(e)
+            }
             .launchIn(this)
 
         // On start sync all the accounts.
@@ -293,3 +335,6 @@ class NotificationsImpl(
             .launchIn(this)
     }
 }
+
+internal fun KeePassToken.databaseLocalPathOrNull() =
+    files.databaseUri.toLocalPathFromFileUriOrNull()

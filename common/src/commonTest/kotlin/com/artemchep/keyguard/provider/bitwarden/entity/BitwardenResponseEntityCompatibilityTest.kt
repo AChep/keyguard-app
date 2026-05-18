@@ -1,8 +1,12 @@
 package com.artemchep.keyguard.provider.bitwarden.entity
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import kotlin.time.Instant
 
 class BitwardenResponseEntityCompatibilityTest {
     @Test
@@ -36,6 +40,28 @@ class BitwardenResponseEntityCompatibilityTest {
 
         assertEquals("cipher-1", camel.data.single().id)
         assertEquals("cipher-2", pascal.data.single().id)
+    }
+
+    @Test
+    fun `cipher data serializes as json string`() {
+        val entity = CipherEntity(
+            id = "cipher-1",
+            revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
+            type = CipherTypeEntity.Login,
+            data = CipherDataEntity(
+                name = "Data Cipher",
+                username = "data-user",
+            ),
+        )
+
+        val encoded = json.encodeToString(entity)
+        val encodedJson = json.parseToJsonElement(encoded).jsonObject
+        val dataJson = encodedJson.getValue("Data").jsonPrimitive
+        val data = json.decodeFromString<CipherDataEntity>(dataJson.content)
+
+        assertTrue(dataJson.isString)
+        assertEquals("Data Cipher", data.name)
+        assertEquals("data-user", data.username)
     }
 
     @Test

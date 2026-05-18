@@ -43,6 +43,10 @@ data class CipherEntity(
     @JsonNames("type")
     @SerialName("Type")
     val type: CipherTypeEntity = CipherTypeEntity.Login,
+    @JsonNames("data")
+    @SerialName("Data")
+    @Serializable(with = CipherDataEntitySerializer::class)
+    val data: CipherDataEntity? = null,
     @JsonNames("sizeName")
     @SerialName("SizeName")
     val sizeName: String? = null,

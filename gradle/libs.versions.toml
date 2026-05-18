@@ -99,7 +99,7 @@ atomicfu = "0.32.1"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.4.0"
 # https://github.com/Kotlin/kotlinx.coroutines
-kotlinCoroutines = "1.10.2"
+kotlinCoroutines = "1.11.0"
 # https://github.com/Kotlin/kotlinx-datetime
 kotlinDatetime = "0.7.1-0.6.x-compat"
 # https://github.com/Kotlin/kotlinx-io

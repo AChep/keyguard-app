@@ -1,10 +1,12 @@
 package com.artemchep.keyguard.provider.bitwarden.entity
 
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
@@ -40,6 +42,34 @@ class BitwardenResponseEntityCompatibilityTest {
 
         assertEquals("cipher-1", camel.data.single().id)
         assertEquals("cipher-2", pascal.data.single().id)
+    }
+
+    @Test
+    fun `cipher decodes unknown type as unknown`() {
+        val entity = json.decodeFromString<CipherEntity>(
+            """
+            {
+              "id": "cipher-unknown",
+              "type": 999,
+              "revisionDate": "2024-01-01T00:00:00Z"
+            }
+            """.trimIndent(),
+        )
+
+        assertEquals(CipherTypeEntity.Unknown, entity.type)
+    }
+
+    @Test
+    fun `cipher does not serialize unknown type`() {
+        val entity = CipherEntity(
+            id = "cipher-unknown",
+            revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
+            type = CipherTypeEntity.Unknown,
+        )
+
+        assertFailsWith<SerializationException> {
+            json.encodeToString(entity)
+        }
     }
 
     @Test

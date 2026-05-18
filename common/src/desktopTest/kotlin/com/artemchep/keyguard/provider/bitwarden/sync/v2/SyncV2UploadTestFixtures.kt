@@ -169,6 +169,7 @@ internal class UploadTestServer {
     var corruptNextCipherGetResponse: Boolean = false
     var revisionDate: String = "rev-upload-test"
     var profile: ProfileEntity = testProfile
+    var syncResponseOverride: String? = null
     var refreshedAccessToken: String = "refreshed-access-token"
     var refreshedRefreshToken: String = "refresh-token-refreshed"
     val syncUnauthorizedTokens = mutableSetOf<String>()
@@ -235,15 +236,23 @@ internal class UploadTestServer {
                     description = "access token expired",
                 )
             } else {
-                respondJson(
-                    SyncEntity(
-                        profile = profile,
-                        folders = folders.values.toList(),
-                        ciphers = ciphers.values.toList(),
-                        collections = collections.values.toList(),
-                        sends = sends.values.toList(),
-                    ),
-                )
+                val override = syncResponseOverride
+                if (override != null) {
+                    respondText(
+                        content = override,
+                        contentType = ContentType.Application.Json,
+                    )
+                } else {
+                    respondJson(
+                        SyncEntity(
+                            profile = profile,
+                            folders = folders.values.toList(),
+                            ciphers = ciphers.values.toList(),
+                            collections = collections.values.toList(),
+                            sends = sends.values.toList(),
+                        ),
+                    )
+                }
             }
         }
 

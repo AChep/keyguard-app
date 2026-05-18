@@ -125,6 +125,91 @@ class SyncByBitwardenTokenV2IntegrationTest {
     }
 
     @Test
+    fun `sync skips unknown cipher types and preserves existing local copies`() = runTest {
+        val server = UploadTestServer()
+        server.revisionDate = "rev-unknown-ciphers"
+        val fixture = createFullSyncFixture(server)
+        server.profile = fixture.profile
+        val preservedCipher =
+            testCipher(
+                localId = "cipher-local-preserved",
+                remoteId = "cipher-unknown-existing",
+                localRevisionDate = T0,
+                remoteRevisionDate = T0,
+                attachments = emptyList(),
+            ).copy(
+                name = "Preserved Cipher",
+                notes = "Local content",
+            )
+        fixture.database.cipherQueries.insert(
+            cipherId = preservedCipher.cipherId,
+            accountId = preservedCipher.accountId,
+            folderId = preservedCipher.folderId,
+            data = preservedCipher,
+            updatedAt = preservedCipher.revisionDate,
+        )
+        val profileJson = UploadTestServer.json.encodeToString(server.profile)
+        server.syncResponseOverride =
+            """
+            {
+              "profile": $profileJson,
+              "folders": [],
+              "ciphers": [
+                {
+                  "id": "cipher-unknown-new",
+                  "type": 999,
+                  "revisionDate": "2024-01-01T00:00:01Z",
+                  "name": "Ignored new cipher"
+                },
+                {
+                  "id": "cipher-unknown-existing",
+                  "type": 999,
+                  "revisionDate": "2024-01-01T00:00:02Z",
+                  "name": "Ignored existing cipher"
+                }
+              ],
+              "collections": [],
+              "sends": []
+            }
+            """.trimIndent()
+
+        fixture.sync.invoke(fixture.user).invoke()
+
+        assertEquals(
+            listOf(HttpMethod.Get to "/api/accounts/revision-date", HttpMethod.Get to "/api/sync"),
+            server.requests.map { it.method to it.path },
+        )
+        val savedCiphers =
+            fixture.database.cipherQueries
+                .getByAccountId(ACCOUNT_ID)
+                .executeAsList()
+                .map { it.data_ }
+        assertEquals(listOf("cipher-local-preserved"), savedCiphers.map { it.cipherId })
+        val savedCipher = savedCiphers.single()
+        assertEquals("Preserved Cipher", savedCipher.name)
+        assertEquals("Local content", savedCipher.notes)
+        assertEquals("cipher-unknown-existing", savedCipher.service.remote?.id)
+
+        val logMessages = fixture.logRepository.messages()
+        assertTrue(
+            logMessages.any { message ->
+                message.contains("unknown_cipher_types_skipped") &&
+                    message.contains("count=2") &&
+                    message.contains("cipher-unknown-existing") &&
+                    message.contains("cipher-unknown-new")
+            },
+        )
+        assertTrue(
+            logMessages.any { message ->
+                message.contains("entity_plan_built entity=ciphers") &&
+                    message.contains("local_count=0") &&
+                    message.contains("server_count=0") &&
+                    message.contains("total_actions=0")
+            },
+        )
+    }
+
+    @Test
     fun `expired access token is refreshed before sync requests`() = runTest {
         val server = UploadTestServer()
         server.refreshedAccessToken = "access-token-refreshed-before-sync"

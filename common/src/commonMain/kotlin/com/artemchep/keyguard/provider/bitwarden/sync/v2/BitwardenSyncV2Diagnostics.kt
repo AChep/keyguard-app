@@ -61,6 +61,14 @@ class BitwardenSyncV2Diagnostics(
                 "global_equivalent_domains=$globalEquivalentDomainCount"
     }
 
+    suspend fun unknownCipherTypesSkipped(
+        accountId: String,
+        remoteIds: List<String>,
+    ) = debug {
+        "unknown_cipher_types_skipped account_id=$accountId " +
+                "count=${remoteIds.size} remote_ids=${remoteIds.csv()}"
+    }
+
     suspend fun entitySnapshot(
         entityName: String,
         localCount: Int,

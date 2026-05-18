@@ -3,9 +3,13 @@ package com.artemchep.keyguard.provider.bitwarden.entity
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.IntEnum
-import com.artemchep.keyguard.provider.bitwarden.entity.serializer.commonEnumIntSerializer
+import kotlin.enums.enumEntries
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 @Serializable(CipherTypeEntitySerializer::class)
 enum class CipherTypeEntity(
@@ -16,13 +20,35 @@ enum class CipherTypeEntity(
     Card(3),
     Identity(4),
     SshKey(5),
+    Unknown(-1),
     ;
 
     companion object
 }
 
-object CipherTypeEntitySerializer :
-    KSerializer<CipherTypeEntity> by commonEnumIntSerializer<CipherTypeEntity>()
+object CipherTypeEntitySerializer : KSerializer<CipherTypeEntity> {
+    override val descriptor = Int.serializer().descriptor
+
+    private val choicesByInt =
+        enumEntries<CipherTypeEntity>()
+            .filter { it != CipherTypeEntity.Unknown }
+            .associateBy { it.int }
+
+    override fun serialize(
+        encoder: Encoder,
+        value: CipherTypeEntity,
+    ) {
+        if (value == CipherTypeEntity.Unknown) {
+            throw SerializationException("Cannot serialize unknown cipher type.")
+        }
+        encoder.encodeInt(value.int)
+    }
+
+    override fun deserialize(decoder: Decoder): CipherTypeEntity {
+        val value = decoder.decodeInt()
+        return choicesByInt[value] ?: CipherTypeEntity.Unknown
+    }
+}
 
 fun CipherTypeEntity.Companion.of(
     model: BitwardenCipher.Type,
@@ -51,4 +77,5 @@ fun CipherTypeEntity.domain() = when (this) {
     CipherTypeEntity.Card -> BitwardenCipher.Type.Card
     CipherTypeEntity.Identity -> BitwardenCipher.Type.Identity
     CipherTypeEntity.SshKey -> BitwardenCipher.Type.SshKey
+    CipherTypeEntity.Unknown -> error("Unknown cipher type cannot be converted to a domain model.")
 }

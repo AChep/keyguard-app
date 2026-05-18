@@ -30,8 +30,6 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.hasPendingAttachmentMutations
 import com.artemchep.keyguard.core.store.bitwarden.hasPendingFileUpload
 import com.artemchep.keyguard.data.Database
-import com.artemchep.keyguard.platform.recordException
-import com.artemchep.keyguard.provider.bitwarden.api.SyncEngine
 import com.artemchep.keyguard.provider.bitwarden.api.builder.api
 import com.artemchep.keyguard.provider.bitwarden.api.builder.revisionDate
 import com.artemchep.keyguard.provider.bitwarden.api.builder.sync
@@ -45,6 +43,7 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.appendProfileToken
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendUserToken
 import com.artemchep.keyguard.provider.bitwarden.crypto.encrypted
 import com.artemchep.keyguard.provider.bitwarden.crypto.transform
+import com.artemchep.keyguard.provider.bitwarden.entity.CipherTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncEntity
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
@@ -411,6 +410,42 @@ class SyncByBitwardenTokenV2Impl(
                     .executeAsList()
                     .map { it.data_ }
                     .filterByAccountId(user.id) { it.accountId }
+            val serverCiphers = response.ciphers.orEmpty()
+
+            // Filter-out the cipher of the type from the future
+            // that we do not know about.
+            val unknownCipherRemoteIds = serverCiphers
+                .asSequence()
+                .filter { it.type == CipherTypeEntity.Unknown }
+                .map { it.id }
+                .toSet()
+            if (unknownCipherRemoteIds.isNotEmpty()) {
+                diagnostics.unknownCipherTypesSkipped(
+                    accountId = user.id,
+                    remoteIds = unknownCipherRemoteIds.sorted(),
+                )
+            }
+
+            val existingCiphersToSync = kotlin.run {
+                if (unknownCipherRemoteIds.isEmpty()) {
+                    return@run existingCiphers
+                }
+
+                existingCiphers.filter { cipher ->
+                    val remoteId = cipher.service.remote?.id
+                    remoteId !in unknownCipherRemoteIds
+                }
+            }
+            val serverCiphersToSync = kotlin.run {
+                if (unknownCipherRemoteIds.isEmpty()) {
+                    return@run serverCiphers
+                }
+
+                serverCiphers.filter { cipher ->
+                    val remoteId = cipher.id
+                    remoteId !in unknownCipherRemoteIds
+                }
+            }
 
             val encryptedFor =
                 run {
@@ -444,8 +479,8 @@ class SyncByBitwardenTokenV2Impl(
                     EntitySyncConfig(
                         name = "ciphers",
                         strategy = CipherSyncStrategy(),
-                        localEntities = existingCiphers,
-                        serverEntities = response.ciphers.orEmpty(),
+                        localEntities = existingCiphersToSync,
+                        serverEntities = serverCiphersToSync,
                         ops = cipherOps,
                         bulkRemoteOps = cipherOps,
                     ),

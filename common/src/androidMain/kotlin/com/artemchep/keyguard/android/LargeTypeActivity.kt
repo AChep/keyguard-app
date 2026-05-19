@@ -58,7 +58,8 @@ class LargeTypeActivity : BaseActivity() {
     ) : Parcelable
 
     private val argsOrNull by lazy {
-        val extras = intent.extras!!
+        val extras = intent.extras
+            ?: return@lazy null
         val model = BundleCompat
             .getParcelable(extras, KEY_ARGUMENTS, Args::class.java)
         model

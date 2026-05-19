@@ -39,6 +39,8 @@ import com.artemchep.keyguard.common.service.hibp.passwords.PasswordPwnageReposi
 import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageDataSourceLocalImpl
 import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageDataSourceRemoteImpl
 import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageRepositoryImpl
+import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
+import com.artemchep.keyguard.common.service.keyvalue.impl.SqlDelightVaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepository
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepositoryImpl
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepository
@@ -356,6 +358,9 @@ expect fun DI.Builder.createSubDi(
 fun DI.Builder.createSubDi2(
     masterKey: MasterKey,
 ) {
+    bindSingleton<VaultSettingsKeyValueStore> {
+        SqlDelightVaultSettingsKeyValueStore(this)
+    }
     bindSingleton<DownloadAttachment> {
         DownloadAttachmentImpl2(this)
     }

@@ -422,3 +422,14 @@ sqldelight {
 // depending on what order the tasks are executed.
 tasks.findByName("generateNoneReleaseLintVitalModel")?.dependsOn("copyFontsToAndroidAssets")
 tasks.findByName("generatePlayStoreReleaseLintVitalModel")?.dependsOn("copyFontsToAndroidAssets")
+
+// Reason: Task ':common:prepareAndroidMainArtProfile' uses this output of
+// task ':common:generateBuildKonfig' without declaring an explicit or
+// implicit dependency. This can lead to incorrect results being produced,
+// depending on what order the tasks are executed.
+//
+// https://github.com/yshrsmz/BuildKonfig/issues/317
+tasks.matching { it.name == "prepareAndroidMainArtProfile" }
+    .configureEach {
+        dependsOn(tasks.named("generateBuildKonfig"))
+    }

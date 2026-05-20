@@ -1151,6 +1151,7 @@
     <string name="settings_permissions_header_title">Engedélyek</string>
     <string name="settings_security_header_title">Biztonság</string>
     <string name="settings_subscriptions_header_title">Keyguard Prémium</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Őrtorony</string>
     <string name="settings_open_source_licenses_header_title">Nyílt forráskódú licencek</string>
     <string name="pref_section_premium_title">Prémium</string>
@@ -1161,6 +1162,8 @@
     <string name="pref_item_autofill_text">Android automatikus kitöltés és hitelesítési szolgáltatások</string>
     <string name="pref_item_security_title">Biztonság</string>
     <string name="pref_item_security_text">Biometrikus adatok, jelszómódosítás, széf időtúllépés</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard Prémium</string>
     <string name="pref_item_subscription_text">Funkciók feloldása és alkalmazásfejlesztés támogatása</string>
     <string name="pref_item_watchtower_title">Őrtorony</string>
@@ -1264,6 +1267,9 @@
     <string name="pref_item_ssh_agent_status_starting">Indítás</string>
     <string name="pref_item_ssh_agent_status_ready">Kész</string>
     <string name="pref_item_ssh_agent_status_failed">Sikertelen</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">SSH kliens beállítása</string>
     <string name="pref_item_ssh_agent_filters_title">SSH ügynök szűrők</string>
     <string name="pref_item_ssh_agent_filters_text">Válassza ki, mely SSH kulcsok érhetők el az SSH ügynök számára</string>

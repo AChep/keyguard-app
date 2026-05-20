@@ -1151,6 +1151,7 @@
     <string name="settings_permissions_header_title">Berechtigungen</string>
     <string name="settings_security_header_title">Sicherheit</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Wachturm</string>
     <string name="settings_open_source_licenses_header_title">Open-Source-Lizenzen</string>
     <string name="pref_section_premium_title">Premium</string>
@@ -1161,6 +1162,8 @@
     <string name="pref_item_autofill_text">Android Autofill Service</string>
     <string name="pref_item_security_title">Sicherheit</string>
     <string name="pref_item_security_text">Biometrie, Passwort ändern, Tresor Zeitüberschreitung</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard Premium</string>
     <string name="pref_item_subscription_text">Funktionen freischalten &amp; App-Entwicklung unterstützen</string>
     <string name="pref_item_watchtower_title">Wachturm</string>
@@ -1264,6 +1267,9 @@
     <string name="pref_item_ssh_agent_status_starting">Wird gestartet</string>
     <string name="pref_item_ssh_agent_status_ready">Bereit</string>
     <string name="pref_item_ssh_agent_status_failed">Fehler</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">SSH-Client-Konfiguration</string>
     <string name="pref_item_ssh_agent_filters_title">SSH-Agenten-Filter</string>
     <string name="pref_item_ssh_agent_filters_text">Wählen Sie aus, welche SSH-Schlüssel für den SSH-Agenten zugänglich sind</string>

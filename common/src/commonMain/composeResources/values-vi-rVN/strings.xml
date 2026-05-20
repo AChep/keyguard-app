@@ -1151,6 +1151,7 @@
     <string name="settings_permissions_header_title">Quyền</string>
     <string name="settings_security_header_title">Bảo mật</string>
     <string name="settings_subscriptions_header_title">Keyguard Cao cấp</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Tháp canh</string>
     <string name="settings_open_source_licenses_header_title">Giấy phép nguồn mở</string>
     <string name="pref_section_premium_title">Premium</string>
@@ -1161,6 +1162,8 @@
     <string name="pref_item_autofill_text">Dịch vụ tự động điền &amp; thông tin xác thực của Android</string>
     <string name="pref_item_security_title">Bảo mật</string>
     <string name="pref_item_security_text">Sinh trắc học, thay đổi mật khẩu, hết thời gian chờ của kho</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard Cao cấp</string>
     <string name="pref_item_subscription_text">Mở khóa các tính năng &amp; hỗ trợ phát triển ứng dụng</string>
     <string name="pref_item_watchtower_title">Tháp canh</string>
@@ -1264,6 +1267,9 @@
     <string name="pref_item_ssh_agent_status_starting">Starting</string>
     <string name="pref_item_ssh_agent_status_ready">Ready</string>
     <string name="pref_item_ssh_agent_status_failed">Failed</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
     <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
     <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>

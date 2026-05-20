@@ -1151,6 +1151,7 @@
     <string name="settings_permissions_header_title">Permissões</string>
     <string name="settings_security_header_title">Segurança</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Guardião</string>
     <string name="settings_open_source_licenses_header_title">Licenças de código-aberto</string>
     <string name="pref_section_premium_title">Premium</string>
@@ -1161,6 +1162,8 @@
     <string name="pref_item_autofill_text">Serviços de Preenchimento Automático &amp; Credenciais do Android</string>
     <string name="pref_item_security_title">Segurança</string>
     <string name="pref_item_security_text">Biometria, alterar senha, tempo limite do cofre</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard Premium</string>
     <string name="pref_item_subscription_text">Desbloqueie recursos &amp; apoie o desenvolvimento do aplicativo</string>
     <string name="pref_item_watchtower_title">Guardião</string>
@@ -1264,6 +1267,9 @@
     <string name="pref_item_ssh_agent_status_starting">Iniciando</string>
     <string name="pref_item_ssh_agent_status_ready">Pronto</string>
     <string name="pref_item_ssh_agent_status_failed">Falhou</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">Configuração do cliente SSH</string>
     <string name="pref_item_ssh_agent_filters_title">Filtros de agente SSH</string>
     <string name="pref_item_ssh_agent_filters_text">Escolha quais chaves SSH estão acessíveis ao agente SSH</string>

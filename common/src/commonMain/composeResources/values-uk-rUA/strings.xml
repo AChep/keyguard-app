@@ -1151,6 +1151,7 @@
     <string name="settings_permissions_header_title">Дозволи</string>
     <string name="settings_security_header_title">Безпека</string>
     <string name="settings_subscriptions_header_title">Keyguard преміум</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Вартова вежа</string>
     <string name="settings_open_source_licenses_header_title">Ліцензії відкритого програмного забезпечення</string>
     <string name="pref_section_premium_title">Преміум</string>
@@ -1161,6 +1162,8 @@
     <string name="pref_item_autofill_text">Служби автозаповнення та облікових даних Android</string>
     <string name="pref_item_security_title">Безпека</string>
     <string name="pref_item_security_text">Біометрика, блокування сховища, зміна паролю</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard преміум</string>
     <string name="pref_item_subscription_text">Розблокуйте додаткові функції та підтримайте розробку</string>
     <string name="pref_item_watchtower_title">Вартова вежа</string>
@@ -1264,6 +1267,9 @@
     <string name="pref_item_ssh_agent_status_starting">Запускається</string>
     <string name="pref_item_ssh_agent_status_ready">Готовий</string>
     <string name="pref_item_ssh_agent_status_failed">Помилка</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">Налаштування SSH клієнта</string>
     <string name="pref_item_ssh_agent_filters_title">Фільтри SSH агента</string>
     <string name="pref_item_ssh_agent_filters_text">Виберіть, які ключі доступні для SSH агента</string>

@@ -27,12 +27,14 @@ import com.artemchep.keyguard.common.service.wordlist.repo.GeneratorWordlistRepo
 import com.artemchep.keyguard.common.service.wordlist.repo.impl.GeneratorWordlistRepositoryImpl
 import com.artemchep.keyguard.common.service.wordlist.repo.GeneratorWordlistWordRepository
 import com.artemchep.keyguard.common.service.wordlist.repo.impl.GeneratorWordlistWordRepositoryImpl
+import com.artemchep.keyguard.common.service.hibp.HibpRepository
 import com.artemchep.keyguard.common.service.hibp.breaches.all.BreachesLocalDataSource
 import com.artemchep.keyguard.common.service.hibp.breaches.all.BreachesRemoteDataSource
 import com.artemchep.keyguard.common.service.hibp.breaches.all.BreachesRepository
 import com.artemchep.keyguard.common.service.hibp.breaches.all.impl.BreachesLocalDataSourceImpl
 import com.artemchep.keyguard.common.service.hibp.breaches.all.impl.BreachesRemoteDataSourceImpl
 import com.artemchep.keyguard.common.service.hibp.breaches.all.impl.BreachesRepositoryImpl
+import com.artemchep.keyguard.common.service.hibp.impl.HibpRepositoryImpl
 import com.artemchep.keyguard.common.service.hibp.passwords.PasswordPwnageDataSourceLocal
 import com.artemchep.keyguard.common.service.hibp.passwords.PasswordPwnageDataSourceRemote
 import com.artemchep.keyguard.common.service.hibp.passwords.PasswordPwnageRepository
@@ -41,6 +43,9 @@ import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageD
 import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageRepositoryImpl
 import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.SqlDelightVaultSettingsKeyValueStore
+import com.artemchep.keyguard.common.service.settings.VaultSettingsReadRepository
+import com.artemchep.keyguard.common.service.settings.VaultSettingsReadWriteRepository
+import com.artemchep.keyguard.common.service.settings.impl.VaultSettingsRepositoryImpl
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepository
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepositoryImpl
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepository
@@ -67,6 +72,7 @@ import com.artemchep.keyguard.common.usecase.BackupSettings
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.ChangeCipherTagsById
+import com.artemchep.keyguard.common.usecase.CheckHibpApiToken
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
 import com.artemchep.keyguard.common.usecase.CheckUsernameLeak
@@ -109,6 +115,7 @@ import com.artemchep.keyguard.common.usecase.GetFolderTree
 import com.artemchep.keyguard.common.usecase.GetFolderTreeById
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
+import com.artemchep.keyguard.common.usecase.GetHibpApiToken
 import com.artemchep.keyguard.common.usecase.GetMetas
 import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
 import com.artemchep.keyguard.common.usecase.GetOrganizations
@@ -135,6 +142,7 @@ import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.usecase.PutAccountMasterPasswordHintById
 import com.artemchep.keyguard.common.usecase.PutAccountNameById
+import com.artemchep.keyguard.common.usecase.PutHibpApiToken
 import com.artemchep.keyguard.common.usecase.PutProfileHidden
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
@@ -170,6 +178,7 @@ import com.artemchep.keyguard.common.usecase.impl.AddGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.AddUrlBlockImpl
 import com.artemchep.keyguard.common.usecase.impl.AddUrlOverrideImpl
 import com.artemchep.keyguard.common.usecase.impl.BackupSettingsImpl
+import com.artemchep.keyguard.common.usecase.impl.CheckHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
@@ -178,12 +187,14 @@ import com.artemchep.keyguard.common.usecase.impl.GetBreachesLatestDateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
 import com.artemchep.keyguard.common.usecase.impl.GetEnvSendUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGeneratorHistoryImpl
+import com.artemchep.keyguard.common.usecase.impl.GetHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.GetShouldRequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchIndexImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchQualifierCatalogImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryByIdImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryImpl
+import com.artemchep.keyguard.common.usecase.impl.PutHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerBroadUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerDuplicateUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerExpiring
@@ -348,6 +359,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyFolderById
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyProfileById
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifySendById
 import org.kodein.di.DI
+import org.kodein.di.bindProvider
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 
@@ -360,6 +372,27 @@ fun DI.Builder.createSubDi2(
 ) {
     bindSingleton<VaultSettingsKeyValueStore> {
         SqlDelightVaultSettingsKeyValueStore(this)
+    }
+    bindSingleton {
+        VaultSettingsRepositoryImpl(this)
+    }
+    bindProvider<VaultSettingsReadRepository> {
+        instance<VaultSettingsRepositoryImpl>()
+    }
+    bindProvider<VaultSettingsReadWriteRepository> {
+        instance<VaultSettingsRepositoryImpl>()
+    }
+    bindSingleton<HibpRepository> {
+        HibpRepositoryImpl(this)
+    }
+    bindSingleton<GetHibpApiToken> {
+        GetHibpApiTokenImpl(this)
+    }
+    bindSingleton<PutHibpApiToken> {
+        PutHibpApiTokenImpl(this)
+    }
+    bindSingleton<CheckHibpApiToken> {
+        CheckHibpApiTokenImpl(this)
     }
     bindSingleton<DownloadAttachment> {
         DownloadAttachmentImpl2(this)

@@ -70,6 +70,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingFeedbackApp
 import com.artemchep.keyguard.feature.home.settings.component.settingFontProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGitHubProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGravatarProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingHibpApiTokenProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingKeepScreenOnProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchAppPicker
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchYubiKey
@@ -220,6 +221,7 @@ object Setting {
     const val WEBSITE_ICONS = "website_icons"
     const val CHECK_PWNED_PASSWORDS = "check_pwned_passwords"
     const val CHECK_PWNED_SERVICES = "check_pwned_services"
+    const val HIBP_API_TOKEN = "hibp_api_token"
     const val CHECK_TWO_FA = "check_two_fa"
     const val CHECK_PASSKEYS = "check_passkeys"
     const val CLEAR_CACHE = "clear_cache"
@@ -327,6 +329,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.WEBSITE_ICONS to ::settingWebsiteIconsProvider,
     Setting.CHECK_PWNED_PASSWORDS to ::settingCheckPwnedPasswordsProvider,
     Setting.CHECK_PWNED_SERVICES to ::settingCheckPwnedServicesProvider,
+    Setting.HIBP_API_TOKEN to ::settingHibpApiTokenProvider,
     Setting.CHECK_TWO_FA to ::settingCheckTwoFAProvider,
     Setting.CHECK_PASSKEYS to ::settingCheckPasskeysProvider,
     Setting.CLEAR_CACHE to ::settingClearCache,

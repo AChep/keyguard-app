@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.usecase.NumberFormatter
@@ -50,6 +51,7 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.infoContainer
 import com.artemchep.keyguard.ui.util.HorizontalDivider
+import io.ktor.http.HttpStatusCode
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
@@ -146,9 +148,17 @@ private fun ColumnScope.Content(
 ) {
     val leaks = state.content.getOrNull()?.breaches
     if (leaks == null) {
+        val text = when (val e = state.content.swap().getOrNull()) {
+            is HttpException -> {
+                if (e.statusCode == HttpStatusCode.NotFound) {
+                    stringResource(Res.string.emailleak_failed_no_api_found_text)
+                } else stringResource(Res.string.emailleak_failed_to_load_status_text)
+            }
+            else -> stringResource(Res.string.emailleak_failed_to_load_status_text)
+        }
         FlatSimpleNote(
             type = SimpleNote.Type.WARNING,
-            text = stringResource(Res.string.emailleak_failed_to_load_status_text),
+            text = text,
         )
         return
     }

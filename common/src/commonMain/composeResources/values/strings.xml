@@ -706,6 +706,7 @@
     <string name="emailleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Failed to check data breaches. You might be offline</string>
+    <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
     <string name="passwordleak_title">Data breach</string>
     <string name="passwordleak_note">A password that is found in the data breaches takes significantly less time to break and should never be used.</string>
     <string name="passwordleak_occurrences_found_title">Password is compromised</string>
@@ -1304,6 +1305,14 @@
     <string name="pref_item_close_to_tray_title">Close to system tray</string>
     <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
     <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
+    <string name="pref_item_hibp_api_token_title">Have I Been Pwned API token</string>
+    <string name="pref_item_hibp_api_token_text">Use HIBP directly instead of Bitwarden's premium proxy. Useful for local-only vaults.</string>
+    <string name="pref_item_hibp_api_token_field_label">API token</string>
+    <string name="pref_item_hibp_api_token_error">Enter a 32-character hexadecimal HIBP API token</string>
+    <string name="pref_item_hibp_api_token_status_checking">Checking...</string>
+    <string name="pref_item_hibp_api_token_status_verified">Verified</string>
+    <string name="pref_item_hibp_api_token_status_rejected">Rejected</string>
+    <string name="pref_item_hibp_api_token_status_failed">Could not verify</string>
     <string name="pref_item_check_inactive_2fa_title">Check for inactive two-factor authentication</string>
     <string name="pref_item_check_inactive_passkeys_title">Check for inactive passkeys</string>
     <string name="pref_item_conceal_fields_title">Conceal fields</string>

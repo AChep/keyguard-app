@@ -220,6 +220,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         closeToTray: Boolean,
     ): IO<Unit>
 
+    fun setMinimizeOnCopy(
+        minimizeOnCopy: Boolean,
+    ): IO<Unit>
+
     fun setColors(
         colors: AppColors?,
     ): IO<Unit>

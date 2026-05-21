@@ -3,6 +3,8 @@ package com.artemchep.keyguard.feature.navigation.state
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.State
 import arrow.core.Some
+import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.ShowMessage
@@ -13,6 +15,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationEntry
 import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
 import kotlinx.atomicfu.locks.SynchronizedObject
@@ -50,6 +53,8 @@ class FlowHolderViewModel(
         key: String,
         c: NavigationController,
         showMessage: ShowMessage,
+        clipboardService: ClipboardService,
+        clipboardEventBus: ClipboardEventBus,
         getScreenState: GetScreenState,
         putScreenState: PutScreenState,
         windowCoroutineScope: WindowCoroutineScope,
@@ -58,6 +63,7 @@ class FlowHolderViewModel(
         screenName: String,
         context: LeContext,
         colorSchemeState: State<ColorScheme>,
+        windowIdState: State<WindowId>,
         init: RememberStateFlowScopeZygote.() -> T,
     ): T = synchronized(lock) {
         store.getOrPut(key) {
@@ -77,6 +83,8 @@ class FlowHolderViewModel(
                 backPressInterceptorHost = navigationEntry,
                 keyEventInterceptorHost = navigationEntry,
                 showMessage = showMessage,
+                clipboardService = clipboardService,
+                clipboardEventBus = clipboardEventBus,
                 getScreenState = getScreenState,
                 putScreenState = putScreenState,
                 windowCoroutineScope = windowCoroutineScope,
@@ -85,6 +93,7 @@ class FlowHolderViewModel(
                 screen = screen,
                 screenName = screenName,
                 colorSchemeState = colorSchemeState,
+                windowIdState = windowIdState,
                 context = context,
             )
             val value = init(vmScope)

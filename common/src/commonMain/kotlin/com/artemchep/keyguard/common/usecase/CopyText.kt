@@ -1,8 +1,12 @@
 package com.artemchep.keyguard.common.usecase
 
+import androidx.compose.runtime.State
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.clipboard.ClipboardEvent
+import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.GlobalScope
@@ -16,6 +20,8 @@ class CopyText(
     private val clipboardService: ClipboardService,
     private val translator: TranslatorScope,
     private val onMessage: (ToastMessage) -> Unit,
+    private val clipboardEventBus: ClipboardEventBus? = null,
+    private val windowIdState: State<WindowId>? = null,
 ) {
     enum class Type(
        val res: StringResource,
@@ -46,15 +52,25 @@ class CopyText(
         hidden: Boolean,
         type: Type = Type.VALUE,
     ) {
+        val windowId = windowIdState?.value
+
         clipboardService.setPrimaryClip(text, concealed = hidden)
         if (!clipboardService.hasCopyNotification()) {
             GlobalScope.launch {
                 val message = ToastMessage(
                     title = translator.translate(type.res),
                     text = text.takeUnless { hidden },
+                    windowId = windowId,
                 )
                 onMessage(message)
             }
+        }
+
+        if (windowId != null) {
+            val event = ClipboardEvent.Copy(
+                windowId = windowId,
+            )
+            clipboardEventBus?.post(event)
         }
     }
 }

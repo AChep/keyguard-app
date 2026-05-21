@@ -93,7 +93,6 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.generatorTarget
@@ -279,9 +278,7 @@ fun produceGeneratorState(
     ),
 ) {
     val generatorContext = mode.generatorTarget
-    val copyItemFactory = copy(
-        clipboardService = clipboardService,
-    )
+    val copyItemFactory = copier()
 
     val webUriContextWordsRaw = mutablePersistedFlow(GENERATOR_KEY_ARG_URIS) {
         args.context.uris

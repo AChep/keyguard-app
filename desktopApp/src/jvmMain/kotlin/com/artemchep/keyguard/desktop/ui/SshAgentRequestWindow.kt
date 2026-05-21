@@ -83,6 +83,9 @@ internal fun ApplicationScope.SshRequestWindow(
 
         KeyguardWindowEssentials(
             processLifecycleProvider = processLifecycleProvider,
+            onMinimizeRequest = {
+                window.isMinimized = true
+            },
         ) {
             KeyguardTheme {
                 val scr = AuthScreen(

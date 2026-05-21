@@ -205,7 +205,6 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
@@ -479,9 +478,7 @@ fun vaultViewScreenState(
         .attempt()
         .launchIn(windowCoroutineScope)
 
-    val copy = copy(
-        clipboardService = clipboardService,
-    )
+    val copy = copier()
 
     val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
     val selectionHandle = selectionHandle("selection")

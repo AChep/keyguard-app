@@ -13,8 +13,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.dp
@@ -50,10 +52,13 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
 import com.artemchep.keyguard.common.model.SshAgentStatus
+import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.feature.sshagent.rememberSshAgentRequestUiState
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetLocale
+import com.artemchep.keyguard.common.usecase.GetMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
@@ -81,6 +86,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.LocalWindowId
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.lifecycle.LaunchLifecycleProviderEffect
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
@@ -104,6 +111,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -545,6 +554,9 @@ private fun ApplicationScope.KeyguardMainWindow(
     ) {
         KeyguardWindowEssentials(
             processLifecycleProvider = processLifecycleProvider,
+            onMinimizeRequest = {
+                state.isMinimized = true
+            },
             content = content,
         )
     }
@@ -553,10 +565,37 @@ private fun ApplicationScope.KeyguardMainWindow(
 @Composable
 internal fun FrameWindowScope.KeyguardWindowEssentials(
     processLifecycleProvider: LePlatformLifecycleProvider,
+    onMinimizeRequest: () -> Unit,
     content: @Composable FrameWindowScope.() -> Unit,
 ) {
+    val clipboardEventBus by rememberInstance<ClipboardEventBus>()
+    val getMinimizeOnCopy by rememberInstance<GetMinimizeOnCopy>()
+
+    val windowId = WindowId(this.window.windowHandle)
+
+    val updatedWindowId by rememberUpdatedState(windowId)
+    val updatedMinimizeRequest by rememberUpdatedState(onMinimizeRequest)
+    LaunchedEffect(
+        clipboardEventBus,
+        getMinimizeOnCopy,
+    ) {
+        clipboardEventBus.copyEvents
+            .filter { event ->
+                event.windowId == updatedWindowId
+            }
+            .onEach {
+                val shouldMinimize = getMinimizeOnCopy()
+                    .first()
+                if (shouldMinimize) {
+                    updatedMinimizeRequest()
+                }
+            }
+            .launchIn(this)
+    }
+
     CompositionLocalProvider(
         LocalComposeWindow provides this.window,
+        LocalWindowId provides windowId,
     ) {
         LaunchLifecycleProviderEffect(
             processLifecycleProvider = processLifecycleProvider,

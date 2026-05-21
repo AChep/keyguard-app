@@ -130,6 +130,8 @@ interface SettingsReadRepository {
 
     fun getCloseToTray(): Flow<Boolean>
 
+    fun getMinimizeOnCopy(): Flow<Boolean>
+
     fun getColors(): Flow<AppColors?>
 
     fun getLocale(): Flow<String?>

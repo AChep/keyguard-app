@@ -46,7 +46,6 @@ import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
@@ -124,7 +123,7 @@ internal fun quickSearchScreenState(
         clipboardService,
     ),
 ) {
-    val copy = copy(clipboardService)
+    val copy = copier()
     val queryHandle = vaultSearchQueryHandle(
         key = "query",
         searchBy = com.artemchep.keyguard.feature.home.vault.VaultRoute.Args.SearchBy.ALL,

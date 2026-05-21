@@ -64,7 +64,6 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -146,7 +145,7 @@ fun produceDuplicatesListState(
         cipherDuplicatesCheck,
     ),
 ) {
-    val copy = copy(clipboardService)
+    val copy = copier()
     val sensitivitySink = mutablePersistedFlow("sensitivity") {
         CipherDuplicatesCheck.Sensitivity.NORMAL
     }

@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
+import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
@@ -161,6 +162,7 @@ import com.artemchep.keyguard.common.usecase.GetJustGetMyDataByUrl
 import com.artemchep.keyguard.common.usecase.GetKeepScreenOn
 import com.artemchep.keyguard.common.usecase.GetLocaleVariants
 import com.artemchep.keyguard.common.usecase.GetMarkdown
+import com.artemchep.keyguard.common.usecase.GetMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.GetNavAnimation
 import com.artemchep.keyguard.common.usecase.GetNavAnimationVariants
 import com.artemchep.keyguard.common.usecase.GetNavLabel
@@ -222,6 +224,7 @@ import com.artemchep.keyguard.common.usecase.PutGravatar
 import com.artemchep.keyguard.common.usecase.PutInMemoryLogsEnabled
 import com.artemchep.keyguard.common.usecase.PutKeepScreenOn
 import com.artemchep.keyguard.common.usecase.PutMarkdown
+import com.artemchep.keyguard.common.usecase.PutMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.PutNavAnimation
 import com.artemchep.keyguard.common.usecase.PutNavLabel
 import com.artemchep.keyguard.common.usecase.PutOnboardingLastVisitInstant
@@ -308,6 +311,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetJustGetMyDataByUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetKeepScreenOnImpl
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetMarkdownImpl
+import com.artemchep.keyguard.common.usecase.impl.GetMinimizeOnCopyImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavAnimationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavAnimationVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavLabelImpl
@@ -369,6 +373,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutGravatarImpl
 import com.artemchep.keyguard.common.usecase.impl.PutInMemoryLogsEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutKeepScreenOnImpl
 import com.artemchep.keyguard.common.usecase.impl.PutMarkdownImpl
+import com.artemchep.keyguard.common.usecase.impl.PutMinimizeOnCopyImpl
 import com.artemchep.keyguard.common.usecase.impl.PutNavAnimationImpl
 import com.artemchep.keyguard.common.usecase.impl.PutNavLabelImpl
 import com.artemchep.keyguard.common.usecase.impl.PutOnboardingLastVisitInstantImpl
@@ -905,6 +910,16 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PutCloseToTray> {
         PutCloseToTrayImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetMinimizeOnCopy> {
+        GetMinimizeOnCopyImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutMinimizeOnCopy> {
+        PutMinimizeOnCopyImpl(
             directDI = this,
         )
     }
@@ -1541,6 +1556,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<PrivilegedAppsService> {
         PrivilegedAppsServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<ClipboardEventBus> {
+        ClipboardEventBus(
             directDI = this,
         )
     }

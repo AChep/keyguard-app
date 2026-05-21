@@ -149,6 +149,7 @@ internal fun ApplicationScope.QuickSearchWindow(
 
         KeyguardWindowEssentials(
             processLifecycleProvider = processLifecycleProvider,
+            onMinimizeRequest = updatedOnDismissRequest, // close on minimize
         ) {
             KeyguardTheme {
                 KeyguardPopupScaffold {

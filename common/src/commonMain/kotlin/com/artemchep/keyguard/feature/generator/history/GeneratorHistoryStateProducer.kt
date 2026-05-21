@@ -31,7 +31,6 @@ import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
@@ -113,7 +112,7 @@ fun produceGeneratorHistoryState(
     ),
 ) {
     val selectionHandle = selectionHandle("selection")
-    val copyFactory = copy(clipboardService)
+    val copyFactory = copier()
 
     val itemsRawFlow = getGeneratorHistory()
         .shareInScreenScope()

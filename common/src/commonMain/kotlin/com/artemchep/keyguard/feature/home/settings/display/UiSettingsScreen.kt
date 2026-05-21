@@ -58,6 +58,7 @@ fun rememberSettingsUiItems(
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.USE_EXTERNAL_BROWSER),
                     SettingPaneItem.Item(Setting.KEEP_SCREEN_ON),
+                    SettingPaneItem.Item(Setting.MINIMIZE_ON_COPY),
                     SettingPaneItem.Item(Setting.CLOSE_TO_TRAY),
                 ),
             ),

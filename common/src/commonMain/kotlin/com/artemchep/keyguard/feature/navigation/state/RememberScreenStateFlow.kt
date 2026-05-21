@@ -5,6 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.GetDebugScreenDelay
 import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.PutScreenState
@@ -15,6 +17,7 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeLogicalStack
 import com.artemchep.keyguard.feature.navigation.N
 import com.artemchep.keyguard.feature.navigation.navigationNodeStack
+import com.artemchep.keyguard.platform.LocalWindowId
 import com.artemchep.keyguard.platform.LocalLeContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -80,8 +83,11 @@ fun <T> rememberScreenStateFlow(
     val context = LocalLeContext
 
     val colorSchemeState = rememberUpdatedState(MaterialTheme.colorScheme)
+    val windowIdState = rememberUpdatedState(LocalWindowId.current)
 
     val toastService by rememberInstance<ShowMessage>()
+    val clipboardService by rememberInstance<ClipboardService>()
+    val clipboardEventBus by rememberInstance<ClipboardEventBus>()
     val getScreenState by rememberInstance<GetScreenState>()
     val getDebugScreenDelay by rememberInstance<GetDebugScreenDelay>()
     val putScreenState by rememberInstance<PutScreenState>()
@@ -130,6 +136,8 @@ fun <T> rememberScreenStateFlow(
             finalKey,
             c,
             toastService,
+            clipboardService,
+            clipboardEventBus,
             getScreenState,
             putScreenState,
             windowCoroutineScope,
@@ -138,6 +146,7 @@ fun <T> rememberScreenStateFlow(
             key,
             context,
             colorSchemeState,
+            windowIdState,
             flow,
         ) as StateFlow<T>
         flow2

@@ -91,6 +91,7 @@ class SettingsRepositoryImpl(
         private const val KEY_TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
         private const val KEY_USE_EXTERNAL_BROWSER = "use_external_browser"
         private const val KEY_CLOSE_TO_TRAY = "close_to_tray"
+        private const val KEY_MINIMIZE_ON_COPY = "minimize_on_copy"
         private const val KEY_FONT = "font"
         private const val KEY_THEME = "theme"
         private const val KEY_THEME_USE_AMOLED_DARK = "theme_use_amoled_dark"
@@ -250,6 +251,9 @@ class SettingsRepositoryImpl(
     private val closeToTrayPref =
         store.getBoolean(KEY_CLOSE_TO_TRAY, false)
 
+    private val minimizeOnCopyPref =
+        store.getBoolean(KEY_MINIMIZE_ON_COPY, false)
+
     private val navAnimationPref =
         store.getEnumNullable(KEY_NAV_ANIMATION, lens = NavAnimation::key)
 
@@ -355,6 +359,7 @@ class SettingsRepositoryImpl(
             allowTwoPanelLayoutInPortraitPref,
             useExternalBrowserPref,
             closeToTrayPref,
+            minimizeOnCopyPref,
             navAnimationPref,
             fontPref,
             themePref,
@@ -692,6 +697,13 @@ class SettingsRepositoryImpl(
         .setAndCommit(closeToTray)
 
     override fun getCloseToTray() = closeToTrayPref
+
+    override fun setMinimizeOnCopy(
+        minimizeOnCopy: Boolean,
+    ) = minimizeOnCopyPref
+        .setAndCommit(minimizeOnCopy)
+
+    override fun getMinimizeOnCopy() = minimizeOnCopyPref
 
     override fun setColors(colors: AppColors?) = colorsPref
         .setAndCommit(colors)

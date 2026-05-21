@@ -96,7 +96,7 @@ jobs:
         id: producer
         run: |
           VERSION_SEMANTIC=$(sed -nE 's/.*appVersionName *= *"(.*)".*/\1/p' keyguard-app/gradle/libs.versions.toml)
-          VERSION_TAG="${{ github.ref_name }}"
+          VERSION_TAG="$GITHUB_REF_NAME"
           VERSION_TAG_NO_PREFIX="${VERSION_TAG#r}"
           RELEASE_NAME="v${VERSION_SEMANTIC}-${VERSION_TAG_NO_PREFIX}"
           DATE=$(echo "$VERSION_TAG" | sed -E 's/^r([0-9]{4})([0-9]{2})([0-9]{2}).*$/\1-\2-\3/')
@@ -179,7 +179,7 @@ jobs:
           p12-password: ${{ secrets.CERT_PASSWD }}
       - name: "Setup build env"
         run: |
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Setup signing config"
         run: |
           echo "" >> gradle.properties
@@ -260,7 +260,7 @@ jobs:
         run: |
           pwd
           git config --global --add safe.directory "$(pwd)"
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Download versions"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -335,8 +335,9 @@ jobs:
           protoc --version
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
+        shell: pwsh
         run: |
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$env:GITHUB_REF_NAME"
       - name: "Build"
         run: ./gradlew :desktopApp:packageReleaseMsi
       - name: 'Upload .msi'
@@ -370,7 +371,7 @@ jobs:
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > wearApp/keyguard-release.keystore
           echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat > wearApp/keyguard-release.properties
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat > wearApp/google-services.json
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Prepare version code"
         run: |
           echo "" >> gradle.properties
@@ -422,7 +423,7 @@ jobs:
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > androidApp/keyguard-release.keystore
           echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat > androidApp/keyguard-release.properties
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat > androidApp/google-services.json
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Prepare version code"
         run: |
           echo "" >> gradle.properties
@@ -467,7 +468,7 @@ jobs:
       - uses: ./.github/actions/setup_python
       - name: "Prepare release gradle properties"
         run: |
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Setup Rust toolchain"
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
@@ -719,7 +720,7 @@ jobs:
         if: ${{ steps.check-changes.outputs.HAS_CHANGES == 'true' }}
         run: |
           git config user.email github-actions@github.com
-          git config user.name "${{ github.actor }}"
+          git config user.name "$GITHUB_ACTOR"
           git add -A
           git commit -m "Mirror latest Keyguard Termux packages"
           git push origin HEAD:master

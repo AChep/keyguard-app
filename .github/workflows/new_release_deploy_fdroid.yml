@@ -57,7 +57,7 @@ jobs:
         if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
         run: |
           git config user.email github-actions@github.com
-          git config user.name "${{ github.actor }}"
+          git config user.name "$GITHUB_ACTOR"
           git add .
           git commit -m "Mirror latest Keyguard artifact from GitHub Releases"
           git push origin master

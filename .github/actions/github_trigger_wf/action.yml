@@ -21,7 +21,10 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.github-token }}
+        WF_FILE: ${{ inputs.github-wf-file }}
+        WF_REPO: ${{ inputs.github-wf-repo }}
+        WF_BRANCH: ${{ inputs.github-wf-branch }}
       run: |
-        gh workflow run ${{ inputs.github-wf-file }} \
-          --repo ${{ inputs.github-wf-repo }} \
-          --ref ${{ inputs.github-wf-branch }}
+        gh workflow run "$WF_FILE" \
+          --repo "$WF_REPO" \
+          --ref "$WF_BRANCH"

@@ -33,6 +33,7 @@ fun rememberSettingsSecurityItems(
             SettingPaneItem.Group(
                 key = "clipboard",
                 list = persistentListOf(
+                    SettingPaneItem.Item(Setting.CLIPBOARD_AUTO_CLEAR),
                     SettingPaneItem.Item(Setting.CLIPBOARD_AUTO_REFRESH),
                     SettingPaneItem.Item(Setting.CLIPBOARD_NOTIFICATION_SETTINGS),
                 ),

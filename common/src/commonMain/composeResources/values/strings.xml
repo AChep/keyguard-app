@@ -396,12 +396,25 @@
     <string name="sends_action_delete_confirmation_title">Delete forever?</string>
 
     <string name="file_action_open_with_title">Open with…</string>
+    <string name="file_action_preview_title">Preview</string>
     <string name="file_action_send_with_title">Send with…</string>
     <string name="file_action_open_in_file_manager_title">Open in a file manager</string>
     <string name="file_action_delete_local_title">Delete local file</string>
     <string name="file_action_delete_local_many_title">Delete local files</string>
     <string name="file_action_view_cipher_title">View parent item</string>
     <string name="file_action_reveal_title">Reveal</string>
+
+    <string name="attachment_preview_error_unsupported_file">This file type cannot be previewed.</string>
+    <string name="attachment_preview_error_unsupported_platform">Attachment preview is not supported on this platform.</string>
+    <string name="attachment_preview_error_too_large">This attachment is larger than the 8 MB preview limit.</string>
+    <string name="attachment_preview_error_network">Failed to download the attachment preview.</string>
+    <string name="attachment_preview_error_decryption">Failed to decrypt the attachment preview.</string>
+    <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
+    <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
+    <string name="attachment_preview_action_copy_all">Copy all</string>
+    <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
+    <string name="attachment_preview_action_source">Source</string>
+    <string name="attachment_preview_action_rendered_preview">Preview</string>
 
     <string name="vault_action_always_show_keyboard_title">Always show keyboard</string>
     <string name="vault_action_remember_sorting_title">Remember sorting method</string>

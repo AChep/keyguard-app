@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.FooStatus
 import com.artemchep.keyguard.feature.attachments.LaunchViewCipherData
@@ -14,6 +15,7 @@ import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.attachments.foo
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
+import com.artemchep.keyguard.feature.attachmentpreview.createAttachmentPreviewRouteOrNull
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRouteFactory
 import com.artemchep.keyguard.feature.home.vault.screen.verify
@@ -33,6 +35,7 @@ suspend fun RememberStateFlowScope.createAttachmentItem(
     sharingScope: CoroutineScope,
     launchViewCipherData: LaunchViewCipherData?,
     downloadManager: DownloadManager,
+    canPreviewAttachment: CanPreviewAttachment,
     downloadIo: IO<Unit>,
     removeIo: IO<Unit>,
     verify: ((() -> Unit) -> Unit)? = null,
@@ -67,6 +70,12 @@ suspend fun RememberStateFlowScope.createAttachmentItem(
                 vaultViewRouteFactory = vaultViewRouteFactory,
                 fileName = fileName,
                 launchViewCipherData = launchViewCipherData,
+                previewRoute = createAttachmentPreviewRouteOrNull(
+                    localCipherId = tag.localCipherId,
+                    remoteCipherId = tag.remoteCipherId,
+                    attachment = attachment,
+                    canPreviewAttachment = canPreviewAttachment,
+                ),
                 status = actionsStatus,
                 downloadIo = downloadIo,
                 removeIo = removeIo,

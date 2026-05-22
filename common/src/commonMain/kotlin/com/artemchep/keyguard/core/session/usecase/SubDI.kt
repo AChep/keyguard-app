@@ -76,6 +76,7 @@ import com.artemchep.keyguard.common.usecase.CheckHibpApiToken
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
 import com.artemchep.keyguard.common.usecase.CheckUsernameLeak
+import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
@@ -113,6 +114,7 @@ import com.artemchep.keyguard.common.usecase.GetFingerprint
 import com.artemchep.keyguard.common.usecase.GetFingerprintByAccount
 import com.artemchep.keyguard.common.usecase.GetFolderTree
 import com.artemchep.keyguard.common.usecase.GetFolderTreeById
+import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.GetHibpApiToken
@@ -179,6 +181,7 @@ import com.artemchep.keyguard.common.usecase.impl.AddUrlBlockImpl
 import com.artemchep.keyguard.common.usecase.impl.AddUrlOverrideImpl
 import com.artemchep.keyguard.common.usecase.impl.BackupSettingsImpl
 import com.artemchep.keyguard.common.usecase.impl.CheckHibpApiTokenImpl
+import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
@@ -399,6 +402,12 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<DownloadAttachmentMetadata> {
         createDownloadAttachmentMetadata(this)
+    }
+    bindSingleton<GetAttachmentPreview> {
+        createGetAttachmentPreview(this)
+    }
+    bindSingleton<CanPreviewAttachment> {
+        CanPreviewAttachmentImpl()
     }
     bindSingleton<GetCanAddAccount> {
         GetCanAddAccountImpl(this)

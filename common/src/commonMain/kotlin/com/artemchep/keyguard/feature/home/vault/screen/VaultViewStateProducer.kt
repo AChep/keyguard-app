@@ -103,6 +103,7 @@ import com.artemchep.keyguard.common.service.placeholder.placeholderFormat
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
 import com.artemchep.keyguard.common.usecase.ArchiveCipherById
+import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
@@ -326,6 +327,7 @@ fun vaultViewScreenState(
         downloadManager = instance(),
         downloadAttachment = instance(),
         removeAttachment = instance(),
+        canPreviewAttachment = instance(),
         passkeysCredentialViewRouteFactory = instance(),
         vaultViewRouteFactory = instance(),
         vaultRouteFactory = instance(),
@@ -426,6 +428,7 @@ fun vaultViewScreenState(
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
+    canPreviewAttachment: CanPreviewAttachment,
     passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
     vaultViewRouteFactory: VaultViewRouteFactory,
     vaultRouteFactory: VaultRouteFactory,
@@ -1242,6 +1245,7 @@ fun vaultViewScreenState(
                         downloadManager = downloadManager,
                         downloadAttachment = downloadAttachment,
                         removeAttachment = removeAttachment,
+                        canPreviewAttachment = canPreviewAttachment,
                         getPasskeys = getPasskeys,
                         getTwoFa = getTwoFa,
                         getTotpCode = getTotpCode,
@@ -1308,6 +1312,7 @@ private fun RememberStateFlowScope.oh(
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
+    canPreviewAttachment: CanPreviewAttachment,
     getPasskeys: GetPasskeys,
     getTwoFa: GetTwoFa,
     getTotpCode: GetTotpCode,
@@ -2540,6 +2545,7 @@ private fun RememberStateFlowScope.oh(
                         attachment = attachment,
                         launchViewCipherData = null,
                         downloadManager = downloadManager,
+                        canPreviewAttachment = canPreviewAttachment,
                         downloadIo = downloadIo,
                         removeIo = removeIo,
                         verify = verify,

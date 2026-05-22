@@ -85,6 +85,9 @@ flowPreferences = "1.9.1"
 googleServicesPlugin = "4.4.4"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "3.0.0-beta02"
+# https://chrisbanes.github.io/haze/latest/
+haze = "2.0.0-alpha02"
+hazeMaterials = "1.7.2"
 junit = "4.13.2"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
@@ -276,6 +279,9 @@ halilibo-richtext-ui-material3 = { module = "com.halilibo.compose-richtext:richt
 harawata-appdirs = { module = "net.harawata:appdirs", version.ref = "appDirs" }
 horologist-compose-layout = { module = "com.google.android.horologist:horologist-compose-layout", version.ref = "horologist" }
 html-text = { module = "de.charlex.compose:html-text-material3", version.ref = "htmlText" }
+haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "haze" }
+haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "hazeMaterials" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kdrag0n-colorkt = { module = "dev.kdrag0n:colorkt", version.ref = "kdrag0nColorKt" }
 kyant0-m3color = { module = "com.github.Kyant0:m3color", version.ref = "m3color" }

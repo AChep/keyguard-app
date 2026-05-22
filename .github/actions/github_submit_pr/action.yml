@@ -25,6 +25,7 @@ runs:
       env:
         COMMIT_BRANCH: ${{ inputs.commit-branch }}
         COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        GH_TOKEN: ${{ inputs.github-token }}
       run: |
         git config --global user.name "keyguard-bot"
         git config --global user.email "keyguard-bot@artemchep.com"
@@ -38,6 +39,7 @@ runs:
         git commit -m "[AUTO] $COMMIT_MESSAGE"
 
         # Push
+        git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
         git push origin "$COMMIT_BRANCH" --force
     - name: Create Pull Request
       if: ${{ steps.check-changes.outputs.HAS_CHANGES == 'true' }}
@@ -47,13 +49,26 @@ runs:
         COMMIT_BRANCH: ${{ inputs.commit-branch }}
         COMMIT_MESSAGE: ${{ inputs.commit-message }}
       run: |
-        # Create PR using GitHub CLI
-        # We use '|| true' or checks to prevent failure if PR already exists
+        existing_pr_url="$(
+          gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --base master \
+            --head "$COMMIT_BRANCH" \
+            --state open \
+            --json url \
+            --jq '.[0].url'
+        )"
+
+        if [ -n "$existing_pr_url" ]; then
+          echo "PR already exists: $existing_pr_url"
+          exit 0
+        fi
+
         gh pr create \
+          --repo "$GITHUB_REPOSITORY" \
           --base master \
           --head "$COMMIT_BRANCH" \
           --title "$COMMIT_MESSAGE" \
           --body "Automated PR created by GitHub Action" \
           --assignee "AChep" \
-          --label "robot,enhancement" \
-          || echo "PR likely already exists, skipping creation."
+          --label "robot,enhancement"

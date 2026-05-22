@@ -15,12 +15,17 @@ on:
       - '**/*.gradle*'
       - 'gradle/**'
 
+permissions:
+  contents: read
+
 jobs:
   check-licenses:
     name: Check Licenses
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup_gradle
       - name: "Check licenses"
         run: ./gradlew licensee

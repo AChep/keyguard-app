@@ -3,6 +3,9 @@ name: "New Flatpak"
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-linux-app:
     runs-on: ${{ matrix.runner }}
@@ -19,6 +22,7 @@ jobs:
         with:
           lfs: true
           submodules: recursive
+          persist-credentials: false
       - uses: ./.github/actions/setup_gradle
       - name: "Setup Rust toolchain"
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
@@ -48,11 +52,13 @@ jobs:
         id: get-flatpak-runtime-version
         run: echo "version=$(python .github/get_flatpak_runtime_version.py desktopApp/flatpak/com.artemchep.keyguard.yml)" >> $GITHUB_OUTPUT
       - name: "Setup Flatpak"
+        env:
+          FLATPAK_RUNTIME_VERSION: ${{ steps.get-flatpak-runtime-version.outputs.version }}
         run: |
           sudo apt-get update
           sudo apt install flatpak flatpak-builder
           flatpak remote-add --if-not-exists --user flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-          flatpak install flathub org.freedesktop.Platform//${{ steps.get-flatpak-runtime-version.outputs.version }} org.freedesktop.Sdk//${{ steps.get-flatpak-runtime-version.outputs.version }} -y
+          flatpak install flathub "org.freedesktop.Platform//${FLATPAK_RUNTIME_VERSION}" "org.freedesktop.Sdk//${FLATPAK_RUNTIME_VERSION}" -y
       - name: "Build"
         working-directory: desktopApp/flatpak/
         run: |

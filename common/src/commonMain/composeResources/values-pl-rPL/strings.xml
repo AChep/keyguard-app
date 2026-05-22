@@ -387,12 +387,24 @@
     <string name="sends_action_delete_title">Trwale usuń</string>
     <string name="sends_action_delete_confirmation_title">Trwale usunąć?</string>
     <string name="file_action_open_with_title">Otwórz za pomocą…</string>
+    <string name="file_action_preview_title">Preview</string>
     <string name="file_action_send_with_title">Wyślij przez…</string>
     <string name="file_action_open_in_file_manager_title">Otwórz w menedżerze plików</string>
     <string name="file_action_delete_local_title">Usuń plik lokalny</string>
     <string name="file_action_delete_local_many_title">Usuń pliki lokalne</string>
     <string name="file_action_view_cipher_title">Zobacz element nadrzędny</string>
     <string name="file_action_reveal_title">Pokaż</string>
+    <string name="attachment_preview_error_unsupported_file">This file type cannot be previewed.</string>
+    <string name="attachment_preview_error_unsupported_platform">Attachment preview is not supported on this platform.</string>
+    <string name="attachment_preview_error_too_large">This attachment is larger than the 8 MB preview limit.</string>
+    <string name="attachment_preview_error_network">Failed to download the attachment preview.</string>
+    <string name="attachment_preview_error_decryption">Failed to decrypt the attachment preview.</string>
+    <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
+    <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
+    <string name="attachment_preview_action_copy_all">Copy all</string>
+    <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
+    <string name="attachment_preview_action_source">Source</string>
+    <string name="attachment_preview_action_rendered_preview">Preview</string>
     <string name="vault_action_always_show_keyboard_title">Zawsze pokazuj klawiaturę</string>
     <string name="vault_action_remember_sorting_title">Zapamiętaj metodę sortowania</string>
     <string name="vault_action_sync_vault_title">Synchronizuj sejf</string>
@@ -674,6 +686,7 @@
     <string name="emailleak_breach_occurred_at">Wystąpiło na <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Zgłoszono dnia <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Nie udało się sprawdzić naruszeń danych. Obecnie możesz być offline</string>
+    <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
     <string name="passwordleak_title">Wyciek danych</string>
     <string name="passwordleak_note">Hasło znalezione w przypadku naruszenia danych zajmuje znacznie mniej czasu i nigdy nie powinno być używane.</string>
     <string name="passwordleak_occurrences_found_title">Hasło jest naruszone</string>
@@ -1151,6 +1164,7 @@
     <string name="settings_permissions_header_title">Uprawnienia</string>
     <string name="settings_security_header_title">Zabezpieczenia</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_open_source_licenses_header_title">Licencje open-source</string>
     <string name="pref_section_premium_title">Premium</string>
@@ -1161,6 +1175,8 @@
     <string name="pref_item_autofill_text">Autouzupełnianie Androida i usługi poświadczeń</string>
     <string name="pref_item_security_title">Zabezpieczenia</string>
     <string name="pref_item_security_text">Dane biometryczne, zmiana hasła, czas blokady sejfu</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard Premium</string>
     <string name="pref_item_subscription_text">Odblokuj funkcje i wspieraj rozwój aplikacji</string>
     <string name="pref_item_watchtower_title">Watchtower</string>
@@ -1206,8 +1222,17 @@
     <string name="pref_item_color_scheme_expressive_title">Użyj wyrazistego motywu</string>
     <string name="pref_item_open_links_in_external_browser_title">Otwieraj linki w zewnętrznej przeglądarce</string>
     <string name="pref_item_close_to_tray_title">Zwiń do zasobnika systemowego</string>
+    <string name="pref_item_minimize_on_copy_title">Minimize on copy</string>
     <string name="pref_item_check_pwned_passwords_title">Sprawdzaj wycieki haseł</string>
     <string name="pref_item_check_pwned_services_title">Sprawdzaj naruszenia bezpieczeństwa danych</string>
+    <string name="pref_item_hibp_api_token_title">Have I Been Pwned API token</string>
+    <string name="pref_item_hibp_api_token_text">Use HIBP directly instead of Bitwarden's premium proxy. Useful for local-only vaults.</string>
+    <string name="pref_item_hibp_api_token_field_label">API token</string>
+    <string name="pref_item_hibp_api_token_error">Enter a 32-character hexadecimal HIBP API token</string>
+    <string name="pref_item_hibp_api_token_status_checking">Checking...</string>
+    <string name="pref_item_hibp_api_token_status_verified">Verified</string>
+    <string name="pref_item_hibp_api_token_status_rejected">Rejected</string>
+    <string name="pref_item_hibp_api_token_status_failed">Could not verify</string>
     <string name="pref_item_check_inactive_2fa_title">Wyszukuj nieaktywne uwierzytelnianie dwuetapowe</string>
     <string name="pref_item_check_inactive_passkeys_title">Wyszukuj nieaktywne klucze dostępu</string>
     <string name="pref_item_conceal_fields_title">Ukrywaj pola</string>
@@ -1264,6 +1289,9 @@
     <string name="pref_item_ssh_agent_status_starting">Uruchamianie</string>
     <string name="pref_item_ssh_agent_status_ready">Gotowy</string>
     <string name="pref_item_ssh_agent_status_failed">Nie udało się</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">Konfigurowanie klienta SSH</string>
     <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
     <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>

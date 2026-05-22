@@ -387,12 +387,24 @@
     <string name="sends_action_delete_title">Видалити назавжди</string>
     <string name="sends_action_delete_confirmation_title">Видалити назавжди?</string>
     <string name="file_action_open_with_title">Відкрити за допомогою…</string>
+    <string name="file_action_preview_title">Preview</string>
     <string name="file_action_send_with_title">Надіслати за допомогою…</string>
     <string name="file_action_open_in_file_manager_title">Відкрити в файловому менеджері…</string>
     <string name="file_action_delete_local_title">Видалити локальний файл</string>
     <string name="file_action_delete_local_many_title">Видалити локальні файли</string>
     <string name="file_action_view_cipher_title">Переглянути батьківський запис</string>
     <string name="file_action_reveal_title">Показати</string>
+    <string name="attachment_preview_error_unsupported_file">This file type cannot be previewed.</string>
+    <string name="attachment_preview_error_unsupported_platform">Attachment preview is not supported on this platform.</string>
+    <string name="attachment_preview_error_too_large">This attachment is larger than the 8 MB preview limit.</string>
+    <string name="attachment_preview_error_network">Failed to download the attachment preview.</string>
+    <string name="attachment_preview_error_decryption">Failed to decrypt the attachment preview.</string>
+    <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
+    <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
+    <string name="attachment_preview_action_copy_all">Copy all</string>
+    <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
+    <string name="attachment_preview_action_source">Source</string>
+    <string name="attachment_preview_action_rendered_preview">Preview</string>
     <string name="vault_action_always_show_keyboard_title">Завжди показувати клавіатуру</string>
     <string name="vault_action_remember_sorting_title">Запам'ятовувати метод сортування</string>
     <string name="vault_action_sync_vault_title">Синхронізувати сховище</string>
@@ -585,8 +597,8 @@
     <string name="error_invalid_card_number">Недійсний номер картки</string>
     <string name="error_incorrect_password">Невірний пароль</string>
     <string name="error_not_found">Не знайдено</string>
-    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
-    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
+    <string name="error_file_must_be_500_mb_or_smaller">Розмір файлу має бути 500 Мб або менше</string>
+    <string name="error_file_must_be_1_mb_or_smaller">Розмір файлу має бути 1 Мб або менше</string>
     <string name="error_otp_key_must_not_be_empty">Секретний ключ одноразового пароля не може бути порожнім</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Не вдалося створити файл. Заміна наявного файлу заборонена</string>
@@ -614,7 +626,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Дозволяє йому запитувати облікові дані для будь-якого сервісу. Зловмисний застосунок може використати це для викрадення ваших облікових даних.</string>
     <string name="scanqr_title">Сканувати QR-код</string>
-    <string name="scanqr_load_from_image">Load from a file</string>
+    <string name="scanqr_load_from_image">Завантажити з файлу</string>
     <string name="scanqr_load_from_image_note">Завантажте з файлу та проаналізуйте QR-код.</string>
     <string name="scanqr_camera_permission_required_text">Для сканування QR-кодів необхідний дозвіл на камеру.</string>
     <string name="post_notifications_permission_banner_title">Сповіщення вимкнені</string>
@@ -674,6 +686,7 @@
     <string name="emailleak_breach_occurred_at">Відбулося <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Стало відомо <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Не вдалося перевірити витоки даних. Перевірте з'єднання з інтернетом</string>
+    <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
     <string name="passwordleak_title">Витік даних</string>
     <string name="passwordleak_note">Пароль, який зустрічається в витоках даних набагато легше підібрати. Такий пароль не рекомендується використовувати.</string>
     <string name="passwordleak_occurrences_found_title">Пароль скомпрометовано</string>
@@ -814,7 +827,7 @@
     <string name="addaccount_custom_env_api_url_label">URL-адреса сервера API</string>
     <string name="addaccount_custom_env_icons_url_label">URL-адреса сервера піктограм</string>
     <string name="addaccount_custom_env_identity_url_label">URL-адреса сервера ідентифікації</string>
-    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_custom_env_notifications_url_label">URL-адреса сервера сповіщень</string>
     <string name="addaccount_mutual_tls_section">Mutual TLS</string>
     <string name="addaccount_mutual_tls_file_label">Client certificate</string>
     <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
@@ -860,8 +873,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Підтвердити ваш доступ та розблокувати дані за допомогою біометричної автентифікації.</string>
     <string name="home_vault_label">Сховище</string>
-    <string name="home_favorites_label">Favorites</string>
-    <string name="home_other_label">Other</string>
+    <string name="home_favorites_label">Обране</string>
+    <string name="home_other_label">Інше</string>
     <string name="home_send_label">Відправл.</string>
     <string name="home_generator_label">Генератор</string>
     <string name="home_watchtower_label">Варт. вежа</string>
@@ -926,7 +939,7 @@
     <string name="ssh_agent_setup_windows_title">Windows</string>
     <string name="ssh_agent_setup_windows_text">SSH-агент поки що недоступний для Windows, тому налаштування тут наведені лише для ознайомлення.</string>
     <string name="ssh_agent_setup_android_termux_text">На Android Keyguard забезпечує роботу SSH-агента за допомогою спеціального допоміжного пакета. Увімкніть SSH-агента в Keyguard, встановіть та налаштуйте пакет, а потім схвалюйте запити під час підключення вашого SSH-клієнта.</string>
-    <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
+    <string name="ssh_agent_setup_android_termux_step_1_title">Встановити Termux</string>
     <string name="ssh_agent_setup_android_termux_step_1_text">Termux — це термінальний застосунок для Android та середовище Linux.</string>
     <string name="ssh_agent_setup_android_termux_step_2_title">Встановити пакет</string>
     <string name="ssh_agent_setup_android_termux_step_2_text">Відкрийте Termux та встановіть пакет з APT-репозиторію:</string>
@@ -1083,7 +1096,7 @@
     <string name="watchtower_item_pwned_passwords_text">Паролі, які було знайдено в витоках даних. Такі паролі мають бути негайно змінені.</string>
     <string name="watchtower_item_reused_passwords_title">Повторювані паролі</string>
     <string name="watchtower_item_reused_passwords_text">Не використовуйте однаковий пароль на кількох вебсайтах. Генеруйте унікальні паролі для підвищення безпеки.</string>
-    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Слабкі SSH ключі</string>
     <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Вразливі облікові записи</string>
     <string name="watchtower_item_vulnerable_accounts_text">Сайти, які постраждали від витоку даних після вашої останньої зміни пароля. Змініть пароль, щоб убезпечити ваші облікові записи.</string>
@@ -1151,6 +1164,7 @@
     <string name="settings_permissions_header_title">Дозволи</string>
     <string name="settings_security_header_title">Безпека</string>
     <string name="settings_subscriptions_header_title">Keyguard преміум</string>
+    <string name="settings_developer_header_title">Розробник</string>
     <string name="settings_watchtower_header_title">Вартова вежа</string>
     <string name="settings_open_source_licenses_header_title">Ліцензії відкритого програмного забезпечення</string>
     <string name="pref_section_premium_title">Преміум</string>
@@ -1161,6 +1175,8 @@
     <string name="pref_item_autofill_text">Служби автозаповнення та облікових даних Android</string>
     <string name="pref_item_security_title">Безпека</string>
     <string name="pref_item_security_text">Біометрика, блокування сховища, зміна паролю</string>
+    <string name="pref_item_developer_title">Розробник</string>
+    <string name="pref_item_developer_text">SSH агент</string>
     <string name="pref_item_subscription_title">Keyguard преміум</string>
     <string name="pref_item_subscription_text">Розблокуйте додаткові функції та підтримайте розробку</string>
     <string name="pref_item_watchtower_title">Вартова вежа</string>
@@ -1206,8 +1222,17 @@
     <string name="pref_item_color_scheme_expressive_title">Використовувати експресивну тему</string>
     <string name="pref_item_open_links_in_external_browser_title">Відкривати посилання у зовнішньому браузері</string>
     <string name="pref_item_close_to_tray_title">При закритті згортати до системного трею</string>
+    <string name="pref_item_minimize_on_copy_title">Minimize on copy</string>
     <string name="pref_item_check_pwned_passwords_title">Перевіряти викриті паролі</string>
     <string name="pref_item_check_pwned_services_title">Перевіряти витоки даних</string>
+    <string name="pref_item_hibp_api_token_title">Have I Been Pwned API token</string>
+    <string name="pref_item_hibp_api_token_text">Use HIBP directly instead of Bitwarden's premium proxy. Useful for local-only vaults.</string>
+    <string name="pref_item_hibp_api_token_field_label">API token</string>
+    <string name="pref_item_hibp_api_token_error">Enter a 32-character hexadecimal HIBP API token</string>
+    <string name="pref_item_hibp_api_token_status_checking">Checking...</string>
+    <string name="pref_item_hibp_api_token_status_verified">Verified</string>
+    <string name="pref_item_hibp_api_token_status_rejected">Rejected</string>
+    <string name="pref_item_hibp_api_token_status_failed">Could not verify</string>
     <string name="pref_item_check_inactive_2fa_title">Перевіряти неактивну двофакторну автентифікацію</string>
     <string name="pref_item_check_inactive_passkeys_title">Перевіряти неактивні ключі доступу</string>
     <string name="pref_item_conceal_fields_title">Приховати значення полів</string>
@@ -1264,6 +1289,9 @@
     <string name="pref_item_ssh_agent_status_starting">Запускається</string>
     <string name="pref_item_ssh_agent_status_ready">Готовий</string>
     <string name="pref_item_ssh_agent_status_failed">Помилка</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Питати щоразу</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">Налаштування SSH клієнта</string>
     <string name="pref_item_ssh_agent_filters_title">Фільтри SSH агента</string>
     <string name="pref_item_ssh_agent_filters_text">Виберіть, які ключі доступні для SSH агента</string>

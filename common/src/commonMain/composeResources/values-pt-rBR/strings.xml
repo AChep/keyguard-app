@@ -387,12 +387,24 @@
     <string name="sends_action_delete_title">Excluir para sempre</string>
     <string name="sends_action_delete_confirmation_title">Excluir para sempre?</string>
     <string name="file_action_open_with_title">Abrir com…</string>
+    <string name="file_action_preview_title">Preview</string>
     <string name="file_action_send_with_title">Enviar com…</string>
     <string name="file_action_open_in_file_manager_title">Abrir em um gerenciador de arquivos</string>
     <string name="file_action_delete_local_title">Apagar arquivo local</string>
     <string name="file_action_delete_local_many_title">Excluir arquivos locais</string>
     <string name="file_action_view_cipher_title">Ver item relacionado</string>
     <string name="file_action_reveal_title">Exibir</string>
+    <string name="attachment_preview_error_unsupported_file">This file type cannot be previewed.</string>
+    <string name="attachment_preview_error_unsupported_platform">Attachment preview is not supported on this platform.</string>
+    <string name="attachment_preview_error_too_large">This attachment is larger than the 8 MB preview limit.</string>
+    <string name="attachment_preview_error_network">Failed to download the attachment preview.</string>
+    <string name="attachment_preview_error_decryption">Failed to decrypt the attachment preview.</string>
+    <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
+    <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
+    <string name="attachment_preview_action_copy_all">Copy all</string>
+    <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
+    <string name="attachment_preview_action_source">Source</string>
+    <string name="attachment_preview_action_rendered_preview">Preview</string>
     <string name="vault_action_always_show_keyboard_title">Sempre mostrar o teclado</string>
     <string name="vault_action_remember_sorting_title">Lembrar método de ordenação</string>
     <string name="vault_action_sync_vault_title">Sincronizar Cofre</string>
@@ -674,6 +686,7 @@
     <string name="emailleak_breach_occurred_at">Ocorreu em <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Reportado em <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Falha na verificação de vazamentos de dados. Você pode estar off-line no momento</string>
+    <string name="emailleak_failed_no_api_found_text">Falha ao verificar violações de dados. O endpoint não está disponível</string>
     <string name="passwordleak_title">Vazamento de dados</string>
     <string name="passwordleak_note">Uma senha encontrada em vazamentos de dados leva muito menos tempo para ser quebrada e nunca deve ser usada.</string>
     <string name="passwordleak_occurrences_found_title">A senha está comprometida</string>
@@ -1151,6 +1164,7 @@
     <string name="settings_permissions_header_title">Permissões</string>
     <string name="settings_security_header_title">Segurança</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
+    <string name="settings_developer_header_title">Desenvolvedor</string>
     <string name="settings_watchtower_header_title">Guardião</string>
     <string name="settings_open_source_licenses_header_title">Licenças de código-aberto</string>
     <string name="pref_section_premium_title">Premium</string>
@@ -1161,6 +1175,8 @@
     <string name="pref_item_autofill_text">Serviços de Preenchimento Automático &amp; Credenciais do Android</string>
     <string name="pref_item_security_title">Segurança</string>
     <string name="pref_item_security_text">Biometria, alterar senha, tempo limite do cofre</string>
+    <string name="pref_item_developer_title">Desenvolvedor</string>
+    <string name="pref_item_developer_text">Agente SSH</string>
     <string name="pref_item_subscription_title">Keyguard Premium</string>
     <string name="pref_item_subscription_text">Desbloqueie recursos &amp; apoie o desenvolvimento do aplicativo</string>
     <string name="pref_item_watchtower_title">Guardião</string>
@@ -1206,8 +1222,17 @@
     <string name="pref_item_color_scheme_expressive_title">Usar tema expressivo</string>
     <string name="pref_item_open_links_in_external_browser_title">Abrir links em um navegador externo</string>
     <string name="pref_item_close_to_tray_title">Fechar para a bandeja do sistema</string>
+    <string name="pref_item_minimize_on_copy_title">Minimizar ao copiar</string>
     <string name="pref_item_check_pwned_passwords_title">Verificar se senhas foram vazadas</string>
     <string name="pref_item_check_pwned_services_title">Verificar por vazamentos de dados</string>
+    <string name="pref_item_hibp_api_token_title">Token do Have I Been Pwned</string>
+    <string name="pref_item_hibp_api_token_text">Use o HIBP diretamente em vez do proxy premium do Bitwarden. Útil para cofres exclusivamente locais.</string>
+    <string name="pref_item_hibp_api_token_field_label">Token de API</string>
+    <string name="pref_item_hibp_api_token_error">Insira um token hexadecimal da API HIBP de 32 caracteres</string>
+    <string name="pref_item_hibp_api_token_status_checking">Verificando...</string>
+    <string name="pref_item_hibp_api_token_status_verified">Verificado</string>
+    <string name="pref_item_hibp_api_token_status_rejected">Rejeitado</string>
+    <string name="pref_item_hibp_api_token_status_failed">Não foi possível verificar</string>
     <string name="pref_item_check_inactive_2fa_title">Verificar por autenticação de dois fatores inativa</string>
     <string name="pref_item_check_inactive_passkeys_title">Verificar por chaves de acesso inativas</string>
     <string name="pref_item_conceal_fields_title">Ocultar campos</string>
@@ -1264,6 +1289,9 @@
     <string name="pref_item_ssh_agent_status_starting">Iniciando</string>
     <string name="pref_item_ssh_agent_status_ready">Pronto</string>
     <string name="pref_item_ssh_agent_status_failed">Falhou</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Lembrar aprovações de chaves</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Sempre perguntar</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Até que o cofre seja bloqueado</string>
     <string name="pref_item_ssh_agent_setup_title">Configuração do cliente SSH</string>
     <string name="pref_item_ssh_agent_filters_title">Filtros de agente SSH</string>
     <string name="pref_item_ssh_agent_filters_text">Escolha quais chaves SSH estão acessíveis ao agente SSH</string>

@@ -2,6 +2,8 @@ package com.artemchep.keyguard.core.session.usecase
 
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepository
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepositoryImpl
+import com.artemchep.keyguard.android.downloader.journal.BarcodeUsageHistoryRepository
+import com.artemchep.keyguard.android.downloader.journal.BarcodeUsageHistoryRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepository
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.SshUsageHistoryRepository
@@ -99,6 +101,7 @@ import com.artemchep.keyguard.common.usecase.GetAccountHasError
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetAccountsHasError
+import com.artemchep.keyguard.common.usecase.GetBarcodeUsageHistory
 import com.artemchep.keyguard.common.usecase.GetBreaches
 import com.artemchep.keyguard.common.usecase.GetBreachesLatestDate
 import com.artemchep.keyguard.common.usecase.GetCanAddAccount
@@ -144,6 +147,7 @@ import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.usecase.PutAccountMasterPasswordHintById
 import com.artemchep.keyguard.common.usecase.PutAccountNameById
+import com.artemchep.keyguard.common.usecase.PutBarcodeUsageHistory
 import com.artemchep.keyguard.common.usecase.PutHibpApiToken
 import com.artemchep.keyguard.common.usecase.PutProfileHidden
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
@@ -185,6 +189,7 @@ import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBarcodeUsageHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBreachesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBreachesLatestDateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
@@ -197,6 +202,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchIndexImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchQualifierCatalogImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryByIdImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryImpl
+import com.artemchep.keyguard.common.usecase.impl.PutBarcodeUsageHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.PutHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerBroadUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerDuplicateUris
@@ -827,6 +833,16 @@ fun DI.Builder.createSubDi2(
             directDI = this,
         )
     }
+    bindSingleton<GetBarcodeUsageHistory> {
+        GetBarcodeUsageHistoryImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<PutBarcodeUsageHistory> {
+        PutBarcodeUsageHistoryImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<AddCipher> {
         AddCipherImpl(this)
     }
@@ -856,6 +872,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<CipherHistoryOpenedRepository> {
         CipherHistoryOpenedRepositoryImpl(this)
+    }
+    bindSingleton<BarcodeUsageHistoryRepository> {
+        BarcodeUsageHistoryRepositoryImpl(this)
     }
     bindSingleton<SshUsageHistoryRepository> {
         SshUsageHistoryRepositoryImpl(this)

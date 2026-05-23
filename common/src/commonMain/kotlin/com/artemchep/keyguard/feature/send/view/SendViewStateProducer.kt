@@ -788,7 +788,7 @@ private suspend fun RememberStateFlowScope.aaaa(
             this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                 translator = this@aaaa,
                 data = url,
-                single = true,
+                disallowFormatSelection = true,
                 navigate = ::navigate,
             )
             this += createShareAction(

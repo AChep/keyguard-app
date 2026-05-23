@@ -27,6 +27,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenOrganization
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
+import com.artemchep.keyguard.data.BarcodeUsageHistory
 import com.artemchep.keyguard.data.CipherFilter
 import com.artemchep.keyguard.data.CipherUsageHistory
 import com.artemchep.keyguard.data.Database
@@ -90,6 +91,7 @@ class VaultDatabaseManagerImpl(
             val databaseFactory = { driver: SqlDriver ->
                 Database(
                     driver = driver,
+                    barcodeUsageHistoryAdapter = BarcodeUsageHistory.Adapter(InstantToLongAdapter),
                     cipherUsageHistoryAdapter = CipherUsageHistory.Adapter(InstantToLongAdapter),
                     sshUsageHistoryAdapter = SshUsageHistory.Adapter(
                         requestAdapter = SshUsageHistoryRequestTypeToLongAdapter,

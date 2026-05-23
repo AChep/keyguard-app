@@ -88,6 +88,7 @@ import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
@@ -160,6 +161,7 @@ import com.artemchep.keyguard.feature.attachments.util.createPendingAttachmentIt
 import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
+import com.artemchep.keyguard.feature.barcodetype.createBarcodeTypeHistoryKey
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
@@ -300,6 +302,7 @@ fun vaultViewScreenState(
         passkeyTargetCheck = instance(),
         getWatchtowerUnreadAlerts = instance(),
         markWatchtowerAlertAsRead = instance(),
+        cryptoGenerator = instance(),
         keyPairGenerator = instance(),
         keyPrivateExport = instance(),
         keyPublicExport = instance(),
@@ -402,6 +405,7 @@ fun vaultViewScreenState(
     passkeyTargetCheck: PasskeyTargetCheck,
     getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
     markWatchtowerAlertAsRead: MarkWatchtowerAlertAsRead,
+    cryptoGenerator: CryptoGenerator,
     keyPairGenerator: KeyPairGenerator,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
@@ -1254,6 +1258,7 @@ fun vaultViewScreenState(
                         getPasswordStrength = getPasswordStrength,
                         passkeyTargetCheck = passkeyTargetCheck,
                         passkeysCredentialViewRouteFactory = passkeysCredentialViewRouteFactory,
+                        cryptoGenerator = cryptoGenerator,
                         keyPairGenerator = keyPairGenerator,
                         keyPrivateExport = keyPrivateExport,
                         keyPublicExport = keyPublicExport,
@@ -1322,6 +1327,7 @@ private fun RememberStateFlowScope.oh(
     getPasswordStrength: GetPasswordStrength,
     passkeyTargetCheck: PasskeyTargetCheck,
     passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
+    cryptoGenerator: CryptoGenerator,
     keyPairGenerator: KeyPairGenerator,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
@@ -1524,6 +1530,8 @@ private fun RememberStateFlowScope.oh(
         if (sshKey.publicKey != null) {
             val publicKeyItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "sshKey.publicKey",
                 accountId = account.id,
                 title = translate(Res.string.public_key),
@@ -1552,6 +1560,8 @@ private fun RememberStateFlowScope.oh(
         if (sshKey.fingerprint != null) {
             val fingerprintItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "sshKey.fingerprint",
                 accountId = account.id,
                 title = translate(Res.string.fingerprint),
@@ -1565,6 +1575,8 @@ private fun RememberStateFlowScope.oh(
         if (sshKey.privateKey != null) {
             val privateKeyItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "sshKey.privateKey",
                 accountId = account.id,
                 title = translate(Res.string.private_key),
@@ -1613,6 +1625,8 @@ private fun RememberStateFlowScope.oh(
             }
             val typeItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "sshKey.keyType",
                 accountId = account.id,
                 title = translate(Res.string.key_type),
@@ -1627,6 +1641,8 @@ private fun RememberStateFlowScope.oh(
     if (cipherCard != null) {
         val model = create(
             copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
             copyShortcut = KeyShortcut(
                 Key.C,
                 isCtrlPressed = true,
@@ -1672,6 +1688,8 @@ private fun RememberStateFlowScope.oh(
         if (cipherCardCode != null) {
             val cvv = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "card.cvv",
                 accountId = account.id,
                 title = translate(Res.string.vault_view_card_cvv_label),
@@ -1711,6 +1729,8 @@ private fun RememberStateFlowScope.oh(
             } else translate(Res.string.username)
             val model = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "login.username",
                 accountId = account.id,
                 title = title,
@@ -1750,6 +1770,8 @@ private fun RememberStateFlowScope.oh(
                 .stateIn(sharingScope, SharingStarted.Eagerly, null)
             val model = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "login.password",
                 accountId = account.id,
                 title = translate(Res.string.password),
@@ -1860,7 +1882,7 @@ private fun RememberStateFlowScope.oh(
                                         translator = this@oh,
                                         data = cipherLoginTotp.token.raw,
                                         text = translate(Res.string.barcodetype_copy_otp_secret_code_note),
-                                        single = true,
+                                        disallowFormatSelection = true,
                                         navigate = ::navigate,
                                     )
                                     this += createShareAction(
@@ -2115,6 +2137,8 @@ private fun RememberStateFlowScope.oh(
 
             val contactFieldItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "identity.contact.$key",
                 accountId = account.id,
                 title = title,
@@ -2159,6 +2183,8 @@ private fun RememberStateFlowScope.oh(
 
             val miscFieldItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "identity.misc.$key",
                 accountId = account.id,
                 title = title,
@@ -2218,6 +2244,8 @@ private fun RememberStateFlowScope.oh(
 
             val addressFieldModel = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "identity.address.$key",
                 accountId = account.id,
                 title = title,
@@ -2475,6 +2503,8 @@ private fun RememberStateFlowScope.oh(
             val concealed = hidden && concealFields
             val m = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "custom.$index",
                 accountId = account.id,
                 title = field.name.orEmpty(),
@@ -2779,6 +2809,8 @@ private fun RememberStateFlowScope.oh(
         // IDs
         val localId = create(
             copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
             id = "debug.local_id",
             accountId = account.id,
             title = "Local ID",
@@ -2787,6 +2819,8 @@ private fun RememberStateFlowScope.oh(
         emit(localId)
         val remoteId = create(
             copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
             id = "debug.remote_id",
             accountId = account.id,
             title = "Remote ID",
@@ -2795,6 +2829,8 @@ private fun RememberStateFlowScope.oh(
         emit(remoteId)
         val remoteRevDate = create(
             copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
             id = "debug.remote_rev_date",
             accountId = account.id,
             title = "Remote revision date",
@@ -3190,7 +3226,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                             this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                                 translator = this@createUriItemContextItems,
                                 data = platformMarker.playStoreUrl,
-                                single = true,
+                                disallowFormatSelection = true,
                                 navigate = ::navigate,
                             )
                             this += createShareAction(
@@ -3222,7 +3258,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                             this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                                 translator = this@createUriItemContextItems,
                                 data = platformMarker.playStoreUrl,
-                                single = true,
+                                disallowFormatSelection = true,
                                 navigate = ::navigate,
                             )
                             this += createShareAction(
@@ -3327,7 +3363,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                         translator = this@createUriItemContextItems,
                         data = uri,
-                        single = true,
+                        disallowFormatSelection = true,
                         navigate = ::navigate,
                     )
                     this += createShareAction(
@@ -3447,7 +3483,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                         translator = this@createUriItemContextItems,
                         data = uri,
-                        single = true,
+                        disallowFormatSelection = true,
                         navigate = ::navigate,
                     )
                     this += createShareAction(
@@ -3538,6 +3574,8 @@ private fun RememberStateFlowScope.createUriContextAppStoreListingIOS(
 
 suspend fun RememberStateFlowScope.create(
     copy: CopyText,
+    cryptoGenerator: CryptoGenerator,
+    cipherLocalId: String,
     id: String,
     accountId: AccountId,
     title: String?,
@@ -3588,6 +3626,11 @@ suspend fun RememberStateFlowScope.create(
                     translator = this@create,
                     data = value,
                     format = BarcodeImageFormat.QR_CODE,
+                    historyKey = createBarcodeTypeHistoryKey(
+                        cryptoGenerator = cryptoGenerator,
+                        cipherLocalId = cipherLocalId,
+                        value = value,
+                    ),
                     navigate = ::navigate,
                 )
                 this += createShareAction(
@@ -3699,6 +3742,8 @@ suspend fun RememberStateFlowScope.createExpDate(
 
 private suspend fun RememberStateFlowScope.create(
     copy: CopyText,
+    cryptoGenerator: CryptoGenerator,
+    cipherLocalId: String,
     copyShortcut: KeyShortcut?,
     id: String,
     verify: ((() -> Unit) -> Unit)? = null,
@@ -3741,6 +3786,11 @@ private suspend fun RememberStateFlowScope.create(
                     translator = this@create,
                     data = cardNumber,
                     format = BarcodeImageFormat.QR_CODE,
+                    historyKey = createBarcodeTypeHistoryKey(
+                        cryptoGenerator = cryptoGenerator,
+                        cipherLocalId = cipherLocalId,
+                        value = cardNumber,
+                    ),
                     navigate = ::navigate,
                 )?.verify(verify)
                 this += createShareAction(

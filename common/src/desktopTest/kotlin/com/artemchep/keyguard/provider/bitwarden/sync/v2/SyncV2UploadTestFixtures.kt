@@ -35,6 +35,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
+import com.artemchep.keyguard.data.BarcodeUsageHistory
 import com.artemchep.keyguard.data.CipherFilter
 import com.artemchep.keyguard.data.CipherUsageHistory
 import com.artemchep.keyguard.data.Database
@@ -1177,6 +1178,7 @@ internal fun createUploadTestDatabase(
     val json = UploadTestServer.json
     return Database(
         driver = driver,
+        barcodeUsageHistoryAdapter = BarcodeUsageHistory.Adapter(InstantToLongAdapter),
         cipherUsageHistoryAdapter = CipherUsageHistory.Adapter(InstantToLongAdapter),
         sshUsageHistoryAdapter = SshUsageHistory.Adapter(
             requestAdapter = SshUsageHistoryRequestTypeToLongAdapter,

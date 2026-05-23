@@ -23,6 +23,12 @@ internal fun DisposableScope.autoTypeOrThrow(
     }
 }
 
+internal fun getSystemAccentColorOrDefault(
+    lib: DesktopLibJna,
+): Int = runCatching {
+    lib.getSystemAccentColor()
+}.getOrDefault(0)
+
 internal fun DisposableScope.keychainAddPasswordOrThrow(
     lib: DesktopLibJna,
     id: String,

@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 typedef void (*kg_biometrics_callback_t)(bool success, const char *error);
 typedef void (*kg_hotkey_callback_t)(int32_t hotkey_id);
@@ -44,6 +45,54 @@ static NSString *kg_string_from_utf8(const char *value) {
     }
 
     return [NSString stringWithUTF8String:value];
+}
+
+static uint8_t kg_color_component_to_byte(CGFloat component) {
+    if (!isfinite(component) || component <= 0.0) {
+        return 0;
+    }
+    if (component >= 1.0) {
+        return 255;
+    }
+
+    return (uint8_t)(component * 255.0 + 0.5);
+}
+
+int32_t kg_get_system_accent_color(void) {
+    __block int32_t result = 0;
+    void (^block)(void) = ^{
+        if (![NSColor respondsToSelector:@selector(controlAccentColor)]) {
+            result = 0;
+            return;
+        }
+
+        NSColor *accentColor = [NSColor controlAccentColor];
+        NSColor *rgbColor = [accentColor colorUsingColorSpace:[NSColorSpace sRGBColorSpace]];
+        if (rgbColor == nil) {
+            result = 0;
+            return;
+        }
+
+        CGFloat red = 0.0;
+        CGFloat green = 0.0;
+        CGFloat blue = 0.0;
+        CGFloat alpha = 0.0;
+        [rgbColor getRed:&red green:&green blue:&blue alpha:&alpha];
+
+        uint32_t argb = 0xFF000000u;
+        argb |= ((uint32_t)kg_color_component_to_byte(red)) << 16;
+        argb |= ((uint32_t)kg_color_component_to_byte(green)) << 8;
+        argb |= (uint32_t)kg_color_component_to_byte(blue);
+        result = (int32_t)argb;
+    };
+
+    if ([NSThread isMainThread]) {
+        block();
+    } else {
+        dispatch_sync(dispatch_get_main_queue(), block);
+    }
+
+    return result;
 }
 
 static NSMutableDictionary<NSNumber *, KGHotKeyEntry *> *kg_hotkey_registry(void) {

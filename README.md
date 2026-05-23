@@ -30,6 +30,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - **multi-account support** 🌠 with secure login and two-factor authentication support;
 - add items 🌠 and sends _(Bitwarden, 🌠)_, modify 🌠, and view your vault **offline**;
 - upload attachments 🌠 to the vault;
+- view attachments in-app without saving them;
 - unlock vault with a password, biometrics or a YubiKey;
 - **export individual** or organization items, **including the attachments**; 
 - beautiful **Light**/**Dark theme**;

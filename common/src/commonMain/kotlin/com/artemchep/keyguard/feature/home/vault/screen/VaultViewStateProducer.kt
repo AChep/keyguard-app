@@ -50,7 +50,6 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.model.AccountId
@@ -158,6 +157,7 @@ import com.artemchep.keyguard.core.store.bitwarden.expired
 import com.artemchep.keyguard.core.store.bitwarden.message
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.attachments.util.createPendingAttachmentItem
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
@@ -167,7 +167,6 @@ import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
-import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
@@ -328,6 +327,7 @@ fun vaultViewScreenState(
         downloadAttachment = instance(),
         removeAttachment = instance(),
         canPreviewAttachment = instance(),
+        attachmentPreviewRouteFactory = instance(),
         passkeysCredentialViewRouteFactory = instance(),
         vaultViewRouteFactory = instance(),
         vaultRouteFactory = instance(),
@@ -429,6 +429,7 @@ fun vaultViewScreenState(
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
     canPreviewAttachment: CanPreviewAttachment,
+    attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
     passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
     vaultViewRouteFactory: VaultViewRouteFactory,
     vaultRouteFactory: VaultRouteFactory,
@@ -1246,6 +1247,7 @@ fun vaultViewScreenState(
                         downloadAttachment = downloadAttachment,
                         removeAttachment = removeAttachment,
                         canPreviewAttachment = canPreviewAttachment,
+                        attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
                         getPasskeys = getPasskeys,
                         getTwoFa = getTwoFa,
                         getTotpCode = getTotpCode,
@@ -1313,6 +1315,7 @@ private fun RememberStateFlowScope.oh(
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
     canPreviewAttachment: CanPreviewAttachment,
+    attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
     getPasskeys: GetPasskeys,
     getTwoFa: GetTwoFa,
     getTotpCode: GetTotpCode,
@@ -2508,7 +2511,7 @@ private fun RememberStateFlowScope.oh(
         )
         emit(note)
     }
-    if (cipher.attachments.isNotEmpty() && !CurrentPlatform.hasWatch()) {
+    if (cipher.attachments.isNotEmpty()) {
         val section = VaultViewItem.Section(
             id = "attachment",
             text = translate(Res.string.attachments),
@@ -2546,6 +2549,7 @@ private fun RememberStateFlowScope.oh(
                         launchViewCipherData = null,
                         downloadManager = downloadManager,
                         canPreviewAttachment = canPreviewAttachment,
+                        attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
                         downloadIo = downloadIo,
                         removeIo = removeIo,
                         verify = verify,

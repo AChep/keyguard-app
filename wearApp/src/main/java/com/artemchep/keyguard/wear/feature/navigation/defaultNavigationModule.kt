@@ -3,6 +3,7 @@ package com.artemchep.keyguard.wear.feature.navigation
 import com.artemchep.keyguard.feature.auth.AccountViewRouteFactory
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRouteFactory
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
 import com.artemchep.keyguard.feature.changepassword.ChangePasswordRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.datasafety.DataSafetyRouteFactory
@@ -37,6 +38,9 @@ fun wearNavigationModule() = DI.Module(
     }
     bindProvider<BitwardenLoginTwofaRouteFactory> {
         BitwardenLoginTwofaRouteFactoryWear
+    }
+    bindProvider<AttachmentPreviewRouteFactory> {
+        AttachmentPreviewRouteFactoryWear
     }
     bindProvider<AboutTeamRouteFactory> {
         AboutTeamRouteFactoryWear

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.attachmentpreview
 
+import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.AttachmentPreviewKind
 import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.AttachmentPreviewPolicy
@@ -8,6 +9,7 @@ import com.artemchep.keyguard.common.model.attachmentPreviewKindByFileName
 import com.artemchep.keyguard.common.model.isAttachmentPreviewSupported
 import com.artemchep.keyguard.common.model.isMarkdownAttachmentPreview
 import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
+import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.platform.Platform
 import dev.snipme.highlights.model.SyntaxLanguage
 import kotlin.test.Test
@@ -157,26 +159,69 @@ class AttachmentPreviewTypesTest {
     }
 
     @Test
-    fun `route is created for remote previewable attachments on android and desktop`() {
+    fun `route is created for remote previewable attachments on android wear and desktop`() {
         val attachment = remoteAttachment(fileName = "diagram.png")
 
-        val androidRoute = assertNotNull(
-            createAttachmentPreviewRouteOrNull(
-                localCipherId = "local-cipher",
-                remoteCipherId = "remote-cipher",
-                attachment = attachment,
-                canPreviewAttachment = CanPreviewAttachmentImpl(
-                    platform = Platform.Mobile.Android(
-                        isChromebook = false,
-                        isWatch = false,
-                        sdk = 35,
+        val androidRoute = assertIs<AttachmentPreviewRoute>(
+            assertNotNull(
+                createAttachmentPreviewRouteOrNull(
+                    localCipherId = "local-cipher",
+                    remoteCipherId = "remote-cipher",
+                    attachment = attachment,
+                    canPreviewAttachment = CanPreviewAttachmentImpl(
+                        platform = Platform.Mobile.Android(
+                            isChromebook = false,
+                            isWatch = false,
+                            sdk = 35,
+                        ),
                     ),
+                    attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
                 ),
             ),
         )
         assertEquals(1L, androidRoute.args.encryptedSize)
 
-        val desktopRoute = assertNotNull(
+        val wearRoute = assertIs<AttachmentPreviewRoute>(
+            assertNotNull(
+                createAttachmentPreviewRouteOrNull(
+                    localCipherId = "local-cipher",
+                    remoteCipherId = "remote-cipher",
+                    attachment = attachment,
+                    canPreviewAttachment = CanPreviewAttachmentImpl(
+                        platform = Platform.Mobile.Android(
+                            isChromebook = false,
+                            isWatch = true,
+                            sdk = 35,
+                        ),
+                    ),
+                    attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
+                ),
+            ),
+        )
+        assertEquals(1L, wearRoute.args.encryptedSize)
+
+        val desktopRoute = assertIs<AttachmentPreviewRoute>(
+            assertNotNull(
+                createAttachmentPreviewRouteOrNull(
+                    localCipherId = "local-cipher",
+                    remoteCipherId = "remote-cipher",
+                    attachment = attachment,
+                    canPreviewAttachment = CanPreviewAttachmentImpl(
+                        platform = Platform.Desktop.MacOS,
+                    ),
+                    attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
+                ),
+            ),
+        )
+        assertEquals(1L, desktopRoute.args.encryptedSize)
+    }
+
+    @Test
+    fun `route is created by supplied factory`() {
+        val attachment = remoteAttachment(fileName = "diagram.png")
+        val factory = TestAttachmentPreviewRouteFactory()
+
+        val route = assertIs<TestAttachmentPreviewRoute>(
             createAttachmentPreviewRouteOrNull(
                 localCipherId = "local-cipher",
                 remoteCipherId = "remote-cipher",
@@ -184,9 +229,13 @@ class AttachmentPreviewTypesTest {
                 canPreviewAttachment = CanPreviewAttachmentImpl(
                     platform = Platform.Desktop.MacOS,
                 ),
+                attachmentPreviewRouteFactory = factory,
             ),
         )
-        assertEquals(1L, desktopRoute.args.encryptedSize)
+
+        assertEquals(factory.args, route.args)
+        assertEquals("attachment", route.args.attachmentId)
+        assertEquals("diagram.png", route.args.fileName)
     }
 
     @Test
@@ -203,6 +252,7 @@ class AttachmentPreviewTypesTest {
                 canPreviewAttachment = CanPreviewAttachmentImpl(
                     platform = Platform.Desktop.MacOS,
                 ),
+                attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
         )
         assertNull(
@@ -213,6 +263,7 @@ class AttachmentPreviewTypesTest {
                 canPreviewAttachment = CanPreviewAttachmentImpl(
                     platform = Platform.Desktop.MacOS,
                 ),
+                attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
         )
         assertNull(
@@ -223,6 +274,7 @@ class AttachmentPreviewTypesTest {
                 canPreviewAttachment = CanPreviewAttachmentImpl(
                     platform = Platform.Mobile.Ios,
                 ),
+                attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
         )
         assertNull(
@@ -236,6 +288,7 @@ class AttachmentPreviewTypesTest {
                 canPreviewAttachment = CanPreviewAttachmentImpl(
                     platform = Platform.Desktop.MacOS,
                 ),
+                attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
         )
     }
@@ -319,5 +372,25 @@ class AttachmentPreviewTypesTest {
     private fun String.previewMaxLineLength(): Int {
         val lineIndex = AttachmentPreviewLineIndex.of(this)
         return lineIndex.maxLineLength
+    }
+}
+
+private class TestAttachmentPreviewRouteFactory : AttachmentPreviewRouteFactory {
+    lateinit var args: AttachmentPreviewRoute.Args
+
+    override fun create(
+        args: AttachmentPreviewRoute.Args,
+    ): Route {
+        this.args = args
+        return TestAttachmentPreviewRoute(args)
+    }
+}
+
+private data class TestAttachmentPreviewRoute(
+    val args: AttachmentPreviewRoute.Args,
+) : Route {
+    @Composable
+    override fun Content() {
+        // Do nothing.
     }
 }

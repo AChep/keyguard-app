@@ -15,10 +15,12 @@ import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.attachments.foo
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
 import com.artemchep.keyguard.feature.attachmentpreview.createAttachmentPreviewRouteOrNull
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRouteFactory
 import com.artemchep.keyguard.feature.home.vault.screen.verify
+import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.ui.selection.SelectionHandle
 import kotlinx.coroutines.CoroutineScope
@@ -36,6 +38,7 @@ suspend fun RememberStateFlowScope.createAttachmentItem(
     launchViewCipherData: LaunchViewCipherData?,
     downloadManager: DownloadManager,
     canPreviewAttachment: CanPreviewAttachment,
+    attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
     downloadIo: IO<Unit>,
     removeIo: IO<Unit>,
     verify: ((() -> Unit) -> Unit)? = null,
@@ -57,6 +60,30 @@ suspend fun RememberStateFlowScope.createAttachmentItem(
             scope = sharingScope,
             started = SharingStarted.WhileSubscribed(1000L),
         )
+    val previewRoute = createAttachmentPreviewRouteOrNull(
+        localCipherId = tag.localCipherId,
+        remoteCipherId = tag.remoteCipherId,
+        attachment = attachment,
+        canPreviewAttachment = canPreviewAttachment,
+        attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
+    )
+    val preview = previewRoute?.let { route ->
+        AttachmentItem.Preview(
+            onClick = {
+                val action = {
+                    val intent = NavigationIntent.NavigateToRoute(
+                        route = route,
+                    )
+                    navigate(intent)
+                }
+                if (verify != null) {
+                    verify(action)
+                } else {
+                    action()
+                }
+            },
+        )
+    }
     val actionsState = downloadStatusState
         .map { attachmentStatus ->
             FooStatus.of(
@@ -70,12 +97,7 @@ suspend fun RememberStateFlowScope.createAttachmentItem(
                 vaultViewRouteFactory = vaultViewRouteFactory,
                 fileName = fileName,
                 launchViewCipherData = launchViewCipherData,
-                previewRoute = createAttachmentPreviewRouteOrNull(
-                    localCipherId = tag.localCipherId,
-                    remoteCipherId = tag.remoteCipherId,
-                    attachment = attachment,
-                    canPreviewAttachment = canPreviewAttachment,
-                ),
+                previewRoute = previewRoute,
                 status = actionsStatus,
                 downloadIo = downloadIo,
                 removeIo = removeIo,
@@ -129,5 +151,6 @@ suspend fun RememberStateFlowScope.createAttachmentItem(
         statusState = downloadStatusState,
         actionsState = actionsState,
         selectableState = selectableState,
+        preview = preview,
     )
 }

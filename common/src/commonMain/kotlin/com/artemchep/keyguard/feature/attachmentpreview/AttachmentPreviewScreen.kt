@@ -695,7 +695,7 @@ private fun AttachmentPreviewErrorPane(
 }
 
 @Composable
-private fun AttachmentPreviewError.message(): String = when (this) {
+fun AttachmentPreviewError.message(): String = when (this) {
     AttachmentPreviewError.UnsupportedFileType ->
         stringResource(Res.string.attachment_preview_error_unsupported_file)
 

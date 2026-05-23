@@ -36,7 +36,7 @@ import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
-import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRoute
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
@@ -51,6 +51,7 @@ import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -104,6 +105,7 @@ fun produceAttachmentsScreenState() = with(localDI().direct) {
         downloadAttachment = instance(),
         removeAttachment = instance(),
         canPreviewAttachment = instance(),
+        attachmentPreviewRouteFactory = instance(),
         vaultViewRouteFactory = instance(),
     )
 }
@@ -141,6 +143,7 @@ fun produceAttachmentsScreenState(
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
     canPreviewAttachment: CanPreviewAttachment,
+    attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
     vaultViewRouteFactory: VaultViewRouteFactory,
 ): Loadable<AttachmentsState> = produceScreenState(
     key = "attachments",
@@ -239,6 +242,7 @@ fun produceAttachmentsScreenState(
                                         ),
                                         downloadManager = downloadManager,
                                         canPreviewAttachment = canPreviewAttachment,
+                                        attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
                                         downloadIo = downloadIo,
                                         removeIo = removeIo,
                                     )
@@ -575,7 +579,7 @@ fun foo(
     fileName: String,
     status: FooStatus,
     launchViewCipherData: LaunchViewCipherData?,
-    previewRoute: AttachmentPreviewRoute? = null,
+    previewRoute: Route? = null,
     downloadIo: IO<Unit>,
     removeIo: IO<Unit>,
     navigate: (NavigationIntent) -> Unit,

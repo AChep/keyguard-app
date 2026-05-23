@@ -191,6 +191,9 @@
     <string name="passkey_user_display_name">显示名称</string>
     <string name="ignored_alerts">忽略提醒</string>
     <string name="api_key">API 密钥</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">域名</string>
     <string name="add_to_home_screen">添加到主屏幕</string>
     <string name="edit">编辑</string>

@@ -191,6 +191,9 @@
     <string name="passkey_user_display_name">Nom d'affichage</string>
     <string name="ignored_alerts">Alertes ignorées</string>
     <string name="api_key">Clé d'API</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">Domaine</string>
     <string name="add_to_home_screen">Ajouter à l'écran d'accueil</string>
     <string name="edit">Modifier</string>

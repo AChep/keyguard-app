@@ -191,6 +191,9 @@
     <string name="passkey_user_display_name">Weergavenaam</string>
     <string name="ignored_alerts">Genegeerde waarschuwingen</string>
     <string name="api_key">API sleutel</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">Domein</string>
     <string name="add_to_home_screen">Toevoegen aan startscherm</string>
     <string name="edit">Bewerken</string>

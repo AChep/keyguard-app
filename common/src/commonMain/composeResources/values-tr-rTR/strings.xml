@@ -191,6 +191,9 @@
     <string name="passkey_user_display_name">Görünen ad</string>
     <string name="ignored_alerts">Yok sayılan uyarılar</string>
     <string name="api_key">API anahtarı</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">Alan adı</string>
     <string name="add_to_home_screen">Ana ekrana ekle</string>
     <string name="edit">Düzenle</string>

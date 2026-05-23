@@ -191,6 +191,9 @@
     <string name="passkey_user_display_name">표시할 이름</string>
     <string name="ignored_alerts">무시한 경고</string>
     <string name="api_key">API 키</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">도메인</string>
     <string name="add_to_home_screen">홈 화면에 추가</string>
     <string name="edit">편집</string>

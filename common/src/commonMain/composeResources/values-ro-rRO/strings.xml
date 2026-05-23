@@ -191,6 +191,9 @@
     <string name="passkey_user_display_name">Nume afișat</string>
     <string name="ignored_alerts">Alerte ignorate</string>
     <string name="api_key">Cheie API</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">Domeniu</string>
     <string name="add_to_home_screen">Adaugă pe ecranul de pornire</string>
     <string name="edit">Editează</string>

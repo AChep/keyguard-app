@@ -191,6 +191,9 @@
     <string name="passkey_user_display_name">اسم العرض</string>
     <string name="ignored_alerts">التنبيهات التي تم تجاهلها</string>
     <string name="api_key">مفتاح واجهة برمجة التطبيقات</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">اِختِصاص</string>
     <string name="add_to_home_screen">أضف إلى الشاشة الرئيسية</string>
     <string name="edit">يحرر</string>

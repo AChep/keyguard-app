@@ -72,8 +72,9 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPreviewCodeMinimap
 import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPreviewMinimapMaxRowPitch
+import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPreviewMinimapMaxWidth
+import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPreviewMinimapMinWidth
 import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPreviewMinimapVisibleMinWidth
-import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPreviewMinimapWidth
 import com.artemchep.keyguard.feature.attachmentpreview.minimap.attachmentPreviewMinimapPanelHeightPx
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -84,6 +85,7 @@ import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.Placeholder
 import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.scaffoldContentWindowInsets
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.tabs.SegmentedButtonGroup
 import com.artemchep.keyguard.ui.tabs.TabItem
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -426,7 +428,10 @@ private fun AttachmentPreviewCodeViewer(
 
         val showMinimap = maxWidth >= AttachmentPreviewMinimapVisibleMinWidth &&
                 lineIndex.size > 1
-        val minimapWidth = if (showMinimap) AttachmentPreviewMinimapWidth else 0.dp
+        val minimapWidth = if (showMinimap) {
+            val w = maxWidth / 8
+            w.coerceIn(AttachmentPreviewMinimapMinWidth..AttachmentPreviewMinimapMaxWidth)
+        } else 0.dp
         val minimapHeight = remember(
             density,
             lineIndex.size,
@@ -469,18 +474,19 @@ private fun AttachmentPreviewCodeViewer(
         }
 
         if (showMinimap && minimapHeight > 0.dp) {
-            val containerColor = MaterialTheme.colorScheme.surface
+            val containerColor = LocalSurfaceColor.current
             AttachmentPreviewCodeMinimap(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .width(minimapWidth)
                     .hazeEffect(state = hazeState) {
                         blurEffect {
-                            blurRadius = 16.dp
+                            blurRadius = 24.dp
                             backgroundColor = containerColor
                         }
                     }
-                    .height(minimapHeight),
+                    .height(minimapHeight)
+                    .padding(vertical = 8.dp),
                 lineIndex = lineIndex,
                 listState = verticalScrollState,
             )

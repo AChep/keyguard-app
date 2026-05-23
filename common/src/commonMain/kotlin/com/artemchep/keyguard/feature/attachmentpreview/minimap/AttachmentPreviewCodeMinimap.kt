@@ -271,8 +271,9 @@ private fun LazyListState.attachmentPreviewMinimapViewport(
     )
 }
 
-internal val AttachmentPreviewMinimapVisibleMinWidth = 600.dp
-internal val AttachmentPreviewMinimapWidth = 96.dp
+internal val AttachmentPreviewMinimapVisibleMinWidth = 360.dp
+internal val AttachmentPreviewMinimapMinWidth = 48.dp
+internal val AttachmentPreviewMinimapMaxWidth = 112.dp
 internal val AttachmentPreviewMinimapMaxRowPitch = 4.dp
 
 private val AttachmentPreviewMinimapMinRowHeight = 2.dp

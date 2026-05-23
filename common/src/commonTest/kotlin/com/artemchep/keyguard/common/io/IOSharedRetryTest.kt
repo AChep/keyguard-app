@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.common.io
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.test.runTest
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.Test
@@ -146,6 +148,48 @@ class IOSharedRetryTest {
         val secondResults = secondWave.awaitAll()
         assertTrue(secondResults.all { it.isSuccess })
         assertEquals(List(5) { 4 }, secondResults.map { it.getOrThrow() })
+        assertEquals(2, invocations.get())
+    }
+
+    @Test
+    fun `shared producer survives caller cancellation`() = runTest {
+        val invocations = AtomicInteger(0)
+        val started = CompletableDeferred<Unit>()
+        val gate = CompletableDeferred<Unit>()
+
+        val shared = ioEffect {
+            invocations.incrementAndGet()
+            started.complete(Unit)
+            gate.await()
+            5
+        }.shared(tag = "IOSharedRetryTest-caller-cancellation")
+
+        val waiter = async {
+            shared.bind()
+        }
+        started.await()
+        waiter.cancelAndJoin()
+
+        gate.complete(Unit)
+
+        assertEquals(5, shared.bind())
+        assertEquals(1, invocations.get())
+    }
+
+    @Test
+    fun `shared clears future after producer cancellation`() = runTest {
+        val invocations = AtomicInteger(0)
+        val shared = ioEffect<Int> {
+            invocations.incrementAndGet()
+            throw CancellationException("cancelled")
+        }.shared(tag = "IOSharedRetryTest-producer-cancellation")
+
+        repeat(2) {
+            assertFailsWith<CancellationException> {
+                shared.bind()
+            }
+        }
+
         assertEquals(2, invocations.get())
     }
 }

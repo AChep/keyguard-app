@@ -1,7 +1,11 @@
 package com.artemchep.keyguard.common.io
 
 import arrow.core.Either
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.sync.Mutex
@@ -33,6 +37,7 @@ fun <T> IO<T>.sharedSoftRef(
     },
 )
 
+@OptIn(DelicateCoroutinesApi::class)
 private fun <T> IO<T>.sharedRef(
     tag: String,
     ifFailedRetryOnNextBind: Boolean = false,
@@ -41,50 +46,66 @@ private fun <T> IO<T>.sharedRef(
     val mutex = Mutex()
     var result: Ref<Either<Throwable, T>>? = null
     var future: Deferred<Either<Throwable, T>>? = null
-    return ioEffect {
-        when (val r = result?.get()) {
-            is Either.Left -> {
-                if (!ifFailedRetryOnNextBind) {
-                    return@ioEffect r
+
+    suspend fun getOrStart(): Deferred<Either<Throwable, T>> =
+        mutex.withLock {
+            when (val r = result?.get()) {
+                is Either.Left -> {
+                    if (!ifFailedRetryOnNextBind) {
+                        return@withLock CompletableDeferred(r)
+                    }
+
+                    result = null
+                }
+
+                is Either.Right -> {
+                    return@withLock CompletableDeferred(r)
+                }
+
+                null -> {
+                    if (result != null) {
+                        result = null
+                    }
                 }
             }
 
-            is Either.Right -> {
-                return@ioEffect r
-            }
+            future ?: run {
+                var created: Deferred<Either<Throwable, T>>? = null
+                val deferred = GlobalScope
+                    .async(
+                        context = CoroutineName("IO.shared($tag)"),
+                        start = CoroutineStart.LAZY,
+                    ) {
+                        try {
+                            val value = attempt().bind()
+                            // Save the result.
+                            mutex.withLock {
+                                if (future === created) {
+                                    result = wrap(value)
+                                    future = null
+                                }
+                            }
 
-            null -> {
-                // Do nothing.
+                            value
+                        } catch (e: Throwable) {
+                            mutex.withLock {
+                                if (future === created) {
+                                    future = null
+                                }
+                            }
+
+                            throw e
+                        }
+                    }
+                created = deferred
+                future = deferred
+                deferred.start()
+                deferred
             }
         }
 
-        val prevResultRef = result
-        mutex.withLock {
-            // Reset the value, so next time we try to fetch it.
-            if (prevResultRef === result && result != null) {
-                result = null
-                future = null
-            }
-
-            // Start retrieving the value of the original
-            // io, that will be shared across all IOs.
-            future ?: GlobalScope
-                .async {
-                    val value = attempt().bind()
-                    // Save the result
-                    result = wrap(value)
-                    future = null
-
-                    value
-                }
-                .also {
-                    // Theoretically it may NOT happen if the `async`
-                    // completes before `also`.
-                    if (result == null) {
-                        future = it
-                    }
-                }
-        }.await()
+    return ioEffect {
+        getOrStart().await()
     }.flattenMap()
 }
 

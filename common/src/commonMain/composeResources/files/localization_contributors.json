@@ -121,8 +121,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 31257,
-    "target": 32139,
+    "translated": 31292,
+    "target": 32174,
     "approved": 1050,
     "voted": 0,
     "positiveVotes": 63,
@@ -187,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 1664,
-    "target": 1865,
+    "translated": 1723,
+    "target": 1937,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -1083,8 +1083,8 @@
         "name": "Italian"
       }
     ],
-    "translated": 1201,
-    "target": 1281,
+    "translated": 1214,
+    "target": 1293,
     "approved": 0,
     "voted": 1,
     "positiveVotes": 3,
@@ -1443,7 +1443,7 @@
     "target": 873,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 0,
+    "positiveVotes": 1,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1971,8 +1971,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 7156,
-    "target": 7944,
+    "translated": 7215,
+    "target": 8015,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

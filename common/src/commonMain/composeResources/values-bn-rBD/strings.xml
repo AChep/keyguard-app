@@ -191,6 +191,9 @@
     <string name="passkey_user_display_name">প্রদর্শিত নাম</string>
     <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API চাবি</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">ডোমেইন</string>
     <string name="add_to_home_screen">হোমস্ক্রিনে যুক্ত করুন</string>
     <string name="edit">সম্পাদন</string>

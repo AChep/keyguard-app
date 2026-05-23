@@ -38,6 +38,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -50,11 +51,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -101,6 +105,7 @@ import dev.chrisbanes.haze.materials.HazeMaterials
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.max
 
 @Composable
 fun AttachmentPreviewScreen(
@@ -265,21 +270,47 @@ private fun AttachmentPreviewImage(
 
     var scale by remember(bytes) { mutableFloatStateOf(1f) }
     var offset by remember(bytes) { mutableStateOf(Offset.Zero) }
+    var viewportSize by remember(bytes) { mutableStateOf(Size.Zero) }
+    var imageSize by remember(bytes) { mutableStateOf(Size.Zero) }
+
+    LaunchedEffect(scale, viewportSize, imageSize) {
+        val clampedOffset = clampAttachmentPreviewImageOffset(
+            offset = offset,
+            viewportSize = viewportSize,
+            imageSize = imageSize,
+            scale = scale,
+        )
+        if (offset != clampedOffset) {
+            offset = clampedOffset
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding)
             .clipToBounds()
-            .pointerInput(bytes) {
+            .onSizeChanged {
+                viewportSize = Size(
+                    width = it.width.toFloat(),
+                    height = it.height.toFloat(),
+                )
+            }
+            .pointerInput(bytes, viewportSize, imageSize) {
                 detectTransformGestures { _, pan, zoom, _ ->
                     val newScale = (scale * zoom).coerceIn(1f, 5f)
                     scale = newScale
-                    offset = if (newScale == 1f) {
+                    val newOffset = if (newScale == 1f) {
                         Offset.Zero
                     } else {
                         offset + pan
                     }
+                    offset = clampAttachmentPreviewImageOffset(
+                        offset = newOffset,
+                        viewportSize = viewportSize,
+                        imageSize = imageSize,
+                        scale = newScale,
+                    )
                 }
             },
         contentAlignment = Alignment.Center,
@@ -296,6 +327,17 @@ private fun AttachmentPreviewImage(
             model = model,
             contentDescription = fileName,
             contentScale = ContentScale.Fit,
+            onSuccess = { state ->
+                val image = state.result.image
+                imageSize = if (image.width > 0 && image.height > 0) {
+                    Size(
+                        width = image.width.toFloat(),
+                        height = image.height.toFloat(),
+                    )
+                } else {
+                    Size.Zero
+                }
+            },
             loading = {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -316,6 +358,74 @@ private fun AttachmentPreviewImage(
         )
     }
 }
+
+internal fun clampAttachmentPreviewImageOffset(
+    offset: Offset,
+    viewportSize: Size,
+    imageSize: Size,
+    scale: Float,
+): Offset {
+    if (scale <= 1f) {
+        return Offset.Zero
+    }
+
+    val bounds = attachmentPreviewImageOffsetBounds(
+        viewportSize = viewportSize,
+        imageSize = imageSize,
+        scale = scale,
+    )
+    return Offset(
+        x = offset.x.coerceInBounds(bounds.x),
+        y = offset.y.coerceInBounds(bounds.y),
+    )
+}
+
+internal fun attachmentPreviewImageOffsetBounds(
+    viewportSize: Size,
+    imageSize: Size,
+    scale: Float,
+): Offset {
+    if (!viewportSize.isUsable() || !imageSize.isUsable()) {
+        return Offset.Zero
+    }
+
+    val fittedSize = attachmentPreviewImageFittedSize(
+        viewportSize = viewportSize,
+        imageSize = imageSize,
+    )
+    return Offset(
+        x = max(0f, (fittedSize.width * scale - viewportSize.width) / 2f),
+        y = max(0f, (fittedSize.height * scale - viewportSize.height) / 2f),
+    )
+}
+
+internal fun attachmentPreviewImageFittedSize(
+    viewportSize: Size,
+    imageSize: Size,
+): Size {
+    if (!viewportSize.isUsable() || !imageSize.isUsable()) {
+        return Size.Zero
+    }
+
+    val scaleFactor = ContentScale.Fit.computeScaleFactor(
+        srcSize = imageSize,
+        dstSize = viewportSize,
+    )
+    return Size(
+        width = imageSize.width * scaleFactor.scaleX,
+        height = imageSize.height * scaleFactor.scaleY,
+    )
+}
+
+private fun Size.isUsable(): Boolean =
+    isSpecified && width > 0f && height > 0f
+
+private fun Float.coerceInBounds(bound: Float): Float =
+    if (bound <= 0f) {
+        0f
+    } else {
+        coerceIn(-bound, bound)
+    }
 
 @Composable
 private fun AttachmentPreviewText(

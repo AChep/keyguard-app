@@ -41,6 +41,7 @@ import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DefaultProgressBar
+import com.artemchep.keyguard.ui.RequestLazyListScrollOnRevision
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -55,9 +56,7 @@ import com.artemchep.keyguard.ui.toolbar.content.CustomToolbarContent
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.withIndex
 
 @Composable
 fun TwoFaServiceListScreen(
@@ -90,20 +89,10 @@ fun TwoFaServiceListScreen(
         )
     }
 
-    LaunchedEffect(listRevision) {
-        // TODO: How do you wait till the layout state start to represent
-        //  the actual data?
-        val listSize =
-            loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.items?.size
-        snapshotFlow { listState.layoutInfo.totalItemsCount }
-            .withIndex()
-            .filter {
-                it.index > 0 || it.value == listSize
-            }
-            .first()
-
-        listState.scrollToItem(0, 0)
-    }
+    RequestLazyListScrollOnRevision(
+        listState = listState,
+        revision = listRevision,
+    )
 
     val focusRequester = remember { FocusRequester2() }
     // Auto focus the text field

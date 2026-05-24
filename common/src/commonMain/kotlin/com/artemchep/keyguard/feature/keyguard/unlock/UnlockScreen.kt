@@ -35,9 +35,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.autofill.contentType
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.fold
-import com.artemchep.keyguard.feature.auth.common.autofill
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -129,7 +128,7 @@ private fun UnlockScreenSkeleton() {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun UnlockScreen(
     unlockState: UnlockState,
@@ -192,13 +191,7 @@ private fun UnlockScreen(
                     modifier = Modifier,
                     fieldModifier = Modifier
                         .focusRequester2(focusRequester)
-                        .autofill(
-                            value = unlockState.password.state.value,
-                            autofillTypes = listOf(
-                                AutofillType.Password,
-                            ),
-                            onFill = unlockState.password.onChange,
-                        ),
+                        .contentType(ContentType.Password),
                     testTag = "field:password",
                     value = unlockState.password,
                     keyboardOptions = KeyboardOptions(

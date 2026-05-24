@@ -17,7 +17,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,7 +38,6 @@ import com.artemchep.keyguard.res.unlock_button_unlock
 import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
 import androidx.wear.compose.material3.lazy.transformedHeight
 import com.artemchep.keyguard.common.model.fold
-import com.artemchep.keyguard.feature.auth.common.autofill
 import com.artemchep.keyguard.feature.changepassword.ChangePasswordState
 import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockScreenTheVaultIsLockedTitle

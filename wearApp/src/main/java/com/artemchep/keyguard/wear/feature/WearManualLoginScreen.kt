@@ -26,7 +26,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.autofill.contentType
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -50,7 +51,6 @@ import com.artemchep.keyguard.feature.auth.bitwarden.LoginState
 import com.artemchep.keyguard.feature.auth.bitwarden.LoginStateItem
 import com.artemchep.keyguard.feature.auth.bitwarden.produceBitwardenLoginScreenState
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRoute
-import com.artemchep.keyguard.feature.auth.common.autofill
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -273,13 +273,7 @@ private fun TransformingLazyColumnScope.WearBitwardenLoginContent(
                 .surfaceTransformation(surfaceTransformation)
                 .focusRequester(focusRequester),
             fieldModifier = Modifier
-                .autofill(
-                    value = loginState.email.state.value,
-                    autofillTypes = listOf(
-                        AutofillType.EmailAddress,
-                    ),
-                    onFill = loginState.email.onChange,
-                ),
+                .contentType(ContentType.EmailAddress),
             value = loginState.email,
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Next,
@@ -299,13 +293,7 @@ private fun TransformingLazyColumnScope.WearBitwardenLoginContent(
                 .transformedHeight(this, transformationSpec)
                 .surfaceTransformation(surfaceTransformation),
             fieldModifier = Modifier
-                .autofill(
-                    value = loginState.password.state.value,
-                    autofillTypes = listOf(
-                        AutofillType.Password,
-                    ),
-                    onFill = loginState.password.onChange,
-                ),
+                .contentType(ContentType.Password),
             value = loginState.password,
             keyboardOptions = KeyboardOptions(
                 imeAction = when {

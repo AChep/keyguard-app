@@ -225,7 +225,13 @@ class PasskeyCreateRequest(
                     put("authenticatorData", authData)
                 },
             )
-            put("clientExtensionResults", buildJsonObject { })
+            put("clientExtensionResults", buildJsonObject {
+                if (data.extensions?.prf != null) {
+                    put("prf", buildJsonObject {
+                        put("enabled", true)
+                    })
+                }
+            })
         }
         val registrationResponseJson = json.encodeToString(registrationResponse)
         return CreatePublicKeyCredentialResponse(registrationResponseJson) to local

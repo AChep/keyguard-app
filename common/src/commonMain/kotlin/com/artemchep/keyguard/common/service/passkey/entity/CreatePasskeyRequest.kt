@@ -85,6 +85,23 @@ data class CreatePasskeyAuthenticatorSelection(
     val userVerification: String? = null,
 )
 
+// https://www.w3.org/TR/webauthn-3/#prf-extension
+@Serializable
+data class CreatePasskeyPrfEvalInput(
+    val first: String,
+    val second: String? = null,
+)
+
+@Serializable
+data class CreatePasskeyPrfExtension(
+    val eval: CreatePasskeyPrfEvalInput? = null,
+)
+
+@Serializable
+data class CreatePasskeyExtensions(
+    val prf: CreatePasskeyPrfExtension? = null,
+)
+
 /*
  * {
  * "attestation":"none",
@@ -138,4 +155,5 @@ data class CreatePasskey(
      * to a prompt for registration before an error is returned.
      */
     val timeout: Double? = null,
+    val extensions: CreatePasskeyExtensions? = null,
 )

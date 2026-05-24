@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.buildJsonObject
@@ -68,9 +69,9 @@ class PasskeyProviderGetRequest(
         val credentialIdBytes = PasskeyCredentialId.encode(credential.credentialId)
 
         val factory: KeyFactory = KeyFactory.getInstance("EC")
+        val privateKeyBytes = base64Service.decode(credential.keyValue)
         val privateKey = run {
-            val privateKeyData = base64Service.decode(credential.keyValue)
-            val privateKeySpec = PKCS8EncodedKeySpec(privateKeyData)
+            val privateKeySpec = PKCS8EncodedKeySpec(privateKeyBytes)
             factory.generatePrivate(privateKeySpec)
         }
 
@@ -123,20 +124,78 @@ class PasskeyProviderGetRequest(
             put("signature", PasskeyBase64.encodeToString(signature))
             put("userHandle", credential.userHandle)
         }
+        val prfResults = resolvePrfEvalInput(opt.requestJson, credentialIdBytes)
+            ?.let { eval ->
+                buildJsonObject {
+                    val firstOutput = passkeyUtils.computePrf(
+                        privateKeyBytes = privateKeyBytes,
+                        prfInput = PasskeyBase64.decode(eval.first),
+                    )
+                    put("first", PasskeyBase64.encodeToString(firstOutput))
+                    eval.second?.let { secondBase64 ->
+                        val secondOutput = passkeyUtils.computePrf(
+                            privateKeyBytes = privateKeyBytes,
+                            prfInput = PasskeyBase64.decode(secondBase64),
+                        )
+                        put("second", PasskeyBase64.encodeToString(secondOutput))
+                    }
+                }
+            }
         val authenticationResponse = buildJsonObject {
             put("id", PasskeyBase64.encodeToString(credentialIdBytes))
             put("rawId", credentialIdBytes)
             put("type", "public-key")
             put("authenticatorAttachment", "cross-platform")
             put("response", r)
-            put("clientExtensionResults", buildJsonObject { })
+            put("clientExtensionResults", buildJsonObject {
+                if (prfResults != null) {
+                    put("prf", buildJsonObject {
+                        put("results", prfResults)
+                    })
+                }
+            })
         }
         val authenticationResponseJson = json.encodeToString(authenticationResponse)
         val passkeyCredential = PublicKeyCredential(authenticationResponseJson)
         return GetCredentialResponse(passkeyCredential)
     }
 
+    private fun resolvePrfEvalInput(
+        requestJson: String,
+        credentialIdBytes: ByteArray,
+    ): PrfEvalInput? {
+        val options = runCatching {
+            json.decodeFromString<GetCredentialRequestOptions>(requestJson)
+        }.getOrNull()
+        val prf = options?.extensions?.prf ?: return null
+        val credentialIdBase64 = PasskeyBase64.encodeToString(credentialIdBytes)
+        return prf.evalByCredential[credentialIdBase64] ?: prf.eval
+    }
+
     private fun JsonObjectBuilder.put(key: String, data: ByteArray) {
         put(key, PasskeyBase64.encodeToString(data))
     }
+
+    // https://www.w3.org/TR/webauthn-3/#prf-extension
+    @Serializable
+    private data class GetCredentialRequestOptions(
+        val extensions: GetCredentialExtensions? = null,
+    )
+
+    @Serializable
+    private data class GetCredentialExtensions(
+        val prf: GetCredentialPrfExtension? = null,
+    )
+
+    @Serializable
+    private data class GetCredentialPrfExtension(
+        val eval: PrfEvalInput? = null,
+        val evalByCredential: Map<String, PrfEvalInput> = emptyMap(),
+    )
+
+    @Serializable
+    private data class PrfEvalInput(
+        val first: String,
+        val second: String? = null,
+    )
 }

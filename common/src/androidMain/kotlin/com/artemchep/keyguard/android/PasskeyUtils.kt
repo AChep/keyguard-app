@@ -50,6 +50,10 @@ class PasskeyUtils(
          */
         private const val PASSKEY_PROCESSING_MIN_TIME_MS = 800L
 
+        // https://www.w3.org/TR/webauthn-3/#prf-extension
+        // "WebAuthn PRF" followed by a null byte, as required by the spec.
+        internal val PRF_LABEL = "WebAuthn PRF\u0000".toByteArray(Charsets.UTF_8)
+
         suspend fun <T> withProcessingMinTime(
             block: suspend () -> T,
         ): T = coroutineScope {
@@ -406,6 +410,18 @@ class PasskeyUtils(
 
     fun generateCredentialId() = cryptoService.uuid()
 
+    /**
+     * Computes the WebAuthn PRF output for the given private key bytes and PRF input.
+     *
+     * prfSalt   = SHA-256("WebAuthn PRF\x00" || prfInput)
+     * hmacKey   = HMAC-SHA-256(privateKeyBytes, "prf")
+     * prfOutput = HMAC-SHA-256(hmacKey, prfSalt)
+     */
+    fun computePrf(
+        privateKeyBytes: ByteArray,
+        prfInput: ByteArray,
+    ): ByteArray = computeWebAuthnPrf(cryptoService, privateKeyBytes, prfInput)
+
     // See:
     // https://github.com/1Password/passkey-rs/blob/90c1c282649eceeb7cbe771bb8ce17b1b8463c60/passkey-client/src/lib.rs#L407
     // https://github.com/kanidm/webauthn-rs/blame/25bc74ac0dc4280bf67ed3ff53fdf804dbb142c2/webauthn-rs-core/src/core.rs#L866
@@ -548,4 +564,27 @@ class PasskeyUtils(
             .bind()
         return appInfo.getOrigin(privilegedAllowlist)
     }
+}
+
+/**
+ * Standalone PRF computation, extracted for testability.
+ *
+ * prfSalt   = SHA-256("WebAuthn PRF\x00" || prfInput)
+ * hmacKey   = HMAC-SHA-256(privateKeyBytes, "prf")
+ * prfOutput = HMAC-SHA-256(hmacKey, prfSalt)
+ */
+internal fun computeWebAuthnPrf(
+    cryptoService: CryptoGenerator,
+    privateKeyBytes: ByteArray,
+    prfInput: ByteArray,
+): ByteArray {
+    val prfSalt = cryptoService.hashSha256(PasskeyUtils.PRF_LABEL + prfInput)
+    val hmacKey = cryptoService.hmacSha256(
+        key = privateKeyBytes,
+        data = "prf".toByteArray(Charsets.UTF_8),
+    )
+    return cryptoService.hmacSha256(
+        key = hmacKey,
+        data = prfSalt,
+    )
 }

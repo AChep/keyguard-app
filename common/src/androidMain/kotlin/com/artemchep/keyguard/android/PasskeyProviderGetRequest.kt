@@ -77,8 +77,10 @@ class PasskeyProviderGetRequest(
         val counter = kotlin.run {
             val tmp = credential.counter ?: 0
             if (tmp > 0) {
-                // TODO: When Bitwarden is ready, switch it to be a
-                //  UNIX timestamp.
+                // Modern Bitwarden seems to use 0 for passkeys without a signature
+                // counter. Non-zero counters are legacy; we preserve them but
+                // do not increment them because keeping counters monotonic
+                // across devices requires sync coordination.
                 tmp
             } else {
                 0

@@ -380,8 +380,8 @@ fun foldersScreenState(
                     )
                     if (selectedFolders.size > 1) {
                         val folderAccountId = selectedFolders.values.first().folder.accountId
-                        val singleAccount = selectedFolders
-                            .any { it.value.folder.accountId == folderAccountId }
+                        val singleAccount = selectedFolders.values
+                            .all { it.folder.accountId == folderAccountId }
                         if (singleAccount) {
                             val folderName =
                                 selectedFolders.values.maxBy { it.ciphers.size }.folder.name

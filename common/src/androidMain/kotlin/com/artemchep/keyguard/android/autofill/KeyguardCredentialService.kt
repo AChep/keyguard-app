@@ -81,7 +81,11 @@ open class KeyguardCredentialService : CredentialProviderService(), DIAware {
         cancellationSignal: CancellationSignal,
         callback: OutcomeReceiver<BeginCreateCredentialResponse, CreateCredentialException>,
     ) {
-        ioEffect {
+        if (cancellationSignal.isCanceled) {
+            return
+        }
+
+        val requestJob = ioEffect {
             recordLog("Got begin create credential request")
             val shouldSkip = shouldSkipCreateRequest(request)
             if (shouldSkip) {
@@ -94,17 +98,28 @@ open class KeyguardCredentialService : CredentialProviderService(), DIAware {
                     e.takeIf { it !is CreateCredentialException }
                 }
                 .bind()
+            if (cancellationSignal.isCanceled) {
+                return@ioEffect
+            }
+
             callback.onResult(response)
         }
             // Something went wrong, report back the
             // status to the credentials manager.
             .handleErrorTap {
+                if (cancellationSignal.isCanceled) {
+                    return@handleErrorTap
+                }
+
                 val e = it as? CreateCredentialException
                     ?: CreateCredentialUnknownException()
                 callback.onError(e)
             }
             .attempt()
             .launchIn(scope)
+        cancellationSignal.setOnCancelListener {
+            requestJob.cancel()
+        }
     }
 
     private suspend fun processCreateCredentialsRequest(
@@ -141,7 +156,11 @@ open class KeyguardCredentialService : CredentialProviderService(), DIAware {
         cancellationSignal: CancellationSignal,
         callback: OutcomeReceiver<BeginGetCredentialResponse, GetCredentialException>,
     ) {
-        ioEffect {
+        if (cancellationSignal.isCanceled) {
+            return
+        }
+
+        val requestJob = ioEffect {
             recordLog("Got begin get credential request")
             val shouldSkip = shouldSkipGetRequest(request)
             if (shouldSkip) {
@@ -156,17 +175,28 @@ open class KeyguardCredentialService : CredentialProviderService(), DIAware {
                     e.takeIf { it !is GetCredentialException }
                 }
                 .bind()
+            if (cancellationSignal.isCanceled) {
+                return@ioEffect
+            }
+
             callback.onResult(response)
         }
             // Something went wrong, report back the
             // status to the credentials manager.
             .handleErrorTap {
+                if (cancellationSignal.isCanceled) {
+                    return@handleErrorTap
+                }
+
                 val e = it as? GetCredentialException
                     ?: GetCredentialUnknownException()
                 callback.onError(e)
             }
             .attempt()
             .launchIn(scope)
+        cancellationSignal.setOnCancelListener {
+            requestJob.cancel()
+        }
     }
 
     private suspend fun shouldSkipCreateRequest(request: BeginCreateCredentialRequest): Boolean {

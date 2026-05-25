@@ -74,6 +74,8 @@ data class DSecret(
     companion object {
         private const val ignoreLength = 3
 
+        private val nameSeparatorRegex = "[\\.\\,\\[\\]\\!]".toRegex()
+
         private val ignoreWords = setOf(
             // popular domains
             "com",
@@ -139,7 +141,7 @@ data class DSecret(
     val tokens = kotlin.run {
         val out = mutableListOf<SearchToken>()
         // Split the name into tokens
-        name.lowercase().replace("[\\.\\,\\[\\]\\!]".toRegex(), " ")
+        name.lowercase().replace(nameSeparatorRegex, " ")
             .split(' ')
             .forEach {
                 if (it.length <= ignoreLength || it in ignoreWords) {

@@ -3,6 +3,7 @@ package com.artemchep.keyguard.copy.download
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import io.ktor.http.HttpStatusCode
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.ProducerScope
@@ -50,13 +51,13 @@ internal suspend fun ProducerScope<DownloadProgress>.downloadToFileJvm(
         dst.parentFile?.mkdirs()
 
         coroutineScope {
-            var totalBytesWritten = 0L
+            val totalBytesWritten = atomic(0L)
 
             val monitorJob = launch {
                 delay(DOWNLOAD_PROGRESS_POOLING_PERIOD_MS / 2)
                 while (isActive) {
                     val event = DownloadProgress.Loading(
-                        downloaded = totalBytesWritten,
+                        downloaded = totalBytesWritten.value,
                         total = srcContentLength,
                     )
                     trySend(event)
@@ -74,7 +75,7 @@ internal suspend fun ProducerScope<DownloadProgress>.downloadToFileJvm(
                             val bytes = inputStream.read(buffer)
                             if (bytes != -1) {
                                 outputStream.write(buffer, 0, bytes)
-                                totalBytesWritten += bytes
+                                totalBytesWritten.addAndGet(bytes.toLong())
                             } else {
                                 break
                             }

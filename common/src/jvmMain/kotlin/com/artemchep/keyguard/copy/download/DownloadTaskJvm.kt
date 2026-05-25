@@ -111,37 +111,28 @@ open class DownloadTaskJvm(
                     dst = cacheFile,
                 )
 
-                kotlin.runCatching {
-                    cacheFile.decryptAndMove(
-                        key = key,
-                        writer = writer,
-                    )
-                }.fold(
-                    onFailure = { e ->
-                        e.printStackTrace()
-                        DownloadProgress.Complete(e.left())
-                    },
-                    onSuccess = {
-                        val location = when (writer) {
-                            is DownloadWriter.LocalPathWriter -> writer.path.toJavaFile().toURI().toString()
-                            is DownloadWriter.SinkWriter -> null
-                        }
-                        DownloadProgress.Complete(location.right())
-                    },
+                cacheFile.decryptAndMove(
+                    key = key,
+                    writer = writer,
                 )
-            } catch (e: Exception) {
-                // Delete cache file in case of
-                // an error.
-                runCatching {
-                    cacheFile.delete()
-                }
 
+                val location = when (writer) {
+                    is DownloadWriter.LocalPathWriter -> writer.path.toJavaFile().toURI().toString()
+                    is DownloadWriter.SinkWriter -> null
+                }
+                DownloadProgress.Complete(location.right())
+            } catch (e: Exception) {
                 e.throwIfFatalOrCancellation()
+                e.printStackTrace()
 
                 val result = e.left()
                 DownloadProgress.Complete(
                     result = result,
                 )
+            } finally {
+                runCatching {
+                    cacheFile.delete()
+                }
             }
             send(result)
         }

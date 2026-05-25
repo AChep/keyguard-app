@@ -85,6 +85,9 @@ class TotpServiceImpl(
         timestamp: Instant,
         period: Long,
     ): Long {
+        require(period > 0L) {
+            "OTP period must be positive."
+        }
         // Instead of `epochSeconds` round the current second. This is
         // to fix problems that occur if you request an update a few millis
         // before the next period.

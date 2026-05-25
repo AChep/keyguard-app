@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.util.asCodePointsSequence
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.toPersistentList
+import kotlin.time.Instant
 
 fun TotpCode.formatCode(): AnnotatedString = buildAnnotatedString {
     code
@@ -47,4 +48,18 @@ fun TotpCode.formatCodeStr(): String = buildString {
             }
             append(text)
         }
+}
+
+fun TotpCode.TimeBasedCounter.remainingProgressAt(now: Instant): Float {
+    if (!duration.isPositive()) {
+        return 0f
+    }
+
+    val remainingDuration = expiration - now
+    val elapsedDuration = duration - remainingDuration
+    val progress = (1.0 - elapsedDuration / duration).toFloat()
+    return progress
+        .takeIf { it.isFinite() }
+        ?.coerceIn(0f, 1f)
+        ?: 0f
 }

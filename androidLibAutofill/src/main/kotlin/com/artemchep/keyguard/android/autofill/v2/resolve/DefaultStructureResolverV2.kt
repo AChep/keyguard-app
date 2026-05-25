@@ -41,6 +41,7 @@ import com.artemchep.keyguard.android.autofill.v2.util.containsAny
 import com.artemchep.keyguard.android.autofill.v2.util.fieldBlob
 import com.artemchep.keyguard.android.autofill.v2.util.has
 import com.artemchep.keyguard.android.autofill.v2.util.nameIdBlob
+import com.artemchep.keyguard.android.autofill.v2.util.normalizeSignalText
 import kotlin.math.exp
 import kotlin.math.ln
 
@@ -459,15 +460,17 @@ class DefaultStructureResolverV2(
     }
 
     private fun visibleLabelBlob(field: FieldNode): String =
-        buildString {
-            append(field.label.orEmpty())
-            append(' ')
-            append(field.attributes["placeholder"].orEmpty())
-            append(' ')
-            append(field.viewHint.orEmpty())
-            append(' ')
-            append(field.contentDescription.orEmpty())
-        }.lowercase()
+        normalizeSignalText(
+            buildString {
+                append(field.label.orEmpty())
+                append(' ')
+                append(field.attributes["placeholder"].orEmpty())
+                append(' ')
+                append(field.viewHint.orEmpty())
+                append(' ')
+                append(field.contentDescription.orEmpty())
+            },
+        )
 
     /**
      * Returns `true` if the field has strong textual evidence of being

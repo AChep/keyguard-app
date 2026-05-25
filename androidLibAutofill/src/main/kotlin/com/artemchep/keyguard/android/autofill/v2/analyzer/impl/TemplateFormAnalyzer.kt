@@ -14,7 +14,7 @@ import com.artemchep.keyguard.android.autofill.v2.util.KeywordTag
 import com.artemchep.keyguard.android.autofill.v2.util.containsAny
 import com.artemchep.keyguard.android.autofill.v2.util.fieldBlob
 import com.artemchep.keyguard.android.autofill.v2.util.has
-import java.util.Locale
+import com.artemchep.keyguard.android.autofill.v2.util.normalizeSignalText
 
 /**
  * Determines form intent by matching the cluster's field-type sequence
@@ -156,17 +156,19 @@ class TemplateFormAnalyzer : FormAnalyzer {
         cluster: FieldCluster,
         fields: List<FieldNode>,
     ): String =
-        buildString {
-            cluster.buttons.forEach {
-                append(it.label.orEmpty())
+        normalizeSignalText(
+            buildString {
+                cluster.buttons.forEach {
+                    append(it.label.orEmpty())
+                    append(' ')
+                    append(it.name.orEmpty())
+                    append(' ')
+                }
+                append(cluster.label.orEmpty())
                 append(' ')
-                append(it.name.orEmpty())
-                append(' ')
-            }
-            append(cluster.label.orEmpty())
-            append(' ')
-            append(cluster.surroundingText.orEmpty())
-        }.lowercase(Locale.ENGLISH)
+                append(cluster.surroundingText.orEmpty())
+            },
+        )
 
     /**
      * Emits form-intent proposals based on keywords found in the form's
@@ -175,7 +177,7 @@ class TemplateFormAnalyzer : FormAnalyzer {
      */
     private fun formActionBoosts(formAction: String?): List<FormProposal> {
         if (formAction.isNullOrBlank()) return emptyList()
-        val blob = formAction.lowercase(Locale.ENGLISH)
+        val blob = normalizeSignalText(formAction)
         val fm = KeywordMatcher.match(blob)
         val boosts = mutableListOf<FormProposal>()
         if ((fm has KeywordTag.LOGIN_BUTTON) ||

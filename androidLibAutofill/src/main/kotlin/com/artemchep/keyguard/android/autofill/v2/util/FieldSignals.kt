@@ -13,21 +13,23 @@ import java.util.Locale
  * placeholder, viewHint, contentDescription, and text.
  */
 fun fieldBlob(field: FieldNode): String =
-    buildString {
-        append(field.label.orEmpty())
-        append(' ')
-        append(field.name.orEmpty())
-        append(' ')
-        append(field.attributes["id"].orEmpty())
-        append(' ')
-        append(field.attributes["placeholder"].orEmpty())
-        append(' ')
-        append(field.viewHint.orEmpty())
-        append(' ')
-        append(field.contentDescription.orEmpty())
-        append(' ')
-        append(field.text.orEmpty())
-    }.lowercase(Locale.ENGLISH)
+    normalizeSignalText(
+        buildString {
+            append(field.label.orEmpty())
+            append(' ')
+            append(field.name.orEmpty())
+            append(' ')
+            append(field.attributes["id"].orEmpty())
+            append(' ')
+            append(field.attributes["placeholder"].orEmpty())
+            append(' ')
+            append(field.viewHint.orEmpty())
+            append(' ')
+            append(field.contentDescription.orEmpty())
+            append(' ')
+            append(field.text.orEmpty())
+        },
+    )
 
 /**
  * Lowercase blob containing only the developer-set name and id
@@ -37,13 +39,15 @@ fun fieldBlob(field: FieldNode): String =
  * attribute naming).
  */
 fun nameIdBlob(field: FieldNode): String =
-    buildString {
-        append(field.name.orEmpty())
-        append(' ')
-        append(field.attributes["id"].orEmpty())
-        append(' ')
-        append(field.idEntry.orEmpty())
-    }.lowercase(Locale.ENGLISH)
+    normalizeSignalText(
+        buildString {
+            append(field.name.orEmpty())
+            append(' ')
+            append(field.attributes["id"].orEmpty())
+            append(' ')
+            append(field.idEntry.orEmpty())
+        },
+    )
 
 /**
  * Lowercase blob containing the `autocomplete` HTML attribute
@@ -58,6 +62,53 @@ fun autocompleteBlob(field: FieldNode): String =
             append(' ')
         }
     }.lowercase(Locale.ENGLISH)
+
+/**
+ * Lowercases text after exposing identifier boundaries used by app and web
+ * developers, e.g. `pinCode` -> `pin code`, `userPassword2` ->
+ * `user password 2`. Digit-led tokens such as `2fa` stay intact. Existing
+ * separators are preserved so standard tokens such as `current-password`,
+ * `no. hp`, and localized phrases keep their previous matching behavior.
+ */
+fun normalizeSignalText(text: String): String {
+    if (text.isEmpty()) return text
+    var out: StringBuilder? = null
+    for (index in text.indices) {
+        val ch = text[index]
+        val prev = if (index > 0) text[index - 1] else null
+        val next = if (index < text.lastIndex) text[index + 1] else null
+        if (prev != null &&
+            shouldInsertSignalBoundary(
+                prev = prev,
+                current = ch,
+                next = next,
+            )
+        ) {
+            val builder =
+                out
+                    ?: StringBuilder(text.length + 8).also {
+                        it.append(text, 0, index)
+                        out = it
+                    }
+            if (builder.lastOrNull() != ' ') {
+                builder.append(' ')
+            }
+        }
+        out?.append(ch)
+    }
+    return (out?.toString() ?: text).lowercase(Locale.ENGLISH)
+}
+
+private fun shouldInsertSignalBoundary(
+    prev: Char,
+    current: Char,
+    next: Char?,
+): Boolean {
+    if (prev.isWhitespace() || current.isWhitespace()) return false
+    if (prev.isLowerCase() && current.isUpperCase()) return true
+    if (prev.isLetter() && current.isDigit()) return true
+    return prev.isUpperCase() && current.isUpperCase() && next?.isLowerCase() == true
+}
 
 /** Single-term specialization — avoids vararg array allocation. */
 fun containsAny(
@@ -129,6 +180,12 @@ val PASSWORD_KEYWORDS: List<String> =
         "pwd",
         "psw",
         "pin",
+        // Compact lowercase name/id aliases. Short roots such as "pin",
+        // "pwd", and "psw" require token boundaries in KeywordMatcher.
+        "pin code",
+        "pincode",
+        "pwdfield",
+        "pswfield",
         // Chinese (Simplified + Traditional)
         "密码",
         "密碼",
@@ -295,6 +352,7 @@ val PHONE_KEYWORDS: List<String> =
         "nombor telefon",
         "no. hp",
         "no hp",
+        "nohp",
         "hp",
         // Hindi
         "फ़ोन",
@@ -687,6 +745,8 @@ val OTP_KEYWORDS: List<String> =
     listOf(
         // English
         "otp",
+        "otp code",
+        "otpcode",
         "one-time code",
         "one-time password",
         "one time code",
@@ -695,8 +755,15 @@ val OTP_KEYWORDS: List<String> =
         "auth code",
         "security code",
         "totp",
+        "totpcode",
         "2fa",
+        "2fa code",
+        "2facode",
         "mfa",
+        "mfa code",
+        "mfacode",
+        "smsotpcode",
+        "emailotpcode",
         // Chinese (Simplified + Traditional)
         "验证码",
         "驗證碼",

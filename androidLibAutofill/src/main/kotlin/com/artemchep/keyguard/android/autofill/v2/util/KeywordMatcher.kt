@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.android.autofill.v2.util
 
+import com.artemchep.keyguard.android.autofill.v2.util.AhoCorasickAutomaton.MatchMode
 import com.artemchep.keyguard.android.autofill.v2.util.KeywordMatcher.match
-
 
 /**
  * Keyword-list tag constants — each is a single bit in a [Long] bitmask.
@@ -48,7 +48,8 @@ infix fun Long.has(tag: Long): Boolean = (this and tag) != 0L
  * All keyword lists from [FieldSignals][com.artemchep.keyguard.android.autofill.v2.util]
  * are registered in a single automaton at class-load time. Calling [match]
  * scans the text **once** and returns a [Long] bitmask indicating which
- * keyword lists had at least one substring match.
+ * keyword lists had at least one match. Short Latin keywords require token
+ * boundaries; longer and non-Latin keywords keep substring semantics.
  *
  * This replaces the pattern of calling `containsAny(blob, LIST)` N times
  * (one per keyword list, each scanning the full blob) with a single
@@ -62,40 +63,69 @@ infix fun Long.has(tag: Long): Boolean = (this and tag) != 0L
  * ```
  */
 object KeywordMatcher {
+    private val TOKEN_BOUNDARY_KEYWORDS = setOf("pass")
+
     private val automaton: AhoCorasickAutomaton = buildAutomaton()
 
     /**
      * Scans [text] through the Aho-Corasick automaton and returns a
      * bitmask of all [KeywordTag]s whose keyword lists had at least
-     * one substring match.
+     * one match.
      */
     fun match(text: String): Long = automaton.match(text)
 
     private fun buildAutomaton(): AhoCorasickAutomaton =
         AhoCorasickAutomaton
             .Builder()
-            .addAll(PASSWORD_KEYWORDS, KeywordTag.PASSWORD)
-            .addAll(PHONE_KEYWORDS, KeywordTag.PHONE)
-            .addAll(USERNAME_KEYWORDS, KeywordTag.USERNAME)
-            .addAll(EMAIL_KEYWORDS, KeywordTag.EMAIL)
-            .addAll(SEARCH_KEYWORDS, KeywordTag.SEARCH)
-            .addAll(COMMENT_KEYWORDS, KeywordTag.COMMENT)
-            .addAll(OTP_KEYWORDS, KeywordTag.OTP)
-            .addAll(LOGIN_BUTTON_KEYWORDS, KeywordTag.LOGIN_BUTTON)
-            .addAll(SIGNUP_BUTTON_KEYWORDS, KeywordTag.SIGNUP_BUTTON)
-            .addAll(RESET_KEYWORDS, KeywordTag.RESET)
-            .addAll(NAME_KEYWORDS, KeywordTag.NAME)
-            .addAll(GIVEN_NAME_KEYWORDS, KeywordTag.GIVEN_NAME)
-            .addAll(FAMILY_NAME_KEYWORDS, KeywordTag.FAMILY_NAME)
-            .addAll(ADDRESS_KEYWORDS, KeywordTag.ADDRESS)
-            .addAll(CITY_KEYWORDS, KeywordTag.CITY)
-            .addAll(REGION_KEYWORDS, KeywordTag.REGION)
-            .addAll(COUNTRY_KEYWORDS, KeywordTag.COUNTRY)
-            .addAll(POSTAL_CODE_KEYWORDS, KeywordTag.POSTAL_CODE)
-            .addAll(CREDIT_CARD_NUMBER_KEYWORDS, KeywordTag.CREDIT_CARD_NUMBER)
-            .addAll(CARD_SECURITY_CODE_KEYWORDS, KeywordTag.CARD_SECURITY_CODE)
-            .addAll(CARD_EXPIRY_KEYWORDS, KeywordTag.CARD_EXPIRY)
-            .addAll(TEL_FALSE_POSITIVE_KEYWORDS, KeywordTag.TEL_FALSE_POSITIVE)
-            .addAll(STRONG_USERNAME_KEYWORDS, KeywordTag.STRONG_USERNAME)
+            .addKeywords(PASSWORD_KEYWORDS, KeywordTag.PASSWORD)
+            .addKeywords(PHONE_KEYWORDS, KeywordTag.PHONE)
+            .addKeywords(USERNAME_KEYWORDS, KeywordTag.USERNAME)
+            .addKeywords(EMAIL_KEYWORDS, KeywordTag.EMAIL)
+            .addKeywords(SEARCH_KEYWORDS, KeywordTag.SEARCH)
+            .addKeywords(COMMENT_KEYWORDS, KeywordTag.COMMENT)
+            .addKeywords(OTP_KEYWORDS, KeywordTag.OTP)
+            .addKeywords(LOGIN_BUTTON_KEYWORDS, KeywordTag.LOGIN_BUTTON)
+            .addKeywords(SIGNUP_BUTTON_KEYWORDS, KeywordTag.SIGNUP_BUTTON)
+            .addKeywords(RESET_KEYWORDS, KeywordTag.RESET)
+            .addKeywords(NAME_KEYWORDS, KeywordTag.NAME)
+            .addKeywords(GIVEN_NAME_KEYWORDS, KeywordTag.GIVEN_NAME)
+            .addKeywords(FAMILY_NAME_KEYWORDS, KeywordTag.FAMILY_NAME)
+            .addKeywords(ADDRESS_KEYWORDS, KeywordTag.ADDRESS)
+            .addKeywords(CITY_KEYWORDS, KeywordTag.CITY)
+            .addKeywords(REGION_KEYWORDS, KeywordTag.REGION)
+            .addKeywords(COUNTRY_KEYWORDS, KeywordTag.COUNTRY)
+            .addKeywords(POSTAL_CODE_KEYWORDS, KeywordTag.POSTAL_CODE)
+            .addKeywords(CREDIT_CARD_NUMBER_KEYWORDS, KeywordTag.CREDIT_CARD_NUMBER)
+            .addKeywords(CARD_SECURITY_CODE_KEYWORDS, KeywordTag.CARD_SECURITY_CODE)
+            .addKeywords(CARD_EXPIRY_KEYWORDS, KeywordTag.CARD_EXPIRY)
+            .addKeywords(TEL_FALSE_POSITIVE_KEYWORDS, KeywordTag.TEL_FALSE_POSITIVE)
+            .addKeywords(STRONG_USERNAME_KEYWORDS, KeywordTag.STRONG_USERNAME)
             .build()
+
+    private fun AhoCorasickAutomaton.Builder.addKeywords(
+        keywords: List<String>,
+        tag: Long,
+    ): AhoCorasickAutomaton.Builder {
+        keywords.forEach { keyword ->
+            addPattern(
+                pattern = keyword,
+                tag = tag,
+                matchMode = keyword.matchMode(),
+            )
+        }
+        return this
+    }
+
+    private fun String.matchMode(): MatchMode =
+        if (this in TOKEN_BOUNDARY_KEYWORDS || isShortAsciiKeyword()) {
+            MatchMode.ASCII_TOKEN
+        } else {
+            MatchMode.SUBSTRING
+        }
+
+    private fun String.isShortAsciiKeyword(): Boolean =
+        isNotEmpty() && length <= 3 && all { ch ->
+            ch in 'a'..'z' ||
+                    ch in '0'..'9'
+        }
 }

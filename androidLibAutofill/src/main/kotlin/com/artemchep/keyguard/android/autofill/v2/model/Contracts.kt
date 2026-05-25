@@ -6,6 +6,7 @@ import com.artemchep.keyguard.android.autofill.v2.util.KeywordMatcher
 import com.artemchep.keyguard.android.autofill.v2.util.autocompleteBlob
 import com.artemchep.keyguard.android.autofill.v2.util.fieldBlob
 import com.artemchep.keyguard.android.autofill.v2.util.nameIdBlob
+import com.artemchep.keyguard.android.autofill.v2.util.normalizeSignalText
 import java.util.Locale
 
 /**
@@ -296,7 +297,9 @@ data class ClusterFeatureCache(
     val fieldCount: Int,
     val hasPasswordField: Boolean,
     val hasIdentifierField: Boolean,
-    val buttonBlob: String,
+    val buttonMatch: Long,
+    val formActionBlob: String,
+    val formActionMatch: Long,
 )
 
 /**
@@ -364,18 +367,28 @@ data class AnalysisContext(
                     "email" in ac || "username" in ac || "tel" in ac
                 }
             val buttonBlob =
-                cluster.buttons
-                    .joinToString(
-                        " ",
-                    ) { "${it.label.orEmpty()} ${it.name.orEmpty()} ${it.text.orEmpty()} ${it.contentDescription.orEmpty()}" }
-                    .lowercase(Locale.ENGLISH)
+                normalizeSignalText(
+                    cluster.buttons
+                        .joinToString(
+                            " ",
+                        ) {
+                            "${it.label.orEmpty()} ${it.name.orEmpty()} " +
+                                    "${it.text.orEmpty()} ${it.contentDescription.orEmpty()}"
+                        },
+                )
+            val formActionBlob =
+                structure.formActions[cluster.id]
+                    ?.let(::normalizeSignalText)
+                    .orEmpty()
             cluster.id to
                     ClusterFeatureCache(
                         fields = fields,
                         fieldCount = fields.size.coerceAtLeast(1),
                         hasPasswordField = hasPassword,
                         hasIdentifierField = hasIdentifier,
-                        buttonBlob = buttonBlob,
+                        buttonMatch = KeywordMatcher.match(buttonBlob),
+                        formActionBlob = formActionBlob,
+                        formActionMatch = KeywordMatcher.match(formActionBlob),
                     )
         }
     }

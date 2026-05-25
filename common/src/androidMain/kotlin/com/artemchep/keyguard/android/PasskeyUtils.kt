@@ -32,7 +32,19 @@ import java.nio.ByteBuffer
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.Locale
-import kotlin.experimental.or
+
+// WebAuthn bit 0: User Present (UP) result.
+private const val WEBAUTHN_AUTH_DATA_FLAG_USER_PRESENT = 0b00000001
+// WebAuthn bit 2: User Verified (UV) result.
+private const val WEBAUTHN_AUTH_DATA_FLAG_USER_VERIFIED = 0b00000100
+// WebAuthn bit 3: Backup Eligibility (BE).
+private const val WEBAUTHN_AUTH_DATA_FLAG_BACKUP_ELIGIBILITY = 0b00001000
+// WebAuthn bit 4: Backup State (BS).
+private const val WEBAUTHN_AUTH_DATA_FLAG_BACKUP_STATE = 0b00010000
+// WebAuthn bit 6: Attested credential data included (AT).
+private const val WEBAUTHN_AUTH_DATA_FLAG_ATTESTED_CREDENTIAL_DATA = 0b01000000
+// WebAuthn bit 7: Extension data included (ED).
+private const val WEBAUTHN_AUTH_DATA_FLAG_EXTENSION_DATA = 0b10000000
 
 class PasskeyUtils(
     private val cryptoService: CryptoGenerator,
@@ -503,36 +515,6 @@ class PasskeyUtils(
         }.array()
     }
 
-    private fun authDataFlags(
-        extensionData: Boolean,
-        attestationData: Boolean,
-        backupState: Boolean,
-        backupEligibility: Boolean,
-        userVerification: Boolean,
-        userPresence: Boolean,
-    ): Byte {
-        var flags: Byte = 0
-        if (extensionData) {
-            flags = flags or 0b1000000
-        }
-        if (attestationData) {
-            flags = flags or 0b01000000
-        }
-        if (backupState) {
-            flags = flags or 0b00010000
-        }
-        if (backupEligibility) {
-            flags = flags or 0b00001000
-        }
-        if (userVerification) {
-            flags = flags or 0b00000100
-        }
-        if (userPresence) {
-            flags = flags or 0b00000001
-        }
-        return flags
-    }
-
     private fun getGenericServiceFuckUpMessage(rpId: String): String =
         "This seems to be an issue with the service provider `$rpId`. Please reach out to their support team."
 
@@ -548,4 +530,36 @@ class PasskeyUtils(
             .bind()
         return appInfo.getOrigin(privilegedAllowlist)
     }
+}
+
+// WebAuthn authenticator data flags use bit 0 as the least significant bit:
+// https://w3c.github.io/webauthn/#authenticator-data
+internal fun authDataFlags(
+    extensionData: Boolean,
+    attestationData: Boolean,
+    backupState: Boolean,
+    backupEligibility: Boolean,
+    userVerification: Boolean,
+    userPresence: Boolean,
+): Byte {
+    var flags = 0
+    if (extensionData) {
+        flags = flags or WEBAUTHN_AUTH_DATA_FLAG_EXTENSION_DATA
+    }
+    if (attestationData) {
+        flags = flags or WEBAUTHN_AUTH_DATA_FLAG_ATTESTED_CREDENTIAL_DATA
+    }
+    if (backupState) {
+        flags = flags or WEBAUTHN_AUTH_DATA_FLAG_BACKUP_STATE
+    }
+    if (backupEligibility) {
+        flags = flags or WEBAUTHN_AUTH_DATA_FLAG_BACKUP_ELIGIBILITY
+    }
+    if (userVerification) {
+        flags = flags or WEBAUTHN_AUTH_DATA_FLAG_USER_VERIFIED
+    }
+    if (userPresence) {
+        flags = flags or WEBAUTHN_AUTH_DATA_FLAG_USER_PRESENT
+    }
+    return flags.toByte()
 }

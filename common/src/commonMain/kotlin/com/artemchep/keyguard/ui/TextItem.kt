@@ -355,6 +355,9 @@ fun ConcealedFlatTextField(
     val visibilityState = remember {
         VisibilityState()
     }
+    val passwordVisualTransformation = remember {
+        PasswordVisualTransformation()
+    }
     PlatformIncognitoInput {
         FlatTextField(
             modifier = modifier,
@@ -370,7 +373,7 @@ fun ConcealedFlatTextField(
             visualTransformation = if (visibilityState.isVisible) {
                 VisualTransformation.None
             } else {
-                PasswordVisualTransformation()
+                passwordVisualTransformation
             },
             shapeState = shapeState,
             expressive = expressive,

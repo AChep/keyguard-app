@@ -124,23 +124,33 @@ class PasskeyProviderGetRequest(
             put("signature", PasskeyBase64.encodeToString(signature))
             put("userHandle", credential.userHandle)
         }
-        val prfResults = resolvePrfEvalInput(opt.requestJson, credentialIdBytes)
-            ?.let { eval ->
-                buildJsonObject {
-                    val firstOutput = passkeyUtils.computePrf(
-                        privateKeyBytes = privateKeyBytes,
-                        prfInput = PasskeyBase64.decode(eval.first),
+        val prfEvalInput = resolvePrfEvalInput(opt.requestJson, credentialIdBytes)
+        // Decode the stored PRF secret (the "credRandom" equivalent) for this credential.
+        // Only compute PRF results when the user was verified — PRF output must be
+        // bound to a verified user identity to be meaningful for encryption use cases.
+        val prfSecretBytes = if (userVerified) {
+            credential.prfSecret?.let { base64Service.decode(it) }
+        } else {
+            null
+        }
+        val prfResults = if (prfEvalInput != null && prfSecretBytes != null) {
+            buildJsonObject {
+                val firstOutput = passkeyUtils.computePrf(
+                    prfSecretBytes = prfSecretBytes,
+                    prfInput = PasskeyBase64.decode(prfEvalInput.first),
+                )
+                put("first", PasskeyBase64.encodeToString(firstOutput))
+                prfEvalInput.second?.let { secondBase64 ->
+                    val secondOutput = passkeyUtils.computePrf(
+                        prfSecretBytes = prfSecretBytes,
+                        prfInput = PasskeyBase64.decode(secondBase64),
                     )
-                    put("first", PasskeyBase64.encodeToString(firstOutput))
-                    eval.second?.let { secondBase64 ->
-                        val secondOutput = passkeyUtils.computePrf(
-                            privateKeyBytes = privateKeyBytes,
-                            prfInput = PasskeyBase64.decode(secondBase64),
-                        )
-                        put("second", PasskeyBase64.encodeToString(secondOutput))
-                    }
+                    put("second", PasskeyBase64.encodeToString(secondOutput))
                 }
             }
+        } else {
+            null
+        }
         val authenticationResponse = buildJsonObject {
             put("id", PasskeyBase64.encodeToString(credentialIdBytes))
             put("rawId", credentialIdBytes)
@@ -148,9 +158,13 @@ class PasskeyProviderGetRequest(
             put("authenticatorAttachment", "cross-platform")
             put("response", r)
             put("clientExtensionResults", buildJsonObject {
-                if (prfResults != null) {
+                // Always include prf in clientExtensionResults when PRF was requested,
+                // even if we cannot produce results (spec: return prf: {} in that case).
+                if (prfEvalInput != null) {
                     put("prf", buildJsonObject {
-                        put("results", prfResults)
+                        if (prfResults != null) {
+                            put("results", prfResults)
+                        }
                     })
                 }
             })

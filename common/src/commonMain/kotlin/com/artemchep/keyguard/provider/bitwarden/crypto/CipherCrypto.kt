@@ -150,6 +150,7 @@ fun BitwardenCipher.Login.Fido2Credentials.transform(
     keyAlgorithm = crypto.transformString(keyAlgorithm),
     keyCurve = crypto.transformString(keyCurve),
     keyValue = crypto.transformString(keyValue),
+    prfSecret = crypto.transformString(prfSecret),
     rpId = crypto.transformString(rpId),
     rpName = crypto.transformString(rpName),
     counter = crypto.transformString(counter),

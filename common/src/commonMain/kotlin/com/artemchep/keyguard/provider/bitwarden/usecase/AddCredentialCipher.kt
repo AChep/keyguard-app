@@ -88,6 +88,7 @@ class AddCredentialCipherImpl(
                 keyAlgorithm = data.keyAlgorithm,
                 keyCurve = data.keyCurve,
                 keyValue = data.keyValue,
+                prfSecret = data.prfSecret,
                 rpId = data.rpId,
                 rpName = data.rpName,
                 counter = data.counter?.toString().orEmpty(),

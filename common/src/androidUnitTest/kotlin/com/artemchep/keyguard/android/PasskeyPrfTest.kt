@@ -17,7 +17,7 @@ class PasskeyPrfTest {
     fun `computeWebAuthnPrf returns 32 bytes`() {
         val output = computeWebAuthnPrf(
             cryptoGenerator,
-            privateKeyBytes = "private-key".toByteArray(),
+            prfSecretBytes = "prf-secret".toByteArray(),
             prfInput = "prf-input".toByteArray(),
         )
         org.junit.Assert.assertEquals(32, output.size)
@@ -25,42 +25,67 @@ class PasskeyPrfTest {
 
     @Test
     fun `computeWebAuthnPrf is deterministic for the same inputs`() {
-        val privateKeyBytes = "private-key".toByteArray()
+        val prfSecretBytes = "prf-secret".toByteArray()
         val prfInput = "prf-input".toByteArray()
-        val output1 = computeWebAuthnPrf(cryptoGenerator, privateKeyBytes, prfInput)
-        val output2 = computeWebAuthnPrf(cryptoGenerator, privateKeyBytes, prfInput)
+        val output1 = computeWebAuthnPrf(cryptoGenerator, prfSecretBytes, prfInput)
+        val output2 = computeWebAuthnPrf(cryptoGenerator, prfSecretBytes, prfInput)
         assertArrayEquals(output1, output2)
     }
 
     @Test
     fun `computeWebAuthnPrf different inputs produce different outputs`() {
-        val privateKeyBytes = "private-key".toByteArray()
-        val output1 = computeWebAuthnPrf(cryptoGenerator, privateKeyBytes, "input-a".toByteArray())
-        val output2 = computeWebAuthnPrf(cryptoGenerator, privateKeyBytes, "input-b".toByteArray())
+        val prfSecretBytes = "prf-secret".toByteArray()
+        val output1 = computeWebAuthnPrf(cryptoGenerator, prfSecretBytes, "input-a".toByteArray())
+        val output2 = computeWebAuthnPrf(cryptoGenerator, prfSecretBytes, "input-b".toByteArray())
         assertFalse(output1.contentEquals(output2))
     }
 
     @Test
-    fun `computeWebAuthnPrf different keys produce different outputs`() {
+    fun `computeWebAuthnPrf different secrets produce different outputs`() {
         val prfInput = "prf-input".toByteArray()
-        val output1 = computeWebAuthnPrf(cryptoGenerator, "key-1".toByteArray(), prfInput)
-        val output2 = computeWebAuthnPrf(cryptoGenerator, "key-2".toByteArray(), prfInput)
+        val output1 = computeWebAuthnPrf(cryptoGenerator, "secret-1".toByteArray(), prfInput)
+        val output2 = computeWebAuthnPrf(cryptoGenerator, "secret-2".toByteArray(), prfInput)
         assertFalse(output1.contentEquals(output2))
     }
 
+    /**
+     * Verifies the algorithm is:
+     *   prfSalt   = SHA-256("WebAuthn PRF\x00" || prfInput)
+     *   prfOutput = HMAC-SHA-256(prfSecretBytes, prfSalt)
+     *
+     * The expected value is computed independently using raw JVM crypto so that
+     * the test does not simply re-execute the same code path it is testing.
+     */
     @Test
-    fun `computeWebAuthnPrf matches expected computation`() {
-        val privateKeyBytes = "test-private-key".toByteArray(Charsets.UTF_8)
+    fun `computeWebAuthnPrf matches W3C spec algorithm`() {
+        val prfSecretBytes = "test-prf-secret".toByteArray(Charsets.UTF_8)
         val prfInput = "test-prf-input".toByteArray(Charsets.UTF_8)
 
-        // Manually compute the expected output using the same algorithm
         val prfSaltInput = PasskeyUtils.PRF_LABEL + prfInput
         val prfSalt = MessageDigest.getInstance("SHA-256").digest(prfSaltInput)
-        val hmacKey = hmacSha256(privateKeyBytes, "prf".toByteArray(Charsets.UTF_8))
-        val expected = hmacSha256(hmacKey, prfSalt)
+        val expected = hmacSha256(prfSecretBytes, prfSalt)
 
-        val actual = computeWebAuthnPrf(cryptoGenerator, privateKeyBytes, prfInput)
+        val actual = computeWebAuthnPrf(cryptoGenerator, prfSecretBytes, prfInput)
         assertArrayEquals(expected, actual)
+    }
+
+    /**
+     * Verifies output does NOT equal the old (incorrect) two-step HMAC derivation that
+     * used the signing private key as key material, ensuring we produce a distinct value.
+     */
+    @Test
+    fun `computeWebAuthnPrf does not match old private-key-derived computation`() {
+        val signingKeyBytes = "signing-private-key".toByteArray(Charsets.UTF_8)
+        val prfSecretBytes = "separate-prf-secret".toByteArray(Charsets.UTF_8)
+        val prfInput = "test-input".toByteArray(Charsets.UTF_8)
+
+        val prfSalt = MessageDigest.getInstance("SHA-256").digest(PasskeyUtils.PRF_LABEL + prfInput)
+        // Old algorithm: HMAC-SHA-256(HMAC-SHA-256(signingKey, "prf"), prfSalt)
+        val oldHmacKey = hmacSha256(signingKeyBytes, "prf".toByteArray(Charsets.UTF_8))
+        val oldOutput = hmacSha256(oldHmacKey, prfSalt)
+
+        val newOutput = computeWebAuthnPrf(cryptoGenerator, prfSecretBytes, prfInput)
+        assertFalse("New output must differ from old private-key-derived output", newOutput.contentEquals(oldOutput))
     }
 
     private fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray =

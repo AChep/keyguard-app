@@ -18,6 +18,8 @@ data class LoginFido2CredentialsRequest(
     val keyCurve: String,
     @SerialName("keyValue")
     val keyValue: String,
+    @SerialName("prfSecret")
+    val prfSecret: String? = null,
     @SerialName("rpId")
     val rpId: String,
     @SerialName("rpName")
@@ -47,6 +49,7 @@ fun LoginFido2CredentialsRequest.Companion.of(
         keyAlgorithm = model.keyAlgorithm,
         keyCurve = model.keyCurve,
         keyValue = model.keyValue,
+        prfSecret = model.prfSecret,
         rpId = model.rpId,
         rpName = model.rpName,
         counter = model.counter,

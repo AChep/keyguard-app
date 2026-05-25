@@ -209,6 +209,7 @@ fun BitwardenCipher.Login.Fido2Credentials.toDomain() = kotlin.run {
         keyAlgorithm = keyAlgorithm,
         keyCurve = keyCurve,
         keyValue = keyValue,
+        prfSecret = prfSecret,
         rpId = rpId,
         rpName = rpName,
         counter = counter,

@@ -850,6 +850,7 @@ internal suspend fun BitwardenCipher.Login.Companion.of(
                 keyAlgorithm = it.keyAlgorithm,
                 keyCurve = it.keyCurve,
                 keyValue = it.keyValue,
+                prfSecret = it.prfSecret,
                 rpId = it.rpId,
                 rpName = it.rpName,
                 counter = it.counter?.toString() ?: "",

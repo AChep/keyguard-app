@@ -410,17 +410,19 @@ class PasskeyUtils(
 
     fun generateCredentialId() = cryptoService.uuid()
 
+    /** Generates a fresh 32-byte random secret to use as the PRF key for a new credential. */
+    fun generatePrfSecret(): ByteArray = cryptoService.seed(32)
+
     /**
-     * Computes the WebAuthn PRF output for the given private key bytes and PRF input.
+     * Computes the WebAuthn PRF output for the given PRF secret and input.
      *
      * prfSalt   = SHA-256("WebAuthn PRF\x00" || prfInput)
-     * hmacKey   = HMAC-SHA-256(privateKeyBytes, "prf")
-     * prfOutput = HMAC-SHA-256(hmacKey, prfSalt)
+     * prfOutput = HMAC-SHA-256(prfSecretBytes, prfSalt)
      */
     fun computePrf(
-        privateKeyBytes: ByteArray,
+        prfSecretBytes: ByteArray,
         prfInput: ByteArray,
-    ): ByteArray = computeWebAuthnPrf(cryptoService, privateKeyBytes, prfInput)
+    ): ByteArray = computeWebAuthnPrf(cryptoService, prfSecretBytes, prfInput)
 
     // See:
     // https://github.com/1Password/passkey-rs/blob/90c1c282649eceeb7cbe771bb8ce17b1b8463c60/passkey-client/src/lib.rs#L407
@@ -569,22 +571,23 @@ class PasskeyUtils(
 /**
  * Standalone PRF computation, extracted for testability.
  *
- * prfSalt   = SHA-256("WebAuthn PRF\x00" || prfInput)
- * hmacKey   = HMAC-SHA-256(privateKeyBytes, "prf")
- * prfOutput = HMAC-SHA-256(hmacKey, prfSalt)
+ * Implements the WebAuthn PRF extension computation as a software authenticator.
+ * This mirrors what a hardware authenticator does with its internal credRandom key:
+ *
+ *   prfSalt   = SHA-256("WebAuthn PRF\x00" || prfInput)
+ *   prfOutput = HMAC-SHA-256(prfSecretBytes, prfSalt)
+ *
+ * The [prfSecretBytes] parameter is the "credRandom" equivalent — a 32-byte random
+ * secret generated at credential creation time and stored alongside the credential.
  */
 internal fun computeWebAuthnPrf(
     cryptoService: CryptoGenerator,
-    privateKeyBytes: ByteArray,
+    prfSecretBytes: ByteArray,
     prfInput: ByteArray,
 ): ByteArray {
     val prfSalt = cryptoService.hashSha256(PasskeyUtils.PRF_LABEL + prfInput)
-    val hmacKey = cryptoService.hmacSha256(
-        key = privateKeyBytes,
-        data = "prf".toByteArray(Charsets.UTF_8),
-    )
     return cryptoService.hmacSha256(
-        key = hmacKey,
+        key = prfSecretBytes,
         data = prfSalt,
     )
 }

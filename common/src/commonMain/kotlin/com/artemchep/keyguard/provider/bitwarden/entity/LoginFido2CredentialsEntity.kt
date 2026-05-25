@@ -22,6 +22,9 @@ data class LoginFido2CredentialsEntity(
     @JsonNames("keyValue")
     @SerialName("KeyValue")
     val keyValue: String,
+    @JsonNames("prfSecret")
+    @SerialName("PrfSecret")
+    val prfSecret: String? = null,
     @JsonNames("rpId")
     @SerialName("RpId")
     val rpId: String,

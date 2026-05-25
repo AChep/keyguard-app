@@ -179,6 +179,11 @@ class PasskeyCreateRequest(
         )
 
         val keyValue = base64Service.encodeToString(keyPair.private.encoded)
+        // Generate a fresh 32-byte PRF secret (the "credRandom" equivalent).
+        // This is stored alongside the credential and used as the HMAC key for all
+        // future PRF evaluations — it is never derived from the signing key.
+        val prfSecretBytes = passkeyUtils.generatePrfSecret()
+        val prfSecret = base64Service.encodeToString(prfSecretBytes)
         val discoverable = data.authenticatorSelection.requireResidentKey ||
                 data.authenticatorSelection.residentKey == "required" ||
                 data.authenticatorSelection.residentKey == "preferred"
@@ -188,6 +193,7 @@ class PasskeyCreateRequest(
             keyAlgorithm = "ECDSA",
             keyCurve = "P-256",
             keyValue = keyValue,
+            prfSecret = prfSecret,
             rpId = rpId,
             rpName = rpName,
             counter = 0,
@@ -229,20 +235,20 @@ class PasskeyCreateRequest(
                 if (data.extensions?.prf != null) {
                     put("prf", buildJsonObject {
                         put("enabled", true)
-                        // CTAP 2.2+: if the RP provided eval inputs at creation time,
-                        // return the PRF results immediately so they don't need a
-                        // separate authentication round-trip.
+                        // CTAP 2.2+: if the RP provided eval inputs at creation time and
+                        // user was verified, return the PRF results immediately so the RP
+                        // doesn't need a separate authentication round-trip.
                         val eval = data.extensions.prf.eval
-                        if (eval != null) {
+                        if (eval != null && userVerified) {
                             put("results", buildJsonObject {
                                 val firstOutput = passkeyUtils.computePrf(
-                                    privateKeyBytes = keyPair.private.encoded,
+                                    prfSecretBytes = prfSecretBytes,
                                     prfInput = PasskeyBase64.decode(eval.first),
                                 )
                                 put("first", PasskeyBase64.encodeToString(firstOutput))
                                 eval.second?.let { secondBase64 ->
                                     val secondOutput = passkeyUtils.computePrf(
-                                        privateKeyBytes = keyPair.private.encoded,
+                                        prfSecretBytes = prfSecretBytes,
                                         prfInput = PasskeyBase64.decode(secondBase64),
                                     )
                                     put("second", PasskeyBase64.encodeToString(secondOutput))

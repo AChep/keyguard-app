@@ -344,6 +344,8 @@ data class DSecret(
             val keyAlgorithm: String, // ECDSA
             val keyCurve: String, // P-256
             val keyValue: String,
+            /** Base64-encoded 32-byte random secret used as HMAC key for PRF (the "credRandom" equivalent). */
+            val prfSecret: String? = null,
             val rpId: String,
             val rpName: String?,
             val counter: Int?,

@@ -229,6 +229,26 @@ class PasskeyCreateRequest(
                 if (data.extensions?.prf != null) {
                     put("prf", buildJsonObject {
                         put("enabled", true)
+                        // CTAP 2.2+: if the RP provided eval inputs at creation time,
+                        // return the PRF results immediately so they don't need a
+                        // separate authentication round-trip.
+                        val eval = data.extensions.prf.eval
+                        if (eval != null) {
+                            put("results", buildJsonObject {
+                                val firstOutput = passkeyUtils.computePrf(
+                                    privateKeyBytes = keyPair.private.encoded,
+                                    prfInput = PasskeyBase64.decode(eval.first),
+                                )
+                                put("first", PasskeyBase64.encodeToString(firstOutput))
+                                eval.second?.let { secondBase64 ->
+                                    val secondOutput = passkeyUtils.computePrf(
+                                        privateKeyBytes = keyPair.private.encoded,
+                                        prfInput = PasskeyBase64.decode(secondBase64),
+                                    )
+                                    put("second", PasskeyBase64.encodeToString(secondOutput))
+                                }
+                            })
+                        }
                     })
                 }
             })

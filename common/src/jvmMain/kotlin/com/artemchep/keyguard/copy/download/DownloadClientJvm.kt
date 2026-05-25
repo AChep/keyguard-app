@@ -3,7 +3,6 @@ package com.artemchep.keyguard.copy.download
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
-import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
@@ -12,17 +11,12 @@ import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.platform.toJavaFile
-import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.core.use
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -40,16 +34,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformWhile
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.File
-import java.io.IOException
 
 abstract class DownloadClientJvm(
     private val cacheDirProvider: CacheDirProvider,
@@ -58,10 +49,6 @@ abstract class DownloadClientJvm(
     private val okHttpClient: OkHttpClient,
     private val fileEncryptor: FileEncryptor,
 ) {
-    companion object {
-        private const val DOWNLOAD_PROGRESS_POOLING_PERIOD_MS = 1000L
-    }
-
     private data class PoolEntry(
         val subscribersCount: Int,
         val downloadId: String,
@@ -251,7 +238,8 @@ abstract class DownloadClientJvm(
                     cacheFile.parentFile?.mkdirs()
                     cacheFile.writeBytes(fileData)
                 } else {
-                    downloadToFile(
+                    downloadToFileJvm(
+                        okHttpClient = okHttpClient,
                         src = url,
                         dst = cacheFile,
                     )
@@ -327,78 +315,5 @@ abstract class DownloadClientJvm(
         }
 
         if (!sameFile) this@decryptAndMove.delete()
-    }
-
-    private suspend fun ProducerScope<DownloadProgress>.downloadToFile(
-        src: String,
-        dst: File,
-    ): File {
-        val response = kotlin.run {
-            val request = Request.Builder()
-                .get()
-                .url(src)
-                .build()
-            okHttpClient.newCall(request).execute()
-        }
-        if (!response.isSuccessful) {
-            throw HttpException(
-                statusCode = HttpStatusCode.fromValue(response.code),
-                m = response.message,
-                e = null,
-            )
-        }
-        val responseBody = response.body
-            ?: throw IOException("File is not available!")
-
-        //
-        // Check if the file is already loaded
-        //
-
-        val dstContentLength = dst.length()
-        val srcContentLength = responseBody.contentLength()
-        if (dstContentLength == srcContentLength) {
-            return dst
-        }
-
-        dst.delete()
-        dst.parentFile?.mkdirs()
-
-        coroutineScope {
-            var totalBytesWritten = 0L
-
-            val monitorJob = launch {
-                delay(DOWNLOAD_PROGRESS_POOLING_PERIOD_MS / 2)
-                while (isActive) {
-                    val event = DownloadProgress.Loading(
-                        downloaded = totalBytesWritten,
-                        total = srcContentLength,
-                    )
-                    trySend(event)
-
-                    // Wait a bit before the next status update.
-                    delay(DOWNLOAD_PROGRESS_POOLING_PERIOD_MS)
-                }
-            }
-
-            withContext(Dispatchers.IO) {
-                responseBody.byteStream().use { inputStream ->
-                    dst.outputStream().use { outputStream ->
-                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                        while (true) {
-                            val bytes = inputStream.read(buffer)
-                            if (bytes != -1) {
-                                outputStream.write(buffer, 0, bytes)
-                                totalBytesWritten += bytes
-                            } else {
-                                break
-                            }
-                        }
-                    }
-                }
-            }
-            monitorJob.cancelAndJoin()
-        }
-
-        return dst
     }
 }

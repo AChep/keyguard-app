@@ -34,6 +34,47 @@ class TldServiceImplTest {
         assertEquals("example.com", service.getDomainName("www.example.com").bind())
     }
 
+    @Test
+    fun `getDomainName handles exception rules`() = runTest {
+        val service = createService(
+            """
+            jp
+            *.kawasaki.jp
+            !city.kawasaki.jp
+            """.trimIndent(),
+        )
+
+        assertEquals("city.kawasaki.jp", service.getDomainName("www.city.kawasaki.jp").bind())
+        assertEquals("www.foo.kawasaki.jp", service.getDomainName("www.foo.kawasaki.jp").bind())
+    }
+
+    @Test
+    fun `getDomainName handles exact exception host`() = runTest {
+        val service = createService(
+            """
+            jp
+            *.kawasaki.jp
+            !city.kawasaki.jp
+            """.trimIndent(),
+        )
+
+        assertEquals("city.kawasaki.jp", service.getDomainName("city.kawasaki.jp").bind())
+    }
+
+    @Test
+    fun `getDomainName handles canonical ck exception rules`() = runTest {
+        val service = createService(
+            """
+            *.ck
+            !www.ck
+            """.trimIndent(),
+        )
+
+        assertEquals("www.ck", service.getDomainName("www.ck").bind())
+        assertEquals("www.ck", service.getDomainName("test.www.ck").bind())
+        assertEquals("test.foo.ck", service.getDomainName("test.foo.ck").bind())
+    }
+
     private fun createService(
         publicSuffixList: String,
     ) = TldServiceImpl(

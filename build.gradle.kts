@@ -137,6 +137,9 @@ subprojects {
             allowDependency("com.ibm.icu", "icu4j", "73.1") {
                 because("UNICODE LICENSE V3")
             }
+            allowDependency("com.ibm.icu", "icu4j", "75.1") {
+                because("UNICODE LICENSE V3")
+            }
 
             //
             // Other

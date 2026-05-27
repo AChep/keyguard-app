@@ -131,7 +131,7 @@ fun CredentialScaffold(
 fun CredentialSubtitlePublicKey(
     modifier: Modifier = Modifier,
     username: String,
-    rpId: String,
+    rpId: String?,
 ) {
     Row(
         modifier = modifier,
@@ -141,15 +141,17 @@ fun CredentialSubtitlePublicKey(
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
         )
-        Text(
-            modifier = Modifier
-                .weight(1f, fill = false),
-            text = "@$rpId",
-            color = LocalContentColor.current
-                .combineAlpha(MediumEmphasisAlpha),
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
+        if (rpId != null) {
+            Text(
+                modifier = Modifier
+                    .weight(1f, fill = false),
+                text = "@$rpId",
+                color = LocalContentColor.current
+                    .combineAlpha(MediumEmphasisAlpha),
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            )
+        }
     }
 }
 

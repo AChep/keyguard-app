@@ -171,6 +171,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.ktor.ktor.client.mock)
             }
         }
 
@@ -204,6 +205,7 @@ kotlin {
                 implementation(libs.hierynomus.sshj)
                 implementation(libs.ricecode.string.similarity)
                 implementation(libs.google.zxing.core)
+                implementation(libs.icu4j)
                 implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
                 implementation(libs.squareup.okhttp)
                 implementation(libs.squareup.logging.interceptor)

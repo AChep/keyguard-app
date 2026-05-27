@@ -7,6 +7,7 @@ import androidx.credentials.provider.BeginGetCredentialResponse
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
@@ -33,6 +34,7 @@ class PasskeyBeginGetUnlockFlow(
         val getCiphers = session.di.direct.instance<GetCiphers>()
         val getProfiles = session.di.direct.instance<GetProfiles>()
         val getSuggestions = session.di.direct.instance<GetSuggestions<Any?>>()
+        val getPrivilegedApps = session.di.direct.instance<GetPrivilegedApps>()
         val equivalentDomainsBuilderFactory = session.di.direct
             .instance<EquivalentDomainsBuilderFactory>()
         val ciphers = filterHiddenProfiles(
@@ -40,12 +42,15 @@ class PasskeyBeginGetUnlockFlow(
             getCiphers = getCiphers,
             filter = null,
         ).first()
+        val privilegedApps = getPrivilegedApps()
+            .first()
         return passkeyBeginGetRequest.processGetCredentialsRequest(
             cipherHistoryOpenedRepository = session.di.direct.instance(),
             getSuggestions = getSuggestions,
             equivalentDomainsBuilderFactory = equivalentDomainsBuilderFactory,
             request = request,
             ciphers = ciphers,
+            privilegedApps = privilegedApps,
             userVerified = userVerified,
         )
     }

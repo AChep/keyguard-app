@@ -9,6 +9,14 @@ data class PasskeyTarget(
 ) {
     data class AllowedCredential(
         val credentialId: String,
+        /**
+         * WebAuthn credential descriptor matching is based on both `id` and
+         * `type`; unknown descriptor types must be ignored before this model is
+         * created.
+         *
+         * Spec: https://www.w3.org/TR/webauthn-3/#dictdef-publickeycredentialdescriptor
+         */
+        val type: String = "public-key",
     )
 }
 

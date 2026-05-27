@@ -42,6 +42,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
 private const val PBKDF2_KEY_LENGTH = 32
+private const val ARGON2_MEMORY_KB_PER_MB = 1024L
 
 suspend fun login(
     deviceIdUseCase: DeviceIdUseCase,
@@ -349,7 +350,7 @@ private fun CryptoGenerator.masterKeyHash(
         )
 
     is PreLogin.Hash.Argon2id -> {
-        val memoryKb = 1024 * config.memoryMb
+        val memoryKb = argon2MemoryKb(config.memoryMb)
         val saltHash = hashSha256(salt)
         argon2(
             mode = Argon2Mode.ARGON2_ID,
@@ -360,4 +361,12 @@ private fun CryptoGenerator.masterKeyHash(
             parallelism = config.parallelism,
         )
     }
+}
+
+internal fun argon2MemoryKb(memoryMb: Int): Int {
+    val memoryKb = ARGON2_MEMORY_KB_PER_MB * memoryMb
+    require(memoryKb in 1L..Int.MAX_VALUE.toLong()) {
+        "Argon2 memory is out of range: $memoryMb MiB."
+    }
+    return memoryKb.toInt()
 }

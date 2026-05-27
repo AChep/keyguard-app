@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.util.signalr.internal
 
 import com.artemchep.keyguard.util.signalr.HubConnection
-import com.artemchep.keyguard.util.signalr.hubConnection
+import com.artemchep.keyguard.util.signalr.HubConnectionConfig
 import com.artemchep.keyguard.util.signalr.HubConnectionCloseReason
 import com.artemchep.keyguard.util.signalr.HubConnectionEvent
 import com.artemchep.keyguard.util.signalr.HubConnectionState
@@ -9,24 +9,12 @@ import com.artemchep.keyguard.util.signalr.HubMessage
 import com.artemchep.keyguard.util.signalr.logger.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.client.request.HttpRequestData
-import io.ktor.client.request.HttpResponseData
-import io.ktor.http.Headers
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpProtocolVersion
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.headersOf
-import io.ktor.http.websocket.websocketServerAccept
-import io.ktor.util.date.GMTDate
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketExtension
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
-import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -52,8 +40,8 @@ class HubConnectionLifecycleTest {
     @Test
     fun `connection events reach connected state`() = runTest {
         val session = FakeWebSocketSession()
-        val client = testHttpClient(session)
-        val connection = testConnection(client)
+        val client = testHttpClient()
+        val connection = testConnection(client, session)
 
         try {
             val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
@@ -76,8 +64,8 @@ class HubConnectionLifecycleTest {
     @Test
     fun `cancelling job while connecting completes`() = runTest {
         val session = FakeWebSocketSession(handshakePayload = null)
-        val client = testHttpClient(session)
-        val connection = testConnection(client)
+        val client = testHttpClient()
+        val connection = testConnection(client, session)
 
         try {
             val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
@@ -99,8 +87,8 @@ class HubConnectionLifecycleTest {
     @Test
     fun `receive failure emits failed disconnected event`() = runTest {
         val session = FakeWebSocketSession()
-        val client = testHttpClient(session)
-        val connection = testConnection(client)
+        val client = testHttpClient()
+        val connection = testConnection(client, session)
 
         try {
             val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
@@ -126,8 +114,8 @@ class HubConnectionLifecycleTest {
     @Test
     fun `ignored invocations do not block cancellation`() = runTest {
         val session = FakeWebSocketSession()
-        val client = testHttpClient(session)
-        val connection = testConnection(client)
+        val client = testHttpClient()
+        val connection = testConnection(client, session)
 
         try {
             val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
@@ -155,7 +143,7 @@ class HubConnectionLifecycleTest {
             handshakePayload = "{}$RECORD_SEPARATOR{\"type\":1,\"target\":\"Ready\",\"arguments\":[]}$RECORD_SEPARATOR"
                 .encodeToByteArray(),
         )
-        val client = testHttpClient(session)
+        val client = testHttpClient()
         val errors = mutableListOf<String>()
         val logger = Logger { severity, message, cause ->
             if (severity == Logger.Severity.ERROR) {
@@ -164,6 +152,7 @@ class HubConnectionLifecycleTest {
         }
         val connection = testConnection(
             client = client,
+            session = session,
             logger = logger,
         )
 
@@ -186,8 +175,8 @@ class HubConnectionLifecycleTest {
     @Test
     fun `normal transport close emits disconnected event and completes`() = runTest {
         val session = FakeWebSocketSession()
-        val client = testHttpClient(session)
-        val connection = testConnection(client)
+        val client = testHttpClient()
+        val connection = testConnection(client, session)
 
         try {
             val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
@@ -212,9 +201,10 @@ class HubConnectionLifecycleTest {
     @Test
     fun `json protocol sends hub messages as text frames`() = runTest {
         val session = FakeWebSocketSession()
-        val client = testHttpClient(session)
+        val client = testHttpClient()
         val connection = testConnection(
             client = client,
+            session = session,
             keepAliveInterval = 10.milliseconds,
         )
 
@@ -238,8 +228,8 @@ class HubConnectionLifecycleTest {
     @Test
     fun `cancelling job does not close injected http client`() = runTest {
         val session = FakeWebSocketSession()
-        val client = testHttpClient(session)
-        val connection = testConnection(client)
+        val client = testHttpClient()
+        val connection = testConnection(client, session)
 
         val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
         val job = launchConnection(
@@ -294,31 +284,37 @@ class HubConnectionLifecycleTest {
 
     private fun testConnection(
         client: HttpClient,
+        session: FakeWebSocketSession,
         logger: Logger = Logger.Empty,
         keepAliveInterval: Duration = 1.minutes,
-    ) = hubConnection(
-        url = "https://example.com/hub",
-        httpClient = client,
-    ) {
-        this.skipNegotiate = true
-        this.handshakeResponseTimeout = 5.seconds
-        this.serverTimeout = 1.minutes
-        this.keepAliveInterval = keepAliveInterval
-        this.logger = logger
+    ): HubConnection {
+        val config = HubConnectionConfig().apply {
+            this.skipNegotiate = true
+            this.handshakeResponseTimeout = 5.seconds
+            this.serverTimeout = 1.minutes
+            this.keepAliveInterval = keepAliveInterval
+            this.logger = logger
+        }
+        val options = HubConnectionOptions
+            .create(
+                url = "https://example.com/hub",
+                httpClient = client,
+                config = config,
+            )
+            .copy(
+                webSocketSessionConnector = { _, url, _ ->
+                    session.connected.complete(url)
+                    session
+                },
+            )
+        return DefaultHubConnection(options)
     }
 
-    private fun testHttpClient(
-        session: FakeWebSocketSession,
-    ) = HttpClient(
+    private fun testHttpClient() = HttpClient(
         MockEngine { request ->
-            session.connected.complete(request.url.toString())
-            respondWebSocket(
-                request = request,
-                session = session,
-            )
+            error("Unexpected HTTP request: ${request.url}")
         },
     ) {
-        install(WebSockets)
         install(HttpTimeout)
     }
 
@@ -420,24 +416,4 @@ private class FakeWebSocketSession(
         outgoingFrames.close()
         job.cancel()
     }
-}
-
-@OptIn(InternalAPI::class)
-private fun MockRequestHandleScope.respondWebSocket(
-    request: HttpRequestData,
-    session: FakeWebSocketSession,
-): HttpResponseData {
-    val acceptHeaders = request.headers[HttpHeaders.SecWebSocketKey]
-        ?.let { key ->
-            headersOf(HttpHeaders.SecWebSocketAccept, websocketServerAccept(key))
-        }
-        ?: Headers.Empty
-    return HttpResponseData(
-        statusCode = HttpStatusCode.SwitchingProtocols,
-        requestTime = GMTDate(),
-        headers = acceptHeaders,
-        version = HttpProtocolVersion.HTTP_1_1,
-        body = session,
-        callContext = request.executionContext,
-    )
 }

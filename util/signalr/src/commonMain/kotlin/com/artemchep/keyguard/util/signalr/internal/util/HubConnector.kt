@@ -14,6 +14,7 @@ internal suspend fun connect(
         val nextTransport = options.httpClient.connectTransport(
             url = negotiation.url,
             headers = negotiation.headers,
+            webSocketSessionConnector = options.webSocketSessionConnector,
         )
         transport = nextTransport
 

@@ -6,6 +6,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.timeout
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.headers
+import io.ktor.websocket.WebSocketSession
 import kotlinx.coroutines.ensureActive
 
 private const val HTTP = "http"
@@ -13,11 +14,14 @@ private const val HTTPS = "https"
 private const val WS = "ws"
 private const val WSS = "wss"
 
-internal suspend fun HttpClient.connectTransport(
+internal typealias WebSocketSessionConnector = suspend (
+    httpClient: HttpClient,
     url: String,
     headers: Map<String, String>,
-): Transport {
-    val session = webSocketSession(urlString = autoFixWebSocketUrl(url)) {
+) -> WebSocketSession
+
+internal val DefaultWebSocketSessionConnector: WebSocketSessionConnector = { httpClient, url, headers ->
+    httpClient.webSocketSession(urlString = url) {
         headers {
             headers.forEach { (key, value) ->
                 append(key, value)
@@ -28,6 +32,14 @@ internal suspend fun HttpClient.connectTransport(
             requestTimeoutMillis = Long.MAX_VALUE
         }
     }
+}
+
+internal suspend fun HttpClient.connectTransport(
+    url: String,
+    headers: Map<String, String>,
+    webSocketSessionConnector: WebSocketSessionConnector = DefaultWebSocketSessionConnector,
+): Transport {
+    val session = webSocketSessionConnector(this, autoFixWebSocketUrl(url), headers)
     session.ensureActive()
     return WebSocketTransport(session)
 }

@@ -2,7 +2,6 @@ package com.artemchep.keyguard.desktop.util
 
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
-import io.ktor.http.quote
 import java.awt.Desktop
 import java.io.IOException
 import java.net.URI
@@ -14,23 +13,20 @@ fun navigateToBrowser(
         Desktop.getDesktop().browse(URI(uri))
     }.onFailure { e ->
         if (e is IOException) {
-            val uriInQuotes = uri
-                .quote()
-
             val platform = CurrentPlatform
             val handled = when (platform) {
                 is Platform.Desktop.Windows -> {
-                    Runtime.getRuntime().exec("start $uriInQuotes")
+                    Runtime.getRuntime().exec(arrayOf("rundll32", "url.dll,FileProtocolHandler", uri))
                     true
                 }
 
                 is Platform.Desktop.MacOS -> {
-                    Runtime.getRuntime().exec("open $uriInQuotes")
+                    Runtime.getRuntime().exec(arrayOf("open", uri))
                     true
                 }
 
                 is Platform.Desktop.Linux -> {
-                    Runtime.getRuntime().exec("xdg-open $uriInQuotes")
+                    Runtime.getRuntime().exec(arrayOf("xdg-open", uri))
                     true
                 }
 

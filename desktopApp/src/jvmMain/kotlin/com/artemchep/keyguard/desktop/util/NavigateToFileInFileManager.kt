@@ -1,14 +1,9 @@
 package com.artemchep.keyguard.desktop.util
 
-import arrow.core.escaped
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
-import io.ktor.http.quote
 import java.awt.Desktop
-import java.io.File
-import java.io.IOException
 import java.net.URI
-import java.nio.file.Files
 import java.nio.file.Paths
 
 fun navigateToFileInFileManager(
@@ -25,22 +20,20 @@ fun navigateToFileInFileManager(
             val fileOrParent = if (!file.isDirectory) file.parentFile else file
             Desktop.getDesktop().open(fileOrParent)
         }.onFailure { e2 ->
-            val escapedPath = file.path.escaped()
-
             val platform = CurrentPlatform
             val handled = when (platform) {
                 is Platform.Desktop.Windows -> {
-                    windows(escapedPath)
+                    windows(file.path)
                     true
                 }
 
                 is Platform.Desktop.MacOS -> {
-                    macos(escapedPath)
+                    macos(file.path)
                     true
                 }
 
                 is Platform.Desktop.Linux -> {
-                    linux(escapedPath)
+                    linux(file.path)
                     true
                 }
 
@@ -55,21 +48,21 @@ fun navigateToFileInFileManager(
     }
 }
 
-private fun linux(escapedPath: String) {
-    val command = "xdg-open '$escapedPath'"
+private fun linux(path: String) {
+    val command = arrayOf("xdg-open", path)
     exec(command)
 }
 
-private fun windows(escapedPath: String) {
-    val command = "explorer /select, '$escapedPath'"
+private fun windows(path: String) {
+    val command = arrayOf("explorer.exe", "/select,", path)
     exec(command)
 }
 
-private fun macos(escapedPath: String) {
-    val command = "open -R '$escapedPath'"
+private fun macos(path: String) {
+    val command = arrayOf("open", "-R", path)
     exec(command)
 }
 
-private fun exec(command: String) {
+private fun exec(command: Array<String>) {
     Runtime.getRuntime().exec(command)
 }

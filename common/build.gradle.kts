@@ -141,6 +141,8 @@ kotlin {
         val iosMain by creating {
             dependsOn(commonMain)
             dependencies {
+                implementation(libs.diglol.crypto.kdf)
+                api(libs.cash.sqldelight.native.driver)
                 api(libs.ktor.ktor.client.darwin)
             }
         }
@@ -203,7 +205,6 @@ kotlin {
                 implementation(libs.halilibo.richtext.markdown)
                 implementation(libs.mm2d.touchicon)
                 implementation(libs.hierynomus.sshj)
-                implementation(libs.ricecode.string.similarity)
                 implementation(libs.google.zxing.core)
                 implementation(libs.icu4j)
                 implementation(project.dependencies.platform(libs.squareup.okhttp.bom))

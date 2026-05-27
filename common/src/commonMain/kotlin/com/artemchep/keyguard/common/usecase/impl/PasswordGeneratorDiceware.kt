@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.copy
+package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
@@ -13,7 +13,6 @@ import com.artemchep.keyguard.common.usecase.GetPassphrase
 import kotlinx.coroutines.Dispatchers
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.Locale
 
 class PasswordGeneratorDiceware(
     private val wordlistService: WordlistService,
@@ -28,12 +27,12 @@ class PasswordGeneratorDiceware(
 
     override fun invoke(
         config: PasswordGeneratorConfig.Passphrase,
-    ): IO<String> = kotlin.run {
+    ): IO<String> = run {
         // Find which word should be replaced with a
         // user-defined custom word.
         val customWordIndex = cryptoGenerator.random(0 until config.length)
         List(config.length) {
-            val generateWordIo = kotlin.run {
+            val generateWordIo = run {
                 val useCustomWord = customWordIndex == it &&
                         config.customWord != null
                 if (useCustomWord) {
@@ -58,7 +57,10 @@ class PasswordGeneratorDiceware(
                 // capitalize
                 .map { phrase ->
                     if (config.capitalize) {
-                        phrase.capitalize(Locale.US)
+                        phrase
+                            .replaceFirstChar { char ->
+                                char.titlecase()
+                            }
                     } else {
                         phrase
                     }

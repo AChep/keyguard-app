@@ -79,6 +79,8 @@ crashlyticsPlugin = "3.0.7"
 dbusJava = "5.1.1"
 # https://github.com/gmethvin/directory-watcher
 directoryWatcher = "0.19.1"
+# https://github.com/diglol/crypto
+diglolCrypto = "0.2.0"
 firebase = "34.12.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
@@ -164,8 +166,6 @@ sqldelight = "2.3.2"
 sqliteJdbcCrypt = "3.51.2.0"
 # https://github.com/vinceglb/FileKit
 filekit = "0.14.1"
-# https://github.com/rrice/java-string-similarity
-stringSimilarity = "1.0.0"
 # https://github.com/ohmae/touch-icon-extractor
 touchIcon = "0.9.12"
 # https://github.com/littlerobots/version-catalog-update-plugin
@@ -243,6 +243,7 @@ arrow-arrow-optics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow
 arrow-arrow-optics-ksp-plugin = { module = "io.arrow-kt:arrow-optics-ksp-plugin", version.ref = "arrow" }
 cash-sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 cash-sqldelight-coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+cash-sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
 cash-sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeRuntime" }
 jetbrains-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeFoundation" }
@@ -260,6 +261,7 @@ coil3-coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", ver
 devsrsouza-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeOpenIcons" }
 dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbusJava" }
 dbus-java-transport = { module = "com.github.hypfvieh:dbus-java-transport-native-unixsocket", version.ref = "dbusJava" }
+diglol-crypto-kdf = { module = "com.diglol.crypto:kdf", version.ref = "diglolCrypto" }
 directory-watcher = { module = "io.methvin:directory-watcher", version.ref = "directoryWatcher" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
@@ -331,7 +333,6 @@ mm2d-touchicon = { module = "net.mm2d.touchicon:touchicon", version.ref = "touch
 mm2d-touchicon-http-okhttp = { module = "net.mm2d.touchicon:touchicon-http-okhttp", version.ref = "touchIcon" }
 lingala-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 nulabinc-zxcvbn = { module = "com.nulab-inc:zxcvbn", version.ref = "zxcvbn4j" }
-ricecode-string-similarity = { module = "net.ricecode:string-similarity", version.ref = "stringSimilarity" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipherAndroid" }
 squareup-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor" }

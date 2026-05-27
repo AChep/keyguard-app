@@ -26,7 +26,7 @@ class TldServiceImpl(
     private val logRepository: LogRepository,
 ) : TldService {
     companion object {
-        private const val TAG = "TldService.android"
+        private const val TAG = "TldService"
     }
 
     override val version: String

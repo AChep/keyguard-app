@@ -19,7 +19,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Date
 
-class DateFormatterAndroid(
+class DateFormatterJvm(
     private val context: LeContext,
 ) : DateFormatter {
     private val formatterDateTime =

@@ -75,7 +75,7 @@ import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.PermissionServiceJvm
 import com.artemchep.keyguard.copy.PowerServiceJvm
 import com.artemchep.keyguard.copy.ReviewServiceJvm
-import com.artemchep.keyguard.copy.TextServiceJvm
+import com.artemchep.keyguard.common.service.text.impl.TextServiceImpl
 import com.artemchep.keyguard.core.store.DatabaseSqlManagerInFileJvm
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
@@ -368,7 +368,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
 //        )
 //    }
     bindSingleton<TextService> {
-        TextServiceJvm(
+        TextServiceImpl(
             directDI = this,
         )
     }

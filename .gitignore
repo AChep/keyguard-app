@@ -36,6 +36,22 @@ proguard/
 # Log Files
 *.log
 
+# iOS / Xcode
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+*.hmap
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# iOS dependency build products
+Pods/
+Carthage/Build/
+
 # Android Studio Navigation editor temp files
 .navigation/
 

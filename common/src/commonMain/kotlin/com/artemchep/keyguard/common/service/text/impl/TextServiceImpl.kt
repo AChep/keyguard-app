@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.copy
+package com.artemchep.keyguard.common.service.text.impl
 
 import com.artemchep.keyguard.common.io.toSource
 import com.artemchep.keyguard.common.model.FileResource
@@ -10,7 +10,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
-class TextServiceJvm(
+class TextServiceImpl(
     private val fileService: FileService,
 ) : TextService {
     constructor(

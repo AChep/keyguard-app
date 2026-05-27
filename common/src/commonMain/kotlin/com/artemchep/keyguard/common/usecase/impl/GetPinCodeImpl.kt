@@ -616,7 +616,19 @@ class GetPinCodeImpl(
     }
 
     private fun verifyIsInList(pin: Int, array: IntArray): Boolean {
-        return array.binarySearch(pin) >= 0
+        var low = 0
+        var high = array.lastIndex
+        while (low <= high) {
+            val mid = low + (high - low) / 2
+            val value = array[mid]
+            when {
+                value < pin -> low = mid + 1
+                value > pin -> high = mid - 1
+                else -> return true
+            }
+        }
+
+        return false
     }
 
 }

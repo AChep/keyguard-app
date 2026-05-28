@@ -15,11 +15,9 @@ import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardNote
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.generateAccentColors
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -100,14 +98,12 @@ data class DSend(
     override fun accountId(): String = accountId
 }
 
-val DSend.expiredFlow: StateFlow<Boolean>
+val DSend.expiredFlow: Flow<Boolean>
     get() = flowOfTime()
-        .map { expired }
-        .stateIn(
-            scope = GlobalScope,
-            started = SharingStarted.WhileSubscribed(1000L),
-            initialValue = expired,
-        )
+        .map { now ->
+            expirationDate != null && expirationDate <= now
+        }
+        .distinctUntilChanged()
 
 val DSend.expired: Boolean
     get() = expirationDate != null &&

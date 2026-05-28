@@ -21,6 +21,7 @@ data class PreLogin(
             init {
                 require(iterationsCount > 0)
                 require(memoryMb > 0)
+                require(parallelism > 0)
             }
         }
     }

@@ -5,6 +5,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class AccountPreLoginResponseTest {
     @Test
@@ -94,6 +95,22 @@ class AccountPreLoginResponseTest {
             prelogin.hash,
         )
         assertEquals("user@example.com", prelogin.salt)
+    }
+
+    @Test
+    fun `negative argon2id parallelism is rejected`() {
+        val response = AccountPreLoginResponse(
+            kdfSettings = AccountPreLoginResponse.KdfSettings(
+                kdfType = 1,
+                iterations = 3,
+                memory = 64,
+                parallelism = -1,
+            ),
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            response.toDomain("user@example.com")
+        }
     }
 
     @Test

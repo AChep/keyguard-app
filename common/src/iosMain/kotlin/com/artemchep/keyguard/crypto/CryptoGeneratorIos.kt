@@ -4,8 +4,6 @@ import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import diglol.crypto.Argon2
-import diglol.crypto.Hmac
-import diglol.crypto.Pbkdf2
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -30,6 +28,8 @@ import platform.Security.kSecRandomDefault
 class CryptoGeneratorIos : CryptoGenerator {
     companion object {
         private const val DEFAULT_ARGON_HASH_LENGTH = 32
+        private const val HMAC_SHA256_SIZE = 32
+        private const val INT_SIZE_BYTES = 4
     }
 
     override fun hkdf(
@@ -79,18 +79,52 @@ class CryptoGeneratorIos : CryptoGenerator {
         salt: ByteArray,
         iterations: Int,
         length: Int,
-    ): ByteArray = runBlocking {
+    ): ByteArray {
         require(iterations > 0) {
             "PBKDF2 iterations must be positive."
         }
-        Pbkdf2(
-            hmacType = Hmac.Type.SHA256,
-            iterations = iterations,
-            keySize = length,
-        ).deriveKey(
-            password = seed,
-            salt = salt,
-        )
+        require(length >= 0) {
+            "PBKDF2 output length must not be negative."
+        }
+        if (length == 0) {
+            return ByteArray(0)
+        }
+
+        val output = ByteArray(length)
+        val blockCount = (length + HMAC_SHA256_SIZE - 1) / HMAC_SHA256_SIZE
+        var outputOffset = 0
+        for (blockIndex in 1..blockCount) {
+            val blockSeed = ByteArray(salt.size + INT_SIZE_BYTES)
+            salt.copyInto(blockSeed)
+            blockSeed[blockSeed.lastIndex - 3] = (blockIndex ushr 24).toByte()
+            blockSeed[blockSeed.lastIndex - 2] = (blockIndex ushr 16).toByte()
+            blockSeed[blockSeed.lastIndex - 1] = (blockIndex ushr 8).toByte()
+            blockSeed[blockSeed.lastIndex] = blockIndex.toByte()
+
+            var u = hmacSha256(
+                key = seed,
+                data = blockSeed,
+            )
+            val block = u.copyOf()
+            repeat(iterations - 1) {
+                u = hmacSha256(
+                    key = seed,
+                    data = u,
+                )
+                for (i in block.indices) {
+                    block[i] = (block[i].toInt() xor u[i].toInt()).toByte()
+                }
+            }
+
+            val take = minOf(block.size, output.size - outputOffset)
+            block.copyInto(
+                destination = output,
+                destinationOffset = outputOffset,
+                endIndex = take,
+            )
+            outputOffset += take
+        }
+        return output
     }
 
     override fun argon2(

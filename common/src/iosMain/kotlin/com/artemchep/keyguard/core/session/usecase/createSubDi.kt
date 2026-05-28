@@ -12,7 +12,6 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioUnit
-import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AutofillTarget
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
@@ -37,6 +36,8 @@ import com.artemchep.keyguard.platform.iosKeyguardDataDirectory
 import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.platform.toKotlinxIoPath
 import com.artemchep.keyguard.provider.bitwarden.usecase.NotificationsImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.QueueSyncAllImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.QueueSyncByIdImpl
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
@@ -53,14 +54,10 @@ actual fun DI.Builder.createSubDi(
     createSubDi2(masterKey)
 
     bindSingleton<QueueSyncAll> {
-        object : QueueSyncAll {
-            override fun invoke(): IO<Unit> = ioUnit()
-        }
+        QueueSyncAllImpl(this)
     }
     bindSingleton<QueueSyncById> {
-        object : QueueSyncById {
-            override fun invoke(accountId: AccountId): IO<Unit> = ioUnit()
-        }
+        QueueSyncByIdImpl(this)
     }
     bindSingleton<ExportManager> {
         IosUnsupportedExportManager

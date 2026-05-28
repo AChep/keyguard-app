@@ -111,6 +111,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
+import com.artemchep.keyguard.crypto.CipherEncryptorIos
 import com.artemchep.keyguard.crypto.CryptoGeneratorIos
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleCommon
@@ -121,9 +122,6 @@ import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.iosKeyguardDataDirectory
 import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
-import com.artemchep.keyguard.provider.bitwarden.crypto.AsymmetricCryptoKey
-import com.artemchep.keyguard.provider.bitwarden.crypto.DecodeResult
-import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadService
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
@@ -299,7 +297,7 @@ internal fun DI.Builder.installIosAppModule(
         IosPermissionService
     }
     bindSingleton<CipherEncryptor> {
-        IosUnsupportedCipherEncryptor
+        CipherEncryptorIos(this)
     }
     bindSingleton<SshKeyImportService> {
         IosUnsupportedSshKeyImportService
@@ -606,21 +604,6 @@ private object IosBase32Service : Base32Service {
             }
         return output.toByteArray()
     }
-}
-
-private object IosUnsupportedCipherEncryptor : CipherEncryptor {
-    override fun decode2(
-        cipher: String,
-        symmetricCryptoKey: SymmetricCryptoKey2?,
-        asymmetricCryptoKey: AsymmetricCryptoKey?,
-    ): DecodeResult = throw unsupportedCrypto()
-
-    override fun encode2(
-        cipherType: CipherEncryptor.Type,
-        plainText: ByteArray,
-        symmetricCryptoKey: SymmetricCryptoKey2?,
-        asymmetricCryptoKey: AsymmetricCryptoKey?,
-    ): String = throw unsupportedCrypto()
 }
 
 private object IosUnsupportedKeyPairGenerator : KeyPairGenerator {

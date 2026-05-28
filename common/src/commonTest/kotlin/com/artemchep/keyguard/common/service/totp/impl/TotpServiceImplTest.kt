@@ -99,16 +99,67 @@ class TotpServiceImplTest {
         val error = assertIs<OtpCodeGenerationException>(left.value)
         assertSame(cause, error.cause)
     }
+
+    @Test
+    fun `generate rejects ten digit totp token`() {
+        val service = createService()
+
+        val result = service.generate(
+            token = createTotpToken("valid", digits = 10),
+            timestamp = TEST_INSTANT,
+        )
+
+        val left = assertIs<Either.Left<Throwable>>(result)
+        val error = assertIs<OtpCodeGenerationException>(left.value)
+        assertIs<IllegalArgumentException>(error.cause)
+    }
+
+    @Test
+    fun `generate rejects ten digit hotp token`() {
+        val service = createService()
+
+        val result = service.generate(
+            token = createHotpToken("valid", digits = 10),
+            timestamp = TEST_INSTANT,
+        )
+
+        val left = assertIs<Either.Left<Throwable>>(result)
+        val error = assertIs<OtpCodeGenerationException>(left.value)
+        assertIs<IllegalArgumentException>(error.cause)
+    }
 }
+
+private fun createService() = TotpServiceImpl(
+    base32Service = FakeBase32Service(
+        decodedValues = mapOf(
+            "valid" to byteArrayOf(0x01),
+        ),
+    ),
+    cryptoGenerator = FakeCryptoGenerator(
+        hmacResult = HOTP_HASH_123456,
+    ),
+)
 
 private fun createTotpToken(
     keyBase32: String,
+    digits: Int = 6,
 ) = TotpToken.TotpAuth(
     algorithm = CryptoHashAlgorithm.SHA_1,
     keyBase32 = keyBase32,
     raw = keyBase32,
-    digits = 6,
+    digits = digits,
     period = 30L,
+)
+
+private fun createHotpToken(
+    keyBase32: String,
+    digits: Int = 6,
+) = TotpToken.HotpAuth(
+    algorithm = CryptoHashAlgorithm.SHA_1,
+    keyBase32 = keyBase32,
+    raw = keyBase32,
+    digits = digits,
+    counter = 0L,
 )
 
 private class FakeBase32Service(

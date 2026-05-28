@@ -17,7 +17,6 @@ import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.experimental.and
-import kotlin.math.pow
 import kotlin.math.roundToLong
 import kotlin.time.Duration
 
@@ -108,6 +107,7 @@ class TotpServiceImpl(
         val key = decodeSecretKey(token.keyBase32)
         val period = token.period
         val time = roundToPeriodInSeconds(timestamp, period) + offset
+        val modulo = otpModulo(token.digits)
         // The resulting integer value of the code must have at most the required code
         // digits. Therefore the binary value is reduced by calculating the modulo
         // 10 ^ codeDigits.
@@ -115,7 +115,7 @@ class TotpServiceImpl(
             key = key,
             counter = time,
             algorithm = token.algorithm,
-        ).rem(10.0.pow(token.digits).toInt())
+        ).rem(modulo)
         // The integer code variable may contain a value with fewer digits than the
         // required code digits. Therefore the final code value is filled with zeros
         // on the left, till the code digits requirement is fulfilled.
@@ -145,6 +145,7 @@ class TotpServiceImpl(
     ): TotpCode {
         val key = decodeSecretKey(token.keyBase32)
         val counter = token.counter + offset
+        val modulo = otpModulo(token.digits)
         // The resulting integer value of the code must have at most the required code
         // digits. Therefore the binary value is reduced by calculating the modulo
         // 10 ^ codeDigits.
@@ -152,7 +153,7 @@ class TotpServiceImpl(
             key = key,
             counter = counter,
             algorithm = token.algorithm,
-        ).rem(10.0.pow(token.digits).toInt())
+        ).rem(modulo)
         // The integer code variable may contain a value with fewer digits than the
         // required code digits. Therefore the final code value is filled with zeros
         // on the left, till the code digits requirement is fulfilled.
@@ -236,10 +237,22 @@ class TotpServiceImpl(
         // The second step is to drop the most significant bit (MSB) from the first
         // step binary value (0x7F = 0111 1111).
         binary[0] = binary[0].and(0x7F)
-        // The resulting integer value of the code must have at most the required code
-        // digits. Therefore the binary value is reduced by calculating the modulo
-        // 10 ^ codeDigits.
+        // The callers reduce this binary value by the requested digit count.
         return binary.int
+    }
+
+    private fun otpModulo(
+        digits: Int,
+    ): Int {
+        require(digits in 1..9) {
+            "OTP digits must be between 1 and 9."
+        }
+
+        var result = 1
+        repeat(digits) {
+            result *= 10
+        }
+        return result
     }
 
     private fun decodeSecretKey(

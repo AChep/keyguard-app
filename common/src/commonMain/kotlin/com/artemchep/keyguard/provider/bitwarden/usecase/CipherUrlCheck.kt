@@ -69,7 +69,8 @@ class CipherUrlCheckImpl(
             .getDomainName(bHost)
             .bind()
         val bDomainEq = equivalentDomains.findEqDomains(bDomain)
-        bDomainEq.any { aHost.endsWith(it, ignoreCase = true) }
+        val normalizedAHost = aHost.normalizeDomainSuffixPart()
+        bDomainEq.any { normalizedAHost.hasDomainSuffix(it.normalizeDomainSuffixPart()) }
     }
 
     private fun checkUrlMatchByHost(
@@ -197,11 +198,30 @@ class CipherUrlCheckImpl(
         domain: String,
         replacement: String,
     ): String {
-        val prefix = if (endsWith(domain, ignoreCase = true)) {
-            dropLast(domain.length)
-        } else {
-            this
+        val host = normalizeDomainSuffixPart()
+        val normalizedDomain = domain.normalizeDomainSuffixPart()
+        if (!host.hasDomainSuffix(normalizedDomain)) {
+            return this
         }
+        val prefix = host.dropLast(normalizedDomain.length)
         return prefix + replacement
     }
+
+    private fun String.hasDomainSuffix(
+        domain: String,
+    ): Boolean {
+        if (domain.isEmpty()) {
+            return false
+        }
+        val prefixLength = length - domain.length
+        if (prefixLength < 0) {
+            return false
+        }
+        if (!endsWith(domain, ignoreCase = true)) {
+            return false
+        }
+        return prefixLength == 0 || this[prefixLength - 1] == '.'
+    }
+
+    private fun String.normalizeDomainSuffixPart(): String = trim().removeSuffix(".")
 }

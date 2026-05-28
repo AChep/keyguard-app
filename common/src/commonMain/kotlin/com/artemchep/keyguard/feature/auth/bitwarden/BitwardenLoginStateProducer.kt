@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
+import com.artemchep.keyguard.common.util.ensureUrlScheme
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
@@ -669,13 +670,13 @@ fun produceBitwardenLoginScreenState(
 
                             is BitwardenLoginRegion.Custom -> {
                                 ServerEnv(
-                                    baseUrl = output.baseUrl.orEmpty().let(::ensureUrlSchema),
+                                    baseUrl = output.baseUrl.orEmpty().let(::ensureUrlScheme),
                                     webVaultUrl = output.webVaultUrl.orEmpty()
-                                        .let(::ensureUrlSchema),
-                                    apiUrl = output.apiUrl.orEmpty().let(::ensureUrlSchema),
+                                        .let(::ensureUrlScheme),
+                                    apiUrl = output.apiUrl.orEmpty().let(::ensureUrlScheme),
                                     identityUrl = output.identityUrl.orEmpty()
-                                        .let(::ensureUrlSchema),
-                                    iconsUrl = output.iconsUrl.orEmpty().let(::ensureUrlSchema),
+                                        .let(::ensureUrlScheme),
+                                    iconsUrl = output.iconsUrl.orEmpty().let(::ensureUrlScheme),
                                     headers = output.headers,
                                 )
                             }
@@ -743,16 +744,6 @@ fun produceBitwardenLoginScreenState(
         ).let { Loadable.Ok(it) }
     }
 }
-
-private fun ensureUrlSchema(url: String) =
-    if (url.isBlank() || url.contains("://")) {
-        // The url contains a schema, return
-        // it as it as.
-        url
-    } else {
-        val newUrl = "https://$url"
-        newUrl
-    }
 
 class AddStateItemFieldFactory(
     private val readOnlyFlow: Flow<Boolean>,

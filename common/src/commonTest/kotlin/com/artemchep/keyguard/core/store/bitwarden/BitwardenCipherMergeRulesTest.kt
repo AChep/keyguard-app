@@ -38,6 +38,30 @@ class BitwardenCipherMergeRulesTest {
     }
 
     @Test
+    fun `merge keeps local reprompt enable and remote notes edit`() {
+        val oldRemote = loginCipher(
+            reprompt = BitwardenCipher.RepromptType.None,
+        )
+        val currentLocal = oldRemote.copy(
+            revisionDate = LOCAL_REVISION,
+            reprompt = BitwardenCipher.RepromptType.Password,
+        )
+        val currentRemote = oldRemote.copy(
+            revisionDate = REMOTE_REVISION,
+            notes = "Personal mailbox updated on web",
+        )
+
+        val merged = merge(
+            oldRemote = oldRemote,
+            currentLocal = currentLocal,
+            currentRemote = currentRemote,
+        )
+
+        assertEquals(BitwardenCipher.RepromptType.Password, merged.reprompt)
+        assertEquals("Personal mailbox updated on web", merged.notes)
+    }
+
+    @Test
     fun `merge prefers remote password conflict but keeps local custom field`() {
         val recoveryCode = hiddenField(
             name = "Recovery code",
@@ -522,6 +546,7 @@ class BitwardenCipherMergeRulesTest {
         totp: String? = null,
         fields: List<BitwardenCipher.Field> = emptyList(),
         fido2Credentials: List<BitwardenCipher.Login.Fido2Credentials> = emptyList(),
+        reprompt: BitwardenCipher.RepromptType = BitwardenCipher.RepromptType.Password,
     ) = BitwardenCipher(
         accountId = "account-1",
         cipherId = "cipher-1",
@@ -539,7 +564,7 @@ class BitwardenCipherMergeRulesTest {
         notes = "Personal mailbox",
         favorite = false,
         fields = fields,
-        reprompt = BitwardenCipher.RepromptType.Password,
+        reprompt = reprompt,
         type = BitwardenCipher.Type.Login,
         login = BitwardenCipher.Login(
             username = "alice@example.com",

@@ -411,6 +411,7 @@ fun BitwardenCipher.Companion.getMergeRules() = kotlin.run {
             DiffFinderNode.Leaf(BitwardenCipher.name),
             DiffFinderNode.Leaf(BitwardenCipher.notes),
             DiffFinderNode.Leaf(BitwardenCipher.favorite),
+            DiffFinderNode.Leaf(BitwardenCipher.reprompt),
             DiffFinderNode.Leaf(
                 lens = BitwardenCipher.fields,
                 finder = DiffApplierByListValue(),

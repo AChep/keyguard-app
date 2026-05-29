@@ -1,41 +1,22 @@
 package com.artemchep.keyguard.feature.justgetdata.directory
 
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.unit.dp
-import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataService
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataServiceInfo
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
-import com.artemchep.keyguard.feature.decorator.ItemDecorator
-import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
-import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
-import com.artemchep.keyguard.ui.icons.FaviconIcon
-import com.artemchep.keyguard.feature.favicon.FaviconUrl
-import com.artemchep.keyguard.feature.home.vault.search.IndexedText
-import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
-import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
-import com.artemchep.keyguard.feature.search.search.IndexedModel
-import com.artemchep.keyguard.feature.search.search.mapSearch
-import com.artemchep.keyguard.feature.search.search.mapShape
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
-import com.artemchep.keyguard.platform.recordException
-import kotlinx.coroutines.flow.asFlow
+import com.artemchep.keyguard.feature.servicedirectory.serviceDirectoryItemsFlow
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
 
-private class JustDeleteMeServiceListUiException(
+private class JustGetMyDataListUiException(
     msg: String,
     cause: Throwable,
 ) : RuntimeException(msg, cause)
@@ -65,10 +46,6 @@ fun produceJustGetMyDataListState(
         )
     }
 
-    val modelComparator = Comparator { a: JustGetMyDataServiceInfo, b: JustGetMyDataServiceInfo ->
-        AlphabeticalSort.compareStr(a.name, b.name)
-    }
-
     fun onClick(model: JustGetMyDataServiceInfo) {
         val route = JustGetMyDataViewFullRoute(
             args = JustGetMyDataViewDialogRoute.Args(
@@ -84,111 +61,39 @@ fun produceJustGetMyDataListState(
         navigate(intent)
     }
 
-    fun List<JustGetMyDataServiceInfo>.toItems(): List<JustGetMyDataListState.Item.Content> {
-        val nameCollisions = mutableMapOf<String, Int>()
-        return this
-            .sortedWith(modelComparator)
-            .map { serviceInfo ->
-                    val key = kotlin.run {
-                        val newNameCollisionCounter = nameCollisions
-                            .getOrElse(serviceInfo.name) { 0 } + 1
-                    nameCollisions[serviceInfo.name] =
-                        newNameCollisionCounter
-                    serviceInfo.name + ":" + newNameCollisionCounter
-                }
-                val faviconUrl = serviceInfo.url?.let { url ->
-                    FaviconUrl(
-                        serverId = null,
-                        url = url,
-                    )
-                }
-                JustGetMyDataListState.Item.Content(
-                    key = key,
-                    icon = {
-                        FaviconIcon(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clip(CircleShape),
-                            imageModel = { faviconUrl },
-                        )
-                    },
-                    name = AnnotatedString(serviceInfo.name),
-                    data = serviceInfo,
-                    onClick = ::onClick
-                        .partially1(serviceInfo),
-                )
-            }
-    }
-
-    val itemsFlow = justGetMyDataService.get()
-        .asFlow()
-        .map { data ->
-            data
-                .toItems()
-                // Index for the search.
-                .map { item ->
-                    IndexedModel(
-                        model = item,
-                        indexedText = IndexedText.invoke(item.name.text),
-                    )
-                }
-        }
-        .mapSearch(
-            handle = queryHandle,
-        ) { item, result ->
-            // Replace the origin text with the one with
-            // search decor applied to it.
-            item.copy(name = result.highlightedText)
-        }
-        .map { (items, rev) ->
-            val decorator: ItemDecorator<JustGetMyDataListState.Item, JustGetMyDataListState.Item.Content> =
-                when {
-                    items.size >= AlphabeticalSortMinItemsSize ->
-                        ItemDecoratorTitle(
-                            selector = { it.name.text },
-                            factory = { id, text ->
-                                JustGetMyDataListState.Item.Section(
-                                    key = id,
-                                    name = text,
-                                )
-                            },
-                        )
-
-                    else ->
-                        ItemDecoratorNone
-                                as ItemDecorator<JustGetMyDataListState.Item, JustGetMyDataListState.Item.Content>
-                }
-
-            val sectionIds = mutableSetOf<String>()
-            val out = mutableListOf<JustGetMyDataListState.Item>()
-            items.forEach { item ->
-                val section = decorator.getOrNull(item)
-                // Some weird combinations of items might lead to
-                // duplicate # being used.
-                if (section != null) {
-                    if (section.key !in sectionIds) {
-                        sectionIds += section.key
-                        out += section
-                    } else {
-                        val sections = sectionIds
-                            .joinToString()
-
-                        val msg =
-                            "Duplicate sections prevented @ JustDeleteMeList: $sections, [${section.key}]"
-                        val exception = RuntimeException(msg)
-                        recordException(exception)
-                    }
-                }
-
-                out += item
-            }
-            out to rev
-        }
-        .mapShape()
+    val itemsFlow = serviceDirectoryItemsFlow(
+        source = justGetMyDataService.get(),
+        queryHandle = queryHandle,
+        nameOf = JustGetMyDataServiceInfo::name,
+        keyOf = JustGetMyDataServiceInfo::name,
+        faviconUrlOf = JustGetMyDataServiceInfo::url,
+        onClick = ::onClick,
+        createContentItem = { key, model, name, icon, itemOnClick ->
+            JustGetMyDataListState.Item.Content(
+                key = key,
+                icon = icon,
+                name = name,
+                data = model,
+                onClick = itemOnClick,
+            )
+        },
+        createSectionItem = { key, name ->
+            JustGetMyDataListState.Item.Section(
+                key = key,
+                name = name,
+            )
+        },
+        contentName = { it.name },
+        highlightContentItem = { item, name ->
+            item.copy(name = name)
+        },
+        itemKey = { it.key },
+        duplicateSectionTag = "JustGetMyDataList",
+    )
     val contentFlow = itemsFlow
         .crashlyticsAttempt { e ->
             val msg = "Failed to get the just-get-my-data list!"
-            JustDeleteMeServiceListUiException(
+            JustGetMyDataListUiException(
                 msg = msg,
                 cause = e,
             )

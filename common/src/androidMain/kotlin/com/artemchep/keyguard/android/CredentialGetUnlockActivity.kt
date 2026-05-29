@@ -39,9 +39,11 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.theme.Dimens
 import org.jetbrains.compose.resources.stringResource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import org.kodein.di.*
 
@@ -66,10 +68,12 @@ class CredentialGetUnlockActivity : BaseActivity(), DIAware {
             val userVerified = session.createdAt > startedAt &&
                     session.origin is MasterSession.Key.Authenticated
             val response = runCatching {
-                processUnlockedVault(
-                    session = session,
-                    userVerified = userVerified,
-                )
+                withContext(Dispatchers.Default) {
+                    processUnlockedVault(
+                        session = session,
+                        userVerified = userVerified,
+                    )
+                }
             }.getOrElse {
                 recordException(it)
 

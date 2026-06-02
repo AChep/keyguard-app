@@ -358,6 +358,7 @@
     <string name="ciphers_action_change_password_title">Change password</string>
     <string name="ciphers_action_change_passwords_title">Change passwords</string>
     <string name="ciphers_action_view_password_history_title">View password history</string>
+    <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
     <string name="ciphers_action_archive_title">Archive</string>
     <string name="ciphers_action_archive_confirmation_title">Move to archive?</string>
     <string name="ciphers_action_unarchive_title">Restore from archive</string>
@@ -997,6 +998,20 @@
     <string name="ssh_agent_filters_header_title">SSH agent filters</string>
     <string name="ssh_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
 
+    <string name="ssh_agent_history_header_title">SSH agent history</string>
+    <string name="ssh_agent_history_request_list_keys">List keys</string>
+    <string name="ssh_agent_history_request_sign_data">Sign data</string>
+    <string name="ssh_agent_history_response_success">Success</string>
+    <string name="ssh_agent_history_response_user_denied">Denied</string>
+    <string name="ssh_agent_history_response_key_not_found">Key not found</string>
+    <string name="ssh_agent_history_response_failure">Failed</string>
+    <string name="ssh_agent_history_unknown_caller">Unknown caller</string>
+    <string name="ssh_agent_history_unknown_key">Unknown key</string>
+    <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
+    <string name="ssh_agent_history_clear_history_title">Clear history</string>
+    <string name="ssh_agent_history_clear_history_confirmation_title">Clear SSH agent history?</string>
+    <string name="ssh_agent_history_clear_history_confirmation_text">This will remove all SSH agent usage history.</string>
+
     <string name="ssh_agent_setup_header_title">SSH client setup</string>
     <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
     <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
@@ -1485,6 +1500,8 @@
     <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
     <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
     <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
+    <string name="pref_item_ssh_agent_history_title">SSH agent history</string>
+    <string name="pref_item_ssh_agent_history_text"><xliff:g id="count" example="12">%1$d</xliff:g> events</string>
     <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>

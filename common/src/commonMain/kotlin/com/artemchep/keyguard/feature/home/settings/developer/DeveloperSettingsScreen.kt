@@ -39,6 +39,12 @@ fun rememberSettingsDeveloperItems(
                     SettingPaneItem.Item(Setting.SSH_AGENT_FILTERS),
                 ),
             ),
+            SettingPaneItem.Group(
+                key = "other",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.SSH_AGENT_HISTORY),
+                ),
+            ),
         )
     }
 }

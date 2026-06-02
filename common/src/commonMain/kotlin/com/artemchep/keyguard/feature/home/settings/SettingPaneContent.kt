@@ -100,6 +100,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocal
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalWindowProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSetupProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsDebug
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsPlayStoreProvider
@@ -209,6 +210,7 @@ object Setting {
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
     const val SSH_AGENT_SETUP = "ssh_agent_setup"
     const val SSH_AGENT_FILTERS = "ssh_agent_filters"
+    const val SSH_AGENT_HISTORY = "ssh_agent_history"
     const val RATE_APP = "rate_app"
     const val CONCEAL = "conceal"
     const val MARKDOWN = "markdown"
@@ -317,6 +319,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
     Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
     Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,
+    Setting.SSH_AGENT_HISTORY to ::settingSshAgentHistoryProvider,
     Setting.RATE_APP to ::settingRateAppProvider,
     Setting.DIVIDER to ::settingSectionProvider,
     Setting.CONCEAL to ::settingConcealFieldsProvider,

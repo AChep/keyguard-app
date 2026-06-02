@@ -133,6 +133,8 @@ import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetShouldRequestAppReview
+import com.artemchep.keyguard.common.usecase.GetSshUsageHistory
+import com.artemchep.keyguard.common.usecase.GetSshUsageHistoryCount
 import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.GetUrlBlocks
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
@@ -167,6 +169,7 @@ import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
 import com.artemchep.keyguard.common.usecase.RemovePrivilegedAppById
 import com.artemchep.keyguard.common.usecase.RemoveSendById
+import com.artemchep.keyguard.common.usecase.RemoveSshUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveUrlBlockById
 import com.artemchep.keyguard.common.usecase.RemoveUrlOverrideById
 import com.artemchep.keyguard.common.usecase.RenameFolderById
@@ -313,6 +316,8 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetOrganizationsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetPrivilegedAppsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetProfilesImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetSendsImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetSshUsageHistoryCountImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetSshUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetTagsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetUrlBlocksImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetUrlOverridesImpl
@@ -346,6 +351,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveEmailRelayByIdImp
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemovePrivilegedAppByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveSendByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveSshUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveUrlBlockByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveUrlOverrideByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RenameFolderByIdImpl
@@ -879,6 +885,15 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<AddSshUsageHistory> {
         AddSshUsageHistoryImpl(this)
+    }
+    bindSingleton<GetSshUsageHistory> {
+        GetSshUsageHistoryImpl(this)
+    }
+    bindSingleton<GetSshUsageHistoryCount> {
+        GetSshUsageHistoryCountImpl(this)
+    }
+    bindSingleton<RemoveSshUsageHistory> {
+        RemoveSshUsageHistoryImpl(this)
     }
     bindSingleton<GetCipherOpenedHistory> {
         GetCipherOpenedHistoryImpl(this)

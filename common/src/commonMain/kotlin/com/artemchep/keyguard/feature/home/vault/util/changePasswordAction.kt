@@ -70,6 +70,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
+import com.artemchep.keyguard.feature.sshagent.history.SshAgentHistoryRoute
 import com.artemchep.keyguard.platform.LeSystem
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -868,6 +869,26 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
             val intent = NavigationIntent.NavigateToRoute(
                 VaultViewPasswordHistoryRoute(
                     itemId = cipher.id,
+                ),
+            )
+            navigate(intent)
+        },
+    )
+}
+
+fun RememberStateFlowScope.cipherViewSshAgentHistoryAction(
+    cipher: DSecret,
+) = kotlin.run {
+    FlatItemAction(
+        leading = icon(Icons.Outlined.History),
+        title = Res.string.ciphers_action_view_ssh_agent_history_title.wrap(),
+        trailing = {
+            ChevronIcon()
+        },
+        onClick = {
+            val intent = NavigationIntent.NavigateToRoute(
+                SshAgentHistoryRoute(
+                    cipherId = cipher.id,
                 ),
             )
             navigate(intent)

@@ -195,6 +195,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherSendAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherUnarchiveAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherViewSshAgentHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
 import com.artemchep.keyguard.feature.home.vault.watchtower
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewDialogRoute
@@ -1170,6 +1171,11 @@ fun vaultViewScreenState(
                             cipher = secretOrNull,
                         )
                             .takeIf { secretOrNull.passwordHistory.isNotEmpty() }
+                            ?.verify(verify),
+                        cipherViewSshAgentHistoryAction(
+                            cipher = secretOrNull,
+                        )
+                            .takeIf { secretOrNull.type == DSecret.Type.SshKey }
                             ?.verify(verify),
                         cipherChangeNameAction(
                             confirmationRouteFactory = confirmationRouteFactory,

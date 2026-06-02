@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
@@ -46,8 +47,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
@@ -116,6 +116,14 @@ internal fun ApplicationScope.SshRequestWindow(
 }
 
 /**
+ * Forces animations in the enclosing coroutine to run at their declared
+ * duration regardless of the system animator duration scale.
+ */
+private val FullMotionDurationScale = object : MotionDurationScale {
+    override val scaleFactor: Float = 1f
+}
+
+/**
  * Composable that observes [UnlockUseCase] and renders the SSH agent unlock
  * dialog content. When the vault transitions to [VaultState.Main], completes
  * the request's deferred with `true` and calls [onDismiss].
@@ -146,14 +154,18 @@ private fun SshAgentUnlockWindow(
             val request = sshAgentRequestUiState.getOrNull()
                 ?: return@LaunchedEffect
             timeoutProgress.snapTo(1f)
-            timeoutProgress.animateTo(
-                targetValue = 0f,
-                animationSpec = tween(
-                    durationMillis = (request.request.expiresAt - Clock.System.now())
-                        .inWholeMilliseconds.coerceAtLeast(0L).toInt(),
-                    easing = LinearEasing,
-                ),
-            )
+            // The countdown conveys real remaining time, so it must run even when
+            // the system disables animations
+            withContext(FullMotionDurationScale) {
+                timeoutProgress.animateTo(
+                    targetValue = 0f,
+                    animationSpec = tween(
+                        durationMillis = (request.request.expiresAt - Clock.System.now())
+                            .inWholeMilliseconds.coerceAtLeast(0L).toInt(),
+                        easing = LinearEasing,
+                    ),
+                )
+            }
         }
 
         // Close the window once the request resolves, whether the user

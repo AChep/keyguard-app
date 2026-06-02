@@ -112,6 +112,7 @@ kotlin {
                 api(libs.ktor.ktor.client.websockets)
                 api(libs.ktor.ktor.serialization.kotlinx)
                 api(project(":util:signalr"))
+                api(project(":util:webdav"))
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
                 api(libs.cash.sqldelight.coroutines.extensions)

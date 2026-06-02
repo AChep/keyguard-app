@@ -10,6 +10,7 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.FilledTonalButton
@@ -32,6 +33,7 @@ class WearSettingsComponents : SettingPaneComponents {
         subIcon: ImageVector?,
         title: @Composable RowScope.() -> Unit,
         text: (@Composable RowScope.() -> Unit)?,
+        contentColor: Color,
         trailing: (@Composable RowScope.() -> Unit)?,
         footer: (@Composable ColumnScope.() -> Unit)?,
         onClick: (() -> Unit)?,

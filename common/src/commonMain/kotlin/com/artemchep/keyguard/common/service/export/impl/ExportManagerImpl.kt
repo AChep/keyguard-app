@@ -20,19 +20,14 @@ import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.download.DownloadWriter
 import com.artemchep.keyguard.common.service.export.ExportManager
-import com.artemchep.keyguard.common.service.export.JsonExportService
+import com.artemchep.keyguard.common.service.export.ExportVaultDataService
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.zip.ZipConfig
 import com.artemchep.keyguard.common.service.zip.ZipEntry
 import com.artemchep.keyguard.common.service.zip.ZipService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
-import com.artemchep.keyguard.common.usecase.GetCiphers
-import com.artemchep.keyguard.common.usecase.GetCollections
-import com.artemchep.keyguard.common.usecase.GetFolders
-import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import kotlinx.collections.immutable.persistentMapOf
@@ -74,14 +69,10 @@ open class ExportManagerBase(
     private val directDI: DirectDI,
     private val windowCoroutineScope: WindowCoroutineScope,
     private val cryptoGenerator: CryptoGenerator,
-    private val jsonExportService: JsonExportService,
+    private val exportVaultDataService: ExportVaultDataService,
     private val dirsService: DirsService,
     private val zipService: ZipService,
     private val dateFormatter: DateFormatter,
-    private val getOrganizations: GetOrganizations,
-    private val getCollections: GetCollections,
-    private val getFolders: GetFolders,
-    private val getCiphers: GetCiphers,
     private val downloadTask: DownloadTask,
     private val downloadAttachmentMetadata: DownloadAttachmentMetadata,
     private val vaultSessionLocker: VaultSessionLocker,
@@ -105,14 +96,10 @@ open class ExportManagerBase(
         directDI = directDI,
         windowCoroutineScope = directDI.instance(),
         cryptoGenerator = directDI.instance(),
-        jsonExportService = directDI.instance(),
+        exportVaultDataService = directDI.instance(),
         dirsService = directDI.instance(),
         zipService = directDI.instance(),
         dateFormatter = directDI.instance(),
-        getOrganizations = directDI.instance(),
-        getCollections = directDI.instance(),
-        getFolders = directDI.instance(),
-        getCiphers = directDI.instance(),
         downloadTask = directDI.instance(),
         downloadAttachmentMetadata = directDI.instance(),
         vaultSessionLocker = directDI.instance(),
@@ -243,15 +230,10 @@ open class ExportManagerBase(
         password: String,
         exportAttachments: Boolean,
     ): DownloadProgress.Complete {
-        val data = createExportData(directDI, filter)
+        val data = exportVaultDataService.create(filter)
         // Map vault data to the JSON export
         // in the target type.
-        val json = jsonExportService.export(
-            organizations = data.organizations,
-            collections = data.collections,
-            folders = data.folders,
-            ciphers = data.ciphers,
-        )
+        val json = exportVaultDataService.exportJson(data)
 
         // Obtain a list of attachments to
         // download.
@@ -382,73 +364,6 @@ open class ExportManagerBase(
             data = data,
         )
     }
-
-    private class ExportData(
-        val ciphers: List<DSecret>,
-        val folders: List<DFolder>,
-        val collections: List<DCollection>,
-        val organizations: List<DOrganization>,
-    )
-
-    private suspend fun createExportData(
-        directDI: DirectDI,
-        filter: DFilter,
-    ): ExportData {
-        val ciphers = getCiphersByFilter(directDI, filter)
-        val folders = kotlin.run {
-            val foldersLocalIds = ciphers
-                .asSequence()
-                .map { it.folderId }
-                .toSet()
-            getFolders()
-                .map { folders ->
-                    folders
-                        .filter { it.id in foldersLocalIds }
-                }
-                .first()
-        }
-        val collections = kotlin.run {
-            val collectionIds = ciphers
-                .asSequence()
-                .flatMap { it.collectionIds }
-                .toSet()
-            getCollections()
-                .map { collections ->
-                    collections
-                        .filter { it.id in collectionIds }
-                }
-                .first()
-        }
-        val organizations = kotlin.run {
-            val organizationIds = ciphers
-                .asSequence()
-                .map { it.organizationId }
-                .toSet()
-            getOrganizations()
-                .map { organizations ->
-                    organizations
-                        .filter { it.id in organizationIds }
-                }
-                .first()
-        }
-        return ExportData(
-            ciphers = ciphers,
-            folders = folders,
-            collections = collections,
-            organizations = organizations,
-        )
-    }
-
-    private suspend fun getCiphersByFilter(
-        directDI: DirectDI,
-        filter: DFilter,
-    ) = getCiphers()
-        .map { ciphers ->
-            val predicate = filter.prepare(directDI, ciphers)
-            ciphers
-                .filter(predicate)
-        }
-        .first()
 
     @OptIn(ExperimentalAtomicApi::class)
     private class AttachmentWithLiveProgress(

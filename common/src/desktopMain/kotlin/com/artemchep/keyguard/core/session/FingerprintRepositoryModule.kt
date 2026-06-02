@@ -25,6 +25,12 @@ import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
+import com.artemchep.keyguard.common.service.backup.BackupLocalObjectStoreFactoryTag
+import com.artemchep.keyguard.common.service.backup.BackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.BackupSchedulerWorker
+import com.artemchep.keyguard.common.service.backup.LocalFolderBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
@@ -63,6 +69,7 @@ import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
 import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
+import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.copy.ClipboardServiceJvm
 import com.artemchep.keyguard.copy.ConnectivityServiceJvm
 import com.artemchep.keyguard.copy.DataDirectory
@@ -89,6 +96,7 @@ import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderDesktop
 import com.artemchep.keyguard.util.traverse
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -287,6 +295,17 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindProvider<LeContext>() {
         LeContext()
     }
+    bindSingleton<BackupObjectStoreFactory>(tag = BackupLocalObjectStoreFactoryTag) {
+        LocalFolderBackupObjectStoreFactory()
+    }
+    bindSingleton<BackupObjectStoreFactory> {
+        SelectableBackupObjectStoreFactory(
+            localFactory = instance(tag = BackupLocalObjectStoreFactoryTag),
+            webDavFactory = WebDavBackupObjectStoreFactory(
+                httpClient = instance<HttpClient>(),
+            ),
+        )
+    }
     bindSingleton {
         FlavorConfig(
             isFreeAsBeer = false,
@@ -382,6 +401,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
         ReviewServiceJvm(
             directDI = this,
         )
+    }
+    bindSingleton<Wrker> {
+        BackupSchedulerWorker(this)
     }
     bindSingleton<DownloadClientDesktop> {
         DownloadClientDesktop(

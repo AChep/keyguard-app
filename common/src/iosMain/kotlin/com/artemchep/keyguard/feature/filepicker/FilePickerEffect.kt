@@ -12,6 +12,7 @@ actual fun FilePickerEffect(
         when (intent) {
             is FilePickerIntent.NewDocument -> intent.onResult(null)
             is FilePickerIntent.OpenDocument -> intent.onResult(null)
+            is FilePickerIntent.OpenDirectory -> intent.onResult(null)
         }
     }
 }

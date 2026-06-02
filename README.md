@@ -29,6 +29,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - a watchtower that finds items with **Pwned passwords**, **Vulnerable accounts**, **Reused passwords**, **Inactive two factor authentication**, **Inactive passkeys**, **Unsecure Websites** as well as **Duplicate**, **Incomplete** and **Expiring** items, and other;
 - **multi-account support** 🌠 with secure login and two-factor authentication support;
 - add items 🌠 and sends _(Bitwarden, 🌠)_, modify 🌠, and view your vault **offline**;
+- automatically manage vault backup repository;
 - upload attachments 🌠 to the vault;
 - view attachments in-app without saving them;
 - unlock vault with a password, biometrics or a YubiKey;

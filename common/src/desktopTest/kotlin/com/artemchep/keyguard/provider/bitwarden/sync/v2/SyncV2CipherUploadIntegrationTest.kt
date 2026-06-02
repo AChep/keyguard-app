@@ -2506,6 +2506,7 @@ class SyncV2CipherUploadIntegrationTest {
             dbSyncer = DatabaseSyncer(cryptoGenerator),
             pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
             watchdog = UploadTestWatchdog,
+            markBackupAsDirty = UploadTestMarkBackupAsDirty,
         )
 
         sync.invoke(user).invoke()
@@ -2623,6 +2624,7 @@ class SyncV2CipherUploadIntegrationTest {
             dbSyncer = DatabaseSyncer(cryptoGenerator),
             pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
             watchdog = UploadTestWatchdog,
+            markBackupAsDirty = UploadTestMarkBackupAsDirty,
         )
 
         val syncError = assertFailsWith<IllegalStateException> {

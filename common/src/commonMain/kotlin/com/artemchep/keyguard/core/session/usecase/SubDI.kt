@@ -10,6 +10,11 @@ import com.artemchep.keyguard.android.downloader.journal.SshUsageHistoryReposito
 import com.artemchep.keyguard.android.downloader.journal.SshUsageHistoryRepositoryImpl
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
+import com.artemchep.keyguard.common.service.backup.BackupConfigRepositoryImpl
+import com.artemchep.keyguard.common.service.backup.BackupRunner
+import com.artemchep.keyguard.common.service.export.ExportVaultDataService
+import com.artemchep.keyguard.common.service.export.ExportVaultDataServiceImpl
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.filter.RemoveCipherFilterById
@@ -139,6 +144,7 @@ import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadCount
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.MarkAllWatchtowerAlertAsNotRead
 import com.artemchep.keyguard.common.usecase.MarkAllWatchtowerAlertAsRead
+import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
 import com.artemchep.keyguard.common.usecase.MergeFolderById
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
@@ -200,6 +206,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetNavHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.GetShouldRequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchIndexImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchQualifierCatalogImpl
+import com.artemchep.keyguard.common.usecase.impl.MarkBackupAsDirtyImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryByIdImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.PutBarcodeUsageHistoryImpl
@@ -382,6 +389,12 @@ fun DI.Builder.createSubDi2(
     bindSingleton<VaultSettingsKeyValueStore> {
         SqlDelightVaultSettingsKeyValueStore(this)
     }
+    bindSingleton<BackupConfigRepository> {
+        BackupConfigRepositoryImpl(this)
+    }
+    bindSingleton<MarkBackupAsDirty> {
+        MarkBackupAsDirtyImpl(this)
+    }
     bindSingleton {
         VaultSettingsRepositoryImpl(this)
     }
@@ -402,6 +415,12 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<CheckHibpApiToken> {
         CheckHibpApiTokenImpl(this)
+    }
+    bindSingleton<ExportVaultDataService> {
+        ExportVaultDataServiceImpl(this)
+    }
+    bindSingleton<BackupRunner> {
+        BackupRunner(this)
     }
     bindSingleton<DownloadAttachment> {
         DownloadAttachmentImpl2(this)

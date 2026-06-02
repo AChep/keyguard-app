@@ -375,6 +375,7 @@ private fun createFullSyncFixture(
         dbSyncer = DatabaseSyncer(cryptoGenerator),
         pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
         watchdog = UploadTestWatchdog,
+        markBackupAsDirty = UploadTestMarkBackupAsDirty,
     )
     val crypto =
         BitwardenCrImpl(

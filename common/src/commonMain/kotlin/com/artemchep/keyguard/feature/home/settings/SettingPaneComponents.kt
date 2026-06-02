@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -39,6 +41,7 @@ interface SettingPaneComponents {
         subIcon: ImageVector? = null,
         title: @Composable RowScope.() -> Unit,
         text: (@Composable RowScope.() -> Unit)? = null,
+        contentColor: Color = Color.Unspecified,
         trailing: (@Composable RowScope.() -> Unit)? = null,
         footer: (@Composable ColumnScope.() -> Unit)? = null,
         onClick: (() -> Unit)? = null,
@@ -81,6 +84,7 @@ object SettingPaneComponentsDefault : SettingPaneComponents {
         subIcon: ImageVector?,
         title: @Composable (RowScope.() -> Unit),
         text: @Composable (RowScope.() -> Unit)?,
+        contentColor: Color,
         trailing: @Composable (RowScope.() -> Unit)?,
         footer: @Composable (ColumnScope.() -> Unit)?,
         onClick: (() -> Unit)?,
@@ -108,6 +112,9 @@ object SettingPaneComponentsDefault : SettingPaneComponents {
             } else {
                 null
             },
+            contentColor = contentColor
+                .takeIf { it.isSpecified }
+                ?: LocalContentColor.current,
             footer = footer,
             onClick = onClick,
             enabled = enabled,
@@ -228,6 +235,7 @@ fun SettingPaneComponents.KgAction(
     subIcon: ImageVector? = null,
     title: String,
     text: String? = null,
+    contentColor: Color = Color.Unspecified,
     trailing: (@Composable RowScope.() -> Unit)? = null,
     footer: (@Composable ColumnScope.() -> Unit)? = null,
     onClick: (() -> Unit)? = null,
@@ -246,6 +254,7 @@ fun SettingPaneComponents.KgAction(
         } else {
             null
         },
+        contentColor = contentColor,
         trailing = trailing,
         footer = footer,
         onClick = onClick,

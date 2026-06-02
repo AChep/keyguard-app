@@ -15,6 +15,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -182,11 +183,11 @@ class SshAgentManager(
                     keyFingerprint = keyFingerprint,
                     caller = caller,
                     notificationTag = null,
-                    timeout = SshAgentIpcServer.APPROVAL_TIMEOUT_MS.milliseconds,
+                    expiresAt = Clock.System.now() + SshAgentIpcServer.APPROVAL_TIMEOUT_MS.milliseconds,
                     deferred = deferred,
                 )
                 approvalRequests.emit(request)
-                deferred.await()
+                awaitWithExpiry(request, reason = "desktop_approval_timeout")
             },
             onGetListRequest = {
                 requestGetList(it)
@@ -307,7 +308,7 @@ class SshAgentManager(
             val request = SshAgentGetListRequest(
                 caller = caller,
                 notificationTag = null,
-                timeout = SshAgentIpcServer.APPROVAL_TIMEOUT_MS.milliseconds,
+                expiresAt = Clock.System.now() + SshAgentIpcServer.APPROVAL_TIMEOUT_MS.milliseconds,
                 deferred = deferred,
             )
             pendingGetListRequest = request
@@ -315,15 +316,7 @@ class SshAgentManager(
             request
         }
         return try {
-            withTimeoutOrNull(request.timeout.inWholeMilliseconds) {
-                request.deferred.await()
-            } ?: run {
-                request.completeWithLog(
-                    value = false,
-                    reason = "desktop_get_list_timeout",
-                )
-                false
-            }
+            awaitWithExpiry(request, reason = "desktop_get_list_timeout")
         } finally {
             unlockMutex.withLock {
                 if (pendingGetListRequest === request) {
@@ -331,6 +324,23 @@ class SshAgentManager(
                 }
             }
         }
+    }
+
+    /**
+     * Suspends until [request] is completed or its [SshAgentRequest.expiresAt]
+     * deadline is reached, whichever comes first.
+     */
+    private suspend fun awaitWithExpiry(
+        request: SshAgentRequest,
+        reason: String,
+    ): Boolean = withTimeoutOrNull(request.expiresAt - Clock.System.now()) {
+        request.deferred.await()
+    } ?: run {
+        request.completeWithLog(
+            value = false,
+            reason = reason,
+        )
+        false
     }
 
     /**

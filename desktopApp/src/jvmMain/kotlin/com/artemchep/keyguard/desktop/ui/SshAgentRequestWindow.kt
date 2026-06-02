@@ -46,8 +46,11 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Clock
 
 @Composable
 internal fun ApplicationScope.SshRequestWindow(
@@ -135,7 +138,8 @@ private fun SshAgentUnlockWindow(
         }
 
         // Animate from 1f (full time remaining) to 0f (expired) over the
-        // request's timeout duration.
+        // time left until the request's expiresAt deadline. This is purely a
+        // visual countdown — the SshAgentManager enforces the actual expiry.
         val timeoutProgress = remember { Animatable(1f) }
         val timeoutApplicable = sshAgentRequestUiState.getOrNull() != null
         LaunchedEffect(sshAgentRequestUiState) {
@@ -145,12 +149,19 @@ private fun SshAgentUnlockWindow(
             timeoutProgress.animateTo(
                 targetValue = 0f,
                 animationSpec = tween(
-                    durationMillis = request.request.timeout.inWholeMilliseconds.toInt(),
+                    durationMillis = (request.request.expiresAt - Clock.System.now())
+                        .inWholeMilliseconds.coerceAtLeast(0L).toInt(),
                     easing = LinearEasing,
                 ),
             )
-            // Animation finished — timeout expired, auto-deny.
-            request.request.deferred.complete(false)
+        }
+
+        // Close the window once the request resolves, whether the user
+        // approved/denied it or the SshAgentManager expired it.
+        LaunchedEffect(sshAgentRequestUiState) {
+            val request = sshAgentRequestUiState.getOrNull()
+                ?: return@LaunchedEffect
+            request.request.deferred.join()
             onDismiss()
         }
 

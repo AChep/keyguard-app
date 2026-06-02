@@ -57,6 +57,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ssh_client_request
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.delay
+import kotlin.time.Clock
 
 internal class SshRequestActivity : BaseActivity() {
     companion object {
@@ -333,12 +334,13 @@ internal class SshRequestActivity : BaseActivity() {
                 value = null
                 return@produceState
             }
-            val timeoutMs = state.request.timeout.inWholeMilliseconds
+            val expiresAt = state.request.expiresAt
+            val totalMs = (expiresAt - Clock.System.now()).inWholeMilliseconds
                 .coerceAtLeast(1L)
             while (true) {
-                val elapsedMs = (System.nanoTime() / 1_000_000L) - state.activatedAtMonotonicMillis
-                val remainingMs = (timeoutMs - elapsedMs).coerceAtLeast(0L)
-                value = remainingMs.toFloat() / timeoutMs.toFloat()
+                val remainingMs = (expiresAt - Clock.System.now()).inWholeMilliseconds
+                    .coerceAtLeast(0L)
+                value = remainingMs.toFloat() / totalMs.toFloat()
                 if (remainingMs == 0L) {
                     break
                 }

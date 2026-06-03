@@ -15,6 +15,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -138,6 +139,7 @@ class SshAgentManager(
         }
         if (existingProcess != null) {
             logRepository.post(TAG, "Cleaning up stale SSH agent process reference", LogLevel.INFO)
+            existingProcess.closeStdinQuietly()
             agentProcess = null
         }
 
@@ -248,14 +250,15 @@ class SshAgentManager(
             processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
 
             val process = processBuilder.start()
+            val processStdin = process.outputStream
+            agentProcess = process
             // Pass the auth token via stdin -- this avoids exposing the
             // token in the process environment, which is readable by
-            // other same-user processes on Linux and macOS.
-            process.outputStream.bufferedWriter().use { writer ->
-                writer.write(authTokenHex)
-                writer.newLine()
-            }
-            agentProcess = process
+            // other same-user processes on Linux and macOS. Keep stdin
+            // open so the agent can use EOF as a parent-death signal.
+            processStdin.write(authTokenHex.encodeToByteArray())
+            processStdin.write('\n'.code)
+            processStdin.flush()
             logRepository.post(
                 TAG,
                 "SSH agent process started (PID: ${process.pid()})",
@@ -273,6 +276,7 @@ class SshAgentManager(
                 )
                 mutex.withLock {
                     if (agentProcess === process) {
+                        process.closeStdinQuietly()
                         agentProcess = null
                     }
                 }
@@ -359,13 +363,19 @@ class SshAgentManager(
     private fun stopLocked() {
         logRepository.post(TAG, "Stopping SSH agent system", LogLevel.INFO)
 
+        val process = agentProcess
+        agentProcess = null
+
         // Kill the agent process.
-        agentProcess?.let { process ->
+        process?.let {
             try {
-                process.destroy()
-                // Give it a moment to exit gracefully.
-                if (!process.waitFor(3, java.util.concurrent.TimeUnit.SECONDS)) {
-                    process.destroyForcibly()
+                it.closeStdinQuietly()
+                // Give the agent a moment to observe stdin EOF and remove its socket.
+                if (!it.waitFor(3, TimeUnit.SECONDS)) {
+                    it.destroy()
+                    if (!it.waitFor(3, TimeUnit.SECONDS)) {
+                        it.destroyForcibly()
+                    }
                 }
             } catch (e: Exception) {
                 logRepository.post(
@@ -375,7 +385,6 @@ class SshAgentManager(
                 )
             }
         }
-        agentProcess = null
 
         // Cancel the IPC server.
         serverJob?.cancel()
@@ -406,5 +415,12 @@ class SshAgentManager(
         val suffix = cryptoGenerator.seedHex(length = 16)
         val socketName = "$prefix-$suffix.sock"
         return tempDir.resolve(socketName)
+    }
+
+    private fun Process.closeStdinQuietly() {
+        try {
+            outputStream.close()
+        } catch (_: Exception) {
+        }
     }
 }

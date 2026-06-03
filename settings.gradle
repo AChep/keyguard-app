@@ -26,6 +26,7 @@ rootProject.name = "keyguard"
 
 include ':common'
 include ':util:messagepack'
+include ':util:planeta'
 include ':util:signalr'
 include ':util:webdav'
 include ':androidApp'

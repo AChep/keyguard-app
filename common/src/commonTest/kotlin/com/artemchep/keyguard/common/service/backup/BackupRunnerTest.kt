@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.backup
 
+import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.Argon2Mode
@@ -40,6 +41,43 @@ import kotlinx.io.Sink
 import kotlinx.io.readByteArray
 
 class BackupRunnerTest {
+    @Test
+    fun `attachment decryption failure is classified`() = runTest {
+        val cause = RuntimeException(
+            "Error finalising cipher",
+            RuntimeException("Message authentication codes do not match!"),
+        )
+        val runner = runner(
+            repository = MemoryBackupRepository(),
+            downloadTask = CountingDownloadTask(failure = cause),
+        )
+
+        val error = assertFailsWith<BackupException.AttachmentDecryption> {
+            runner.run(config())
+        }
+
+        assertEquals(false, error.retryable)
+        assertEquals("local-cipher-1", error.localCipherId)
+        assertEquals("remote-cipher-1", error.remoteCipherId)
+        assertEquals("attachment-1", error.attachmentId)
+        assertEquals(cause, error.cause)
+    }
+
+    @Test
+    fun `generic attachment download failure is not classified as decryption`() = runTest {
+        val cause = RuntimeException("Attachment download failed.")
+        val runner = runner(
+            repository = MemoryBackupRepository(),
+            downloadTask = CountingDownloadTask(failure = cause),
+        )
+
+        val error = assertFailsWith<RuntimeException> {
+            runner.run(config())
+        }
+
+        assertEquals(cause, error)
+    }
+
     @Test
     fun `unchanged attachment reuses blob without redownloading`() = runTest {
         val repository = MemoryBackupRepository()
@@ -1073,6 +1111,7 @@ private object FakeDownloadAttachmentMetadata : DownloadAttachmentMetadata {
 
 private class CountingDownloadTask(
     private val loadingEvents: List<DownloadProgress.Loading> = emptyList(),
+    private val failure: Throwable? = null,
 ) : DownloadTask {
     var calls: Int = 0
 
@@ -1084,6 +1123,10 @@ private class CountingDownloadTask(
         calls += 1
         loadingEvents.forEach { event ->
             emit(event)
+        }
+        failure?.let {
+            emit(DownloadProgress.Complete(it.left()))
+            return@flow
         }
         writer.writeBytes(data)
         emit(DownloadProgress.Complete(null.right()))
@@ -1097,6 +1140,10 @@ private class CountingDownloadTask(
         calls += 1
         loadingEvents.forEach { event ->
             emit(event)
+        }
+        failure?.let {
+            emit(DownloadProgress.Complete(it.left()))
+            return@flow
         }
         writer.writeBytes("payload".encodeToByteArray())
         emit(DownloadProgress.Complete(null.right()))

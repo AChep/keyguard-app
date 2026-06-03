@@ -149,12 +149,13 @@ class BackupDiagnostics(
         localCipherId: String,
         remoteCipherId: String,
         attachmentId: String,
+        attachmentName: String,
         sourceType: String?,
         plainSize: Long?,
     ) = debug {
         "backup_attachment_download_started local_cipher_id=$localCipherId " +
                 "remote_cipher_id=$remoteCipherId attachment_id=$attachmentId " +
-                "source_type=$sourceType plain_size=$plainSize"
+                "attachment_name=$attachmentName source_type=$sourceType plain_size=$plainSize"
     }
 
     suspend fun backupAttachmentDownloadCompleted(

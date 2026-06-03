@@ -278,7 +278,7 @@ fun globalModuleJvm() = DI.Module(
                     val logging = HttpLoggingInterceptor(logger).apply {
                         level = HttpLoggingInterceptor.Level.BODY
                     }
-                    addInterceptor(logging)
+                    //addInterceptor(logging)
                 }
             }
             .build()

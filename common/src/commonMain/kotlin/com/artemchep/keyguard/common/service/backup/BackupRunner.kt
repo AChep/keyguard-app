@@ -566,6 +566,7 @@ class BackupRunner(
                         localCipherId = cipher.id,
                         remoteCipherId = attachment.remoteCipherId,
                         attachmentId = attachment.id,
+                        attachmentName = attachment.fileName,
                         sourceType = sourceType,
                         plainSize = attachment.size,
                     )
@@ -582,6 +583,7 @@ class BackupRunner(
                         localCipherId = cipher.id,
                         remoteCipherId = attachment.remoteCipherId,
                         attachmentId = attachment.id,
+                        attachmentName = attachment.fileName,
                         sourceType = sourceType,
                         plainSize = attachment.size,
                     )
@@ -603,7 +605,14 @@ class BackupRunner(
                 "Attachment download did not complete."
             }
             complete.result.fold(
-                ifLeft = { throw it },
+                ifLeft = { error ->
+                    throw error.toBackupAttachmentDecryptionExceptionOrSelf(
+                        localCipherId = cipher.id,
+                        remoteCipherId = attachment.remoteCipherId,
+                        attachmentId = attachment.id,
+                        attachmentName = attachment.fileName,
+                    )
+                },
                 ifRight = { },
             )
             diagnostics.backupAttachmentDownloadCompleted(

@@ -194,11 +194,6 @@ private fun AutomaticBackupsRepositoryTree() {
                     color = MaterialTheme.colorScheme.surfaceContainer,
                     shape = RoundedCornerShape(12.dp),
                 )
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    shape = RoundedCornerShape(12.dp),
-                )
                 .padding(12.dp),
         ) {
             SelectionContainer {

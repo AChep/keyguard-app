@@ -1,13 +1,19 @@
 package com.artemchep.keyguard.feature.sshagent.help
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
@@ -27,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
@@ -482,8 +489,24 @@ private fun CopyableCodeBlock(
 
     val clipboardService by rememberInstance<ClipboardService>()
     val copyDescription = stringResource(Res.string.copy)
-    FlatItemLayoutExpressive(
-        content = {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                vertical = 4.dp,
+                horizontal = Dimens.textHorizontalPadding,
+            )
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                shape = RoundedCornerShape(12.dp),
+            )
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f, fill = true),
+        ) {
             if (file != null) {
                 Text(
                     modifier = Modifier
@@ -547,24 +570,21 @@ private fun CopyableCodeBlock(
                     fontFamily = FontFamily.Monospace,
                 )
             }
-        },
-        trailing = {
-            IconButton(
-                onClick = {
-                    clipboardService.setPrimaryClip(
-                        value = text,
-                        concealed = false,
-                    )
-                },
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ContentCopy,
-                    contentDescription = copyDescription,
+        }
+        IconButton(
+            onClick = {
+                clipboardService.setPrimaryClip(
+                    value = text,
+                    concealed = false,
                 )
-            }
-        },
-        enabled = true,
-    )
+            },
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.ContentCopy,
+                contentDescription = copyDescription,
+            )
+        }
+    }
 }
 
 @Composable

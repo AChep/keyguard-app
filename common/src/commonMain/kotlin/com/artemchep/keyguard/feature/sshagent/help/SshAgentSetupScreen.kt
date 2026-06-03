@@ -73,10 +73,17 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
 
+
+// Arguments to some keywords can be expanded at runtime from environment variables on the client
+// by enclosing them in ${}, for example ${HOME}/.ssh would refer to the user's .ssh directory.
+// If a specified environment variable does not exist then an error will be returned and
+// the setting for that keyword will be ignored.
+//
+// https://github.com/AChep/keyguard-app/issues/1440
 private const val SSH_AGENT_SETUP_MACOS_SOCKET =
-    $$"$HOME/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
+    $$"${HOME}/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET =
-    $$"$XDG_RUNTIME_DIR/keyguard-ssh-agent.sock"
+    $$"${XDG_RUNTIME_DIR}/keyguard-ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET_FALLBACK =
     "/tmp/keyguard-<UID>/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_FILE =

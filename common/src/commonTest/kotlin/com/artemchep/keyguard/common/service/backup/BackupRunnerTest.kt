@@ -466,7 +466,45 @@ class BackupRunnerTest {
     }
 
     @Test
-    fun `snapshot write failure leaves index unchanged`() = runTest {
+    fun `attachment download failure cleans up blobs written before index`() = runTest {
+        val repository = MemoryBackupRepository()
+        val cause = RuntimeException("download failed")
+        val downloadTask = CountingDownloadTask(
+            failure = cause,
+            failureOnCall = 2,
+        )
+        val runner = runner(
+            repository = repository,
+            downloadTask = downloadTask,
+            exportVaultDataService = StaticExportVaultDataService(
+                ciphers = listOf(
+                    testCipher(),
+                    testCipher(
+                        id = "local-cipher-2",
+                        remoteCipherId = "remote-cipher-2",
+                        attachmentId = "attachment-2",
+                        attachmentKeyBase64 = "key-2",
+                    ),
+                ),
+            ),
+        )
+
+        val error = assertFailsWith<RuntimeException> {
+            runner.run(config())
+        }
+
+        assertEquals(cause, error)
+        assertEquals(2, downloadTask.calls)
+        assertEquals(2, repository.blobWrites)
+        assertTrue(repository.blobs.isEmpty())
+        assertEquals(1, repository.deletedBlobs.size)
+        assertTrue(repository.snapshots.isEmpty())
+        assertTrue("writeSnapshot" !in repository.operations)
+        assertTrue("writeIndex" !in repository.operations)
+    }
+
+    @Test
+    fun `snapshot write failure cleans up blobs and leaves index unchanged`() = runTest {
         val repository = MemoryBackupRepository().apply {
             failWriteSnapshot = RuntimeException("snapshot failed")
         }
@@ -481,8 +519,31 @@ class BackupRunnerTest {
         }
 
         assertEquals(BackupIndex(), repository.index)
+        assertTrue(repository.blobs.isEmpty())
+        assertEquals(1, repository.deletedBlobs.size)
         assertTrue(repository.snapshots.isEmpty())
         assertTrue("writeIndex" !in repository.operations)
+    }
+
+    @Test
+    fun `index write failure cleans up blobs when index was not persisted`() = runTest {
+        val repository = MemoryBackupRepository().apply {
+            failWriteIndex = RuntimeException("index failed")
+        }
+        val downloadTask = CountingDownloadTask()
+        val runner = runner(
+            repository = repository,
+            downloadTask = downloadTask,
+        )
+
+        assertFailsWith<RuntimeException> {
+            runner.run(config())
+        }
+
+        assertEquals(BackupIndex(), repository.index)
+        assertTrue(repository.blobs.isEmpty())
+        assertEquals(1, repository.deletedBlobs.size)
+        assertEquals(1, repository.snapshots.size)
     }
 
     @Test
@@ -1112,6 +1173,7 @@ private object FakeDownloadAttachmentMetadata : DownloadAttachmentMetadata {
 private class CountingDownloadTask(
     private val loadingEvents: List<DownloadProgress.Loading> = emptyList(),
     private val failure: Throwable? = null,
+    private val failureOnCall: Int = 1,
 ) : DownloadTask {
     var calls: Int = 0
 
@@ -1121,11 +1183,13 @@ private class CountingDownloadTask(
         writer: DownloadWriter,
     ) = flow {
         calls += 1
+        val shouldFail = failure != null && calls == failureOnCall
         loadingEvents.forEach { event ->
             emit(event)
         }
-        failure?.let {
-            emit(DownloadProgress.Complete(it.left()))
+        if (shouldFail) {
+            val error = requireNotNull(failure)
+            emit(DownloadProgress.Complete(error.left()))
             return@flow
         }
         writer.writeBytes(data)
@@ -1138,11 +1202,13 @@ private class CountingDownloadTask(
         writer: DownloadWriter,
     ) = flow {
         calls += 1
+        val shouldFail = failure != null && calls == failureOnCall
         loadingEvents.forEach { event ->
             emit(event)
         }
-        failure?.let {
-            emit(DownloadProgress.Complete(it.left()))
+        if (shouldFail) {
+            val error = requireNotNull(failure)
+            emit(DownloadProgress.Complete(error.left()))
             return@flow
         }
         writer.writeBytes("payload".encodeToByteArray())
@@ -1186,6 +1252,7 @@ private class MemoryBackupRepository : BackupRepository {
     val indexes = mutableListOf<BackupIndex>()
     val operations = mutableListOf<String>()
     val deletedSnapshots = mutableListOf<String>()
+    val deletedBlobs = mutableListOf<String>()
     val unreadableSnapshotIds = mutableSetOf<String>()
     var index: BackupIndex
         get() = indexes.lastOrNull() ?: BackupIndex()
@@ -1197,6 +1264,7 @@ private class MemoryBackupRepository : BackupRepository {
         }
     var blobWrites: Int = 0
     var failReadIndexes: Throwable? = null
+    var failWriteIndex: Throwable? = null
     var failWriteSnapshot: Throwable? = null
     var makeNextSnapshotUnreadable: Boolean = false
     val blobValidationCalls = mutableListOf<String>()
@@ -1235,6 +1303,7 @@ private class MemoryBackupRepository : BackupRepository {
         index: BackupIndex,
     ) {
         operations += "writeIndex"
+        failWriteIndex?.let { throw it }
         indexes += index
     }
 
@@ -1314,6 +1383,7 @@ private class MemoryBackupRepository : BackupRepository {
         blobPath: String,
     ) {
         operations += "deleteBlob"
+        deletedBlobs += blobPath
         blobs.remove(blobPath)
     }
 }

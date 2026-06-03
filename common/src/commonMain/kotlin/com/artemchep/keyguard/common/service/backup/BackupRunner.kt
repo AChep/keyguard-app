@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
+import kotlinx.coroutines.NonCancellable
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -82,6 +84,10 @@ class BackupRunner(
 
             val now = Clock.System.now()
             val store = backupObjectStoreFactory.open(config.store)
+
+            val newlyWrittenBlobPaths = LinkedHashSet<String>()
+            var indexWriteStarted = false
+            var indexWriteCompleted = false
             try {
                 progress?.report(BackupStep.OpeningRepository)
                 val metadata = backupRepository.getOrCreateMetadata(
@@ -124,6 +130,7 @@ class BackupRunner(
                         now = now,
                         index = index,
                         progress = progress,
+                        newlyWrittenBlobPaths = newlyWrittenBlobPaths,
                     )
                 } else {
                     BackupAttachmentResult(
@@ -189,11 +196,13 @@ class BackupRunner(
                     attachmentCount = attachmentResult.attachments.size,
                 )
                 progress?.report(BackupStep.WritingIndex)
+                indexWriteStarted = true
                 backupRepository.writeIndex(
                     store = store,
                     password = password,
                     index = updatedIndex,
                 )
+                indexWriteCompleted = true
                 diagnostics.backupIndexWritten(
                     generation = updatedIndex.generation,
                     attachmentCount = updatedIndex.attachments.size,
@@ -215,6 +224,21 @@ class BackupRunner(
                 )
                 diagnostics.backupRunCompleted(result)
                 result
+            } catch (e: Exception) {
+                // We want to clean up the blobs even
+                // on a regular cancellation exception.
+                if (!indexWriteCompleted) {
+                    withContext(NonCancellable) {
+                        cleanupNewlyWrittenBlobs(
+                            store = store,
+                            password = password,
+                            blobPaths = newlyWrittenBlobPaths,
+                            indexWriteStarted = indexWriteStarted,
+                        )
+                    }
+                }
+
+                throw e
             } finally {
                 store.close()
             }
@@ -267,6 +291,7 @@ class BackupRunner(
         now: Instant,
         index: BackupIndex,
         progress: BackupRunProgressContext?,
+        newlyWrittenBlobPaths: MutableSet<String>,
     ): BackupAttachmentResult {
         val indexAttachments = index.attachments.toMutableMap()
         val indexBlobs = index.blobs.toMutableMap()
@@ -424,6 +449,7 @@ class BackupRunner(
                     )
                 }.also {
                     writtenBlobIds += candidate.blobId
+                    newlyWrittenBlobPaths += candidate.blobPath
                     downloadedBytes += remoteAttachment.size.coerceAtLeast(0L)
                 }
             }
@@ -485,6 +511,50 @@ class BackupRunner(
             reusedBlobCount = reusedBlobCount,
             skippedAttachmentCount = skippedAttachmentCount,
         )
+    }
+
+    private suspend fun cleanupNewlyWrittenBlobs(
+        store: BackupObjectStore,
+        password: Password?,
+        blobPaths: Set<String>,
+        indexWriteStarted: Boolean,
+    ) {
+        if (blobPaths.isEmpty()) {
+            return
+        }
+
+        val indexedBlobPaths = if (indexWriteStarted) {
+            // We do not know if the index was actually written to the store
+            // or not, therefore we have to fetch the latest index and check
+            // that it doesn't contain the newly downloaded blobs.
+            try {
+                readIndex(
+                    store = store,
+                    password = password,
+                ).index.blobs
+                    .values
+                    .map { it.path }
+                    .toSet()
+            } catch (e: Exception) {
+                e.throwIfFatalOrCancellation()
+                return // can not prove index was not written
+            }
+        } else {
+            emptySet()
+        }
+
+        blobPaths
+            .filter { it !in indexedBlobPaths }
+            .forEach { blobPath ->
+                try {
+                    backupRepository.deleteBlob(
+                        store = store,
+                        blobPath = blobPath,
+                    )
+                } catch (e: Exception) {
+                    e.throwIfFatalOrCancellation()
+                }
+            }
     }
 
     private suspend fun resolveIndexedBlob(

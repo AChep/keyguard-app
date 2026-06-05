@@ -73,6 +73,7 @@ import org.kodein.di.DI
 import org.kodein.di.bindProvider
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
+import kotlin.time.Duration
 
 fun globalModuleJvm() = DI.Module(
     name = "globalModuleJvm",
@@ -263,9 +264,13 @@ fun globalModuleJvm() = DI.Module(
         }
     }
     bindSingleton<OkHttpClient> {
+        val timeouts = with(Duration) { 30.seconds }
         OkHttpClient
             .Builder()
             .installPlatformTrustManager()
+            .connectTimeout(timeouts)
+            .readTimeout(timeouts)
+            .writeTimeout(timeouts)
             .apply {
                 if (!isRelease) {
                     val logRepository: LogRepository = instance()

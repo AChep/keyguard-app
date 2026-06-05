@@ -46,6 +46,7 @@ import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.quicksearch.DesktopLibGlobalHotKeyRegistrar
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchHotkeyService
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowManager
+import com.artemchep.keyguard.common.service.session.VaultLockHotkeyService
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.sshagent.retrySshAgentStartup
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
@@ -56,6 +57,7 @@ import com.artemchep.keyguard.common.model.SshAgentStatus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.feature.sshagent.rememberSshAgentRequestUiState
+import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetLocale
@@ -337,7 +339,14 @@ fun main() {
 
             val quickSearchWindowManager by rememberInstance<QuickSearchWindowManager>()
             val quickSearchHotkeyRegistrar = remember {
-                DesktopLibGlobalHotKeyRegistrar()
+                DesktopLibGlobalHotKeyRegistrar(
+                    name = "Quick search",
+                )
+            }
+            val vaultLockHotkeyRegistrar = remember {
+                DesktopLibGlobalHotKeyRegistrar(
+                    name = "Vault lock",
+                )
             }
             DisposableEffect(
                 quickSearchWindowManager,
@@ -351,6 +360,18 @@ fun main() {
                             tag = "QuickSearchHotkey",
                         )
                     },
+                ).start()
+                onDispose(stop)
+            }
+            val clearVaultSession by rememberInstance<ClearVaultSession>()
+            DisposableEffect(
+                clearVaultSession,
+                vaultLockHotkeyRegistrar,
+            ) {
+                val stop = VaultLockHotkeyService(
+                    clearVaultSession = clearVaultSession,
+                    globalHotKeyRegistrar = vaultLockHotkeyRegistrar,
+                    scope = GlobalScope,
                 ).start()
                 onDispose(stop)
             }

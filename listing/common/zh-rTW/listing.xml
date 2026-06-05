@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">多帳號支援：同時登入多個帳號。</string>
     <string name="listing_description_highlight_offline">離線管理：新增項目並離線發送、修改和檢視您的保險庫。</string>
     <string name="listing_description_highlight_export">資料匯出：匯出個人或是組織項目，包含附件。</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">生成器：建立密碼、SSH 金鑰和電子郵件轉發器，支援自訂詞條。</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">進階功能：支援快捷方式、欄位提示文字、網址覆寫和智慧衝突解決。</string>

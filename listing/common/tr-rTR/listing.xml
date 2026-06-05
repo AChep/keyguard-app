@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Çoklu Hesap Desteği: Aynı anda birden fazla hesapta oturum açın.</string>
     <string name="listing_description_highlight_offline">Çevrimdışı Yönetim: Çevrimdışı durumdayken ögeler veya gönderiler ekleyin, kasanızı görüntüleyin ve değiştirin.</string>
     <string name="listing_description_highlight_export">Veri Dışa Aktarımı: Ekler dahil olmak üzere kişisel ögelerinizi veya organizasyon ögelerinizi dışa aktarın.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Oluşturucu: Özel kelime listesi desteğiyle parolalar, SSH anahtarları ve e-posta yönlendiricileri oluşturun.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Aracısı: Sunucularda kimlik doğrulaması yapın, Git işlemelerini (commits) imzalayın ve SSH tabanlı servislerle etkileşime geçin.</string>
     <string name="listing_description_highlight_other">Gelişmiş Özellikler: Kısayollar, alan yer tutucuları (placeholders), URL geçersiz kılmaları (overrides) ve akıllı çakışma çözümü desteği.</string>

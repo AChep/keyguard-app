@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Multi-rekening ondersteuning: Hê verskeie rekeninge gelyktydig aangemeld.</string>
     <string name="listing_description_highlight_offline">Vanlyn bestuur: Voeg items en sends by, wysig en bekyk jou kluis vanlyn.</string>
     <string name="listing_description_highlight_export">Data-uitvoer: Voer individuele of organisasie-items uit, insluitend aanhangsels.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Generator: Skep wagwoorde, SSH-sleutels en e-pos-aanstuurders, met ondersteuning vir pasgemaakte woordelyste.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Gevorderde kenmerke: Ondersteuning vir kortpaaie, veldplashouers, URL-oorskrywings en slim konflikoplossing.</string>

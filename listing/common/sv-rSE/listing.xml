@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Stöd för flera konton: Ha flera konton inloggade samtidigt.</string>
     <string name="listing_description_highlight_offline">Offline-hantering: Lägg till objekt och sends, ändra och visa ditt valv offline.</string>
     <string name="listing_description_highlight_export">Dataexport: Exportera individuella eller organisationsobjekt, inklusive bilagor.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Generator: Skapa lösenord, SSH-nycklar och e-postvidarebefordrare, med stöd för anpassade ordlistor.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Avancerade funktioner: Stöd för genvägar, fältplatshållare, URL-åsidosättningar och smart konfliktlösning.</string>

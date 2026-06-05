@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Soporte multi-cuenta: Tener varias cuentas iniciadas simultáneamente.</string>
     <string name="listing_description_highlight_offline">Gestión sin conexión: Añadir elementos y envíos, modificar y ver tu bóveda sin conexión.</string>
     <string name="listing_description_highlight_export">Exportación de datos: Exportar elementos individuales o de organización, incluyendo archivos adjuntos.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Generador: Crear contraseñas, claves SSH y reenviadores de correo, con soporte para listas de palabras personalizadas.</string>
     <string name="listing_description_highlight_ssh_agent">Agente de SSH: Autenticando a los servidores, Firmando compromisos de Git, Interactuando con servicios basados en SSH.</string>
     <string name="listing_description_highlight_other">Funciones avanzadas: Soporte para atajos, marcadores de posición de campos, anulaciones de URL y resolución inteligente de conflictos.</string>

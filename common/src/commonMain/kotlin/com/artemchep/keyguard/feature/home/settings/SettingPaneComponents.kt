@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Switch
@@ -13,6 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.movableContentOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -29,6 +33,7 @@ import com.artemchep.keyguard.feature.home.vault.component.rememberFlatSurfaceEx
 import com.artemchep.keyguard.feature.home.vault.component.surfaceShape
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.LocalExpressive
@@ -39,6 +44,7 @@ interface SettingPaneComponents {
     fun KgAction(
         icon: ImageVector?,
         subIcon: ImageVector? = null,
+        badge: String? = null,
         title: @Composable RowScope.() -> Unit,
         text: (@Composable RowScope.() -> Unit)? = null,
         contentColor: Color = Color.Unspecified,
@@ -82,6 +88,7 @@ object SettingPaneComponentsDefault : SettingPaneComponents {
     override fun KgAction(
         icon: ImageVector?,
         subIcon: ImageVector?,
+        badge: String?,
         title: @Composable (RowScope.() -> Unit),
         text: @Composable (RowScope.() -> Unit)?,
         contentColor: Color,
@@ -93,7 +100,33 @@ object SettingPaneComponentsDefault : SettingPaneComponents {
         FlatItemSimpleExpressive(
             shapeState = LocalSettingItemShape.current,
             leading = if (icon != null) {
-                icon<RowScope>(icon, subIcon)
+                // composable
+                {
+                    val content = remember(icon, subIcon) {
+                        movableContentOf {
+                            IconBox(
+                                main = icon,
+                                secondary = subIcon,
+                            )
+                        }
+                    }
+
+                    if (badge != null) {
+                        BadgedBox(
+                            badge = {
+                                Badge {
+                                    Text(
+                                        text = badge,
+                                    )
+                                }
+                            },
+                        ) {
+                            content()
+                        }
+                    } else {
+                        content()
+                    }
+                }
             } else {
                 null
             },

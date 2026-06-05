@@ -82,6 +82,7 @@ class SettingsRepositoryImpl(
         private const val KEY_MARKDOWN = "markdown"
         private const val KEY_SSH_AGENT = "ssh_agent"
         private const val KEY_SSH_AGENT_APPROVAL_WINDOW = "ssh_agent.approval_window"
+        private const val KEY_SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent.display_key_names"
         private const val KEY_SSH_AGENT_FILTER = "ssh_agent.filters"
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
@@ -213,6 +214,9 @@ class SettingsRepositoryImpl(
                 5L.minutes
             }.inWholeMilliseconds,
         )
+
+    private val sshAgentDisplayKeyNamesPref =
+        store.getBoolean(KEY_SSH_AGENT_DISPLAY_KEY_NAMES, false)
 
     private val sshAgentFilterPref =
         store.getSerializable(
@@ -603,6 +607,11 @@ class SettingsRepositoryImpl(
     override fun getSshAgentApprovalWindow() = sshAgentApprovalWindowPref
         .asDuration()
         .map { it ?: Duration.ZERO }
+
+    override fun setSshAgentDisplayKeyNames(displayKeyNames: Boolean) = sshAgentDisplayKeyNamesPref
+        .setAndCommit(displayKeyNames)
+
+    override fun getSshAgentDisplayKeyNames() = sshAgentDisplayKeyNamesPref
 
     override fun setSshAgentFilter(filter: SshAgentFilter) = sshAgentFilterPref
         .setAndCommit(filter)

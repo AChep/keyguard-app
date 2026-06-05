@@ -100,6 +100,8 @@ interface SettingsReadRepository {
 
     fun getSshAgentApprovalWindow(): Flow<Duration>
 
+    fun getSshAgentDisplayKeyNames(): Flow<Boolean>
+
     fun getSshAgentFilter(): Flow<SshAgentFilter>
 
     fun getAppVersionLog(): Flow<List<AppVersionLog>>

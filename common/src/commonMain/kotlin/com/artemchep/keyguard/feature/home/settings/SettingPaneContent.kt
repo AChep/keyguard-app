@@ -98,6 +98,8 @@ import com.artemchep.keyguard.feature.home.settings.component.settingScreenshots
 import com.artemchep.keyguard.feature.home.settings.component.settingSectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocaleProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentDisplayKeyNamesProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentLocalStorageInfoProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHistoryProvider
@@ -208,6 +210,8 @@ object Setting {
     const val URL_OVERRIDE = "url_override"
     const val SSH_AGENT = "ssh_agent"
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
+    const val SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent_display_key_names"
+    const val SSH_AGENT_LOCAL_STORAGE_INFO = "ssh_agent_local_storage_info"
     const val SSH_AGENT_SETUP = "ssh_agent_setup"
     const val SSH_AGENT_FILTERS = "ssh_agent_filters"
     const val SSH_AGENT_HISTORY = "ssh_agent_history"
@@ -317,6 +321,8 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
+    Setting.SSH_AGENT_DISPLAY_KEY_NAMES to ::settingSshAgentDisplayKeyNamesProvider,
+    Setting.SSH_AGENT_LOCAL_STORAGE_INFO to ::settingSshAgentLocalStorageInfoProvider,
     Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
     Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,
     Setting.SSH_AGENT_HISTORY to ::settingSshAgentHistoryProvider,

@@ -1493,6 +1493,10 @@
     <string name="pref_item_ssh_agent_status_ready">Ready</string>
     <string name="pref_item_ssh_agent_status_failed">Failed</string>
     <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_local_storage_title">Local storage</string>
+    <string name="pref_item_ssh_agent_local_storage_text">When the SSH agent is on, Keyguard keeps unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
+    <string name="pref_item_ssh_agent_display_key_names_title">Display key names before vault is unlocked</string>
+    <string name="pref_item_ssh_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
     <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
     <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
@@ -1500,8 +1504,7 @@
     <string name="pref_item_ssh_agent_filters_text">Choose which SSH keys are accessible to the SSH agent</string>
     <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
     <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
-    <string name="pref_item_ssh_agent_history_title">SSH agent history</string>
-    <string name="pref_item_ssh_agent_history_text"><xliff:g id="count" example="12">%1$d</xliff:g> events</string>
+    <string name="pref_item_ssh_agent_history_title">Request log</string>
     <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>

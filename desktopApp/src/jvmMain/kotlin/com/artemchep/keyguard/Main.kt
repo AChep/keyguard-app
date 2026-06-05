@@ -49,6 +49,7 @@ import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowManage
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.sshagent.retrySshAgentStartup
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
 import com.artemchep.keyguard.common.model.SshAgentStatus
@@ -297,6 +298,7 @@ fun main() {
     val getSshAgent: GetSshAgent = appDi.direct.instance()
     val getSshAgentApprovalWindow: GetSshAgentApprovalWindow = appDi.direct.instance()
     val getSshAgentFilter: GetSshAgentFilter = appDi.direct.instance()
+    val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = appDi.direct.instance()
     val sshAgentStatusService: SshAgentStatusService = appDi.direct.instance()
 
     val translatorScope by lazy {
@@ -364,6 +366,7 @@ fun main() {
                     getVaultSession = getVaultSession,
                     getSshAgentApprovalWindow = getSshAgentApprovalWindow,
                     getSshAgentFilter = getSshAgentFilter,
+                    sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
                 )
             }
             val showMessage by rememberInstance<ShowMessage>()

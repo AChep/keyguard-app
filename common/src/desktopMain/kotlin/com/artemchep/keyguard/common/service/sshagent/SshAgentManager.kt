@@ -36,6 +36,7 @@ class SshAgentManager(
     private val getVaultSession: GetVaultSession,
     private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
     private val getSshAgentFilter: GetSshAgentFilter,
+    private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository,
 ) {
     companion object {
         private const val TAG = "SshAgentManager"
@@ -175,6 +176,7 @@ class SshAgentManager(
             getVaultSession = getVaultSession,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentFilter = getSshAgentFilter,
+            sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
             authToken = authToken,
             scope = serverScope,
             sessionId = agentSessionId,

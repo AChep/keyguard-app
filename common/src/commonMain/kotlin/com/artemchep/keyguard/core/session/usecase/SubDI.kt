@@ -55,6 +55,8 @@ import com.artemchep.keyguard.common.service.settings.VaultSettingsReadWriteRepo
 import com.artemchep.keyguard.common.service.settings.impl.VaultSettingsRepositoryImpl
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepository
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepositoryImpl
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
+import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeySyncerImpl
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepository
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepositoryImpl
 import com.artemchep.keyguard.common.service.urloverride.UrlOverrideRepository
@@ -533,6 +535,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<GetCiphers> {
         GetCiphersImpl(this)
+    }
+    bindSingleton<SshAgentPublicKeySyncer> {
+        SshAgentPublicKeySyncerImpl(this)
     }
     bindSingleton<GetSends> {
         GetSendsImpl(this)

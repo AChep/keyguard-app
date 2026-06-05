@@ -75,17 +75,10 @@ private fun SettingSshAgentHistory(
 ) {
     LocalSettingPaneComponents.current.KgAction(
         icon = Icons.Outlined.History,
+        badge = count.toString(),
         title = {
             Text(
                 text = stringResource(Res.string.pref_item_ssh_agent_history_title),
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(
-                    Res.string.pref_item_ssh_agent_history_text,
-                    count,
-                ),
             )
         },
         trailing = {

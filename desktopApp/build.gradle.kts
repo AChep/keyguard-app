@@ -1,6 +1,11 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.internal.file.DefaultFilePermissions
+import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
+import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.gradle.process.CommandLineArgumentProvider
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -58,6 +63,12 @@ dependencies {
             ),
         ),
     )
+}
+
+val jdkVersion = libs.versions.jdk.get().toInt()
+val jbrLauncher = extensions.getByType<JavaToolchainService>().launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(jdkVersion))
+    vendor.set(JvmVendorSpec.JETBRAINS)
 }
 
 val macExtraPlistKeys: String

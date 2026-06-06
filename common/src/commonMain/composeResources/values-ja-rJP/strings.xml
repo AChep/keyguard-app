@@ -101,7 +101,7 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> アイテム</string>
     <string name="items_all">すべてのアイテム</string>
     <string name="items_empty_label">アイテムなし</string>
-    <string name="sends"></string>
+    <string name="sends">Sends</string>
     <string name="folder_none">フォルダーなし</string>
     <string name="folder_new">新しいフォルダー</string>
     <string name="folder">フォルダー</string>
@@ -686,7 +686,7 @@
     <string name="emailleak_title">データ漏洩</string>
     <string name="emailleak_note">漏洩したアカウントデータは、悪意のある者に機密性の高い個人情報や財務情報へのアクセスを提供し、なりすましや金融詐欺、その他の形態のサイバー犯罪につながる可能性があります。</string>
     <string name="emailleak_breach_not_found_title">漏洩は見つかりませんでした</string>
-    <string name="emailleak_breach_found_title">漏洩したアカウントは見つかりませんでした</string>
+    <string name="emailleak_breach_found_title">漏洩したアカウントが見つかりました</string>
     <string name="emailleak_breach_section">漏洩</string>
     <string name="emailleak_breach_occurred_at">発生日: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">報告日: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
@@ -1364,7 +1364,7 @@
     <string name="pref_item_erase_data_title">アプリデータを消去</string>
     <string name="pref_item_erase_data_text">アプリを閉じて、ローカルのアプリデータをすべて消去します</string>
     <string name="pref_item_allow_screenshots_title">スクリーンショットを許可</string>
-    <string name="pref_item_allow_screenshots_text_on">最近のアプリ画面でアプリのコンテンツを非表示にし、画面キャプチャを許可します。</string>
+    <string name="pref_item_allow_screenshots_text_on">最近のアプリ画面でアプリのコンテンツを表示し、画面キャプチャを許可します</string>
     <string name="pref_item_allow_screenshots_text_off">最近のアプリ画面でアプリのコンテンツを非表示にし、画面キャプチャを禁止します。</string>
     <string name="pref_item_allow_screenshots_badge">スクリーンショットの撮影が許可されています。タップして無効化できます。</string>
     <string name="pref_item_allow_screenshots_disabled_notification">スクリーンショットの撮影が無効化されました</string>

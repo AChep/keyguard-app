@@ -610,7 +610,7 @@
     <string name="error_failed_generate_kdf_hash_oom">Не удалось создать ключ, недостаточно памяти. Проверьте настройки KDF сервера.</string>
     <string name="error_failed_generate_otp_code">Не удалось сгенерировать OTP код</string>
     <string name="error_failed_create_passkey">Не удалось создать passkey</string>
-    <string name="error_failed_create_password">Ошибка при копировании пароля</string>
+    <string name="error_failed_create_password">Ошибка при создании пароля</string>
     <string name="error_failed_use_passkey">Ошибка авторизации запроса</string>
     <string name="error_failed_use_password">Ошибка при авторизации запроса</string>
     <string name="error_failed_open_uri">Не удалось открыть URI</string>

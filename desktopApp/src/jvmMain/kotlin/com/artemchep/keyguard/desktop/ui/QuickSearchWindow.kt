@@ -34,6 +34,8 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterNode
 import com.artemchep.keyguard.feature.navigation.NavigationStore
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ic_keyguard
@@ -114,7 +116,7 @@ internal fun ApplicationScope.QuickSearchWindow(
             requestKey = windowState.requestRevision,
             tag = "QuickSearchWindow",
             requestId = windowState.requestRevision,
-            requestApplicationForeground = false,
+            requestApplicationForeground = CurrentPlatform !is Platform.Desktop.MacOS,
             onFocusAcquired = {
                 activationRevision += 1
             },

@@ -37,6 +37,8 @@ import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.sshagent.SshAgentGetListContent
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ssh_agent
@@ -88,7 +90,7 @@ internal fun ApplicationScope.SshRequestWindow(
             requestKey = focusRequest,
             tag = "SshRequestWindow",
             requestId = focusRequest?.focusRequestLogId(),
-            requestApplicationForeground = false,
+            requestApplicationForeground = CurrentPlatform !is Platform.Desktop.MacOS,
         )
 
         KeyguardWindowEssentials(

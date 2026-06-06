@@ -3,8 +3,6 @@ package com.artemchep.keyguard.desktop.ui
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -12,16 +10,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
-import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowDecoration
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
+import com.artemchep.keyguard.KeyguardPopupScaffold
 import com.artemchep.keyguard.KeyguardWindowEssentials
-import com.artemchep.keyguard.KeyguardWindowScaffold
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.getOrNull
@@ -29,6 +27,7 @@ import com.artemchep.keyguard.feature.sshagent.SshAgentApprovalContent
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalRequest
 import com.artemchep.keyguard.common.service.sshagent.SshAgentGetListRequest
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequest
+import com.artemchep.keyguard.desktop.util.WindowFocusRequestEffect
 import com.artemchep.keyguard.feature.sshagent.SshAgentRequestUiState
 import com.artemchep.keyguard.feature.keyguard.AuthScreen
 import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
@@ -43,7 +42,6 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ssh_agent
 import com.artemchep.keyguard.res.ssh_client_request
 import com.artemchep.keyguard.res.ic_keyguard
-import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
@@ -52,13 +50,17 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun ApplicationScope.SshRequestWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
     sshAgentRequestUiState: Loadable<SshAgentRequestUiState>,
 ) {
     val updatedRequest by rememberUpdatedState(sshAgentRequestUiState)
-    Window(
+    val focusRequest = (sshAgentRequestUiState as? Loadable.Ok)
+        ?.value
+        ?.request
+    PopupComposeWindow(
         onCloseRequest = {
             // Closing the window = deny.
             val r = updatedRequest as? Loadable.Ok
@@ -67,44 +69,55 @@ internal fun ApplicationScope.SshRequestWindow(
         },
         title = stringResource(Res.string.ssh_agent),
         state = rememberWindowState(
-            size = DpSize(320.dp, 480.dp),
+            size = DpSize(320.dp, 420.dp),
             position = WindowPosition(Alignment.Center),
         ),
+        decoration = WindowDecoration.Undecorated(),
+        transparent = true,
         alwaysOnTop = true,
         resizable = false,
+        focusRequestKey = focusRequest,
         icon = painterResource(Res.drawable.ic_keyguard),
     ) {
         // Force the window to the foreground, even across
         // virtual desktops / workspaces. Only do so if the
         // actual underlying request changes.
-        if (sshAgentRequestUiState is Loadable.Ok) {
-            LaunchedEffect(sshAgentRequestUiState.value) {
-                window.toFront()
-                window.requestFocus()
-            }
-        }
+        WindowFocusRequestEffect(
+            window = window,
+            visible = focusRequest != null,
+            requestKey = focusRequest,
+            tag = "SshRequestWindow",
+            requestId = focusRequest?.focusRequestLogId(),
+            requestApplicationForeground = false,
+        )
 
         KeyguardWindowEssentials(
             processLifecycleProvider = processLifecycleProvider,
-            onMinimizeRequest = {
-                window.isMinimized = true
-            },
+            onMinimizeRequest = {},
         ) {
             KeyguardTheme {
                 val scr = AuthScreen(
                     reason = TextHolder.Res(Res.string.ssh_client_request),
+                    style = AuthScreen.Style.DIALOG,
+                    onCancel = {
+                        // Closing the window = deny.
+                        val r = updatedRequest as? Loadable.Ok
+                        r?.value?.request?.deferred?.complete(false)
+                        r?.value?.onRequestHandled?.invoke()
+                    },
+                    expiresAt = updatedRequest?.getOrNull()?.request?.expiresAt,
                 )
                 CompositionLocalProvider(
                     LocalAuthScreen provides scr,
                     LocalExpressive provides GlobalExpressive.current,
                 ) {
-                    KeyguardWindowScaffold {
+                    KeyguardPopupScaffold {
                         SshAgentUnlockWindow(
                             sshAgentRequestUiState = sshAgentRequestUiState,
                             onDismiss = {
                                 // Closing the window = deny.
                                 val r = updatedRequest as? Loadable.Ok
-                                //   r?.value?.request?.deferred?.complete(false)
+                                r?.value?.request?.deferred?.complete(false)
                                 r?.value?.onRequestHandled?.invoke()
                             },
                         )
@@ -149,7 +162,6 @@ private fun SshAgentUnlockWindow(
         // time left until the request's expiresAt deadline. This is purely a
         // visual countdown — the SshAgentManager enforces the actual expiry.
         val timeoutProgress = remember { Animatable(1f) }
-        val timeoutApplicable = sshAgentRequestUiState.getOrNull() != null
         LaunchedEffect(sshAgentRequestUiState) {
             val request = sshAgentRequestUiState.getOrNull()
                 ?: return@LaunchedEffect
@@ -196,16 +208,6 @@ private fun SshAgentUnlockWindow(
                 }
             }
         }
-
-        // Timeout progress bar
-        ExpandedIfNotEmpty(
-            Unit.takeIf { timeoutApplicable },
-        ) {
-            LinearProgressIndicator(
-                progress = { timeoutProgress.value },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
     }
 }
 
@@ -245,4 +247,14 @@ private fun SshAgentGetListRequestContent(
         request = request,
         onDismiss = onHandled,
     )
+}
+
+private fun SshAgentRequest.focusRequestLogId(): String {
+    val requestType = when (this) {
+        is SshAgentApprovalRequest -> "approval"
+        is SshAgentGetListRequest -> "get-list"
+    }
+    val requestId = notificationTag
+        ?: System.identityHashCode(this).toString(16)
+    return "$requestType:$requestId"
 }

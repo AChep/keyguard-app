@@ -166,6 +166,13 @@ sealed interface VaultViewItem {
         companion object;
     }
 
+    data class Planeta(
+        override val id: String,
+        val fingerprint: String,
+    ) : VaultViewItem {
+        companion object;
+    }
+
     data class Switch(
         override val id: String,
         val shapeState: Int = ShapeState.ALL,

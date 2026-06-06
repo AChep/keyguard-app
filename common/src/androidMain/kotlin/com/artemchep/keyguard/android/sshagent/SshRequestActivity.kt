@@ -242,6 +242,7 @@ internal class SshRequestActivity : BaseActivity() {
                 ) {
                     val authScreen = AuthScreen(
                         reason = TextHolder.Res(Res.string.ssh_client_request),
+                        style = AuthScreen.Style.DIALOG,
                     )
                     CompositionLocalProvider(
                         LocalAuthScreen provides authScreen,

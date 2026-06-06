@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
+import androidx.compose.ui.window.DialogWindowScope
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -76,7 +77,6 @@ import com.artemchep.keyguard.desktop.services.autotype.AutotypeServiceNative
 import com.artemchep.keyguard.desktop.services.keychain.KeychainRepositoryNative
 import com.artemchep.keyguard.desktop.services.notification.NotificationRepositoryNative
 import com.artemchep.keyguard.desktop.ui.QuickSearchWindow
-import com.artemchep.keyguard.desktop.ui.requestAppForeground
 import com.artemchep.keyguard.desktop.ui.SshRequestWindow
 import com.artemchep.keyguard.desktop.util.AppReopenedListenerEffect
 import com.artemchep.keyguard.desktop.util.handleNavigationIntent
@@ -105,7 +105,7 @@ import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
-import com.artemchep.keyguard.ui.util.DividerColor
+import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.kdroid.composetray.tray.api.Tray
 import com.kdroid.composetray.utils.SingleInstanceManager
 import kotlinx.coroutines.Dispatchers
@@ -355,11 +355,6 @@ fun main() {
                 val stop = QuickSearchHotkeyService(
                     windowManager = quickSearchWindowManager,
                     globalHotKeyRegistrar = quickSearchHotkeyRegistrar,
-                    beforeOpen = {
-                        requestAppForeground(
-                            tag = "QuickSearchHotkey",
-                        )
-                    },
                 ).start()
                 onDispose(stop)
             }
@@ -593,10 +588,42 @@ internal fun FrameWindowScope.KeyguardWindowEssentials(
     onMinimizeRequest: () -> Unit,
     content: @Composable FrameWindowScope.() -> Unit,
 ) {
+    KeyguardWindowEssentialsProvider(
+        window = window,
+        windowId = WindowId(window.windowHandle),
+        processLifecycleProvider = processLifecycleProvider,
+        onMinimizeRequest = onMinimizeRequest,
+    ) {
+        content()
+    }
+}
+
+@Composable
+internal fun DialogWindowScope.KeyguardWindowEssentials(
+    processLifecycleProvider: LePlatformLifecycleProvider,
+    onMinimizeRequest: () -> Unit,
+    content: @Composable DialogWindowScope.() -> Unit,
+) {
+    KeyguardWindowEssentialsProvider(
+        window = window,
+        windowId = WindowId(window.windowHandle),
+        processLifecycleProvider = processLifecycleProvider,
+        onMinimizeRequest = onMinimizeRequest,
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun KeyguardWindowEssentialsProvider(
+    window: java.awt.Window,
+    windowId: WindowId,
+    processLifecycleProvider: LePlatformLifecycleProvider,
+    onMinimizeRequest: () -> Unit,
+    content: @Composable () -> Unit,
+) {
     val clipboardEventBus by rememberInstance<ClipboardEventBus>()
     val getMinimizeOnCopy by rememberInstance<GetMinimizeOnCopy>()
-
-    val windowId = WindowId(this.window.windowHandle)
 
     val updatedWindowId by rememberUpdatedState(windowId)
     val updatedMinimizeRequest by rememberUpdatedState(onMinimizeRequest)
@@ -619,7 +646,7 @@ internal fun FrameWindowScope.KeyguardWindowEssentials(
     }
 
     CompositionLocalProvider(
-        LocalComposeWindow provides this.window,
+        LocalComposeWindow provides window,
         LocalWindowId provides windowId,
     ) {
         WindowScreenshotProtectionEffect()
@@ -670,7 +697,8 @@ internal fun ApplicationScope.KeyguardPopupScaffold(
         color = containerColorAnimatedState.value,
         border = BorderStroke(
             width = 1.dp,
-            color = DividerColor
+            color = contentColor
+                .combineAlpha(0.12f)
                 .compositeOver(containerColorAnimatedState.value),
         ),
         shadowElevation = 8.dp,

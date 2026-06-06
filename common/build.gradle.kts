@@ -113,6 +113,7 @@ kotlin {
                 api(libs.ktor.ktor.serialization.kotlinx)
                 api(project(":util:signalr"))
                 api(project(":util:webdav"))
+                api(project(":util:planeta"))
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
                 api(libs.cash.sqldelight.coroutines.extensions)

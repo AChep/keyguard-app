@@ -11,7 +11,7 @@ internal object PlanetaSpecGenerator {
         val random = PlanetaRandom(seed)
         val surface = PlanetaSurface.entries[random.nextInt(PlanetaSurface.entries.size)]
         val palette = paletteFor(surface, random)
-        val radiusFraction = random.nextFloat(0.31f, 0.39f)
+        val radiusFraction = 0.35f // different sizes look a bit unpolished
         val spinDurationMillis = random.nextInt(16_000, 48_000)
         val axialTiltDegrees = random.nextFloat(-24f, 24f)
         val lightAngleDegrees = random.nextFloat(-42f, -18f)

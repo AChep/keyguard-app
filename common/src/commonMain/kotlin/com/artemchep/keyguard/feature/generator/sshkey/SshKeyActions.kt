@@ -34,7 +34,7 @@ object SshKeyActions {
                 this += copyItemFactory.FlatItemAction(
                     title = Res.string.copy_ssh_public_key.wrap(),
                     value = keyPair.publicKey.ssh,
-                    type = CopyText.Type.KEY,
+                    type = CopyText.Type.PUBLIC_KEY,
                 )
                 this += copyItemFactory.FlatItemAction(
                     title = Res.string.copy_ssh_fingerprint.wrap(),
@@ -44,7 +44,7 @@ object SshKeyActions {
                 this += copyItemFactory.FlatItemAction(
                     title = Res.string.copy_ssh_unencrypted_private_key.wrap(),
                     value = keyPair.privateKey.ssh,
-                    type = CopyText.Type.KEY,
+                    type = CopyText.Type.PRIVATE_KEY,
                     hidden = true,
                 )
             }

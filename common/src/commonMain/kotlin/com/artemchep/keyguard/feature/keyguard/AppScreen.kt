@@ -45,6 +45,7 @@ import com.artemchep.keyguard.ui.ToastMessageHost
 import com.artemchep.keyguard.ui.theme.Dimen
 import org.kodein.di.compose.rememberInstance
 import org.kodein.di.compose.withDI
+import kotlin.time.Instant
 
 val LocalAuthScreen = staticCompositionLocalOf {
     AuthScreen(
@@ -54,7 +55,15 @@ val LocalAuthScreen = staticCompositionLocalOf {
 
 data class AuthScreen(
     val reason: TextHolder?,
-)
+    val style: Style = Style.FULL_SCREEN,
+    val onCancel: (() -> Unit)? = null,
+    val expiresAt: Instant? = null,
+) {
+    enum class Style {
+        FULL_SCREEN,
+        DIALOG,
+    }
+}
 
 @Composable
 fun AppScreen() {
@@ -209,7 +218,7 @@ fun ManualAppScreen(
                 .widthIn(max = 300.dp),
         )
     },
-    content: @Composable (VaultState) -> Unit,
+    content: @Composable BoxScope.(VaultState) -> Unit,
 ) {
     Box(
         modifier = Modifier

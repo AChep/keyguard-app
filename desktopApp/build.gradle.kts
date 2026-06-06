@@ -108,6 +108,9 @@ val prepareBundledAppResources = tasks.register<Sync>("prepareBundledAppResource
 compose.desktop {
     application {
         mainClass = "com.artemchep.keyguard.MainKt"
+        javaHome = jbrLauncher
+            .map { it.metadata.installationPath.asFile.absolutePath }
+            .get()
         nativeDistributions {
             // This tells Compose to bundle everything inside 'app-resources'
             // alongside your application in the final install image.
@@ -224,7 +227,10 @@ afterEvaluate {
 }
 
 kotlin {
-    jvmToolchain(libs.versions.jdk.get().toInt())
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(jdkVersion))
+        vendor.set(JvmVendorSpec.JETBRAINS)
+    }
 }
 
 fun Tar.installPackageDistributable(

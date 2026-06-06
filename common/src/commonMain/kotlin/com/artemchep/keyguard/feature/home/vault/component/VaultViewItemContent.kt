@@ -22,6 +22,7 @@ data class VaultViewItemRenderers(
     val switch: @Composable (Modifier, VaultViewItem.Switch) -> Unit,
     val uri: @Composable (Modifier, VaultViewItem.Uri) -> Unit,
     val button: @Composable (Modifier, VaultViewItem.Button) -> Unit,
+    val planeta: @Composable (Modifier, VaultViewItem.Planeta) -> Unit,
     val label: @Composable (Modifier, VaultViewItem.Label) -> Unit,
     val spacer: @Composable (Modifier, VaultViewItem.Spacer) -> Unit,
     val note: @Composable (Modifier, VaultViewItem.Note) -> Unit,
@@ -56,6 +57,7 @@ fun VaultViewItemContent(
     is VaultViewItem.Switch -> renderers.switch(modifier, item)
     is VaultViewItem.Uri -> renderers.uri(modifier, item)
     is VaultViewItem.Button -> renderers.button(modifier, item)
+    is VaultViewItem.Planeta -> renderers.planeta(modifier, item)
     is VaultViewItem.Label -> renderers.label(modifier, item)
     is VaultViewItem.Spacer -> renderers.spacer(modifier, item)
     is VaultViewItem.Note -> renderers.note(modifier, item)

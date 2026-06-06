@@ -30,6 +30,7 @@ private val commonVaultViewItemRenderers = VaultViewItemRenderers(
     switch = { modifier, item -> VaultViewSwitchItem(modifier, item) },
     uri = { modifier, item -> VaultViewUriItem(modifier, item) },
     button = { modifier, item -> VaultViewButtonItem(modifier, item) },
+    planeta = { modifier, item -> VaultViewPlanetaItem(modifier, item) },
     label = { modifier, item -> VaultViewLabelItem(modifier, item) },
     spacer = { modifier, item -> VaultViewSpacerItem(modifier, item) },
     note = { modifier, item -> VaultViewNoteItem(modifier, item) },

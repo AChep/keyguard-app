@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.screen
 import kotlin.jvm.JvmName
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Launch
@@ -269,6 +271,8 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringResource
 import com.artemchep.keyguard.platform.leAllInstances
+import com.artemchep.keyguard.ui.FingerprintPlaneta
+import com.artemchep.keyguard.util.planeta.Planeta
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -800,7 +804,7 @@ fun vaultViewScreenState(
                         ?: pairUnlessEmpty(cipher?.card?.number, CopyText.Type.CARD_NUMBER)
                         ?: pairUnlessEmpty(cipher?.identity?.email, CopyText.Type.EMAIL)
                         ?: pairUnlessEmpty(cipher?.identity?.phone, CopyText.Type.PHONE_NUMBER)
-                        ?: pairUnlessEmpty(cipher?.sshKey?.publicKey, CopyText.Type.KEY)
+                        ?: pairUnlessEmpty(cipher?.sshKey?.publicKey, CopyText.Type.PUBLIC_KEY)
                         ?: pairUnlessEmpty(cipher?.notes, CopyText.Type.VALUE)
                 if (primaryFieldPair == null) {
                     return@map null
@@ -822,7 +826,7 @@ fun vaultViewScreenState(
                 val secretFieldPair =
                     pairUnlessEmpty(cipher?.login?.password, CopyText.Type.PASSWORD)
                         ?: pairUnlessEmpty(cipher?.card?.code, CopyText.Type.CARD_CVV)
-                        ?: pairUnlessEmpty(cipher?.sshKey?.privateKey, CopyText.Type.KEY)
+                        ?: pairUnlessEmpty(cipher?.sshKey?.privateKey, CopyText.Type.PRIVATE_KEY)
                 if (secretFieldPair == null) {
                     return@map null
                 }
@@ -1570,6 +1574,19 @@ private fun RememberStateFlowScope.oh(
                 cipherLocalId = cipher.id,
                 id = "sshKey.fingerprint",
                 accountId = account.id,
+                trailing = {
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp),
+                    ) {
+                        FingerprintPlaneta(
+                            fingerprint = sshKey.fingerprint,
+                            modifier = Modifier
+                                .wrapContentSize(unbounded = true)
+                                .size(96.dp),
+                        )
+                    }
+                },
                 title = translate(Res.string.fingerprint),
                 value = sshKey.fingerprint,
                 monospace = true,
@@ -3591,6 +3608,7 @@ suspend fun RememberStateFlowScope.create(
     badge: VaultViewItem.Value.Badge? = null,
     badge2: List<StateFlow<VaultViewItem.Value.Badge?>> = emptyList(),
     leading: (@Composable RowScope.() -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
     verify: ((() -> Unit) -> Unit)? = null,
     onBuildActions: (ContextItemBuilder.() -> Unit)? = null,
     maxLines: Int = 64,
@@ -3688,6 +3706,7 @@ suspend fun RememberStateFlowScope.create(
         monospace = monospace,
         colorize = colorize,
         leading = leading,
+        trailing = trailing,
         badge = badge,
         badge2 = badge2,
         dropdown = dropdown.verify(verify),

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.desktop.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.awt.SwingDialog
@@ -15,7 +16,9 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.rememberWindowState
 import com.artemchep.keyguard.desktop.ui.macos.MacOwnerlessPopupComposeWindow
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.LocalWindowRev
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.WindowRev
 import java.awt.Dialog.ModalityType
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -87,7 +90,14 @@ internal fun PopupComposeWindow(
             )
         },
     ) {
-        content()
+        val windowRev = remember(focusRequestKey) {
+            WindowRev.generateWindowRev()
+        }
+        CompositionLocalProvider(
+            LocalWindowRev provides windowRev,
+        ) {
+            content()
+        }
     }
 }
 

@@ -1,7 +1,9 @@
 package com.artemchep.keyguard.desktop.ui.macos
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -15,6 +17,8 @@ import androidx.compose.ui.window.WindowDecoration
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import com.artemchep.keyguard.desktop.ui.initPopupComposeDialog
+import com.artemchep.keyguard.platform.LocalWindowRev
+import com.artemchep.keyguard.platform.WindowRev
 import java.awt.Dialog.ModalityType
 import java.awt.Window
 import java.awt.event.ComponentAdapter
@@ -102,9 +106,16 @@ internal fun MacOwnerlessPopupComposeWindow(
         },
     ) {
         MacPopupOverlayEffect(
-            visible = popupVisible,
             focusRequestKey = focusRequestKey,
         )
-        content()
+
+        val windowRev = remember(focusRequestKey) {
+            WindowRev.generateWindowRev()
+        }
+        CompositionLocalProvider(
+            LocalWindowRev provides windowRev,
+        ) {
+            content()
+        }
     }
 }

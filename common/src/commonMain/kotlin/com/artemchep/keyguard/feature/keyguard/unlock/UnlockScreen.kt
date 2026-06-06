@@ -39,7 +39,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.autofill.contentType
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -54,6 +53,7 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.yubikey.YubiKeyPromptEffect
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.LocalWindowRev
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -342,7 +342,7 @@ private fun UnlockScreen(
 private fun rememberFocusRequesterAndAutoRequest(
     unlockState: UnlockState,
 ): FocusRequester2 {
-    val focusedWindow = LocalWindowInfo.current.isWindowFocused
+    val windowRev = LocalWindowRev.current
     val focusRequester = remember {
         FocusRequester2()
     }
@@ -350,10 +350,7 @@ private fun rememberFocusRequesterAndAutoRequest(
     val updatedHasHardwareUnlock by rememberUpdatedState(
         unlockState.biometric != null || unlockState.yubiKey != null,
     )
-    LaunchedEffect(focusRequester, focusedWindow) {
-        if (!focusedWindow) {
-            return@LaunchedEffect
-        }
+    LaunchedEffect(focusRequester, windowRev) {
         val delayMs = if (CurrentPlatform is Platform.Mobile) {
             200L
         } else {

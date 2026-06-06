@@ -15,14 +15,9 @@ import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 internal fun DialogWindowScope.MacPopupOverlayEffect(
-    visible: Boolean,
     focusRequestKey: Any?,
 ) {
-    LaunchedEffect(window, visible, focusRequestKey) {
-        if (!visible) {
-            return@LaunchedEffect
-        }
-
+    LaunchedEffect(window, focusRequestKey) {
         // Wait till the native window handle becomes
         // available, skip if we failed to obtain it.
         val windowHandle = window.awaitMacPopupWindowHandle()

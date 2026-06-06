@@ -1365,7 +1365,7 @@
     <string name="pref_item_erase_data_text">Zavřít aplikaci a vymazat všechna lokální data aplikace</string>
     <string name="pref_item_allow_screenshots_title">Povolit snímky obrazovky</string>
     <string name="pref_item_allow_screenshots_text_on">Zobrazit obsah této aplikace při přepínání mezi nedávnými aplikacemi a povolit zachycení obrazovky</string>
-    <string name="pref_item_allow_screenshots_text_off">Skrýt obsah této aplikace při přepínání mezi nedávnými aplikacemi a povolit zachycení obrazovky</string>
+    <string name="pref_item_allow_screenshots_text_off">Skrýt obsah této aplikace při přepínání mezi nedávnými aplikacemi a zakázat zachycení obrazovky</string>
     <string name="pref_item_allow_screenshots_badge">Snímky obrazovky jsou nyní povoleny, klepnutím zakážete</string>
     <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
     <string name="pref_item_allow_screenshots_mode_disabled_title">Zakázáno</string>

@@ -153,7 +153,7 @@
     <string name="ssh_client">Klient SSH</string>
     <string name="rename">Zmień nazwę</string>
     <string name="deletion_date">Data usunięcia</string>
-    <string name="deletion_date_custom"></string>
+    <string name="deletion_date_custom">Własne</string>
     <string name="expiration_date">Data ważności</string>
     <string name="expiration_date_custom">Własne</string>
     <string name="expiration_date_never">Nigdy</string>
@@ -385,7 +385,7 @@
     <string name="sends_action_enable_text">Aktywne wysyłanie jest dostępne pod publicznym adresem URL</string>
     <string name="sends_action_enable_confirmation_title">Aktywować?</string>
     <string name="sends_action_disable_title">Dezaktywuj</string>
-    <string name="sends_action_disable_text">Dezaktywowane wysyłanie jest niedostępne pod publicznym adresem URL</string>
+    <string name="sends_action_disable_text">O envio desativado fica inacessível por um URL público</string>
     <string name="sends_action_disable_confirmation_title">Dezaktywować?</string>
     <string name="sends_action_disabled_note">Ta wysłanie jest dezaktywowane, nikt nie ma do niej dostępu.</string>
     <string name="sends_action_delete_title">Trwale usuń</string>

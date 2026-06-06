@@ -1398,10 +1398,10 @@
     <string name="pref_item_ssh_agent_status_ready">Pronto</string>
     <string name="pref_item_ssh_agent_status_failed">Falhou</string>
     <string name="pref_item_ssh_agent_approval_window_title">Lembrar aprovações de chaves</string>
-    <string name="pref_item_ssh_agent_local_storage_title">Local storage</string>
-    <string name="pref_item_ssh_agent_local_storage_text">When the SSH agent is on, Keyguard keeps unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
-    <string name="pref_item_ssh_agent_display_key_names_title">Display key names before vault is unlocked</string>
-    <string name="pref_item_ssh_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
+    <string name="pref_item_ssh_agent_local_storage_title">Armazenamento local</string>
+    <string name="pref_item_ssh_agent_local_storage_text">Quando o agente SSH está ativo, o Keyguard mantém uma cópia não encriptada das chaves públicas no disco, permitindo aos clientes listar as chaves mesmo com o cofre bloqueado. As chaves privadas nunca são expostas, os nomes das chaves são armazenados apenas se ativar a opção correspondente.</string>
+    <string name="pref_item_ssh_agent_display_key_names_title">Apresentar o nome das chaves antes do cofre ser desbloqueado</string>
+    <string name="pref_item_ssh_agent_display_key_names_note">Uma cópia não encriptada do título do item será armazenada localmente</string>
     <string name="pref_item_ssh_agent_approval_window_always_ask">Perguntar sempre</string>
     <string name="pref_item_ssh_agent_approval_window_until_lock">Até bloqueio do cofre</string>
     <string name="pref_item_ssh_agent_setup_title">Configuração do cliente SSH</string>

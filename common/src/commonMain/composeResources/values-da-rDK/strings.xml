@@ -36,7 +36,7 @@
     <string name="conceal_value">Skjul værdi</string>
     <string name="field_label">Etiket</string>
     <string name="field_value">Værdi</string>
-    <string name="tag_value">Waarde</string>
+    <string name="tag_value">Værdi</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Adgangsantal</string>
     <!--
@@ -352,7 +352,7 @@
     <string name="ciphers_action_change_passwords_title">Skift adgangskoder</string>
     <string name="ciphers_action_view_password_history_title">Vis adgangskodehistorik</string>
     <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
-    <string name="ciphers_action_archive_title">Archiveren</string>
+    <string name="ciphers_action_archive_title">Arkivér</string>
     <string name="ciphers_action_archive_confirmation_title">Naar archief verplaatsen?</string>
     <string name="ciphers_action_unarchive_title">Uit archief herstellen</string>
     <string name="ciphers_action_unarchive_confirmation_title">Uit archief herstellen?</string>
@@ -612,7 +612,7 @@
     <string name="error_failed_create_passkey">Mislykkedes at oprette en adgangsnøgle</string>
     <string name="error_failed_create_password">Wachtwoord aanmaken mislukt</string>
     <string name="error_failed_use_passkey">Mislykkedes at godkende en anmodning</string>
-    <string name="error_failed_use_password">Autoriseren van verzoek mislukt</string>
+    <string name="error_failed_use_password">Mislykkedes at godkende en anmodning</string>
     <string name="error_failed_open_uri">Mislykkedes at åbne en URI</string>
     <string name="error_failed_format_placeholder">Mislykkedes at formatere pladsholderen</string>
     <string name="error_failed_open_app_for">Ingen installeret app kan håndtere denne anmodning</string>
@@ -1365,10 +1365,10 @@
     <string name="pref_item_erase_data_text">Luk appen og slet alle lokale app-data</string>
     <string name="pref_item_allow_screenshots_title">Tillad skærmfotos</string>
     <string name="pref_item_allow_screenshots_text_on">Vis indholdet af appen, når der skiftes mellem seneste apps og tillad skærmoptagelse</string>
-    <string name="pref_item_allow_screenshots_text_off">Vis indholdet af appen, når der skiftes mellem seneste apps og forbyd skærmoptagelse</string>
+    <string name="pref_item_allow_screenshots_text_off">Skjul indholdet af appen, når der skiftes mellem seneste apps og forbyd skærmoptagelse</string>
     <string name="pref_item_allow_screenshots_badge">Schermafbeeldingen zijn toegestaan, tik om uit te schakelen</string>
     <string name="pref_item_allow_screenshots_disabled_notification">Schermafbeeldingen zijn uitgeschakeld</string>
-    <string name="pref_item_allow_screenshots_mode_disabled_title">Uitgeschakeld</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Deaktiveret</string>
     <string name="pref_item_allow_screenshots_mode_limited_title">Toegestaan, met een visuele aanwijzing</string>
     <string name="pref_item_allow_screenshots_mode_full_title">Toegestaan</string>
     <string name="pref_item_data_safety_title">Datasikkerhed</string>

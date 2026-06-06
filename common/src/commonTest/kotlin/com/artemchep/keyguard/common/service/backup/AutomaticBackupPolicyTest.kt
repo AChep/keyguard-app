@@ -70,13 +70,13 @@ class AutomaticBackupPolicyTest {
     }
 
     @Test
-    fun `policy accepts only authenticated in-memory sessions`() {
+    fun `policy accepts unlocked key sessions`() {
         assertFalse(
             AutomaticBackupPolicy.isAuthenticatedInMemory(
                 MasterSession.Empty(),
             ),
         )
-        assertFalse(
+        assertTrue(
             AutomaticBackupPolicy.isAuthenticatedInMemory(
                 session(origin = MasterSession.Key.Persisted),
             ),
@@ -104,20 +104,31 @@ class AutomaticBackupPolicyTest {
     }
 
     @Test
-    fun `schedule state flow does not resolve backup config for persisted session`() = runTest {
+    fun `schedule state flow emits runnable state for persisted dirty vault`() = runTest {
         val session = MutableStateFlow<MasterSession?>(
             session(origin = MasterSession.Key.Persisted),
+        )
+        val repository = FakeBackupConfigRepository(
+            config = MutableStateFlow(runnableConfig),
+            status = MutableStateFlow(
+                BackupStatus(
+                    changeGeneration = 1L,
+                    lastSuccessfulBackupChangeGeneration = 0L,
+                ),
+            ),
         )
 
         val state = automaticBackupScheduleStateFlow(
             sessionReadRepository = FakeSessionReadRepository(session),
             getBackupConfigRepository = {
-                error("Backup config repository should not be resolved for persisted session.")
+                repository
             },
         ).first()
 
-        assertFalse(state.authenticated)
-        assertFalse(state.shouldRun)
+        assertTrue(state.authenticated)
+        assertTrue(state.shouldRun)
+        assertEquals(1L, state.changeGeneration)
+        assertEquals(0L, state.lastSuccessfulBackupChangeGeneration)
     }
 
     @Test

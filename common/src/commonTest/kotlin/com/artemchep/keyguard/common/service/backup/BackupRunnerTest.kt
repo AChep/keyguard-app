@@ -889,6 +889,7 @@ class BackupRunnerTest {
                 it.contains("backup_attachment_download_started") &&
                         it.contains("local_cipher_id=local-cipher-1") &&
                         it.contains("attachment_id=attachment-1") &&
+                        it.contains("attachment_name=file.txt") &&
                         it.contains("source_type=direct")
             },
         )
@@ -897,7 +898,6 @@ class BackupRunnerTest {
         assertTrue(messages.any { it.contains("backup_run_completed") })
         assertTrue(messages.none { it.contains("/tmp/keyguard-backups") })
         assertTrue(messages.none { it.contains("password") })
-        assertTrue(messages.none { it.contains("file.txt") })
         assertTrue(messages.none { it.contains("https://example.com/file") })
         assertTrue(messages.none { it.contains("payload") })
     }

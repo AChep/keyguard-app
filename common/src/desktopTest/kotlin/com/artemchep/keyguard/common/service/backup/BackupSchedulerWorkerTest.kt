@@ -91,16 +91,34 @@ class BackupSchedulerWorkerTest {
     }
 
     @Test
-    fun `start does not resolve backup config for persisted session`() = runTest {
+    fun `start runs automatic backup for persisted dirty vault`() = runTest {
         val lifecycle = MutableStateFlow(LeLifecycleState.CREATED)
+        val config = MutableStateFlow(
+            BackupConfig(
+                enabled = true,
+                store = BackupStoreConfig.Local(
+                    path = "/tmp/keyguard-backups",
+                ),
+            ),
+        )
+        val status = MutableStateFlow(
+            BackupStatus(
+                changeGeneration = 1L,
+                lastSuccessfulBackupChangeGeneration = 0L,
+            ),
+        )
         val session = MutableStateFlow<MasterSession?>(
             keySession(origin = MasterSession.Key.Persisted),
         )
         var runs = 0
+        val repository = FakeBackupConfigRepository(
+            config = config,
+            status = status,
+        )
         val worker = BackupSchedulerWorker(
             sessionReadRepository = FakeSessionReadRepository(session),
             getBackupConfigRepository = {
-                error("Backup config repository should not be resolved for persisted session.")
+                repository
             },
             runAutomatic = {
                 runs++
@@ -112,7 +130,7 @@ class BackupSchedulerWorkerTest {
         advanceTimeBy(AutomaticBackupPolicy.DEBOUNCE_DELAY_MS)
         runCurrent()
 
-        assertEquals(0, runs)
+        assertEquals(1, runs)
     }
 
     private fun authenticatedSession() = keySession(

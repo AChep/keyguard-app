@@ -5381,7 +5381,6 @@
       "ebay.ie",
       "ebay.it",
       "ebay.co.jp",
-      "gmarket.co.kr",
       "ebay.com.my",
       "ebay.nl",
       "ebay.ph",
@@ -9806,6 +9805,10 @@
   },
   {
     "domain": "mail.google.com",
+    "additional-domains": [
+      "gmail.com",
+      "googlemail.com"
+    ],
     "tfa": [
       "sms",
       "call",
@@ -11507,7 +11510,7 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://support.nordpass.com/hc/en-us/articles/360002770497",
+    "documentation": "https://support.nordvpn.com/hc/articles/19442299167889",
     "name": "NordLocker"
   },
   {
@@ -11529,8 +11532,16 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://support.nordpass.com/hc/en-us/articles/360002770497",
+    "documentation": "https://support.nordpass.com/hc/articles/360002770497",
     "name": "NordPass"
+  },
+  {
+    "domain": "nordstellar.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.nordpass.com/hc/articles/40207000238993",
+    "name": "NordStellar"
   },
   {
     "domain": "nordvpn.com",
@@ -11541,7 +11552,7 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://support.nordvpn.com/hc/en-us/articles/19442299167889",
+    "documentation": "https://support.nordvpn.com/hc/articles/19442299167889",
     "name": "NordVPN"
   },
   {
@@ -19025,19 +19036,6 @@
     ],
     "documentation": "https://workflowy.zendesk.com/hc/en-us/articles/4401923146516",
     "name": "Workflowy"
-  },
-  {
-    "domain": "workplace.com",
-    "tfa": [
-      "totp",
-      "sms",
-      "custom-software"
-    ],
-    "custom-software": [
-      "Workplace App Code Generator"
-    ],
-    "documentation": "https://www.workplace.com/help/work/1331628866920315",
-    "name": "Workplace"
   },
   {
     "domain": "world4you.com",

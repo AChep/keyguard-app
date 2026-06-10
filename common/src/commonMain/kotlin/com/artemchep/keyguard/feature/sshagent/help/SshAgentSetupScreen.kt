@@ -93,6 +93,8 @@ private const val SSH_AGENT_SETUP_LINUX_SOCKET =
     $$"${XDG_RUNTIME_DIR}/keyguard-ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET_FALLBACK =
     "/tmp/keyguard-<UID>/ssh-agent.sock"
+private const val SSH_AGENT_SETUP_LINUX_FLATPAK_SOCKET =
+    $$"${XDG_RUNTIME_DIR}/app/com.artemchep.keyguard/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_FILE =
     "~/.ssh/config"
 private const val SSH_AGENT_SETUP_VERIFY_CMD_LIST =
@@ -160,13 +162,15 @@ private fun ColumnScope.SshAgentSetupScreenContent() {
         text = stringResource(Res.string.ssh_agent_setup_intro),
     )
 
-    when (CurrentPlatform) {
+    when (val platform = CurrentPlatform) {
         is Platform.Desktop.MacOS -> SshAgentSetupSupportedPlatformContent(
             isMacOS = true,
+            isFlatpak = false,
         )
 
         is Platform.Desktop.Linux -> SshAgentSetupSupportedPlatformContent(
             isMacOS = false,
+            isFlatpak = platform.isFlatpak,
         )
 
         is Platform.Desktop.Windows -> SshAgentSetupUnsupportedPlatformContent()
@@ -180,11 +184,12 @@ private fun ColumnScope.SshAgentSetupScreenContent() {
 @Composable
 private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
     isMacOS: Boolean,
+    isFlatpak: Boolean,
 ) {
-    val sshAgentSocketPath = if (isMacOS) {
-        SSH_AGENT_SETUP_MACOS_SOCKET
-    } else {
-        SSH_AGENT_SETUP_LINUX_SOCKET
+    val sshAgentSocketPath = when {
+        isMacOS -> SSH_AGENT_SETUP_MACOS_SOCKET
+        isFlatpak -> SSH_AGENT_SETUP_LINUX_FLATPAK_SOCKET
+        else -> SSH_AGENT_SETUP_LINUX_SOCKET
     }
 
     Section(
@@ -202,22 +207,14 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
         text = stringResource(Res.string.ssh_agent_setup_step_2_text),
     )
 
-    if (isMacOS) {
-        Spacer(
-            modifier = Modifier
-                .height(4.dp),
-        )
-        CopyableCodeBlock(
-            text = sshAgentSocketPath,
-        )
-    } else {
-        Spacer(
-            modifier = Modifier
-                .height(4.dp),
-        )
-        CopyableCodeBlock(
-            text = sshAgentSocketPath,
-        )
+    Spacer(
+        modifier = Modifier
+            .height(4.dp),
+    )
+    CopyableCodeBlock(
+        text = sshAgentSocketPath,
+    )
+    if (!isMacOS && !isFlatpak) {
         Spacer(
             modifier = Modifier
                 .height(16.dp),

@@ -99,7 +99,7 @@ class VaultLockHotkeyServiceTest {
                 )
             },
             scope = this,
-            platform = Platform.Desktop.Linux,
+            platform = Platform.Desktop.Linux.native,
         )
 
         val stop = service.start()
@@ -132,7 +132,7 @@ class VaultLockHotkeyServiceTest {
                 isCtrlPressed = true,
                 isShiftPressed = true,
             ),
-            VaultLockHotkeyService.vaultLockHotKey(Platform.Desktop.Linux),
+            VaultLockHotkeyService.vaultLockHotKey(Platform.Desktop.Linux.native),
         )
         assertEquals(
             GlobalHotKeySpec(

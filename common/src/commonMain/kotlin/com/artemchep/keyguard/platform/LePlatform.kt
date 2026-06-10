@@ -14,7 +14,16 @@ sealed interface Platform {
     }
 
     sealed interface Desktop : Platform {
-        data object Linux : Desktop
+        data class Linux(
+            val isFlatpak: Boolean,
+        ) : Desktop {
+            companion object {
+                val native = Linux(
+                    isFlatpak = false,
+                )
+            }
+        }
+
         data object Windows : Desktop
         data object MacOS : Desktop
         data object Other : Desktop

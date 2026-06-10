@@ -212,6 +212,10 @@ class TotpServiceImpl(
         counter: Long,
         algorithm: CryptoHashAlgorithm,
     ): Int {
+        require(algorithm != CryptoHashAlgorithm.MD5) {
+            "MD5 is not supported for HOTP/TOTP."
+        }
+
         // The counter value is the input parameter 'message' to the HMAC algorithm.
         // It must be represented by a byte array with the length of a long (8 bytes).
         val messageSize = 8
@@ -225,6 +229,13 @@ class TotpServiceImpl(
             data = message,
             algorithm = algorithm,
         )
+        // RFC 4226 dynamic truncation is defined over a 20-byte HMAC-SHA-1
+        // result. The offset can be 0..15 and selects four consecutive bytes,
+        // so shorter outputs can point past the digest instead of producing a
+        // valid HOTP value.
+        require(hash.size >= 20) {
+            "HOTP hash output is too short for dynamic truncation."
+        }
 
         // The value of the offset is the lower 4 bits of the last byte of the hash
         // (0x0F = 0000 1111).

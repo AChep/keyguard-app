@@ -24,6 +24,14 @@ class TotpTokenTest {
     }
 
     @Test
+    fun `parse rejects md5 totp token`() {
+        val result = TotpToken.parse("otpauth://totp/test?secret=valid&algorithm=md5")
+
+        val left = assertIs<Either.Left<Throwable>>(result)
+        assertIs<IllegalArgumentException>(left.value)
+    }
+
+    @Test
     fun `parse accepts nine digit hotp token`() {
         val result = TotpToken.parse("otpauth://hotp/test?secret=valid&counter=1&digits=9")
 
@@ -35,6 +43,14 @@ class TotpTokenTest {
     @Test
     fun `parse rejects ten digit hotp token`() {
         val result = TotpToken.parse("otpauth://hotp/test?secret=valid&counter=1&digits=10")
+
+        val left = assertIs<Either.Left<Throwable>>(result)
+        assertIs<IllegalArgumentException>(left.value)
+    }
+
+    @Test
+    fun `parse rejects md5 hotp token`() {
+        val result = TotpToken.parse("otpauth://hotp/test?secret=valid&counter=1&algorithm=md5")
 
         val left = assertIs<Either.Left<Throwable>>(result)
         assertIs<IllegalArgumentException>(left.value)

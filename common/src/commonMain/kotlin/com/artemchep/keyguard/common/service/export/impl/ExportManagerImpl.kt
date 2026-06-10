@@ -336,21 +336,15 @@ open class ExportManagerBase(
                     )
                 }
             }
-            fileLoaderFlow
+            val complete = fileLoaderFlow
                 .onEach { progress ->
                     val downloaded = when (progress) {
-                        is DownloadProgress.None -> {
-                            // Do nothing.
-                            return@onEach
-                        }
-
                         is DownloadProgress.Loading -> {
                             progress.downloaded
                         }
 
-                        is DownloadProgress.Complete -> {
-                            entry.total
-                        }
+                        DownloadProgress.None,
+                        is DownloadProgress.Complete -> null
                     }
                     if (downloaded != null) {
                         entry.downloaded.store(downloaded)
@@ -358,6 +352,18 @@ open class ExportManagerBase(
                     }
                 }
                 .last()
+            require(complete is DownloadProgress.Complete) {
+                "Attachment download did not complete."
+            }
+            complete.result.fold(
+                ifLeft = { error ->
+                    throw error
+                },
+                ifRight = {
+                    entry.downloaded.store(entry.total)
+                    onDownloadUpdated()
+                },
+            )
         }
         return ZipEntry(
             name = "attachments/${attachment.id}/${attachment.fileName()}",

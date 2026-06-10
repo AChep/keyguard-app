@@ -482,7 +482,9 @@ class SyncByBitwardenTokenV2Impl(
                 coordinator.safeSyncEntityType(
                     EntitySyncConfig(
                         name = "ciphers",
-                        strategy = CipherSyncStrategy(),
+                        strategy = CipherSyncStrategy(
+                            remoteFolderIdToLocalId = folderIdMappings.remoteToLocalFolders::get,
+                        ),
                         localEntities = existingCiphersToSync,
                         serverEntities = serverCiphersToSync,
                         ops = cipherOps,
@@ -1054,7 +1056,11 @@ internal fun LocalItemMeta.hasPendingLocalWork(): Boolean {
 }
 
 internal fun Sequence<BitwardenCipher>.anyPendingCipherLocalWork(): Boolean {
-    val cipherStrategy = CipherSyncStrategy()
+    val cipherStrategy = CipherSyncStrategy(
+        // The mapping only affects toServerItemMeta, which this
+        // local-only check never invokes.
+        remoteFolderIdToLocalId = { null },
+    )
     return any { cipher ->
         cipher.hasPendingAttachmentMutations() ||
             cipherStrategy.toLocalItemMeta(cipher).hasPendingLocalWork()

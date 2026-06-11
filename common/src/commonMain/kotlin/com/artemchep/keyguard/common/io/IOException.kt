@@ -4,8 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
 
 /**
  * Wraps the [IO] into a virtual try catch block that guarantees that
@@ -125,24 +123,3 @@ fun Throwable.throwIfFatalOrCancellation() {
 
 private fun Throwable.nonFatalOrThrow(): Throwable =
     if (this !is Error) this else throw this
-
-inline fun <T, R> IO<T>.bracket(
-    crossinline release: (T) -> IO<Unit>,
-    crossinline use: (T) -> IO<R>,
-): IO<R> = ioEffect {
-    val nothing = Any()
-    var resource: Any? = nothing
-    try {
-        val r = bind().also { resource = it }
-        use(r)()
-    } finally {
-        val res = resource
-        if (res !== nothing) {
-            // Always run the release IO
-            withContext(NonCancellable) {
-                val io = release(res as T)
-                io.bind()
-            }
-        }
-    }
-}

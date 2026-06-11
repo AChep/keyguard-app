@@ -32,7 +32,6 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAcc
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
@@ -169,15 +168,17 @@ class NotificationsImpl(
     }
 
     override fun launch(scope: CoroutineScope): Job = scope.launch {
-        val subScope = this + SupervisorJob()
+        val subScope = this + SupervisorJob(parent = coroutineContext[Job])
 
         fun launchJob(
             user: BitwardenToken,
         ): Job = subScope.launch {
+            val accountScope = this
+
             fun launchSyncById(latestUser: BitwardenToken) {
                 val accountId = AccountId(latestUser.id)
                 queueSyncById(accountId)
-                    .launchIn(GlobalScope)
+                    .launchIn(accountScope)
             }
 
             val result = runCatching {
@@ -275,6 +276,8 @@ class NotificationsImpl(
         fun launchJob(
             user: KeePassToken,
         ): Job = subScope.launch {
+            val accountScope = this
+            
             val databaseFile = user.databaseLocalPathOrNull()
             if (databaseFile == null) {
                 // This database URI is not supported, aborting
@@ -295,7 +298,7 @@ class NotificationsImpl(
 
                         val accountId = AccountId(user.id)
                         queueSyncById(accountId)
-                            .launchIn(GlobalScope)
+                            .launchIn(accountScope)
                     }
                     .collect()
             }

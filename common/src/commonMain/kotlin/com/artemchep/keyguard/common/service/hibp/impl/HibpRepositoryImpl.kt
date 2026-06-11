@@ -17,6 +17,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
+import io.ktor.http.isSuccess
 import io.ktor.http.userAgent
 import io.ktor.utils.io.cancel
 import io.ktor.utils.io.readLine
@@ -113,6 +114,10 @@ class HibpRepositoryImpl(
                 userAgent(USER_AGENT)
                 attributes.put(routeAttribute, ROUTE_GET_PWNED_PASSWORD_RANGE)
             }
+        if (!response.status.isSuccess()) {
+            response.bodyOrApiException<Unit>()
+        }
+
         val channel = response.bodyAsChannel()
         try {
             // Stream the response so we can stop as soon as the matching suffix is found.

@@ -138,10 +138,15 @@ class SshAgentManager(
             logRepository.post(TAG, "SSH agent is already running", LogLevel.INFO)
             return existingProcess
         }
-        if (existingProcess != null) {
-            logRepository.post(TAG, "Cleaning up stale SSH agent process reference", LogLevel.INFO)
-            existingProcess.closeStdinQuietly()
-            agentProcess = null
+        // The previous agent process is dead or was never started. Fully
+        // tear down any leftover state before allocating new resources.
+        if (existingProcess != null ||
+            serverScope != null ||
+            serverJob != null ||
+            ipcSocketPath != null
+        ) {
+            logRepository.post(TAG, "Cleaning up stale SSH agent state", LogLevel.INFO)
+            stopLocked()
         }
 
         val binaryPath = binaryPath

@@ -112,7 +112,11 @@ sealed interface TotpToken {
         override val raw: String,
     ) : TotpToken {
         companion object {
-            const val PERIOD = 30L
+            // The mOTP code is derived from the current epoch-time 
+            // in a 10 second granularity. In is valid for the next 3 minutes.
+            //
+            // See: https://motp.sourceforge.net/#1.1
+            const val PERIOD = 10L
             const val DIGITS = 6
         }
 

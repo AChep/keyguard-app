@@ -290,12 +290,7 @@ class TotpServiceImpl(
         offset: Int,
     ): TotpCode {
         val period = token.period
-        // As per the spec, the mOTP code should be generated each 10 seconds and
-        // valid for the next 3 minutes. This sucks for the users tho, as he does not know
-        // the latter.
-        val actualPeriod = 10L
-        val multiplier = period / actualPeriod // must be recoverable
-        val time = (roundToPeriodInSeconds(timestamp, period) + offset) * multiplier
+        val time = roundToPeriodInSeconds(timestamp, period) + offset
 
         // Generate a hash from the data.
         val data = buildString {
@@ -317,7 +312,7 @@ class TotpServiceImpl(
                 expiration = kotlin.run {
                     // Get the beginning of the next period as an
                     // expiration date.
-                    val exp = (time / multiplier + 1L) * period
+                    val exp = (time + 1L) * period
                     Instant.fromEpochSeconds(exp)
                 },
                 duration = with(Duration) { period.seconds },

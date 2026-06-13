@@ -15,7 +15,7 @@ import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
 import io.ktor.client.HttpClient
-import io.ktor.client.request.get
+import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpHeaders
 import io.ktor.http.isSuccess
@@ -134,35 +134,27 @@ class GetAttachmentPreviewImpl(
 
     private suspend fun downloadUrlToByteArray(
         url: String,
-    ): ByteArray {
-        val response = try {
-            httpClient.get(url)
-        } catch (e: AttachmentPreviewException) {
-            throw e
-        } catch (e: Throwable) {
-            e.throwIfFatalOrCancellation()
-            throw AttachmentPreviewException.NetworkFailed(e)
-        }
-        if (!response.status.isSuccess()) {
-            throw AttachmentPreviewException.NetworkFailed()
-        }
+    ): ByteArray = try {
+        httpClient.prepareGet(url).execute { response ->
+            if (!response.status.isSuccess()) {
+                throw AttachmentPreviewException.NetworkFailed()
+            }
 
-        val contentLength = response.headers[HttpHeaders.ContentLength]
-            ?.toLongOrNull()
-        if (contentLength != null) {
-            ensureWithinLimit(size = contentLength)
-        }
+            val contentLength = response.headers[HttpHeaders.ContentLength]
+                ?.toLongOrNull()
+            if (contentLength != null) {
+                ensureWithinLimit(size = contentLength)
+            }
 
-        val channel = response.bodyAsChannel()
-        val output = ByteArrayOutputStream(
-            contentLength
-                ?.coerceAtMost(AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES)
-                ?.toInt()
-                ?: DEFAULT_BUFFER_SIZE,
-        )
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        var total = 0L
-        try {
+            val channel = response.bodyAsChannel()
+            val output = ByteArrayOutputStream(
+                contentLength
+                    ?.coerceAtMost(AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES)
+                    ?.toInt()
+                    ?: DEFAULT_BUFFER_SIZE,
+            )
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            var total = 0L
             while (true) {
                 val read = channel.readAvailable(buffer, 0, buffer.size)
                 if (read == -1) {
@@ -176,18 +168,14 @@ class GetAttachmentPreviewImpl(
                 ensureWithinLimit(size = total)
                 output.write(buffer, 0, read)
             }
-        } catch (e: AttachmentPreviewException) {
-            throw e
-        } catch (e: Throwable) {
-            e.throwIfFatalOrCancellation()
-            throw AttachmentPreviewException.NetworkFailed(e)
-        } finally {
-            if (!channel.isClosedForRead) {
-                channel.cancel(null)
-            }
-        }
 
-        return output.toByteArray()
+            output.toByteArray()
+        }
+    } catch (e: AttachmentPreviewException) {
+        throw e
+    } catch (e: Throwable) {
+        e.throwIfFatalOrCancellation()
+        throw AttachmentPreviewException.NetworkFailed(e)
     }
 
     private fun ensureWithinLimit(

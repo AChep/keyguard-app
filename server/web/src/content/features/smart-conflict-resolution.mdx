@@ -1,0 +1,18 @@
+---
+title: "Smart conflict resolution"
+summary: "When the same item changes in two places, Keyguard uses 3-way merge."
+icon: "🔀"
+group: "Your data"
+order: 13
+featured: false
+premium: false
+---
+
+Edits collide when the same item is changed in two places before either side syncs, such as a tweak on another device or a quick fix in the web vault. Instead of blindly keeping one version and discarding the other, Keyguard examines both sets of changes and reconciles them field by field:
+
+- a field changed on only one side keeps that change.
+- a field changed on **both** sides takes the server's version.
+- items added or removed are replayed onto the latest data.
+
+The exact merge rules are documented in
+[sync & conflict resolution](/docs/sync-and-conflicts/).

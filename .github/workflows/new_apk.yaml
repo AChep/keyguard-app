@@ -3,6 +3,9 @@ name: "New APK"
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-android-app:
     runs-on: ubuntu-latest
@@ -10,6 +13,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup_gradle
       - name: "Prepare env"
         run: |

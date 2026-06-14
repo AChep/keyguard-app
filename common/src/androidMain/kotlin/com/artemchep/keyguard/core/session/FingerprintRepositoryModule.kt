@@ -17,6 +17,11 @@ import com.artemchep.keyguard.feature.auth.companion.CompanionAuthTransportAndro
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
+import com.artemchep.keyguard.common.service.backup.AndroidTreeBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.BackupLocalObjectStoreFactoryTag
+import com.artemchep.keyguard.common.service.backup.BackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
@@ -85,6 +90,7 @@ import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
 import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import db_key_value.datastore.DataStoreKeyValueStore
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.kodein.di.DI
@@ -118,6 +124,17 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindProvider<LeContext>() {
         val context: Context = instance()
         LeContext(context)
+    }
+    bindSingleton<BackupObjectStoreFactory>(tag = BackupLocalObjectStoreFactoryTag) {
+        AndroidTreeBackupObjectStoreFactory(this)
+    }
+    bindSingleton<BackupObjectStoreFactory> {
+        SelectableBackupObjectStoreFactory(
+            localFactory = instance(tag = BackupLocalObjectStoreFactoryTag),
+            webDavFactory = WebDavBackupObjectStoreFactory(
+                httpClient = instance<HttpClient>(),
+            ),
+        )
     }
     bindSingleton<BiometricStatusUseCase> {
         BiometricStatusUseCaseImpl(

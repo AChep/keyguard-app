@@ -7,6 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.credentials.exceptions.domerrors.EncodingError
+import androidx.credentials.exceptions.domerrors.NotAllowedError
+import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException
 import androidx.credentials.provider.BeginGetCredentialOption
 import androidx.credentials.provider.BeginGetCredentialRequest
 import androidx.credentials.provider.BeginGetCredentialResponse
@@ -23,16 +26,20 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.AutofillHint
 import com.artemchep.keyguard.common.model.AutofillTarget
+import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
+import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
+import com.artemchep.keyguard.common.service.webauthn.WebAuthnEncodingException
+import com.artemchep.keyguard.common.service.webauthn.WebAuthnNotAllowedException
+import com.artemchep.keyguard.common.service.webauthn.parseWebAuthnAllowedCredentialDescriptors
 import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
-import com.artemchep.keyguard.feature.auth.common.util.REGEX_IPV4
 import io.ktor.http.Url
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -52,6 +59,7 @@ class PasskeyBeginGetRequest(
     private val passkeyTargetCheck: PasskeyTargetCheck,
     private val privilegedAppsService: PrivilegedAppsService,
     private val credentialProviderPlatformConfig: CredentialProviderPlatformConfig,
+    private val passkeyUtils: PasskeyUtils,
 ) {
     // https://www.w3.org/TR/webauthn-2/#dictionary-assertion-options
     @Serializable
@@ -59,7 +67,7 @@ class PasskeyBeginGetRequest(
         val allowCredentials: List<PublicKeyCredentialDescriptor> = emptyList(),
         @SerialName("challenge")
         val challengeBase64: String,
-        val rpId: String,
+        val rpId: String? = null,
         val userVerification: UserVerification? = UserVerification.PREFERRED,
         // https://www.w3.org/TR/webauthn-2/#enum-attestation-convey
         val attestation: String? = "none",
@@ -97,6 +105,7 @@ class PasskeyBeginGetRequest(
         passkeyTargetCheck = directDI.instance(),
         privilegedAppsService = directDI.instance(),
         credentialProviderPlatformConfig = directDI.instance(),
+        passkeyUtils = directDI.instance(),
     )
 
     suspend fun processGetCredentialsRequest(
@@ -105,6 +114,7 @@ class PasskeyBeginGetRequest(
         equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
         request: BeginGetCredentialRequest,
         ciphers: List<DSecret>,
+        privilegedApps: List<DPrivilegedApp>,
         userVerified: Boolean = false,
     ): BeginGetCredentialResponse {
         val passkeysEnabled = getAutofillPasskeysEnabled().toIO().bind()
@@ -130,6 +140,7 @@ class PasskeyBeginGetRequest(
                         callingAppInfo = request.callingAppInfo,
                         option = option,
                         ciphers = ciphers,
+                        privilegedApps = privilegedApps,
                         userVerified = userVerified,
                     )
 
@@ -198,29 +209,37 @@ class PasskeyBeginGetRequest(
         callingAppInfo: CallingAppInfo?,
         option: BeginGetPublicKeyCredentialOption,
         ciphers: List<DSecret>,
+        privilegedApps: List<DPrivilegedApp>,
         userVerified: Boolean,
     ): List<CredentialEntry> {
         val requestOptions: PublicKeyCredentialRequestOptions =
             json.decodeFromString(option.requestJson)
-        // Ignore not allowed relying party IDs.
-        if (!validateRpId(requestOptions.rpId)) {
-            return emptyList()
-        }
+        // WebAuthn L3 get() sets a missing `pkOptions.rpId` to the caller
+        // origin's effective domain before finding matching credentials.
+        // Explicit RP IDs are also validated against the caller origin at this
+        // stage so unauthorized callers do not see credential entries.
+        // See https://www.w3.org/TR/webauthn-3/#sctn-discover-from-external-source
+        val rpId = resolveCredentialProviderBeginGetRpId(
+            requestRpId = requestOptions.rpId,
+            callingAppInfo = callingAppInfo,
+            privilegedApps = privilegedApps,
+            passkeyUtils = passkeyUtils,
+        ) ?: return emptyList()
+        val allowCredentialDescriptors = parseCredentialProviderBeginGetAllowedCredentialDescriptors(
+            requestJson = option.requestJson,
+            json = json,
+        )
         val target = kotlin.run {
-            val allowCredentials = requestOptions.allowCredentials
-                .map { credentialDescriptor ->
-                    val credentialId = kotlin.run {
-                        val data = PasskeyBase64.decode(credentialDescriptor.idBase64)
-                        PasskeyCredentialId.decode(data)
-                    }
-                    PasskeyTarget.AllowedCredential(
-                        credentialId = credentialId,
-                    )
-                }
             PasskeyTarget(
-                allowedCredentials = allowCredentials
-                    .takeIf { it.isNotEmpty() },
-                rpId = requestOptions.rpId,
+                // WebAuthn descriptor matching is based on both descriptor ID
+                // and type. Unknown descriptor types are ignored in the shared
+                // parser; if every supplied descriptor has an unknown type, the
+                // parser raises NotAllowedError instead of using discoverable
+                // credential fallback.
+                // Spec: https://www.w3.org/TR/webauthn-3/#dictdef-publickeycredentialdescriptor
+                allowedCredentials = allowCredentialDescriptors
+                    .toPasskeyTargetAllowedCredentials(),
+                rpId = rpId,
             )
         }
         return ciphers
@@ -305,15 +324,6 @@ class PasskeyBeginGetRequest(
         .bind()
         .getOrNull()
 
-    // See:
-    // https://webauthn-doc.spomky-labs.com/prerequisites/the-relying-party#relying-party-id
-    private suspend fun validateRpId(
-        rpId: String,
-    ): Boolean = '/' !in rpId &&
-            ':' !in rpId &&
-            '@' !in rpId &&
-            !REGEX_IPV4.matches(rpId)
-
     //
     // Pending intent
     //
@@ -351,6 +361,74 @@ class PasskeyBeginGetRequest(
         return createCredentialProviderPendingIntent(
             context = context,
             intent = intent,
+        )
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.P)
+internal suspend fun resolveCredentialProviderBeginGetRpId(
+    requestRpId: String?,
+    callingAppInfo: CallingAppInfo?,
+    privilegedApps: List<DPrivilegedApp>,
+    passkeyUtils: PasskeyUtils,
+): String? {
+    val appInfo = callingAppInfo
+        ?: return null
+    val origin = runCatching {
+        passkeyUtils.callingAppOrigin(
+            appInfo = appInfo,
+            privilegedApps = privilegedApps,
+        )
+    }.getOrElse {
+        return null
+    }
+    return resolveCredentialProviderBeginGetRpId(
+        requestRpId = requestRpId,
+        origin = origin,
+        packageName = appInfo.packageName,
+        passkeyUtils = passkeyUtils,
+    )
+}
+
+internal suspend fun resolveCredentialProviderBeginGetRpId(
+    requestRpId: String?,
+    origin: String,
+    packageName: String,
+    passkeyUtils: PasskeyUtils,
+): String? = runCatching {
+    passkeyUtils.resolveAndValidateRpId(
+        rpId = requestRpId,
+        origin = origin,
+        packageName = packageName,
+    )
+}.getOrNull()
+
+internal fun parseCredentialProviderBeginGetAllowedCredentialDescriptors(
+    requestJson: String,
+    json: Json,
+    decodeCredentialId: (String) -> ByteArray = PasskeyBase64::decode,
+) = mapCredentialProviderBeginGetWebAuthnExceptions {
+    parseWebAuthnAllowedCredentialDescriptors(
+        requestJson = requestJson,
+        json = json,
+        decodeCredentialId = decodeCredentialId,
+    )
+}
+
+private inline fun <T> mapCredentialProviderBeginGetWebAuthnExceptions(
+    block: () -> T,
+): T {
+    try {
+        return block()
+    } catch (e: WebAuthnEncodingException) {
+        throw GetPublicKeyCredentialDomException(
+            domError = EncodingError(),
+            errorMessage = e.message.orEmpty(),
+        )
+    } catch (e: WebAuthnNotAllowedException) {
+        throw GetPublicKeyCredentialDomException(
+            domError = NotAllowedError(),
+            errorMessage = e.message.orEmpty(),
         )
     }
 }

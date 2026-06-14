@@ -325,12 +325,10 @@ private fun rememberCandidateFontSizesIntProgress(
     }
 
     val step = remember(
-        key1 = listOf(
-            density,
-            min,
-            max,
-            stepGranularityTextSize,
-        )
+        density,
+        min,
+        max,
+        stepGranularityTextSize,
     ) {
         stepGranularityTextSize
             .takeIf { it.isSp }

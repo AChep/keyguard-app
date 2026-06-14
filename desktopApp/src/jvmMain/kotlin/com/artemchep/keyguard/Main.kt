@@ -13,14 +13,17 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
+import androidx.compose.ui.window.DialogWindowScope
 import androidx.compose.ui.window.FrameWindowScope
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -46,16 +49,22 @@ import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.quicksearch.DesktopLibGlobalHotKeyRegistrar
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchHotkeyService
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowManager
+import com.artemchep.keyguard.common.service.session.VaultLockHotkeyService
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.sshagent.retrySshAgentStartup
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
 import com.artemchep.keyguard.common.model.SshAgentStatus
+import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.feature.sshagent.rememberSshAgentRequestUiState
+import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetLocale
+import com.artemchep.keyguard.common.usecase.GetMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
@@ -70,7 +79,6 @@ import com.artemchep.keyguard.desktop.services.autotype.AutotypeServiceNative
 import com.artemchep.keyguard.desktop.services.keychain.KeychainRepositoryNative
 import com.artemchep.keyguard.desktop.services.notification.NotificationRepositoryNative
 import com.artemchep.keyguard.desktop.ui.QuickSearchWindow
-import com.artemchep.keyguard.desktop.ui.requestAppForeground
 import com.artemchep.keyguard.desktop.ui.SshRequestWindow
 import com.artemchep.keyguard.desktop.util.AppReopenedListenerEffect
 import com.artemchep.keyguard.desktop.util.handleNavigationIntent
@@ -83,6 +91,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.LocalWindowId
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.lifecycle.LaunchLifecycleProviderEffect
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
@@ -91,12 +101,13 @@ import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.LocalComposeWindow
+import com.artemchep.keyguard.ui.WindowScreenshotProtectionEffect
 import com.artemchep.keyguard.ui.surface.LocalBackgroundManager
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
-import com.artemchep.keyguard.ui.util.DividerColor
+import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.kdroid.composetray.tray.api.Tray
 import com.kdroid.composetray.utils.SingleInstanceManager
 import kotlinx.coroutines.Dispatchers
@@ -106,6 +117,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -289,6 +302,7 @@ fun main() {
     val getSshAgent: GetSshAgent = appDi.direct.instance()
     val getSshAgentApprovalWindow: GetSshAgentApprovalWindow = appDi.direct.instance()
     val getSshAgentFilter: GetSshAgentFilter = appDi.direct.instance()
+    val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = appDi.direct.instance()
     val sshAgentStatusService: SshAgentStatusService = appDi.direct.instance()
 
     val translatorScope by lazy {
@@ -327,7 +341,14 @@ fun main() {
 
             val quickSearchWindowManager by rememberInstance<QuickSearchWindowManager>()
             val quickSearchHotkeyRegistrar = remember {
-                DesktopLibGlobalHotKeyRegistrar()
+                DesktopLibGlobalHotKeyRegistrar(
+                    name = "Quick search",
+                )
+            }
+            val vaultLockHotkeyRegistrar = remember {
+                DesktopLibGlobalHotKeyRegistrar(
+                    name = "Vault lock",
+                )
             }
             DisposableEffect(
                 quickSearchWindowManager,
@@ -336,11 +357,18 @@ fun main() {
                 val stop = QuickSearchHotkeyService(
                     windowManager = quickSearchWindowManager,
                     globalHotKeyRegistrar = quickSearchHotkeyRegistrar,
-                    beforeOpen = {
-                        requestAppForeground(
-                            tag = "QuickSearchHotkey",
-                        )
-                    },
+                ).start()
+                onDispose(stop)
+            }
+            val clearVaultSession by rememberInstance<ClearVaultSession>()
+            DisposableEffect(
+                clearVaultSession,
+                vaultLockHotkeyRegistrar,
+            ) {
+                val stop = VaultLockHotkeyService(
+                    clearVaultSession = clearVaultSession,
+                    globalHotKeyRegistrar = vaultLockHotkeyRegistrar,
+                    scope = GlobalScope,
                 ).start()
                 onDispose(stop)
             }
@@ -356,6 +384,7 @@ fun main() {
                     getVaultSession = getVaultSession,
                     getSshAgentApprovalWindow = getSshAgentApprovalWindow,
                     getSshAgentFilter = getSshAgentFilter,
+                    sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
                 )
             }
             val showMessage by rememberInstance<ShowMessage>()
@@ -547,6 +576,9 @@ private fun ApplicationScope.KeyguardMainWindow(
     ) {
         KeyguardWindowEssentials(
             processLifecycleProvider = processLifecycleProvider,
+            onMinimizeRequest = {
+                state.isMinimized = true
+            },
             content = content,
         )
     }
@@ -555,8 +587,66 @@ private fun ApplicationScope.KeyguardMainWindow(
 @Composable
 internal fun FrameWindowScope.KeyguardWindowEssentials(
     processLifecycleProvider: LePlatformLifecycleProvider,
+    onMinimizeRequest: () -> Unit,
     content: @Composable FrameWindowScope.() -> Unit,
 ) {
+    KeyguardWindowEssentialsProvider(
+        window = window,
+        windowId = WindowId(window.windowHandle),
+        processLifecycleProvider = processLifecycleProvider,
+        onMinimizeRequest = onMinimizeRequest,
+    ) {
+        content()
+    }
+}
+
+@Composable
+internal fun DialogWindowScope.KeyguardWindowEssentials(
+    processLifecycleProvider: LePlatformLifecycleProvider,
+    onMinimizeRequest: () -> Unit,
+    content: @Composable DialogWindowScope.() -> Unit,
+) {
+    KeyguardWindowEssentialsProvider(
+        window = window,
+        windowId = WindowId(window.windowHandle),
+        processLifecycleProvider = processLifecycleProvider,
+        onMinimizeRequest = onMinimizeRequest,
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun KeyguardWindowEssentialsProvider(
+    window: java.awt.Window,
+    windowId: WindowId,
+    processLifecycleProvider: LePlatformLifecycleProvider,
+    onMinimizeRequest: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    val clipboardEventBus by rememberInstance<ClipboardEventBus>()
+    val getMinimizeOnCopy by rememberInstance<GetMinimizeOnCopy>()
+
+    val updatedWindowId by rememberUpdatedState(windowId)
+    val updatedMinimizeRequest by rememberUpdatedState(onMinimizeRequest)
+    LaunchedEffect(
+        clipboardEventBus,
+        getMinimizeOnCopy,
+    ) {
+        clipboardEventBus.copyEvents
+            .filter { event ->
+                event.windowId == updatedWindowId
+            }
+            .onEach {
+                val shouldMinimize = getMinimizeOnCopy()
+                    .first()
+                if (shouldMinimize) {
+                    updatedMinimizeRequest()
+                }
+            }
+            .launchIn(this)
+    }
+
     // Allow overriding the UI scale via a JVM property, e.g. for Wayland compositors
     // (like Hyprland with force_zero_scale=true) where XWayland reports scale 1.
     val densityOverride = remember {
@@ -565,12 +655,15 @@ internal fun FrameWindowScope.KeyguardWindowEssentials(
             ?.let { Density(it) }
     }
     val providers = buildList {
-        add(LocalComposeWindow provides this@KeyguardWindowEssentials.window)
+        add(LocalComposeWindow provides window)
+        add(LocalWindowId provides windowId)
         if (densityOverride != null) {
             add(LocalDensity provides densityOverride)
         }
     }.toTypedArray()
     CompositionLocalProvider(*providers) {
+        WindowScreenshotProtectionEffect()
+
         LaunchLifecycleProviderEffect(
             processLifecycleProvider = processLifecycleProvider,
         )
@@ -617,7 +710,8 @@ internal fun ApplicationScope.KeyguardPopupScaffold(
         color = containerColorAnimatedState.value,
         border = BorderStroke(
             width = 1.dp,
-            color = DividerColor
+            color = contentColor
+                .combineAlpha(0.12f)
                 .compositeOver(containerColorAnimatedState.value),
         ),
         shadowElevation = 8.dp,

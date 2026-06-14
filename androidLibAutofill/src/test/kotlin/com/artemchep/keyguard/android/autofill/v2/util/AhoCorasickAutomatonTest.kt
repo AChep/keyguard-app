@@ -123,6 +123,36 @@ class AhoCorasickAutomatonTest {
         assertEquals(TAG_B, automaton.match("prefix-token-suffix"))
     }
 
+    @Test
+    fun `ascii token pattern does not match inside a larger token`() {
+        val automaton =
+            AhoCorasickAutomaton
+                .Builder()
+                .addPattern(
+                    pattern = "pin",
+                    tag = TAG_A,
+                    matchMode = AhoCorasickAutomaton.MatchMode.ASCII_TOKEN,
+                ).build()
+
+        assertEquals(0L, automaton.match("shipping"))
+    }
+
+    @Test
+    fun `ascii token pattern matches after identifier normalization`() {
+        val automaton =
+            AhoCorasickAutomaton
+                .Builder()
+                .addPattern(
+                    pattern = "pin",
+                    tag = TAG_A,
+                    matchMode = AhoCorasickAutomaton.MatchMode.ASCII_TOKEN,
+                ).build()
+
+        assertEquals(TAG_A, automaton.match(normalizeSignalText("pinCode")))
+        assertEquals(TAG_A, automaton.match(normalizeSignalText("pin-code")))
+        assertEquals(TAG_A, automaton.match(normalizeSignalText("pin_1")))
+    }
+
     private fun automatonOf(vararg patterns: Pair<String, Long>): AhoCorasickAutomaton =
         AhoCorasickAutomaton
             .Builder()

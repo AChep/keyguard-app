@@ -270,7 +270,12 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                     autofillStructure = autofillStructure,
                 )
             }
-            .effectTap { response ->
+            .dispatchOn(Dispatchers.Default)
+            .effectTap(Dispatchers.Main) { response ->
+                if (cancellationSignal.isCanceled) {
+                    return@effectTap
+                }
+
                 callback.onSuccess(response)
             }
             .handleError { e ->
@@ -285,7 +290,6 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 val msg = e.message ?: "Something went wrong"
                 callback.onFailure(msg)
             }
-            .dispatchOn(Dispatchers.Main.immediate)
             .launchIn(scope)
         cancellationSignal.setOnCancelListener {
             fillRequestJob.cancel()
@@ -847,7 +851,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                     autofillStructure = autofillStructure,
                 )
             }
-            .effectTap { intent ->
+            .dispatchOn(Dispatchers.Default)
+            .effectTap(Dispatchers.Main) { intent ->
                 if (Build.VERSION.SDK_INT >= 28) {
                     val flags =
                         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
@@ -872,7 +877,6 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 val msg = e.message ?: "Something went wrong"
                 callback.onFailure(msg)
             }
-            .dispatchOn(Dispatchers.Main.immediate)
             .launchIn(scope)
     }
 

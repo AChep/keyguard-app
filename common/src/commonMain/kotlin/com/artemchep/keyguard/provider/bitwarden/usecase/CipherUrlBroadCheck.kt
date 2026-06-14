@@ -11,6 +11,8 @@ import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.common.util.PROTOCOL_IOS_APP
+import com.artemchep.keyguard.common.util.ensureUrlScheme
+import io.ktor.http.Url
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -54,8 +56,7 @@ class CipherUrlBroadCheckImpl(
 
                 // Extract top level domain from the
                 // given URI.
-                val domain = tldService
-                    .getDomainName(uri.uri)
+                val domain = getDomainName(uri.uri)
                     .attempt()
                     .bind()
                     .getOrNull()
@@ -82,8 +83,7 @@ class CipherUrlBroadCheckImpl(
 
                         // Extract top level domain from the
                         // given URI.
-                        val domain = tldService
-                            .getDomainName(uri.uri)
+                        val domain = getDomainName(uri.uri)
                             .attempt()
                             .bind()
                             .getOrNull()
@@ -105,5 +105,12 @@ class CipherUrlBroadCheckImpl(
                         )
                     }
             }
+    }
+
+    private fun getDomainName(uri: String): IO<String> = ioEffect {
+        val url = Url(ensureUrlScheme(uri))
+        tldService
+            .getDomainName(url.host)
+            .bind()
     }
 }

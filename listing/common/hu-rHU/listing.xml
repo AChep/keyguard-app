@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Több fiók támogatása: Egyszerre több fiókba is bejelentkezhetsz.</string>
     <string name="listing_description_highlight_offline">Offline kezelés: Elemek és küldések (Bitwarden Send) hozzáadása, módosítása és a széf megtekintése akár offline állapotban is.</string>
     <string name="listing_description_highlight_export">Adatexportálás: Egyéni vagy szervezeti elemek exportálása, a mellékletekkel együtt.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Generátor: Jelszavak, SSH-kulcsok és e-mail továbbítók létrehozása, egyéni szójegyzékek támogatásával.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Fejlett funkciók: Parancsikonok, mező-helyőrzők (placeholderek), URL-felülbírálások és intelligens ütközésfeloldás támogatása.</string>

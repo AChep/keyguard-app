@@ -279,10 +279,10 @@ object SyncDiffer {
                     localItem.attachmentIds != null &&
                         serverItem.attachmentIds != null &&
                         localItem.attachmentIds != serverItem.attachmentIds
+                // Unlike the sibling checks, null is a real value here
+                // ("no folder").
                 val folderIdDiffers =
-                    localItem.folderId != null &&
-                        serverItem.folderId != null &&
-                        localItem.folderId != serverItem.folderId
+                    localItem.localFolderId != serverItem.localFolderId
                 val favoriteDiffers =
                     localItem.favorite != null &&
                         serverItem.favorite != null &&

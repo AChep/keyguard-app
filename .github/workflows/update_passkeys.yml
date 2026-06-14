@@ -10,12 +10,17 @@ on:
       - '.github/update_passkeys.py'
       - '.github/update_passkeys.requirements.txt'
 
+permissions:
+  contents: read
+
 jobs:
   sync-passkeys:
     name: Synchronize Passkeys
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - run: pip install -r .github/update_passkeys.requirements.txt
       - name: "Update library"
         run: |

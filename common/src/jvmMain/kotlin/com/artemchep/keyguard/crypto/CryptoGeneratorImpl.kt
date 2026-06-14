@@ -104,8 +104,21 @@ class CryptoGeneratorJvm() : CryptoGenerator {
 
     override fun random(): Int = secureRandom.nextInt()
 
-    override fun random(range: IntRange): Int = kotlin.run {
-        val size = range.last - range.first
-        secureRandom.nextInt(size + 1) + range.first
+    override fun random(range: IntRange): Int {
+        require(!range.isEmpty()) {
+            "Cannot get a random value from an empty range."
+        }
+
+        val size = range.last.toLong() - range.first.toLong() + 1L
+        if (size <= Int.MAX_VALUE) {
+            return secureRandom.nextInt(size.toInt()) + range.first
+        }
+
+        while (true) {
+            val candidate = secureRandom.nextInt()
+            if (candidate in range) {
+                return candidate
+            }
+        }
     }
 }

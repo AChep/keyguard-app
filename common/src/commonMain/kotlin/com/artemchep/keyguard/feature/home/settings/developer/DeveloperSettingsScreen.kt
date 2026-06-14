@@ -26,17 +26,30 @@ fun rememberSettingsDeveloperItems(
     return remember {
         persistentListOf(
             SettingPaneItem.Group(
-                key = "general",
+                key = "ssh_agent.control_panel",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.SSH_AGENT),
                     SettingPaneItem.Item(Setting.SSH_AGENT_SETUP),
-                    SettingPaneItem.Item(Setting.SSH_AGENT_APPROVAL_WINDOW),
                 ),
             ),
             SettingPaneItem.Group(
-                key = "advanced",
+                key = "ssh_agent.help",
                 list = persistentListOf(
+                    SettingPaneItem.Item(Setting.SSH_AGENT_LOCAL_STORAGE_INFO),
+                ),
+            ),
+            SettingPaneItem.Group(
+                key = "ssh_agent.settings",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.SSH_AGENT_APPROVAL_WINDOW),
+                    SettingPaneItem.Item(Setting.SSH_AGENT_DISPLAY_KEY_NAMES),
                     SettingPaneItem.Item(Setting.SSH_AGENT_FILTERS),
+                ),
+            ),
+            SettingPaneItem.Group(
+                key = "ssh_agent.history",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.SSH_AGENT_HISTORY),
                 ),
             ),
         )

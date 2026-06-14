@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AccountId
@@ -11,6 +12,7 @@ import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.backup.BackupStatus
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
 import com.artemchep.keyguard.common.service.database.ObjectToStringAdapter
 import com.artemchep.keyguard.common.service.database.SshUsageHistoryRequestTypeToLongAdapter
@@ -20,6 +22,7 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -35,6 +38,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
+import com.artemchep.keyguard.data.BarcodeUsageHistory
 import com.artemchep.keyguard.data.CipherFilter
 import com.artemchep.keyguard.data.CipherUsageHistory
 import com.artemchep.keyguard.data.Database
@@ -1177,6 +1181,7 @@ internal fun createUploadTestDatabase(
     val json = UploadTestServer.json
     return Database(
         driver = driver,
+        barcodeUsageHistoryAdapter = BarcodeUsageHistory.Adapter(InstantToLongAdapter),
         cipherUsageHistoryAdapter = CipherUsageHistory.Adapter(InstantToLongAdapter),
         sshUsageHistoryAdapter = SshUsageHistory.Adapter(
             requestAdapter = SshUsageHistoryRequestTypeToLongAdapter,
@@ -1352,6 +1357,14 @@ internal object UploadTestLogRepository : LogRepository {
         message: String,
         level: LogLevel,
     ) = Unit
+}
+
+internal object UploadTestMarkBackupAsDirty : MarkBackupAsDirty {
+    override fun invoke(): IO<BackupStatus> = io(
+        BackupStatus(
+            changeGeneration = 1L,
+        ),
+    )
 }
 
 internal object UploadTestBase64Service : Base64Service {

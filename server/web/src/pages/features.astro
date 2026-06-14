@@ -1,0 +1,50 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import FeatureCard from '../components/FeatureCard.astro';
+
+// Order in which feature groups appear; any other group is appended afterwards.
+const GROUP_ORDER = ['Essentials', 'Security', 'Your data', 'Power tools', 'Experience'];
+
+const features = (await getCollection('features')).sort(
+  (a, b) =>
+    (a.data.order ?? 0) - (b.data.order ?? 0) ||
+    a.data.title.localeCompare(b.data.title),
+);
+
+const groupNames = [
+  ...GROUP_ORDER.filter((g) => features.some((f) => f.data.group === g)),
+  ...[...new Set(features.map((f) => f.data.group))].filter(
+    (g) => !GROUP_ORDER.includes(g),
+  ),
+];
+---
+
+<BaseLayout title="Features" description="A tour of everything Keyguard can do.">
+  <section class="mx-auto max-w-6xl px-6 py-16">
+    <div class="mx-auto mb-14 max-w-2xl text-center">
+      <h1 class="text-4xl font-extrabold tracking-tight text-on-surface">Features</h1>
+    </div>
+
+    <div class="space-y-16">
+      {
+        groupNames.map((group) => (
+          <div>
+            <h2 class="mb-6 text-2xl font-bold tracking-tight text-on-surface">
+              {group}
+            </h2>
+            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {features
+                .filter((f) => f.data.group === group)
+                .map((f) => (
+                  <FeatureCard title={f.data.title} slug={f.id} href={`/features/${f.id}/`}>
+                    {f.data.summary}
+                  </FeatureCard>
+                ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

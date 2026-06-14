@@ -56,6 +56,7 @@ class SshAgentRequestProcessorJvm(
     getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
     private val getSshAgentFilter: GetSshAgentFilter,
     scope: CoroutineScope,
+    private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
     private val sessionId: String = "",
     private val json: Json = Json,
     private val onApprovalRequest: suspend (caller: SshAgentMessages.CallerIdentity?, keyName: String, keyFingerprint: String) -> Boolean =
@@ -205,8 +206,16 @@ class SshAgentRequestProcessorJvm(
     override suspend fun listKeys(
         caller: SshAgentMessages.CallerIdentity?,
     ): SshAgentRequestProcessor.ListKeysResult {
-        val vault = getSshKeysFromVaultOrRequestGetList(caller)
-            ?: return SshAgentRequestProcessor.ListKeysResult.VaultLocked
+        val vault = getSshKeysFromVault()
+        if (vault == null) {
+            val keys = getCachedSshKeys()
+                .map { it.toSshKeyMessage() }
+            return SshAgentRequestProcessor.ListKeysResult.Success(
+                response = SshAgentMessages.ListKeysResponse(
+                    keys = keys,
+                ),
+            )
+        }
 
         val keys = vault.sshKeys.mapNotNull { secret ->
             val sshKey = secret.sshKey ?: return@mapNotNull null
@@ -249,9 +258,10 @@ class SshAgentRequestProcessorJvm(
 
         if (wasVaultLocked) {
             logRepository.post(TAG, "Vault is locked, requesting approval before SSH signing", LogLevel.INFO)
+            val cachedKey = getCachedSshKey(request.publicKey)
             val approved = requestSigningApproval(
-                keyName = "SSH key",
-                keyFingerprint = "",
+                keyName = cachedKey?.displayName ?: "SSH key",
+                keyFingerprint = cachedKey?.fingerprint.orEmpty(),
                 caller = request.caller,
             )
             if (!approved) {
@@ -337,6 +347,33 @@ class SshAgentRequestProcessorJvm(
             )
         }
     }
+
+    private suspend fun getCachedSshKeys(): List<SshAgentPublicKeyRow> = try {
+        sshAgentPublicKeyRepository.get()
+            .bind()
+    } catch (e: Exception) {
+        e.throwIfFatalOrCancellation()
+        logRepository.post(TAG, "Failed to read cached SSH public keys: ${e.message}", LogLevel.ERROR)
+        emptyList()
+    }
+
+    private suspend fun getCachedSshKey(
+        publicKey: String,
+    ): SshAgentPublicKeyRow? = try {
+        sshAgentPublicKeyRepository.getByPublicKey(publicKey)
+            .bind()
+    } catch (e: Exception) {
+        e.throwIfFatalOrCancellation()
+        logRepository.post(TAG, "Failed to read cached SSH public key: ${e.message}", LogLevel.ERROR)
+        null
+    }
+
+    private fun SshAgentPublicKeyRow.toSshKeyMessage() = SshAgentMessages.SshKey(
+        name = displayName,
+        publicKey = publicKey,
+        keyType = keyType,
+        fingerprint = fingerprint,
+    )
 
     private suspend fun getSshKeysFromVault(): SshVaultContext? {
         val session = getVaultSession.valueOrNull

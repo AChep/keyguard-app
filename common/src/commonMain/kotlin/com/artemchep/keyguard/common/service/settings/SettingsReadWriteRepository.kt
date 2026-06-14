@@ -156,6 +156,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration,
     ): IO<Unit>
 
+    fun setSshAgentDisplayKeyNames(
+        displayKeyNames: Boolean,
+    ): IO<Unit>
+
     fun setSshAgentFilter(
         filter: SshAgentFilter,
     ): IO<Unit>
@@ -218,6 +222,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setCloseToTray(
         closeToTray: Boolean,
+    ): IO<Unit>
+
+    fun setMinimizeOnCopy(
+        minimizeOnCopy: Boolean,
     ): IO<Unit>
 
     fun setColors(

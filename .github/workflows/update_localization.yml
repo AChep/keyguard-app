@@ -12,12 +12,17 @@ on:
       # Configuration.
       - 'crowdin.yml'
 
+permissions:
+  contents: read
+
 jobs:
   sync-localization:
     name: Synchronize Crowdin Translations
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - run: pip install -r .github/update_localization_contributors.requirements.txt
       - uses: crowdin/github-action@8868a33591d21088edfc398968173a3b98d51706
         with:

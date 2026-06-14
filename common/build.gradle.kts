@@ -112,11 +112,16 @@ kotlin {
                 api(libs.ktor.ktor.client.websockets)
                 api(libs.ktor.ktor.serialization.kotlinx)
                 api(project(":util:signalr"))
+                api(project(":util:webdav"))
+                api(project(":util:planeta"))
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
                 api(libs.cash.sqldelight.coroutines.extensions)
                 api(libs.devsrsouza.feather)
                 api(libs.html.text)
+                api(libs.haze.core)
+                api(libs.haze.blur)
+                api(libs.haze.materials)
                 api(libs.ksoup.html)
                 api(libs.snipme.highlights)
                 api(libs.kdroidfilter.platformtools.darkmodedetector)
@@ -138,6 +143,8 @@ kotlin {
         val iosMain by creating {
             dependsOn(commonMain)
             dependencies {
+                implementation(libs.diglol.crypto.kdf)
+                api(libs.cash.sqldelight.native.driver)
                 api(libs.ktor.ktor.client.darwin)
             }
         }
@@ -168,6 +175,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.ktor.ktor.client.mock)
             }
         }
 
@@ -199,8 +207,8 @@ kotlin {
                 implementation(libs.halilibo.richtext.markdown)
                 implementation(libs.mm2d.touchicon)
                 implementation(libs.hierynomus.sshj)
-                implementation(libs.ricecode.string.similarity)
                 implementation(libs.google.zxing.core)
+                implementation(libs.icu4j)
                 implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
                 implementation(libs.squareup.okhttp)
                 implementation(libs.squareup.logging.interceptor)
@@ -422,14 +430,3 @@ sqldelight {
 // depending on what order the tasks are executed.
 tasks.findByName("generateNoneReleaseLintVitalModel")?.dependsOn("copyFontsToAndroidAssets")
 tasks.findByName("generatePlayStoreReleaseLintVitalModel")?.dependsOn("copyFontsToAndroidAssets")
-
-// Reason: Task ':common:prepareAndroidMainArtProfile' uses this output of
-// task ':common:generateBuildKonfig' without declaring an explicit or
-// implicit dependency. This can lead to incorrect results being produced,
-// depending on what order the tasks are executed.
-//
-// https://github.com/yshrsmz/BuildKonfig/issues/317
-tasks.matching { it.name == "prepareAndroidMainArtProfile" }
-    .configureEach {
-        dependsOn(tasks.named("generateBuildKonfig"))
-    }

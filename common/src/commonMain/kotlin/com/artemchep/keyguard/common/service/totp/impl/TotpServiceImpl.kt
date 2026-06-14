@@ -17,7 +17,6 @@ import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.experimental.and
-import kotlin.math.pow
 import kotlin.math.roundToLong
 import kotlin.time.Duration
 
@@ -85,6 +84,9 @@ class TotpServiceImpl(
         timestamp: Instant,
         period: Long,
     ): Long {
+        require(period > 0L) {
+            "OTP period must be positive."
+        }
         // Instead of `epochSeconds` round the current second. This is
         // to fix problems that occur if you request an update a few millis
         // before the next period.
@@ -105,6 +107,7 @@ class TotpServiceImpl(
         val key = decodeSecretKey(token.keyBase32)
         val period = token.period
         val time = roundToPeriodInSeconds(timestamp, period) + offset
+        val modulo = otpModulo(token.digits)
         // The resulting integer value of the code must have at most the required code
         // digits. Therefore the binary value is reduced by calculating the modulo
         // 10 ^ codeDigits.
@@ -112,7 +115,7 @@ class TotpServiceImpl(
             key = key,
             counter = time,
             algorithm = token.algorithm,
-        ).rem(10.0.pow(token.digits).toInt())
+        ).rem(modulo)
         // The integer code variable may contain a value with fewer digits than the
         // required code digits. Therefore the final code value is filled with zeros
         // on the left, till the code digits requirement is fulfilled.
@@ -142,6 +145,7 @@ class TotpServiceImpl(
     ): TotpCode {
         val key = decodeSecretKey(token.keyBase32)
         val counter = token.counter + offset
+        val modulo = otpModulo(token.digits)
         // The resulting integer value of the code must have at most the required code
         // digits. Therefore the binary value is reduced by calculating the modulo
         // 10 ^ codeDigits.
@@ -149,7 +153,7 @@ class TotpServiceImpl(
             key = key,
             counter = counter,
             algorithm = token.algorithm,
-        ).rem(10.0.pow(token.digits).toInt())
+        ).rem(modulo)
         // The integer code variable may contain a value with fewer digits than the
         // required code digits. Therefore the final code value is filled with zeros
         // on the left, till the code digits requirement is fulfilled.
@@ -208,6 +212,10 @@ class TotpServiceImpl(
         counter: Long,
         algorithm: CryptoHashAlgorithm,
     ): Int {
+        require(algorithm != CryptoHashAlgorithm.MD5) {
+            "MD5 is not supported for HOTP/TOTP."
+        }
+
         // The counter value is the input parameter 'message' to the HMAC algorithm.
         // It must be represented by a byte array with the length of a long (8 bytes).
         val messageSize = 8
@@ -221,6 +229,13 @@ class TotpServiceImpl(
             data = message,
             algorithm = algorithm,
         )
+        // RFC 4226 dynamic truncation is defined over a 20-byte HMAC-SHA-1
+        // result. The offset can be 0..15 and selects four consecutive bytes,
+        // so shorter outputs can point past the digest instead of producing a
+        // valid HOTP value.
+        require(hash.size >= 20) {
+            "HOTP hash output is too short for dynamic truncation."
+        }
 
         // The value of the offset is the lower 4 bits of the last byte of the hash
         // (0x0F = 0000 1111).
@@ -233,10 +248,22 @@ class TotpServiceImpl(
         // The second step is to drop the most significant bit (MSB) from the first
         // step binary value (0x7F = 0111 1111).
         binary[0] = binary[0].and(0x7F)
-        // The resulting integer value of the code must have at most the required code
-        // digits. Therefore the binary value is reduced by calculating the modulo
-        // 10 ^ codeDigits.
+        // The callers reduce this binary value by the requested digit count.
         return binary.int
+    }
+
+    private fun otpModulo(
+        digits: Int,
+    ): Int {
+        require(digits in 1..9) {
+            "OTP digits must be between 1 and 9."
+        }
+
+        var result = 1
+        repeat(digits) {
+            result *= 10
+        }
+        return result
     }
 
     private fun decodeSecretKey(
@@ -263,12 +290,7 @@ class TotpServiceImpl(
         offset: Int,
     ): TotpCode {
         val period = token.period
-        // As per the spec, the mOTP code should be generated each 10 seconds and
-        // valid for the next 3 minutes. This sucks for the users tho, as he does not know
-        // the latter.
-        val actualPeriod = 10L
-        val multiplier = period / actualPeriod // must be recoverable
-        val time = (roundToPeriodInSeconds(timestamp, period) + offset) * multiplier
+        val time = roundToPeriodInSeconds(timestamp, period) + offset
 
         // Generate a hash from the data.
         val data = buildString {
@@ -290,7 +312,7 @@ class TotpServiceImpl(
                 expiration = kotlin.run {
                     // Get the beginning of the next period as an
                     // expiration date.
-                    val exp = (time / multiplier + 1L) * period
+                    val exp = (time + 1L) * period
                     Instant.fromEpochSeconds(exp)
                 },
                 duration = with(Duration) { period.seconds },

@@ -31,12 +31,14 @@ import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.error_failed_use_password
 import com.artemchep.keyguard.res.passkey_auth_via_header
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString as getComposeString
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.DIAware
@@ -130,11 +132,13 @@ class PasswordGetActivity : BaseActivity(), DIAware {
         onRetry: () -> Unit,
     ) {
         val response = runCatching {
-            PasskeyUtils.withProcessingMinTime {
-                processUnlockedVault(
-                    session = session,
-                    userVerified = true,
-                )
+            withContext(Dispatchers.Default) {
+                PasskeyUtils.withProcessingMinTime {
+                    processUnlockedVault(
+                        session = session,
+                        userVerified = true,
+                    )
+                }
             }
         }.getOrElse {
             recordException(it)
@@ -148,10 +152,12 @@ class PasswordGetActivity : BaseActivity(), DIAware {
             return
         }
 
-        passwordProviderGetFlow.recordUsage(
-            session = session,
-            args = args,
-        )
+        withContext(Dispatchers.Default) {
+            passwordProviderGetFlow.recordUsage(
+                session = session,
+                args = args,
+            )
+        }
 
         val intent = Intent().apply {
             PendingIntentHandler.setGetCredentialResponse(

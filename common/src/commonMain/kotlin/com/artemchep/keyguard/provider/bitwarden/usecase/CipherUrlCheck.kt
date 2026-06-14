@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.common.util.PROTOCOL_IOS_APP
+import com.artemchep.keyguard.common.util.ensureUrlScheme
 import io.ktor.http.DEFAULT_PORT
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
@@ -68,7 +69,8 @@ class CipherUrlCheckImpl(
             .getDomainName(bHost)
             .bind()
         val bDomainEq = equivalentDomains.findEqDomains(bDomain)
-        bDomainEq.any { aHost.endsWith(it, ignoreCase = true) }
+        val normalizedAHost = aHost.normalizeDomainSuffixPart()
+        bDomainEq.any { normalizedAHost.hasDomainSuffix(it.normalizeDomainSuffixPart()) }
     }
 
     private fun checkUrlMatchByHost(
@@ -80,14 +82,15 @@ class CipherUrlCheckImpl(
         val bUrl = urlOf(b)
 
         val bDomain = tldService
-            .getDomainName(b)
+            .getDomainName(bUrl.host)
             .bind()
         val bDomainEq = equivalentDomains.findEqDomains(bDomain)
 
-        val bPrefix = bUrl.host
-            .removeSuffix(bDomain)
         bDomainEq.any {
-            val bHost = bPrefix + it
+            val bHost = bUrl.host.replaceDomainSuffix(
+                domain = bDomain,
+                replacement = it,
+            )
 
             // If the CIPHER url doesn't have a port specified, then
             // match it with any port.
@@ -114,13 +117,17 @@ class CipherUrlCheckImpl(
         val bFiltered = b.trim().removeSuffix("/")
         // Slow proper path:
         runCatching {
+            val bUrl = URLBuilder(b)
             val bDomain = tldService
-                .getDomainName(b)
+                .getDomainName(bUrl.host)
                 .bind()
             val bDomainEq = equivalentDomains.findEqDomains(bDomain)
             bDomainEq.any { domain ->
-                val url = URLBuilder(b).apply {
-                    host = host.removeSuffix(bDomain) + domain
+                val url = URLBuilder(bUrl).apply {
+                    host = host.replaceDomainSuffix(
+                        domain = bDomain,
+                        replacement = domain,
+                    )
                 }.buildString()
                 url.startsWith(aFiltered)
             }
@@ -154,13 +161,17 @@ class CipherUrlCheckImpl(
         val aRegex = a.toRegex(RegexOption.IGNORE_CASE)
         // Slow proper path:
         runCatching {
+            val bUrl = URLBuilder(b)
             val bDomain = tldService
-                .getDomainName(b)
+                .getDomainName(bUrl.host)
                 .bind()
             val bDomainEq = equivalentDomains.findEqDomains(bDomain)
             bDomainEq.any { domain ->
-                val url = URLBuilder(b).apply {
-                    host = host.removeSuffix(bDomain) + domain
+                val url = URLBuilder(bUrl).apply {
+                    host = host.replaceDomainSuffix(
+                        domain = bDomain,
+                        replacement = domain,
+                    )
                 }.buildString()
                 url.matches(aRegex)
             }
@@ -177,19 +188,40 @@ class CipherUrlCheckImpl(
     ): IO<Boolean> = io(false)
 
     private fun urlOf(url: String): Url {
-        val newUrl = ensureUrlSchema(url)
+        val newUrl = ensureUrlScheme(url)
         return Url(newUrl)
     }
 
-    private fun ensureUrlSchema(url: String) =
-        if (url.isBlank() || url.contains("://")) {
-            // The url contains a schema, return
-            // it as it as.
-            url
-        } else {
-            val newUrl = "https://$url"
-            newUrl
-        }
-
     private fun compareIgnoreCase(a: String, b: String) = a.contentEquals(b, ignoreCase = true)
+
+    private fun String.replaceDomainSuffix(
+        domain: String,
+        replacement: String,
+    ): String {
+        val host = normalizeDomainSuffixPart()
+        val normalizedDomain = domain.normalizeDomainSuffixPart()
+        if (!host.hasDomainSuffix(normalizedDomain)) {
+            return this
+        }
+        val prefix = host.dropLast(normalizedDomain.length)
+        return prefix + replacement
+    }
+
+    private fun String.hasDomainSuffix(
+        domain: String,
+    ): Boolean {
+        if (domain.isEmpty()) {
+            return false
+        }
+        val prefixLength = length - domain.length
+        if (prefixLength < 0) {
+            return false
+        }
+        if (!endsWith(domain, ignoreCase = true)) {
+            return false
+        }
+        return prefixLength == 0 || this[prefixLength - 1] == '.'
+    }
+
+    private fun String.normalizeDomainSuffixPart(): String = trim().removeSuffix(".")
 }

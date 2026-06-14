@@ -6,6 +6,8 @@ import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactoryDefault
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRouteFactory
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRouteFactoryDefault
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactoryDefault
 import com.artemchep.keyguard.feature.changepassword.ChangePasswordRouteFactory
 import com.artemchep.keyguard.feature.changepassword.ChangePasswordRouteFactoryDefault
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
@@ -60,6 +62,9 @@ fun defaultNavigationModule() = DI.Module(
     }
     bindProvider<BitwardenLoginTwofaRouteFactory> {
         BitwardenLoginTwofaRouteFactoryDefault
+    }
+    bindProvider<AttachmentPreviewRouteFactory> {
+        AttachmentPreviewRouteFactoryDefault
     }
     bindProvider<AboutTeamRouteFactory> {
         AboutTeamRouteFactoryDefault

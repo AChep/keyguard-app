@@ -77,6 +77,7 @@ fun settingClipboardAutoClearProvider(
     SettingIi(
         platformClasses = listOf(
             Platform.Mobile::class,
+            Platform.Desktop::class,
         ),
     ) {
         SettingClipboardAutoClear(
@@ -107,6 +108,7 @@ private fun SettingClipboardAutoClear(
 ) {
     LocalSettingPaneComponents.current.KgPicker(
         icon = Icons.Outlined.ContentPaste,
+        subIcon = Icons.Outlined.Timer,
         title = stringResource(Res.string.pref_item_clipboard_auto_clear_title),
         text = text,
         dropdown = dropdown,

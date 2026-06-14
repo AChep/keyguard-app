@@ -96,7 +96,6 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.send.SendRoute
@@ -352,7 +351,7 @@ fun accountState(
         }
     }
 
-    val copyText = copy(clipboardService)
+    val copyText = copier()
 
     fun <T : Any> Flow<T?>.prepare() = this
         .distinctUntilChanged()

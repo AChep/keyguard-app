@@ -100,6 +100,8 @@ interface SettingsReadRepository {
 
     fun getSshAgentApprovalWindow(): Flow<Duration>
 
+    fun getSshAgentDisplayKeyNames(): Flow<Boolean>
+
     fun getSshAgentFilter(): Flow<SshAgentFilter>
 
     fun getAppVersionLog(): Flow<List<AppVersionLog>>
@@ -129,6 +131,8 @@ interface SettingsReadRepository {
     fun getUseExternalBrowser(): Flow<Boolean>
 
     fun getCloseToTray(): Flow<Boolean>
+
+    fun getMinimizeOnCopy(): Flow<Boolean>
 
     fun getColors(): Flow<AppColors?>
 

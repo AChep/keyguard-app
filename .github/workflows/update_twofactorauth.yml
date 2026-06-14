@@ -9,12 +9,17 @@ on:
       # Configuration.
       - '.github/update_twofactorauth.py'
 
+permissions:
+  contents: read
+
 jobs:
   sync-2fa:
     name: Synchronize Two-factor authentication
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - name: "Update library"
         run: |
           python .github/update_twofactorauth.py

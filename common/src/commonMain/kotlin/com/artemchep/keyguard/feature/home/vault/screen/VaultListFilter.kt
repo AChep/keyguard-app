@@ -238,6 +238,7 @@ data class FilterParams(
         val account: Boolean = true,
         val type: Boolean = true,
         val organization: Boolean = true,
+        val tag: Boolean = true,
         val collection: Boolean = true,
         val folder: Boolean = true,
         val misc: Boolean = true,
@@ -768,7 +769,7 @@ suspend fun <
             sectionId = FilterSection.TAG.id,
             sectionTitle = translate(FilterSection.TAG.title),
         )
-        .filterSection(params.section.collection)
+        .filterSection(params.section.tag)
 
     val filterCollectionListFlow = collectionFlow
         .map { collections ->

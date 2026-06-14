@@ -18,7 +18,6 @@ import com.artemchep.keyguard.common.usecase.GetPinCode
 import kotlinx.coroutines.Dispatchers
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import kotlin.math.absoluteValue
 
 
 class GetPasswordImpl(
@@ -169,8 +168,5 @@ class GetPasswordImpl(
             }
     }
 
-    private fun <T> List<T>.random() = kotlin.run {
-        val r = cryptoGenerator.random().absoluteValue
-        this[r.rem(this.size)]
-    }
+    private fun <T> List<T>.random() = cryptoGenerator.listRandomOrThrow(this)
 }

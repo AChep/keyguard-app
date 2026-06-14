@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.RemoveAccounts
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
@@ -17,6 +18,7 @@ import org.kodein.di.instance
 class RemoveAccountsImpl(
     private val db: VaultDatabaseManager,
     private val fileService: FileService,
+    private val markBackupAsDirty: MarkBackupAsDirty,
 ) : RemoveAccounts {
     companion object {
         private const val TAG = "RemoveAccounts.bitwarden"
@@ -25,6 +27,7 @@ class RemoveAccountsImpl(
     constructor(directDI: DirectDI) : this(
         db = directDI.instance(),
         fileService = directDI.instance(),
+        markBackupAsDirty = directDI.instance(),
     )
 
     override fun invoke(): IO<Unit> = db
@@ -43,5 +46,7 @@ class RemoveAccountsImpl(
                 val dao = database.accountQueries
                 dao.deleteAll()
             }.bind()
+            markBackupAsDirty()
+                .bind()
         }
 }

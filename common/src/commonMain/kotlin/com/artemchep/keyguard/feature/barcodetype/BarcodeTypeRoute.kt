@@ -22,7 +22,8 @@ data class BarcodeTypeRoute(
             data: String,
             text: String? = null,
             format: BarcodeImageFormat = BarcodeImageFormat.QR_CODE,
-            single: Boolean = false,
+            disallowFormatSelection: Boolean = false,
+            historyKey: String? = null,
             navigate: (NavigationIntent) -> Unit,
         ) = if (data.length > 1024) {
             null
@@ -32,7 +33,8 @@ data class BarcodeTypeRoute(
                 data = data,
                 text = text,
                 format = format,
-                single = single,
+                disallowFormatSelection = disallowFormatSelection,
+                historyKey = historyKey,
                 navigate = navigate,
             )
         }
@@ -42,7 +44,8 @@ data class BarcodeTypeRoute(
             data: String,
             text: String? = null,
             format: BarcodeImageFormat = BarcodeImageFormat.QR_CODE,
-            single: Boolean = false,
+            disallowFormatSelection: Boolean = false,
+            historyKey: String? = null,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
             leading = icon(Icons.Outlined.QrCode),
@@ -53,7 +56,8 @@ data class BarcodeTypeRoute(
                         text = text,
                         data = data,
                         format = format,
-                        single = single,
+                        disallowFormatSelection = disallowFormatSelection,
+                        historyKey = historyKey,
                     ),
                 )
                 val intent = NavigationIntent.NavigateToRoute(route)
@@ -66,7 +70,8 @@ data class BarcodeTypeRoute(
         val text: String?,
         val data: String,
         val format: BarcodeImageFormat,
-        val single: Boolean,
+        val disallowFormatSelection: Boolean,
+        val historyKey: String? = null,
     )
 
     @Composable

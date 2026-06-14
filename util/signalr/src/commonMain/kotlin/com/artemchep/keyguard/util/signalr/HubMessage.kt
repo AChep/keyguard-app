@@ -130,7 +130,10 @@ sealed class HubMessage {
                 HubMessageType.STREAM_ITEM.value -> StreamItem.serializer()
                 HubMessageType.CANCEL_INVOCATION.value -> CancelInvocation.serializer()
                 HubMessageType.COMPLETION.value -> when {
-                    jsonObject["error"]?.jsonPrimitive?.isString != null -> Completion.Error.serializer()
+                    jsonObject.containsKey("error") && jsonObject.containsKey("result") -> {
+                        error("The 'error' and 'result' properties are mutually exclusive.")
+                    }
+                    jsonObject.containsKey("error") -> Completion.Error.serializer()
                     jsonObject.containsKey("result") -> Completion.Resulted.serializer()
                     else -> Completion.Simple.serializer()
                 }

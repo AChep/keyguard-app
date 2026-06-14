@@ -59,6 +59,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.totp.formatCode2
+import com.artemchep.keyguard.ui.totp.remainingProgressAt
 import com.artemchep.keyguard.wear.ui.ProxyMaterial3Styles
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.delay
@@ -481,7 +482,6 @@ private fun rememberTotpCodeState(
 private fun TotpCode.TimeBasedCounter.toCounterState(): Counter.TimeBasedCounter {
     val now = Clock.System.now()
     val remainingDuration = expiration - now
-    val elapsedDuration = duration - remainingDuration
     val time = remainingDuration
         .inWholeMilliseconds
         .toFloat()
@@ -489,7 +489,7 @@ private fun TotpCode.TimeBasedCounter.toCounterState(): Counter.TimeBasedCounter
         .roundToInt()
         .coerceAtLeast(0)
         .toString()
-    val progress = 1f - elapsedDuration.inWholeSeconds.toFloat() / duration.inWholeSeconds.toFloat()
+    val progress = remainingProgressAt(now)
     return Counter.TimeBasedCounter(
         time = time,
         progress = progress,

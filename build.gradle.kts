@@ -1,5 +1,6 @@
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JvmVendorSpec
 
 // Top-level build file where you can add configuration options common
 // to all sub-projects/modules.
@@ -39,6 +40,10 @@ plugins {
 
 tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
     languageVersion = JavaLanguageVersion.of(libs.versions.jdk.get().toInt())
+    // We use Jetbrains distribution because it contains many fixes
+    // for AWT. For example, with the other distributions I can not
+    // make a POPUP window and have an input field in it.
+    vendor = JvmVendorSpec.JETBRAINS
 }
 
 subprojects {
@@ -135,6 +140,9 @@ subprojects {
                 because("Sun Microsystems, Inc")
             }
             allowDependency("com.ibm.icu", "icu4j", "73.1") {
+                because("UNICODE LICENSE V3")
+            }
+            allowDependency("com.ibm.icu", "icu4j", "75.1") {
                 because("UNICODE LICENSE V3")
             }
 

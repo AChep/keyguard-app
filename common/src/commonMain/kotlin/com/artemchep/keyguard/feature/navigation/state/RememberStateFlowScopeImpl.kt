@@ -8,6 +8,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.input.key.KeyEvent
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.ShowMessage
@@ -24,6 +27,7 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyEventInterceptorHos
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvent
 import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.contains
 import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
@@ -52,6 +56,8 @@ class RememberStateFlowScopeImpl(
     private val key: String,
     private val bundle: LeBundle,
     private val showMessage: ShowMessage,
+    private val clipboardService: ClipboardService,
+    private val clipboardEventBus: ClipboardEventBus,
     private val getScreenState: GetScreenState,
     private val putScreenState: PutScreenState,
     private val windowCoroutineScope: WindowCoroutineScope,
@@ -62,6 +68,7 @@ class RememberStateFlowScopeImpl(
     private val scope: CoroutineScope,
     private val screen: String,
     private val colorSchemeState: State<ColorScheme>,
+    private val windowIdState: State<WindowId>,
     override val screenName: String,
     override val context: LeContext,
 ) : RememberStateFlowScopeZygote,
@@ -129,6 +136,16 @@ class RememberStateFlowScopeImpl(
     override val keepAliveFlow get() = keepAliveSharedFlow
 
     private fun getBundleKey(key: String) = "${this.key}:$key"
+
+    override fun copier(): CopyText {
+        return CopyText(
+            clipboardService = clipboardService,
+            clipboardEventBus = clipboardEventBus,
+            translator = this,
+            onMessage = ::message,
+            windowIdState = windowIdState,
+        )
+    }
 
     override fun navigate(
         intent: NavigationIntent,

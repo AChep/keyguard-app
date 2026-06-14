@@ -15,11 +15,16 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
 jobs:
   check-desktop-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
@@ -35,6 +40,8 @@ jobs:
           - 26
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
@@ -42,7 +49,9 @@ jobs:
       - uses: ./.github/actions/prepare_disk_space
       - name: "Prepare env"
         run: |
-          echo ${{ vars.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
+          echo ${VARS_GOOGLE_SERVICES} | base64 -d | zcat >> androidApp/google-services.json
+        env:
+          VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
       - uses: ./.github/actions/build_android_licenses
         with:
           build-flavor: "PlayStore"

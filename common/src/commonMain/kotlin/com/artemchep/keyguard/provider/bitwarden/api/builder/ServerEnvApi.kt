@@ -576,35 +576,6 @@ suspend fun ServerEnvApi.Ciphers.Cipher.restore(
 
 // Attachment
 
-suspend fun ServerEnvApi.Ciphers.Attachments.post(
-    httpClient: HttpClient,
-    env: ServerEnv,
-    token: String,
-    attachmentKey: String,
-    attachmentData: ByteArray,
-): CipherEntity = kotlin.run {
-    // TODO: Provide a stream to read data from, this should
-    //  solve performance issues when uploading large files.
-    //
-    // val attachmentDataProvider = ChannelProvider {
-    //     attachmentStream
-    //         .toByteReadChannel()
-    // }
-    val body = MultiPartFormDataContent(
-        formData {
-            append("key", attachmentKey)
-            append("data", attachmentData)
-        },
-    )
-    url.post(
-        httpClient = httpClient,
-        env = env,
-        token = token,
-        body = body,
-        route = "post-attachment",
-    )
-}
-
 suspend fun ServerEnvApi.Ciphers.Attachments.postV2(
     httpClient: HttpClient,
     env: ServerEnv,

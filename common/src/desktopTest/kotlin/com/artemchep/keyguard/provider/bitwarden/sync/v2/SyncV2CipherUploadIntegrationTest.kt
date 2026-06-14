@@ -1130,7 +1130,9 @@ class SyncV2CipherUploadIntegrationTest {
             val outcome = SyncCoordinator().safeSyncEntityType(
                 EntitySyncConfig(
                     name = "ciphers",
-                    strategy = CipherSyncStrategy(),
+                    strategy = CipherSyncStrategy(
+                        remoteFolderIdToLocalId = { it },
+                    ),
                     localEntities = listOf(local),
                     serverEntities = emptyList(),
                     ops = fixture.ops,
@@ -2506,6 +2508,7 @@ class SyncV2CipherUploadIntegrationTest {
             dbSyncer = DatabaseSyncer(cryptoGenerator),
             pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
             watchdog = UploadTestWatchdog,
+            markBackupAsDirty = UploadTestMarkBackupAsDirty,
         )
 
         sync.invoke(user).invoke()
@@ -2623,6 +2626,7 @@ class SyncV2CipherUploadIntegrationTest {
             dbSyncer = DatabaseSyncer(cryptoGenerator),
             pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
             watchdog = UploadTestWatchdog,
+            markBackupAsDirty = UploadTestMarkBackupAsDirty,
         )
 
         val syncError = assertFailsWith<IllegalStateException> {
@@ -2903,7 +2907,9 @@ private suspend fun runCipherUploadSync(
 ) = SyncCoordinator().safeSyncEntityType(
     EntitySyncConfig(
         name = "ciphers",
-        strategy = CipherSyncStrategy(),
+        strategy = CipherSyncStrategy(
+            remoteFolderIdToLocalId = { it },
+        ),
         localEntities = store.locals.values.toList(),
         serverEntities = server.ciphers.values.toList(),
         ops = CipherUploadIntegrationOps(server, store, pendingUploadCoordinator),

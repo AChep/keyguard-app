@@ -143,7 +143,6 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.LeSerializable
@@ -264,7 +263,7 @@ fun produceAddScreenState(
         getTotpCode,
     ),
 ) {
-    val copyText = copy(clipboardService)
+    val copyText = copier()
     val markdown = getMarkdown().first()
     val filePickerEvents = EventFlow<FilePickerIntent<*>>()
 

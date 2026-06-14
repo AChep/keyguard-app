@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -32,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeFinishing
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.ui.DialogPopup
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.util.HorizontalDivider
@@ -86,7 +89,7 @@ fun DialogContent(
                 .weight(1f, fill = fill)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
-            if (title != null) {
+            if (title != null || icon != null) {
                 Spacer(
                     modifier = Modifier
                         .height(24.dp),
@@ -106,29 +109,44 @@ fun DialogContent(
                         CompositionLocalProvider(
                             LocalContentColor provides MaterialTheme.colorScheme.secondary,
                         ) {
-                            icon()
+                            Box(
+                                modifier = Modifier
+                                    .heightIn(max = 56.dp),
+                            ) {
+                                icon()
+                            }
                         }
                         Spacer(
                             modifier = Modifier
                                 .height(16.dp),
                         )
                     }
-                    ProvideTextStyle(
-                        MaterialTheme.typography.titleLarge
-                            .copy(
-                                textAlign = if (centerAlign) {
-                                    TextAlign.Center
-                                } else {
-                                    TextAlign.Start
-                                },
-                            ),
-                    ) {
-                        title()
+                    if (title != null) {
+                        val titleStyle = when (CurrentPlatform) {
+                            is Platform.Desktop -> MaterialTheme.typography.titleMedium
+                            is Platform.Mobile -> MaterialTheme.typography.titleLarge
+                        }
+                        ProvideTextStyle(
+                            titleStyle
+                                .copy(
+                                    textAlign = if (centerAlign) {
+                                        TextAlign.Center
+                                    } else {
+                                        TextAlign.Start
+                                    },
+                                ),
+                        ) {
+                            title()
+                        }
+                        val spacerHeight = when (CurrentPlatform) {
+                            is Platform.Desktop -> 24.dp
+                            is Platform.Mobile -> 16.dp
+                        }
+                        Spacer(
+                            modifier = Modifier
+                                .height(spacerHeight),
+                        )
                     }
-                    Spacer(
-                        modifier = Modifier
-                            .height(16.dp),
-                    )
                 }
             }
             if (content != null) {

@@ -25,10 +25,26 @@ fun rememberSettingsWatchtowerItems(
 ): ImmutableList<SettingPaneItem> {
     return remember {
         persistentListOf(
-            SettingPaneItem.Item(Setting.CHECK_PWNED_PASSWORDS),
-            SettingPaneItem.Item(Setting.CHECK_PWNED_SERVICES),
-            SettingPaneItem.Item(Setting.CHECK_TWO_FA),
-            SettingPaneItem.Item(Setting.CHECK_PASSKEYS),
+            SettingPaneItem.Group(
+                key = "hibp",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.CHECK_PWNED_PASSWORDS),
+                    SettingPaneItem.Item(Setting.CHECK_PWNED_SERVICES),
+                    SettingPaneItem.Item(Setting.HIBP_API_TOKEN),
+                ),
+            ),
+            SettingPaneItem.Group(
+                key = "2fa",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.CHECK_TWO_FA),
+                ),
+            ),
+            SettingPaneItem.Group(
+                key = "passkeys",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.CHECK_PASSKEYS),
+                ),
+            ),
         )
     }
 }

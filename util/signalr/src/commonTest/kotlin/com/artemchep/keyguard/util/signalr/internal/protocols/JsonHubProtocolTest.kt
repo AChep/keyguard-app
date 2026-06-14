@@ -149,6 +149,24 @@ class JsonHubProtocolTest {
     }
 
     @Test
+    fun `parse rejects completion with non string error`() {
+        val messages = protocol.parseMessages(
+            frame("""{"type":3,"invocationId":"123","error":false}"""),
+        )
+
+        assertEquals(emptyList(), messages)
+    }
+
+    @Test
+    fun `parse rejects completion with both error and result`() {
+        val messages = protocol.parseMessages(
+            frame("""{"type":3,"invocationId":"123","error":"Whoops!","result":42}"""),
+        )
+
+        assertEquals(emptyList(), messages)
+    }
+
+    @Test
     fun `parse fails on incomplete text frames`() {
         assertFailsWith<RuntimeException> {
             protocol.parseMessages(

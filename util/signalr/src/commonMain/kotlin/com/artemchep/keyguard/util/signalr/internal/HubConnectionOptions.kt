@@ -4,6 +4,8 @@ import com.artemchep.keyguard.util.signalr.HubConnectionConfig
 import com.artemchep.keyguard.util.signalr.HubProtocol
 import com.artemchep.keyguard.util.signalr.logger.Logger
 import com.artemchep.keyguard.util.signalr.internal.protocols.JsonHubProtocol
+import com.artemchep.keyguard.util.signalr.internal.util.DefaultWebSocketSessionConnector
+import com.artemchep.keyguard.util.signalr.internal.util.WebSocketSessionConnector
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration
@@ -23,6 +25,7 @@ internal data class HubConnectionOptions(
     val eventBufferCapacity: Int,
     val logger: Logger,
     val json: Json,
+    val webSocketSessionConnector: WebSocketSessionConnector,
 ) {
     companion object {
         fun create(
@@ -56,6 +59,7 @@ internal data class HubConnectionOptions(
                     .coerceAtLeast(1),
                 logger = config.logger,
                 json = config.json,
+                webSocketSessionConnector = DefaultWebSocketSessionConnector,
             )
         }
     }

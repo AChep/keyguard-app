@@ -3,21 +3,18 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import org.kodein.di.DirectDI
-import org.kodein.di.instance
 
 /**
  * @author Artem Chepurnyi
  */
-class PasskeyTargetCheckImpl(
-    private val tldService: TldService,
-) : PasskeyTargetCheck {
-    constructor(directDI: DirectDI) : this(
-        tldService = directDI.instance(),
-    )
+class PasskeyTargetCheckImpl : PasskeyTargetCheck {
+    constructor()
+
+    @Suppress("UNUSED_PARAMETER")
+    constructor(directDI: DirectDI) : this()
 
     override fun invoke(
         credential: DSecret.Login.Fido2Credentials,
@@ -32,7 +29,14 @@ class PasskeyTargetCheckImpl(
         // https://www.w3.org/TR/webauthn-2/#discoverable-credential
         if (target.allowedCredentials != null) {
             val matchesAllowedCredentials = target.allowedCredentials
-                .any { it.credentialId == credential.credentialId }
+                .any {
+                    // WebAuthn credential descriptors identify a credential by
+                    // both id and type. Matching only by id can surface a
+                    // credential that must later fail authenticatorGetAssertion.
+                    // Spec: https://www.w3.org/TR/webauthn-3/#dictdef-publickeycredentialdescriptor
+                    it.credentialId == credential.credentialId &&
+                            it.type == credential.keyType
+                }
             if (!matchesAllowedCredentials) {
                 return@ioEffect false
             }
@@ -49,31 +53,18 @@ class PasskeyTargetCheckImpl(
     }
 
     // See:
-    // https://webauthn-doc.spomky-labs.com/prerequisites/the-relying-party#how-to-determine-the-relying-party-id
+    // WebAuthn puts the selected credential's RP ID hash in authenticator data
+    // and signs that data during authenticatorGetAssertion, so the stored RP ID
+    // must match the resolved request RP ID. A parent-domain RP ID may be valid
+    // for an origin, but it must be explicit in the request; missing `rpId` is
+    // resolved before this check.
+    // https://www.w3.org/TR/webauthn-3/#sctn-authenticator-data
+    // https://www.w3.org/TR/webauthn-3/#rp-id
     private suspend fun validatePasskeyRpId(
         passkeyRpId: String?,
         requestRpId: String?,
     ): Boolean {
-        // Fast path:
-        // if the relying party is the exact match or if
-        // relying party is not specified on both the passkey and the
-        // request.
-        if (passkeyRpId == requestRpId) {
-            return true
-        }
-        if (passkeyRpId == null || requestRpId == null) {
-            return false
-        }
-        // Relaying party ID must point for a
-        // valid domain.
-        val canMatchSubdomain = true
-        if (canMatchSubdomain) {
-            return isSubdomain(
-                domain = passkeyRpId,
-                request = requestRpId,
-            )
-        }
-        return false
+        return passkeyRpId == requestRpId
     }
 }
 

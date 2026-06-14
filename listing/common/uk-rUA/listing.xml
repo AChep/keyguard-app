@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Підтримка декількох акаунтів: Одночасний вхід у кілька облікових записів.</string>
     <string name="listing_description_highlight_offline">Автономний доступ: Додавайте записи та надсилання (Sends), змінюйте та переглядайте своє сховище офлайн.</string>
     <string name="listing_description_highlight_export">Експорт даних: Експорт особистих записів або записів організації, включно з вкладеннями.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Генератор: Створюйте паролі, SSH-ключі та пересилачі пошти (email forwarders), з підтримкою власних словників.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Розширені функції: Підтримка клавіатури, перевизначення URL-адрес та розумне вирішення конфліктів.</string>

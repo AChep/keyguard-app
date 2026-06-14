@@ -14,19 +14,28 @@ on:
         description: 'Target language'
         required: true
 
+permissions:
+  contents: read
+
 jobs:
   check-translations:
     name: Check Translations
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - run: pip install -r .github/check_translations.requirements.txt
       - name: "Check translations"
+        env:
+          SOURCE_FILE: ${{ inputs.source-file }}
+          TRANSLATED_FILE: ${{ inputs.translated-file }}
+          LANGUAGE: ${{ inputs.language }}
         run: |
           python .github/check_translations.py \
-            "${{ inputs.source-file }}" \
-            "${{ inputs.translated-file }}" \
-            "${{ inputs.language }}" \
+            "$SOURCE_FILE" \
+            "$TRANSLATED_FILE" \
+            "$LANGUAGE" \
             --token "${{ secrets.GEMINI_API_TOKEN }}" \
             --output proofread_report.json
       - name: "Upload report"

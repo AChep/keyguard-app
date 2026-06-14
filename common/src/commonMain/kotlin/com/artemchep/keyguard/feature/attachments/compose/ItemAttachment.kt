@@ -226,7 +226,7 @@ fun ItemAttachment(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 modifier = Modifier,
-                                text = stringResource(Res.string.file_status_pending_upload),
+                                text = stringResource(Res.string.file_status_auto_resume),
                                 style = MaterialTheme.typography.labelMedium,
                             )
                         }

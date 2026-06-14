@@ -70,6 +70,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingFeedbackApp
 import com.artemchep.keyguard.feature.home.settings.component.settingFontProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGitHubProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGravatarProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingHibpApiTokenProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingKeepScreenOnProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchAppPicker
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchYubiKey
@@ -77,6 +78,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingLocalizatio
 import com.artemchep.keyguard.feature.home.settings.component.settingLogsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMarkdownProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMasterPasswordProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingMinimizeOnCopyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavAnimationProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavHiddenSendProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavLabelProvider
@@ -96,8 +98,11 @@ import com.artemchep.keyguard.feature.home.settings.component.settingScreenshots
 import com.artemchep.keyguard.feature.home.settings.component.settingSectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocaleProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentDisplayKeyNamesProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentLocalStorageInfoProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSetupProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsDebug
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsPlayStoreProvider
@@ -205,8 +210,11 @@ object Setting {
     const val URL_OVERRIDE = "url_override"
     const val SSH_AGENT = "ssh_agent"
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
+    const val SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent_display_key_names"
+    const val SSH_AGENT_LOCAL_STORAGE_INFO = "ssh_agent_local_storage_info"
     const val SSH_AGENT_SETUP = "ssh_agent_setup"
     const val SSH_AGENT_FILTERS = "ssh_agent_filters"
+    const val SSH_AGENT_HISTORY = "ssh_agent_history"
     const val RATE_APP = "rate_app"
     const val CONCEAL = "conceal"
     const val MARKDOWN = "markdown"
@@ -216,10 +224,12 @@ object Setting {
     const val TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
     const val USE_EXTERNAL_BROWSER = "use_external_browser"
     const val CLOSE_TO_TRAY = "close_to_tray"
+    const val MINIMIZE_ON_COPY = "minimize_on_copy"
     const val APP_ICONS = "app_icons"
     const val WEBSITE_ICONS = "website_icons"
     const val CHECK_PWNED_PASSWORDS = "check_pwned_passwords"
     const val CHECK_PWNED_SERVICES = "check_pwned_services"
+    const val HIBP_API_TOKEN = "hibp_api_token"
     const val CHECK_TWO_FA = "check_two_fa"
     const val CHECK_PASSKEYS = "check_passkeys"
     const val CLEAR_CACHE = "clear_cache"
@@ -311,8 +321,11 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
+    Setting.SSH_AGENT_DISPLAY_KEY_NAMES to ::settingSshAgentDisplayKeyNamesProvider,
+    Setting.SSH_AGENT_LOCAL_STORAGE_INFO to ::settingSshAgentLocalStorageInfoProvider,
     Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
     Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,
+    Setting.SSH_AGENT_HISTORY to ::settingSshAgentHistoryProvider,
     Setting.RATE_APP to ::settingRateAppProvider,
     Setting.DIVIDER to ::settingSectionProvider,
     Setting.CONCEAL to ::settingConcealFieldsProvider,
@@ -323,10 +336,12 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.TWO_PANEL_LAYOUT_PORTRAIT to ::settingTwoPanelLayoutPortraitProvider,
     Setting.USE_EXTERNAL_BROWSER to ::settingUseExternalBrowserProvider,
     Setting.CLOSE_TO_TRAY to ::settingCloseToTrayProvider,
+    Setting.MINIMIZE_ON_COPY to ::settingMinimizeOnCopyProvider,
     Setting.APP_ICONS to ::settingAppIconsProvider,
     Setting.WEBSITE_ICONS to ::settingWebsiteIconsProvider,
     Setting.CHECK_PWNED_PASSWORDS to ::settingCheckPwnedPasswordsProvider,
     Setting.CHECK_PWNED_SERVICES to ::settingCheckPwnedServicesProvider,
+    Setting.HIBP_API_TOKEN to ::settingHibpApiTokenProvider,
     Setting.CHECK_TWO_FA to ::settingCheckTwoFAProvider,
     Setting.CHECK_PASSKEYS to ::settingCheckPasskeysProvider,
     Setting.CLEAR_CACHE to ::settingClearCache,

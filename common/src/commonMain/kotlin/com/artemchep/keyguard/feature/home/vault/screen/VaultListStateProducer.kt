@@ -125,7 +125,6 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
@@ -369,7 +368,7 @@ internal fun vaultListScreenState(
         navigate(intent)
     }
 
-    val copy = copy(clipboardService)
+    val copy = copier()
 
     val ciphersRawFlow = filterHiddenProfiles(
         getProfiles = getProfiles,

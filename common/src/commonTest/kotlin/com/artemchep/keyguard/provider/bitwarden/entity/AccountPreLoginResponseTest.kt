@@ -5,6 +5,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class AccountPreLoginResponseTest {
     @Test
@@ -61,14 +62,14 @@ class AccountPreLoginResponseTest {
     fun `legacy fields still map to domain`() {
         val response = AccountPreLoginResponse(
             kdfType = 0,
-            kdfIterationsCount = 100000,
+            kdfIterationsCount = 600000,
         )
 
         val prelogin = response.toDomain("user@example.com")
 
         assertEquals(
             PreLogin.Hash.Pbkdf2(
-                iterationsCount = 100000,
+                iterationsCount = 600000,
             ),
             prelogin.hash,
         )
@@ -94,6 +95,61 @@ class AccountPreLoginResponseTest {
             prelogin.hash,
         )
         assertEquals("user@example.com", prelogin.salt)
+    }
+
+    @Test
+    fun `weak pbkdf2 parameters are rejected`() {
+        val response = AccountPreLoginResponse(
+            kdfType = 0,
+            kdfIterationsCount = 599999,
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            response.toDomain("user@example.com")
+        }
+    }
+
+    @Test
+    fun `weak argon2id parameters are rejected`() {
+        val weakIterations = AccountPreLoginResponse(
+            kdfSettings = AccountPreLoginResponse.KdfSettings(
+                kdfType = 1,
+                iterations = 1,
+                memory = 16,
+                parallelism = 1,
+            ),
+        )
+        val weakMemory = AccountPreLoginResponse(
+            kdfSettings = AccountPreLoginResponse.KdfSettings(
+                kdfType = 1,
+                iterations = 2,
+                memory = 15,
+                parallelism = 1,
+            ),
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            weakIterations.toDomain("user@example.com")
+        }
+        assertFailsWith<IllegalArgumentException> {
+            weakMemory.toDomain("user@example.com")
+        }
+    }
+
+    @Test
+    fun `negative argon2id parallelism is rejected`() {
+        val response = AccountPreLoginResponse(
+            kdfSettings = AccountPreLoginResponse.KdfSettings(
+                kdfType = 1,
+                iterations = 3,
+                memory = 64,
+                parallelism = -1,
+            ),
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            response.toDomain("user@example.com")
+        }
     }
 
     @Test

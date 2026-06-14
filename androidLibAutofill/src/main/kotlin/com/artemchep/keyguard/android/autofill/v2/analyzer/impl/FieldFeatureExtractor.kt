@@ -7,6 +7,7 @@ import com.artemchep.keyguard.android.autofill.v2.util.KeywordTag
 import com.artemchep.keyguard.android.autofill.v2.util.autocompleteBlob
 import com.artemchep.keyguard.android.autofill.v2.util.has
 import com.artemchep.keyguard.android.autofill.v2.util.nameIdBlob
+import com.artemchep.keyguard.android.autofill.v2.util.normalizeSignalText
 import java.util.Locale
 
 /**
@@ -134,13 +135,15 @@ object FieldFeatureExtractor {
         // Label/placeholder keyword flags (indices 18-25)
         // Single AC pass replaces 8+ containsAny calls.
         val labelBlob =
-            buildString {
-                append(field.label.orEmpty())
-                append(' ')
-                append(field.attributes["placeholder"].orEmpty())
-                append(' ')
-                append(field.viewHint.orEmpty())
-            }.lowercase(Locale.ENGLISH)
+            normalizeSignalText(
+                buildString {
+                    append(field.label.orEmpty())
+                    append(' ')
+                    append(field.attributes["placeholder"].orEmpty())
+                    append(' ')
+                    append(field.viewHint.orEmpty())
+                },
+            )
         val labelMatch = KeywordMatcher.match(labelBlob)
         if (labelMatch has KeywordTag.EMAIL) features[18] = 1.0
         if (labelMatch has KeywordTag.PASSWORD) features[19] = 1.0
@@ -174,8 +177,7 @@ object FieldFeatureExtractor {
         features[36] = if (clusterCache?.hasPasswordField == true) 1.0 else 0.0
         features[37] = if (clusterCache?.hasIdentifierField == true) 1.0 else 0.0
 
-        val buttonBlob = clusterCache?.buttonBlob.orEmpty()
-        val buttonMatch = KeywordMatcher.match(buttonBlob)
+        val buttonMatch = clusterCache?.buttonMatch ?: 0L
         features[38] = if (buttonMatch has KeywordTag.LOGIN_BUTTON) 1.0 else 0.0
         features[39] = if (buttonMatch has KeywordTag.SIGNUP_BUTTON) 1.0 else 0.0
         features[40] = if (buttonMatch has KeywordTag.SEARCH) 1.0 else 0.0
@@ -200,12 +202,8 @@ object FieldFeatureExtractor {
         features[46] = if (followingField != null && isPasswordField(followingField)) 1.0 else 0.0
 
         // Form action features (indices 47-49)
-        val formAction =
-            field.clusterId
-                ?.let { context.structure.formActions[it] }
-                ?.lowercase(Locale.ENGLISH)
-                .orEmpty()
-        val formActionMatch = KeywordMatcher.match(formAction)
+        val formAction = clusterCache?.formActionBlob.orEmpty()
+        val formActionMatch = clusterCache?.formActionMatch ?: 0L
         features[47] =
             if ((formActionMatch has KeywordTag.LOGIN_BUTTON) ||
                 "auth" in formAction || "authenticate" in formAction
@@ -243,7 +241,7 @@ object FieldFeatureExtractor {
 
     /** Matches OTP-style digit patterns in name/id, e.g. "otp1", "code_2", "digit-3", "pin4". */
     private val DIGIT_PATTERN_REGEX =
-        Regex("(otp|code|digit|pin|token|verify)[_\\-]?\\d", RegexOption.IGNORE_CASE)
+        Regex("(otp|code|digit|pin|token|verify)[_\\-\\s]?\\d", RegexOption.IGNORE_CASE)
 
     private fun clusterHasPasswordField(fields: List<FieldNode>): Boolean = fields.any { isPasswordField(it) }
 

@@ -3,12 +3,17 @@ name: "🕒 Synchronize TLD public suffix list"
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   sync-tld:
     name: Synchronize TLD public suffix list
     runs-on: ubuntu-slim
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
       - name: "Update data"
         run: |
           wget https://publicsuffix.org/list/public_suffix_list.dat

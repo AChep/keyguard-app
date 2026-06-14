@@ -78,6 +78,7 @@ fun settingScreenshotsProvider(
     SettingIi(
         platformClasses = listOf(
             Platform.Mobile::class,
+            Platform.Desktop.Windows::class,
         ),
         search = SettingIi.Search(
             group = "conceal",

@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.home.settings
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.DeveloperBoard
@@ -14,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
+import com.artemchep.keyguard.feature.home.settings.backups.AutomaticBackupsSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.debug.DebugSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.developer.DeveloperSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.notifications.NotificationsSettingsRoute
@@ -22,6 +24,7 @@ import com.artemchep.keyguard.feature.home.settings.watchtower.WatchtowerSetting
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasAutofill
 import com.artemchep.keyguard.platform.util.hasSubscription
 import com.artemchep.keyguard.platform.util.isRelease
@@ -30,6 +33,8 @@ import com.artemchep.keyguard.res.pref_item_appearance_text
 import com.artemchep.keyguard.res.pref_item_appearance_title
 import com.artemchep.keyguard.res.pref_item_autofill_text
 import com.artemchep.keyguard.res.pref_item_autofill_title
+import com.artemchep.keyguard.res.pref_item_automatic_backups_text
+import com.artemchep.keyguard.res.pref_item_automatic_backups_title
 import com.artemchep.keyguard.res.pref_item_dev_text
 import com.artemchep.keyguard.res.pref_item_dev_title
 import com.artemchep.keyguard.res.pref_item_developer_text
@@ -119,6 +124,16 @@ fun rememberSettingsRouteListItems(
                 icon = Icons.Outlined.Lock,
                 route = securityRoute,
             ),
+            SettingsRouteListAction(
+                id = "automatic_backups",
+                title = TextHolder.Res(Res.string.pref_item_automatic_backups_title),
+                text = TextHolder.Res(Res.string.pref_item_automatic_backups_text),
+                icon = Icons.Outlined.Backup,
+                route = AutomaticBackupsSettingsRoute,
+            ).takeIf {
+                CurrentPlatform is Platform.Desktop ||
+                        CurrentPlatform is Platform.Mobile.Android
+            },
             SettingsRouteListAction(
                 id = "developer",
                 title = TextHolder.Res(Res.string.pref_item_developer_title),

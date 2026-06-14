@@ -20,15 +20,15 @@ data class BitwardenPersona(
 
         fun of(platform: Platform) = when (platform) {
             is Platform.Mobile -> {
-                Platform.Desktop.Linux.bitwardenPersona()
+                Platform.Desktop.Linux.native.bitwardenPersona()
             }
 
             is Platform.Desktop -> when (platform) {
                 is Platform.Desktop.Windows -> platform.bitwardenPersona()
                 is Platform.Desktop.MacOS -> platform.bitwardenPersona()
+                is Platform.Desktop.Linux -> platform.bitwardenPersona()
                 is Platform.Desktop.Other,
-                is Platform.Desktop.Linux,
-                -> Platform.Desktop.Linux.bitwardenPersona()
+                -> Platform.Desktop.Linux.native.bitwardenPersona()
             }
         }
 

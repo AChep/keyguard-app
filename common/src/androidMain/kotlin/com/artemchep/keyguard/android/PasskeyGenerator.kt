@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.android
 
+import com.artemchep.keyguard.common.service.webauthn.PUBLIC_KEY_CREDENTIAL_TYPE
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskeyPubKeyCredParams
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -18,7 +19,16 @@ abstract class PasskeyGeneratorBase : PasskeyGenerator {
      */
     override fun handles(
         params: CreatePasskeyPubKeyCredParams,
-    ): Boolean = params.alg.roundToInt() == type
+    ): Boolean {
+        // WebAuthn L3 PublicKeyCredential.[[Create]] skips
+        // pubKeyCredParams entries with an unsupported
+        // PublicKeyCredentialType before considering `alg`.
+        // Spec:
+        // - https://www.w3.org/TR/webauthn-3/#sctn-createCredential
+        // - https://www.w3.org/TR/webauthn-3/#dom-publickeycredentialparameters-type
+        return params.type == PUBLIC_KEY_CREDENTIAL_TYPE &&
+                params.alg.roundToInt() == type
+    }
 }
 
 interface PasskeyGenerator {

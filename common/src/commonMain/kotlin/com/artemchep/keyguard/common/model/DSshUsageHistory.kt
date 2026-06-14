@@ -4,6 +4,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 data class DSshUsageHistory(
+    val id: String? = null,
     val cipherId: String?,
     val sessionId: String,
     val caller: String?,

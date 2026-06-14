@@ -24,7 +24,9 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.ServerItemMeta
  *   sub-second timestamp precision exceeds 6 digits of nanoseconds,
  *   which some servers silently truncate.
  */
-class CipherSyncStrategy : EntitySyncStrategy<BitwardenCipher, CipherEntity> {
+class CipherSyncStrategy(
+    private val remoteFolderIdToLocalId: (String) -> String?,
+) : EntitySyncStrategy<BitwardenCipher, CipherEntity> {
     override fun toLocalItemMeta(entity: BitwardenCipher): LocalItemMeta {
         val pendingLocalAttachmentIds =
             entity.pendingLocalAttachments()
@@ -44,7 +46,7 @@ class CipherSyncStrategy : EntitySyncStrategy<BitwardenCipher, CipherEntity> {
                     .asSequence()
                     .map { it.id }
                     .toSet(),
-            folderId = entity.folderId,
+            localFolderId = entity.folderId,
             favorite = entity.favorite,
             collectionIds = entity.collectionIds,
             requiresLocalRefreshWhenDatesMatch = entity.remoteEntity == null,
@@ -68,7 +70,7 @@ class CipherSyncStrategy : EntitySyncStrategy<BitwardenCipher, CipherEntity> {
                     .asSequence()
                     .map { it.id }
                     .toSet(),
-            folderId = entity.folderId,
+            localFolderId = entity.folderId?.let(remoteFolderIdToLocalId),
             favorite = entity.favorite,
             collectionIds = entity.collectionIds?.toSet(),
         )

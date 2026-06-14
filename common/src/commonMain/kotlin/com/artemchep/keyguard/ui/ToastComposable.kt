@@ -45,6 +45,7 @@ import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.MessageHub
 import com.artemchep.keyguard.feature.navigation.navigationNodeStack
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.LocalWindowId
 import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -106,17 +107,18 @@ fun ToastMessageHost(
     val nav = navigationNodeStack()
     val scope = rememberCoroutineScope()
 
-    val isFocused = LocalWindowInfo.current.isWindowFocused
-    DisposableEffect(hub, scope, isFocused) {
+    val windowIsFocused = LocalWindowInfo.current.isWindowFocused
+    val windowId = LocalWindowId.current
+    DisposableEffect(hub, scope, windowId, windowIsFocused) {
         // If the window is not focused then we do not want it
         // to intercept the toast messages.
-        if (!isFocused) {
+        if (!windowIsFocused) {
             return@DisposableEffect onDispose {
                 // Do nothing
             }
         }
 
-        val unregister = hub.register(nav) { message ->
+        val unregister = hub.register(key = nav, windowId = windowId) { message ->
             messagesState.update { existingMessages ->
                 val out = existingMessages.toMutableList()
                 val index =

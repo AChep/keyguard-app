@@ -11,6 +11,8 @@ private const val PREFIX_OTP_AUTH = "otpauth://"
 private const val PREFIX_OTP_STEAM = "steam://"
 private const val PREFIX_OTP_MOBILE = "motp://"
 
+private val otpDigitsRange = 1..9
+
 sealed interface TotpToken {
     companion object {
         fun parse(
@@ -110,7 +112,11 @@ sealed interface TotpToken {
         override val raw: String,
     ) : TotpToken {
         companion object {
-            const val PERIOD = 30L
+            // The mOTP code is derived from the current epoch-time 
+            // in a 10 second granularity. In is valid for the next 3 minutes.
+            //
+            // See: https://motp.sourceforge.net/#1.1
+            const val PERIOD = 10L
             const val DIGITS = 6
         }
 
@@ -141,11 +147,7 @@ private fun parseTotpAuth(
     // Parse the parameters of the otp auth
     val params = url.parameters
     params["digits"]?.also { digitsParam ->
-        val n = digitsParam.toIntOrNull()
-            ?: return@also
-        if (n in 1..10) {
-            builder.digits = n
-        }
+        builder.digits = parseOtpDigits(digitsParam)
     }
     params["period"]?.also { periodParam ->
         val n = periodParam.toLongOrNull()
@@ -183,11 +185,7 @@ private fun parseHotpAuth(
     // Parse the parameters of the otp auth
     val params = url.parameters
     params["digits"]?.also { digitsParam ->
-        val n = digitsParam.toIntOrNull()
-            ?: return@also
-        if (n in 1..10) {
-            builder.digits = n
-        }
+        builder.digits = parseOtpDigits(digitsParam)
     }
     params["counter"]?.also { counterParam ->
         val n = counterParam.toLongOrNull()
@@ -217,8 +215,19 @@ private fun parseHashAlgorithmOrNull(name: String) = when (name.lowercase()) {
     "sha1" -> CryptoHashAlgorithm.SHA_1
     "sha256" -> CryptoHashAlgorithm.SHA_256
     "sha512" -> CryptoHashAlgorithm.SHA_512
-    "md5" -> CryptoHashAlgorithm.MD5
+    "md5" -> throw IllegalArgumentException("MD5 is not supported for HOTP/TOTP.")
     else -> null
+}
+
+private fun parseOtpDigits(
+    value: String,
+): Int {
+    val digits = value.toIntOrNull()
+        ?: throw IllegalArgumentException("OTP digits must be a number.")
+    require(digits in otpDigitsRange) {
+        "OTP digits must be between ${otpDigitsRange.first} and ${otpDigitsRange.last}."
+    }
+    return digits
 }
 
 private fun parseOtpSteam(

@@ -65,6 +65,7 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.totp.formatCode2
+import com.artemchep.keyguard.ui.totp.remainingProgressAt
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flatMapLatest
@@ -467,9 +468,7 @@ private fun produceTotpCode(
                     is TotpCode.TimeBasedCounter -> flow<VaultViewTotpItemBadgeState.Success> {
                         while (true) {
                             val now = Clock.System.now()
-                            val totalDuration = counter.duration
                             val remainingDuration = counter.expiration - now
-                            val elapsedDuration = totalDuration - remainingDuration
 
                             val time = remainingDuration
                                 .inWholeMilliseconds
@@ -478,8 +477,7 @@ private fun produceTotpCode(
                                 .roundToInt()
                                 .coerceAtLeast(0)
                                 .toString()
-                            val progress =
-                                1f - elapsedDuration.inWholeSeconds.toFloat() / totalDuration.inWholeSeconds.toFloat()
+                            val progress = counter.remainingProgressAt(now)
                             val c = VaultViewTotpItemBadgeState.Success.TimeBasedCounter(
                                 time = time,
                                 progress = progress,

@@ -59,7 +59,6 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.send.action.createSendActionOrNull
 import com.artemchep.keyguard.feature.send.action.createShareAction
@@ -185,9 +184,7 @@ fun sendViewScreenState(
         accountId,
     ),
 ) {
-    val copy = copy(
-        clipboardService = clipboardService,
-    )
+    val copy = copier()
 
     val markdown = getMarkdown().first()
     val markdownParser = MarkdownParser()
@@ -791,7 +788,7 @@ private suspend fun RememberStateFlowScope.aaaa(
             this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                 translator = this@aaaa,
                 data = url,
-                single = true,
+                disallowFormatSelection = true,
                 navigate = ::navigate,
             )
             this += createShareAction(

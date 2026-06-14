@@ -73,7 +73,6 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRouteFactory
@@ -190,7 +189,7 @@ internal fun wearVaultListScreenState(
 //        }
 //        ?.id
 
-    val copy = copy(clipboardService)
+    val copy = copier()
 
     val ciphersRawFlow = filterHiddenProfiles(
         getProfiles = getProfiles,

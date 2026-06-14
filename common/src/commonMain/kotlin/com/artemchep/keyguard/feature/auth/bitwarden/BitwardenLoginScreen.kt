@@ -35,9 +35,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.autofill.contentType
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getShapeState
-import com.artemchep.keyguard.feature.auth.common.autofill
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRouteFactory
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -208,7 +207,7 @@ fun LoginContentSkeleton() {
 
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class,
+    ExperimentalFoundationApi::class,
 )
 @Composable
 fun LoginScaffold(
@@ -333,13 +332,7 @@ fun ColumnScope.LoginContent(
             .padding(horizontal = Dimens.fieldHorizontalPadding)
             .focusRequester(focusRequester),
         fieldModifier = Modifier
-            .autofill(
-                value = loginState.email.state.value,
-                autofillTypes = listOf(
-                    AutofillType.EmailAddress,
-                ),
-                onFill = loginState.email.onChange,
-            ),
+            .contentType(ContentType.EmailAddress),
         value = loginState.email,
         shapeState = ShapeState.START,
         keyboardOptions = KeyboardOptions(
@@ -355,13 +348,7 @@ fun ColumnScope.LoginContent(
         modifier = Modifier
             .padding(horizontal = Dimens.fieldHorizontalPadding),
         fieldModifier = Modifier
-            .autofill(
-                value = loginState.password.state.value,
-                autofillTypes = listOf(
-                    AutofillType.Password,
-                ),
-                onFill = loginState.password.onChange,
-            ),
+            .contentType(ContentType.Password),
         value = loginState.password,
         shapeState = ShapeState.END,
         keyboardOptions = KeyboardOptions(

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.model
 
+import com.artemchep.keyguard.platform.WindowId
 import kotlin.uuid.Uuid
 
 data class ToastMessage(
@@ -8,6 +9,11 @@ data class ToastMessage(
     val title: String,
     val text: String? = null,
     val action: Action? = null,
+    /**
+     * The ID of the window that should display the
+     * message. See: [com.artemchep.keyguard.platform.LocalWindowId].
+     */
+    val windowId: WindowId? = null,
 ) {
     enum class Type {
         INFO,

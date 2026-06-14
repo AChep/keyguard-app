@@ -63,7 +63,6 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.SEARCH_DEBOUNCE
 import com.artemchep.keyguard.feature.search.search.debounceSearch
@@ -209,7 +208,7 @@ fun sendListScreenState(
         PersistedStorage.InDisk(disk)
     }
 
-    val copy = copy(clipboardService)
+    val copy = copier()
     val ciphersRawFlow = filterHiddenProfiles(
         getProfiles = getProfiles,
         getSends = getSends,

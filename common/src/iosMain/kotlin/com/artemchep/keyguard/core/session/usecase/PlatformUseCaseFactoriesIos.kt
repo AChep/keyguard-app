@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
+import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
@@ -15,6 +16,10 @@ import org.kodein.di.DirectDI
 actual fun createDownloadAttachmentMetadata(
     directDI: DirectDI,
 ): DownloadAttachmentMetadata = UnsupportedDownloadAttachmentMetadata
+
+actual fun createGetAttachmentPreview(
+    directDI: DirectDI,
+): GetAttachmentPreview = UnsupportedGetAttachmentPreview
 
 actual fun createAddKeePassAccount(
     directDI: DirectDI,
@@ -27,6 +32,11 @@ actual fun createSyncByKeePassToken(
 private object UnsupportedDownloadAttachmentMetadata : DownloadAttachmentMetadata {
     override fun invoke(request: DownloadAttachmentRequest): IO<DownloadAttachmentRequestData> =
         unsupportedIo("Attachment metadata resolution")
+}
+
+private object UnsupportedGetAttachmentPreview : GetAttachmentPreview {
+    override fun invoke(request: com.artemchep.keyguard.common.model.AttachmentPreviewRequest) =
+        unsupportedIo<com.artemchep.keyguard.common.model.AttachmentPreviewPayload>("Attachment preview")
 }
 
 private object UnsupportedAddKeePassAccount : AddKeePassAccount {

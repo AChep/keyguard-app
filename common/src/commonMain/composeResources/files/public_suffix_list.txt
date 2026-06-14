@@ -5,8 +5,8 @@
 // Please pull this list from, and only from https://publicsuffix.org/list/public_suffix_list.dat,
 // rather than any other VCS sites. Pulling from any other URL is not guaranteed to be supported.
 
-// VERSION: 2026-05-28_06-25-58_UTC
-// COMMIT: e596036bde712ffb073b948eb8b884c72c94c6e1
+// VERSION: 2026-06-13_21-47-18_UTC
+// COMMIT: 9186eeeda85cef35b1551d00731464939c765cab
 
 // Instructions on pulling and using this list can be found at https://publicsuffix.org/list/.
 
@@ -6822,7 +6822,7 @@ org.zw
 
 // newGTLDs
 
-// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2026-04-30T16:18:08Z
+// List of new gTLDs imported from https://www.icann.org/resources/registries/gtlds/v2/gtlds.json on 2026-06-13T16:12:40Z
 // This list is auto-generated, don't edit it manually.
 // aaa : American Automobile Association, Inc.
 // https://www.iana.org/domains/root/db/aaa.html
@@ -10876,7 +10876,7 @@ xin
 // https://www.iana.org/domains/root/db/xn--5su34j936bgsg.html
 香格里拉
 
-// xn--5tzm5g : Global Website TLD Asia Limited
+// xn--5tzm5g : Jolly Host, LLC
 // https://www.iana.org/domains/root/db/xn--5tzm5g.html
 网站
 
@@ -13894,6 +13894,10 @@ whitesnow.jp
 zombie.jp
 heteml.net
 
+// GNTC, Inc. : https://gntc.com/
+// Submitted by VibeHost Security <security@vibehost.com>
+vibehost.space
+
 // GoDaddy Registry : https://registry.godaddy
 // Submitted by Rohan Durrant <tldns@registry.godaddy>
 graphic.design
@@ -15052,6 +15056,7 @@ opensocial.site
 // OpenAI : https://openai.com
 // Submitted by Thomas Shadwell <security@openai.com>
 *.oaiusercontent.com
+chatgpt.site
 
 // OpenCraft GmbH : http://opencraft.com/
 // Submitted by Sven Marnach <sven@opencraft.com>

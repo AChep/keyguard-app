@@ -19,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.DialogWindowScope
@@ -645,10 +647,21 @@ private fun KeyguardWindowEssentialsProvider(
             .launchIn(this)
     }
 
-    CompositionLocalProvider(
-        LocalComposeWindow provides window,
-        LocalWindowId provides windowId,
-    ) {
+    // Allow overriding the UI scale via a JVM property, e.g. for Wayland compositors
+    // (like Hyprland with force_zero_scale=true) where XWayland reports scale 1.
+    val densityOverride = remember {
+        System.getProperty("keyguard.uiScale")
+            ?.toFloatOrNull()
+            ?.let { Density(it) }
+    }
+    val providers = buildList {
+        add(LocalComposeWindow provides window)
+        add(LocalWindowId provides windowId)
+        if (densityOverride != null) {
+            add(LocalDensity provides densityOverride)
+        }
+    }.toTypedArray()
+    CompositionLocalProvider(*providers) {
         WindowScreenshotProtectionEffect()
 
         LaunchLifecycleProviderEffect(

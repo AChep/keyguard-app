@@ -9,7 +9,6 @@ import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
-import com.artemchep.keyguard.common.service.file.toLocalPathFromFileUriOrNull
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
@@ -277,19 +276,10 @@ class NotificationsImpl(
             user: KeePassToken,
         ): Job = subScope.launch {
             val accountScope = this
-            
-            val databaseFile = user.databaseLocalPathOrNull()
-            if (databaseFile == null) {
-                // This database URI is not supported, aborting
-                // the watch service.
-                val msg = "Skipping launching file watcher, database URI is not a local file."
-                logRepository.post(TAG, msg)
-                return@launch
-            }
 
             val reconnectBackoff = ReconnectBackoff()
             reconnectBackoff.withRunForever {
-                val dbChangedFlow = fileWatcherService.fileChangedFlow(databaseFile)
+                val dbChangedFlow = fileWatcherService.uriChangedFlow(user.files.databaseUri)
                     .filter { it.kind != FileWatchEvent.Kind.INITIALIZED }
                     .debounce(1000L)
                 dbChangedFlow
@@ -338,6 +328,3 @@ class NotificationsImpl(
             .launchIn(this)
     }
 }
-
-internal fun KeePassToken.databaseLocalPathOrNull() =
-    files.databaseUri.toLocalPathFromFileUriOrNull()

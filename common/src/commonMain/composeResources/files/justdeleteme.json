@@ -9520,6 +9520,17 @@
     "notes": "Submit an account deletion request via their web form, including all requested account details."
   },
   {
+    "name": "Grok / xAI",
+    "domains": [
+      "accounts.x.ai",
+      "x.ai",
+      "grok.com"
+    ],
+    "url": "https://accounts.x.ai/data",
+    "difficulty": "easy",
+    "notes": "Open the linked page, enter your email. Your account will be deleted in 30 days. To cancel your request, log in again."
+  },
+  {
     "name": "GroupMe",
     "domains": [
       "groupme.com",

@@ -20,9 +20,11 @@ const {
     <div class="relative h-full w-full overflow-hidden rounded-[1.45rem] bg-surface-container">
       {/* hole-punch camera */}
       <span class="absolute left-1/2 top-[3.5%] z-10 h-2 w-2 -translate-x-1/2 rounded-full bg-black/70 ring-1 ring-white/10"></span>
+      {/* h-full! beats Astro's unlayered height:auto on [data-astro-image], so
+          object-cover fills the frame (preserving aspect ratio) with no gap. */}
       {
         src ? (
-          <Image src={src} alt={alt} widths={widths} sizes={sizes} class="absolute inset-0 h-full w-full object-cover" />
+          <Image src={src} alt={alt} widths={widths} sizes={sizes} class="absolute inset-0 h-full! w-full object-cover" />
         ) : (
           <div class="flex h-full w-full flex-col items-center justify-center gap-2 text-on-surface-variant">
             <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

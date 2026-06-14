@@ -26,9 +26,11 @@ const {
   {/* Domed case */}
   <div class="device-shadow absolute inset-0 rounded-full border border-white/10 bg-[#0e0e10] p-[9%]">
     <div class="relative h-full w-full overflow-hidden rounded-full bg-surface-container">
+      {/* h-full! beats Astro's unlayered height:auto on [data-astro-image], so
+          object-cover fills the frame (preserving aspect ratio) with no gap. */}
       {
         src ? (
-          <Image src={src} alt={alt} widths={widths} sizes={sizes} class="absolute inset-0 h-full w-full object-cover" />
+          <Image src={src} alt={alt} widths={widths} sizes={sizes} class="absolute inset-0 h-full! w-full object-cover" />
         ) : (
           <div class="flex h-full w-full items-center justify-center text-on-surface-variant">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

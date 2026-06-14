@@ -1,4 +1,4 @@
-name: "⬆️ Release tag -> Deploy website"
+name: "🎉 Release tag -> Deploy website"
 
 on:
   push:

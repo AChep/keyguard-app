@@ -1132,7 +1132,7 @@
       "sms",
       "email"
     ],
-    "notes": "Requires contacting customer service to activate",
+    "documentation": "https://www.australianretirementtrust.com.au/articles/mfa-security",
     "name": "Australian Retirement Trust"
   },
   {
@@ -1240,6 +1240,13 @@
     ],
     "documentation": "https://awardwallet.com/faqs#44",
     "name": "AwardWallet"
+  },
+  {
+    "domain": "aware.com.au",
+    "tfa": [
+      "sms"
+    ],
+    "name": "Aware Super"
   },
   {
     "domain": "awin.com",
@@ -1551,13 +1558,18 @@
   },
   {
     "domain": "bendigobank.com.au",
+    "additional-domains": [
+      "adelaidebank.com.au",
+      "adelaidebendigo.com.au"
+    ],
     "tfa": [
       "sms",
       "email",
       "custom-software"
     ],
     "custom-software": [
-      "Bendigo Bank app"
+      "Bendigo Bank app",
+      "Symantec VIP Access"
     ],
     "documentation": "https://www.bendigobank.com.au/support/e-banking/multi-factor-authentication",
     "notes": "If the app hasn't been setup, only SMS and email tokens will work. If the app has been setup, only the app will work.",
@@ -1717,6 +1729,9 @@
   },
   {
     "domain": "bigw.com.au",
+    "additional-domains": [
+      "mydeal.com.au"
+    ],
     "tfa": [
       "sms",
       "call",
@@ -4135,14 +4150,13 @@
   {
     "domain": "crashplan.com",
     "additional-domains": [
-      "crashplanpro.com",
-      "console.us2.crashplanpro.com"
+      "crashplanpro.com"
     ],
     "tfa": [
-      "totp"
+      "totp",
+      "email"
     ],
-    "documentation": "https://support.crashplan.com/hc/en-us/articles/8724455295245",
-    "notes": "2FA is not available on the CrashPlan/Code42 desktop application.",
+    "documentation": "https://support.crashplan.com/hc/articles/43858880152461",
     "name": "CrashPlan"
   },
   {
@@ -6400,6 +6414,14 @@
     ],
     "documentation": "https://docs.flexera.com/svm/Content/helplibrary/Configure_Two_Factor_Authentication__2FA_.htm",
     "name": "Flexera"
+  },
+  {
+    "domain": "flightaware.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.flightaware.com/hc/articles/30610324836759",
+    "name": "FlightAware"
   },
   {
     "domain": "flipsnack.com",
@@ -8721,6 +8743,13 @@
     "name": "JetBrains"
   },
   {
+    "domain": "jetstar.com",
+    "tfa": [
+      "email"
+    ],
+    "name": "Jetstar"
+  },
+  {
     "domain": "jianguoyun.com",
     "tfa": [
       "sms",
@@ -10796,15 +10825,6 @@
     "name": "MyChart"
   },
   {
-    "domain": "mydeal.com.au",
-    "tfa": [
-      "sms",
-      "email"
-    ],
-    "documentation": "https://help.mydeal.com.au/hc/en-us/articles/8901216981391",
-    "name": "MyDeal"
-  },
-  {
     "domain": "myemma.com",
     "tfa": [
       "sms",
@@ -12521,9 +12541,10 @@
       "paypal-search.com"
     ],
     "tfa": [
-      "totp"
+      "totp",
+      "u2f"
     ],
-    "notes": "2FA can only be setup in web browser and not through the PayPal App.",
+    "notes": "2FA can only be setup on the website. A backup 2FA method is needed to setup security key.",
     "documentation": "https://www.paypal.com/us/cshelp/article/help167",
     "name": "PayPal"
   },
@@ -12536,15 +12557,16 @@
   },
   {
     "domain": "paysafecard.com",
-    "url": "https://www.paysafecard.com/",
     "tfa": [
       "sms",
+      "email",
       "custom-software"
     ],
     "custom-software": [
-      "paysafecard app"
+      "PaysafeCard app"
     ],
-    "name": "Paysafecard"
+    "documentation": "https://www.paysafecard.com/en/support/question/38/",
+    "name": "PaysafeCard"
   },
   {
     "domain": "paytm.com",

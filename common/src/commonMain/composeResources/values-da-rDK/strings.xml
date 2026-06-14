@@ -801,9 +801,9 @@
     <string name="addsend_auth_emails_note">Ontvangers worden gevraagd om een eenmalige e-mailverificatie te voltooien na het openen van de link.</string>
     <string name="addaccount_promo_title">Je kluis is leeg. Koppel een account om te beginnen:</string>
     <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
-    <string name="addaccount_promo_features">Wil je het maximale uit de app halen? Hieronder staan de belangrijkste functies. Kijk hoe het voor je kan werken.</string>
-    <string name="addaccount_description_short_bitwarden_text">Sla je versleutelde kluis op in de cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Sla je versleutelde kluis lokaal op in het KDBX-bestandsformaat.</string>
+    <string name="addaccount_promo_features">Vil du have det maksimale ud af din oplevelse? Vi har ridset alle appens primære funktioner op for dig nedenfor. Tag et kig og se, hvordan den kan arbejde for dig.</string>
+    <string name="addaccount_description_short_bitwarden_text">Gem krypteret boks i skyen.</string>
+    <string name="addaccount_description_short_keepass_text">Gem krypteret boks lokalt ved hjælp af KDBX-filformatet.</string>
     <string name="addaccount_header_title">Tilføj Bitwarden-konto</string>
     <string name="addaccount_disclaimer_bitwarden_label">Vi er ikke tilknyttet, associeret, godkendt af eller på nogen måde officielt forbundet med Bitwarden, Inc. eller et af dets datterselskaber eller dettes datterselskaber.</string>
     <!--
@@ -853,7 +853,7 @@
     <string name="addaccount2fa_email_note">Angiv bekræftelseskoden sendt til <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Angiv YubiKey-godkendelseskoden manuelt. Placér markøren på feltet nedenfor og udløs YubiKey'en.</string>
     <string name="addkeepass_header_title">KeePass-account toevoegen</string>
-    <string name="addkeepass_header_body">Sla al je wachtwoorden op in één, sterk versleuteld KDBX-bestand, direct op je apparaat. Je hebt de volledige controle over je gegevens. Bewaar ze op je computer, een USB-stick of synchroniseer zelf met diensten zoals Syncthing, Google Drive of Dropbox.</string>
+    <string name="addkeepass_header_body">Gem alle dine adgangskoder i en enkelt, stærkt krypteret KDBX-fil, der lagres direkte på din enhed. Du har fuld kontrol over dine data. Gem den på din computer, et USB-stik, eller synkroniser den selv ved hjælp af en tjeneste som Syncthing, Google Drive eller Dropbox.</string>
     <string name="addkeepass_use_at_your_own_risk_beta_text">De KeePass integratie bevindt zich in bèta en is nog niet volledig compatibel met standaard KeePass-clients. Gebruik op eigen risico. Zorg dat je een geverifieerde back-up van je database hebt voordat je verdergaat.</string>
     <string name="provider_2fa_authenticator">Authenticator</string>
     <string name="provider_2fa_duo_organization">Duo (organisation)</string>

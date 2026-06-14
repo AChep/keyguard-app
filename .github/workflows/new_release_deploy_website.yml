@@ -1,0 +1,60 @@
+name: "⬆️ Release tag -> Deploy website"
+
+on:
+  push:
+    tags:
+      - 'r*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: "Build site"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: server/web
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - name: "Install pnpm"
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1
+        with:
+          package_json_file: server/web/package.json
+      - name: "Set up Node"
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version-file: server/web/.nvmrc
+          package-manager-cache: false
+      - name: "Install dependencies"
+        run: pnpm install --frozen-lockfile
+      - name: "Type-check & validate content"
+        run: pnpm check
+      - name: "Build"
+        run: pnpm build
+      - name: "Upload Pages artifact"
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa
+        with:
+          path: server/web/dist
+
+  deploy:
+    name: "Deploy to GitHub Pages"
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: "Deploy"
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e

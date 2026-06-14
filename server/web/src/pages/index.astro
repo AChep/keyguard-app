@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.astro';
+import FeatureCard from '../components/FeatureCard.astro';
+
+const featured = (await getCollection('features', ({ data }) => data.featured)).sort(
+  (a, b) =>
+    (a.data.order ?? 0) - (b.data.order ?? 0) ||
+    a.data.title.localeCompare(b.data.title),
+);
+---
+
+<BaseLayout>
+  <Hero />
+
+  <section class="mx-auto max-w-6xl px-6 py-16">
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        featured.map((f) => (
+          <FeatureCard title={f.data.title} slug={f.id} href={`/features/${f.id}/`}>
+            {f.data.summary}
+          </FeatureCard>
+        ))
+      }
+    </div>
+    <div class="mt-10 text-center">
+      <a href="/features/" class="font-medium text-primary hover:opacity-80">
+        See all features
+      </a>
+    </div>
+  </section>
+</BaseLayout>

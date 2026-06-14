@@ -128,7 +128,7 @@ fun WordlistListScreen(
                     IconButton(
                         onClick = {
                             val intent = NavigationIntent.NavigateToBrowser(
-                                url = "https://github.com/AChep/keyguard-app/blob/master/wiki/WORDLISTS.md",
+                                url = "https://keyguard.dev/docs/generator/#custom-wordlists",
                             )
                             navigationController.queue(intent)
                         },

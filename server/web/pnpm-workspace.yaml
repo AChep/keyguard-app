@@ -6,6 +6,8 @@
 # Keeps a single resolved vite across astro and @tailwindcss/vite.
 overrides:
   vite: ^7.3.2
+  esbuild: ^0.28.1
+  yaml: ^2.8.3
 
 # Dependencies whose install/build scripts are allowed to run.
 # - sharp powers Astro's build-time image optimization

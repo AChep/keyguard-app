@@ -153,7 +153,7 @@ playServicesWearable = "20.0.1"
 # https://github.com/halilozercan/compose-richtext/releases
 richtext = "1.0.0-alpha05"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-slf4j = "2.0.17"
+slf4j = "2.0.18"
 # https://github.com/bcgit/bc-java
 bouncycastle = "1.84"
 # https://github.com/hierynomus/sshj

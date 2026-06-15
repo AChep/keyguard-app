@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.feature.confirmation.elevatedaccess
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,25 +30,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.yubikey.YubiKeyPromptEffect
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
+import com.artemchep.keyguard.ui.icons.KeyguardYubiKey
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
-import com.artemchep.keyguard.ui.util.DividerColor
-import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ElevatedAccessScreen(
@@ -60,6 +62,7 @@ fun ElevatedAccessScreen(
     // prompt effects.
     if (content is Loadable.Ok) {
         BiometricPromptEffect(content.value.sideEffects.showBiometricPromptFlow)
+        YubiKeyPromptEffect(content.value.sideEffects.showYubiKeyPromptFlow)
     }
 
     Dialog(
@@ -171,42 +174,71 @@ private fun ColumnScope.ElevatedAccessContent(
         ),
     )
     val onBiometricButtonClick by rememberUpdatedState(content.biometric?.onClick)
+    val onYubiKeyButtonClick by rememberUpdatedState(content.yubiKey?.onClick)
     ExpandedIfNotEmpty(
         modifier = Modifier
             .align(Alignment.CenterHorizontally),
-        valueOrNull = content.biometric,
-    ) { b ->
-        Button(
+        valueOrNull = Unit.takeIf {
+            content.biometric != null || content.yubiKey != null
+        },
+    ) {
+        Row(
             modifier = Modifier
                 .padding(
                     top = 24.dp,
                     bottom = 8.dp, // fix shadow clipping
                 ),
-            enabled = b.onClick != null,
-            shapes = ButtonDefaults.shapes(),
-            colors = ButtonDefaults.outlinedButtonColors(),
-            elevation = null,
-            border = ButtonDefaults.outlinedButtonBorder(
-                enabled = b.onClick != null,
-            ),
-            onClick = {
-                onBiometricButtonClick?.invoke()
-            },
-            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Fingerprint,
-                contentDescription = null,
-            )
+            if (content.biometric != null) {
+                Button(
+                    enabled = content.biometric.onClick != null,
+                    shapes = ButtonDefaults.shapes(),
+                    colors = ButtonDefaults.outlinedButtonColors(),
+                    elevation = null,
+                    border = ButtonDefaults.outlinedButtonBorder(
+                        enabled = content.biometric.onClick != null,
+                    ),
+                    onClick = {
+                        onBiometricButtonClick?.invoke()
+                    },
+                    contentPadding = PaddingValues(16.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Fingerprint,
+                        contentDescription = null,
+                    )
+                }
+            }
+            if (content.yubiKey != null) {
+                Button(
+                    enabled = content.yubiKey.onClick != null,
+                    shapes = ButtonDefaults.shapes(),
+                    colors = ButtonDefaults.outlinedButtonColors(),
+                    elevation = null,
+                    border = ButtonDefaults.outlinedButtonBorder(
+                        enabled = content.yubiKey.onClick != null,
+                    ),
+                    onClick = {
+                        onYubiKeyButtonClick?.invoke()
+                    },
+                    contentPadding = PaddingValues(16.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.KeyguardYubiKey,
+                        contentDescription = null,
+                    )
+                }
+            }
         }
     }
 
     LaunchedEffect(requester) {
         delay(80L)
-        // Do not auto-focus the password field if a device has biometric
-        // available. It causes a weird layout lags when keyboard pops up for
-        // a split second.
-        if (onBiometricButtonClick == null) {
+        // Do not auto-focus the password field if a device has hardware
+        // confirmation available. It causes a weird layout lags when keyboard
+        // pops up for a split second.
+        if (content.biometric == null && content.yubiKey == null) {
             requester.requestFocus()
         }
     }

@@ -51,6 +51,8 @@ import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
@@ -60,6 +62,7 @@ import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.AttachmentIcon
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -192,7 +195,7 @@ fun ItemAttachment(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             modifier = Modifier,
-                            text = "Downloading failed",
+                            text = stringResource(Res.string.file_status_downloading_failed),
                             style = MaterialTheme.typography.labelMedium,
                         )
                     }
@@ -223,11 +226,49 @@ fun ItemAttachment(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 modifier = Modifier,
-                                text = "Auto-resumes",
+                                text = stringResource(Res.string.file_status_auto_resume),
                                 style = MaterialTheme.typography.labelMedium,
                             )
                         }
                     }
+                }
+            }
+            ExpandedIfNotEmpty(
+                valueOrNull = downloadStatusState.value
+                    .takeIf { it is AttachmentItem.Status.PendingUpload },
+            ) {
+                val infoContentColor = MaterialTheme.colorScheme.info
+                val infoBackgroundColor = MaterialTheme.colorScheme.infoContainer
+                Row(
+                    modifier = Modifier
+                        .padding(
+                            top = 4.dp,
+                        )
+                        .background(
+                            infoBackgroundColor,
+                            MaterialTheme.shapes.small,
+                        )
+                        .padding(
+                            start = 4.dp,
+                            top = 4.dp,
+                            bottom = 4.dp,
+                            end = 4.dp,
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .size(14.dp),
+                        imageVector = Icons.Outlined.Info,
+                        contentDescription = null,
+                        tint = infoContentColor,
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        modifier = Modifier,
+                        text = stringResource(Res.string.file_status_pending_upload),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
                 }
             }
         },

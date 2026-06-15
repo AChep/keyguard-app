@@ -133,6 +133,8 @@ fun PasswordGeneratorConfigBuilder2.Password.build(): PasswordGeneratorConfig {
         // numbers
         numberChars -= '1'
         numberChars -= '0'
+        // symbols
+        symbolChars -= '|'
     }
     if (excludeAmbiguousCharacters) {
         symbolChars -= """{}[]()/\'"`~,;:.<>"""

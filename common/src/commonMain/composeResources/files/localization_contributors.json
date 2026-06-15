@@ -9,6 +9,10 @@
     },
     "languages": [
       {
+        "id": "af",
+        "name": "Afrikaans"
+      },
+      {
         "id": "ar",
         "name": "Arabic"
       },
@@ -69,6 +73,10 @@
         "name": "Korean"
       },
       {
+        "id": "no",
+        "name": "Norwegian"
+      },
+      {
         "id": "pl",
         "name": "Polish"
       },
@@ -87,6 +95,10 @@
       {
         "id": "ru",
         "name": "Russian"
+      },
+      {
+        "id": "sr",
+        "name": "Serbian (Cyrillic)"
       },
       {
         "id": "es-ES",
@@ -109,12 +121,12 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 9015,
-    "target": 8248,
-    "approved": 1049,
+    "translated": 32684,
+    "target": 33619,
+    "approved": 1050,
     "voted": 0,
-    "positiveVotes": 62,
-    "negativeVotes": 1,
+    "positiveVotes": 63,
+    "negativeVotes": 2,
     "winning": 558
   },
   {
@@ -175,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 419,
-    "target": 459,
+    "translated": 2452,
+    "target": 2806,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -268,7 +280,7 @@
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
-    "negativeVotes": 0,
+    "negativeVotes": 1,
     "winning": 0
   },
   {
@@ -285,8 +297,8 @@
         "name": "Chinese Traditional"
       }
     ],
-    "translated": 533,
-    "target": 962,
+    "translated": 1174,
+    "target": 2100,
     "approved": 0,
     "voted": 5,
     "positiveVotes": 0,
@@ -329,10 +341,10 @@
         "name": "Korean"
       }
     ],
-    "translated": 5693,
-    "target": 4898,
+    "translated": 6314,
+    "target": 5433,
     "approved": 0,
-    "voted": 0,
+    "voted": 1,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0
@@ -363,7 +375,7 @@
     "user": {
       "id": "13460838",
       "username": "hugoalh",
-      "fullName": "hugoalh",
+      "fullName": "HUGOALH (hugoalh)",
       "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/13460838/medium/16ade1f68cc69048c02bcb4f5a444667.png",
       "joined": "2024-10-25 23:28:28"
     },
@@ -472,9 +484,9 @@
   {
     "user": {
       "id": "13901945",
-      "username": "tabtomi88",
-      "fullName": "Tam\u00e1s Porcsin (tabtomi88)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/13901945/medium/972271b744b5fdd0d041ce4a087bce1e.png",
+      "username": "tabtomi",
+      "fullName": "Tam\u00e1s Porcsin (tabtomi)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/13901945/medium/628d039c43035b2dfcbd78d28c5cd38b.jpg",
       "joined": "2024-07-09 18:56:28"
     },
     "languages": [
@@ -483,10 +495,10 @@
         "name": "Hungarian"
       }
     ],
-    "translated": 4663,
-    "target": 4344,
+    "translated": 5944,
+    "target": 5632,
     "approved": 0,
-    "voted": 7,
+    "voted": 8,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0
@@ -509,7 +521,7 @@
     "target": 5469,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 18,
+    "positiveVotes": 22,
     "negativeVotes": 3,
     "winning": 0
   },
@@ -529,6 +541,28 @@
     ],
     "translated": 254,
     "target": 231,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "13984249",
+      "username": "K0RR",
+      "fullName": "K0RR",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/13984249/medium/228e06d62686939bca9ea39233a4806d_default.png",
+      "joined": "2026-01-24 13:58:12"
+    },
+    "languages": [
+      {
+        "id": "pl",
+        "name": "Polish"
+      }
+    ],
+    "translated": 440,
+    "target": 428,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -641,7 +675,7 @@
     "target": 851,
     "approved": 0,
     "voted": 14,
-    "positiveVotes": 0,
+    "positiveVotes": 2,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -693,11 +727,11 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 2836,
-    "target": 4516,
+    "translated": 4667,
+    "target": 7707,
     "approved": 0,
-    "voted": 11,
-    "positiveVotes": 2,
+    "voted": 17,
+    "positiveVotes": 7,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -741,7 +775,7 @@
     "target": 1150,
     "approved": 0,
     "voted": 8,
-    "positiveVotes": 0,
+    "positiveVotes": 1,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -786,7 +820,7 @@
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
-    "negativeVotes": 7,
+    "negativeVotes": 8,
     "winning": 0
   },
   {
@@ -836,8 +870,8 @@
   {
     "user": {
       "id": "15837729",
-      "username": "Hotarun",
-      "fullName": "Hotarun",
+      "username": "Kaorun",
+      "fullName": "Kaorun",
       "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/15837729/medium/78cf73587f9e2d0a209e530dd5ee828f_default.png",
       "joined": "2023-12-25 05:28:59"
     },
@@ -879,6 +913,28 @@
   },
   {
     "user": {
+      "id": "15917181",
+      "username": "oscfdezdz",
+      "fullName": "\u00d3scar Fern\u00e1ndez D\u00edaz (oscfdezdz)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/15917181/medium/c20316e631f03143e956c1da49042290.png",
+      "joined": "2025-12-28 19:01:29"
+    },
+    "languages": [
+      {
+        "id": "es-ES",
+        "name": "Spanish"
+      }
+    ],
+    "translated": 1752,
+    "target": 2025,
+    "approved": 0,
+    "voted": 8,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "15972315",
       "username": "mikropsoft",
       "fullName": "\ud835\udddb\ud835\uddfc\ud835\uddf9\ud835\uddf6 (mikropsoft)",
@@ -891,13 +947,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 5834,
-    "target": 5405,
-    "approved": 6144,
+    "translated": 7117,
+    "target": 6663,
+    "approved": 7348,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 5861
+    "winning": 7082
   },
   {
     "user": {
@@ -987,7 +1043,7 @@
     "target": 432,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 5,
+    "positiveVotes": 6,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1017,8 +1073,8 @@
     "user": {
       "id": "16028760",
       "username": "AndreStork",
-      "fullName": "AndreStork",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16028760/medium/285184c15c18d970e91a0f15e762f096.jpg",
+      "fullName": "Andrea Fiorencis (AndreStork)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16028760/medium/14867e54125d5db60a696608a549bf3d.jpg",
       "joined": "2023-09-27 13:13:27"
     },
     "languages": [
@@ -1027,10 +1083,10 @@
         "name": "Italian"
       }
     ],
-    "translated": 761,
-    "target": 816,
+    "translated": 1214,
+    "target": 1293,
     "approved": 0,
-    "voted": 0,
+    "voted": 1,
     "positiveVotes": 3,
     "negativeVotes": 0,
     "winning": 0
@@ -1146,7 +1202,7 @@
     "approved": 0,
     "voted": 0,
     "positiveVotes": 4,
-    "negativeVotes": 4,
+    "negativeVotes": 5,
     "winning": 0
   },
   {
@@ -1257,7 +1313,7 @@
     "voted": 1,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 244
+    "winning": 233
   },
   {
     "user": {
@@ -1317,11 +1373,11 @@
         "name": "French"
       }
     ],
-    "translated": 1017,
-    "target": 1211,
+    "translated": 1547,
+    "target": 1831,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 12,
+    "positiveVotes": 119,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1372,9 +1428,9 @@
   {
     "user": {
       "id": "16331116",
-      "username": "Freezlex",
-      "fullName": "Freezlex",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16331116/medium/83c245509a412ec3ddc80420dbc31b7d_default.png",
+      "username": "REMOVED_USER",
+      "fullName": "REMOVED_USER",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16331116/medium/96c171bea299e5b75d8f97819997fa7e_default.png",
       "joined": "2024-04-17 08:45:13"
     },
     "languages": [
@@ -1387,7 +1443,7 @@
     "target": 873,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 0,
+    "positiveVotes": 5,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1409,7 +1465,7 @@
     "target": 3938,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 2,
+    "positiveVotes": 3,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1459,6 +1515,28 @@
   },
   {
     "user": {
+      "id": "16430154",
+      "username": "nmsglmg",
+      "fullName": "nmsglmg",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16430154/medium/6e2a59a5be2b29563cb20488822e1697.png",
+      "joined": "2026-01-13 09:39:50"
+    },
+    "languages": [
+      {
+        "id": "zh-CN",
+        "name": "Chinese Simplified"
+      }
+    ],
+    "translated": 278,
+    "target": 497,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 3,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "16433923",
       "username": "UlinoyaPed",
       "fullName": "Cusset Gaunar (UlinoyaPed)",
@@ -1475,8 +1553,8 @@
         "name": "Chinese Traditional"
       }
     ],
-    "translated": 81,
-    "target": 128,
+    "translated": 116,
+    "target": 188,
     "approved": 0,
     "voted": 6,
     "positiveVotes": 0,
@@ -1567,7 +1645,7 @@
     "target": 197,
     "approved": 0,
     "voted": 14,
-    "positiveVotes": 0,
+    "positiveVotes": 1,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1683,6 +1761,28 @@
   },
   {
     "user": {
+      "id": "16765387",
+      "username": "VodoLast",
+      "fullName": "\u0410\u043b\u0435\u043a\u0441\u0435\u0439 \u0421\u043c\u0438\u0440\u043d\u043e\u0432 (VodoLast)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16765387/medium/27bd5e44515aff119b6c2a681d7ee194.png",
+      "joined": "2026-02-20 02:37:24"
+    },
+    "languages": [
+      {
+        "id": "ru",
+        "name": "Russian"
+      }
+    ],
+    "translated": 248,
+    "target": 217,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "17064036",
       "username": "krychtor",
       "fullName": "krychtor",
@@ -1697,6 +1797,28 @@
     ],
     "translated": 786,
     "target": 745,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17130574",
+      "username": "Sangelo",
+      "fullName": "Sangelo",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17130574/medium/72a43295f681d1f60a7bc76e9e2e429d.png",
+      "joined": "2025-05-28 04:33:34"
+    },
+    "languages": [
+      {
+        "id": "de",
+        "name": "German"
+      }
+    ],
+    "translated": 131,
+    "target": 117,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -1771,6 +1893,50 @@
   },
   {
     "user": {
+      "id": "17506742",
+      "username": "MAAB-FW",
+      "fullName": "Mohammad Aiyub Ali Bappy (MAAB-FW)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17506742/medium/50388a2e2b4166d9b09210b19944bec8.jpeg",
+      "joined": "2025-12-31 19:50:35"
+    },
+    "languages": [
+      {
+        "id": "bn",
+        "name": "Bengali"
+      }
+    ],
+    "translated": 685,
+    "target": 1523,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17740657",
+      "username": "alfekoen",
+      "fullName": "alfekoen",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17740657/medium/282a6845481561152dd91d7a51677fe8_default.png",
+      "joined": "2026-06-08 00:37:43"
+    },
+    "languages": [
+      {
+        "id": "da",
+        "name": "Danish"
+      }
+    ],
+    "translated": 89,
+    "target": 89,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "18711",
       "username": "NCAA",
       "fullName": "NCAA",
@@ -1827,8 +1993,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 5910,
-    "target": 6476,
+    "translated": 7944,
+    "target": 8972,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

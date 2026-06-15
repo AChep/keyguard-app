@@ -1,8 +1,11 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
-import tasks.GenerateResHashesTask
-import tasks.GenerateResLocaleConfigKtTask
-import tasks.GenerateResLocaleConfigResTask
+import com.artemchep.keyguard.buildplugins.resources.ResourcesCommonExtension
+import com.artemchep.keyguard.buildplugins.version.createVersionInfo
+import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import java.time.Duration
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -15,6 +18,7 @@ plugins {
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
+    id("keyguard.resources-common")
 }
 
 //
@@ -26,44 +30,23 @@ val versionInfo = createVersionInfo(
     logicalVersion = libs.versions.appVersionCode.get().toInt(),
 )
 
-// We want to know when the public data files
-// change. For example we might need to re-compute
-// watchtower alerts in that case.
-val generateResHashesKtTask = tasks.register<GenerateResHashesTask>("generateKeyguardResHashesKt") {
-    val prefix = layout.projectDirectory.dir("src/commonMain/composeResources/files")
-    inputFiles.from(
-        prefix.file("justdeleteme.json"),
-        prefix.file("justgetmydata.json"),
-        prefix.file("passkeys.json"),
-        prefix.file("public_suffix_list.txt"),
-        prefix.file("tfa.json")
-    )
-    outputDir.set(layout.buildDirectory.dir("generated/keyguardResHashesKt/kotlin/"))
+keyguardResources {
+    composeResourcesDir.set(ResourcesCommonExtension.defaultComposeResourcesDir(project))
+    composeFilesDir.set(ResourcesCommonExtension.defaultComposeFilesDir(project))
+    generatedPackageName.set(ResourcesCommonExtension.DEFAULT_PACKAGE_NAME)
+    defaultLocale.set(ResourcesCommonExtension.DEFAULT_LOCALE)
+    hashEntries.putAll(ResourcesCommonExtension.defaultHashEntries())
+    hashKotlinOutputDir.set(ResourcesCommonExtension.defaultHashKotlinOutputDir(project))
+    localeKotlinOutputDir.set(ResourcesCommonExtension.defaultLocaleKotlinOutputDir(project))
+    localeResOutputDir.set(ResourcesCommonExtension.defaultLocaleResOutputDir(project))
 }
 
-val generateResLocaleConfigKtTask = tasks.register<GenerateResLocaleConfigKtTask>(
-    name = "generateResLocaleConfigKt",
-) {
-    val res = layout.projectDirectory.dir("src/commonMain/composeResources")
-    composeResourcesDir.set(res)
-    outputDir.set(layout.buildDirectory.dir("generated/keyguardResLocaleConfigKt/kotlin/"))
-}
-
-val generateResLocaleConfigResTask = tasks.register<GenerateResLocaleConfigResTask>(
-    name = "generateResLocaleConfigRes",
-) {
-    val res = layout.projectDirectory.dir("src/commonMain/composeResources")
-    composeResourcesDir.set(res)
-    outputDir.set(layout.buildDirectory.dir("generated/keyguardResLocaleConfigRes/res/"))
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all {
-    dependsOn(generateResHashesKtTask)
-    dependsOn(generateResLocaleConfigKtTask)
+tasks.withType<Test>().configureEach {
+    timeout.set(Duration.ofMinutes(10))
 }
 
 kotlin {
-    androidLibrary {
+    android {
         compileSdk = libs.versions.androidCompileSdk.get().toInt()
         minSdk = libs.versions.androidMinSdk.get().toInt()
         namespace = "com.artemchep.keyguard.common"
@@ -73,8 +56,14 @@ kotlin {
         }
 
         androidResources.enable = true
+
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
     }
     jvm("desktop")
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         all {
@@ -87,10 +76,6 @@ kotlin {
             languageSettings.optIn("androidx.compose.foundation.layout.ExperimentalLayoutApi")
             languageSettings.optIn("androidx.compose.material3.ExperimentalMaterial3Api")
         }
-        commonMain {
-            kotlin.srcDir(generateResHashesKtTask)
-            kotlin.srcDir(generateResLocaleConfigKtTask)
-        }
     }
 
     sourceSets {
@@ -100,14 +85,15 @@ kotlin {
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material)
                 implementation(libs.jetbrains.compose.material3)
-                implementation(libs.jetbrains.compose.material.icons.extended)
+                api(libs.jetbrains.compose.material.icons.extended)
+                implementation(libs.jetbrains.compose.ui.tooling.preview)
                 api(libs.jetbrains.compose.components.resources)
                 api(libs.kotlin.stdlib)
-                api(libs.kdrag0n.colorkt)
-                api(libs.kyant0.m3color)
+                implementation(libs.kotlinx.atomicfu)
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.datetime)
+                api(libs.kotlinx.io.core)
                 api(libs.kotlinx.serialization.json)
                 api(libs.kotlinx.serialization.cbor)
                 api(libs.kotlinx.serialization.protobuf)
@@ -125,19 +111,81 @@ kotlin {
                 api(libs.ktor.ktor.client.content.negotiation)
                 api(libs.ktor.ktor.client.websockets)
                 api(libs.ktor.ktor.serialization.kotlinx)
-                api(libs.keemobile.kotpass)
+                api(project(":util:signalr"))
+                api(project(":util:webdav"))
+                api(project(":util:planeta"))
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
                 api(libs.cash.sqldelight.coroutines.extensions)
-                api(libs.halilibo.richtext.ui.material3)
-                api(libs.halilibo.richtext.commonmark)
-                api(libs.halilibo.richtext.markdown)
                 api(libs.devsrsouza.feather)
-                api(libs.mm2d.touchicon)
+                api(libs.html.text)
+                api(libs.haze.core)
+                api(libs.haze.blur)
+                api(libs.haze.materials)
+                api(libs.ksoup.html)
+                api(libs.snipme.highlights)
+                api(libs.kdroidfilter.platformtools.darkmodedetector)
             }
         }
-        commonTest.dependencies {
-            implementation(kotlin("test"))
+        val commonTest by getting {
+            kotlin.setSrcDirs(emptyList<String>())
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
+
+        val jvmTest by creating {
+            dependsOn(commonTest)
+            kotlin.srcDir("src/commonTest/kotlin")
+        }
+
+        val iosMain by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(libs.diglol.crypto.kdf)
+                api(libs.cash.sqldelight.native.driver)
+                api(libs.ktor.ktor.client.darwin)
+            }
+        }
+
+        val iosArm64Main by getting {
+            dependsOn(iosMain)
+        }
+
+        val iosSimulatorArm64Main by getting {
+            dependsOn(iosMain)
+        }
+
+        val iosTest by creating {
+            dependsOn(commonTest)
+        }
+
+        val iosArm64Test by getting {
+            dependsOn(iosTest)
+        }
+
+        val iosSimulatorArm64Test by getting {
+            dependsOn(iosTest)
+        }
+
+        val androidHostTest by getting {
+            dependsOn(jvmTest)
+            kotlin.srcDir("src/androidUnitTest/kotlin")
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.ktor.ktor.client.mock)
+            }
+        }
+
+        val desktopTest by getting {
+            dependsOn(jvmTest)
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.ktor.ktor.client.mock)
+            }
         }
 
         // Share jvm code between different JVM platforms, see:
@@ -147,19 +195,20 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.lingala.zip4j)
+                implementation(libs.kdrag0n.colorkt)
+                implementation(libs.kyant0.m3color)
                 implementation(libs.nulabinc.zxcvbn)
                 implementation(libs.commons.codec)
                 implementation(libs.bouncycastle.bcpkix)
                 implementation(libs.bouncycastle.bcprov)
-                implementation(libs.ricecode.string.similarity)
+                implementation(libs.keemobile.kotpass)
+                implementation(libs.halilibo.richtext.ui.material3)
+                implementation(libs.halilibo.richtext.commonmark)
+                implementation(libs.halilibo.richtext.markdown)
+                implementation(libs.mm2d.touchicon)
+                implementation(libs.hierynomus.sshj)
                 implementation(libs.google.zxing.core)
-                // SignalR
-                implementation(libs.microsoft.signalr)
-                implementation(libs.microsoft.signalr.messagepack)
-                implementation(libs.msgpack.core)
-                implementation(libs.msgpack.jackson.dataformat)
-                // ...implicitly added by SignalR, so we might as well opt-in
-                // for the latest and 'best-est' version.
+                implementation(libs.icu4j)
                 implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
                 implementation(libs.squareup.okhttp)
                 implementation(libs.squareup.logging.interceptor)
@@ -192,6 +241,7 @@ kotlin {
         val androidMain by getting {
             dependsOn(jvmMain)
             dependencies {
+                api(project(":androidLibAutofill"))
                 api(project.dependencies.platform(libs.firebase.bom.get()))
                 api(libs.firebase.analytics)
                 api(libs.firebase.crashlytics)
@@ -224,6 +274,8 @@ kotlin {
                 api(libs.android.billing.ktx)
                 api(libs.android.billing)
                 api(libs.google.accompanist.drawablepainter)
+                api(libs.androidx.wear.remote.interactions)
+                api(libs.google.play.services.wearable)
                 api(libs.google.accompanist.permissions)
                 api(libs.google.play.review.ktx)
                 api(libs.google.play.services.base)
@@ -235,8 +287,8 @@ kotlin {
                 api(libs.sqlcipher.android)
                 api(libs.kotlinx.coroutines.android)
                 api(libs.kodein.kodein.di.framework.android.x.viewmodel.savedstate)
-                api(libs.html.text)
                 api(libs.yubico.yubikit.android)
+                api(libs.yubico.yubikit.yubiotp)
                 api(libs.cash.sqldelight.android.driver)
                 api(libs.osipxd.security.crypto.datastore.preferences)
                 api(libs.fredporciuncula.flow.preferences)
@@ -249,14 +301,6 @@ compose.resources {
     publicResClass = true
     packageOfResClass = "com.artemchep.keyguard.res"
     generateResClass = always
-}
-
-androidComponents {
-    onVariants { variant ->
-        variant.sources.res?.addGeneratedSourceDirectory(
-            generateResLocaleConfigResTask,
-        ) { task -> task.outputDir }
-    }
 }
 
 ksp {
@@ -281,7 +325,7 @@ tasks.configureEach {
     }
 }
 kotlin.compilerOptions {
-    freeCompilerArgs.add("-Xcontext-receivers")
+    freeCompilerArgs.add("-Xcontext-parameters")
 }
 kotlin.compilerOptions.freeCompilerArgs.addAll(
     "-P",
@@ -289,6 +333,46 @@ kotlin.compilerOptions.freeCompilerArgs.addAll(
 )
 kotlin.sourceSets.commonMain {
     kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
+}
+
+val desktopTestTask = tasks.named<Test>("desktopTest")
+val desktopTestClassesTask = tasks.named("desktopTestClasses")
+
+tasks.register<Test>("vaultSearchBenchmark") {
+    group = "verification"
+    description = "Runs the vault search JVM benchmark suite from desktopTest."
+
+    dependsOn(desktopTestClassesTask)
+
+    testClassesDirs = desktopTestTask.get().testClassesDirs
+    classpath = desktopTestTask.get().classpath
+
+    maxParallelForks = 1
+    forkEvery = 0L
+    outputs.upToDateWhen { false }
+
+    systemProperty("user.language", "en")
+    systemProperty("user.country", "US")
+
+    filter {
+        includeTestsMatching("com.artemchep.keyguard.feature.home.vault.search.benchmark.*")
+        isFailOnNoMatchingTests = true
+    }
+
+    testLogging {
+        events =
+            setOf(
+                TestLogEvent.FAILED,
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_ERROR,
+                TestLogEvent.STANDARD_OUT,
+            )
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showStackTraces = true
+        showStandardStreams = true
+    }
 }
 
 // See:
@@ -314,7 +398,7 @@ buildkonfig {
         buildConfigField(STRING, "buildType", BuildType.DEV.name)
         buildConfigField(STRING, "buildDate", versionInfo.buildDate)
         buildConfigField(STRING, "buildRef", versionInfo.buildRef)
-        buildConfigField(STRING, "versionName", versionInfo.marketingVersion.toString())
+        buildConfigField(STRING, "versionName", versionInfo.marketingVersion)
         buildConfigField(INT, "versionCode", versionInfo.logicalVersion.toString())
     }
     defaultConfigs("release") {

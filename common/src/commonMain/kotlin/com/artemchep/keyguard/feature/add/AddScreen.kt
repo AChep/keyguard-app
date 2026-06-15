@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -43,6 +44,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -84,12 +86,15 @@ import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
+import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
+import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemTextContent2
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewTotpBadge2
+import com.artemchep.keyguard.feature.home.vault.component.defaultFlatItemPaddingValues
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.qr.ScanQrButton
@@ -152,7 +157,7 @@ private val paddingValues = PaddingValues(
     horizontal = 8.dp,
 )
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 fun LazyListScope.AddScreenItems(
 ) {
     item("items.skeleton.1") {
@@ -263,7 +268,7 @@ private fun getAnyFieldShapeStateOtherPredicate(
     index: Int,
 ) = false
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 fun AnyField(
     modifier: Modifier = Modifier,
@@ -419,7 +424,49 @@ fun AnyField(
     }
 }
 
-context(AddScreenScope)
+@Composable
+private fun FileDropField(
+    modifier: Modifier = Modifier,
+    containerPadding: PaddingValues = PaddingValues(0.dp),
+    fileDrop: AddStateItem.FileDrop?,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    if (fileDrop == null) {
+        Box(
+            modifier = modifier,
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(containerPadding),
+                content = content,
+            )
+        }
+        return
+    }
+
+    FileDropTargetBox(
+        modifier = modifier,
+        enabled = true,
+        onFileDrop = fileDrop.onFileDrop,
+        content = {
+            Box(
+                modifier = Modifier
+                    .padding(containerPadding),
+                content = content,
+            )
+        },
+        overlay = {
+            FileDropOverlay(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(containerPadding),
+                text = fileDrop.text,
+            )
+        },
+    )
+}
+
+context(addScope: AddScreenScope)
 @Composable
 private fun TitleTextField(
     modifier: Modifier = Modifier,
@@ -437,7 +484,7 @@ private fun TitleTextField(
             }
         }
     }
-    val focusRequester = initialFocusRequesterEffect()
+    val focusRequester = addScope.initialFocusRequesterEffect()
     FlatTextField(
         modifier = modifier
             .padding(horizontal = Dimens.fieldHorizontalPadding),
@@ -456,7 +503,7 @@ private fun TitleTextField(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun UsernameTextField(
     modifier: Modifier = Modifier,
@@ -485,7 +532,7 @@ private fun UsernameTextField(
                 key = "username",
                 username = true,
                 provideUris = {
-                    this@AddScreenScope
+                    addScope
                         .obtainUriContext()
                 },
                 onValueChange = field.onChange,
@@ -495,7 +542,7 @@ private fun UsernameTextField(
 }
 
 private fun AddScreenScope.obtainUriContext(): ImmutableList<String> {
-    val screenItems = this@AddScreenScope.itemsState.value
+    val screenItems = itemsState.value
     return screenItems
         .mapNotNull { item ->
             if (item is AddStateItem.Url<*>) {
@@ -522,7 +569,7 @@ private fun AddScreenScope.obtainUriContext(): ImmutableList<String> {
         .toPersistentList()
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PasswordTextField(
@@ -547,7 +594,7 @@ private fun PasswordTextField(
                 key = "password",
                 password = true,
                 provideUris = {
-                    this@AddScreenScope
+                    addScope
                         .obtainUriContext()
                 },
                 onValueChange = field.onChange,
@@ -591,7 +638,7 @@ private fun PasswordTextField(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun TotpTextField(
     modifier: Modifier = Modifier,
@@ -639,7 +686,7 @@ private fun TotpTextField(
     }
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun NoteTextField(
     modifier: Modifier = Modifier,
@@ -771,7 +818,7 @@ private fun NoteTextField(
     }
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun SshKeyField(
     modifier: Modifier = Modifier,
@@ -779,53 +826,67 @@ private fun SshKeyField(
     shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
-    FlatItemLayoutExpressive(
+    FileDropField(
         modifier = modifier,
-        backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-        leading = icon<RowScope>(Icons.Outlined.Terminal, Icons.Outlined.Key),
-        shapeState = shapeState,
-        content = {
-            val fingerprint = state.keyPair?.fingerprint
-            if (!fingerprint.isNullOrEmpty()) {
-                FlatItemTextContent(
-                    title = {
-                        Text(
-                            text = fingerprint,
-                        )
+        containerPadding = defaultFlatItemPaddingValues(),
+        fileDrop = item.fileDrop,
+    ) {
+        FlatItemLayoutExpressive(
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            leading = icon<RowScope>(Icons.Outlined.Terminal, Icons.Outlined.Key),
+            shapeState = shapeState,
+            padding = PaddingValues(0.dp),
+            content = {
+                val fingerprint = state.keyPair?.fingerprint
+                if (!fingerprint.isNullOrEmpty()) {
+                    FlatItemTextContent(
+                        title = {
+                            Text(
+                                text = fingerprint,
+                            )
+                        },
+                    )
+                } else {
+                    FlatItemTextContent(
+                        title = {
+                            Text(
+                                modifier = Modifier
+                                    .alpha(DisabledEmphasisAlpha),
+                                text = stringResource(Res.string.key_ssh_value_placeholder),
+                            )
+                        },
+                    )
+                }
+            },
+            trailing = {
+                AutofillButton(
+                    key = "sshKey",
+                    sshKey = true,
+                    provideUris = {
+                        addScope
+                            .obtainUriContext()
+                    },
+                    onResultChange = {
+                        if (it is GetPasswordResult.AsyncKey) {
+                            state.onChange(it.keyPair)
+                        }
                     },
                 )
-            } else {
-                FlatItemTextContent(
-                    title = {
-                        Text(
-                            modifier = Modifier
-                                .alpha(DisabledEmphasisAlpha),
-                            text = stringResource(Res.string.key_ssh_value_placeholder),
-                        )
-                    },
-                )
-            }
-        },
-        trailing = {
-            AutofillButton(
-                key = "sshKey",
-                sshKey = true,
-                provideUris = {
-                    this@AddScreenScope
-                        .obtainUriContext()
-                },
-                onResultChange = {
-                    if (it is GetPasswordResult.AsyncKey) {
-                        state.onChange(it.keyPair)
-                    }
-                },
-            )
-        },
-        enabled = true,
-    )
+                IconButton(
+                    onClick = state.onImport,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.FileUpload,
+                        contentDescription = stringResource(Res.string.ssh_key_import_title),
+                    )
+                }
+            },
+            enabled = true,
+        )
+    }
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun UrlTextField(
     modifier: Modifier = Modifier,
@@ -874,7 +935,7 @@ private fun UrlTextField(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun AttachmentTextField(
     modifier: Modifier = Modifier,
@@ -882,80 +943,85 @@ private fun AttachmentTextField(
     shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
-    FlatTextField(
-        modifier = modifier
-            .padding(horizontal = Dimens.horizontalPadding),
-        label = "File",
-        shapeState = shapeState,
-        placeholder = "File name",
-        value = state.name,
-        keyboardOptions = KeyboardOptions(
-            autoCorrectEnabled = false,
-            keyboardType = KeyboardType.Text,
-        ),
-        singleLine = true,
-        maxLines = 1,
-        leading = {
-            Box {
-                Icon(
-                    imageVector = Icons.Outlined.KeyguardAttachment,
-                    contentDescription = null,
-                )
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .background(
-                            MaterialTheme.colorScheme.tertiaryContainer,
-                            MaterialTheme.shapes.extraSmall,
-                        ),
-                ) {
-                    if (state.synced) {
-                        Icon(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .padding(1.dp),
-                            imageVector = Icons.Outlined.CloudDone,
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                            contentDescription = null,
-                        )
-                    }
-                    if (!state.synced) {
-                        Icon(
-                            modifier = Modifier
-                                .size(16.dp)
-                                .padding(1.dp),
-                            imageVector = Icons.Outlined.FileUpload,
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                            contentDescription = null,
-                        )
-                    }
-                }
-            }
-        },
-        content = {
-            ExpandedIfNotEmpty(
-                valueOrNull = state.size,
-            ) { fileSize ->
-                Column {
-                    Spacer(Modifier.height(8.dp))
-                    HorizontalDivider()
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = fileSize,
-                        style = MaterialTheme.typography.labelSmall,
+    FileDropField(
+        modifier = modifier,
+        containerPadding = defaultFlatItemPaddingValues(),
+        fileDrop = item.fileDrop,
+    ) {
+        FlatTextField(
+            modifier = Modifier,
+            label = stringResource(Res.string.file),
+            shapeState = shapeState,
+            placeholder = stringResource(Res.string.file_name_placeholder),
+            value = state.name,
+            keyboardOptions = KeyboardOptions(
+                autoCorrectEnabled = false,
+                keyboardType = KeyboardType.Text,
+            ),
+            singleLine = true,
+            maxLines = 1,
+            leading = {
+                Box {
+                    Icon(
+                        imageVector = Icons.Outlined.KeyguardAttachment,
+                        contentDescription = null,
                     )
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .background(
+                                MaterialTheme.colorScheme.tertiaryContainer,
+                                MaterialTheme.shapes.extraSmall,
+                            ),
+                    ) {
+                        if (state.synced) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .padding(1.dp),
+                                imageVector = Icons.Outlined.CloudDone,
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                contentDescription = null,
+                            )
+                        }
+                        if (!state.synced) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .padding(1.dp),
+                                imageVector = Icons.Outlined.FileUpload,
+                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                contentDescription = null,
+                            )
+                        }
+                    }
                 }
-            }
-        },
-        trailing = {
-            OptionsButton(
-                actions = item.options,
-            )
-        },
-    )
+            },
+            content = {
+                ExpandedIfNotEmpty(
+                    valueOrNull = state.size,
+                ) { fileSize ->
+                    Column {
+                        Spacer(Modifier.height(8.dp))
+                        HorizontalDivider()
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = fileSize,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
+                }
+            },
+            trailing = {
+                OptionsButton(
+                    actions = item.options,
+                )
+            },
+        )
+    }
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun PasskeyField(
     modifier: Modifier = Modifier,
@@ -1012,7 +1078,7 @@ private fun PasskeyField(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun TextTextField(
     modifier: Modifier = Modifier,
@@ -1049,7 +1115,7 @@ private fun TextTextField(
 }
 
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun FieldTag(
     modifier: Modifier = Modifier,
@@ -1079,7 +1145,7 @@ private fun FieldTag(
     }
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun FieldTextTag(
     modifier: Modifier = Modifier,
@@ -1101,7 +1167,7 @@ private fun FieldTextTag(
 }
 
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun FieldField(
     modifier: Modifier = Modifier,
@@ -1147,7 +1213,7 @@ private fun FieldField(
     }
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun FieldTextField(
     modifier: Modifier = Modifier,
@@ -1184,7 +1250,7 @@ private fun FieldTextField(
                 username = true,
                 password = true,
                 provideUris = {
-                    this@AddScreenScope
+                    addScope
                         .obtainUriContext()
                 },
                 onValueChange = state.text.onChange,
@@ -1196,7 +1262,7 @@ private fun FieldTextField(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun FieldSwitchField(
     modifier: Modifier = Modifier,
@@ -1221,7 +1287,7 @@ private fun FieldSwitchField(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun FieldLinkedIdField(
     modifier: Modifier = Modifier,
@@ -1234,12 +1300,9 @@ private fun FieldLinkedIdField(
     val labelInteractionSource = remember { MutableInteractionSource() }
     val valueInteractionSource = remember { MutableInteractionSource() }
 
-    val isError = remember(
-        label.error,
-    ) {
-        derivedStateOf {
-            label.error != null
-        }
+    val isError = kotlin.run {
+        val error = label.error != null
+        rememberUpdatedState(error)
     }
 
     val hasFocusState = remember {
@@ -1340,7 +1403,7 @@ private fun FieldLinkedIdField(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun SwitchField(
     modifier: Modifier = Modifier,
@@ -1384,7 +1447,7 @@ private fun SwitchField(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun DateMonthYearField(
     modifier: Modifier = Modifier,
@@ -1392,11 +1455,8 @@ private fun DateMonthYearField(
     shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
-    val isEmpty by derivedStateOf {
-        val isEmpty = state.month.state.value.isEmpty() &&
-                state.year.state.value.isEmpty()
-        isEmpty
-    }
+    val isEmpty = state.month.state.value.isEmpty() &&
+            state.year.state.value.isEmpty()
     val onClear = remember {
         // lambda
         {
@@ -1433,7 +1493,7 @@ private fun DateMonthYearField(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun DateTimeField(
     modifier: Modifier = Modifier,
@@ -1500,7 +1560,7 @@ private fun DateTimeField(
     }
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun EnumItem(
     modifier: Modifier = Modifier,
@@ -1524,7 +1584,7 @@ private fun EnumItem(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun SectionItem(
     modifier: Modifier = Modifier,
@@ -1537,7 +1597,7 @@ private fun SectionItem(
     )
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SuggestionItem(
@@ -1617,7 +1677,7 @@ private fun SuggestionItemChip(
     }
 }
 
-context(AddScreenScope)
+context(addScope: AddScreenScope)
 @Composable
 private fun AddItem(
     modifier: Modifier = Modifier,

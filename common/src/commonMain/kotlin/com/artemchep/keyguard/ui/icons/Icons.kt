@@ -40,6 +40,9 @@ val Icons.Outlined.KeyguardView
 val Icons.Outlined.KeyguardTwoFa
     get() = KeyguardIcons.TwoFactorAuthentication
 
+val Icons.Outlined.KeyguardYubiKey
+    get() = Key
+
 val Icons.Outlined.KeyguardPasskey
     get() = Key
 

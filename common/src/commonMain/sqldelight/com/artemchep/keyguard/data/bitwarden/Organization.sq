@@ -7,6 +7,8 @@ CREATE TABLE organization (
   FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_organization_accountId ON organization(accountId);
+
 insert {
   UPDATE organization
   SET

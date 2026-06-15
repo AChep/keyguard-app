@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
@@ -24,10 +25,14 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.PutWebsiteIcons
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasBrowser
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemLayout
@@ -70,14 +75,21 @@ fun settingWebsiteIconsProvider(
         ),
     ) {
         val navigationController by rememberUpdatedState(LocalNavigationController.current)
+        val hasBrowser = CurrentPlatform
+            .hasBrowser()
         SettingMarkdown(
             checked = websiteIcons,
             onCheckedChange = onCheckedChange,
-            onLearnMore = {
-                val intent = NavigationIntent.NavigateToBrowser(
-                    url = "https://bitwarden.com/help/website-icons/",
-                )
-                navigationController.queue(intent)
+            onLearnMore = if (hasBrowser) {
+                // lambda
+                {
+                    val intent = NavigationIntent.NavigateToBrowser(
+                        url = "https://bitwarden.com/help/website-icons/",
+                    )
+                    navigationController.queue(intent)
+                }
+            } else {
+                null
             },
         )
     }
@@ -89,56 +101,32 @@ private fun SettingMarkdown(
     onCheckedChange: ((Boolean) -> Unit)?,
     onLearnMore: (() -> Unit)?,
 ) {
-    FlatItemLayoutExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.KeyguardWebsite),
-        trailing = {
-            CompositionLocalProvider(
-                LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
-            ) {
-                Switch(
-                    checked = checked,
-                    enabled = onCheckedChange != null,
-                    onCheckedChange = onCheckedChange,
-                )
-            }
-        },
-        content = {
-            FlatItemTextContent(
-                title = {
+    LocalSettingPaneComponents.current.KgSwitch(
+        icon = Icons.Outlined.KeyguardWebsite,
+        title = stringResource(Res.string.pref_item_load_website_icons_title),
+        text = stringResource(Res.string.pref_item_load_website_icons_text),
+        footer = if (onLearnMore != null) {
+            // composable
+            {
+                TextButton(
+                    modifier = Modifier
+                        .padding(
+                            horizontal = getSettingsButtonStartPadding(),
+                            vertical = 4.dp,
+                        ),
+                    onClick = {
+                        onLearnMore()
+                    },
+                ) {
                     Text(
-                        text = stringResource(Res.string.pref_item_load_website_icons_title),
+                        text = stringResource(Res.string.learn_more),
                     )
-                },
-            )
-            Spacer(
-                modifier = Modifier
-                    .height(8.dp),
-            )
-            Text(
-                color = LocalContentColor.current
-                    .combineAlpha(MediumEmphasisAlpha),
-                style = MaterialTheme.typography.bodySmall,
-                text = stringResource(Res.string.pref_item_load_website_icons_text),
-            )
-        },
-        footer = {
-            TextButton(
-                modifier = Modifier
-                    .padding(
-                        horizontal = getSettingsButtonStartPadding(),
-                        vertical = 4.dp,
-                    ),
-                enabled = onLearnMore != null,
-                onClick = {
-                    onLearnMore?.invoke()
-                },
-            ) {
-                Text(
-                    text = stringResource(Res.string.learn_more),
-                )
+                }
             }
+        } else {
+            null
         },
-        onClick = onCheckedChange?.partially1(!checked),
+        checked = checked,
+        onCheckedChange = onCheckedChange,
     )
 }

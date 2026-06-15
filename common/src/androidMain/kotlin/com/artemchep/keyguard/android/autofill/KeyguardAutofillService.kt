@@ -22,6 +22,8 @@ import com.artemchep.keyguard.android.AutofillFakeAuthActivity
 import com.artemchep.keyguard.android.AutofillSaveActivity
 import com.artemchep.keyguard.android.MainActivity
 import com.artemchep.keyguard.android.PendingIntents
+import com.artemchep.keyguard.android.autofill.v2.DefaultStructureParserV2
+import com.artemchep.keyguard.android.autofill.v2.model.ParseOptions
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.*
 import com.artemchep.keyguard.common.model.*
@@ -106,7 +108,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         val ciphersFlow = ciphersRawFlow
             .map { ciphers ->
                 val filteredCiphers = ciphers
-                    .filter { !it.deleted }
+                    .filter { !it.deleted && !it.archived }
                 filteredCiphers
             }
         return ciphersFlow
@@ -184,7 +186,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         model()
     }
 
-    private val autofillStructureParser = AutofillStructureParser()
+    private val autofillStructureParser = DefaultStructureParserV2()
 
     private class GetCipherSuggestions(
         private val parent: GetSuggestions<Any?>,
@@ -213,7 +215,7 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         cancellationSignal: CancellationSignal,
         callback: FillCallback,
     ) {
-        getAutofillStructureIo(request)
+        val fillRequestJob = getAutofillStructureIo(request)
             .effectMap { autofillStructure ->
                 if (autofillStructure.items.isEmpty()) {
                     throw AbortAutofillException("Nothing to autofill.")
@@ -268,7 +270,12 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                     autofillStructure = autofillStructure,
                 )
             }
-            .effectTap { response ->
+            .dispatchOn(Dispatchers.Default)
+            .effectTap(Dispatchers.Main) { response ->
+                if (cancellationSignal.isCanceled) {
+                    return@effectTap
+                }
+
                 callback.onSuccess(response)
             }
             .handleError { e ->
@@ -283,28 +290,37 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 val msg = e.message ?: "Something went wrong"
                 callback.onFailure(msg)
             }
-            .dispatchOn(Dispatchers.Main.immediate)
             .launchIn(scope)
         cancellationSignal.setOnCancelListener {
-            job.cancel()
+            fillRequestJob.cancel()
         }
     }
 
     private fun getAutofillStructureIo(
         request: FillRequest,
     ) = ioEffect {
-        val assistStructureLatest = request.fillContexts
-            .map { it.structure }
-            .lastOrNull()
+        val latestFillContext = request.fillContexts.lastOrNull()
+        val assistStructureLatest = latestFillContext?.structure
         if (assistStructureLatest == null) {
             throw AbortAutofillException("No structures to fill.")
         }
+        val focusedFieldId =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                latestFillContext.focusedId
+            } else {
+                null
+            }
 
         val respectAutofillOff = prefRespectAutofillOffFlow.first()
-        autofillStructureParser.parse(
-            assistStructureLatest,
-            respectAutofillOff,
-        )
+        autofillStructureParser
+            .parse(
+                assistStructureLatest,
+                ParseOptions(
+                    respectAutofillOff = respectAutofillOff,
+                    focusedFieldId = focusedFieldId,
+                ),
+            )
+            .toAutofillStructure2()
     }
 
     private fun getSaveStructureIo(
@@ -318,10 +334,14 @@ class KeyguardAutofillService : AutofillService(), DIAware {
         }
 
         val respectAutofillOff = prefRespectAutofillOffFlow.first()
-        autofillStructureParser.parse(
-            assistStructureLatest,
-            respectAutofillOff,
-        )
+        autofillStructureParser
+            .parse(
+                assistStructureLatest,
+                ParseOptions(
+                    respectAutofillOff = respectAutofillOff,
+                ),
+            )
+            .toAutofillStructure2()
     }
 
     private fun getAutofillResponseIo(
@@ -831,7 +851,8 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                     autofillStructure = autofillStructure,
                 )
             }
-            .effectTap { intent ->
+            .dispatchOn(Dispatchers.Default)
+            .effectTap(Dispatchers.Main) { intent ->
                 if (Build.VERSION.SDK_INT >= 28) {
                     val flags =
                         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
@@ -856,7 +877,6 @@ class KeyguardAutofillService : AutofillService(), DIAware {
                 val msg = e.message ?: "Something went wrong"
                 callback.onFailure(msg)
             }
-            .dispatchOn(Dispatchers.Main.immediate)
             .launchIn(scope)
     }
 

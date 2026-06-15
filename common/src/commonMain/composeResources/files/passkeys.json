@@ -71,6 +71,19 @@
     "created_at": "2023-10-14T12:55:30.917158+00:00"
   },
   {
+    "id": "f5e2cc9c532975348d050b2d346176f9",
+    "name": "ahrefs",
+    "domain": "ahrefs.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://ahrefs.com/blog/new-features/",
+    "setup": "https://app.ahrefs.com/account/security",
+    "category": "Information Technology",
+    "created_at": "2026-01-14T18:48:20.684662+00:00",
+    "notes": "Added November 14th 2025"
+  },
+  {
     "id": "8a04c4bad707b7b785373f1b215dee13",
     "name": "Air New Zealand",
     "domain": "airnewzealand.co.nz",
@@ -378,6 +391,30 @@
     "notes": "Powered by Passage by 1Password."
   },
   {
+    "id": "51bb3299be9d7ec351746b218d0dcb08",
+    "name": "Atlassian",
+    "domain": "atlassian.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.atlassian.com/atlassian-account/docs/access-your-atlassian-account-with-a-passkey/",
+    "setup": "https://id.atlassian.com/manage-profile/security",
+    "category": "Information Technology",
+    "created_at": "2023-05-05T06:17:16.807824+00:00"
+  },
+  {
+    "id": "a994505f565a3c1271b8c3a50ca7158f",
+    "name": "Atlassian",
+    "domain": "atlassian.net",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.atlassian.com/atlassian-account/docs/access-your-atlassian-account-with-a-passkey/",
+    "setup": "https://id.atlassian.com/manage-profile/security",
+    "category": "Information Technology",
+    "created_at": "2023-09-15T10:02:19.411222+00:00"
+  },
+  {
     "id": "b91b373882b8442d694254959a6d7dcd",
     "name": "Authgear",
     "domain": "authgear.com",
@@ -582,6 +619,19 @@
     "setup": "https://cash.app/account/settings#security-and-privacy",
     "category": "Finance",
     "created_at": "2023-05-24T11:03:39+00:00"
+  },
+  {
+    "id": "923653151820eda03acb7bcfd2460442",
+    "name": "ChatGPT",
+    "domain": "chat.openai.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.openai.com/en/articles/20001039-passkeys-to-secure-your-openai-account",
+    "setup": "https://chatgpt.com/#settings/Security",
+    "category": "Productivity",
+    "created_at": "2026-02-03T09:27:18+00:00",
+    "notes": "Sign in to your OpenAI account via website.\n\nOpen ChatGPT Security Settings.\n\nFind the Passkeys section.\n\nSelect Add passkey and follow the on-screen instructions."
   },
   {
     "id": "51bb256a0f5d44ce4a5de9a92170978d",
@@ -1327,6 +1377,18 @@
     "created_at": "2024-03-27T10:38:36.26944+00:00"
   },
   {
+    "id": "85f87923946be9ccef94b43d38ebbd26",
+    "name": "haveibeenpwned",
+    "domain": "haveibeenpwned.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://haveibeenpwned.com/Dashboard/Redirect/Passkeys",
+    "setup": "https://haveibeenpwned.com/Dashboard/Redirect/Passkeys",
+    "category": "Information Technology",
+    "created_at": "2026-04-08T11:16:35.672789+00:00"
+  },
+  {
     "id": "a4a39e43c8becd7c08c6a6ad39174e55",
     "name": "hCaptcha",
     "domain": "hcaptcha.com",
@@ -1442,6 +1504,18 @@
     ],
     "category": "Information Technology",
     "created_at": "2023-07-14T13:16:30.051967+00:00"
+  },
+  {
+    "id": "c65948e8bcba4ad57511949de68c417a",
+    "name": "Atlassian",
+    "domain": "id.atlassian.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.atlassian.com/atlassian-account/docs/access-your-atlassian-account-with-a-passkey/",
+    "setup": "https://id.atlassian.com/manage-profile/security",
+    "category": "Information Technology",
+    "created_at": "2023-03-30T21:26:54.14783+00:00"
   },
   {
     "id": "4db2a87f650fddc9dc3563ce117efabf",
@@ -2456,6 +2530,18 @@
     "notes": "Powered by Passage by 1Password."
   },
   {
+    "id": "d58ba69bad8f845739c197eacb74601f",
+    "name": "Ramp",
+    "domain": "ramp.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://support.ramp.com/hc/en-us/articles/38214284722451-Logging-in-with-Passkeys",
+    "setup": "https://app.ramp.com/settings/personal-settings/security#/d/personal-settings/passkeys",
+    "category": "Finance",
+    "created_at": "2026-01-05T17:39:05.892118+00:00"
+  },
+  {
     "id": "36255c78c7acc899f15f0b992cce4d50",
     "name": "Miniflux",
     "domain": "reader.miniflux.app",
@@ -2797,6 +2883,30 @@
     "created_at": "2025-01-23T10:21:18.978455+00:00"
   },
   {
+    "id": "93bd7542bfc1fdc6133060ff37a2192b",
+    "name": "Telegram",
+    "domain": "telegram.me",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://telegram.org/faq/#q-what-is-a-passkey",
+    "category": "Information Technology",
+    "created_at": "2023-07-02T23:28:45.461517+00:00",
+    "notes": "Your passkeys can be managed in Settings > Privacy and Security > Passkeys from any app \u2014 which shows detailed info for each of your passkeys, like their creation date and when they were last used to log in."
+  },
+  {
+    "id": "af385d1d07e0d2f0efed45ed8aa91072",
+    "name": "Telegram ",
+    "domain": "telegram.org",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://telegram.org/faq/#q-what-is-a-passkey",
+    "category": "Other",
+    "created_at": "2023-03-22T22:50:07.976064+00:00",
+    "notes": "Your passkeys can be managed in Settings > Privacy and Security > Passkeys from any app \u2014 which shows detailed info for each of your passkeys, like their creation date and when they were last used to log in."
+  },
+  {
     "id": "11290699cf419fcc16db8dfa1d2d9242",
     "name": "Deutsche Telekom",
     "domain": "telekom.de",
@@ -3131,6 +3241,19 @@
     "notes": "Only available through the mobile app and on consumer accounts. \n\nPasskeys only work with 1Password in the iOS and Android app, not the walmart.com website"
   },
   {
+    "id": "435095630179759b6e27bade9062058a",
+    "name": "Wealthsimple",
+    "domain": "wealthsimple.com",
+    "features": [
+      "signin"
+    ],
+    "documentation": "https://help.wealthsimple.com/hc/en-ca/articles/45953732950939-Log-in-with-a-passkey",
+    "setup": "https://my.wealthsimple.com/app/settings/security",
+    "category": "Finance",
+    "created_at": "2026-02-17T20:57:52+00:00",
+    "notes": "#### To set up a passkey:\n\n1. Log in to your Wealthsimple profile\n2. From the Home tab, click the Profile icon in the top right corner\n3. Click the Settings (gear) icon\n4. Click Login and security\n5. Under Passkeys, click Add a passkey\n6. Click Get started\n7. Enter a name for your passkey\n8. Click Next\n9. Complete the 2FA prompt\n10. Follow your device's prompts to finish the setup\n\n#### Supported browsers and devices:\n\n\u2022 macOS Ventura or newer\\\n\u2022 Windows 10 or 11\\\n\u2022 iOS 16 or newer\\\n\u2022 Android 9 or newer\\\n\u2022 Chrome 109+\\\n\u2022 Safari 16+\\\n\u2022 Edge 109+\n\n<p align=\"center\"><sup><sub>Updated on February 17, 2026</sub></sup></p>"
+  },
+  {
     "id": "ffe0c8cc238d5545af34bcdde2e1c523",
     "name": "WebAuthn.io",
     "domain": "webauthn.io",
@@ -3177,6 +3300,18 @@
     "category": "Information Technology",
     "created_at": "2023-04-09T07:00:20.568068+00:00",
     "notes": "Saving and signing in with a passkey on Whatsapp is currently limited to the iOS and Android apps. Signing in to the Mac desktop version or on the web browser version of Whatsapp still requires using the \"Linked Devices\" feature or scanning the QR code using your mobile device.\n\n#### To set up a passkey on your Whatsapp account:\n1. Go to your WhatsApp settings.\n2. Tap Passkeys > Create a passkey.\n3. Tap Continue.\n- You may be asked to tap Use screen lock to create your passkey."
+  },
+  {
+    "id": "8f431b7129fb3b1b9c7419b4d690f2e5",
+    "name": "Wikipedia",
+    "domain": "wikipedia.org",
+    "features": [
+      "signin"
+    ],
+    "setup": "https://auth.wikimedia.org/enwiki/wiki/Special:AccountSecurity",
+    "category": "Other",
+    "created_at": "2026-01-23T17:35:27+00:00",
+    "notes": "To add a passkey you must first set up two-factor authentication."
   },
   {
     "id": "9c97455a834cf176b8c398b3016475c2",

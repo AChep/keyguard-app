@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.placeholder.impl
 
+import arrow.core.getOrElse
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
@@ -41,7 +42,11 @@ class CipherPlaceholder(
                         token = token,
                         timestamp = now,
                     )
-                    .code
+                    .map { it.code }
+                    // re-throw the exception
+                    .getOrElse { e ->
+                        throw e
+                    }
             }
         }
 

@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-feature android:name="android.hardware.type.watch" />
+
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.CAMERA"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.NFC"
+        tools:node="remove" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        tools:node="remove" />
+    <uses-feature
+        android:name="android.hardware.camera.any"
+        tools:node="remove" />
+    <uses-feature
+        android:name="android.hardware.camera.autofocus"
+        tools:node="remove" />
+    <uses-feature
+        android:name="android.hardware.usb.host"
+        tools:node="remove" />
+    <uses-feature
+        android:name="android.hardware.nfc"
+        tools:node="remove" />
+
+    <application
+        android:name=".wear.WearApp"
+        android:supportsRtl="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:networkSecurityConfig="@xml/network_configuration"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:theme="@style/WearTheme.Keyguard">
+        <meta-data
+            android:name="WindowManagerPreference:SuppressWindowControlNavigationButton"
+            tools:node="remove" />
+        <meta-data
+            android:name="WindowManagerPreference:FreeformWindowSize"
+            tools:node="remove" />
+        <meta-data
+            android:name="WindowManagerPreference:FreeformWindowOrientation"
+            tools:node="remove" />
+
+        <activity
+            android:name="com.artemchep.keyguard.android.MainActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.artemchep.keyguard.android.GeneratorActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.artemchep.keyguard.android.CompanionAuthActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.artemchep.keyguard.android.LargeTypeActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.artemchep.keyguard.android.AutofillActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.artemchep.keyguard.android.AutofillSaveActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.artemchep.keyguard.android.AutofillFakeAuthActivity"
+            tools:node="remove" />
+        <activity
+            android:name="com.artemchep.keyguard.android.PasskeyCreateActivity"
+            tools:ignore="NewApi"
+            tools:node="remove" />
+        <activity
+            android:name="com.artemchep.keyguard.android.PasswordGetActivity"
+            tools:ignore="NewApi"
+            tools:node="remove" />
+        <activity
+            android:name="com.artemchep.keyguard.android.PasskeyGetActivity"
+            tools:ignore="NewApi"
+            tools:node="remove" />
+        <activity
+            android:name="com.artemchep.keyguard.android.CredentialGetUnlockActivity"
+            tools:ignore="NewApi"
+            tools:node="remove" />
+        <activity
+            android:name=".wear.WearPasswordGetActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":password"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="NewApi" />
+        <activity
+            android:name=".wear.WearPasskeyGetActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":passkey"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="NewApi" />
+        <activity
+            android:name=".wear.WearPasskeyGetUnlockActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":passkey"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="NewApi" />
+        <activity
+            android:name="com.artemchep.keyguard.android.sshagent.SshRequestActivity"
+            tools:node="remove" />
+
+        <receiver
+            android:name="com.artemchep.keyguard.android.downloader.receiver.AttachmentDownloadActionReceiver"
+            tools:node="remove" />
+        <receiver
+            android:name="com.artemchep.keyguard.android.downloader.receiver.VaultExportActionReceiver"
+            tools:node="remove" />
+        <receiver
+            android:name="com.artemchep.keyguard.android.downloader.receiver.CopyActionReceiver"
+            tools:node="remove" />
+        <receiver
+            android:name="com.artemchep.keyguard.android.sshagent.SshAgentReceiver"
+            tools:node="remove" />
+        <receiver
+            android:name="com.artemchep.keyguard.android.sshagent.SshRequestNotificationActionReceiver"
+            tools:node="remove" />
+
+        <service
+            android:name="com.artemchep.keyguard.android.clipboard.KeyguardClipboardService"
+            tools:node="remove" />
+        <service
+            android:name="com.artemchep.keyguard.android.sshagent.SshAgentService"
+            tools:node="remove" />
+        <service
+            android:name="com.artemchep.keyguard.android.autofill.KeyguardAutofillService"
+            tools:node="remove" />
+        <service
+            android:name="com.artemchep.keyguard.android.autofill.KeyguardCredentialService"
+            tools:ignore="NewApi"
+            tools:node="remove" />
+        <service
+            android:name=".wear.WearKeyguardCredentialService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_CREDENTIAL_PROVIDER_SERVICE"
+            tools:ignore="NewApi">
+            <intent-filter>
+                <action android:name="android.service.credentials.CredentialProviderService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.credentials.provider"
+                android:resource="@xml/config_credential_service" />
+        </service>
+        <service
+            android:name="com.artemchep.keyguard.feature.auth.companion.CompanionAuthListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <action android:name="com.google.android.gms.wearable.CHANNEL_EVENT" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/companion-auth" />
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.artemchep.keyguard.android.shortcut.ShortcutTileService"
+            tools:node="remove" />
+        <service
+            android:name="com.artemchep.keyguard.android.shortcut.GeneratorTileService"
+            tools:node="remove" />
+        <service
+            android:name="com.artemchep.keyguard.android.shortcut.GeneratorStatelessTileService"
+            tools:node="remove" />
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            tools:node="remove" />
+
+        <activity
+            android:name=".wear.WearActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:taskAffinity=":keyguard"
+            android:theme="@style/WearTheme.Keyguard.Splash">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+    </application>
+</manifest>

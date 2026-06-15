@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.login
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
+import com.artemchep.keyguard.provider.bitwarden.usecase.util.withPasswordChange
 import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -57,19 +58,14 @@ class ChangeCipherPasswordByIdImpl(
                     }?.attempt()?.bind()?.getOrNull()
 
                 var new = model
+                val oldPasswordHistory = new.data_.passwordHistory
+                var passwordHistory = oldPasswordHistory
                 val data = BitwardenCipher.login.notNull.modify(new.data_) { login ->
-                    val passwordHistory = kotlin.run {
-                        val list = login.passwordHistory.toMutableList()
-                        // The existing password was changed, so we should
-                        // add the it one to the history.
-                        if (password != login.password && login.password != null) {
-                            list += BitwardenCipher.Login.PasswordHistory(
-                                password = login.password,
-                                lastUsedDate = now,
-                            )
-                        }
-                        list
-                    }
+                    passwordHistory = oldPasswordHistory.withPasswordChange(
+                        previousPassword = login.password,
+                        nextPassword = password,
+                        at = now,
+                    )
 
                     val passwordRevisionDate = now
                         .takeIf {
@@ -81,11 +77,10 @@ class ChangeCipherPasswordByIdImpl(
 
                     login.copy(
                         password = password,
-                        passwordHistory = passwordHistory,
                         passwordRevisionDate = passwordRevisionDate,
                         passwordStrength = passwordStrength,
                     )
-                }
+                }.copy(passwordHistory = passwordHistory)
                 new = new.copy(
                     data_ = data,
                 )

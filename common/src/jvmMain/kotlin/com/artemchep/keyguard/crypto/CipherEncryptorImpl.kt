@@ -9,6 +9,7 @@ import com.artemchep.keyguard.crypto.util.encode
 import com.artemchep.keyguard.provider.bitwarden.crypto.AsymmetricCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.DecodeResult
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
+import java.security.MessageDigest
 import org.bouncycastle.asn1.ASN1Sequence
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo
 import org.bouncycastle.crypto.AsymmetricBlockCipher
@@ -214,7 +215,7 @@ class CipherEncryptorImpl(
             val macData = iv + ct
             cryptoGenerator.hmacSha256(macKey, macData)
         }
-        if (!computedMac.contentEquals(mac)) {
+        if (!MessageDigest.isEqual(computedMac, mac)) {
             error("Message authentication codes do not match!")
         }
         return decodeAesCbc256_HmacSha256_B64(

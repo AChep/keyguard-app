@@ -10,10 +10,18 @@ import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthCoordinatorAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthSecurityAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthTransportAndroid
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
-import com.artemchep.keyguard.common.service.flavor.FlavorConfig
+import com.artemchep.keyguard.common.service.backup.AndroidTreeBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.BackupLocalObjectStoreFactoryTag
+import com.artemchep.keyguard.common.service.backup.BackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
+import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
@@ -31,6 +39,8 @@ import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
+import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
+import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceStatelessProxy
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
@@ -39,11 +49,10 @@ import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
-import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PutLocale
+import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.CleanUpAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPurchasedImpl
-import com.artemchep.keyguard.common.usecase.impl.GetSuggestionsImpl
 import com.artemchep.keyguard.copy.AutofillServiceAndroid
 import com.artemchep.keyguard.copy.ClearDataAndroid
 import com.artemchep.keyguard.copy.ClipboardServiceAndroid
@@ -69,14 +78,19 @@ import com.artemchep.keyguard.core.session.usecase.BiometricStatusUseCaseImpl
 import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileAndroid
 import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
 import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
-import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
+import com.artemchep.keyguard.feature.navigation.defaultNavigationModule
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderAndroid
 import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
 import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import db_key_value.datastore.DataStoreKeyValueStore
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.kodein.di.DI
@@ -87,8 +101,6 @@ import org.kodein.di.bindSingleton
 import org.kodein.di.factory
 import org.kodein.di.instance
 import org.kodein.di.multiton
-import java.io.File
-
 class CacheDirProviderAndroid(
     private val context: Context,
 ) : CacheDirProvider {
@@ -96,26 +108,41 @@ class CacheDirProviderAndroid(
         context = directDI.instance(),
     )
 
-    override suspend fun get(): File = withContext(Dispatchers.IO) {
+    override suspend fun get(): LocalPath = withContext(Dispatchers.IO) {
         getBlocking()
     }
 
-    override fun getBlocking(): File = context.cacheDir
+    override fun getBlocking(): LocalPath = context.cacheDir.toLocalPath()
 }
 
 fun diFingerprintRepositoryModule() = DI.Module(
     name = "com.artemchep.keyguard.core.session.repository::FingerprintRepository",
 ) {
     import(globalModuleJvm())
+    import(defaultNavigationModule())
 
     bindProvider<LeContext>() {
         val context: Context = instance()
         LeContext(context)
     }
+    bindSingleton<BackupObjectStoreFactory>(tag = BackupLocalObjectStoreFactoryTag) {
+        AndroidTreeBackupObjectStoreFactory(this)
+    }
+    bindSingleton<BackupObjectStoreFactory> {
+        SelectableBackupObjectStoreFactory(
+            localFactory = instance(tag = BackupLocalObjectStoreFactoryTag),
+            webDavFactory = WebDavBackupObjectStoreFactory(
+                httpClient = instance<HttpClient>(),
+            ),
+        )
+    }
     bindSingleton<BiometricStatusUseCase> {
         BiometricStatusUseCaseImpl(
             directDI = this,
         )
+    }
+    bindSingleton<YubiKeyUnlockAvailability> {
+        YubiKeyUnlockAvailability { true }
     }
     bindSingleton<KeychainRepository> {
         KeychainRepositoryNoOp(
@@ -136,6 +163,11 @@ fun diFingerprintRepositoryModule() = DI.Module(
 
     bindSingleton<CacheDirProvider> {
         CacheDirProviderAndroid(
+            directDI = this,
+        )
+    }
+    bindSingleton<PendingUploadDirProvider> {
+        PendingUploadDirProviderAndroid(
             directDI = this,
         )
     }
@@ -168,6 +200,18 @@ fun diFingerprintRepositoryModule() = DI.Module(
 //    }
     bindSingleton<ClipboardService> {
         ClipboardServiceAndroid(this)
+    }
+    bindSingleton<CompanionAuthTransportAndroid> {
+        CompanionAuthTransportAndroid(this)
+    }
+    bindSingleton<CompanionAuthSecurityAndroid> {
+        CompanionAuthSecurityAndroid(this)
+    }
+    bindSingleton<CompanionAuthCoordinatorAndroid> {
+        CompanionAuthCoordinatorAndroid(this)
+    }
+    bindSingleton<CompanionAuthBridgeAndroid> {
+        CompanionAuthBridgeAndroid(this)
     }
     bindSingleton<ConnectivityService> {
         ConnectivityServiceAndroid(this)
@@ -206,6 +250,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
         FileServiceAndroid(
             directDI = this,
         )
+    }
+    bindSingleton<SshAgentStatusService> {
+        SshAgentStatusServiceStatelessProxy(this)
     }
     bindSingleton<ReviewService> {
         ReviewServiceAndroid(

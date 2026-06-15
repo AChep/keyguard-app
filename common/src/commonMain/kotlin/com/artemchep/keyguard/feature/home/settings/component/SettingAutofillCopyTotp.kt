@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -11,7 +13,9 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAutofillCopyTotp
 import com.artemchep.keyguard.common.usecase.PutAutofillCopyTotp
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -65,33 +69,11 @@ private fun SettingAutofillCopyTotp(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItemLayoutExpressive(
-        shapeState = LocalSettingItemShape.current,
-        content = {
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.pref_item_autofill_auto_copy_otp_title),
-                    )
-                },
-                text = {
-                    Text(
-                        text = stringResource(Res.string.pref_item_autofill_auto_copy_otp_text),
-                    )
-                },
-            )
-        },
-        trailing = {
-            CompositionLocalProvider(
-                LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
-            ) {
-                Switch(
-                    checked = checked,
-                    enabled = onCheckedChange != null,
-                    onCheckedChange = onCheckedChange,
-                )
-            }
-        },
-        onClick = onCheckedChange?.partially1(!checked),
+    LocalSettingPaneComponents.current.KgSwitch(
+        icon = null,
+        title = stringResource(Res.string.pref_item_autofill_auto_copy_otp_title),
+        text = stringResource(Res.string.pref_item_autofill_auto_copy_otp_text),
+        checked = checked,
+        onCheckedChange = onCheckedChange,
     )
 }

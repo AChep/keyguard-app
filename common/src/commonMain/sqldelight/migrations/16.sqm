@@ -1,0 +1,7 @@
+CREATE TABLE privilegedApp (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT,
+  packageName TEXT NOT NULL,
+  certFingerprintSha256 TEXT NOT NULL,
+  createdAt INTEGER NOT NULL
+);

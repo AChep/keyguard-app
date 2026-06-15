@@ -7,24 +7,27 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import arrow.core.Either
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.DTag
 import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.getShapeState
+import com.artemchep.keyguard.common.service.app.parser.AppStoreListingInfo
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
-import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
-import com.halilibo.richtext.markdown.node.AstNode
+import com.artemchep.keyguard.ui.markdown.MarkdownDocument
+import com.artemchep.keyguard.ui.markdown.MarkdownParser
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 @optics
@@ -65,6 +68,18 @@ sealed interface VaultViewItem {
         val actions: ImmutableList<ContextItem> = persistentListOf(),
     ) : VaultViewItem {
         companion object
+    }
+
+    data class QuickBadges(
+        override val id: String,
+        val actions: ImmutableList<Item> = persistentListOf(),
+    ) : VaultViewItem {
+        companion object;
+
+        data class Item(
+            val title: TextHolder,
+            val text: TextHolder? = null,
+        )
     }
 
     data class Action(
@@ -151,6 +166,13 @@ sealed interface VaultViewItem {
         companion object;
     }
 
+    data class Planeta(
+        override val id: String,
+        val fingerprint: String,
+    ) : VaultViewItem {
+        companion object;
+    }
+
     data class Switch(
         override val id: String,
         val shapeState: Int = ShapeState.ALL,
@@ -187,15 +209,15 @@ sealed interface VaultViewItem {
         sealed interface Content {
             companion object {
                 fun of(
-                    parser: CommonmarkAstNodeParser,
+                    parser: MarkdownParser,
                     markdown: Boolean,
                     text: String,
                 ): Content =
                     if (markdown) {
                         kotlin.runCatching {
                             val data = text.trimIndent()
-                            val node = parser.parse(data)
-                            Markdown(node)
+                            val document = parser.parse(data)
+                            Markdown(document)
                         }.getOrNull()
                     } else {
                         null
@@ -203,7 +225,7 @@ sealed interface VaultViewItem {
             }
 
             data class Markdown(
-                val node: AstNode,
+                val document: MarkdownDocument,
             ) : Content
 
             data class Text(
@@ -302,6 +324,12 @@ sealed interface VaultViewItem {
             val dropdown: List<ContextItem> = emptyList(),
         )
 
+        data class AppStoreListing(
+            val store: String,
+            val state: Flow<Either<Throwable, AppStoreListingInfo?>>,
+            val onClick: () -> Unit,
+        )
+
         override fun withShape(shape: Int) = copy(shapeState = shape)
     }
 
@@ -319,7 +347,7 @@ sealed interface VaultViewItem {
 
         @Immutable
         data class LocalState(
-            val codes: PersistentList<List<String>>,
+            val codes: PersistentList<PersistentList<String>>,
             val dropdown: PersistentList<ContextItem>,
         )
 

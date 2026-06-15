@@ -116,7 +116,7 @@ class DownloadManagerImpl(
 
                                 when {
                                     file.exists() -> {
-                                        val result = file.right()
+                                        val result = file.toURI().toString().right()
                                         DownloadProgress.Complete(result)
                                     }
 

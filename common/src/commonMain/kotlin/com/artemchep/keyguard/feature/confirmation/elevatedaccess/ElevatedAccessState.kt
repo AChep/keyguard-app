@@ -19,12 +19,21 @@ data class ElevatedAccessState(
         val sideEffects: UnlockState.SideEffects,
         val password: TextFieldModel2,
         val biometric: Biometric? = null,
+        val yubiKey: YubiKey? = null,
         val isLoading: Boolean = false,
     )
 
     @Immutable
     @optics
     data class Biometric(
+        val onClick: (() -> Unit)? = null,
+    ) {
+        companion object
+    }
+
+    @Immutable
+    @optics
+    data class YubiKey(
         val onClick: (() -> Unit)? = null,
     ) {
         companion object

@@ -15,7 +15,6 @@ import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import java.time.Year
 
 @Composable
 fun produceDatePickerState(
@@ -91,9 +90,9 @@ fun produceDatePickerState(
                 navigatePopSelf()
             },
             onConfirm = {
-                val result = DatePickerResult.Confirm(
-                    month = java.time.Month.of(month),
-                    year = Year.of(year),
+                val result = createDatePickerResult(
+                    month = month,
+                    year = year,
                 )
                 transmitter(result)
                 navigatePopSelf()
@@ -122,3 +121,15 @@ fun getMonthTitleStringRes(month: Int): StringResource = when (month) {
 fun getYearTitle(year: Int) = year.toString()
 
 private fun getYear() = Clock.System.now().toLocalDateTime(TimeZone.UTC).year
+
+internal fun createDatePickerResult(
+    month: Int,
+    year: Int,
+): DatePickerResult.Confirm = DatePickerResult.Confirm(
+    month = month.toDatePickerMonth(),
+    year = year,
+)
+
+private fun Int.toDatePickerMonth(): Month = Month.entries
+    .firstOrNull { month -> month.number == this }
+    ?: throw IllegalArgumentException("Number of the month should be in 1..12 range, got $this instead!")

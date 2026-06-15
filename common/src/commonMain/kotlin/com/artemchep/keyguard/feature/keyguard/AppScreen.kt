@@ -5,6 +5,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,8 +19,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
@@ -27,6 +30,7 @@ import com.artemchep.keyguard.feature.keyguard.main.MainRoute
 import com.artemchep.keyguard.feature.keyguard.setup.SetupRoute
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockRoute
 import com.artemchep.keyguard.feature.loading.LoadingScreen
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.LocalNavigationRouterNode
 import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
 import com.artemchep.keyguard.feature.navigation.NavigationNode
@@ -38,8 +42,28 @@ import com.artemchep.keyguard.platform.leNavigationBars
 import com.artemchep.keyguard.platform.lifecycle.LocalLifecycleStateFlow
 import com.artemchep.keyguard.platform.lifecycle.flowWithLifecycle
 import com.artemchep.keyguard.ui.ToastMessageHost
+import com.artemchep.keyguard.ui.theme.Dimen
 import org.kodein.di.compose.rememberInstance
 import org.kodein.di.compose.withDI
+import kotlin.time.Instant
+
+val LocalAuthScreen = staticCompositionLocalOf {
+    AuthScreen(
+        reason = null,
+    )
+}
+
+data class AuthScreen(
+    val reason: TextHolder?,
+    val style: Style = Style.FULL_SCREEN,
+    val onCancel: (() -> Unit)? = null,
+    val expiresAt: Instant? = null,
+) {
+    enum class Style {
+        FULL_SCREEN,
+        DIALOG,
+    }
+}
 
 @Composable
 fun AppScreen() {
@@ -68,7 +92,7 @@ fun AppScreen() {
     }
 }
 
-private fun saveNavigationRouter(
+fun saveNavigationRouter(
     store: NavigationStore,
     node: NavigationRouterNode,
 ) {
@@ -146,6 +170,7 @@ fun ManualAppScreenOnUnlock(
         UnlockRoute(
             unlockVaultByMasterPassword = state.unlockWithMasterPassword,
             unlockVaultByBiometric = state.unlockWithBiometric,
+            unlockVaultByYubiKey = state.unlockWithYubiKey,
             lockInfo = state.lockInfo,
         )
     }
@@ -158,7 +183,10 @@ fun ManualAppScreenOnUnlock(
 @Composable
 fun ManualAppScreenOnLoading(
     state: VaultState.Loading,
-) {
+) = ManualAppScreenOnLoading()
+
+@Composable
+fun ManualAppScreenOnLoading() {
     LoadingScreen()
 }
 
@@ -179,7 +207,18 @@ fun ManualAppScreenOnMain(
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ManualAppScreen(
-    content: @Composable (VaultState) -> Unit,
+    toastHost: @Composable BoxScope.() -> Unit = {
+        val insets = WindowInsets.leNavigationBars
+            .union(WindowInsets.leIme)
+            .asPaddingValues()
+        ToastMessageHost(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(insets)
+                .widthIn(max = 300.dp),
+        )
+    },
+    content: @Composable BoxScope.(VaultState) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -210,14 +249,6 @@ fun ManualAppScreen(
             content(state)
         }
 
-        val insets = WindowInsets.leNavigationBars
-            .union(WindowInsets.leIme)
-            .asPaddingValues()
-        ToastMessageHost(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(insets)
-                .widthIn(max = 300.dp),
-        )
+        toastHost()
     }
 }

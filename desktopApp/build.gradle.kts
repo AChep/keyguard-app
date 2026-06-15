@@ -1,4 +1,11 @@
 import org.apache.tools.ant.taskdefs.condition.Os
+import org.gradle.api.internal.file.DefaultFilePermissions
+import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.Sync
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaToolchainService
+import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.gradle.process.CommandLineArgumentProvider
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -19,6 +26,7 @@ kotlin {
                 implementation(libs.jetbrains.compose.material3)
                 implementation(libs.jetbrains.compose.material.icons.extended)
                 implementation(libs.jetbrains.compose.components.resources)
+                implementation(libs.kdroidfilter.composenativetray)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.stdlib)
                 implementation(libs.bouncycastle.bcprov)
@@ -30,6 +38,38 @@ kotlin {
 }
 
 val appId = "com.artemchep.keyguard"
+
+val bundledAppResources by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+
+dependencies {
+    add(
+        bundledAppResources.name,
+        project(
+            mapOf(
+                "path" to ":desktopSshAgent",
+                "configuration" to "bundledAppResourcesElements",
+            ),
+        ),
+    )
+    add(
+        bundledAppResources.name,
+        project(
+            mapOf(
+                "path" to ":desktopLibNative",
+                "configuration" to "bundledAppResourcesElements",
+            ),
+        ),
+    )
+}
+
+val jdkVersion = libs.versions.jdk.get().toInt()
+val jbrLauncher = extensions.getByType<JavaToolchainService>().launcherFor {
+    languageVersion.set(JavaLanguageVersion.of(jdkVersion))
+    vendor.set(JvmVendorSpec.JETBRAINS)
+}
 
 val macExtraPlistKeys: String
     get() = """
@@ -69,10 +109,24 @@ val macExtraPlistKeys: String
       </array>
     """
 
+val bundledAppResourcesDir = layout.buildDirectory.dir("app-resources")
+
+val prepareBundledAppResources = tasks.register<Sync>("prepareBundledAppResources") {
+    from(bundledAppResources)
+    into(bundledAppResourcesDir)
+}
+
 compose.desktop {
     application {
         mainClass = "com.artemchep.keyguard.MainKt"
+        javaHome = jbrLauncher
+            .map { it.metadata.installationPath.asFile.absolutePath }
+            .get()
         nativeDistributions {
+            // This tells Compose to bundle everything inside 'app-resources'
+            // alongside your application in the final install image.
+            appResourcesRootDir.set(bundledAppResourcesDir)
+
             macOS {
                 iconFile.set(project.file("icon.icns"))
                 entitlementsFile.set(project.file("default.entitlements"))
@@ -101,6 +155,19 @@ compose.desktop {
             jvmArgs(
                 "-Dapple.awt.application.appearance=system",
             )
+            // We want to explicitly include the jdk crypto module,
+            // so if the JDK is missing that we are going to get an error
+            // instead of silently building the app and failing in runtime.
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                jvmArgs("--add-modules=jdk.crypto.mscapi")
+            }
+
+            // Disabling core dumps
+            jvmArgs(
+                "-XX:-CreateCoredumpOnCrash",
+                "-XX:-HeapDumpOnOutOfMemoryError",
+            )
+
             includeAllModules = true
             val formats = listOfNotNull(
                 TargetFormat.Dmg,
@@ -164,8 +231,17 @@ compose.desktop {
     }
 }
 
+afterEvaluate {
+    tasks.named("prepareAppResources") {
+        dependsOn(prepareBundledAppResources)
+    }
+}
+
 kotlin {
-    jvmToolchain(libs.versions.jdk.get().toInt())
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(jdkVersion))
+        vendor.set(JvmVendorSpec.JETBRAINS)
+    }
 }
 
 fun Tar.installPackageDistributable(
@@ -180,7 +256,19 @@ fun Tar.installPackageDistributable(
         else -> prop
     }
 
-    from(tasks.named(dependency))
+    from(tasks.named(dependency)) {
+        // Keep helper binaries executable inside the tarball even if
+        // their source mode was normalized by an upstream packaging step.
+        eachFile {
+            if (
+                name == "jspawnhelper" || // https://github.com/AChep/keyguard-app/issues/640#issuecomment-4111835953
+                name == "keyguard-ssh-agent" ||
+                name == "keyguard-lib"
+            ) {
+                permissions = DefaultFilePermissions("755".toInt(8))
+            }
+        }
+    }
 
     // Pack additional platform-specific files. For example for
     // Linux we want to include the Flatpak files.
@@ -196,10 +284,10 @@ fun Tar.installPackageDistributable(
                 into("Keyguard/share/metainfo")
             }
             from(flatpakSources) {
-                include("icon.png")
+                include("icon.svg")
                 // Rename happens on the fly during the copy
-                rename { "com.artemchep.keyguard.png" }
-                into("Keyguard/share/icons/hicolor/512x512/apps")
+                rename { "com.artemchep.keyguard.svg" }
+                into("Keyguard/share/icons/hicolor/scalable/apps")
             }
         }
         else -> {

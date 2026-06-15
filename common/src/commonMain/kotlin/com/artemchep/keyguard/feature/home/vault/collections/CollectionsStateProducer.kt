@@ -15,6 +15,8 @@ import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.feature.home.settings.SettingsItem
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
+import com.artemchep.keyguard.feature.home.vault.by
 import com.artemchep.keyguard.feature.home.vault.collection.CollectionRoute
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -51,6 +53,7 @@ fun collectionsScreenState(
         getCollections = instance(),
         getCiphers = instance(),
         getCanWrite = instance(),
+        vaultRouteFactory = instance(),
     )
 }
 
@@ -61,6 +64,7 @@ fun collectionsScreenState(
     getCollections: GetCollections,
     getCiphers: GetCiphers,
     getCanWrite: GetCanWrite,
+    vaultRouteFactory: VaultRouteFactory,
 ): CollectionsState = produceScreenState(
     key = "collections",
     initial = CollectionsState(),
@@ -214,7 +218,7 @@ fun collectionsScreenState(
                 onClick = onClick {
                     val collections = selectedCollections.values
                         .map { it.collection }
-                    val route = VaultRoute.by(
+                    val route = vaultRouteFactory.by(
                         collections = collections,
                     )
                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -262,7 +266,7 @@ fun collectionsScreenState(
                                 icon = Icons.Outlined.KeyguardCipher,
                                 title = Res.string.items.wrap(),
                                 onClick = onClick {
-                                    val route = VaultRoute.by(
+                                    val route = vaultRouteFactory.by(
                                         collection = collection,
                                     )
                                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -295,6 +299,13 @@ fun collectionsScreenState(
                     organization = collectionWithCiphers.organization,
                     selecting = selecting,
                     selected = selected,
+                    onViewItemsClick = onClick {
+                        val route = vaultRouteFactory.by(
+                            collection = collection,
+                        )
+                        val intent = NavigationIntent.NavigateToRoute(route)
+                        navigate(intent)
+                    },
                     actions = actions.toImmutableList(),
                     onClick = if (selecting) {
                         // lambda

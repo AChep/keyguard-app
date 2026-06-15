@@ -31,7 +31,23 @@ import kotlin.collections.set
 suspend inline fun <reified T : Any> HttpResponse.bodyOrApiException(): T = kotlin.run {
     logCrashlyticsRoute()
 
+    val response = this
     val b = this.body<HttpResponse>()
+    val newStatus = HttpStatusCode.fromValue(status.value)
+    if (!newStatus.isSuccess()) {
+        val statusException =
+            HttpException(
+                statusCode = newStatus,
+                m = newStatus.description,
+                e = null,
+                route = response.call.attributes.getOrNull(routeAttribute),
+            )
+        throw response.buildApiException(
+            body = b,
+            status = newStatus,
+            exception = statusException,
+        )
+    }
     // No need to parse a response if we want
     // unit type back.
     if (Unit is T) {
@@ -42,78 +58,90 @@ suspend inline fun <reified T : Any> HttpResponse.bodyOrApiException(): T = kotl
     } catch (e: Exception) {
         e.printStackTrace()
 
-        val newStatus = HttpStatusCode.fromValue(status.value)
-        val apiException = try {
-            b.body<ErrorEntity>()
-                .toException(
-                    exception = e,
-                    code = newStatus,
-                )
-        } catch (f: Exception) {
-            f.printStackTrace()
-
-            // Try to parse an unknown exception, it might still contain
-            // the message content.
-            val json = runCatching {
-                b.body<JsonObject>()
-            }.getOrNull()
-                ?: run {
-                    // This might happen if a user miss-types a server URL, so we
-                    // instead get default HTML template saying that this page
-                    // can not be found.
-                    if (newStatus != HttpStatusCode.NotFound) {
-                        val loggedException =
-                            RuntimeException("Failed request: body is not a JSON!")
-                        recordException(loggedException)
-                    }
-                    // Generic exception
-                    throw HttpException(
-                        statusCode = newStatus,
-                        m = newStatus.description,
-                        e = e,
-                    )
-                }
-
-            val responseBodySanitizedJson = Json.encodeToString(json.sanitize())
-            println("Sanitized response JSON:")
-            println(responseBodySanitizedJson)
-
-            val message = json.tryGetErrorMessageBitwardenApi()
-                ?: json.tryGetErrorMessageCloudflareApi()
-            if (
-                message == null ||
-                // This response is expected when we have to
-                // refresh the access token, no need to log it.
-                newStatus != HttpStatusCode.Unauthorized
-            ) {
-                // Submit the exception as is, it doesn't contain any sensitive info in it:
-                //
-                // kotlinx.serialization.MissingFieldException: Field 'HaHa' is required for type
-                // with serial name 'com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity',
-                // but it was missing at path: $.Ciphers[0]
-                if (e is SerializationException) {
-                    recordException(e)
-                } else {
-                    // hostname and query might be sensitive, ignore that
-                    val path = this.request.url.encodedPath
-                    val method = this.request.method.value
-                    val loggedException =
-                        RuntimeException("Failed ${method}:${path} request! Body: $responseBodySanitizedJson")
-                    recordException(loggedException)
-                }
-            }
-            HttpException(
-                statusCode = newStatus,
-                m = message
-                    ?: newStatus.takeUnless { it.isSuccess() }?.description
-                    ?: e.localizedMessage
-                    ?: e.message,
-                e = e,
-            )
-        }
-        throw apiException
+        throw response.buildApiException(
+            body = b,
+            status = newStatus,
+            exception = e,
+        )
     }
 }
+
+@PublishedApi
+internal suspend fun HttpResponse.buildApiException(
+    body: HttpResponse,
+    status: HttpStatusCode,
+    exception: Exception,
+): Exception =
+    try {
+        body.body<ErrorEntity>()
+            .toException(
+                exception = exception,
+                code = status,
+                route = call.attributes.getOrNull(routeAttribute),
+            )
+    } catch (f: Exception) {
+        f.printStackTrace()
+
+        // Try to parse an unknown exception, it might still contain
+        // the message content.
+        val json = runCatching {
+            body.body<JsonObject>()
+        }.getOrNull()
+            ?: run {
+                // This might happen if a user miss-types a server URL, so we
+                // instead get default HTML template saying that this page
+                // can not be found.
+                if (status != HttpStatusCode.NotFound) {
+                    val loggedException =
+                        RuntimeException("Failed request: body is not a JSON!")
+                    recordException(loggedException)
+                }
+                // Generic exception
+                throw HttpException(
+                    statusCode = status,
+                    m = status.description,
+                    e = exception,
+                    route = call.attributes.getOrNull(routeAttribute),
+                )
+            }
+
+        val responseBodySanitizedJson = Json.encodeToString(json.sanitize())
+        println("Sanitized response JSON:")
+        println(responseBodySanitizedJson)
+
+        val message = json.tryGetErrorMessageBitwardenApi()
+            ?: json.tryGetErrorMessageCloudflareApi()
+        if (
+            message == null ||
+            // This response is expected when we have to
+            // refresh the access token, no need to log it.
+            status != HttpStatusCode.Unauthorized
+        ) {
+            // Submit the exception as is, it doesn't contain any sensitive info in it:
+            //
+            // kotlinx.serialization.MissingFieldException: Field 'HaHa' is required for type
+            // with serial name 'com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity',
+            // but it was missing at path: $.Ciphers[0]
+            if (exception is SerializationException) {
+                recordException(exception)
+            } else {
+                // hostname and query might be sensitive, ignore that
+                val path = request.url.encodedPath
+                val method = request.method.value
+                val loggedException =
+                    RuntimeException("Failed ${method}:${path} request! Body: $responseBodySanitizedJson")
+                recordException(loggedException)
+            }
+        }
+        HttpException(
+            statusCode = status,
+            m = message
+                ?: status.takeUnless { it.isSuccess() }?.description
+                ?: exception.message,
+            e = exception,
+            route = call.attributes.getOrNull(routeAttribute),
+        )
+    }
 
 fun HttpResponse.logCrashlyticsRoute() {
     val route = this.call.attributes.getOrNull(routeAttribute)
@@ -123,10 +151,19 @@ fun HttpResponse.logCrashlyticsRoute() {
 
 fun JsonObject.tryGetErrorMessageBitwardenApi(): String? {
     val error = getIgnoreCase("error") as? JsonObject
-        ?: return null
-    val message = error.getIgnoreCase("description") as? JsonPrimitive
-        ?: return null
-    return message.contentOrNull
+    val nestedDescription =
+        (error?.getIgnoreCase("description") as? JsonPrimitive)
+            ?.contentOrNull
+    val topLevelMessage =
+        (getIgnoreCase("message") as? JsonPrimitive)
+            ?.contentOrNull
+    val errorModel = getIgnoreCase("errorModel") as? JsonObject
+    val errorModelMessage =
+        (errorModel?.getIgnoreCase("message") as? JsonPrimitive)
+            ?.contentOrNull
+    return nestedDescription
+        ?: topLevelMessage
+        ?: errorModelMessage
 }
 
 fun JsonObject.tryGetErrorMessageCloudflareApi(): String? {
@@ -142,7 +179,7 @@ private fun JsonObject.getIgnoreCase(key: String) = keys
     ?.let { this[it] }
 
 /**
- * Sanitize all of the primitives from the json object,
+ * Sanitize all the primitives from the json object,
  * making the response safe to be send to the crashlytics.
  */
 fun JsonElement.sanitize(): JsonElement = when (this) {

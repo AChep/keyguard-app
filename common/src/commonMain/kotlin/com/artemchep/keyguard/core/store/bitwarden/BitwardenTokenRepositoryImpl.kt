@@ -41,7 +41,6 @@ class BitwardenTokenRepositoryImpl(
                     it.mapNotNull { it.data_ as? BitwardenToken }
                 }
         }
-        .shareIn(GlobalScope, SharingStarted.WhileSubscribed(1000L), replay = 1)
 
     override fun getById(id: AccountId): IO<BitwardenToken?> = databaseManager
         .get()

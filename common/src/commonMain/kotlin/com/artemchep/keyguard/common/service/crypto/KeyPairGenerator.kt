@@ -57,4 +57,8 @@ interface KeyPairGenerator {
     fun getPrivateKeyLengthOrNull(
         keyPair: KeyParameterRawZero,
     ): Int?
+
+    fun getPrivateKeyLengthOrNull(
+        privateKey: String,
+    ): Int?
 }

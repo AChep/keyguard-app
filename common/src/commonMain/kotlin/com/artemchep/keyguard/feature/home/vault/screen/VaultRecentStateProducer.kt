@@ -31,7 +31,6 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.tabs.CallsTabs
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -131,7 +130,7 @@ fun vaultRecentScreenState(
         }
         .stateIn(screenScope)
 
-    val copy = copy(clipboardService)
+    val copy = copier()
 
     val cipherSink = EventFlow<DSecret>()
 
@@ -223,6 +222,9 @@ fun vaultRecentScreenState(
                             null
                         },
                         onClickPasskey = {
+                            null
+                        },
+                        onClickPassword = {
                             null
                         },
                     )

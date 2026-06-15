@@ -2,15 +2,16 @@ package com.artemchep.keyguard.android
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.WindowManager
 import android.webkit.MimeTypeMap
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -18,12 +19,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.FileProvider
 import androidx.core.net.toFile
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.flatMap
@@ -70,6 +71,7 @@ import org.kodein.di.android.closestDI
 import org.kodein.di.compose.rememberInstance
 import org.kodein.di.instance
 import androidx.core.net.toUri
+import com.artemchep.keyguard.common.model.AllowScreenshots
 
 abstract class BaseActivity : AppCompatActivity(), DIAware {
     override val di by closestDI()
@@ -88,7 +90,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
      */
     private var lastUseExternalBrowser: Boolean = false
 
-    protected val translatorScope by lazy {
+    val translatorScope by lazy {
         val context = LeContext(this)
         TranslatorScope.of(context)
     }
@@ -97,11 +99,12 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         installSplashScreen()
+        enableEdgeToEdge()
 
         val getAllowScreenshots by instance<GetAllowScreenshots>()
         getAllowScreenshots()
             .onEach { allowScreenshots ->
-                if (allowScreenshots) {
+                if (allowScreenshots >= AllowScreenshots.LIMITED) {
                     window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
                 } else {
                     window?.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
@@ -116,12 +119,14 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
             }
             .launchIn(lifecycleScope)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             KeyguardTheme {
-                val containerColor = LocalBackgroundManager.current.colorHighest
-                val containerColorAnimatedState = animateColorAsState(containerColor)
-                val contentColor = contentColorFor(containerColor)
+                val containerColor = activityContainerColor()
+                val containerColorAnimatedState = animateColorAsState(
+                    targetValue = containerColor,
+                    animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+                )
+                val contentColor = activityContentColor(containerColorAnimatedState.value)
                 Surface(
                     modifier = Modifier.semantics {
                         // Allows to use testTag() for UiAutomator's resource-id.
@@ -133,7 +138,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
                     contentColor = contentColor,
                 ) {
                     CompositionLocalProvider(
-                        LocalSurfaceColor provides containerColor,
+                        LocalSurfaceColor provides containerColorAnimatedState.value,
                     ) {
                         Navigation {
                             Content()
@@ -143,6 +148,15 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
             }
         }
     }
+
+    @Composable
+    protected open fun activityContainerColor(
+    ): Color = LocalBackgroundManager.current.colorHighest
+
+    @Composable
+    protected open fun activityContentColor(
+        containerColor: Color,
+    ): Color = contentColorFor(containerColor)
 
     @Composable
     private fun Navigation(

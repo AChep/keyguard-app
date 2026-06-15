@@ -19,7 +19,7 @@ class NavigationRouterNode(
     val entryState = mutableStateOf<NavigationEntry?>(null)
 }
 
-internal val LocalNavigationRouterNode = compositionLocalOf<NavigationRouterNode> {
+val LocalNavigationRouterNode = compositionLocalOf<NavigationRouterNode> {
     NavigationRouterNode(
         id = "root",
         parent = null,

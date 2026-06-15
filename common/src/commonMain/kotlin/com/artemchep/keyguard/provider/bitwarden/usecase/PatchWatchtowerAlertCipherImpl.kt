@@ -58,6 +58,7 @@ class PatchWatchtowerAlertCipherImpl(
                     DWatchtowerAlertType.BROAD_URIS -> BitwardenCipher.IgnoreAlertType.BROAD_URIS
                     DWatchtowerAlertType.INCOMPLETE -> BitwardenCipher.IgnoreAlertType.INCOMPLETE
                     DWatchtowerAlertType.EXPIRING -> BitwardenCipher.IgnoreAlertType.EXPIRING
+                    DWatchtowerAlertType.WEAK_SSH_KEY -> BitwardenCipher.IgnoreAlertType.WEAK_SSH_KEY
                 }
                     ?: return@forEach
                 val shouldIgnore = entry.value

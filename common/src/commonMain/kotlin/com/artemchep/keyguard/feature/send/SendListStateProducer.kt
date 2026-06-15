@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.Key
+import arrow.core.identity
 import arrow.core.partially1
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.common.io.launchIn
@@ -37,17 +38,19 @@ import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
-import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.find
@@ -60,9 +63,9 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.SEARCH_DEBOUNCE
+import com.artemchep.keyguard.feature.search.search.debounceSearch
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
 import com.artemchep.keyguard.feature.send.search.AccessCountSendSort
 import com.artemchep.keyguard.feature.send.search.AlphabeticalSendSort
@@ -78,7 +81,6 @@ import com.artemchep.keyguard.feature.send.search.filter.FilterSendHolder
 import com.artemchep.keyguard.feature.send.util.SendUtil
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
-import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -166,6 +168,8 @@ fun sendListScreenState(
         syncSupervisor = instance(),
         dateFormatter = instance(),
         clipboardService = instance(),
+        bitwardenLoginRouteFactory = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -188,6 +192,8 @@ fun sendListScreenState(
     syncSupervisor: SupervisorRead,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): SendListState = produceScreenState(
     key = "send_list",
     initial = SendListState(),
@@ -202,11 +208,11 @@ fun sendListScreenState(
         PersistedStorage.InDisk(disk)
     }
 
-    val copy = copy(clipboardService)
+    val copy = copier()
     val ciphersRawFlow = filterHiddenProfiles(
         getProfiles = getProfiles,
         getSends = getSends,
-        filter = null,
+        filter = args.filter,
     )
 
     val querySink = mutablePersistedFlow("query") { "" }
@@ -219,6 +225,28 @@ fun sendListScreenState(
 
     fun focusField() {
         queryFocusSink.emit(Unit)
+    }
+
+    fun navigateToNewSend(
+        type: DSend.Type,
+        selectedFile: FilePickerResult? = null,
+    ) {
+        // If the selected file exists, then
+        // the type of the send must be the file type.
+        if (selectedFile != null) {
+            require(type == DSend.Type.File) {
+                "When provided a file, the send must have the File type!"
+            }
+        }
+
+        val route = SendAddRoute(
+            args = SendAddRoute.Args(
+                type = type,
+                selectedFile = selectedFile,
+            ),
+        )
+        val intent = NavigationIntent.NavigateToRoute(route)
+        navigate(intent)
     }
 
     // Intercept the back button while the
@@ -272,13 +300,9 @@ fun sendListScreenState(
                 if (enabled) {
                     // lambda
                     {
-                        val route = SendAddRoute(
-                            args = SendAddRoute.Args(
-                                type = DSend.Type.Text,
-                            ),
+                        navigateToNewSend(
+                            type = DSend.Type.Text,
                         )
-                        val intent = NavigationIntent.NavigateToRoute(route)
-                        navigate(intent)
                     }
                 } else {
                     null
@@ -710,7 +734,7 @@ fun sendListScreenState(
     val queryTrimmedFlow = querySink.map { it to it.trim() }
 
     val queryIndexedFlow = queryTrimmedFlow
-        .debounce(SEARCH_DEBOUNCE)
+        .debounceSearch { (_, queryTrimmed) -> queryTrimmed }
         .map { (_, queryTrimmed) ->
             if (queryTrimmed.isEmpty()) return@map null
             IndexedText(
@@ -769,35 +793,58 @@ fun sendListScreenState(
         leading = icon(type.iconImageVector()),
         title = type.titleH().wrap(),
         onClick = {
-            val route = SendAddRoute(
-                args = SendAddRoute.Args(
-                    type = type,
-                ),
-            )
-            val intent = NavigationIntent.NavigateToRoute(route)
-            navigate(intent)
+            navigateToNewSend(type = type)
         },
     )
-
-    val primaryActionsAll = buildContextItems {
-        this += createTypeAction(
-            type = DSend.Type.Text,
-        )
-        this += createTypeAction(
+    val createTextAction = createTypeAction(
+        type = DSend.Type.Text,
+    )
+    val createFileAction = createTypeAction(
+        type = DSend.Type.File,
+    )
+    val canCreateFileSendFlow = combine(
+        getAccounts(),
+        getProfiles(),
+    ) { accounts, profiles ->
+        hasEligibleAccountForSendType(
+            accounts = accounts,
+            profiles = profiles,
             type = DSend.Type.File,
-        ).takeIf { !isRelease }
+        )
     }
     val primaryActionsFlow = kotlin.run {
         combine(
             canEditFlow,
             selectionHandle.idsFlow,
-        ) { canEdit, selectedItemIds ->
+            canCreateFileSendFlow,
+        ) { canEdit, selectedItemIds, canCreateFileSend ->
             if (canEdit && selectedItemIds.isEmpty()) {
-                primaryActionsAll
+                buildContextItems {
+                    this += createTextAction
+                    if (canCreateFileSend) {
+                        this += createFileAction
+                    }
+                }
             } else {
                 // No items
                 persistentListOf()
             }
+        }
+    }
+    val onFileDropFlow = combine(
+        canEditFlow,
+        selectionHandle.idsFlow,
+        canCreateFileSendFlow,
+    ) { canEdit, selectedItemIds, canCreateFileSend ->
+        if (canEdit && selectedItemIds.isEmpty() && canCreateFileSend) {
+            { file: FilePickerResult ->
+                navigateToNewSend(
+                    type = DSend.Type.File,
+                    selectedFile = file,
+                )
+            }
+        } else {
+            null
         }
     }
 
@@ -805,6 +852,7 @@ fun sendListScreenState(
         selectionHandle = selectionHandle,
         sendsFlow = ciphersRawFlow,
         canEditFlow = canEditFlow,
+        confirmationRouteFactory = confirmationRouteFactory,
         toolbox = toolbox,
     )
 
@@ -903,7 +951,7 @@ fun sendListScreenState(
             SendListState.Content.AddAccount(
                 onAddAccount = { type ->
                     val routeMain = when (type) {
-                        AccountType.BITWARDEN -> BitwardenLoginRoute()
+                        AccountType.BITWARDEN -> bitwardenLoginRouteFactory.create()
                         AccountType.KEEPASS -> KeePassLoginRoute
                     }
                     val route = registerRouteResultReceiver(routeMain) {
@@ -951,6 +999,10 @@ fun sendListScreenState(
     }.combine(primaryActionsFlow) { state, actions ->
         state.copy(
             primaryActions = actions,
+        )
+    }.combine(onFileDropFlow) { state, onFileDrop ->
+        state.copy(
+            onFileDrop = onFileDrop,
         )
     }.combine(actionsFlow) { state, actions ->
         state.copy(
@@ -1198,7 +1250,9 @@ private fun hahah(
         }
         FilteredBoo(
             count = state.list.size,
-            list = out,
+            list = out.ifEmpty {
+                listOf(SendItem.NoItems)
+            },
             preferredList = out,
             orderConfig = state.orderConfig,
             filterConfig = state.filterConfig,

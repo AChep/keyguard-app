@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.crypto
 
+import kotlin.jvm.JvmName
+
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 
 fun BitwardenCipher.transform(
@@ -13,6 +15,7 @@ fun BitwardenCipher.transform(
     tags = tags.transform(itemCrypto),
     fields = fields.transform(itemCrypto),
     attachments = attachments.transform(itemCrypto),
+    passwordHistory = passwordHistory.transform(itemCrypto),
     remoteEntity = remoteEntity
         ?.transform(
             itemCrypto = itemCrypto,
@@ -106,7 +109,6 @@ fun BitwardenCipher.Login.transform(
 ) = copy(
     username = crypto.transformString(username),
     password = crypto.transformString(password),
-    passwordHistory = passwordHistory.transform(crypto),
     uris = uris.map { uri -> uri.transform(crypto) },
     fido2Credentials = fido2Credentials.map { credentials -> credentials.transform(crypto) },
     totp = crypto.transformString(totp),

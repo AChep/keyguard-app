@@ -2,13 +2,13 @@
 # @keep
 androidMinSdk = "26"
 # @keep
-androidCompileSdk = "36"
+androidCompileSdk = "37"
 # @keep
 androidTargetSdk = "36"
 # @keep
 jdk = "21"
 # @keep
-appVersionName = "2.0.3"
+appVersionName = "2.14.1"
 # @keep
 appVersionCode = "7"
 # https://github.com/google/accompanist
@@ -17,24 +17,27 @@ androidBillingClient = "8.3.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.1.5"
 # https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
-androidPlugin = "9.0.0-rc01"
-androidxActivity = "1.12.2"
+androidPlugin = "9.2.1"
+androidxActivity = "1.13.0"
 androidxAppCompat = "1.7.1"
 androidxAutofill = "1.3.0"
-androidxBaselineProfile = "1.5.0-alpha01"
-androidxBenchmarkMacroJUnit4 = "1.5.0-alpha01"
-androidxBiometric = "1.4.0-alpha05"
-androidxBrowser = "1.9.0"
-androidxCamera = "1.5.2"
-androidxCoreKtx = "1.17.0"
+androidxBaselineProfile = "1.5.0-alpha05"
+androidxBenchmarkMacroJUnit4 = "1.5.0-alpha05"
+androidxBiometric = "1.4.0-alpha07"
+androidxBrowser = "1.10.0"
+androidxCamera = "1.6.1"
+androidxCoreKtx = "1.18.0"
 androidxCoreSplash = "1.2.0"
 androidxCoreShortcuts = "1.1.0"
-androidxCredentials = "1.5.0"
-androidxDatastore = "1.2.0"
+androidxCredentials = "1.6.0"
+androidxDatastore = "1.2.1"
 androidxLifecycle = "2.10.0"
 androidxProfileInstaller = "1.4.1"
 androidxRoom = "2.8.4"
 androidxSecurityCryptoKtx = "1.1.0"
+androidxWearCompose = "1.6.1"
+androidxWearComposeMaterial3 = "1.6.2"
+androidxWearRemoteInteractions = "1.2.0"
 androidxTestEspresso = "3.7.0"
 coreTestingVersion = "2.2.0"
 androidxTestCore = "1.7.0"
@@ -43,39 +46,53 @@ androidxTestRunner = "1.7.0"
 androidxTestRule = "1.7.0"
 androidxTestJUnit = "1.3.0"
 androidxTestOrchestrator = "1.6.1"
-androidxWork = "2.11.0"
+androidxWork = "2.11.2"
+horologist = "0.8.3-alpha"
 # https://github.com/harawata/appdirs
 appDirs = "1.5.0"
 # https://github.com/arrow-kt/arrow
-arrow = "2.2.1.1"
+arrow = "2.2.2.1"
 # https://github.com/AChep/bindin
 bindIn = "1.4.0"
 # https://github.com/yshrsmz/BuildKonfig
-buildkonfigPlugin = "0.17.1"
+buildkonfigPlugin = "0.21.2"
 # https://mvnrepository.com/artifact/commons-codec/commons-codec
-commonsCodec = "1.20.0"
+commonsCodec = "1.22.0"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.20.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.11.0-alpha01"
-# https://mvnrepository.com/artifact/org.jetbrains.compose.material3/material3
-composeMaterial3 = "1.11.0-alpha01"
+composeMultiplatform = "1.11.1"
+composeRuntime = "1.11.1"
+composeUi = "1.11.1"
+composeFoundation = "1.11.1"
+composeMaterial = "1.11.1"
+composeMaterial3 = "1.11.0-alpha07"
 composeMaterialIconsExtended = "1.7.3"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
 # https://github.com/coil-kt/coil
-coil3 = "3.3.0"
+coil3 = "3.4.0"
+# https://github.com/kdroidFilter/ComposeNativeTray
+composeNativeTray = "1.3.0"
 conscrypt = "2.5.2"
-crashlyticsPlugin = "3.0.6"
+crashlyticsPlugin = "3.0.7"
 dbusJava = "5.2.0"
 # https://github.com/gmethvin/directory-watcher
 directoryWatcher = "0.19.1"
-firebase = "34.7.0"
+# https://github.com/diglol/crypto
+diglolCrypto = "0.2.0"
+firebase = "34.12.0"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
 googleServicesPlugin = "4.4.4"
 # https://github.com/ch4rl3x/HtmlText
-htmlText = "2.0.0-beta01"
+htmlText = "3.0.0-beta02"
+# https://chrisbanes.github.io/haze/latest/
+haze = "2.0.0-alpha02"
+hazeMaterials = "1.7.2"
+# https://unicode-org.github.io/icu/userguide/icu4j/
+icu4j = "75.1"
+junit = "4.13.2"
 # https://github.com/kdrag0n/colorkt
 kdrag0nColorKt = "1.0.5"
 # https://github.com/Kyant0/m3color
@@ -83,31 +100,43 @@ m3color = "2025.4"
 # https://github.com/Kodein-Framework/Kodein-DI
 kodeinDi = "7.26.1"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.2.21"
+kotlin = "2.3.21"
+# https://github.com/Kotlin/kotlinx-atomicfu
+atomicfu = "0.32.1"
 # https://github.com/Kotlin/kotlinx.collections.immutable
 kotlinCollections = "0.4.0"
 # https://github.com/Kotlin/kotlinx.coroutines
-kotlinCoroutines = "1.10.2"
+kotlinCoroutines = "1.11.0"
 # https://github.com/Kotlin/kotlinx-datetime
 kotlinDatetime = "0.7.1-0.6.x-compat"
+# https://github.com/Kotlin/kotlinx-io
+kotlinIo = "0.9.0"
 kotlinDsl = "4.3.0"
 # https://github.com/Kotlin/kotlinx.serialization
-kotlinSerialization = "1.9.0"
+kotlinSerialization = "1.11.0"
+# https://github.com/esensar/kotlinx-serialization-msgpack/releases
+kotlinSerializationMsgpack = "0.6.1"
 # https://github.com/google/ksp/releases
-kspPlugin = "2.3.4"
+kspPlugin = "2.3.6"
 # https://github.com/pinterest/ktlint/releases
 # @keep
 ktlint = "0.50.0"
 # https://github.com/JLLeitschuh/ktlint-gradle
-ktlintPlugin = "14.0.1"
+ktlintPlugin = "14.2.0"
 # https://github.com/ktorio/ktor
-ktor = "3.3.3"
+ktor = "3.5.0"
 # https://github.com/keemobile/kotpass
 kotpass = "0.13.0"
+# https://github.com/MohamedRejeb/Ksoup
+ksoup = "0.6.0"
 # https://github.com/java-native-access/jna
 jna = "5.18.1"
+# https://github.com/kdroidFilter/Platform-Tool
+platformtools = "0.7.5"
 # https://github.com/osipxd/encrypted-datastore
 osipxdCryptoDatastore = "1.1.1-beta03"
+# https://github.com/SnipMeDev/Highlights/
+highlights = "1.1.0"
 # https://github.com/cashapp/licensee
 licenseCheckPlugin = "1.14.1"
 # https://github.com/tony19/logback-android
@@ -119,39 +148,36 @@ okHttp = "5.3.2"
 # https://mvnrepository.com/artifact/com.google.android.play/review-ktx
 playReviewKtx = "2.0.2"
 # https://developers.google.com/android/guides/setup
-playServicesBase = "18.9.0"
+playServicesBase = "18.10.0"
+playServicesWearable = "20.0.1"
 # https://github.com/halilozercan/compose-richtext/releases
-richtext = "1.0.0-alpha03"
-# https://mvnrepository.com/artifact/com.microsoft.signalr/signalr
-signalr = "9.0.10"
-# https://github.com/dotnet/aspnetcore/blob/main/src/SignalR/clients/java/signalr/messagepack/build.gradle
-msgpack = "0.8.20"
+richtext = "1.0.0-alpha05"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-slf4j = "2.0.17"
+slf4j = "2.0.18"
 # https://github.com/bcgit/bc-java
-bouncycastle = "1.83"
+bouncycastle = "1.84"
+# https://github.com/hierynomus/sshj
+sshj = "0.40.0"
 # https://github.com/sqlcipher/sqlcipher-android
-sqlcipherAndroid = "4.12.0"
+sqlcipherAndroid = "4.15.0"
 # https://github.com/cashapp/sqldelight
-sqldelight = "2.2.1"
+sqldelight = "2.3.2"
 # https://github.com/Willena/sqlite-jdbc-crypt
-sqliteJdbcCrypt = "3.51.1.0"
+sqliteJdbcCrypt = "3.51.2.0"
 # https://github.com/vinceglb/FileKit
-filekit = "0.12.0"
-# https://github.com/rrice/java-string-similarity
-stringSimilarity = "1.0.0"
+filekit = "0.14.1"
 # https://github.com/ohmae/touch-icon-extractor
-touchIcon = "0.9.11"
+touchIcon = "0.9.12"
 # https://github.com/littlerobots/version-catalog-update-plugin
-versionCatalogPlugin = "1.0.1"
+versionCatalogPlugin = "1.1.0"
 # https://github.com/ben-manes/gradle-versions-plugin
-versionsPlugin = "0.53.0"
+versionsPlugin = "0.54.0"
 # https://github.com/MayakaApps/ComposeWindowStyler
 windowStyler = "0.3.2"
 # https://github.com/Yubico/yubikit-android
-yubiKit = "3.0.0"
+yubiKit = "3.1.0"
 # https://github.com/srikanth-lingala/zip4j
-zip4j = "2.11.5"
+zip4j = "2.11.6"
 # https://github.com/nulab/zxcvbn4j
 # We use it to calculate password strength.
 zxcvbn4j = "1.9.0"
@@ -191,6 +217,11 @@ androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref =
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "androidxRoom" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "androidxRoom" }
 androidx-security-crypto-ktx = { module = "androidx.security:security-crypto-ktx", version.ref = "androidxSecurityCryptoKtx" }
+androidx-wear-compose-foundation = { module = "androidx.wear.compose:compose-foundation", version.ref = "androidxWearCompose" }
+androidx-wear-compose-material = { module = "androidx.wear.compose:compose-material", version.ref = "androidxWearCompose" }
+androidx-wear-compose-material3 = { module = "androidx.wear.compose:compose-material3", version.ref = "androidxWearComposeMaterial3" }
+androidx-wear-compose-navigation = { module = "androidx.wear.compose:compose-navigation", version.ref = "androidxWearCompose" }
+androidx-wear-remote-interactions = { module = "androidx.wear:wear-remote-interactions", version.ref = "androidxWearRemoteInteractions" }
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "androidxWork" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidxWork" }
 androidx-arch-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTestingVersion" }
@@ -212,12 +243,15 @@ arrow-arrow-optics = { module = "io.arrow-kt:arrow-optics", version.ref = "arrow
 arrow-arrow-optics-ksp-plugin = { module = "io.arrow-kt:arrow-optics-ksp-plugin", version.ref = "arrow" }
 cash-sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 cash-sqldelight-coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+cash-sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
 cash-sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
-jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
-jetbrains-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
-jetbrains-compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "composeMultiplatform" }
+jetbrains-compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeRuntime" }
+jetbrains-compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeFoundation" }
+jetbrains-compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "composeMaterial" }
 jetbrains-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "composeMaterial3" }
 jetbrains-compose-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "composeMaterialIconsExtended" }
+jetbrains-compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeUi" }
+jetbrains-compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeUi" }
 jetbrains-compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "commonsLang3" }
@@ -227,12 +261,14 @@ coil3-coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", ver
 devsrsouza-feather = { module = "br.com.devsrsouza.compose.icons:feather", version.ref = "composeOpenIcons" }
 dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbusJava" }
 dbus-java-transport = { module = "com.github.hypfvieh:dbus-java-transport-native-unixsocket", version.ref = "dbusJava" }
+diglol-crypto-kdf = { module = "com.diglol.crypto:kdf", version.ref = "diglolCrypto" }
 directory-watcher = { module = "io.methvin:directory-watcher", version.ref = "directoryWatcher" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 fredporciuncula-flow-preferences = { module = "com.fredporciuncula:flow-preferences", version.ref = "flowPreferences" }
 google-accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanist" }
+google-play-services-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "playServicesWearable" }
 google-accompanist-navigation-material = { module = "com.google.accompanist:accompanist-navigation-material", version.ref = "accompanist" }
 google-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanist" }
@@ -245,7 +281,13 @@ halilibo-richtext-commonmark = { module = "com.halilibo.compose-richtext:richtex
 halilibo-richtext-markdown = { module = "com.halilibo.compose-richtext:richtext-markdown", version.ref = "richtext" }
 halilibo-richtext-ui-material3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", version.ref = "richtext" }
 harawata-appdirs = { module = "net.harawata:appdirs", version.ref = "appDirs" }
-html-text = { module = "de.charlex.compose.material3:material3-html-text", version.ref = "htmlText" }
+horologist-compose-layout = { module = "com.google.android.horologist:horologist-compose-layout", version.ref = "horologist" }
+html-text = { module = "de.charlex.compose:html-text-material3", version.ref = "htmlText" }
+icu4j = { module = "com.ibm.icu:icu4j", version.ref = "icu4j" }
+haze-core = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "haze" }
+haze-materials = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "hazeMaterials" }
+junit = { module = "junit:junit", version.ref = "junit" }
 kdrag0n-colorkt = { module = "dev.kdrag0n:colorkt", version.ref = "kdrag0nColorKt" }
 kyant0-m3color = { module = "com.github.Kyant0:m3color", version.ref = "m3color" }
 kodein-kodein-di = { module = "org.kodein.di:kodein-di", version.ref = "kodeinDi" }
@@ -254,37 +296,43 @@ kodein-kodein-di-framework-compose = { module = "org.kodein.di:kodein-di-framewo
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-stdlib-jdk7 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk7", version.ref = "kotlin" }
+kotlinx-atomicfu = { module = "org.jetbrains.kotlinx:atomicfu", version.ref = "atomicfu" }
 kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinCollections" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinCoroutines" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinCoroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinCoroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinDatetime" }
+kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinIo" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinSerialization" }
 kotlinx-serialization-cbor = { module = "org.jetbrains.kotlinx:kotlinx-serialization-cbor", version.ref = "kotlinSerialization" }
 kotlinx-serialization-protobuf = { module = "org.jetbrains.kotlinx:kotlinx-serialization-protobuf", version.ref = "kotlinSerialization" }
+kotlinx-serialization-msgpack = { module = "com.ensarsarajcic.kotlinx:serialization-msgpack", version.ref = "kotlinSerializationMsgpack" }
 ktor-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 ktor-ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx", version.ref = "ktor" }
 keemobile-kotpass = { module = "app.keemobile:kotpass", version.ref = "kotpass" }
+ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "ksoup" }
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+kdroidfilter-composenativetray = { module = "io.github.kdroidfilter:composenativetray", version.ref = "composeNativeTray" }
+kdroidfilter-platformtools-darkmodedetector = { module = "io.github.kdroidfilter:platformtools.darkmodedetector", version.ref = "platformtools" }
 osipxd-security-crypto-datastore-preferences = { module = "io.github.osipxd:security-crypto-datastore-preferences", version.ref = "osipxdCryptoDatastore" }
+snipme-highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
 bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bctls = { module = "org.bouncycastle:bctls-jdk18on", version.ref = "bouncycastle" }
+hierynomus-sshj = { module = "com.hierynomus:sshj", version.ref = "sshj" }
 mayakapps-window-styler = { module = "com.mayakapps.compose:window-styler", version.ref = "windowStyler" }
-microsoft-signalr = { module = "com.microsoft.signalr:signalr", version.ref = "signalr" }
-microsoft-signalr-messagepack = { module = "com.microsoft.signalr.messagepack:signalr-messagepack", version.ref = "signalr" }
-msgpack-core = { module = "org.msgpack:msgpack-core", version.ref = "msgpack" }
-msgpack-jackson-dataformat = { module = "org.msgpack:jackson-dataformat-msgpack", version.ref = "msgpack" }
 mm2d-touchicon = { module = "net.mm2d.touchicon:touchicon", version.ref = "touchIcon" }
 mm2d-touchicon-http-okhttp = { module = "net.mm2d.touchicon:touchicon-http-okhttp", version.ref = "touchIcon" }
 lingala-zip4j = { module = "net.lingala.zip4j:zip4j", version.ref = "zip4j" }
 nulabinc-zxcvbn = { module = "com.nulab-inc:zxcvbn", version.ref = "zxcvbn4j" }
-ricecode-string-similarity = { module = "net.ricecode:string-similarity", version.ref = "stringSimilarity" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipherAndroid" }
 squareup-logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor" }
@@ -296,6 +344,7 @@ vinceglb-filekit-core = { module = "io.github.vinceglb:filekit-core", version.re
 vinceglb-filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekit" }
 vinceglb-filekit-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
 yubico-yubikit-android = { module = "com.yubico.yubikit:android", version.ref = "yubiKit" }
+yubico-yubikit-yubiotp = { module = "com.yubico.yubikit:yubiotp", version.ref = "yubiKit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidPlugin" }

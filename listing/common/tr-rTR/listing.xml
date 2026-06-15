@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="listing_summary">Parolalarınızı yönetin</string>
+    <string name="listing_summary_long">Parolalarınızı kolayca yönetin</string>
+    <string name="listing_description_title">Mümkün olan en iyi kullanıcı deneyimini sağlamak için tasarlanmış, Bitwarden® platformu ve KeePass (KDBX) için çoklu istemci (multi-client).</string>
+    <string name="listing_description_disclaimer_bitwarden_legal">Herhangi bir Bitwarden® kurulumu ile kullanılabilir. Bu ürün Bitwarden projesi veya Bitwarden, Inc. ile ilişkili değildir. Bitwarden®, Bitwarden Inc. şirketinin tescilli ticari markasıdır.</string>
+    <string name="listing_description_highlights">Öne Çıkan Özellikler:</string>
+    <string name="listing_description_highlight_design">Harika Arayüz: Açık/Koyu tema seçenekleriyle zengin ve duyarlı (responsive) Material You kullanıcı arayüzü.</string>
+    <string name="listing_description_highlight_search">Gelişmiş Arama: Güçlü ve hızlı arama yetenekleri.</string>
+    <string name="listing_description_highlight_watchtower">Watchtower: Açığa çıkmış (pwned) parolaları, savunmasız hesapları, yeniden kullanılan parolaları, etkin olmayan iki faktörlü kimlik doğrulamayı, güvensiz web sitelerini, kopya veya süresi dolan ögeleri ve daha fazlasını algılar.</string>
+    <string name="listing_description_highlight_multiple_accounts">Çoklu Hesap Desteği: Aynı anda birden fazla hesapta oturum açın.</string>
+    <string name="listing_description_highlight_offline">Çevrimdışı Yönetim: Çevrimdışı durumdayken ögeler veya gönderiler ekleyin, kasanızı görüntüleyin ve değiştirin.</string>
+    <string name="listing_description_highlight_export">Veri Dışa Aktarımı: Ekler dahil olmak üzere kişisel ögelerinizi veya organizasyon ögelerinizi dışa aktarın.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
+    <string name="listing_description_highlight_generator">Oluşturucu: Özel kelime listesi desteğiyle parolalar, SSH anahtarları ve e-posta yönlendiricileri oluşturun.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH Aracısı: Sunucularda kimlik doğrulaması yapın, Git işlemelerini (commits) imzalayın ve SSH tabanlı servislerle etkileşime geçin.</string>
+    <string name="listing_description_highlight_other">Gelişmiş Özellikler: Kısayollar, alan yer tutucuları (placeholders), URL geçersiz kılmaları (overrides) ve akıllı çakışma çözümü desteği.</string>
+    <!-- A content description shown below the Home screenshort, made with the default settings -->
+    <string name="listing_screenshot_home_default">Ana ekran</string>
+    <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
+    <string name="listing_screenshot_home_dark">Ana ekran, koyu tema</string>
+    <!-- A content description shown below the Generator screenshort, made with the default settings -->
+    <string name="listing_screenshot_generator_default">Oluşturucu ekranı</string>
+    <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
+    <string name="listing_screenshot_watchtower_default">Watchtower ekranı</string>
+</resources>

@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.runtime.Composable
@@ -10,12 +9,12 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.feature.apppicker.AppPickerResult
 import com.artemchep.keyguard.feature.apppicker.AppPickerRoute
-import com.artemchep.keyguard.feature.home.vault.component.VaultViewButtonItem
+import com.artemchep.keyguard.feature.home.settings.KgAction
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.coroutines.flow.flow
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -61,9 +60,9 @@ fun settingLaunchAppPicker(
 private fun SettingLaunchYubiKey(
     onClick: (() -> Unit),
 ) {
-    VaultViewButtonItem(
-        leading = icon<RowScope>(Icons.Outlined.Apps),
-        text = "App Picker",
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.Apps,
+        title = "App Picker",
         onClick = onClick,
     )
 }

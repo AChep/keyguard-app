@@ -5,26 +5,24 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeveloperMode
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
-import arrow.core.partially1
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.settings.permissions.PermissionsSettingsRoute
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.artemchep.keyguard.feature.home.settings.KgAction
+import com.artemchep.keyguard.feature.home.settings.KgSwitch
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
+import com.artemchep.keyguard.feature.home.settings.permissions.PermissionsSettingsRouteFactory
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
-import com.artemchep.keyguard.ui.icons.icon
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -32,18 +30,27 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
+import org.kodein.di.instance
 
 actual fun settingPermissionDetailsProvider(
     directDI: DirectDI,
-): SettingComponent = settingPermissionDetailsProvider()
+) = settingPermissionDetailsProvider(
+    permissionsSettingsRouteFactory = directDI.instance(),
+)
 
-fun settingPermissionDetailsProvider(): SettingComponent = kotlin.run {
+fun settingPermissionDetailsProvider(
+    permissionsSettingsRouteFactory: PermissionsSettingsRouteFactory,
+): SettingComponent = kotlin.run {
+    if (CurrentPlatform.hasWatch()) {
+        return@run flowOf(null)
+    }
+
     val item = SettingIi {
         val navigationController by rememberUpdatedState(LocalNavigationController.current)
         SettingPermissionDetails(
             onClick = {
                 val intent = NavigationIntent.NavigateToRoute(
-                    route = PermissionsSettingsRoute,
+                    route = permissionsSettingsRouteFactory.create(),
                 )
                 navigationController.queue(intent)
             },
@@ -56,15 +63,11 @@ fun settingPermissionDetailsProvider(): SettingComponent = kotlin.run {
 private fun SettingPermissionDetails(
     onClick: (() -> Unit)?,
 ) {
-    FlatItemSimpleExpressive(
-        leading = icon<RowScope>(Icons.Outlined.DeveloperMode),
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.DeveloperMode,
+        title = stringResource(Res.string.pref_item_permissions_title),
         trailing = {
             ChevronIcon()
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_permissions_title),
-            )
         },
         onClick = onClick,
     )
@@ -72,7 +75,8 @@ private fun SettingPermissionDetails(
 
 @OptIn(ExperimentalPermissionsApi::class)
 fun settingPermissionProvider(
-    leading: @Composable RowScope.() -> Unit,
+    icon: ImageVector,
+    subIcon: ImageVector? = null,
     title: StringResource,
     text: StringResource,
     minSdk: Int = Int.MIN_VALUE,
@@ -87,7 +91,8 @@ fun settingPermissionProvider(
                 val updatedContext by rememberUpdatedState(newValue = LocalContext.current)
                 val updatedStatus by rememberUpdatedState(newValue = permissionState.status)
                 SettingPermission(
-                    leading = leading,
+                    icon = icon,
+                    subIcon = subIcon,
                     title = stringResource(title),
                     text = stringResource(text),
                     checked = updatedStatus.isGranted,
@@ -121,28 +126,19 @@ fun Context.launchAppDetailsSettings() {
 
 @Composable
 private fun SettingPermission(
-    leading: @Composable RowScope.() -> Unit,
+    icon: ImageVector,
+    subIcon: ImageVector?,
     title: String,
     text: String,
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = leading,
-        trailing = {
-            Switch(
-                checked = checked,
-                enabled = onCheckedChange != null,
-                onCheckedChange = onCheckedChange,
-            )
-        },
-        title = {
-            Text(title)
-        },
-        text = {
-            Text(text)
-        },
-        onClick = onCheckedChange?.partially1(!checked),
+    LocalSettingPaneComponents.current.KgSwitch(
+        icon = icon,
+        subIcon = subIcon,
+        title = title,
+        text = text,
+        checked = checked,
+        onCheckedChange = onCheckedChange,
     )
 }

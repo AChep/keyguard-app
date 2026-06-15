@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -29,11 +30,15 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAboutTeamPr
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTelegramProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingApkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAppIconsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutotypeTestProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillBlockUriProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillCopyTotpProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillDefaultMatchDetectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillInlineSuggestionsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillManualSelectionProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPasskeysEnabledProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPasswordsEnabledProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAutofillPrivilegedAppProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillRespectAutofillOffProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillSaveRequestProvider
@@ -65,6 +70,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingFeedbackApp
 import com.artemchep.keyguard.feature.home.settings.component.settingFontProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGitHubProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGravatarProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingHibpApiTokenProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingKeepScreenOnProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchAppPicker
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchYubiKey
@@ -72,7 +78,9 @@ import com.artemchep.keyguard.feature.home.settings.component.settingLocalizatio
 import com.artemchep.keyguard.feature.home.settings.component.settingLogsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMarkdownProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMasterPasswordProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingMinimizeOnCopyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavAnimationProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingNavHiddenSendProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavLabelProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingOpenSourceLicensesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingPermissionCameraProvider
@@ -89,6 +97,13 @@ import com.artemchep.keyguard.feature.home.settings.component.settingScreenDelay
 import com.artemchep.keyguard.feature.home.settings.component.settingScreenshotsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocaleProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentDisplayKeyNamesProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentLocalStorageInfoProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHistoryProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSetupProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsDebug
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsPlayStoreProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsProvider
@@ -99,11 +114,13 @@ import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLay
 import com.artemchep.keyguard.feature.home.settings.component.settingUnreadWatchtowerAlerts
 import com.artemchep.keyguard.feature.home.settings.component.settingUrlOverrideProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUseExternalBrowserProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingVaultClearProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterRebootProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterScreenOffProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockAfterTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultLockProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultPersistProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingYubiKeyUnlockProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWebsiteIconsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingWriteAccessProvider
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -132,10 +149,14 @@ object Setting {
     const val AUTOFILL_RESPECT_AUTOFILL_OFF = "autofill_respect_autofill_off"
     const val AUTOFILL_SAVE_REQUEST = "autofill_save_request"
     const val AUTOFILL_SAVE_URI = "autofill_save_uri"
+    const val AUTOFILL_PASSKEYS = "autofill_passkeys"
+    const val AUTOFILL_PASSWORDS = "autofill_passwords"
     const val AUTOFILL_BLOCK_URI = "autofill_block_uri"
+    const val AUTOFILL_PRIVILEGED_APPS = "autofill_privileged_apps"
     const val AUTOFILL_COPY_TOTP = "autofill_copy_totp"
     const val NAV_ANIMATION = "nav_animation"
     const val NAV_LABEL = "nav_label"
+    const val NAV_HIDDEN_SEND = "nav_hidden_send"
     const val FONT = "font"
     const val LOCALE = "locale"
     const val COLOR_SCHEME = "color_scheme"
@@ -150,7 +171,9 @@ object Setting {
     const val PERMISSION_POST_NOTIFICATION = "permission_post_notification"
     const val BIOMETRIC = "biometric"
     const val BIOMETRIC_REQUIRE_CONFIRMATION = "biometric_require_confirmation"
+    const val YUBIKEY_UNLOCK = "yubikey_unlock"
     const val VAULT_PERSIST = "vault_persist"
+    const val VAULT_CLEAR = "vault_clear"
     const val VAULT_LOCK = "vault_lock"
     const val VAULT_LOCK_AFTER_REBOOT = "vault_lock_after_reboot"
     const val VAULT_LOCK_AFTER_SCREEN_OFF = "vault_screen_lock"
@@ -165,6 +188,7 @@ object Setting {
     const val REQUIRE_MASTER_PASSWORD = "require_master_password"
     const val EMIT_MESSAGE = "emit_message"
     const val EMIT_TOTP = "emit_totp"
+    const val AUTOTYPE_TEST = "autotype_test"
     const val FEEDBACK_APP = "feedback_app"
     const val REDDIT = "reddit"
     const val CROWDIN = "crowdin"
@@ -184,6 +208,13 @@ object Setting {
     const val LOGS = "logs"
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
+    const val SSH_AGENT = "ssh_agent"
+    const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
+    const val SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent_display_key_names"
+    const val SSH_AGENT_LOCAL_STORAGE_INFO = "ssh_agent_local_storage_info"
+    const val SSH_AGENT_SETUP = "ssh_agent_setup"
+    const val SSH_AGENT_FILTERS = "ssh_agent_filters"
+    const val SSH_AGENT_HISTORY = "ssh_agent_history"
     const val RATE_APP = "rate_app"
     const val CONCEAL = "conceal"
     const val MARKDOWN = "markdown"
@@ -193,10 +224,12 @@ object Setting {
     const val TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
     const val USE_EXTERNAL_BROWSER = "use_external_browser"
     const val CLOSE_TO_TRAY = "close_to_tray"
+    const val MINIMIZE_ON_COPY = "minimize_on_copy"
     const val APP_ICONS = "app_icons"
     const val WEBSITE_ICONS = "website_icons"
     const val CHECK_PWNED_PASSWORDS = "check_pwned_passwords"
     const val CHECK_PWNED_SERVICES = "check_pwned_services"
+    const val HIBP_API_TOKEN = "hibp_api_token"
     const val CHECK_TWO_FA = "check_two_fa"
     const val CHECK_PASSKEYS = "check_passkeys"
     const val CLEAR_CACHE = "clear_cache"
@@ -227,10 +260,14 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.AUTOFILL_RESPECT_AUTOFILL_OFF to ::settingAutofillRespectAutofillOffProvider,
     Setting.AUTOFILL_SAVE_REQUEST to ::settingAutofillSaveRequestProvider,
     Setting.AUTOFILL_SAVE_URI to ::settingAutofillSaveUriProvider,
+    Setting.AUTOFILL_PASSKEYS to ::settingAutofillPasskeysEnabledProvider,
+    Setting.AUTOFILL_PASSWORDS to ::settingAutofillPasswordsEnabledProvider,
     Setting.AUTOFILL_BLOCK_URI to ::settingAutofillBlockUriProvider,
+    Setting.AUTOFILL_PRIVILEGED_APPS to ::settingAutofillPrivilegedAppProvider,
     Setting.AUTOFILL_COPY_TOTP to ::settingAutofillCopyTotpProvider,
     Setting.NAV_ANIMATION to ::settingNavAnimationProvider,
     Setting.NAV_LABEL to ::settingNavLabelProvider,
+    Setting.NAV_HIDDEN_SEND to ::settingNavHiddenSendProvider,
     Setting.FONT to ::settingFontProvider,
     Setting.LOCALE to ::settingSelectLocaleProvider,
     Setting.COLOR_SCHEME to ::settingColorSchemeProvider,
@@ -245,7 +282,9 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.PERMISSION_WRITE_EXTERNAL_STORAGE to ::settingPermissionWriteExternalStorageProvider,
     Setting.BIOMETRIC to ::settingBiometricsProvider,
     Setting.BIOMETRIC_REQUIRE_CONFIRMATION to ::settingBiometricsRequireConfirmationProvider,
+    Setting.YUBIKEY_UNLOCK to ::settingYubiKeyUnlockProvider,
     Setting.VAULT_PERSIST to ::settingVaultPersistProvider,
+    Setting.VAULT_CLEAR to ::settingVaultClearProvider,
     Setting.VAULT_LOCK to ::settingVaultLockProvider,
     Setting.VAULT_LOCK_AFTER_REBOOT to ::settingVaultLockAfterRebootProvider,
     Setting.VAULT_LOCK_AFTER_SCREEN_OFF to ::settingVaultLockAfterScreenOffProvider,
@@ -260,6 +299,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.REQUIRE_MASTER_PASSWORD to ::settingRequireMasterPasswordProvider,
     Setting.EMIT_MESSAGE to ::settingEmitMessageProvider,
     Setting.EMIT_TOTP to ::settingEmitTotpProvider,
+    Setting.AUTOTYPE_TEST to ::settingAutotypeTestProvider,
     Setting.FEEDBACK_APP to ::settingFeedbackAppProvider,
     Setting.ABOUT_APP to ::settingAboutAppProvider,
     Setting.ABOUT_APP_BUILD_DATE to ::settingAboutAppBuildDateProvider,
@@ -279,6 +319,13 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.LOGS to ::settingLogsProvider,
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
+    Setting.SSH_AGENT to ::settingSshAgentProvider,
+    Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
+    Setting.SSH_AGENT_DISPLAY_KEY_NAMES to ::settingSshAgentDisplayKeyNamesProvider,
+    Setting.SSH_AGENT_LOCAL_STORAGE_INFO to ::settingSshAgentLocalStorageInfoProvider,
+    Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
+    Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,
+    Setting.SSH_AGENT_HISTORY to ::settingSshAgentHistoryProvider,
     Setting.RATE_APP to ::settingRateAppProvider,
     Setting.DIVIDER to ::settingSectionProvider,
     Setting.CONCEAL to ::settingConcealFieldsProvider,
@@ -289,10 +336,12 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.TWO_PANEL_LAYOUT_PORTRAIT to ::settingTwoPanelLayoutPortraitProvider,
     Setting.USE_EXTERNAL_BROWSER to ::settingUseExternalBrowserProvider,
     Setting.CLOSE_TO_TRAY to ::settingCloseToTrayProvider,
+    Setting.MINIMIZE_ON_COPY to ::settingMinimizeOnCopyProvider,
     Setting.APP_ICONS to ::settingAppIconsProvider,
     Setting.WEBSITE_ICONS to ::settingWebsiteIconsProvider,
     Setting.CHECK_PWNED_PASSWORDS to ::settingCheckPwnedPasswordsProvider,
     Setting.CHECK_PWNED_SERVICES to ::settingCheckPwnedServicesProvider,
+    Setting.HIBP_API_TOKEN to ::settingHibpApiTokenProvider,
     Setting.CHECK_TWO_FA to ::settingCheckTwoFAProvider,
     Setting.CHECK_PASSKEYS to ::settingCheckPasskeysProvider,
     Setting.CLEAR_CACHE to ::settingClearCache,
@@ -311,8 +360,19 @@ fun SettingPaneContent(
     title: String,
     items: List<SettingPaneItem>,
 ) {
+    val panelState = rememberSettingPaneState(items)
+    SettingPaneContent2(
+        title = title,
+        state = panelState.value,
+    )
+}
+
+@Composable
+fun rememberSettingPaneState(
+    items: List<SettingPaneItem>,
+): State<SettingPaneState> {
     val di = localDI()
-    val state by remember(items, di, hub) {
+    return remember(items, di, hub) {
         val platform = CurrentPlatform
 
         fun create(
@@ -330,14 +390,9 @@ fun SettingPaneContent(
                     args = args,
                     content = content
                         ?.takeIf {
-                            if (
-                                it.platformClass != null &&
-                                !it.platformClass.isInstance(platform)
-                            ) {
-                                return@takeIf false
-                            }
-
-                            true
+                            val isValid = it.platformClasses.isEmpty() ||
+                                    it.platformClasses.any { clazz -> clazz.isInstance(platform) }
+                            isValid
                         }
                         ?.content,
                 )
@@ -396,11 +451,6 @@ fun SettingPaneContent(
                 )
             }
     }.collectAsState(initial = SettingPaneState())
-
-    SettingPaneContent2(
-        title = title,
-        state = state,
-    )
 }
 
 @OptIn(

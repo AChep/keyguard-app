@@ -36,21 +36,21 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributor
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributorsService
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.settings.KgAction
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.localizationcontributors.directory.LocalizationContributorCrown
 import com.artemchep.keyguard.feature.localizationcontributors.directory.LocalizationContributorsListRoute
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
 import com.artemchep.keyguard.ui.icons.UserIcon
-import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
@@ -69,6 +69,10 @@ fun settingLocalizationProvider(
 fun settingLocalizationProvider(
     localizationContributorsService: LocalizationContributorsService,
 ): SettingComponent = kotlin.run {
+    if (CurrentPlatform.hasWatch()) {
+        return@run flowOf(null)
+    }
+
     val item = SettingIi(
         search = SettingIi.Search(
             group = "about",
@@ -195,16 +199,12 @@ private fun SettingLocalization(
     footer: (@Composable ColumnScope.() -> Unit)? = null,
     onClick: (() -> Unit)?,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.Translate, Icons.Outlined.KeyguardWebsite),
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.Translate,
+        subIcon = Icons.Outlined.KeyguardWebsite,
+        title = stringResource(Res.string.pref_item_crowdin_title),
         trailing = {
             ChevronIcon()
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_crowdin_title),
-            )
         },
         footer = footer,
         onClick = onClick,

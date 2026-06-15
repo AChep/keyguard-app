@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import arrow.core.partially1
+import com.artemchep.keyguard.common.exception.isKeyException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatten
@@ -19,7 +20,6 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.util.memoize
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.security.KeyException
 
 class EnableBiometricImpl(
     private val keyReadWriteRepository: FingerprintReadWriteRepository,
@@ -60,7 +60,8 @@ class EnableBiometricImpl(
                 suspend {
                     try {
                         createCipher()
-                    } catch (e: KeyException) {
+                    } catch (e: Throwable) {
+                        if (!e.isKeyException()) throw e
                         // try to clear the cipher key...
                         biometric.deleteCipher()
                         // ...and recreate it.

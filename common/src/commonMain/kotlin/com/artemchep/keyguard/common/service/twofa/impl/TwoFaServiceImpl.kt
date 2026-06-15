@@ -1,17 +1,11 @@
 package com.artemchep.keyguard.common.service.twofa.impl
 
-import arrow.core.partially1
 import com.artemchep.keyguard.build.FileHashes
-import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.shared
-import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.common.model.FileResource
+import com.artemchep.keyguard.common.service.json.jsonResourceListIo
 import com.artemchep.keyguard.common.service.text.TextService
-import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
-import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -50,14 +44,14 @@ class TwoFaServiceImpl(
         private const val TAG = "TwoFaService"
     }
 
-    private val listIo = ::loadTfaRawData
-        .partially1(textService)
-        .effectMap { jsonString ->
-            val entities = json.decodeFromString<List<TfaEntity>>(jsonString)
-            val models = entities.map(TfaEntity::toDomain)
-            models
-        }
-        .sharedSoftRef(TAG)
+    private val listIo = jsonResourceListIo(
+        textService = textService,
+        json = json,
+        resource = FileResource.tfa,
+        tag = TAG,
+    ) { entity: TfaEntity ->
+        entity.toDomain()
+    }
 
     override val version: String
         get() = FileHashes.tfa
@@ -71,7 +65,3 @@ class TwoFaServiceImpl(
 
     override fun get() = listIo
 }
-
-private suspend fun loadTfaRawData(
-    textService: TextService,
-) = textService.readFromResourcesAsText(FileResource.tfa)

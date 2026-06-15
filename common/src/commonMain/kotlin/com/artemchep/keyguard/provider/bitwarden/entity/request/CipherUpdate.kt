@@ -27,6 +27,7 @@ sealed interface CipherUpdate {
 fun CipherUpdate.Companion.of(
     model: BitwardenCipher,
     folders: Map<String, String?>,
+    encryptedFor: String,
 ) = when {
     model.service.remote != null -> {
         CipherUpdate.Modify(
@@ -35,6 +36,7 @@ fun CipherUpdate.Companion.of(
             cipherRequest = CipherRequest.of(
                 model = model,
                 folders = folders,
+                encryptedFor = encryptedFor,
             ),
         )
     }
@@ -46,6 +48,7 @@ fun CipherUpdate.Companion.of(
             cipherRequest = CipherCreateRequest.of(
                 model = model,
                 folders = folders,
+                encryptedFor = encryptedFor,
             ),
         )
     }
@@ -56,6 +59,7 @@ fun CipherUpdate.Companion.of(
             cipherRequest = CipherRequest.of(
                 model = model,
                 folders = folders,
+                encryptedFor = encryptedFor,
             ),
         )
     }

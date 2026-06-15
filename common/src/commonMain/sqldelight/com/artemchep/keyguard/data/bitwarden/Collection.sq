@@ -7,6 +7,8 @@ CREATE TABLE collection (
   FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_collection_accountId ON collection(accountId);
+
 insert {
   UPDATE collection
   SET

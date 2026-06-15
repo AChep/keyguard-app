@@ -7,12 +7,10 @@ import com.artemchep.keyguard.common.model.LinkInfoExecute
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import kotlin.reflect.KClass
 
+internal const val CMD_SCHEME_PREFIX = "cmd://"
+
 class LinkInfoExtractorExecute(
 ) : LinkInfoExtractor<DSecret.Uri, LinkInfoExecute> {
-    companion object {
-        private const val PREFIX = "cmd://"
-    }
-
     override val from: KClass<DSecret.Uri> get() = DSecret.Uri::class
 
     override val to: KClass<LinkInfoExecute> get() = LinkInfoExecute::class
@@ -20,9 +18,9 @@ class LinkInfoExtractorExecute(
     override fun extractInfo(
         uri: DSecret.Uri,
     ): IO<LinkInfoExecute> = ioEffect<LinkInfoExecute> {
-        if (uri.uri.startsWith(PREFIX)) {
+        if (uri.uri.startsWith(CMD_SCHEME_PREFIX)) {
             val result = LinkInfoExecute.Allow(
-                command = uri.uri.removePrefix(PREFIX),
+                command = uri.uri.removePrefix(CMD_SCHEME_PREFIX),
             )
             return@ioEffect result
         }

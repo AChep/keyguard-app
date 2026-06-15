@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.AccentColors
@@ -28,6 +29,7 @@ sealed interface VaultItem2 {
     companion object
 
     val id: String
+    val contentType: String
 
     @Immutable
     data class QuickFilters(
@@ -35,6 +37,8 @@ sealed interface VaultItem2 {
         val items: ImmutableList<Item>,
     ) : VaultItem2 {
         companion object;
+
+        override val contentType: String get() = "quick_filters"
 
         data class Item(
             val key: String = Uuid.random().toString(),
@@ -57,17 +61,21 @@ sealed interface VaultItem2 {
     ) : VaultItem2, GroupableShapeItem<Button> {
         companion object;
 
+        override val contentType: String get() = "button"
+
         override fun withShape(shape: Int) = copy(shapeState = shape)
     }
 
     @Immutable
     data object NoSuggestions : VaultItem2 {
         override val id: String get() = "vault_item:no_suggestions"
+        override val contentType: String get() = "no_suggestions"
     }
 
     @Immutable
     data object NoItems : VaultItem2 {
         override val id: String get() = "vault_item:no_items"
+        override val contentType: String get() = "no_items"
     }
 
     @Immutable
@@ -76,7 +84,9 @@ sealed interface VaultItem2 {
         val text: TextHolder? = null,
         val caps: Boolean = true,
     ) : VaultItem2 {
-        companion object
+        companion object;
+
+        override val contentType: String get() = "section"
     }
 
     @Immutable
@@ -99,6 +109,7 @@ sealed interface VaultItem2 {
         val feature: Feature,
         val copyText: CopyText,
         val token: TotpToken?,
+        val passwords: ImmutableList<Password>,
         val passkeys: ImmutableList<Passkey>,
         val attachments2: ImmutableList<Attachment>,
         /**
@@ -106,6 +117,7 @@ sealed interface VaultItem2 {
          */
         val title: AnnotatedString,
         val text: String?,
+        val searchContextBadge: SearchContextBadge? = null,
         val favourite: Boolean,
         val attachments: Boolean,
         val shapeState: Int = ShapeState.ALL,
@@ -114,6 +126,8 @@ sealed interface VaultItem2 {
         val localStateFlow: StateFlow<LocalState>,
     ) : VaultItem2, GroupableShapeItem<Item> {
         companion object;
+
+        override val contentType: String get() = "item"
 
         override fun withShape(shape: Int) = copy(shapeState = shape)
 
@@ -131,6 +145,9 @@ sealed interface VaultItem2 {
         @Immutable
         sealed interface Action {
             @Immutable
+            data object None : Action
+
+            @Immutable
             data class Dropdown(
                 val actions: List<ContextItem>,
             ) : Action
@@ -142,6 +159,13 @@ sealed interface VaultItem2 {
         }
 
         @Immutable
+        data class Password(
+            val conceal: Boolean,
+            val source: DSecret.Login,
+            val onClick: (() -> Unit)?,
+        )
+
+        @Immutable
         data class Passkey(
             val source: DSecret.Login.Fido2Credentials,
             val onClick: () -> Unit,
@@ -151,6 +175,12 @@ sealed interface VaultItem2 {
         data class Attachment(
             val source: DSecret.Attachment,
             val onClick: () -> Unit,
+        )
+
+        @Immutable
+        data class SearchContextBadge(
+            val field: VaultTextField,
+            val text: String,
         )
 
         @Immutable

@@ -3,24 +3,19 @@ package com.artemchep.keyguard.copy.download
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
-import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.core.use
+import com.artemchep.keyguard.platform.resolve
+import com.artemchep.keyguard.platform.toJavaFile
 import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,7 +23,6 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -38,16 +32,12 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformWhile
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.File
-import java.io.IOException
 
 abstract class DownloadClientJvm(
     private val cacheDirProvider: CacheDirProvider,
@@ -56,10 +46,6 @@ abstract class DownloadClientJvm(
     private val okHttpClient: OkHttpClient,
     private val fileEncryptor: FileEncryptor,
 ) {
-    companion object {
-        private const val DOWNLOAD_PROGRESS_POOLING_PERIOD_MS = 1000L
-    }
-
     private data class PoolEntry(
         val subscribersCount: Int,
         val downloadId: String,
@@ -218,7 +204,7 @@ abstract class DownloadClientJvm(
             // No need to download anything, the file is
             // already available locally.
             val f = flow<DownloadProgress> {
-                val result = file.right()
+                val result = file.toURI().toString().right()
                 emit(DownloadProgress.Complete(result))
             }
             emitAll(f)
@@ -230,7 +216,9 @@ abstract class DownloadClientJvm(
             val cacheFile = kotlin.runCatching {
                 val cacheFileName = cryptoGenerator.uuid() + ".download"
                 val cacheFileRelativePath = "download_cache/$cacheFileName"
-                cacheDirProvider.get().resolve(cacheFileRelativePath)
+                cacheDirProvider.get()
+                    .resolve(cacheFileRelativePath)
+                    .toJavaFile()
             }.getOrElse { e ->
                 // Report the download as failed if we could not
                 // resolve a cache file.
@@ -246,73 +234,30 @@ abstract class DownloadClientJvm(
                     cacheFile.delete()
                     cacheFile.parentFile?.mkdirs()
                     cacheFile.writeBytes(fileData)
-
-                    val result = cacheFile
-                        .right()
-                    DownloadProgress.Complete(
-                        result = result,
-                    )
                 } else {
-                    flap(
+                    downloadToFileJvm(
+                        okHttpClient = okHttpClient,
                         src = url,
                         dst = cacheFile,
                     )
                 }
+
+                cacheFile.decryptAndMove(
+                    dst = file,
+                    key = fileKey,
+                )
+                DownloadProgress.Complete(file.toURI().toString().right())
             } catch (e: Exception) {
-                // Delete cache file in case of
-                // an error.
+                e.throwIfFatalOrCancellation()
+                e.printStackTrace()
+                DownloadProgress.Complete(e.left())
+            } finally {
                 runCatching {
                     cacheFile.delete()
                 }
-
-                e.throwIfFatalOrCancellation()
-
-                val result = e.left()
-                DownloadProgress.Complete(
-                    result = result,
-                )
             }
             send(result)
         }
-            .flatMapConcat { event ->
-                println("events $event")
-                when (event) {
-                    is DownloadProgress.Complete ->
-                        event.result
-                            .fold(
-                                ifLeft = {
-                                    flowOf(event)
-                                },
-                                ifRight = { tmpFile ->
-                                    // Decrypt the file and move it to the final
-                                    // destination.
-                                    flow {
-                                        emit(DownloadProgress.Loading())
-                                        val result = kotlin
-                                            .runCatching {
-                                                tmpFile.decryptAndMove(
-                                                    dst = file,
-                                                    key = fileKey,
-                                                )
-                                            }
-                                            .fold(
-                                                onFailure = { e ->
-                                                    e.printStackTrace()
-                                                    e.left()
-                                                },
-                                                onSuccess = {
-                                                    file.right()
-                                                },
-                                            )
-                                        emit(DownloadProgress.Complete(result))
-                                    }
-                                },
-                            )
-
-                    is DownloadProgress.Loading -> flowOf(event)
-                    is DownloadProgress.None -> flowOf(event)
-                }
-            }
         emitAll(f)
     }
         .onStart {
@@ -320,121 +265,12 @@ abstract class DownloadClientJvm(
             emit(initialState)
         }
 
-    // TODO: What if SRC file is DST file??
     private suspend fun File.decryptAndMove(
         dst: File,
         key: ByteArray? = null,
-    ) = withContext(Dispatchers.IO) {
-        // If there's nothing to decrypt and the file
-        // matches destination then we are done here.
-        val sameFile = this@decryptAndMove == dst
-        if (sameFile && key == null) {
-            return@withContext
-        }
-
-        dst.parentFile?.mkdirs()
-
-        if (key != null) {
-            dst.delete()
-            inputStream()
-                .use { fis ->
-                    val ctis = fileEncryptor.decode(
-                        input = fis,
-                        key = key,
-                    )
-                    ctis.use { i ->
-                        dst.outputStream().use { o ->
-                            i.copyTo(o)
-                        }
-                    }
-                }
-        } else {
-            copyTo(dst, overwrite = true)
-        }
-
-        if (!sameFile) this@decryptAndMove.delete()
-    }
-
-    private suspend fun ProducerScope<DownloadProgress>.flap(
-        src: String,
-        dst: File,
-    ): DownloadProgress.Complete {
-        val response = kotlin.run {
-            val request = Request.Builder()
-                .get()
-                .url(src)
-                .build()
-            okHttpClient.newCall(request).execute()
-        }
-        if (!response.isSuccessful) {
-            val exception = HttpException(
-                statusCode = HttpStatusCode.fromValue(response.code),
-                m = response.message,
-                e = null,
-            )
-            val result = exception.left()
-            return DownloadProgress.Complete(
-                result = result,
-            )
-        }
-        val responseBody = response.body
-            ?: throw IOException("File is not available!")
-
-        //
-        // Check if the file is already loaded
-        //
-
-        val dstContentLength = dst.length()
-        val srcContentLength = responseBody.contentLength()
-        if (dstContentLength == srcContentLength) {
-            val result = dst.right()
-            return DownloadProgress.Complete(
-                result = result,
-            )
-        }
-
-        dst.delete()
-        dst.parentFile?.mkdirs()
-
-        coroutineScope {
-            var totalBytesWritten = 0L
-
-            val monitorJob = launch {
-                delay(DOWNLOAD_PROGRESS_POOLING_PERIOD_MS / 2)
-                while (isActive) {
-                    val event = DownloadProgress.Loading(
-                        downloaded = totalBytesWritten,
-                        total = srcContentLength,
-                    )
-                    trySend(event)
-
-                    // Wait a bit before the next status update.
-                    delay(DOWNLOAD_PROGRESS_POOLING_PERIOD_MS)
-                }
-            }
-
-            withContext(Dispatchers.IO) {
-                responseBody.byteStream().use { inputStream ->
-                    dst.outputStream().use { outputStream ->
-                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                        while (true) {
-                            val bytes = inputStream.read(buffer)
-                            if (bytes != -1) {
-                                outputStream.write(buffer, 0, bytes)
-                                totalBytesWritten += bytes
-                            } else {
-                                break
-                            }
-                        }
-                    }
-                }
-            }
-            monitorJob.cancelAndJoin()
-        }
-
-        val result = dst.right()
-        return DownloadProgress.Complete(
-            result = result,
-        )
-    }
+    ) = copyDecryptedToLocalFileAfterVerification(
+        dst = dst,
+        key = key,
+        fileEncryptor = fileEncryptor,
+    )
 }

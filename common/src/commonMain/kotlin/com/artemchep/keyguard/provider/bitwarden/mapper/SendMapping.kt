@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.mapper
 
 import com.artemchep.keyguard.common.model.DSend
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 
 suspend fun BitwardenSend.toDomain(
@@ -11,6 +10,8 @@ suspend fun BitwardenSend.toDomain(
         BitwardenSend.Type.Text -> DSend.Type.Text
         BitwardenSend.Type.File -> DSend.Type.File
     }
+    val authType = authTypeOrInferred
+        .toDomain()
     return DSend(
         id = sendId,
         accountId = accountId,
@@ -22,18 +23,20 @@ suspend fun BitwardenSend.toDomain(
         expirationDate = expirationDate,
         service = service,
         // common
+        authType = authType,
         name = name.orEmpty(),
         notes = notes.orEmpty(),
         accessCount = accessCount,
         maxAccessCount = maxAccessCount,
-        hasPassword = changes?.passwordBase64
-            ?.let { it as? BitwardenOptionalStringNullable.Some }
-            ?.let { it.value != null }
-            ?: (password != null),
+        hasPassword = authType == DSend.AuthType.Password,
         synced = !service.deleted &&
-                revisionDate == service.remote?.revisionDate,
+                revisionDate == service.remote?.revisionDate &&
+                file?.pendingUpload == null,
         disabled = disabled,
         hideEmail = hideEmail ?: false,
+        emails = emails
+            .takeIf { authType == DSend.AuthType.Email }
+            .orEmpty(),
         // types
         type = type,
         text = text?.toDomain(),
@@ -49,6 +52,12 @@ fun BitwardenSend.Text.toDomain() = DSend.Text(
 fun BitwardenSend.File.toDomain() = DSend.File(
     id = id,
     fileName = fileName,
-    keyBase64 = keyBase64,
     size = size,
+    sizeName = sizeName,
 )
+
+private fun BitwardenSend.AuthType.toDomain() = when (this) {
+    BitwardenSend.AuthType.Email -> DSend.AuthType.Email
+    BitwardenSend.AuthType.Password -> DSend.AuthType.Password
+    BitwardenSend.AuthType.None -> DSend.AuthType.None
+}

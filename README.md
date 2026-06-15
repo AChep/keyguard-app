@@ -2,7 +2,7 @@
 
 [![Crowdin](https://badges.crowdin.net/keyguard/localized.svg)](https://crowdin.com/project/keyguard)
 
-Keyguard is a multi-client for the [Bitwarden® platform](https://bitwarden.com/) and [KeePass](https://keepass.info/) (KDBX), created to provide the best user experience possible.
+Keyguard is a third-party client for the [Bitwarden® platform](https://bitwarden.com/) and [KeePass](https://keepass.info/) (KDBX) files. It autofills your logins, supports passkeys, works offline, and runs a Watchtower that finds leaked and reused passwords and other issues. 
 
 _Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc._
 
@@ -24,16 +24,21 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 
 #### Highlights
 - a beautiful rich and responsive **Material You** user interface;
-- a **powerful** and **fast search**;
+- a **[powerful](https://keyguard.dev/docs/search/)** and **fast search**;
 - a support for creating & using **passkeys** - a modern alternative to passwords.
 - a watchtower that finds items with **Pwned passwords**, **Vulnerable accounts**, **Reused passwords**, **Inactive two factor authentication**, **Inactive passkeys**, **Unsecure Websites** as well as **Duplicate**, **Incomplete** and **Expiring** items, and other;
 - **multi-account support** 🌠 with secure login and two-factor authentication support;
 - add items 🌠 and sends _(Bitwarden, 🌠)_, modify 🌠, and view your vault **offline**;
+- automatically manage vault backup repository;
+- upload attachments 🌠 to the vault;
+- view attachments in-app without saving them;
+- unlock vault with a password, biometrics or a YubiKey;
 - **export individual** or organization items, **including the attachments**; 
 - beautiful **Light**/**Dark theme**;
 - a generator with **SSH keys**, **Email forwarders**, **Custom wordlists** support, and many other features; 
-- a support for [shortcuts](wiki/SHORTCUTS.md), [placeholders](wiki/PLACEHOLDERS.md) and [URL overrides](wiki/URL_OVERRIDE.md);
-- a [smart conflict resolution](wiki/CONFLICTS.md);
+- a support for [shortcuts](https://keyguard.dev/docs/shortcuts/), [placeholders](https://keyguard.dev/docs/placeholders/) and [URL overrides](https://keyguard.dev/docs/url-overrides/);
+- a support for an SSH agent - interacting with SSH-based services on Android and Desktop platform;
+- a [smart conflict resolution](https://keyguard.dev/docs/sync-and-conflicts/);
 - and much more!
 
 🌠 _— requires a premium license: one-time or subscription._
@@ -41,7 +46,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 #### Platforms
 Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and largely dependent on the JVM libraries. Keyguard is focusing to be **Android** first, other platforms might have some features missing.
 
-- [Android](#android);
+- [Android](#android), including Wear OS;
 - [Linux](#linux);
 - [Windows](#windows);
 - [macOS](#macos).
@@ -64,6 +69,10 @@ Read more about implementation details:
 | :----: |
 | ![](https://github.com/AChep/keyguard-app/blob/master/screenshots/tablet10/Screenshot_20250825_180106.png) |
 
+|                                                                                         |                                                                                         |                                                                                             |
+|:---------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|
+| ![1](https://github.com/AChep/keyguard-app/blob/master/screenshots/wear/vault_list.png) | ![2](https://github.com/AChep/keyguard-app/blob/master/screenshots/wear/vault_info.png) | ![3](https://github.com/AChep/keyguard-app/blob/master/screenshots/wear/vault_info_2fa.png) | 
+
 ## Localisation
 
  [Help us to translate the app](https://crowdin.com/project/keyguard). Even a short glance is helpful. 
@@ -82,6 +91,11 @@ You can find the `.apk` binary on the [releases page](https://github.com/AChep/k
 ### Linux
 You can find the `.flatpak` binary on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
 - [Flathub](https://flathub.org/apps/com.artemchep.keyguard).
+
+##### [AUR](https://aur.archlinux.org/) Keyguard [package](https://aur.archlinux.org/packages/keyguard-bin)
+```sh
+yay -S keyguard-bin
+```
 
 ### macOS
 You can find the `.dmg` binaries for Apple and Intel processors on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).

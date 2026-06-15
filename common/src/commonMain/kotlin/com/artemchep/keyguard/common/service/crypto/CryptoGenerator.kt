@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.model.Argon2Mode
+import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
+import com.artemchep.keyguard.common.util.toHex
 
 interface CryptoGenerator {
     fun hkdf(
@@ -30,10 +32,20 @@ interface CryptoGenerator {
         length: Int = 32,
     ): ByteArray
 
+    fun hmac(
+        key: ByteArray,
+        data: ByteArray,
+        algorithm: CryptoHashAlgorithm,
+    ): ByteArray
+
     fun hmacSha256(
         key: ByteArray,
         data: ByteArray,
-    ): ByteArray
+    ): ByteArray = hmac(
+        key = key,
+        data = data,
+        algorithm = CryptoHashAlgorithm.SHA_256,
+    )
 
     fun hashSha1(data: ByteArray): ByteArray
 
@@ -46,4 +58,31 @@ interface CryptoGenerator {
     fun random(): Int
 
     fun random(range: IntRange): Int
+}
+
+fun CryptoGenerator.seedHex(
+    length: Int = 32,
+): String = seed(length)
+    .toHex()
+
+fun <T> CryptoGenerator.listRandomOrThrow(list: List<T>) = kotlin.run {
+    val index = random(0..list.lastIndex)
+    list[index]
+}
+
+fun <T> CryptoGenerator.listShuffled(list: List<T>): List<T> = kotlin.run {
+    if (list.size < 2) {
+        return list
+    }
+
+    val output = list.toMutableList()
+    for (i in output.lastIndex downTo 1) {
+        val j = random(0..i)
+        if (i != j) {
+            val tmp = output[i]
+            output[i] = output[j]
+            output[j] = tmp
+        }
+    }
+    output
 }

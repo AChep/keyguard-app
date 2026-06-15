@@ -9,6 +9,9 @@ CREATE TABLE cipherUsageHistory (
   FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_cipherUsageHistory_cipherId_createdAt ON cipherUsageHistory(cipherId, createdAt DESC);
+CREATE INDEX idx_cipherUsageHistory_type_cipherId_credentialId ON cipherUsageHistory(type, cipherId, credentialId);
+
 insert:
 INSERT INTO cipherUsageHistory(cipherId, credentialId, type, createdAt)
 VALUES (?, ?, ?, ?);
@@ -38,7 +41,7 @@ SELECT
 FROM cipherUsageHistory
 GROUP BY
     cipherId
-ORDER BY cipherUsageHistory.createdAt DESC
+ORDER BY createdAt DESC
 LIMIT :limit;
 
 getDistinctPopular:

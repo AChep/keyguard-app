@@ -17,6 +17,8 @@ sealed interface AppMode {
 
     data object Main : AppMode
 
+    data object QuickSearch : AppMode
+
     @optics
     data class Pick(
         override val type: DSecret.Type? = null,
@@ -54,6 +56,19 @@ sealed interface AppMode {
     @optics
     data class SavePasskey(
         val rpId: String?,
+        val onComplete: (DSecret) -> Unit,
+    ) : AppMode, HasType {
+        companion object;
+
+        // When in the passkeys mode only allow
+        // a user to see and create logins.
+        override val type: DSecret.Type get() = DSecret.Type.Login
+    }
+
+    @optics
+    data class SavePassword(
+        val id: String?,
+        val uri: String?,
         val onComplete: (DSecret) -> Unit,
     ) : AppMode, HasType {
         companion object;

@@ -38,7 +38,6 @@ import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.feature.watchtower.DISMISS_NOTIFICATIONS_DELAY_MS
@@ -133,7 +132,7 @@ fun produceGeneratorHistoryState(
         }
         .launchIn(screenScope)
 
-    val copy = copy(clipboardService)
+    val copy = copier()
 
     fun navigatePopAll() {
         val intent = NavigationIntent.PopById(
@@ -333,6 +332,9 @@ fun produceGeneratorHistoryState(
                             null
                         },
                         onClickPasskey = {
+                            null
+                        },
+                        onClickPassword = {
                             null
                         },
                     ).copy(

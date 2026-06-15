@@ -43,6 +43,8 @@ class CipherFilterRepositoryImpl(
         private const val TYPE_NOTE = "note"
         private const val TYPE_SSH_KEY = "sshKey"
         private const val TYPE_OTP = "otp"
+
+        private const val DELETE_BY_IDS_CHUNK_SIZE = 900
     }
 
     private interface FilterEntityMapper {
@@ -218,9 +220,18 @@ class CipherFilterRepositoryImpl(
 
     override fun removeByIds(ids: Set<Long>): IO<Unit> =
         daoEffect { dao ->
-            dao.transaction {
-                ids.forEach { id ->
-                    dao.deleteByIds(id)
+            when (ids.size) {
+                0 -> {
+                    // Do nothing
+                }
+                else -> {
+                    val idsInChunks = ids
+                        .chunked(DELETE_BY_IDS_CHUNK_SIZE)
+                    dao.transaction {
+                        idsInChunks.forEach { chunk ->
+                            dao.deleteByIds(chunk)
+                        }
+                    }
                 }
             }
         }

@@ -1,5 +1,5 @@
 import com.android.build.api.dsl.BuildType
-import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
+import com.artemchep.keyguard.buildplugins.version.createVersionInfo
 import java.io.File
 import java.util.*
 
@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
     alias(libs.plugins.baseline.profile)
+    id("keyguard.resources-common") apply false
 }
 
 fun loadProps(fileName: String): Properties {
@@ -95,6 +96,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                "../common/proguard-rules.pro",
                 "proguard-rules.pro",
             )
         }
@@ -132,6 +134,10 @@ dependencies {
     implementation(project(":common"))
     baselineProfile(project(":androidBenchmark"))
     coreLibraryDesugaring(libs.android.desugarjdklibs)
+
+    // Unit tests
+    testImplementation(kotlin("test"))
+    testImplementation(libs.junit)
 
     // Android tests
     androidTestImplementation(project(":androidTest"))

@@ -9,6 +9,8 @@ import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.model.SortItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
+import com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierApplyResult
+import com.artemchep.keyguard.feature.home.vault.search.query.highlight.QueryHighlighting
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
@@ -20,6 +22,9 @@ import kotlinx.coroutines.flow.emptyFlow
 data class VaultListState(
     val revision: Int = 0,
     val query: TextFieldModel2 = TextFieldModel2(mutableStateOf("")),
+    val queryHighlighting: QueryHighlighting = QueryHighlighting.Empty,
+    val queryQualifierSuggestion: String? = null,
+    val onQueryQualifierSuggestion: ((String) -> VaultSearchQualifierApplyResult?)? = null,
     val filters: List<FilterItem> = emptyList(),
     val sort: List<SortItem> = emptyList(),
     val saveFilters: (() -> Unit)? = null,

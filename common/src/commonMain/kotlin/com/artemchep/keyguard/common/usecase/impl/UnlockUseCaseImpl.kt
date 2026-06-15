@@ -4,8 +4,10 @@ import arrow.core.Either
 import arrow.core.compose
 import arrow.core.getOrElse
 import arrow.core.partially1
+import com.artemchep.keyguard.common.exception.isKeyException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyDecryptException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyEncryptException
+import com.artemchep.keyguard.common.exception.YubiKeyUnlockDecryptException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -25,12 +27,16 @@ import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.DKey
 import com.artemchep.keyguard.common.model.Fingerprint
 import com.artemchep.keyguard.common.model.FingerprintBiometric
+import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.model.YUBIKEY_UNLOCK_HKDF_INFO
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
 import com.artemchep.keyguard.common.service.vault.SessionMetadataReadWriteRepository
 import com.artemchep.keyguard.common.usecase.AuthConfirmMasterKeyUseCase
@@ -44,6 +50,7 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
+import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.util.catch
 import com.artemchep.keyguard.common.util.flow.measureTimeTillFirstEvent
 import com.artemchep.keyguard.common.util.memoize
@@ -51,6 +58,7 @@ import com.artemchep.keyguard.core.session.usecase.createSubDi
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.LeBiometricCipher
+import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -68,7 +76,6 @@ import org.kodein.di.DI
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import org.kodein.di.subDI
-import java.security.KeyException
 
 class UnlockUseCaseImpl(
     private val di: DI,
@@ -85,15 +92,31 @@ class UnlockUseCaseImpl(
     private val decryptBiometricKeyUseCase: BiometricKeyDecryptUseCase,
     private val authConfirmMasterKeyUseCase: AuthConfirmMasterKeyUseCase,
     private val authGenerateMasterKeyUseCase: AuthGenerateMasterKeyUseCase,
+    private val cryptoGenerator: CryptoGenerator,
+    private val cipherEncryptor: CipherEncryptor,
+    private val yubiKeyUnlockAvailability: YubiKeyUnlockAvailability,
 ) : UnlockUseCase {
     companion object {
         private const val TAG = "UnlockFlow"
     }
 
-    private val generateMasterKey = authGenerateMasterKeyUseCase()
-        .compose { password: String ->
-            MasterPassword.of(password)
-        }
+    /**
+     * Generates a master key of a specific version from the
+     * given password.
+     */
+    private val generateMasterKey: (String, MasterKdfVersion) -> IO<AuthResult> = { password, version ->
+        val masterPassword = MasterPassword.of(password)
+        authGenerateMasterKeyUseCase(version)(masterPassword)
+    }
+
+    /**
+     * Generates a master key of a specific version from the
+     * given password.
+     */
+    private val generateMasterKeyWithLatestVersion: (String) -> IO<AuthResult> = { password ->
+        val version = MasterKdfVersion.LATEST
+        generateMasterKey(password, version)
+    }
 
     private val sharedFlow = combine(
         keyReadWriteRepository.get()
@@ -163,6 +186,9 @@ class UnlockUseCaseImpl(
         decryptBiometricKeyUseCase = directDI.instance(),
         authConfirmMasterKeyUseCase = directDI.instance(),
         authGenerateMasterKeyUseCase = directDI.instance(),
+        cryptoGenerator = directDI.instance(),
+        cipherEncryptor = directDI.instance(),
+        yubiKeyUnlockAvailability = directDI.instance(),
     )
 
     override fun invoke() = sharedFlow
@@ -200,7 +226,7 @@ class UnlockUseCaseImpl(
         return VaultState.Create(
             createWithMasterPassword = VaultState.Create.WithPassword(
                 getCreateIo = { password ->
-                    generateMasterKey(password)
+                    generateMasterKeyWithLatestVersion(password)
                         .flatMap { result ->
                             create(
                                 result = result,
@@ -230,7 +256,7 @@ class UnlockUseCaseImpl(
                 VaultState.Create.WithBiometric(
                     getCipher = getCipherForEncryption,
                     getCreateIo = { password ->
-                        generateMasterKey(password)
+                        generateMasterKeyWithLatestVersion(password)
                             .flatMap { result ->
                                 val masterKey = result.key
                                 val cipherIo = ioEffect {
@@ -277,7 +303,11 @@ class UnlockUseCaseImpl(
         biometric: BiometricStatus,
         lockInfo: MasterSession.Empty.LockInfo?,
     ): VaultState {
-        val unlockMasterKey = authConfirmMasterKeyUseCase(tokens.master.salt, tokens.master.hash)
+        val unlockMasterKey = authConfirmMasterKeyUseCase(
+            tokens.master.salt,
+            tokens.master.hash,
+            tokens.version,
+        )
             .compose { password: String ->
                 MasterPassword.of(password)
             }
@@ -322,6 +352,12 @@ class UnlockUseCaseImpl(
                                 }
                         }
                         decryptBiometricKeyUseCase(cipherIo, encryptedMasterKey)
+                            .map { masterKeyBytes ->
+                                MasterKey(
+                                    version = tokens.version,
+                                    byteArray = masterKeyBytes,
+                                )
+                            }
                             .handleErrorWith { e ->
                                 val newException = BiometricKeyDecryptException(e)
                                 ioRaise(newException)
@@ -336,6 +372,24 @@ class UnlockUseCaseImpl(
             } else {
                 null
             },
+            unlockWithYubiKey = if (yubiKeyUnlockAvailability.isSupported()) {
+                tokens.yubiKey?.let { protector ->
+                    VaultState.Unlock.WithYubiKey(
+                        slot = protector.slot,
+                        challenge = protector.challenge,
+                        getCreateIo = { response ->
+                            decryptYubiKeyMasterKey(
+                                tokens = tokens,
+                                response = response,
+                            )
+                                .flatMap(::unlock)
+                                .dispatchOn(Dispatchers.Default)
+                        },
+                    )
+                }
+            } else {
+                null
+            },
             lockInfo = lockInfo?.run {
                 VaultState.Unlock.LockInfo(
                     type = type,
@@ -346,6 +400,29 @@ class UnlockUseCaseImpl(
         )
     }
 
+    private fun decryptYubiKeyMasterKey(
+        tokens: Fingerprint,
+        response: ByteArray,
+    ): IO<MasterKey> = ioEffect {
+        val protector = requireNotNull(tokens.yubiKey)
+        val wrappingKey = cryptoGenerator.hkdf(
+            seed = response,
+            salt = protector.hkdfSalt,
+            info = YUBIKEY_UNLOCK_HKDF_INFO.encodeToByteArray(),
+            length = 64,
+        )
+        val plainBytes = cipherEncryptor.decode2(
+            cipher = protector.encryptedMasterKey,
+            symmetricCryptoKey = SymmetricCryptoKey2(wrappingKey),
+        ).data
+        MasterKey(
+            version = tokens.version,
+            byteArray = plainBytes,
+        )
+    }.handleErrorWith { e ->
+        ioRaise(YubiKeyUnlockDecryptException(e))
+    }
+
     private fun createMainVaultState(
         tokens: Fingerprint,
         biometric: BiometricStatus,
@@ -353,14 +430,18 @@ class UnlockUseCaseImpl(
         di: DI,
     ): VaultState {
         val databaseManager by di.instance<VaultDatabaseManager>()
-        val unlockMasterKey = authConfirmMasterKeyUseCase(tokens.master.salt, tokens.master.hash)
+        val unlockMasterKey = authConfirmMasterKeyUseCase(
+            tokens.master.salt,
+            tokens.master.hash,
+            tokens.version,
+        )
             .compose { password: String ->
                 MasterPassword.of(password)
             }
         val getCreateIo: (String, String) -> IO<Unit> = { currentPassword, newPassword ->
             unlockMasterKey(currentPassword) // verify current password is valid
                 .flatMap {
-                    generateMasterKey(newPassword)
+                    generateMasterKeyWithLatestVersion(newPassword)
                 }
                 .flatMap { result ->
                     val newMasterKey = result.key
@@ -408,7 +489,7 @@ class UnlockUseCaseImpl(
                     getCreateIo = { currentPassword, newPassword ->
                         unlockMasterKey(currentPassword) // verify current password is valid
                             .flatMap {
-                                generateMasterKey(newPassword)
+                                generateMasterKeyWithLatestVersion(newPassword)
                             }
                             .flatMap { result ->
                                 val newMasterKey = result.key
@@ -469,7 +550,8 @@ class UnlockUseCaseImpl(
             suspend {
                 try {
                     createCipher()
-                } catch (e: KeyException) {
+                } catch (e: Throwable) {
+                    if (!e.isKeyException()) throw e
                     // If the key is not valid, then we want to disable the
                     // biometrics for now.
                     disableBiometric()
@@ -490,6 +572,7 @@ class UnlockUseCaseImpl(
         biometricTokens: FingerprintBiometric? = null,
     ): IO<Unit> {
         val token = Fingerprint(
+            version = result.version,
             master = result.token,
             biometric = biometricTokens,
         )

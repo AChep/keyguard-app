@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.export.impl
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.toSource
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
@@ -19,19 +20,14 @@ import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.download.DownloadWriter
 import com.artemchep.keyguard.common.service.export.ExportManager
-import com.artemchep.keyguard.common.service.export.JsonExportService
+import com.artemchep.keyguard.common.service.export.ExportVaultDataService
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.zip.ZipConfig
 import com.artemchep.keyguard.common.service.zip.ZipEntry
 import com.artemchep.keyguard.common.service.zip.ZipService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
-import com.artemchep.keyguard.common.usecase.GetCiphers
-import com.artemchep.keyguard.common.usecase.GetCollections
-import com.artemchep.keyguard.common.usecase.GetFolders
-import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import kotlinx.collections.immutable.persistentMapOf
@@ -65,21 +61,18 @@ import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.io.File
 import kotlin.concurrent.Volatile
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 open class ExportManagerBase(
     private val directDI: DirectDI,
     private val windowCoroutineScope: WindowCoroutineScope,
     private val cryptoGenerator: CryptoGenerator,
-    private val jsonExportService: JsonExportService,
+    private val exportVaultDataService: ExportVaultDataService,
     private val dirsService: DirsService,
     private val zipService: ZipService,
     private val dateFormatter: DateFormatter,
-    private val getOrganizations: GetOrganizations,
-    private val getCollections: GetCollections,
-    private val getFolders: GetFolders,
-    private val getCiphers: GetCiphers,
     private val downloadTask: DownloadTask,
     private val downloadAttachmentMetadata: DownloadAttachmentMetadata,
     private val vaultSessionLocker: VaultSessionLocker,
@@ -103,14 +96,10 @@ open class ExportManagerBase(
         directDI = directDI,
         windowCoroutineScope = directDI.instance(),
         cryptoGenerator = directDI.instance(),
-        jsonExportService = directDI.instance(),
+        exportVaultDataService = directDI.instance(),
         dirsService = directDI.instance(),
         zipService = directDI.instance(),
         dateFormatter = directDI.instance(),
-        getOrganizations = directDI.instance(),
-        getCollections = directDI.instance(),
-        getFolders = directDI.instance(),
-        getCiphers = directDI.instance(),
         downloadTask = directDI.instance(),
         downloadAttachmentMetadata = directDI.instance(),
         vaultSessionLocker = directDI.instance(),
@@ -241,15 +230,10 @@ open class ExportManagerBase(
         password: String,
         exportAttachments: Boolean,
     ): DownloadProgress.Complete {
-        val data = createExportData(directDI, filter)
+        val data = exportVaultDataService.create(filter)
         // Map vault data to the JSON export
         // in the target type.
-        val json = jsonExportService.export(
-            organizations = data.organizations,
-            collections = data.collections,
-            folders = data.folders,
-            ciphers = data.ciphers,
-        )
+        val json = exportVaultDataService.exportJson(data)
 
         // Obtain a list of attachments to
         // download.
@@ -296,7 +280,7 @@ open class ExportManagerBase(
                     ZipEntry(
                         name = "vault.json",
                         data = ZipEntry.Data.In {
-                            json.byteInputStream()
+                            json.toSource()
                         },
                     ),
                 ) + entriesAttachments
@@ -316,9 +300,10 @@ open class ExportManagerBase(
             uri
         }
 
-        return DownloadProgress.Complete(File(".").right())
+        return DownloadProgress.Complete(fileUri.right())
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
     private fun createDownloadFileZipEntry(
         entry: AttachmentWithLiveProgress,
         onDownloadUpdated: () -> Unit,
@@ -326,7 +311,7 @@ open class ExportManagerBase(
         val cipher = entry.cipher
         val attachment = entry.attachment
         val data = ZipEntry.Data.Out {
-            val writer = DownloadWriter.StreamWriter(it)
+            val writer = DownloadWriter.SinkWriter(it)
             val request = DownloadAttachmentRequest.ByLocalCipherAttachment(
                 localCipherId = cipher.id,
                 remoteCipherId = cipher.service.remote?.id,
@@ -351,28 +336,34 @@ open class ExportManagerBase(
                     )
                 }
             }
-            fileLoaderFlow
+            val complete = fileLoaderFlow
                 .onEach { progress ->
                     val downloaded = when (progress) {
-                        is DownloadProgress.None -> {
-                            // Do nothing.
-                            return@onEach
-                        }
-
                         is DownloadProgress.Loading -> {
                             progress.downloaded
                         }
 
-                        is DownloadProgress.Complete -> {
-                            entry.total
-                        }
+                        DownloadProgress.None,
+                        is DownloadProgress.Complete -> null
                     }
                     if (downloaded != null) {
-                        entry.downloaded = downloaded
+                        entry.downloaded.store(downloaded)
                         onDownloadUpdated()
                     }
                 }
                 .last()
+            require(complete is DownloadProgress.Complete) {
+                "Attachment download did not complete."
+            }
+            complete.result.fold(
+                ifLeft = { error ->
+                    throw error
+                },
+                ifRight = {
+                    entry.downloaded.store(entry.total)
+                    onDownloadUpdated()
+                },
+            )
         }
         return ZipEntry(
             name = "attachments/${attachment.id}/${attachment.fileName()}",
@@ -380,81 +371,15 @@ open class ExportManagerBase(
         )
     }
 
-    private class ExportData(
-        val ciphers: List<DSecret>,
-        val folders: List<DFolder>,
-        val collections: List<DCollection>,
-        val organizations: List<DOrganization>,
-    )
-
-    private suspend fun createExportData(
-        directDI: DirectDI,
-        filter: DFilter,
-    ): ExportData {
-        val ciphers = getCiphersByFilter(directDI, filter)
-        val folders = kotlin.run {
-            val foldersLocalIds = ciphers
-                .asSequence()
-                .map { it.folderId }
-                .toSet()
-            getFolders()
-                .map { folders ->
-                    folders
-                        .filter { it.id in foldersLocalIds }
-                }
-                .first()
-        }
-        val collections = kotlin.run {
-            val collectionIds = ciphers
-                .asSequence()
-                .flatMap { it.collectionIds }
-                .toSet()
-            getCollections()
-                .map { collections ->
-                    collections
-                        .filter { it.id in collectionIds }
-                }
-                .first()
-        }
-        val organizations = kotlin.run {
-            val organizationIds = ciphers
-                .asSequence()
-                .map { it.organizationId }
-                .toSet()
-            getOrganizations()
-                .map { organizations ->
-                    organizations
-                        .filter { it.id in organizationIds }
-                }
-                .first()
-        }
-        return ExportData(
-            ciphers = ciphers,
-            folders = folders,
-            collections = collections,
-            organizations = organizations,
-        )
-    }
-
-    private suspend fun getCiphersByFilter(
-        directDI: DirectDI,
-        filter: DFilter,
-    ) = getCiphers()
-        .map { ciphers ->
-            val predicate = filter.prepare(directDI, ciphers)
-            ciphers
-                .filter(predicate)
-        }
-        .first()
-
+    @OptIn(ExperimentalAtomicApi::class)
     private class AttachmentWithLiveProgress(
         val cipher: DSecret,
         val attachment: DSecret.Attachment,
-        @Volatile
-        var downloaded: Long,
+        val downloaded: AtomicLong,
         val total: Long,
     )
 
+    @OptIn(ExperimentalAtomicApi::class)
     private class AttachmentList(
         val attachments: List<AttachmentWithLiveProgress>,
         val total: Long,
@@ -463,9 +388,10 @@ open class ExportManagerBase(
          * Compute a current number of downloaded
          * bytes. The value is not static.
          */
-        fun downloaded() = attachments.sumOf { it.downloaded.coerceAtMost(it.total) }
+        fun downloaded() = attachments.sumOf { it.downloaded.load().coerceAtMost(it.total) }
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
     private fun createAttachmentList(
         ciphers: List<DSecret>,
     ): AttachmentList {
@@ -477,7 +403,7 @@ open class ExportManagerBase(
                         AttachmentWithLiveProgress(
                             cipher = cipher,
                             attachment = attachment,
-                            downloaded = 0L,
+                            downloaded = AtomicLong(0L),
                             total = attachment.fileSize() ?: 0L,
                         )
                     }

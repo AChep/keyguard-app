@@ -6,6 +6,7 @@ import androidx.compose.ui.text.AnnotatedString
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
+import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Instant
@@ -38,6 +39,7 @@ sealed interface SendItem {
         val groupId: String?,
         val revisionDate: Instant,
         val createdDate: Instant?,
+        val hasEmailProtection: Boolean,
         val hasPassword: Boolean,
         val hasFile: Boolean,
         val type: String,
@@ -73,5 +75,10 @@ sealed interface SendItem {
                 val onClick: () -> Unit,
             ) : Action
         }
+    }
+
+    @Immutable
+    data object NoItems : SendItem {
+        override val id: String get() = "send_item:no_items"
     }
 }

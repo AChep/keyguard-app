@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.hasPendingAttachmentMutations
 
 suspend fun BitwardenCipher.toDomain(
     getPasswordStrength: GetPasswordStrength,
@@ -34,6 +35,7 @@ suspend fun BitwardenCipher.toDomain(
         collectionIds = collectionIds,
         revisionDate = revisionDate,
         createdDate = createdDate,
+        archivedDate = archivedDate,
         deletedDate = deletedDate,
         service = service,
         // common
@@ -44,7 +46,8 @@ suspend fun BitwardenCipher.toDomain(
         reprompt = reprompt == BitwardenCipher.RepromptType.Password,
         synced = !service.deleted &&
                 revisionDate == service.remote?.revisionDate &&
-                deletedDate == service.remote.deletedDate,
+                deletedDate == service.remote.deletedDate &&
+                !hasPendingAttachmentMutations(),
         ignoredAlerts = ignoredAlerts,
         uris = login?.uris.orEmpty().map(BitwardenCipher.Login.Uri::toDomain),
         tags = tags.map(BitwardenCipher.Tag::toDomain),
@@ -67,6 +70,8 @@ suspend fun BitwardenCipher.toDomain(
         card = card?.toDomain(),
         identity = identity?.toDomain(),
         sshKey = sshKey?.toDomain(),
+        // other
+        passwordHistory = passwordHistory.map(BitwardenCipher.Login.PasswordHistory::toDomain),
     )
 }
 
@@ -87,6 +92,7 @@ fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
     BitwardenCipher.IgnoreAlertType.BROAD_URIS -> DWatchtowerAlertType.BROAD_URIS
     BitwardenCipher.IgnoreAlertType.INCOMPLETE -> DWatchtowerAlertType.INCOMPLETE
     BitwardenCipher.IgnoreAlertType.EXPIRING -> DWatchtowerAlertType.EXPIRING
+    BitwardenCipher.IgnoreAlertType.WEAK_SSH_KEY -> DWatchtowerAlertType.WEAK_SSH_KEY
 }
 
 fun BitwardenCipher.Login.Uri.MatchType.toDomain() = when (this) {
@@ -160,6 +166,7 @@ fun BitwardenCipher.Attachment.Local.toDomain() = DSecret.Attachment.Local(
     url = url,
     fileName = fileName,
     size = size,
+    keyBase64 = keyBase64,
 )
 
 suspend fun BitwardenCipher.Login.toDomain(
@@ -171,7 +178,6 @@ suspend fun BitwardenCipher.Login.toDomain(
         getPasswordStrength(it).attempt().bind().getOrNull()
     },
     passwordRevisionDate = passwordRevisionDate,
-    passwordHistory = passwordHistory.map(BitwardenCipher.Login.PasswordHistory::toDomain),
     totp = totp
         ?.let { raw ->
             TotpToken
@@ -186,29 +192,33 @@ suspend fun BitwardenCipher.Login.toDomain(
         },
     fido2Credentials = fido2Credentials
         .map { credentials ->
-            val counter = credentials.counter
-                .toIntOrNull()
-            val discoverable = credentials.discoverable.toBoolean()
-            DSecret.Login.Fido2Credentials(
-                credentialId = credentials.credentialId
-                    // It should never be empty, as it doesn't really make sense.
-                    // An empty credential ID should not be accepted by the server.
-                    .orEmpty(),
-                keyType = credentials.keyType,
-                keyAlgorithm = credentials.keyAlgorithm,
-                keyCurve = credentials.keyCurve,
-                keyValue = credentials.keyValue,
-                rpId = credentials.rpId,
-                rpName = credentials.rpName,
-                counter = counter,
-                userHandle = credentials.userHandle,
-                userName = credentials.userName,
-                userDisplayName = credentials.userDisplayName,
-                discoverable = discoverable,
-                creationDate = credentials.creationDate,
-            )
+            credentials.toDomain()
         },
 )
+
+fun BitwardenCipher.Login.Fido2Credentials.toDomain() = kotlin.run {
+    val counter = counter
+        .toIntOrNull()
+    val discoverable = discoverable.toBoolean()
+    DSecret.Login.Fido2Credentials(
+        credentialId = credentialId
+            // It should never be empty, as it doesn't really make sense.
+            // An empty credential ID should not be accepted by the server.
+            .orEmpty(),
+        keyType = keyType,
+        keyAlgorithm = keyAlgorithm,
+        keyCurve = keyCurve,
+        keyValue = keyValue,
+        rpId = rpId,
+        rpName = rpName,
+        counter = counter,
+        userHandle = userHandle,
+        userName = userName,
+        userDisplayName = userDisplayName,
+        discoverable = discoverable,
+        creationDate = creationDate,
+    )
+}
 
 fun BitwardenCipher.Login.PasswordHistory.toDomain() = DSecret.Login.PasswordHistory(
     password = password,

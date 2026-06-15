@@ -2,6 +2,8 @@
 
 package com.artemchep.keyguard.feature.generator
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -17,7 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 @Stable
 data class GeneratorState(
-    val onOpenHistory: () -> Unit,
+    val onOpenHistory: (() -> Unit)?,
     val options: ImmutableList<ContextItem>,
     val suggestionsState: StateFlow<ImmutableList<Suggestion>>,
     val loadedState: StateFlow<Loading>,
@@ -129,6 +131,7 @@ data class GeneratorState(
         val password: String,
         val source: GetPasswordResult,
         val strength: Boolean,
+        val length: Boolean,
         val actions: ImmutableList<FlatItemAction>,
         val dropdown: ImmutableList<ContextItem>,
         val onCopy: (() -> Unit)?,

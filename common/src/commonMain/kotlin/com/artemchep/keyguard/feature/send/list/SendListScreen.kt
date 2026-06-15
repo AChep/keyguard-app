@@ -4,11 +4,13 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.minus
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,7 +20,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoDelete
+import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -47,12 +51,19 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.model.DSend
+import com.artemchep.keyguard.common.model.expired
 import com.artemchep.keyguard.common.model.expiredFlow
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.EmptySearchView
+import com.artemchep.keyguard.feature.EmptyView
+import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
+import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.home.vault.component.AddAccountView
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
@@ -71,6 +82,7 @@ import com.artemchep.keyguard.feature.send.SendItem
 import com.artemchep.keyguard.feature.send.SendListState
 import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.send.sendListScreenState
+import com.artemchep.keyguard.feature.send.view.SendViewRouteFactory
 import com.artemchep.keyguard.feature.send.view.SendViewRoute
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
@@ -109,11 +121,15 @@ import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
+import org.kodein.di.compose.localDI
+import org.kodein.di.direct
+import org.kodein.di.instance
 
 @Composable
 fun SendListScreen(
     args: SendRoute.Args,
 ) {
+    val sendViewRouteFactory = localDI().direct.instance<SendViewRouteFactory>()
     val state = sendListScreenState(
         args = args,
         highlightBackgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -163,7 +179,7 @@ fun SendListScreen(
     val xd by rememberUpdatedState(LocalNavigationEntry.current.id)
     val controller by rememberUpdatedState(LocalNavigationController.current)
     CollectedEffect(state.sideEffects.showBiometricPromptFlow) {
-        val route = SendViewRoute(
+        val route = sendViewRouteFactory.create(
             sendId = it.id,
             accountId = it.accountId,
         )
@@ -247,6 +263,7 @@ private fun SendScreenContent(
     val dp = remember {
         mutableStateOf(false)
     }
+    val onFileDrop by rememberUpdatedState(state.onFileDrop)
     if (state.primaryActions.isEmpty()) {
         dp.value = false
     }
@@ -362,6 +379,41 @@ private fun SendScreenContent(
                     .padding(contentPadding.value),
                 pullRefreshState = pullRefreshState,
             )
+
+            val overlayPadding = remember(contentPadding.value) {
+                val topOnly = object : PaddingValues {
+                    override fun calculateLeftPadding(
+                        layoutDirection: LayoutDirection,
+                    ): Dp = 0.dp
+
+                    override fun calculateTopPadding(): Dp =
+                        contentPadding.value
+                            .calculateTopPadding()
+
+                    override fun calculateRightPadding(
+                        layoutDirection: LayoutDirection,
+                    ): Dp = 0.dp
+
+                    override fun calculateBottomPadding(): Dp = 0.dp
+                }
+                contentPadding.value - topOnly
+            }
+            FileDropTargetBox(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(overlayPadding),
+                enabled = onFileDrop != null,
+                onFileDrop = { file ->
+                    onFileDrop?.invoke(file)
+                },
+                overlay = {
+                    FileDropOverlay(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        text = stringResource(Res.string.send_main_drop_file_to_create),
+                    )
+                },
+            )
         },
     ) {
         when (state.content) {
@@ -385,11 +437,6 @@ private fun SendScreenContent(
                     }
                 }
                 val list = (state.content as? SendListState.Content.Items)?.list.orEmpty()
-                if (list.isEmpty()) {
-                    item("header.empty") {
-                        NoItemsPlaceholder()
-                    }
-                }
                 itemsIndexed(
                     items = list,
                     key = { _, model -> model.id },
@@ -409,15 +456,6 @@ private fun SendScreenContent(
             }
         }
     }
-}
-
-@Composable
-private fun NoItemsPlaceholder(
-    modifier: Modifier = Modifier,
-) {
-    EmptySearchView(
-        modifier = modifier,
-    )
 }
 
 @Composable
@@ -487,6 +525,19 @@ fun VaultSendItemText(
             caps = item.caps,
         )
     }
+
+    is SendItem.NoItems -> {
+        EmptyView(
+            icon = {
+                Icon(Icons.Outlined.SearchOff, null)
+            },
+            text = {
+                Text(
+                    text = stringResource(Res.string.items_empty_label),
+                )
+            },
+        )
+    }
 }
 
 @Composable
@@ -496,9 +547,9 @@ fun VaultSendItemText(
     shapeState: Int,
 ) {
     val localState by item.localStateFlow.collectAsState()
-    val expiredState = remember(item.source) {
+    val expiredState = remember(item.source.expirationDate) {
         item.source.expiredFlow
-    }.collectAsState()
+    }.collectAsState(initial = item.source.expired)
 
     val onClick = localState.selectableItemState.onClick
     // fallback to default
@@ -755,6 +806,11 @@ fun AccountListItemTextIcon(
         accent = accent,
         active = active,
         badge = {
+            if (item.hasEmailProtection) {
+                AvatarBadgeIcon(
+                    imageVector = Icons.Outlined.Email,
+                )
+            }
             if (item.hasPassword) {
                 AvatarBadgeIcon(
                     imageVector = Icons.Outlined.Key,

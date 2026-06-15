@@ -102,10 +102,8 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
             .groupBy {
                 it.service.remote != null
             }
-        val localItemsNew = localItemsGrouped
-            .getOrDefault(false, emptyList()) // no remote
-        val localItemsExistingByRemoteId = localItemsGrouped
-            .getOrDefault(true, emptyList()) // remote
+        val localItemsNew = localItemsGrouped[false].orEmpty() // no remote
+        val localItemsExistingByRemoteId = localItemsGrouped[true].orEmpty() // remote
             .groupBy { localItem ->
                 val remoteId = requireNotNull(localItem.service.remote?.id)
                 remoteId
@@ -197,7 +195,7 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                         // revision date. We can not safely resolve this issue, so just
                         // fall back to the remote item.
                         val dateRoundingError = getDate(remoteItem) != getDate(localItem)
-                        if (dateRoundingError || localItem.service.error != null) {
+                        if (dateRoundingError) {
                             localPutCipher += Df.Ite(localItem, remoteItem)
                         } else {
                             val overwriteLocal = shouldOverwriteLocal(localItem, remoteItem)
@@ -206,9 +204,15 @@ class SyncManager<Local : BitwardenService.Has<Local>, Remote : Any>(
                             } else {
                                 val overwriteRemote = shouldOverwriteRemote(localItem, remoteItem)
                                 if (overwriteRemote) {
-                                    // We have to force that in, because the revision
-                                    // date has not been changed.
-                                    remotePutCipher += Df.Ite(localItem, remoteItem, force = true)
+                                    val error = localItem.service.error
+                                    val revisionDate = getDate(localItem)
+                                    if (error?.canRetry(revisionDate) != false) {
+                                        // We have to force that in, because the revision
+                                        // date has not been changed.
+                                        remotePutCipher += Df.Ite(localItem, remoteItem, force = true)
+                                    }
+                                } else if (localItem.service.error != null) {
+                                    localPutCipher += Df.Ite(localItem, remoteItem)
                                 } else {
                                     // Up to date.
                                 }

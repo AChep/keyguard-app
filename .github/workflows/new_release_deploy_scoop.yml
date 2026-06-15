@@ -5,13 +5,18 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   new-update:
     name: Deploy Scoop
     runs-on: ubuntu-slim
     steps:
       - name: "Checkout"
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
       - name: "Trigger Workflow"
         uses: ./.github/actions/github_trigger_wf
         with:

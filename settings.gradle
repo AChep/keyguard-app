@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("buildPlugins")
     repositories {
         gradlePluginPortal()
         google()
@@ -24,11 +25,22 @@ dependencyResolutionManagement {
 rootProject.name = "keyguard"
 
 include ':common'
-// apps
+include ':util:messagepack'
+include ':util:planeta'
+include ':util:signalr'
+include ':util:webdav'
 include ':androidApp'
 include ':androidBenchmark'
+include ':androidSshAgent'
+include ':androidLibAutofill'
 include ':androidTest'
+include ':wearApp'
+include ':iosApp'
 include ':desktopApp'
 include ':desktopLibJvm'
 include ':desktopLibNative'
+include ':desktopSshAgent'
+include ':integration:wearCredentialProviderApp'
+include ':integration:webdavE2eTest'
 
+project(':integration:wearCredentialProviderApp').projectDir = file('integration/wearCredentialProviderApp')

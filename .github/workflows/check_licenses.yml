@@ -15,12 +15,17 @@ on:
       - '**/*.gradle*'
       - 'gradle/**'
 
+permissions:
+  contents: read
+
 jobs:
   check-licenses:
     name: Check Licenses
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup_gradle
       - name: "Check licenses"
         run: ./gradlew licensee
@@ -50,7 +55,7 @@ jobs:
           file_content="$(cat $file_path)"
           echo "paths=$file_content" >> "$GITHUB_OUTPUT"
       - name: "Upload results"
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
           name: reports

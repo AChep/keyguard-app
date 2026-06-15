@@ -1,11 +1,14 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.exception.PasswordMismatchException
+import com.artemchep.keyguard.common.exception.UnsupportedMasterKdfVersionException
 import com.artemchep.keyguard.common.io.flatMap
+import com.artemchep.keyguard.common.io.handleErrorWith
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AuthResult
 import com.artemchep.keyguard.common.model.FingerprintPassword
+import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.model.MasterPasswordHash
 import com.artemchep.keyguard.common.model.MasterPasswordSalt
@@ -27,10 +30,11 @@ class AuthConfirmMasterKeyUseCaseImpl(
     override fun invoke(
         salt: MasterPasswordSalt,
         hash: MasterPasswordHash,
+        version: MasterKdfVersion,
     ) = { password: MasterPassword ->
         // Generate a hash from the given password and known
         // salt, to identify if the password is valid.
-        generateMasterHashUseCase(password, salt)
+        generateMasterHashUseCase(password, salt, version)
             .flatMap { h ->
                 if (!h.byteArray.contentEquals(hash.byteArray)) {
                     val e = PasswordMismatchException()
@@ -39,8 +43,14 @@ class AuthConfirmMasterKeyUseCaseImpl(
 
                 generateMasterKeyUseCase(password, hash)
             }
+            .handleErrorWith(
+                predicate = { e -> e is UnsupportedMasterKdfVersionException },
+            ) {
+                ioRaise(PasswordMismatchException())
+            }
             .map { key ->
                 AuthResult(
+                    version = version,
                     key = key,
                     token = FingerprintPassword(
                         hash = hash,

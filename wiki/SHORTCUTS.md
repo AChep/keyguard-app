@@ -1,5 +1,13 @@
 # Shortcuts
 
+##### Global shortcuts
+
+| Shortcut               | macOS               | Description       |
+|:-----------------------|---------------------|:------------------|
+| `Ctrl` `Shift` `Space` | `⌘` `Shift` `Space` | Open Quick search |
+| `Ctrl` `Shift` `L`     | `⌘` `Shift` `L`     | Lock vault        |
+
+
 ##### Local shortcuts
 
 | Shortcut           | macOS           | Description                                                                                                |

@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.send.search.SendSortItem
 import com.artemchep.keyguard.feature.send.search.filter.SendFilterItem
@@ -29,6 +30,7 @@ data class SendListState(
     val showKeyboard: Boolean = false,
     val primaryActions: ImmutableList<ContextItem> = persistentListOf(),
     val actions: List<FlatItemAction> = emptyList(),
+    val onFileDrop: ((FilePickerResult) -> Unit)? = null,
     val content: Content = Content.Skeleton,
     val sideEffects: SideEffects = SideEffects(),
 ) {

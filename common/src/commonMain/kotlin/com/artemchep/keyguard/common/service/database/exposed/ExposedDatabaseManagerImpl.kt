@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.retry
 import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -22,6 +23,7 @@ import com.artemchep.keyguard.common.usecase.GenerateMasterSaltUseCase
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.dataexposed.UrlBlock
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
@@ -115,7 +117,10 @@ class ExposedDatabaseManagerImpl(
         val existingMasterKeyBytes = settingsRepository.getExposedDatabaseKey()
             .first()
         if (existingMasterKeyBytes != null) {
-            val masterKey = MasterKey(existingMasterKeyBytes)
+            val masterKey = MasterKey(
+                version = MasterKdfVersion.V0, // stay forever at v0, this database is public
+                byteArray = existingMasterKeyBytes,
+            )
             return@ioEffect masterKey
         }
 
@@ -140,7 +145,11 @@ class ExposedDatabaseManagerImpl(
         }
         val masterSalt = generateMasterSaltUseCase()
             .bind()
-        val masterHash = generateMasterHashUseCase(masterPassword, masterSalt)
+        val masterHash = generateMasterHashUseCase(
+            masterPassword,
+            masterSalt,
+            MasterKdfVersion.V0, // stay forever at v0, this database is public
+        )
             .bind()
         generateMasterKeyUseCase(masterPassword, masterHash)
             .bind()

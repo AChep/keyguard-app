@@ -1,15 +1,18 @@
 package com.artemchep.keyguard.copy
 
+import com.artemchep.keyguard.common.io.withBufferedSink
 import com.artemchep.keyguard.common.service.zip.ZipConfig
 import com.artemchep.keyguard.common.service.zip.ZipEntry
 import com.artemchep.keyguard.common.service.zip.ZipService
+import kotlinx.io.Sink
+import kotlinx.io.asInputStream
+import kotlinx.io.asOutputStream
 import net.lingala.zip4j.io.outputstream.ZipOutputStream
 import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.AesKeyStrength
 import net.lingala.zip4j.model.enums.CompressionMethod
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import org.kodein.di.DirectDI
-import java.io.OutputStream
 
 class ZipServiceJvm(
 ) : ZipService {
@@ -18,7 +21,7 @@ class ZipServiceJvm(
     ) : this()
 
     override suspend fun zip(
-        outputStream: OutputStream,
+        outputStream: Sink,
         config: ZipConfig,
         entries: List<ZipEntry>,
     ) {
@@ -32,11 +35,13 @@ class ZipServiceJvm(
                 try {
                     when (val d = entry.data) {
                         is ZipEntry.Data.In -> {
-                            d.stream().use { inputStream -> inputStream.copyTo(zipStream) }
+                            d.stream().asInputStream().use { inputStream ->
+                                inputStream.copyTo(zipStream)
+                            }
                         }
 
                         is ZipEntry.Data.Out -> {
-                            d.stream(zipStream)
+                            zipStream.withBufferedSink(d.stream)
                         }
                     }
                 } finally {
@@ -48,14 +53,15 @@ class ZipServiceJvm(
 
     private fun createZipStream(
         config: ZipConfig,
-        outputStream: OutputStream,
+        outputStream: Sink,
     ): ZipOutputStream {
+        val stream = outputStream.asOutputStream()
         return if (config.encryption != null) {
             val password = config.encryption.password
                 .toCharArray()
-            ZipOutputStream(outputStream, password)
+            ZipOutputStream(stream, password)
         } else {
-            ZipOutputStream(outputStream)
+            ZipOutputStream(stream)
         }
     }
 

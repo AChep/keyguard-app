@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="listing_summary">পাসওয়ার্ড পরিচালনা করুন</string>
+    <string name="listing_summary_long">সহজে পাসওয়ার্ড পরিচালনা করুন</string>
+    <string name="listing_description_title">বিটওয়ার্ডেন® প্লাটফর্ম এবং কীপাস(KDBX) এর জন্য একটি মাল্টি-ক্লায়েন্ট, যা সম্ভাব্য ব্যবহারকারীকে সর্বোচ্চ অভিজ্ঞতা প্রদানের জন্য ডিজাইন করা হয়েছে।</string>
+    <string name="listing_description_disclaimer_bitwarden_legal">যেকোনো বিটওয়ার্ডেন® ইনস্টলেশনের সাথে ব্যবহার করা যেতে পারে। এই প্রোডাক্টটি বিটওয়ার্ডেন প্রজেক্ট কিংবা বিটওয়ার্ডেন lnc এর সাথে সম্পৃক্ত নয়। বিটওয়ার্ডেন® হলো বিটওয়ার্ডেন lnc এর একটি নিবন্ধিত ট্রেডমার্ক।</string>
+    <string name="listing_description_highlights">হাইলাইটগুলো:</string>
+    <string name="listing_description_highlight_design">সুন্দর ইন্টারফেস: লাইট/ডার্ক থিমসহ একটি সমৃদ্ধ রেসপন্সিভ ম্যাট‍েরিয়াল ইয়্যু ইউআই।</string>
+    <string name="listing_description_highlight_search">উন্নত সার্চ: শক্তিশালী এবং খুব দ্রুত সার্চের সক্ষমতা।</string>
+    <string name="listing_description_highlight_watchtower">ওয়াচটাওয়ার: pwned পাসওয়ার্ড, দুর্বল অ্যাকাউন্ট, পুনরায় ব্যবহার করা পাসওয়ার্ড, বন্ধ থাকা দুই ধাপের যাচাইকরণ, অনিরাপদ ওয়েবসাইট, ডুপ্লিকেট কিংবা মেয়াদোত্তীর্ণ আইটেম এবং আরো অনেক কিছু শনাক্ত করে।</string>
+    <string name="listing_description_highlight_multiple_accounts">একাধিক-অ্যাকাউন্ট সুবিধা: একইসাথে একাধিক অ্যাকাউন্ট সাইন ইন করা যায়।</string>
+    <string name="listing_description_highlight_offline">অফলাইন ব্যবস্থাপনা: অফলাইনেও আইটেম যুক্ত করা, সেন্ড করা, পরিবর্তন করা, এবং দেখা যায়।</string>
+    <string name="listing_description_highlight_export">ডাটা এক্সপোর্ট: সংযুক্তি সহ ব্যক্তিগত কিংবা সংগঠনের আইটেম এক্সপোর্ট করুন।</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
+    <string name="listing_description_highlight_generator">জেনারেটর: কাস্টম শব্দতালিকার সুবিধাসহ পাসওয়ার্ড, SSH কী, এবং ইমেইল ফরোয়ার্ড তৈরি করুন।</string>
+    <string name="listing_description_highlight_ssh_agent">SSH এজেন্ট: সার্ভারে যাচাই করা, গিট কমিট সাক্ষর করা, SSH-ভিত্তিক পরিষেবাগুলোর সাথে কাজ করা।</string>
+    <string name="listing_description_highlight_other">উন্নত বৈশিষ্ট্যগুলো: শর্টকাটের সুবিধা, ফিল্ডের প্লেসহোল্ডার, URL পরিবর্তন করা, এবং স্মার্ট সমস্যার সমাধান।</string>
+    <!-- A content description shown below the Home screenshort, made with the default settings -->
+    <string name="listing_screenshot_home_default">হোম স্ক্রিন</string>
+    <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
+    <string name="listing_screenshot_home_dark">হোম স্কিন, ডার্ক থিম</string>
+    <!-- A content description shown below the Generator screenshort, made with the default settings -->
+    <string name="listing_screenshot_generator_default">জেনেরেটর স্ক্রিন</string>
+    <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
+    <string name="listing_screenshot_watchtower_default">ওয়াচটাওয়ার স্ক্রিন</string>
+</resources>

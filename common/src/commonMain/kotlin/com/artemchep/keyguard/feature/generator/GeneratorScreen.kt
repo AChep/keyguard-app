@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.feature.generator
+ package com.artemchep.keyguard.feature.generator
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -28,6 +29,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -90,6 +92,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arrow.core.partially1
 import com.artemchep.keyguard.LocalAppMode
+import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ShapeState
@@ -108,12 +111,14 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.AhContainer
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
+import com.artemchep.keyguard.ui.FingerprintPlaneta
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
@@ -140,6 +145,7 @@ import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
+import com.artemchep.keyguard.util.planeta.Planeta
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Job
@@ -150,6 +156,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
@@ -186,16 +193,19 @@ fun GeneratorScreen(
                         },
                         ifOk = { state ->
                             val updatedOnOpenHistory by rememberUpdatedState(state.onOpenHistory)
-                            IconButton(
-                                onClick = {
-                                    updatedOnOpenHistory()
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.History,
-                                    contentDescription = null,
-                                )
+                            if (updatedOnOpenHistory != null) {
+                                IconButton(
+                                    onClick = {
+                                        updatedOnOpenHistory?.invoke()
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.History,
+                                        contentDescription = null,
+                                    )
+                                }
                             }
+
                             val actions = state.options
                             OptionsButton(actions)
                         },
@@ -322,16 +332,19 @@ private fun GeneratorPaneMaster(
                         },
                         ifOk = { state ->
                             val updatedOnOpenHistory by rememberUpdatedState(state.onOpenHistory)
-                            IconButton(
-                                onClick = {
-                                    updatedOnOpenHistory()
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.History,
-                                    contentDescription = null,
-                                )
+                            if (updatedOnOpenHistory != null) {
+                                IconButton(
+                                    onClick = {
+                                        updatedOnOpenHistory?.invoke()
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.History,
+                                        contentDescription = null,
+                                    )
+                                }
                             }
+
                             val actions = state.options
                             OptionsButton(actions)
                         },
@@ -396,6 +409,9 @@ private fun GeneratorPaneMaster(
             val strengthState = remember {
                 mutableStateOf(false)
             }
+            val lengthState = remember {
+                mutableStateOf(false)
+            }
             val passwordState = remember {
                 mutableStateOf<String?>(null)
             }
@@ -403,12 +419,14 @@ private fun GeneratorPaneMaster(
                 val state = loadableGeneratorState.getOrNull()
                     ?: kotlin.run {
                         strengthState.value = false
+                        lengthState.value = false
                         passwordState.value = null
                         return@LaunchedEffect
                     }
                 state.valueState
                     .onEach { value ->
                         strengthState.value = value?.strength == true
+                        lengthState.value = value?.length == true
                         passwordState.value = value?.password
                             ?.takeIf { it.isNotEmpty() }
                     }
@@ -462,13 +480,13 @@ private fun GeneratorPaneMaster(
                         modifier = Modifier
                             .height(4.dp),
                     )
-                    ExpandedIfNotEmpty(
-                        valueOrNull = password.takeIf { strengthState.value },
-                    ) { pwd ->
-                        PasswordStrengthBadge(
-                            password = pwd,
-                        )
-                    }
+                    GeneratorBadgesRow(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        value = password,
+                        showStrength = strengthState.value,
+                        showLength = lengthState.value,
+                    )
                 }
             }
         },
@@ -609,6 +627,53 @@ fun ColumnScope.GeneratorType(
     )
 }
 
+@Composable
+fun GeneratorBadgesRow(
+    modifier: Modifier = Modifier,
+    value: String,
+    showStrength: Boolean,
+    showLength: Boolean,
+) {
+    ExpandedIfNotEmpty(
+        modifier = modifier,
+        valueOrNull = Unit
+            .takeIf { showStrength || showLength },
+    ) {
+        FlowRow(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            ExpandedIfNotEmptyForRow(
+                valueOrNull = value.takeIf { showStrength },
+            ) { pwd ->
+                PasswordStrengthBadge(
+                    password = pwd,
+                )
+            }
+            ExpandedIfNotEmptyForRow(
+                valueOrNull = value.takeIf { showLength },
+            ) { pwd ->
+                AhContainer(
+                    score = 1f,
+                ) {
+                    val length = pwd.length
+                    Text(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp),
+                        text = pluralStringResource(
+                            Res.plurals.character_count_plural,
+                            length,
+                            length
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ColumnScope.GeneratorValue(
@@ -648,17 +713,31 @@ fun ColumnScope.GeneratorValue(
                         modifier = Modifier
                             .height(4.dp),
                     )
-
-                    val visible = value.strength
-                    ExpandedIfNotEmpty(
-                        valueOrNull = value.password.takeIf { visible },
-                    ) { password ->
-                        PasswordStrengthBadge(
-                            password = password,
-                        )
-                    }
+                    GeneratorBadgesRow(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        value = value.password,
+                        showStrength = value.strength,
+                        showLength = value.length,
+                    )
                 },
                 trailing = {
+                    val fingerprint = value.source
+                        .let { it as? GetPasswordResult.AsyncKey }
+                        ?.keyPair?.publicKey?.fingerprint
+                    if (fingerprint != null) {
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp),
+                        ) {
+                            FingerprintPlaneta(
+                                fingerprint = fingerprint,
+                                modifier = Modifier
+                                    .wrapContentSize(unbounded = true)
+                                    .size(96.dp),
+                            )
+                        }
+                    }
                     ExpandedIfNotEmptyForRow(
                         valueOrNull = Unit.takeIf { value.onCopy != null },
                     ) {

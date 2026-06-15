@@ -2,6 +2,8 @@
 
 package com.artemchep.keyguard.feature.logs
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.runtime.Immutable
 import com.artemchep.keyguard.common.service.permission.PermissionState
 import kotlinx.collections.immutable.ImmutableList

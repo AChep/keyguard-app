@@ -28,6 +28,8 @@ import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactoryDefault
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
@@ -65,6 +67,7 @@ fun produceExportScreenState(
         getOrganizations = instance(),
         permissionService = instance(),
         exportManager = instance(),
+        vaultRouteFactory = instance(),
     )
 }
 
@@ -86,6 +89,7 @@ fun produceExportScreenState(
     getOrganizations: GetOrganizations,
     permissionService: PermissionService,
     exportManager: ExportManager,
+    vaultRouteFactory: VaultRouteFactory,
 ): Loadable<ExportState> = produceScreenState(
     key = "export",
     initial = Loadable.Loading,
@@ -229,7 +233,7 @@ fun produceExportScreenState(
                             state.filterConfig?.filter,
                         ),
                     )
-                    val route = VaultRoute(
+                    val route = vaultRouteFactory.create(
                         args = VaultRoute.Args(
                             appBar = VaultRoute.Args.AppBar(
                                 title = translate(Res.string.exportaccount_header_title),
@@ -265,7 +269,7 @@ fun produceExportScreenState(
                             state.filterConfig?.filter,
                         ),
                     )
-                    val route = VaultRoute(
+                    val route = vaultRouteFactory.create(
                         args = VaultRoute.Args(
                             appBar = VaultRoute.Args.AppBar(
                                 title = translate(Res.string.exportaccount_header_title),

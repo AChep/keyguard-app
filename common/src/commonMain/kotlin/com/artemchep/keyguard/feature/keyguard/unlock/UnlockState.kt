@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.keyguard.unlock
 import androidx.compose.runtime.Immutable
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.PureBiometricAuthPrompt
+import com.artemchep.keyguard.common.model.PureYubiKeyAuthPrompt
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.collections.immutable.ImmutableList
@@ -15,6 +16,7 @@ data class UnlockState(
     val sideEffects: SideEffects,
     val password: TextFieldModel2,
     val biometric: Biometric? = null,
+    val yubiKey: YubiKey? = null,
     val lockReason: String? = null,
     val isLoading: Boolean = false,
     val actions: ImmutableList<ContextItem> = persistentListOf(),
@@ -32,8 +34,17 @@ data class UnlockState(
 
     @Immutable
     @optics
+    data class YubiKey(
+        val onClick: (() -> Unit)? = null,
+    ) {
+        companion object
+    }
+
+    @Immutable
+    @optics
     data class SideEffects(
         val showBiometricPromptFlow: Flow<PureBiometricAuthPrompt>,
+        val showYubiKeyPromptFlow: Flow<PureYubiKeyAuthPrompt>,
     ) {
         companion object
     }

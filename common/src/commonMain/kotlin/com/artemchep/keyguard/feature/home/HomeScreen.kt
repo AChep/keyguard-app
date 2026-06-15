@@ -7,7 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -27,9 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuOpen
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -45,33 +41,24 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Screenshot
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemColors
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationItemColors
 import androidx.compose.material3.NavigationItemIconPosition
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemColors
-import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.ShortNavigationBar
 import androidx.compose.material3.ShortNavigationBarItem
 import androidx.compose.material3.ShortNavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.WideNavigationRail
-import androidx.compose.material3.WideNavigationRailColors
 import androidx.compose.material3.WideNavigationRailDefaults
 import androidx.compose.material3.WideNavigationRailItem
 import androidx.compose.material3.WideNavigationRailItemDefaults
@@ -104,11 +91,17 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.artemchep.keyguard.common.io.attempt
+import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.DAccountStatus
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
+import com.artemchep.keyguard.common.usecase.GetAllowScreenshots
+import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
 import com.artemchep.keyguard.common.usecase.GetNavLabel
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadCount
+import com.artemchep.keyguard.common.usecase.PutAllowScreenshots
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
 import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
 import com.artemchep.keyguard.feature.home.settings.SettingsRoute
@@ -140,7 +133,6 @@ import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
-import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
@@ -149,12 +141,15 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
 import com.artemchep.keyguard.ui.theme.ok
+import com.artemchep.keyguard.ui.theme.onWarningContainer
+import com.artemchep.keyguard.ui.theme.warningContainer
 import com.artemchep.keyguard.ui.time.rememberLocalizedRelativeTime
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -222,8 +217,12 @@ fun HomeScreen(
 
     val getWatchtowerUnreadCount by rememberInstance<GetWatchtowerUnreadCount>()
 
-    val navRoutes = remember {
-        persistentListOf(
+    val getNavHiddenSend by rememberInstance<GetNavHiddenSend>()
+    val navHiddenSendState = remember(getNavHiddenSend) {
+        getNavHiddenSend()
+    }.collectAsState()
+    val navRoutes = remember(navHiddenSendState.value) {
+        listOfNotNull(
             Rail(
                 key = "vault",
                 testTag = HOME_VAULT_TEST_TAG,
@@ -239,7 +238,7 @@ fun HomeScreen(
                 icon = Icons.AutoMirrored.Outlined.Send,
                 iconSelected = Icons.AutoMirrored.Filled.Send,
                 label = TextHolder.Res(Res.string.home_send_label),
-            ),
+            ).takeUnless { navHiddenSendState.value },
             Rail(
                 key = "generator",
                 testTag = HOME_GENERATOR_TEST_TAG,
@@ -268,7 +267,7 @@ fun HomeScreen(
                 iconSelected = Icons.Filled.Settings,
                 label = TextHolder.Res(Res.string.home_settings_label),
             ),
-        )
+        ).toPersistentList()
     }
     NavigationRouter(
         id = ROUTE_NAME,
@@ -301,6 +300,15 @@ fun HomeScreenContent(
             modifier = Modifier
                 .windowInsetsPadding(horizontalInsets),
         ) {
+            val putAllowScreenshots by rememberInstance<PutAllowScreenshots>()
+            val getAllowScreenshots by rememberInstance<GetAllowScreenshots>()
+            val allowScreenshotsState = remember(getAllowScreenshots) {
+                getAllowScreenshots()
+                    .map { allowScreenshots ->
+                        allowScreenshots == AllowScreenshots.LIMITED
+                    }
+            }.collectAsState(false)
+
             val getNavLabel by rememberInstance<GetNavLabel>()
             val navLabelState = remember(getNavLabel) {
                 getNavLabel()
@@ -476,6 +484,38 @@ fun HomeScreenContent(
 //                            } else Modifier
 //                        ),
 //                )
+                AnimatedVisibility(
+                    visible = allowScreenshotsState.value,
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.warningContainer)
+                            .clickable {
+                                putAllowScreenshots(AllowScreenshots.DISABLED)
+                                    .attempt()
+                                    .launchIn(GlobalScope)
+                            }
+                            .padding(
+                                horizontal = Dimens.textHorizontalPadding,
+                                vertical = 8.dp,
+                            ),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(16.dp),
+                            imageVector = Icons.Outlined.Screenshot,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onWarningContainer,
+                        )
+                        Text(
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onWarningContainer,
+                            text = stringResource(Res.string.pref_item_allow_screenshots_badge),
+                        )
+                    }
+                }
                 AnimatedVisibility(
                     visible = bottomNavBarVisible,
                 ) {

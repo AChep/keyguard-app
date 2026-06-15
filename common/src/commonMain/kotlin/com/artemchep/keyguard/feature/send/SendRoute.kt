@@ -1,55 +1,14 @@
 package com.artemchep.keyguard.feature.send
 
 import androidx.compose.runtime.Composable
-import com.artemchep.keyguard.common.model.DAccount
-import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSendFilter
-import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.send.search.SendSort
-import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.account
-import com.artemchep.keyguard.res.accounts
 
 data class SendRoute(
     val args: Args = Args(),
 ) : Route {
-    companion object {
-        //
-        // Account
-        //
-
-        fun by(account: DAccount) = by(
-            accounts = listOf(account),
-        )
-
-        @JvmName("byAccounts")
-        fun by(accounts: Collection<DAccount>) = SendRoute(
-            args = Args(
-                appBar = Args.AppBar(
-                    title = accounts.joinToString { it.username ?: it.host },
-                    subtitle = if (accounts.size > 1) {
-                        TextHolder.Res(Res.string.accounts)
-                    } else {
-                        TextHolder.Res(Res.string.account)
-                    },
-                ),
-                filter = DSendFilter.Or(
-                    filters = accounts
-                        .map { account ->
-                            DSendFilter.ById(
-                                id = account.accountId(),
-                                what = DSendFilter.ById.What.ACCOUNT,
-                            )
-                        },
-                ),
-                preselect = false,
-                canAddSecrets = false,
-            ),
-        )
-    }
-
     data class Args(
         val appBar: AppBar? = null,
         val filter: DSendFilter? = null,

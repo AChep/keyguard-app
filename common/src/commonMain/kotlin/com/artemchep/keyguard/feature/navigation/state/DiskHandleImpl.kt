@@ -21,9 +21,8 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.serialization.encodeToString
+import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
-import java.io.IOException
 
 class DiskHandleImpl private constructor(
     private val scope: CoroutineScope,

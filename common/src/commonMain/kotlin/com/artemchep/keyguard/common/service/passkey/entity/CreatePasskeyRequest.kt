@@ -77,6 +77,14 @@ data class CreatePasskeyPubKeyCredParams(
     val type: String,
 )
 
+@Serializable
+data class CreatePasskeyPublicKeyCredentialDescriptor(
+    val type: String,
+    @SerialName("id")
+    val idBase64: String,
+    val transports: List<String> = emptyList(),
+)
+
 // https://www.w3.org/TR/webauthn-2/#dictionary-authenticatorSelection
 @Serializable
 data class CreatePasskeyAuthenticatorSelection(
@@ -122,6 +130,13 @@ data class CreatePasskey(
      */
     // base64
     val challenge: String,
+    /**
+     * WebAuthn creation options use `excludeCredentials` to prevent creating
+     * another credential when the authenticator already has a matching source.
+     * Spec:
+     * - https://www.w3.org/TR/webauthn-3/#dom-publickeycredentialcreationoptions-excludecredentials
+     */
+    val excludeCredentials: List<CreatePasskeyPublicKeyCredentialDescriptor> = emptyList(),
     val pubKeyCredParams: List<CreatePasskeyPubKeyCredParams>,
     /**
      * Describing the organization responsible

@@ -1,0 +1,26 @@
+CREATE TABLE vaultSetting (
+  id TEXT NOT NULL PRIMARY KEY,
+  type TEXT NOT NULL,
+  value TEXT NOT NULL
+);
+
+getByKey:
+SELECT *
+FROM vaultSetting
+WHERE id = :id;
+
+getAll:
+SELECT *
+FROM vaultSetting;
+
+getKeys:
+SELECT id
+FROM vaultSetting;
+
+upsert:
+INSERT OR REPLACE INTO vaultSetting(id, type, value)
+VALUES (:id, :type, :value);
+
+deleteByKey:
+DELETE FROM vaultSetting
+WHERE id = :id;

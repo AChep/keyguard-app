@@ -10,13 +10,10 @@ import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepository
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -41,7 +38,6 @@ class BitwardenProfileRepositoryImpl(
                     it.map { it.data_ }
                 }
         }
-        .shareIn(GlobalScope, SharingStarted.WhileSubscribed(1000L), replay = 1)
 
     override fun getById(id: AccountId): Flow<BitwardenProfile?> = databaseManager
         .get()

@@ -49,7 +49,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.lastOrNull
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
@@ -66,6 +66,7 @@ import org.kodein.di.instance
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 import androidx.core.net.toUri
+import kotlinx.coroutines.flow.map
 
 class KeyguardClipboardService : Service(), DIAware {
     companion object {
@@ -241,6 +242,7 @@ class KeyguardClipboardService : Service(), DIAware {
             ?: return null
         val getTotpCode: GetTotpCode by instance()
         return getTotpCode(token)
+            .mapNotNull { it.getOrNull() }
             .map {
                 val expiration = when (val counter = it.counter) {
                     is TotpCode.TimeBasedCounter -> counter.expiration

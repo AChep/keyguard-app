@@ -2,6 +2,8 @@
 
 package com.artemchep.keyguard.feature.generator.history
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.runtime.Immutable
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection

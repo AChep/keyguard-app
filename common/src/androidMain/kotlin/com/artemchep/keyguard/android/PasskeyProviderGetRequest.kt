@@ -8,18 +8,27 @@ import androidx.annotation.RequiresApi
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.GetPublicKeyCredentialOption
 import androidx.credentials.PublicKeyCredential
-import androidx.credentials.exceptions.GetCredentialUnknownException
+import androidx.credentials.exceptions.domerrors.EncodingError
+import androidx.credentials.exceptions.domerrors.NotAllowedError
+import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException
 import androidx.credentials.provider.ProviderGetCredentialRequest
 import androidx.credentials.webauthn.PublicKeyCredentialRequestOptions
-import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
 import com.artemchep.keyguard.common.service.text.Base64Service
-import kotlinx.serialization.encodeToString
+import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
+import com.artemchep.keyguard.common.service.webauthn.PasskeyCredentialId
+import com.artemchep.keyguard.common.service.webauthn.WebAuthnEncodingException
+import com.artemchep.keyguard.common.service.webauthn.WebAuthnNotAllowedException
+import com.artemchep.keyguard.common.service.webauthn.requireCredentialAllowedByRequestOptions as requireWebAuthnCredentialAllowedByRequestOptions
+import com.artemchep.keyguard.common.service.webauthn.requireCredentialRpIdMatchesRequest as requireWebAuthnCredentialRpIdMatchesRequest
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonObjectBuilder
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.put
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -50,18 +59,30 @@ class PasskeyProviderGetRequest(
         request: ProviderGetCredentialRequest,
         credential: DSecret.Login.Fido2Credentials,
         userVerified: Boolean,
+        privilegedApps: List<DPrivilegedApp>,
     ): GetCredentialResponse {
         val opt = request.credentialOptions.first() as GetPublicKeyCredentialOption
         val js = PublicKeyCredentialRequestOptions(opt.requestJson)
 
         val challenge = PasskeyBase64.encodeToString(js.challenge)
-        val rpId = js.rpId
-        val origin = passkeyUtils.callingAppOrigin(request.callingAppInfo)
+        val origin = passkeyUtils.callingAppOrigin(
+            appInfo = request.callingAppInfo,
+            privilegedApps = privilegedApps,
+        )
         val packageName = request.callingAppInfo.packageName
-        passkeyUtils.requireRpMatchesOrigin(
-            rpId = rpId,
+        val rpId = passkeyUtils.resolveAndValidateRpId(
+            rpId = requestRpIdOrNull(opt.requestJson),
             origin = origin,
             packageName = packageName,
+        )
+        requireCredentialRpIdMatchesRequest(
+            credential = credential,
+            rpId = rpId,
+        )
+        requireCredentialAllowedByRequestOptions(
+            credential = credential,
+            requestJson = opt.requestJson,
+            json = json,
         )
 
         val credentialIdBytes = PasskeyCredentialId.encode(credential.credentialId)
@@ -76,8 +97,10 @@ class PasskeyProviderGetRequest(
         val counter = kotlin.run {
             val tmp = credential.counter ?: 0
             if (tmp > 0) {
-                // TODO: When Bitwarden is ready, switch it to be a
-                //  UNIX timestamp.
+                // Modern Bitwarden seems to use 0 for passkeys without a signature
+                // counter. Non-zero counters are legacy; we preserve them but
+                // do not increment them because keeping counters monotonic
+                // across devices requires sync coordination.
                 tmp
             } else {
                 0
@@ -135,7 +158,60 @@ class PasskeyProviderGetRequest(
         return GetCredentialResponse(passkeyCredential)
     }
 
+    private fun requestRpIdOrNull(
+        requestJson: String,
+    ): String? {
+        val body = json.parseToJsonElement(requestJson) as? JsonObject
+            ?: return null
+        if (!body.containsKey("rpId")) {
+            return null
+        }
+
+        val primitive = body["rpId"] as? JsonPrimitive
+        return primitive?.contentOrNull.orEmpty()
+    }
+
     private fun JsonObjectBuilder.put(key: String, data: ByteArray) {
         put(key, PasskeyBase64.encodeToString(data))
+    }
+}
+
+internal fun requireCredentialRpIdMatchesRequest(
+    credential: DSecret.Login.Fido2Credentials,
+    rpId: String,
+) = requireWebAuthnCredentialRpIdMatchesRequest(
+    credential = credential,
+    rpId = rpId,
+)
+
+internal fun requireCredentialAllowedByRequestOptions(
+    credential: DSecret.Login.Fido2Credentials,
+    requestJson: String,
+    json: Json,
+    decodeCredentialId: (String) -> ByteArray = PasskeyBase64::decode,
+) = mapGetWebAuthnExceptions {
+    requireWebAuthnCredentialAllowedByRequestOptions(
+        credential = credential,
+        requestJson = requestJson,
+        json = json,
+        decodeCredentialId = decodeCredentialId,
+    )
+}
+
+private inline fun <T> mapGetWebAuthnExceptions(
+    block: () -> T,
+): T {
+    try {
+        return block()
+    } catch (e: WebAuthnEncodingException) {
+        throw GetPublicKeyCredentialDomException(
+            domError = EncodingError(),
+            errorMessage = e.message.orEmpty(),
+        )
+    } catch (e: WebAuthnNotAllowedException) {
+        throw GetPublicKeyCredentialDomException(
+            domError = NotAllowedError(),
+            errorMessage = e.message.orEmpty(),
+        )
     }
 }

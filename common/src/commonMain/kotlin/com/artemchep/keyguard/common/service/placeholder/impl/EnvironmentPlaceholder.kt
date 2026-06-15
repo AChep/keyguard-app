@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
+import com.artemchep.keyguard.platform.LeEnvironment
 import org.kodein.di.DirectDI
 
 class EnvironmentPlaceholder(
@@ -17,7 +18,7 @@ class EnvironmentPlaceholder(
         if (result != null) {
             ioEffect {
                 val variable = result.groupValues[1]
-                System.getenv(variable)
+                LeEnvironment.getenv(variable)
             }
         } else {
             // unknown

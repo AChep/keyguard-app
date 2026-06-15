@@ -1,11 +1,13 @@
 package com.artemchep.keyguard.common.service.settings
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
 import kotlinx.coroutines.flow.Flow
@@ -42,6 +44,10 @@ interface SettingsReadRepository {
 
     fun getAutofillSaveUri(): Flow<Boolean>
 
+    fun getAdvertisePasskeysSupport(): Flow<Boolean>
+
+    fun getAdvertisePasswordsSupport(): Flow<Boolean>
+
     fun getAutofillCopyTotp(): Flow<Boolean>
 
     fun getVaultPersist(): Flow<Boolean>
@@ -62,7 +68,7 @@ interface SettingsReadRepository {
 
     fun getConcealFields(): Flow<Boolean>
 
-    fun getAllowScreenshots(): Flow<Boolean>
+    fun getAllowScreenshots(): Flow<AllowScreenshots>
 
     fun getOnboardingLastVisitInstant(): Flow<Instant?>
 
@@ -82,17 +88,29 @@ interface SettingsReadRepository {
 
     fun getCachePremium(): Flow<Boolean>
 
+    fun getCacheHiddenSend(): Flow<Boolean>
+
     fun getAppIcons(): Flow<Boolean>
 
     fun getWebsiteIcons(): Flow<Boolean>
 
     fun getMarkdown(): Flow<Boolean>
 
+    fun getSshAgent(): Flow<Boolean>
+
+    fun getSshAgentApprovalWindow(): Flow<Duration>
+
+    fun getSshAgentDisplayKeyNames(): Flow<Boolean>
+
+    fun getSshAgentFilter(): Flow<SshAgentFilter>
+
     fun getAppVersionLog(): Flow<List<AppVersionLog>>
 
     fun getNavAnimation(): Flow<NavAnimation?>
 
     fun getNavLabel(): Flow<Boolean>
+
+    fun getNavHiddenSend(): Flow<Boolean>
 
     fun getFont(): Flow<AppFont?>
 
@@ -113,6 +131,8 @@ interface SettingsReadRepository {
     fun getUseExternalBrowser(): Flow<Boolean>
 
     fun getCloseToTray(): Flow<Boolean>
+
+    fun getMinimizeOnCopy(): Flow<Boolean>
 
     fun getColors(): Flow<AppColors?>
 

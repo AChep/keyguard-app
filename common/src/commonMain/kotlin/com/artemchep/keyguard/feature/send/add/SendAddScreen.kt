@@ -36,6 +36,7 @@ import com.artemchep.keyguard.feature.add.AnyField
 import com.artemchep.keyguard.feature.add.ToolbarContent
 import com.artemchep.keyguard.feature.add.ToolbarContentItemErrSkeleton
 import com.artemchep.keyguard.feature.add.getAnyFieldShapeState
+import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.home.vault.add.AddState
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -63,6 +64,12 @@ fun SendAddScreen(
     val loadableState = produceSendAddScreenState(
         args = args,
     )
+    val state = loadableState.getOrNull()
+    if (state != null) {
+        FilePickerEffect(
+            flow = state.sideEffects.filePickerIntentFlow,
+        )
+    }
 
     val addScreenScope = remember {
         val addScreenBehavior = args.behavior
@@ -220,7 +227,8 @@ private fun LazyListScope.populateItemsContent(
                 index = index,
             )
             AnyField(
-                modifier = Modifier,
+                modifier = Modifier
+                    .animateItem(),
                 item = item,
                 shapeState = shapeState,
             )

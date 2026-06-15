@@ -1,36 +1,25 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.combine
-import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.flatMap
-import com.artemchep.keyguard.common.io.flatTap
-import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.ioUnit
-import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AccountId
-import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSend
-import com.artemchep.keyguard.common.model.canDelete
-import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.create.CreateSendRequest
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddSend
-import com.artemchep.keyguard.common.usecase.GetPasswordStrength
-import com.artemchep.keyguard.common.usecase.TrashCipherById
-import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.feature.auth.common.util.ValidationEmail
+import com.artemchep.keyguard.feature.auth.common.util.validateEmail
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeSendCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
-import kotlinx.collections.immutable.toPersistentList
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
@@ -46,6 +35,7 @@ class AddSendImpl(
     private val modifyDatabase: ModifyDatabase,
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
+    private val pendingUploadCoordinator: PendingUploadCoordinator,
 ) : AddSend {
     companion object {
         private const val TAG = "AddSend.bitwarden"
@@ -55,6 +45,7 @@ class AddSendImpl(
         modifyDatabase = directDI.instance(),
         cryptoGenerator = directDI.instance(),
         base64Service = directDI.instance(),
+        pendingUploadCoordinator = directDI.instance(),
     )
 
     override fun invoke(
@@ -79,12 +70,20 @@ class AddSendImpl(
             val models = map
                 .map { (sendId, request) ->
                     val old = oldSendsMap[sendId]?.data_
-                    BitwardenSend.of(
+                    val model = BitwardenSend.of(
                         cryptoGenerator = cryptoGenerator,
                         base64Service = base64Service,
                         now = now,
                         request = request,
                         old = old,
+                    )
+                    prepareSendPendingUpload(
+                        request = request,
+                        old = old,
+                        send = model,
+                        cryptoGenerator = cryptoGenerator,
+                        base64Service = base64Service,
+                        pendingUploadCoordinator = pendingUploadCoordinator,
                     )
                 }
             if (models.isEmpty()) {
@@ -93,26 +92,93 @@ class AddSendImpl(
                     value = emptyList(),
                 )
             }
-            dao.transaction {
-                models.forEach { send ->
-                    dao.insert(
-                        sendId = send.sendId,
-                        accountId = send.accountId,
-                        data = send,
-                    )
+            val createdPendingUploads = models
+                .flatMap { it.createdPendingUploads }
+            val removedPendingUploads = models
+                .flatMap { it.removedPendingUploads }
+            pendingUploadCoordinator.persist(
+                createdPendingUploads = createdPendingUploads,
+                removedPendingUploads = removedPendingUploads,
+            ) {
+                dao.transaction {
+                    models.forEach { prepared ->
+                        val send = prepared.send
+                        dao.insert(
+                            sendId = send.sendId,
+                            accountId = send.accountId,
+                            data = send,
+                        )
+                    }
                 }
             }
 
             val changedAccountIds = models
-                .map { AccountId(it.accountId) }
+                .map { AccountId(it.send.accountId) }
                 .toSet()
             ModifyDatabase.Result(
                 changedAccountIds = changedAccountIds,
                 value = models
-                    .map { it.sendId },
+                    .map { it.send.sendId },
             )
         }
     }
+}
+
+internal data class PreparedSend(
+    val send: BitwardenSend,
+    val createdPendingUploads: List<PendingUploadFile>,
+    val removedPendingUploads: List<PendingUploadFile>,
+)
+
+internal suspend fun prepareSendPendingUpload(
+    request: CreateSendRequest,
+    old: BitwardenSend?,
+    send: BitwardenSend,
+    cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
+    pendingUploadCoordinator: PendingUploadCoordinator,
+): PreparedSend {
+    val file = send.file
+        ?: return PreparedSend(
+            send = send,
+            createdPendingUploads = emptyList(),
+            removedPendingUploads = emptyList(),
+        )
+    if (old?.file?.pendingUpload != null) {
+        return PreparedSend(
+            send = send,
+            createdPendingUploads = emptyList(),
+            removedPendingUploads = emptyList(),
+        )
+    }
+
+    val sourceUri = request.file.uri
+        ?: return PreparedSend(
+            send = send,
+            createdPendingUploads = emptyList(),
+            removedPendingUploads = emptyList(),
+        )
+    val fileKey = requireNotNull(send.keyBase64)
+        .let(base64Service::decode)
+        .let(cryptoGenerator::makeSendCryptoKey)
+    val pendingUpload = pendingUploadCoordinator.stage(
+        target = PendingUploadTarget.SendFile(
+            accountId = send.accountId,
+            sendId = send.sendId,
+        ),
+        sourceUri = sourceUri,
+        fileKey = fileKey,
+    )
+    return PreparedSend(
+        send = send.copy(
+            file = file.copy(
+                size = pendingUpload.encryptedSize,
+                pendingUpload = pendingUpload,
+            ),
+        ),
+        createdPendingUploads = listOf(pendingUpload),
+        removedPendingUploads = emptyList(),
+    )
 }
 
 private suspend fun BitwardenSend.Companion.of(
@@ -148,6 +214,7 @@ private suspend fun BitwardenSend.Companion.of(
 
         BitwardenSend.Type.File -> {
             file = BitwardenSend.File.of(
+                cryptoGenerator = cryptoGenerator,
                 request = request,
                 old = old,
             )
@@ -211,11 +278,43 @@ private suspend fun BitwardenSend.Companion.of(
         // must me less or equal to it.
         ?.coerceAtMost(deletedDate)
 
-    val passwordBase64 = request.password
+    val newPasswordBase64 = request.password
         ?.takeIf { it.isNotBlank() }
         ?.let {
             base64Service.encodeToString(it)
         }
+
+    val authType = kotlin.run {
+        request.authType?.toBitwarden()
+            // infer the auth type
+            ?: when {
+                // new items
+                newPasswordBase64 != null -> BitwardenSend.AuthType.Password
+                request.emails.isNotEmpty() -> BitwardenSend.AuthType.Email
+                // old items
+                old?.password != null -> BitwardenSend.AuthType.Password
+                !old?.emails.isNullOrEmpty() -> BitwardenSend.AuthType.Email
+                else -> BitwardenSend.AuthType.None
+            }
+    }
+
+    // Make sure we only take the email addresses that are valid.
+    val emails = request.emails
+        .filter { email ->
+            val validation = validateEmail(email)
+            validation == ValidationEmail.OK
+        }
+    if (authType == BitwardenSend.AuthType.Email && emails.isEmpty()) {
+        val msg = "A Send must have at least one email for the 'Specific people' " +
+                "access type!"
+        throw IllegalStateException(msg)
+    }
+
+    // Make sure that the password is set
+    if (authType == BitwardenSend.AuthType.Password && (newPasswordBase64 == null && old?.password == null)) {
+        val msg = "A Send must have a password for the 'Password' access type!"
+        throw IllegalStateException(msg)
+    }
 
     val maxAccessCount = request.maxAccessCount
         ?.toIntOrNull()
@@ -235,6 +334,7 @@ private suspend fun BitwardenSend.Companion.of(
         ),
         // common
         keyBase64 = keyBase64,
+        authType = authType,
         name = request.title,
         notes = request.note,
         maxAccessCount = maxAccessCount,
@@ -244,17 +344,24 @@ private suspend fun BitwardenSend.Companion.of(
         // Password is only used to reflect the changed on remote.
         password = old?.password,
         changes = BitwardenSend.Changes(
-            passwordBase64 = passwordBase64
+            passwordBase64 = newPasswordBase64
                 ?.let(BitwardenOptionalStringNullable::Some)
                 ?: BitwardenOptionalStringNullable.None,
         ),
         disabled = request.disabled,
         hideEmail = request.hideEmail,
+        emails = emails,
         // types
         type = type,
         text = text,
         file = file,
     )
+}
+
+private fun DSend.AuthType.toBitwarden() = when (this) {
+    DSend.AuthType.None -> BitwardenSend.AuthType.None
+    DSend.AuthType.Password -> BitwardenSend.AuthType.Password
+    DSend.AuthType.Email -> BitwardenSend.AuthType.Email
 }
 
 private suspend fun BitwardenSend.Text.Companion.of(
@@ -268,10 +375,26 @@ private suspend fun BitwardenSend.Text.Companion.of(
 }
 
 private suspend fun BitwardenSend.File.Companion.of(
+    cryptoGenerator: CryptoGenerator,
     request: CreateSendRequest,
     old: BitwardenSend? = null,
 ): BitwardenSend.File {
-    return requireNotNull(old?.file) {
-        "Creating a file send is not yet supported!"
+    old?.file?.let { return it }
+
+    val sourceUri = requireNotNull(request.file.uri) {
+        "Creating a file send requires a selected file."
+    }
+    val fileName = request.file.name
+        ?.takeIf { it.isNotBlank() }
+        ?: error("Creating a file send requires a file name.")
+    return BitwardenSend.File(
+        id = cryptoGenerator.uuid(),
+        fileName = fileName,
+        size = request.file.size,
+        pendingUpload = null,
+    ).also {
+        require(sourceUri.isNotBlank()) {
+            "Creating a file send requires a selected file."
+        }
     }
 }

@@ -6,6 +6,8 @@ CREATE TABLE generatorWordlist (
   createdAt INTEGER AS Instant NOT NULL
 );
 
+CREATE INDEX idx_generatorWordlist_createdAt ON generatorWordlist(createdAt DESC);
+
 update {
   UPDATE generatorWordlist
   SET
@@ -24,17 +26,11 @@ SELECT last_insert_rowid();
 get:
 SELECT
   generatorWordlist.*,
-  IFNULL(w.wordCount, 0) AS wordCount
+  IFNULL(COUNT(generatorWordlistWord.id), 0) AS wordCount
 FROM
   generatorWordlist
-  LEFT JOIN (
-    SELECT
-      wordlistId,
-      COUNT(wordlistId) AS wordCount
-    FROM
-      generatorWordlistWord
-    GROUP BY wordlistId
-  ) AS w ON generatorWordlist.id = w.wordlistId
+LEFT JOIN generatorWordlistWord ON generatorWordlistWord.wordlistId = generatorWordlist.id
+GROUP BY generatorWordlist.id
 ORDER BY
   generatorWordlist.createdAt DESC;
 

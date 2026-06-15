@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.export.impl
 
+import arrow.core.getOrElse
+import arrow.core.getOrNone
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
@@ -110,7 +112,8 @@ class JsonExportServiceImpl(
         // ensures that the entries can be correctly restores later.
         val folderId = folderId
             ?.let { id ->
-                localToRemoteFolderIdMap.getOrDefault(id, id)
+                localToRemoteFolderIdMap.getOrNone(id)
+                    .getOrElse { id }
             }
         put("folderId", folderId)
         // Organizations and collections.
@@ -144,6 +147,7 @@ class JsonExportServiceImpl(
             )
         put("revisionDate", revisionDate)
         put("creationDate", instant = createdDate ?: revisionDate)
+        put("archivedDate", archivedDate)
         put("deletedDate", deletedDate)
 
         run {
@@ -216,15 +220,14 @@ class JsonExportServiceImpl(
         // login object. It also should always be in the json.
         run {
             val key = "passwordHistory"
-            val list = login
-                ?.passwordHistory
-                ?.map { item ->
+            val list = passwordHistory
+                .map { item ->
                     ItemLoginPasswordHistoryExportEntity(
                         lastUsedDate = item.lastUsedDate,
                         password = item.password,
                     )
                 }
-            if (!list.isNullOrEmpty()) {
+            if (list.isNotEmpty()) {
                 putJsonArray(
                     key = key,
                 ) {

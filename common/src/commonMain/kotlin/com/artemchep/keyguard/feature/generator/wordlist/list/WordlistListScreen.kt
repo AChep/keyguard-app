@@ -27,14 +27,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -66,6 +64,7 @@ import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
+import com.artemchep.keyguard.ui.RequestLazyListScrollOnRevision
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -75,9 +74,6 @@ import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.withIndex
 
 @Composable
 fun WordlistListScreen(
@@ -105,20 +101,10 @@ fun WordlistListScreen(
         )
     }
 
-    LaunchedEffect(listRevision) {
-        // TODO: How do you wait till the layout state start to represent
-        //  the actual data?
-        val listSize =
-            loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.items?.size
-        snapshotFlow { listState.layoutInfo.totalItemsCount }
-            .withIndex()
-            .filter {
-                it.index > 0 || it.value == listSize
-            }
-            .first()
-
-        listState.scrollToItem(0, 0)
-    }
+    RequestLazyListScrollOnRevision(
+        listState = listState,
+        revision = listRevision,
+    )
 
     val primaryActionsDropdownVisibleState = remember {
         mutableStateOf(false)
@@ -142,7 +128,7 @@ fun WordlistListScreen(
                     IconButton(
                         onClick = {
                             val intent = NavigationIntent.NavigateToBrowser(
-                                url = "https://github.com/AChep/keyguard-app/blob/master/wiki/WORDLISTS.md",
+                                url = "https://keyguard.dev/docs/generator/#custom-wordlists",
                             )
                             navigationController.queue(intent)
                         },

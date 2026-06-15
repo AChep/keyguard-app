@@ -1,5 +1,9 @@
 package com.artemchep.keyguard.feature.generator.emailrelay
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CopyAll
@@ -7,6 +11,8 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
@@ -20,9 +26,11 @@ import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
+import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
@@ -40,6 +48,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
+import com.artemchep.keyguard.ui.icons.IconBox2
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
@@ -54,10 +63,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlin.time.Clock
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import org.jetbrains.compose.resources.painterResource
 
 private class EmailRelayListUiException(
     msg: String,
@@ -68,7 +78,8 @@ private class EmailRelayListUiException(
 fun produceEmailRelayListState(
 ) = with(localDI().direct) {
     produceEmailRelayListState(
-        emailRelays = allInstances(),
+        emailRelays = leAllInstances(),
+        confirmationRouteFactory = instance(),
         addEmailRelay = instance(),
         removeEmailRelayById = instance(),
         getEmailRelays = instance(),
@@ -78,6 +89,7 @@ fun produceEmailRelayListState(
 @Composable
 fun produceEmailRelayListState(
     emailRelays: List<EmailRelay>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     addEmailRelay: AddEmailRelay,
     removeEmailRelayById: RemoveEmailRelayById,
     getEmailRelays: GetEmailRelays,
@@ -117,22 +129,36 @@ fun produceEmailRelayListState(
                 out += it
                 out
             }
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(
-                        main = Icons.Outlined.Email,
-                        secondary = if (entity != null) {
-                            Icons.Outlined.Edit
-                        } else {
-                            Icons.Outlined.Add
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = {
+                    IconBox2(
+                        main = {
+                            val resource = model.iconRes
+                                ?: return@IconBox2
+                            Image(
+                                modifier = Modifier
+                                    .size(24.dp),
+                                painter = painterResource(resource),
+                                contentDescription = null,
+                            )
                         },
-                    ),
-                    title = model.name,
-                    subtitle = translate(Res.string.emailrelay_integration_title),
-                    items = items2,
-                    docUrl = model.docUrl,
-                ),
+                        secondary = {
+                            Icon(
+                                imageVector = if (entity != null) {
+                                    Icons.Outlined.Edit
+                                } else {
+                                    Icons.Outlined.Add
+                                },
+                                contentDescription = null,
+                            )
+                        },
+                    )
+                },
+                title = model.name,
+                subtitle = translate(Res.string.emailrelay_integration_title),
+                items = items2,
+                docUrl = model.docUrl,
             ),
         ) { result ->
             if (result is ConfirmationResult.Confirm) {
@@ -186,6 +212,7 @@ fun produceEmailRelayListState(
         val message = items
             .joinToString(separator = "\n") { it.name }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,
@@ -204,6 +231,7 @@ fun produceEmailRelayListState(
             val key = emailRelay.type
             FlatItemAction(
                 id = key,
+                leading = emailRelay.leadingLogoOrNull(),
                 title = TextHolder.Value(emailRelay.name),
                 onClick = onClick {
                     onNew(emailRelay)
@@ -391,4 +419,17 @@ fun produceEmailRelayListState(
             )
             Loadable.Ok(state)
         }
+}
+
+private fun EmailRelay.leadingLogoOrNull(): (@Composable () -> Unit)? {
+    val resource = iconRes
+        ?: return null
+    return {
+        Image(
+            modifier = Modifier
+                .fillMaxSize(),
+            painter = painterResource(resource),
+            contentDescription = null,
+        )
+    }
 }

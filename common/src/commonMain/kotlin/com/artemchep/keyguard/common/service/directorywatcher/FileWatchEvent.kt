@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.service.directorywatcher
 
-import java.io.File
+import com.artemchep.keyguard.platform.LocalPath
 
 /**
  * @author Artem Chepurnyi
@@ -9,7 +9,7 @@ data class FileWatchEvent(
     /**
      * Modified folder/file
      */
-    val file: File,
+    val path: LocalPath,
     /**
      * Kind of file system event
      */

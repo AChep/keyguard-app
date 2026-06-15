@@ -1,18 +1,14 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.RotateDeviceIdUseCase
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.settings.KgAction
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.ui.FlatItem
-import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import org.kodein.di.DirectDI
@@ -54,16 +50,10 @@ fun settingRotateDeviceId(
 private fun SettingRotateDeviceId(
     onClick: (() -> Unit)?,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.Key),
-        title = {
-            Text("Rotate device id")
-        },
-        text = {
-            val msg = "Removes all added accounts & rotates the device identifier."
-            Text(msg)
-        },
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.Key,
+        title = "Rotate device id",
+        text = "Removes all added accounts & rotates the device identifier.",
         onClick = onClick,
     )
 }

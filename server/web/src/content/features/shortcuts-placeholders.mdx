@@ -1,0 +1,73 @@
+---
+title: "Shortcuts, placeholders & URL overrides"
+summary: "Automate repetitive actions and tailor how items match and fill across sites."
+icon: "⚡"
+group: "Power tools"
+order: 14
+featured: false
+premium: false
+---
+
+import placeholdersUris from '../../assets/screenshots/placeholders-uris.png';
+import urlOverrideList from '../../assets/screenshots/url-override-list.png';
+import urlOverrideApplied from '../../assets/screenshots/url-override-applied.png';
+
+These three tools let power users shape how items behave instead of accepting the defaults. Each targets a different friction point in everyday use.
+
+- [**Shortcuts**](#shortcuts) trigger your most common actions in a single step, so repetitive tasks stop interrupting your flow.
+- [**Placeholders**](#placeholders) are dynamic tokens that get substituted at the moment you use an item, expanding into the right value when you fill a form or copy a field.
+- [**URL overrides**](#url-overrides) customize how an item's URLs are matched and launched, so the correct item is suggested on the correct site rather than a near-miss.
+
+<Screenshot src={placeholdersUris} caption="An item's URIs built with a placeholder token that expands to the username when the item is launched." />
+
+Together they reward a little upfront configuration with faster, more accurate matching and filling. Set them once on the items that matter, and the behavior follows you everywhere.
+## Shortcuts
+
+Common actions are a keystroke away (`⌘` on macOS, `Ctrl` elsewhere):
+
+```text
+Ctrl/⌘ + Shift + Space    Open Quick search
+Ctrl/⌘ + Shift + L        Lock the vault
+Ctrl/⌘ + N                Create a new item
+Ctrl/⌘ + C                Copy username / primary field
+Ctrl/⌘ + Shift + C        Copy password
+Ctrl/⌘ + Alt + C          Copy one-time password
+```
+
+See the [full shortcut reference](/docs/shortcuts/) for the complete list.
+
+## Placeholders
+
+Placeholders follow the [KeePass spec](https://keepass.info/help/base/placeholders.html) and expand inside URL fields and URL override commands, resolving to the item's data the moment you use it:
+
+```text
+https://example.com?user={username}   →   https://example.com?user=joe
+```
+
+Beyond the core fields, you can reach custom fields, parts of the URL, and the current time:
+
+```text
+{username}     the item's username
+{s:license}    a custom field named "license"
+{url:host}     the host part of the item's URL
+{dt_simple}    a sortable timestamp, e.g. 20240101170534
+```
+
+Every placeholder, including text transformations and date components, is
+listed in the [placeholder reference](/docs/placeholders/).
+
+## URL overrides
+
+A URL override rewrites a link using a **regex** and a **command** (which can contain placeholders). For example, give every insecure link a button that opens it over HTTPS:
+
+```text
+Regex:    ^http://.*
+Command:  https://{url:rmvscm}
+```
+
+<Screenshot src={urlOverrideList} caption="The URL overrides screen — an HTTPS-ify rule and an SSH hostname launcher." />
+
+<Screenshot src={urlOverrideApplied} caption="The SSH hostname override applied to an item's ssh:// URL." />
+
+More examples, including launching local programs, are in the
+[URL override guide](/docs/url-overrides/).

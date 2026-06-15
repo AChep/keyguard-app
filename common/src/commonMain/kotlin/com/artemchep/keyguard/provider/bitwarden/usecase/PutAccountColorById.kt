@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import androidx.compose.ui.graphics.Color
-import app.keemobile.kotpass.database.modifiers.modifyMeta
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.combineIo
@@ -11,14 +10,11 @@ import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.AccountId
-import com.artemchep.keyguard.common.service.file.FileService
-import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
-import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.util.toHex
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -38,15 +34,12 @@ import org.kodein.di.instance
 /**
  * @author Artem Chepurnyi
  */
-class PutAccountColorByIdImpl(
+class PutAccountColorByIdImpl internal constructor(
     private val logRepository: LogRepository,
     private val tokenRepository: ServiceTokenRepository,
     private val profileRepository: BitwardenProfileRepository,
-    private val base64Service: Base64Service,
-    private val fileService: FileService,
-    private val json: Json,
-    private val httpClient: HttpClient,
-    private val db: VaultDatabaseManager,
+    private val putBitwardenAccountColorById: PutBitwardenAccountColorByIdImpl,
+    private val putKeePassAccountColorById: PutKeePassAccountColorById,
 ) : PutAccountColorById {
     companion object {
         private const val TAG = "PutAccountColor"
@@ -56,11 +49,8 @@ class PutAccountColorByIdImpl(
         logRepository = directDI.instance(),
         tokenRepository = directDI.instance(),
         profileRepository = directDI.instance(),
-        base64Service = directDI.instance(),
-        fileService = directDI.instance(),
-        json = directDI.instance(),
-        httpClient = directDI.instance(),
-        db = directDI.instance(),
+        putBitwardenAccountColorById = directDI.instance(),
+        putKeePassAccountColorById = directDI.instance(),
     )
 
     override fun invoke(
@@ -92,13 +82,13 @@ class PutAccountColorByIdImpl(
         requireNotNull(profile) { "Failed to find the account profile!" }
 
         when (token) {
-            is BitwardenToken -> submitChangeIo(
+            is BitwardenToken -> putBitwardenAccountColorById(
                 color = color,
                 token = token,
                 profile = profile,
             )
 
-            is KeePassToken -> submitChangeIo(
+            is KeePassToken -> putKeePassAccountColorById(
                 color = color,
                 token = token,
                 profile = profile,
@@ -113,8 +103,24 @@ class PutAccountColorByIdImpl(
             }
             .bind()
     }
+}
 
-    private fun submitChangeIo(
+internal class PutBitwardenAccountColorByIdImpl(
+    private val profileRepository: BitwardenProfileRepository,
+    private val base64Service: Base64Service,
+    private val json: Json,
+    private val httpClient: HttpClient,
+    private val db: VaultDatabaseManager,
+) {
+    constructor(directDI: DirectDI) : this(
+        profileRepository = directDI.instance(),
+        base64Service = directDI.instance(),
+        json = directDI.instance(),
+        httpClient = directDI.instance(),
+        db = directDI.instance(),
+    )
+
+    operator fun invoke(
         color: Color,
         token: BitwardenToken,
         profile: BitwardenProfile,
@@ -147,34 +153,16 @@ class PutAccountColorByIdImpl(
         profileRepository.put(newProfile)
             .bind()
     }
+}
 
-    private fun submitChangeIo(
+internal interface PutKeePassAccountColorById {
+    operator fun invoke(
         color: Color,
         token: KeePassToken,
         profile: BitwardenProfile,
-    ) = ioEffect {
-        val colorHexString = color.toHex()
-
-        val curDatabase = openKeePassDatabase(
-            token = token,
-            fileService = fileService,
-            base64Service = base64Service,
-        )
-        val newDatabase = curDatabase.modifyMeta {
-            copy(
-                color = colorHexString,
-            )
-        }
-        saveKeePassDatabase(
-            fileService = fileService,
-            token = token,
-            database = newDatabase,
-        )
-
-        // TODO: Instead of using cached profile model, use the one returned
-        //  from the avatar update call.
-        val newProfile = BitwardenProfile.avatarColor.set(profile, colorHexString)
-        profileRepository.put(newProfile)
-            .bind()
-    }
+    ): IO<Unit>
 }
+
+internal expect fun createPutKeePassAccountColorById(
+    directDI: DirectDI,
+): PutKeePassAccountColorById

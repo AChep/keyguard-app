@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.search.search
 
 import androidx.compose.runtime.MutableState
+import arrow.core.identity
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
@@ -17,6 +18,8 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 
 const val SEARCH_DEBOUNCE = 88L
+
+const val SEARCH_DEBOUNCE_LONG = 200L
 
 class SearchQueryHandle(
     val scope: RememberStateFlowScope,
@@ -36,7 +39,7 @@ fun RememberStateFlowScope.searchQueryHandle(
     val queryState = mutableComposeState(querySink)
 
     val queryIndexedFlow = querySink
-        .debounce(SEARCH_DEBOUNCE)
+        .debounceSearch(::identity)
         .map { query ->
             val queryTrimmed = query.trim()
             if (queryTrimmed.isEmpty()) return@map null
@@ -76,6 +79,18 @@ suspend fun <T> RememberStateFlowScope.searchFilter(
     )
 }
     .stateIn(screenScope)
+
+fun <T> Flow<T>.debounceSearch(
+    getter: (T) -> String,
+) = this
+    .debounce {
+        val query = getter(it)
+        when {
+            query.isEmpty() -> 0L
+            query.length <= 3 -> SEARCH_DEBOUNCE_LONG
+            else -> SEARCH_DEBOUNCE
+        }
+    }
 
 fun <T> Flow<List<IndexedModel<T>>>.mapSearch(
     handle: SearchQueryHandle,

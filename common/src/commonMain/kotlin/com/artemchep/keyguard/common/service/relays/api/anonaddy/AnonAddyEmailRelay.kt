@@ -25,6 +25,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.jetbrains.compose.resources.DrawableResource
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -45,6 +46,9 @@ class AnonAddyEmailRelay(
     }
 
     override val type = "AnonAddy"
+
+    override val iconRes: DrawableResource
+        get() = Res.drawable.ic_logo_email_relay_addyio
 
     override val name = "addy.io"
 

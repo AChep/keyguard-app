@@ -9,3 +9,8 @@ data class OnboardingItem(
     val premium: Boolean = false,
     val icon: ImageVector? = null,
 )
+
+data class OnboardingSection(
+    val title: StringResource? = null,
+    val items: List<OnboardingItem>,
+)

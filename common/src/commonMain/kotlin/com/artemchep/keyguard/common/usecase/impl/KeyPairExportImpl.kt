@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.writeText
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.zip.ZipConfig
@@ -40,14 +41,14 @@ class KeyPairExportImpl(
             val entries = listOf(
                 ZipEntry(
                     name = "$filePrefix.pub",
-                    data = ZipEntry.Data.In {
-                        keyPair.publicKey.ssh.byteInputStream()
+                    data = ZipEntry.Data.Out { sink ->
+                        sink.writeText(keyPair.publicKey.ssh)
                     },
                 ),
                 ZipEntry(
                     name = filePrefix,
-                    data = ZipEntry.Data.In {
-                        keyPair.privateKey.ssh.byteInputStream()
+                    data = ZipEntry.Data.Out { sink ->
+                        sink.writeText(keyPair.privateKey.ssh)
                     },
                 ),
             )

@@ -1,0 +1,28 @@
+[package]
+name = "keyguard-android-ssh-agent"
+version = "0.1.0"
+edition = "2021"
+description = "Standalone Android SSH agent bridge for Keyguard"
+
+[[bin]]
+name = "keyguard-android-ssh-agent"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+base64 = "0.22"
+chacha20poly1305 = "0.10"
+clap = { version = "4", features = ["derive"] }
+common-ssh-agent-rust = { path = "../../commonSshAgent" }
+hkdf = "0.12"
+libc = "0.2"
+prost = "0.13"
+rand = "0.8"
+sha2 = "0.10"
+tokio = { version = "1", features = ["io-util", "macros", "net", "process", "rt-multi-thread", "signal", "time"] }
+zeroize = "1"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1

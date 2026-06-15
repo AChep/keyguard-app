@@ -7,9 +7,9 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.platform.LeLocale
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import java.util.Locale
 import kotlin.uuid.Uuid
 
 @Composable
@@ -64,7 +64,7 @@ private inline fun <T> withHumanReadableException(
 ) = runCatching {
     block()
 }.getOrElse { e ->
-    val language = Locale.getDefault().isO3Language
+    val language = LeLocale.iso3Language
     val msg = "Failed to annotate ${resource.key}@$language resource!"
     throw RuntimeException(msg, e)
 }

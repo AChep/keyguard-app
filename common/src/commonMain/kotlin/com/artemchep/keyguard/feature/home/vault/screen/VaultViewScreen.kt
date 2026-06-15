@@ -2,7 +2,6 @@
 
 package com.artemchep.keyguard.feature.home.vault.screen
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -16,20 +15,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -58,10 +52,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionallyKeepScreenOnEffect
-import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
-import com.artemchep.keyguard.ui.button.FavouriteToggleButton
-import com.artemchep.keyguard.ui.icons.OfflineIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.text.AutoSizeText
@@ -259,7 +250,7 @@ private fun VaultViewTitle(
 ) = Row(
     verticalAlignment = Alignment.CenterVertically,
 ) {
-    val isLoading = state.content is VaultViewState.Content.Loading
+    val header = state.toVaultViewHeaderState()
     val shimmerColor = LocalContentColor.current
         .combineAlpha(DisabledEmphasisAlpha)
 
@@ -267,11 +258,11 @@ private fun VaultViewTitle(
         is VaultViewState.Content.Loading -> shimmerColor
         is VaultViewState.Content.NotFound -> shimmerColor
         is VaultViewState.Content.Cipher -> {
-            val avatarIcon = state.content.icon
+            val avatarIcon = header.icon
             val avatarBackground = if (
                 (avatarIcon !is VaultItemIcon.VectorIcon &&
                         avatarIcon !is VaultItemIcon.TextIcon) ||
-                state.content.data.service.remote == null
+                !header.hasRemoteService
             ) {
                 val elevation = LocalAbsoluteTonalElevation.current + 8.dp
                 MaterialTheme.colorScheme
@@ -279,8 +270,8 @@ private fun VaultViewTitle(
                     .combineAlpha(LocalContentColor.current.alpha)
             } else {
                 rememberSecretAccentColor(
-                    accentLight = state.content.data.accentLight,
-                    accentDark = state.content.data.accentDark,
+                    accentLight = header.accentLight,
+                    accentDark = header.accentDark,
                 )
             }
             avatarBackground
@@ -289,7 +280,7 @@ private fun VaultViewTitle(
     Avatar(
         modifier = Modifier
             .then(
-                if (isLoading) {
+                if (header.isLoading) {
                     Modifier
                         .shimmer()
                 } else {
@@ -298,7 +289,7 @@ private fun VaultViewTitle(
             ),
         color = avatarBackground,
     ) {
-        val icon = VaultViewState.content.cipher.icon.getOrNull(state)
+        val icon = header.icon
         if (icon != null) {
             VaultItemIcon2(
                 icon,
@@ -320,8 +311,8 @@ private fun VaultViewTitle(
         }
 
         is VaultViewState.Content.Cipher -> {
-            val title = state.content.data.name
-                .takeUnless { it.isEmpty() }
+            val title = header.name
+                ?.takeUnless { it.isEmpty() }
             Tooltip(
                 valueOrNull = title,
                 tooltip = { text ->
@@ -366,56 +357,15 @@ private fun VaultViewTitle(
 private fun RowScope.VaultViewTitleActions(
     state: VaultViewState,
 ) {
-    if (state.content is VaultViewState.Content.Cipher) {
-        val elevated = state.content.locked.collectAsState()
-        AnimatedVisibility(
-            modifier = Modifier
-                .alpha(LocalContentColor.current.alpha),
-            visible = !elevated.value,
-        ) {
-            Icon(
-                modifier = Modifier
-                    .minimumInteractiveComponentSize()
-                    .alpha(DisabledEmphasisAlpha),
-                imageVector = Icons.Outlined.Lock,
-                contentDescription = null,
-            )
-        }
-        val synced = state.content.synced
-        AnimatedVisibility(
-            modifier = Modifier
-                .alpha(LocalContentColor.current.alpha),
-            visible = !synced,
-        ) {
-            OfflineIcon(
-                modifier = Modifier
-                    .minimumInteractiveComponentSize(),
-            )
-        }
-        val favorite = state.content.data.favorite
-        FavouriteToggleButton(
-            favorite = favorite,
-            onChange = state.content.onFavourite,
-        )
-        IconButton(
-            onClick = {
-                state.content.onEdit?.invoke()
-            },
-            enabled = state.content.onEdit != null,
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Edit,
-                contentDescription = null,
-            )
-        }
-        OptionsButton(
-            actions = state.content.actions,
-        )
-    }
+    val content = state.content as? VaultViewState.Content.Cipher
+        ?: return
+    VaultViewCipherTitleActions(
+        state = content,
+    )
 }
 
 @Composable
-private fun NoItemsPlaceholder() {
+fun NoItemsPlaceholder() {
     EmptyView(
         icon = {
             Icon(Icons.Outlined.SearchOff, null)

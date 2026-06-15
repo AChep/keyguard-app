@@ -1,5 +1,9 @@
 package com.artemchep.keyguard.common.service.totp.impl
 
+import arrow.core.Either
+import com.artemchep.keyguard.common.exception.OtpCodeGenerationException
+import com.artemchep.keyguard.common.exception.OtpEmptySecretKeyException
+import com.artemchep.keyguard.common.exception.OtpInvalidSecretKeyException
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
@@ -8,17 +12,13 @@ import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.totp.TotpService
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.common.util.millis
+import com.artemchep.keyguard.common.util.toHex
 import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.Locale
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
 import kotlin.experimental.and
-import kotlin.math.pow
 import kotlin.math.roundToLong
 import kotlin.time.Duration
-
 
 // Code largely based on the
 // https://github.com/marcelkliemannel/kotlin-onetimepassword
@@ -40,24 +40,43 @@ class TotpServiceImpl(
     override fun generate(
         token: TotpToken,
         timestamp: Instant,
+        offset: Int,
+    ): Either<Throwable, TotpCode> = Either
+        .catch {
+            generateOrThrow(
+                token = token,
+                timestamp = timestamp,
+                offset = offset,
+            )
+        }
+        .mapLeft(::mapException)
+
+    private fun generateOrThrow(
+        token: TotpToken,
+        timestamp: Instant,
+        offset: Int,
     ): TotpCode = when (token) {
         is TotpToken.TotpAuth -> generateTotpAuthCode(
             token = token,
             timestamp = timestamp,
+            offset = offset,
         )
 
         is TotpToken.HotpAuth -> generateHotpAuthCode(
             token = token,
+            offset = offset,
         )
 
         is TotpToken.SteamAuth -> generateSteamAuthCode(
             token = token,
             timestamp = timestamp,
+            offset = offset,
         )
 
         is TotpToken.MobileAuth -> generateMobileAuthCode(
             token = token,
             timestamp = timestamp,
+            offset = offset,
         )
     }
 
@@ -65,6 +84,9 @@ class TotpServiceImpl(
         timestamp: Instant,
         period: Long,
     ): Long {
+        require(period > 0L) {
+            "OTP period must be positive."
+        }
         // Instead of `epochSeconds` round the current second. This is
         // to fix problems that occur if you request an update a few millis
         // before the next period.
@@ -80,10 +102,12 @@ class TotpServiceImpl(
     private fun generateTotpAuthCode(
         token: TotpToken.TotpAuth,
         timestamp: Instant,
+        offset: Int,
     ): TotpCode {
-        val key = base32Service.decode(token.keyBase32)
+        val key = decodeSecretKey(token.keyBase32)
         val period = token.period
-        val time = roundToPeriodInSeconds(timestamp, period)
+        val time = roundToPeriodInSeconds(timestamp, period) + offset
+        val modulo = otpModulo(token.digits)
         // The resulting integer value of the code must have at most the required code
         // digits. Therefore the binary value is reduced by calculating the modulo
         // 10 ^ codeDigits.
@@ -91,7 +115,7 @@ class TotpServiceImpl(
             key = key,
             counter = time,
             algorithm = token.algorithm,
-        ).rem(10.0.pow(token.digits).toInt())
+        ).rem(modulo)
         // The integer code variable may contain a value with fewer digits than the
         // required code digits. Therefore the final code value is filled with zeros
         // on the left, till the code digits requirement is fulfilled.
@@ -117,9 +141,11 @@ class TotpServiceImpl(
      */
     private fun generateHotpAuthCode(
         token: TotpToken.HotpAuth,
+        offset: Int,
     ): TotpCode {
-        val key = base32Service.decode(token.keyBase32)
-        val counter = token.counter
+        val key = decodeSecretKey(token.keyBase32)
+        val counter = token.counter + offset
+        val modulo = otpModulo(token.digits)
         // The resulting integer value of the code must have at most the required code
         // digits. Therefore the binary value is reduced by calculating the modulo
         // 10 ^ codeDigits.
@@ -127,7 +153,7 @@ class TotpServiceImpl(
             key = key,
             counter = counter,
             algorithm = token.algorithm,
-        ).rem(10.0.pow(token.digits).toInt())
+        ).rem(modulo)
         // The integer code variable may contain a value with fewer digits than the
         // required code digits. Therefore the final code value is filled with zeros
         // on the left, till the code digits requirement is fulfilled.
@@ -147,10 +173,11 @@ class TotpServiceImpl(
     private fun generateSteamAuthCode(
         token: TotpToken.SteamAuth,
         timestamp: Instant,
+        offset: Int,
     ): TotpCode {
-        val key = base32Service.decode(token.keyBase32)
+        val key = decodeSecretKey(token.keyBase32)
         val period = token.period
-        val time = roundToPeriodInSeconds(timestamp, period)
+        val time = roundToPeriodInSeconds(timestamp, period) + offset
 
         val binaryInt = genHotpBinaryInt(
             key = key,
@@ -185,6 +212,10 @@ class TotpServiceImpl(
         counter: Long,
         algorithm: CryptoHashAlgorithm,
     ): Int {
+        require(algorithm != CryptoHashAlgorithm.MD5) {
+            "MD5 is not supported for HOTP/TOTP."
+        }
+
         // The counter value is the input parameter 'message' to the HMAC algorithm.
         // It must be represented by a byte array with the length of a long (8 bytes).
         val messageSize = 8
@@ -193,15 +224,17 @@ class TotpServiceImpl(
             val byte = counter and (0xFF.toLong() shl shift) shr shift
             byte.toByte()
         }
-        val algorithmName = when (algorithm) {
-            CryptoHashAlgorithm.SHA_1 -> "HmacSHA1"
-            CryptoHashAlgorithm.SHA_256 -> "HmacSHA256"
-            CryptoHashAlgorithm.SHA_512 -> "HmacSHA512"
-            CryptoHashAlgorithm.MD5 -> "MD5"
-        }
-        val hash = Mac.getInstance(algorithmName).run {
-            init(SecretKeySpec(key, "RAW")) // The hard-coded value 'RAW' is specified in the RFC
-            doFinal(message)
+        val hash = cryptoGenerator.hmac(
+            key = key,
+            data = message,
+            algorithm = algorithm,
+        )
+        // RFC 4226 dynamic truncation is defined over a 20-byte HMAC-SHA-1
+        // result. The offset can be 0..15 and selects four consecutive bytes,
+        // so shorter outputs can point past the digest instead of producing a
+        // valid HOTP value.
+        require(hash.size >= 20) {
+            "HOTP hash output is too short for dynamic truncation."
         }
 
         // The value of the offset is the lower 4 bits of the last byte of the hash
@@ -215,24 +248,49 @@ class TotpServiceImpl(
         // The second step is to drop the most significant bit (MSB) from the first
         // step binary value (0x7F = 0111 1111).
         binary[0] = binary[0].and(0x7F)
-        // The resulting integer value of the code must have at most the required code
-        // digits. Therefore the binary value is reduced by calculating the modulo
-        // 10 ^ codeDigits.
+        // The callers reduce this binary value by the requested digit count.
         return binary.int
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
+    private fun otpModulo(
+        digits: Int,
+    ): Int {
+        require(digits in 1..9) {
+            "OTP digits must be between 1 and 9."
+        }
+
+        var result = 1
+        repeat(digits) {
+            result *= 10
+        }
+        return result
+    }
+
+    private fun decodeSecretKey(
+        keyBase32: String,
+    ): ByteArray {
+        if (keyBase32.isBlank()) {
+            throw OtpEmptySecretKeyException()
+        }
+
+        val key = try {
+            base32Service.decode(keyBase32)
+        } catch (e: Throwable) {
+            throw OtpInvalidSecretKeyException(e)
+        }
+        if (key.isEmpty()) {
+            throw OtpInvalidSecretKeyException()
+        }
+        return key
+    }
+
     private fun generateMobileAuthCode(
         token: TotpToken.MobileAuth,
         timestamp: Instant,
+        offset: Int,
     ): TotpCode {
         val period = token.period
-        // As per the spec, the mOTP code should be generated each 10 seconds and
-        // valid for the next 3 minutes. This sucks for the users tho, as he does not know
-        // the latter.
-        val actualPeriod = 10L
-        val multiplier = period / actualPeriod // must be recoverable
-        val time = roundToPeriodInSeconds(timestamp, period) * multiplier
+        val time = roundToPeriodInSeconds(timestamp, period) + offset
 
         // Generate a hash from the data.
         val data = buildString {
@@ -242,11 +300,10 @@ class TotpServiceImpl(
                 append(token.pin)
             }
         }
-        val hash = cryptoGenerator.hashMd5(data.toByteArray())
+        val hash = cryptoGenerator.hashMd5(data.encodeToByteArray())
 
         val code = hash
-            .toHexString()
-            .lowercase(Locale.ENGLISH)
+            .toHex()
             .take(token.digits)
         return TotpCode(
             code = code,
@@ -255,11 +312,20 @@ class TotpServiceImpl(
                 expiration = kotlin.run {
                     // Get the beginning of the next period as an
                     // expiration date.
-                    val exp = (time / multiplier + 1L) * period
+                    val exp = (time + 1L) * period
                     Instant.fromEpochSeconds(exp)
                 },
                 duration = with(Duration) { period.seconds },
             ),
         )
+    }
+
+    private fun mapException(
+        e: Throwable,
+    ): Throwable = when (e) {
+        is OtpEmptySecretKeyException -> e
+        is OtpInvalidSecretKeyException -> e
+        is OtpCodeGenerationException -> e
+        else -> OtpCodeGenerationException(e)
     }
 }

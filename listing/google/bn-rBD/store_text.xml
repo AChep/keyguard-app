@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="listing_store_google_app_name">কীগার্ড</string>
+    <string name="listing_store_google_short_description">একটি পাসওয়ার্ড ম্যানেজার যা ব্যবহারকারীর অভিজ্ঞতার ওপর বিশেষভাবে গুরুত্ব দেয়।</string>
+    <!-- A name of the Yearly subscription plan -->
+    <string name="listing_store_google_subscription_yearly">বার্ষিক পরিকল্পনা</string>
+    <!-- A name of the Quarterly subscription plan -->
+    <string name="listing_store_google_subscription_quarterly">ত্রৈমাসিক পরিকল্পনা</string>
+    <!-- A name of the One-time purchase plan -->
+    <string name="listing_store_google_product_lifetime">এককালীন ক্রয়</string>
+</resources>

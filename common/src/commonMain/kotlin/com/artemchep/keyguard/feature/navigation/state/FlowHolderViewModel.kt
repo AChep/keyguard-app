@@ -3,6 +3,8 @@ package com.artemchep.keyguard.feature.navigation.state
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.State
 import arrow.core.Some
+import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.ShowMessage
@@ -13,8 +15,11 @@ import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationEntry
 import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -25,6 +30,8 @@ class FlowHolderViewModel(
     private val navigationEntry: NavigationEntry,
 ) {
     var bundle: LeBundle = leBundleOf()
+
+    private val lock = SynchronizedObject()
 
     private val store = mutableMapOf<String, Some<Entry>>()
 
@@ -38,14 +45,16 @@ class FlowHolderViewModel(
 
     fun getScopeOrNull(
         key: String,
-    ): RememberStateFlowScope? = synchronized(this) {
-        store[key]
-    }?.value?.scope
+    ): RememberStateFlowScope? = synchronized(lock) {
+        store[key]?.value?.scope
+    }
 
     fun <T> getOrPut(
         key: String,
         c: NavigationController,
         showMessage: ShowMessage,
+        clipboardService: ClipboardService,
+        clipboardEventBus: ClipboardEventBus,
         getScreenState: GetScreenState,
         putScreenState: PutScreenState,
         windowCoroutineScope: WindowCoroutineScope,
@@ -54,8 +63,9 @@ class FlowHolderViewModel(
         screenName: String,
         context: LeContext,
         colorSchemeState: State<ColorScheme>,
+        windowIdState: State<WindowId>,
         init: RememberStateFlowScopeZygote.() -> T,
-    ): T = synchronized(this) {
+    ): T = synchronized(lock) {
         store.getOrPut(key) {
             val vmCoroutineScopeJob = SupervisorJob(parent = scope.job)
             val vmCoroutineScope = WindowCoroutineScopeImpl(
@@ -73,6 +83,8 @@ class FlowHolderViewModel(
                 backPressInterceptorHost = navigationEntry,
                 keyEventInterceptorHost = navigationEntry,
                 showMessage = showMessage,
+                clipboardService = clipboardService,
+                clipboardEventBus = clipboardEventBus,
                 getScreenState = getScreenState,
                 putScreenState = putScreenState,
                 windowCoroutineScope = windowCoroutineScope,
@@ -81,6 +93,7 @@ class FlowHolderViewModel(
                 screen = screen,
                 screenName = screenName,
                 colorSchemeState = colorSchemeState,
+                windowIdState = windowIdState,
                 context = context,
             )
             val value = init(vmScope)
@@ -95,9 +108,9 @@ class FlowHolderViewModel(
     }
 
     fun clear(key: String) {
-        synchronized(this) {
-            store.remove(key)?.map { it.job.cancel() }
-        }
+        synchronized(lock) {
+            store.remove(key)
+        }?.map { it.job.cancel() }
     }
 
     fun destroy() {
@@ -106,9 +119,11 @@ class FlowHolderViewModel(
     }
 
     fun persistedState(): LeBundle {
-        val state = store
-            .map { (key, sink) -> key to sink.value.scope.persistedState() }
-            .toTypedArray()
+        val state = synchronized(lock) {
+            store
+                .map { (key, sink) -> key to sink.value.scope.persistedState() }
+                .toTypedArray()
+        }
         return leBundleOf(*state)
     }
 }

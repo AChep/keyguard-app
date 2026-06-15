@@ -13,6 +13,9 @@ import coil3.fetch.ImageFetchResult
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toDrawable
+import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
+import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
+import kotlinx.coroutines.flow.first
 
 /**
  * A [Fetcher] that loads an application's icon as a [coil3.Image].
@@ -22,15 +25,25 @@ import androidx.core.graphics.drawable.toDrawable
  * @param options The [coil3.request.Options] for the request.
  */
 class AppIconFetcher(
+    private val googlePlayParser: AndroidAppGooglePlayParser,
     private val packageManager: PackageManager,
+    private val getWebsiteIcons: GetWebsiteIcons,
     private val data: AppIconUrl,
     private val options: coil3.request.Options,
+    private val imageLoader: ImageLoader,
 ) : Fetcher {
     override suspend fun fetch(): FetchResult? {
-        val icon = getApplicationIconOrThrow(
-            packageManager = packageManager,
-            packageName = data.packageName,
-        )
+        return fetchInstalledAppIcon()
+            ?: fetchGooglePlayStoreAppIcon()
+    }
+
+    private suspend fun fetchInstalledAppIcon(): FetchResult? {
+        val icon = runCatching {
+            getApplicationIconOrThrow(
+                packageManager = packageManager,
+                packageName = data.packageName,
+            )
+        }.getOrNull()
             ?: return null
 
         val bitmap = createBitmap(icon.intrinsicWidth, icon.intrinsicHeight)
@@ -45,13 +58,27 @@ class AppIconFetcher(
         )
     }
 
+    private suspend fun fetchGooglePlayStoreAppIcon(): FetchResult? {
+        val websiteIcons = getWebsiteIcons().first()
+        if (!websiteIcons) return null
+
+        return com.artemchep.keyguard.common.service.app.AppIconFetcher.fetch(
+            googlePlayParser = googlePlayParser,
+            data = data,
+            imageLoader = imageLoader,
+            options = options,
+        )
+    }
+
     /**
      * A [Fetcher.Factory] for creating [AppIconFetcher] instances.
      *
      * @param packageManager The [PackageManager] used to load application icons.
      */
     class Factory(
+        private val googlePlayParser: AndroidAppGooglePlayParser,
         private val packageManager: PackageManager,
+        private val getWebsiteIcons: GetWebsiteIcons,
     ) : Fetcher.Factory<AppIconUrl> {
         /**
          * Creates an [AppIconFetcher] for the given [AppIconUrl].
@@ -67,9 +94,12 @@ class AppIconFetcher(
             imageLoader: ImageLoader,
         ): Fetcher {
             return AppIconFetcher(
+                googlePlayParser = googlePlayParser,
                 packageManager = packageManager,
+                getWebsiteIcons = getWebsiteIcons,
                 data = data,
                 options = options,
+                imageLoader = imageLoader,
             )
         }
     }

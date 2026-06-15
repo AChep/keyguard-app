@@ -9,9 +9,9 @@
     <string name="show_keyguard">Zobrazit Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">Název</string>
-    <string name="description">Description</string>
+    <string name="description">Popis</string>
     <string name="account_name">Název účtu</string>
-    <string name="database_name">Database name</string>
+    <string name="database_name">Název databáze</string>
     <string name="enabled">Zapnuto</string>
     <string name="disabled">Vypnuto</string>
     <string name="wordlist">Seznam slov</string>
@@ -21,6 +21,12 @@
     <string name="current_password">Současné heslo</string>
     <string name="new_password">Nové heslo</string>
     <string name="no_password">Žádné heslo</string>
+    <string name="advanced_options">Pokročilé</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Ověřeno</string>
     <string name="email_not_verified">Neověřeno</string>
@@ -30,7 +36,7 @@
     <string name="conceal_value">Skrýt hodnotu</string>
     <string name="field_label">Označení</string>
     <string name="field_value">Hodnota</string>
-    <string name="tag_value">Value</string>
+    <string name="tag_value">Hodnota</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Počet přihlášení</string>
     <!--
@@ -39,7 +45,7 @@
         -->
     <string name="max_access_count">Maximální počet přístupů</string>
     <string name="ready_status_beta">Beta</string>
-    <string name="ready_status_alpha">Alpha</string>
+    <string name="ready_status_alpha">Alfa</string>
     <string name="learn_more">Zjistit více</string>
     <string name="phone_number">Telefonní číslo</string>
     <string name="passport_number">Číslo pasu</string>
@@ -57,6 +63,7 @@
     <string name="expiry_date">Datum expirace</string>
     <string name="company">Firma</string>
     <string name="sync">Synchronizace</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Skryté</string>
     <!-- Opposite of 'hidden' -->
@@ -94,16 +101,16 @@
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> položek</string>
     <string name="items_all">Všechny položky</string>
     <string name="items_empty_label">Žádné položky</string>
-    <string name="sends">Sends</string>
+    <string name="sends">Odeslané</string>
     <string name="folder_none">Žádná složka</string>
     <string name="folder_new">Nová složka</string>
     <string name="folder">Složka</string>
     <string name="folders">Složky</string>
     <string name="folders_empty_label">Žádné složky</string>
-    <string name="tag_none">No tag</string>
-    <string name="tag">Tag</string>
-    <string name="tags">Tags</string>
-    <string name="tags_empty_label">No tags</string>
+    <string name="tag_none">Žádný štítek</string>
+    <string name="tag">Štítek</string>
+    <string name="tags">Štítky</string>
+    <string name="tags_empty_label">Žádné štítky</string>
     <string name="collection_none">Žádná kolekce</string>
     <string name="collection">Kolekce</string>
     <string name="collections">Kolekce</string>
@@ -114,11 +121,12 @@
     <string name="organizations_empty_label">Žádné organizace</string>
     <string name="equivalent_domains">Ekvivalentní domény</string>
     <string name="equivalent_domains_empty_label">Žádné ekvivalentní domény</string>
+    <string name="retry">Retry</string>
     <string name="misc">Různé</string>
     <string name="category">Kategorie</string>
     <string name="command">Příkaz</string>
     <string name="execute_command">Provést</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">Návrhy podle kontextu</string>
     <!-- Add (something) -->
     <string name="add">Přidat</string>
     <string name="add_integration">Přidat integraci</string>
@@ -141,6 +149,8 @@
     <string name="address1">Řádek adresy 1</string>
     <string name="address2">Řádek adresy 2</string>
     <string name="address3">Řádek adresy 3</string>
+    <string name="ssh_agent">SSH agent</string>
+    <string name="ssh_client">SSH klient</string>
     <string name="rename">Přejmenovat</string>
     <string name="deletion_date">Datum odstranění</string>
     <string name="deletion_date_custom">Vlastní</string>
@@ -149,11 +159,15 @@
     <string name="expiration_date_never">Nikdy</string>
     <string name="select_linked_type">Vybrat typ</string>
     <string name="select_file">Vybrat soubor</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Automatické vyplňování</string>
     <string name="autofill_and_save_uri">Automaticky vyplnit a uložit informace o aplikaci nebo webu</string>
     <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_text">Abyste předešli jejich ztrátě, dodržujte pravidlo zálohování 3-2-1: udržujte tři kopie svého trezoru na dvou různých datových nosičích a jednu kopii uchovávejte na odděleném a bezpečném místě.</string>
     <string name="passkey">Přístupový klíč</string>
+    <string name="credential_login_create_header">Vytvořit přihlašovací údaje</string>
+    <string name="credential_password_create_header">Vytvořit heslo</string>
     <string name="passkey_create_header">Vytvořit přístupový klíč</string>
     <string name="passkey_unlock_header">Odemknout Keyguard</string>
     <string name="passkey_auth_via_header">Potvrzuji žádost o ověření…</string>
@@ -177,17 +191,24 @@
     <string name="passkey_user_display_name">Zobrazované jméno</string>
     <string name="ignored_alerts">Ignorovaná upozornění</string>
     <string name="api_key">API klíč</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">Doména</string>
     <string name="add_to_home_screen">Přidat na plochu</string>
     <string name="edit">Upravit</string>
     <string name="delete">Odstranit</string>
     <string name="remove">Odebrat</string>
     <string name="remove_from_history">Odstranit z historie</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">Opakovaně použité heslo</string>
     <string name="reused_passwords">Opakovaně použitá hesla</string>
     <string name="one_time_password">Jednorázové heslo</string>
     <string name="one_time_password_authenticator_key">Autentizační klíč</string>
     <string name="passkey_use_short">Použít</string>
+    <string name="password_save">Uložit heslo</string>
     <string name="passkey_save">Uložit přístupový klíč</string>
     <string name="passkey_available">Dostupný přístupový klíč</string>
     <string name="twofa_available">K dispozici dvoufaktorové ověření</string>
@@ -203,9 +224,11 @@
     <string name="requested_verification_email">Zažádán ověřovací e-mail</string>
     <string name="web_vault">Webový trezor</string>
     <string name="launch_web_vault">Spustit Webový trezor</string>
-    <string name="local_vault">Local vault</string>
+    <string name="local_vault">Místní trezor</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Zapamatovat</string>
+    <!-- An Archive screen -->
+    <string name="archive">Archiv</string>
     <!-- A Trash screen -->
     <string name="trash">Koš</string>
     <!-- To download something -->
@@ -224,13 +247,13 @@
     <string name="encryption_random_bits_data">Náhodných <xliff:g id="length" example="64">%1$d</xliff:g> bitů dat</string>
     <string name="none">Žádný</string>
     <string name="text">Text</string>
-    <string name="linked_app">Linked app</string>
+    <string name="linked_app">Propojená aplikace</string>
     <string name="linked_apps">Propojené aplikace</string>
-    <string name="linked_uri">Linked URI</string>
+    <string name="linked_uri">Propojené URI</string>
     <string name="linked_uris">Propojené URI</string>
-    <string name="custom_field">Custom field</string>
+    <string name="custom_field">Vlastní pole</string>
     <string name="custom_fields">Vlastní pole</string>
-    <string name="custom_field_toggle_boolean_value">Toggle value</string>
+    <string name="custom_field_toggle_boolean_value">Přepnout hodnotu</string>
     <string name="reveal_secure_note">Odhalit zabezpečenou poznámku</string>
     <string name="hide_secure_note">Skrýt zabezpečenou poznámku</string>
     <string name="master_password_hint">Nápověda k master heslu</string>
@@ -240,7 +263,7 @@
     <string name="key_type">Typ klíče</string>
     <string name="key_pair">Klíčový pár</string>
     <string name="key_ssh">SSH klíč</string>
-    <string name="key_ssh_value_placeholder">Looks empty in here. Generate an SSH key to get started!</string>
+    <string name="key_ssh_value_placeholder">Vypadá to tu prázdně. Vygenerujte si SSH klíč a můžete začít!</string>
     <string name="fingerprint_phrase">Fráze otisku prstu</string>
     <string name="fingerprint_phrase_help_title">Co je to otisk prstu?</string>
     <string name="filter_auth_reprompt_items">Opakovaná výzva k ověření</string>
@@ -249,18 +272,31 @@
     <string name="bitwarden_premium">Bitwarden Premium</string>
     <string name="bitwarden_premium_required">Vyžaduje Bitwarden Premium</string>
     <string name="bitwarden_unofficial_server">Neoficiální server Bitwarden</string>
-    <string name="server_version">Server version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="database_version">Database version <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
-    <string name="clear_file">Clear</string>
-    <string name="replace_key_file">Replace a key file</string>
-    <string name="select_key_file">Select a key file</string>
-    <string name="select_database_file">Select a database file</string>
-    <string name="replace_database_file">Replace a database file</string>
-    <string name="open_database">Open a database</string>
-    <string name="create_database">Create a database</string>
-    <string name="qr_wifi_description_text">Scan this QR code with another device to join this WiFi network.</string>
-    <string name="qr_generate_button">Generate QR code</string>
-    <string name="pro_tip">Pro tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="server_version">Verze serveru <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="database_version">Verze databáze <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
+    <string name="clear_file">Vyčistit</string>
+    <string name="replace_key_file">Nahradit soubor s klíčem</string>
+    <string name="select_key_file">Vybrat soubor s klíčem</string>
+    <string name="select_database_file">Vybrat soubor databáze</string>
+    <string name="replace_database_file">Nahradit soubor databáze</string>
+    <string name="open_database">Otevřít databázi</string>
+    <string name="create_database">Vytvořit databázi</string>
+    <string name="addaccount_method_header_title">Add account</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
+    <string name="qr_wifi_description_text">Naskenujte tento QR kód jiným zařízením pro připojení k této Wi-Fi síti.</string>
+    <string name="qr_generate_button">Vygenerovat QR kód</string>
+    <string name="pro_tip">Profi tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Vytvářeje unikátní e-maily pro lepší soukromí.</string>
     <string name="account_last_synced_at">Naposledy synchronizováno <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Změnit jméno</string>
@@ -272,6 +308,8 @@
     <string name="account_action_export_individual_vault_title">Exportovat individuální trezor</string>
     <string name="account_action_hide_title">Skrýt položky</string>
     <string name="account_action_hide_text">Skrýt položky z hlavních obrazovek aplikace</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">Pro ověření vaší e-mailové adresy navštivte Webový trezor</string>
     <string name="account_action_premium_purchase_instructions_title">Upgradujte svůj účet na předplatné Premium a odemkněte pár skvělých doplňkových funkcí</string>
     <string name="account_action_tfa_title">Dvoufaktorové ověřování</string>
@@ -294,6 +332,8 @@
     <string name="ciphers_history_empty">Zatím žádná historie</string>
     <string name="ciphers_view_details">Zobrazit podrobnosti</string>
     <string name="ciphers_save_to">Uložit do</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Přidá přístupový klíč (passkey)</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Nahradí uživatelské jméno a heslo</string>
     <string name="ciphers_action_add_to_favorites_title">Přidat do oblíbených</string>
     <string name="ciphers_action_remove_from_favorites_title">Odebrat z oblíbených</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Povolit opětovnou výzvu k ověření</string>
@@ -305,11 +345,17 @@
     <string name="ciphers_action_change_folder_title">Přesunout do složky</string>
     <string name="ciphers_action_change_name_title">Přejmenovat</string>
     <string name="ciphers_action_change_names_title">Přejmenovat</string>
+    <string name="ciphers_action_change_tags_title">Change tags</string>
     <string name="ciphers_action_add_password_title">Přidat heslo</string>
     <string name="ciphers_action_add_passwords_title">Přidat hesla</string>
     <string name="ciphers_action_change_password_title">Změnit heslo</string>
     <string name="ciphers_action_change_passwords_title">Změnit hesla</string>
     <string name="ciphers_action_view_password_history_title">Zobrazit historii hesel</string>
+    <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
+    <string name="ciphers_action_archive_title">Archivovat</string>
+    <string name="ciphers_action_archive_confirmation_title">Přesunout do archivu?</string>
+    <string name="ciphers_action_unarchive_title">Obnovit z archivu</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Obnovit z archivu?</string>
     <string name="ciphers_action_trash_title">Koš</string>
     <string name="ciphers_action_trash_confirmation_title">Přesunout do koše?</string>
     <string name="ciphers_action_trash_confirmation_text">Položky, které budou v koši více než 30 dní, se automaticky smažou.</string>
@@ -345,12 +391,24 @@
     <string name="sends_action_delete_title">Navždy odstranit</string>
     <string name="sends_action_delete_confirmation_title">Odstranit navždy?</string>
     <string name="file_action_open_with_title">Otevřít pomocí…</string>
+    <string name="file_action_preview_title">Preview</string>
     <string name="file_action_send_with_title">Odeslat pomocí…</string>
     <string name="file_action_open_in_file_manager_title">Otevřít správcem souborů</string>
     <string name="file_action_delete_local_title">Odstranit lokální soubor</string>
     <string name="file_action_delete_local_many_title">Odstranit lokální soubory</string>
     <string name="file_action_view_cipher_title">Zobrazit nadřazenou položku</string>
     <string name="file_action_reveal_title">Odhalit</string>
+    <string name="attachment_preview_error_unsupported_file">This file type cannot be previewed.</string>
+    <string name="attachment_preview_error_unsupported_platform">Attachment preview is not supported on this platform.</string>
+    <string name="attachment_preview_error_too_large">This attachment is larger than the 8 MB preview limit.</string>
+    <string name="attachment_preview_error_network">Failed to download the attachment preview.</string>
+    <string name="attachment_preview_error_decryption">Failed to decrypt the attachment preview.</string>
+    <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
+    <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
+    <string name="attachment_preview_action_copy_all">Copy all</string>
+    <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
+    <string name="attachment_preview_action_source">Source</string>
+    <string name="attachment_preview_action_rendered_preview">Preview</string>
     <string name="vault_action_always_show_keyboard_title">Vždy zobrazit klávesnici</string>
     <string name="vault_action_remember_sorting_title">Zapamatovat způsob řazení</string>
     <string name="vault_action_sync_vault_title">Synchronizovat trezor</string>
@@ -427,6 +485,20 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Nešifrovaný soukromý klíč uložen do složky Downloads</string>
     <string name="ssh_key_action_add_key_title">Přidat klíče</string>
     <string name="ssh_key_action_replace_key_title">Nahradit klíče</string>
+    <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
+    <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
+    <string name="ssh_key_import_success_title">Imported SSH key</string>
+    <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
+    <string name="ssh_key_import_error_unsupported_algorithm">Only RSA and Ed25519 SSH keys are supported.</string>
+    <string name="ssh_key_import_error_invalid_passphrase">The SSH key passphrase is invalid.</string>
+    <string name="ssh_key_import_error_malformed_key">The SSH key file is malformed.</string>
+    <string name="ssh_key_import_error_read">Unable to read the selected file.</string>
+    <string name="ssh_key_import_error_passphrase_required">A passphrase is required to unlock this SSH key.</string>
+    <string name="ssh_key_import_passphrase_title">Passphrase</string>
+    <string name="ssh_key_import_passphrase_hint">Enter SSH key passphrase</string>
+    <string name="ssh_key_import_passphrase_dialog_title">Enter SSH key passphrase</string>
+    <string name="ssh_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> key is encrypted.</string>
     <string name="selection_n_selected">Vybráno <xliff:g id="size" example="15">%1$d</xliff:g></string>
     <string name="copy">Kopírovat</string>
     <string name="copy_value">Kopírovat hodnotu</string>
@@ -434,6 +506,7 @@
     <string name="copy_uri">Kopírovat URI</string>
     <string name="copy_send">Kopírovat Send</string>
     <string name="copy_package_name">Kopírovat název balíčku</string>
+    <string name="copy_bundle_id">Kopírovat ID balíčku (bundle ID)</string>
     <string name="copy_password">Kopírovat heslo</string>
     <string name="copy_username">Kopírovat uživatelské jméno</string>
     <string name="copy_email">Kopírovat e-mail</string>
@@ -470,8 +543,8 @@
     <string name="copied_cvv_code">Bezpečnostní kód zkopírován</string>
     <string name="copied_otp_code">Jednorázové heslo zkopírováno</string>
     <string name="copied_otp_secret_code">Tajný klíč zkopírován</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">Nalezeno jednorázové heslo</string>
+    <string name="found_value">Nalezena hodnota</string>
     <string name="autofill_unlock_keyguard">Odemknout Keyguard</string>
     <string name="autofill_open_keyguard">Otevřít Keyguard</string>
     <string name="january">Leden</string>
@@ -524,21 +597,41 @@
     <string name="error_invalid_email">Neplatný e-mail</string>
     <string name="error_invalid_url">Neplatná URL</string>
     <string name="error_invalid_uri">Neplatná URI</string>
+    <string name="error_invalid_key">Invalid key</string>
     <string name="error_invalid_card_number">Neplatné číslo karty</string>
+    <string name="error_webdav_url_required">WebDAV URL is required</string>
     <string name="error_incorrect_password">Neplatné heslo</string>
+    <string name="error_not_found">Nenalezeno</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">Tajný klíč OTP kódu nesmí být prázdný</string>
-    <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
+    <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
+    <string name="error_failed_file_already_exists">Soubor nelze vytvořit. Přepisování existujícího souboru není povoleno</string>
     <string name="error_failed_generate_kdf_hash_oom">Nepodařilo se vytvořit klíč, nedostatek paměti. Zkontrolujte prosím nastavení vašeho serveru KDF.</string>
     <string name="error_failed_generate_otp_code">Nepodařilo se vygenerovat OTP kód</string>
     <string name="error_failed_create_passkey">Nepodařilo se vytvořit přístupový klíč</string>
+    <string name="error_failed_create_password">Vytvoření hesla selhalo</string>
     <string name="error_failed_use_passkey">Nepodařilo se autorizovat požadavek</string>
+    <string name="error_failed_use_password">Požadavek se nepodařilo autorizovat</string>
     <string name="error_failed_open_uri">Nepodařilo se otevřít URI</string>
     <string name="error_failed_format_placeholder">Nepodařilo se naformátovat proměnnou</string>
     <string name="error_failed_open_app_for">Žádná nainstalovaná aplikace nemůže zpracovat tento požadavek</string>
     <string name="error_failed_unknown">Něco se pokazilo</string>
     <string name="error_failed_encrypt_biometric_key">Biometrický klíč se nepodařilo zašifrovat</string>
     <string name="error_failed_decrypt_biometric_key">Biometrický klíč se nepodařilo dešifrovat</string>
+    <string name="error_failed_ssh_agent_start">Spuštění SSH agenta selhalo</string>
+    <string name="error_credential_calling_app_not_privileged">Volající aplikace není na seznamu privilegovaných a nemůže žádat o ověření jménem jiných aplikací.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Udělit oprávnění a pokračovat</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
     <string name="scanqr_title">Načíst QR kód</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">Načíst a zpracovat QR kód z obrázku.</string>
     <string name="scanqr_camera_permission_required_text">Ke skenování QR kódů je požadováno povolení fotoaparátu.</string>
     <string name="post_notifications_permission_banner_title">Oznámení jsou zakázána</string>
@@ -598,6 +691,7 @@
     <string name="emailleak_breach_occurred_at">Nastal <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Byl nahlášen <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Nepodařilo se zjistit informace o únicích. Možná jste offline</string>
+    <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
     <string name="passwordleak_title">Únik dat</string>
     <string name="passwordleak_note">Heslo nalezené v únicích dat zabere mnohem méně času na prolomení a nemělo by být nikdy používáno.</string>
     <string name="passwordleak_occurrences_found_title">Heslo je kompromitováno</string>
@@ -644,14 +738,22 @@
     <string name="urloverride_delete_one_confirmation_title">Odstranit přepsání adresy URL?</string>
     <string name="urloverride_delete_many_confirmation_title">Odstranit přepsání adresy URL?</string>
     <string name="urloverride_empty_label">Žádná přepsání adres URL</string>
-    <string name="urlblock_header_title">URI block</string>
-    <string name="urlblock_list_header_title">Blocked URIs</string>
-    <string name="urlblock_list_section_title">Blocked URIs</string>
-    <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_delete_many_confirmation_title">Delete the blocked URI?</string>
-    <string name="urlblock_empty_label">No blocked URIs</string>
-    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
-    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+    <string name="urlblock_header_title">Blokovat URI</string>
+    <string name="urlblock_list_header_title">Blokovaná URI</string>
+    <string name="urlblock_list_section_title">Blokovaná URI</string>
+    <string name="urlblock_delete_one_confirmation_title">Smazat blokované URI?</string>
+    <string name="urlblock_delete_many_confirmation_title">Smazat blokovaná URI?</string>
+    <string name="urlblock_empty_label">Žádná blokovaná URI</string>
+    <string name="urlblock_expose_title">Zpřístupnit data systému automatického vyplňování před odemčením trezoru</string>
+    <string name="urlblock_expose_text">Pokud je tato možnost zapnutá, položka se ukládá mimo trezor, což umožní zcela skrýt návrhy automatického vyplňování i v případě, že je trezor uzamčen.</string>
+    <string name="privilegedapps_header_title">Privilegované aplikace</string>
+    <string name="privilegedapps_list_header_title">Privilegované aplikace</string>
+    <string name="privilegedapps_list_section_title">Privilegované aplikace</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Smazat privilegovanou aplikaci?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Smazat privilegované aplikace?</string>
+    <string name="privilegedapps_empty_label">Žádné privilegované aplikace</string>
+    <string name="privilegedapps_user_apps">Uživatelské aplikace</string>
+    <string name="privilegedapps_community_apps">Aplikace komunity</string>
     <string name="setup_header_text">Vytvořit šifrovaný trezor, kam budou ukládána lokální data.</string>
     <string name="setup_free_text">Pokračováním potvrzujete, že jste zakoupili Keyguard nebo měli aktivní licenci.</string>
     <string name="setup_field_app_password_label">Heslo aplikace</string>
@@ -678,6 +780,8 @@
     <string name="additem_header_edit_title">Upravit položku</string>
     <string name="additem_header_merge_title">Spojit položky</string>
     <string name="additem_merge_remove_origin_ciphers_title">Přesunout původní položky do koše</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Spojení položek nespojí jejich přílohy! Vytvořená položka nebude mít žádné přidané přílohy.</string>
     <string name="additem_note_placeholder">Sem přidejte jakékoli informace o této položce</string>
     <string name="additem_markdown_note">Stylujte text <xliff:g id="italic" example="italic">%1$s</xliff:g> nebo <xliff:g id="bold" example="bold">%2$s</xliff:g> a dalšími. Je podporována omezená syntaxe Markdown.</string>
@@ -692,10 +796,14 @@
     <string name="addsend_hide_text_by_default_title">Při přístupu k položce skrýt ve výchozím nastavení text</string>
     <string name="addsend_hide_email_title">Skrýt e-mailovou adresu</string>
     <string name="addsend_max_access_count_note">Pokud je nastaveno, bude uživatelům zakázán přístup k této položce po dosažení maximálního počtu přístupů.</string>
-    <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
-    <string name="addaccount_description_short_bitwarden_text">Store encrypted vault in a cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addsend_auth_emails_label">E-maily</string>
+    <string name="addsend_auth_emails_placeholder">E-maily oddělené čárkou</string>
+    <string name="addsend_auth_emails_note">Po otevření odkazu budou příjemci požádáni o dokončení jednorázového ověření e-mailu.</string>
+    <string name="addaccount_promo_title">Váš trezor je prázdný. Připojte účet, abyste mohli začít:</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
+    <string name="addaccount_promo_features">Chcete z aplikace vytěžit maximum? Níže jsme pro vás shrnuli hlavní funkce. Podívejte se, jak by vám mohly posloužit.</string>
+    <string name="addaccount_description_short_bitwarden_text">Uložit šifrovaný trezor v cloudu.</string>
+    <string name="addaccount_description_short_keepass_text">Uložit šifrovaný trezor lokálně pomocí formátu souboru KDBX.</string>
     <string name="addaccount_header_title">Přidat účet Bitwarden</string>
     <string name="addaccount_disclaimer_bitwarden_label">Nejsme přidruženi, autorizováni, podporováni ani nijak oficiálně spojeni se společností Bitwarden, Inc., ani s žádnou z jejích dceřiných společností nebo poboček.</string>
     <!--
@@ -724,14 +832,29 @@
     <string name="addaccount_custom_env_api_url_label">URL API serveru</string>
     <string name="addaccount_custom_env_icons_url_label">URL serveru ikon</string>
     <string name="addaccount_custom_env_identity_url_label">URL serveru identit</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Ověření</string>
     <string name="addaccount2fa_unsupported_note">Tato ověřovací metoda zatím není podporována.</string>
     <string name="addaccount2fa_otp_note">Zadejte ověřovací kód z vaší autentifikační aplikace.</string>
     <string name="addaccount2fa_email_note">Zadejte ověřovací kód, který byl odeslán na adresu <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Ručně zadejte ověřovací kód YubiKey. Umístěte kurzor na pole níže a spusťte YubiKey.</string>
-    <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_header_title">Přidat účet KeePass</string>
+    <string name="addkeepass_header_body">Uložte si všechna svá hesla do jediného, vysoce zabezpečeného souboru KDBX, který je uložen přímo ve vašem zařízení. Nad svými daty máte naprostou kontrolu. Můžete je uložit v počítači, na USB disku nebo si je sami synchronizovat pomocí služeb jako Syncthing, Google Drive nebo Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">Implementace KeePass je v beta verzi a není dosud plně kompatibilní se standardními KeePass klienty. Používejte na vlastní nebezpečí. Než budete pokračovat, ujistěte se, že máte ověřenou zálohu své databáze.</string>
     <string name="provider_2fa_authenticator">Autentifikátor</string>
     <string name="provider_2fa_duo_organization">Duo (organizace)</string>
     <string name="provider_2fa_fido2_webauthn">Webové ověřování FIDO2</string>
@@ -743,6 +866,10 @@
     <string name="yubikey_nfc_title">Podržte váš YubiKey naplocho na zadní straně zařízení</string>
     <string name="yubikey_nfc_text">Vyžaduje podporu NFC.</string>
     <string name="yubikey_error_failed_to_read">Nepodařilo se přečíst YubiKey</string>
+    <string name="yubikey_unlock_error_unsupported_title">Odemčení pomocí YubiKey není podporováno</string>
+    <string name="yubikey_unlock_error_unsupported_text">Tento YubiKey nebo typ připojení nepodporuje odemčení typu challenge-response.</string>
+    <string name="yubikey_unlock_error_failed_title">Použití YubiKey selhalo</string>
+    <string name="yubikey_unlock_error_failed_text">Zkuste YubiKey znovu nebo odemkněte trezor svým heslem.</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">Použití FIDO2 WebAuthn vyžaduje použití Bitwarden Web verze <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> nebo novější. Na starších verzích bude výsledek ověření nesprávně přesměrován do oficiální aplikace Bitwarden.</string>
     <string name="elevatedaccess_header_title">Potvrdit přístup</string>
     <string name="elevatedaccess_header_text">Tato data jsou chráněna, pro pokračování zadejte vaše heslo aplikace.</string>
@@ -751,15 +878,21 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Použijte biometrické přihlášení pro potvrzení vašeho přístupu a odemčení těchto dat.</string>
     <string name="home_vault_label">Trezor</string>
-    <string name="home_send_label">Send</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
+    <string name="home_send_label">Odeslané</string>
     <string name="home_generator_label">Generátor</string>
     <string name="home_watchtower_label">Kontroly</string>
     <string name="home_settings_label">Nastavení</string>
     <string name="lock_reason_inactivity">Uzamčeno z důvodu neaktivity</string>
-    <string name="lock_reason_screen_off">Locked due to screen off</string>
+    <string name="lock_reason_screen_off">Uzamčeno z důvodu zhasnutí obrazovky</string>
     <string name="lock_reason_manually">Zamknuto manuálně</string>
     <string name="send_type_text">Text</string>
     <string name="send_type_file">Soubor</string>
+    <string name="send_auth_title">Kdo má přístup</string>
+    <string name="send_auth_type_none">Kdokoli s odkazem</string>
+    <string name="send_auth_type_password">Kdokoli s odkazem a heslem</string>
+    <string name="send_auth_type_email">Konkrétní lidé</string>
     <string name="cipher_type_login">Přihlášení</string>
     <string name="cipher_type_card">Karta</string>
     <string name="cipher_type_identity">Identita</string>
@@ -793,6 +926,53 @@
     <string name="customfilters_add_filter_title">Přidat vlastní filtr</string>
     <string name="filter_header_title">Filtr</string>
     <string name="filter_empty_label">Nejsou dostupné žádné filtry</string>
+    <string name="ssh_agent_filters_header_title">Filtry SSH agenta</string>
+    <string name="ssh_agent_filters_note_save_to_apply">Změny se projeví až po uložení.</string>
+    <string name="ssh_agent_history_header_title">SSH agent history</string>
+    <string name="ssh_agent_history_request_list_keys">List keys</string>
+    <string name="ssh_agent_history_request_sign_data">Sign data</string>
+    <string name="ssh_agent_history_response_success">Success</string>
+    <string name="ssh_agent_history_response_user_denied">Denied</string>
+    <string name="ssh_agent_history_response_key_not_found">Key not found</string>
+    <string name="ssh_agent_history_response_failure">Failed</string>
+    <string name="ssh_agent_history_unknown_caller">Unknown caller</string>
+    <string name="ssh_agent_history_unknown_key">Unknown key</string>
+    <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
+    <string name="ssh_agent_history_clear_history_title">Clear history</string>
+    <string name="ssh_agent_history_clear_history_confirmation_title">Clear SSH agent history?</string>
+    <string name="ssh_agent_history_clear_history_confirmation_text">This will remove all SSH agent usage history.</string>
+    <string name="ssh_agent_setup_header_title">Nastavení SSH klienta</string>
+    <string name="ssh_agent_setup_intro">Nastavte SSH klienta pro připojení k SSH agentovi aplikace Keyguard, aby se přes něj mohla provádět autentizace nebo podepisování vámi schválenými klíči, bez obnažení privátního materiálu klíče.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Zapněte SSH agenta v Keyguard</string>
+    <string name="ssh_agent_setup_step_1_text">Otevřete nastavení zabezpečení a povolte SSH agenta.</string>
+    <string name="ssh_agent_setup_step_2_title">2. Nakonfigurujte svého SSH klienta</string>
+    <string name="ssh_agent_setup_step_2_text">Namiřte svého SSH klienta na cestu socketu z aplikace Keyguard.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Náhradní cesta: použijte tuto variantu, pokud ve vaší relaci není k dispozici XDG_RUNTIME_DIR.</string>
+    <string name="ssh_agent_setup_option_env_tab">Env</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">Konfigurace</string>
+    <string name="ssh_agent_setup_option_env_label">Nastavte SSH_AUTH_SOCK na cestu socketu z aplikace Keyguard.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">Nastavte IdentityAgent ve vaší SSH konfiguraci.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Ověřte nastavení</string>
+    <string name="ssh_agent_setup_step_3_text">Spusťte tyto příkazy ve stejné shell relaci, kde jste agenta naposledy konfigurovali.</string>
+    <string name="ssh_agent_setup_windows_title">Windows</string>
+    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
+    <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
+    <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
+    <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
+    <string name="ssh_agent_setup_android_termux_step_2_title">Install package</string>
+    <string name="ssh_agent_setup_android_termux_step_2_text">Open Termux and install the package from a custom APT repository:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_title">Configure your SSH client</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Start the package and export the socket into your current shell:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">If you want to auto-start the package every time Termux starts, add it to your shell startup file:</string>
+    <string name="ssh_agent_setup_android_termux_step_4_title">Verify</string>
+    <string name="ssh_agent_setup_android_termux_step_4_text">Run these commands in the same shell session where you configured the agent.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_1">The SSH agent receives requests from SSH tools, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The SSH agent acts as a relay, while the Keyguard app performs the actual operations.</string>
+    <string name="ssh_agent_request_approval_sign_title">Požadavek na podepsání přes SSH</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> chce k podepsání dat použít následující SSH klíč:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">An application wants to use the following SSH key to sign data:</string>
+    <string name="ssh_client_request">Požadavek SSH klienta</string>
     <string name="sort_header_title">Seřadit</string>
     <string name="sort_empty_label">Řazení není dostupné</string>
     <string name="sortby_title_title">Název</string>
@@ -833,11 +1013,12 @@
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Bezpečnostní kód</string>
     <string name="vault_view_saved_to_label">Uloženo do <xliff:g id="email" example="username@example.com">%1$s</xliff:g> na <xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g></string>
-    <string name="vault_view_saved_to_account_name_label">Saved to <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
+    <string name="vault_view_saved_to_account_name_label">Uloženo do <xliff:g id="name" example="My KeePass database">%1$s</xliff:g></string>
     <string name="vault_view_password_revision_label">Heslo naposledy upraveno <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Přístupový klíč vytvořen <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Naposledy upraveno <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Vytvořeno <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Archivováno <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Odstraněno <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Expirovalo <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expiration_scheduled_at_label">Expirace naplánována na <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -850,9 +1031,11 @@
     <string name="vault_view_email_action">E-mail</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">Navigace</string>
-    <string name="send_main_header_title">Sends</string>
+    <string name="send_main_header_title">Odeslané</string>
     <string name="send_main_search_placeholder">Hledat v Sends</string>
     <string name="send_main_new_item_button">Nová položka</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
+    <string name="send_email_is_required_to_access_label">Příjemci s ověřeným e-mailem mají přístup k tomuto sdílení</string>
     <string name="send_password_is_required_to_access_label">Pro přístupu k tomuto sdílení je vyžadováno heslo</string>
     <string name="generator_header_title">Generátor</string>
     <string name="generator_header_username_title">Generátor uživatelských jmen</string>
@@ -920,7 +1103,7 @@
     <string name="passwordhistory_clear_history_confirmation_text">Tato akce odstraní všechna hesla z historie.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Odstranit heslo z historie?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Odstranit hesla z historie?</string>
-    <string name="block_autofill_header_title">Block autofill</string>
+    <string name="block_autofill_header_title">Blokovat automatické vyplňování</string>
     <string name="watchtower_header_title">Kontroly</string>
     <string name="watchtower_section_password_strength_label">Síla hesla</string>
     <string name="watchtower_section_security_label">Bezpečnost</string>
@@ -931,6 +1114,8 @@
     <string name="watchtower_item_pwned_passwords_text">Hesla, která byla odhalena při úniku dat. Taková hesla je třeba okamžitě změnit.</string>
     <string name="watchtower_item_reused_passwords_title">Opakovaně použitá hesla</string>
     <string name="watchtower_item_reused_passwords_text">Nepoužívejte stejné heslo na více webech. Vygenerujte si náhodná hesla pro zlepšení bezpečnosti.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Zranitelné účty</string>
     <string name="watchtower_item_vulnerable_accounts_text">Weby ovlivněné únikem dat od poslední změny vašeho hesla. Změňte si své heslo, aby váš účet zůstal v bezpečí.</string>
     <string name="watchtower_item_unsecure_websites_title">Nezabezpečené weby</string>
@@ -958,6 +1143,17 @@
     <string name="watchtower_notification_new_alerts_title">Nové Watchtower výstrahy</string>
     <string name="watchtower_alerts_header_title">Nová upozornění kontroly</string>
     <string name="watchtower_mark_all_as_read_title">Označit vše jako přečtené</string>
+    <string name="notification_vault_backup_title">Backing up vault</string>
+    <string name="notification_vault_backup_step_preparing">Preparing backup</string>
+    <string name="notification_vault_backup_step_opening_repository">Opening backup repository</string>
+    <string name="notification_vault_backup_step_exporting_vault">Exporting vault data</string>
+    <string name="notification_vault_backup_step_scanning_attachments">Scanning attachments</string>
+    <string name="notification_vault_backup_step_backing_up_attachments">Backing up attachments</string>
+    <string name="notification_vault_backup_step_writing_index">Writing backup index</string>
+    <string name="notification_vault_backup_step_writing_snapshot">Writing snapshot</string>
+    <string name="notification_vault_backup_step_applying_retention">Applying retention</string>
+    <string name="notification_vault_backup_progress_bytes">%1$s / %2$s</string>
+    <string name="notification_vault_backup_progress_items">%1$d / %2$d</string>
     <string name="changepassword_header_title">Změnit heslo aplikace</string>
     <string name="changepassword_change_password_button">Změnit heslo</string>
     <string name="changepassword_biometric_auth_checkbox">Biometrické přihlašování</string>
@@ -997,7 +1193,9 @@
     <string name="settings_permissions_header_title">Oprávnění</string>
     <string name="settings_security_header_title">Zabezpečení</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Kontroly</string>
+    <string name="settings_automatic_backups_header_title">Backups</string>
     <string name="settings_open_source_licenses_header_title">Licence open source</string>
     <string name="pref_section_premium_title">Premium</string>
     <string name="pref_section_options_title">Options</string>
@@ -1007,10 +1205,14 @@
     <string name="pref_item_autofill_text">Automatické vyplňování systému Android</string>
     <string name="pref_item_security_title">Zabezpečení</string>
     <string name="pref_item_security_text">Biometrika, změna hesla, uzamčení trezoru</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard Premium</string>
     <string name="pref_item_subscription_text">Odemkněte funkce a podpořte vývoj aplikace</string>
     <string name="pref_item_watchtower_title">Kontroly</string>
     <string name="pref_item_watchtower_text">Kompromitované služby, zranitelná hesla</string>
+    <string name="pref_item_automatic_backups_title">Backups</string>
+    <string name="pref_item_automatic_backups_text">Automatic encrypted vault backups</string>
     <string name="pref_item_notifications_title">Oznámení</string>
     <string name="pref_item_notifications_text">Upozornění</string>
     <string name="pref_item_appearance_title">Vzhled</string>
@@ -1019,7 +1221,83 @@
     <string name="pref_item_dev_text">Testovací nastavení pro vývoj</string>
     <string name="pref_item_other_title">Ostatní</string>
     <string name="pref_item_other_text">Komunitní weby, informace o aplikaci</string>
+    <string name="pref_section_automatic_backups_setup_title">Setup</string>
+    <string name="pref_section_automatic_backups_automation_title">Automation</string>
+    <string name="pref_section_automatic_backups_management_title">Management</string>
+    <string name="pref_item_automatic_backups_status_running_title">Backup running</string>
+    <string name="pref_item_automatic_backups_status_running_text_with_progress">%1$s. %2$s.</string>
+    <string name="pref_item_automatic_backups_step_preparing">Preparing backup</string>
+    <string name="pref_item_automatic_backups_step_opening_repository">Opening backup repository</string>
+    <string name="pref_item_automatic_backups_step_exporting_vault">Exporting vault data</string>
+    <string name="pref_item_automatic_backups_step_scanning_attachments">Scanning attachments</string>
+    <string name="pref_item_automatic_backups_step_backing_up_attachments">Backing up attachments</string>
+    <string name="pref_item_automatic_backups_step_writing_index">Writing backup index</string>
+    <string name="pref_item_automatic_backups_step_writing_snapshot">Writing snapshot</string>
+    <string name="pref_item_automatic_backups_step_applying_retention">Applying retention</string>
+    <string name="pref_item_automatic_backups_progress_bytes">%1$s / %2$s</string>
+    <string name="pref_item_automatic_backups_progress_items">%1$d / %2$d</string>
+    <string name="pref_item_automatic_backups_status_success_title">Last backup completed</string>
+    <string name="pref_item_automatic_backups_status_success_text">Finished %1$s. Exported %2$d items, %3$d attachments, %4$d new blobs, %5$d reused blobs.</string>
+    <string name="pref_item_automatic_backups_status_finished_text">Finished %1$s.</string>
+    <string name="pref_item_automatic_backups_status_error_title">Last backup failed</string>
+    <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_skipped_title">Last backup skipped</string>
+    <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_never_title">No backup yet</string>
+    <string name="pref_item_automatic_backups_status_never_text">Configure automatic backups, then run the first backup manually or wait for vault changes.</string>
+    <string name="pref_item_automatic_backups_status_reason_vault_locked">Vault was locked.</string>
+    <string name="pref_item_automatic_backups_status_reason_not_configured">Backup is not fully configured.</string>
+    <string name="pref_item_automatic_backups_status_reason_unknown">Unknown reason.</string>
+    <string name="pref_item_automatic_backups_panel_repository_title">Repository metadata</string>
+    <string name="pref_item_automatic_backups_panel_last_sync_title">Last backup</string>
+    <string name="pref_item_automatic_backups_panel_status_label">Status</string>
+    <string name="pref_item_automatic_backups_panel_started_label">Started</string>
+    <string name="pref_item_automatic_backups_panel_finished_label">Finished</string>
+    <string name="pref_item_automatic_backups_panel_progress_label">Progress</string>
+    <string name="pref_item_automatic_backups_panel_snapshot_label">Snapshot</string>
+    <string name="pref_item_automatic_backups_panel_error_label">Error</string>
+    <string name="pref_item_automatic_backups_panel_skipped_label">Skipped</string>
+    <string name="pref_item_automatic_backups_panel_vault_items_label">Vault items</string>
+    <string name="pref_item_automatic_backups_panel_attachments_label">Attachments</string>
+    <string name="pref_item_automatic_backups_panel_blobs_label">Attachment blobs</string>
+    <string name="pref_item_automatic_backups_panel_blobs_value">%1$d new, %2$d reused</string>
+    <string name="pref_item_automatic_backups_panel_last_change_label">Last vault change</string>
+    <string name="pref_item_automatic_backups_panel_pending_changes_label">Pending changes</string>
+    <string name="pref_item_automatic_backups_run_now_title">Run backup now</string>
+    <string name="pref_item_automatic_backups_unsupported_title">Unsupported platform</string>
+    <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android and desktop.</string>
+    <string name="pref_item_automatic_backups_enable_button">Enable backups</string>
+    <string name="pref_item_automatic_backups_setup_intro">Backups save vault snapshots to a location you choose. Keyguard creates them on vault changes, and you can trigger a snapshot manually anytime.</string>
+    <string name="pref_item_automatic_backups_setup_logic">The backup repository stores metadata, snapshots, and optional attachment files as separate ZIP archives. Specify the backup password to encrypt the archives using AES-256 encryption.</string>
+    <string name="pref_item_automatic_backups_details_321_title">3-2-1 backup rule</string>
+    <string name="pref_item_automatic_backups_details_321_text">Keep at least three copies of your vault data: your active vault and two backups. Store those copies in at least two independent places or storage types, and keep one copy off this device or off-site. A synced folder is useful, but it should not be your only backup because deletions, corruption, and unwanted changes can sync too.</string>
+    <string name="pref_item_automatic_backups_details_321_three">Active vault plus two backups</string>
+    <string name="pref_item_automatic_backups_details_321_two">Two independent places or storage types</string>
+    <string name="pref_item_automatic_backups_details_321_one">One copy off-device or off-site</string>
+    <string name="pref_item_automatic_backups_details_repository_structure_title">Repository structure</string>
+    <string name="pref_item_automatic_backups_details_repository_structure_text">Encrypted repositories use ZIP AES-256. Open repo.zip and the latest readable indexes/*.zip with the backup password; the index points to each snapshots/*.zip and blobs/**/*.zip archive and stores its ZIP password as encryption.keyBase64. If no backup password was set, these files are regular ZIP archives.</string>
+    <string name="pref_item_automatic_backups_details_retention_title">Snapshot retention</string>
+    <string name="pref_item_automatic_backups_details_retention_text">Retention is bucketed, so the history is not just the last snapshots in order. Keyguard keeps the newest snapshot, then prefers daily checkpoints from the last week and weekly checkpoints across the last month; any remaining slots go to the newest available snapshots.</string>
+    <string name="pref_item_automatic_backups_details_sync_title">Cloud sync</string>
+    <string name="pref_item_automatic_backups_details_sync_text">Sync the whole backup folder. Use the same backup password on every device that reads encrypted archives.</string>
+    <string name="pref_item_automatic_backups_location_title">Backup location</string>
+    <string name="pref_item_automatic_backups_store_folder_title">Folder</string>
+    <string name="pref_item_automatic_backups_store_webdav_title">WebDAV</string>
+    <string name="pref_item_automatic_backups_password_title">Backup password</string>
+    <string name="pref_item_automatic_backups_password_message">This password encrypts the backup repository. If multiple app instances share the backup repository they must use the same password.</string>
+    <string name="pref_item_automatic_backups_password_not_set">Password not set; backup files are not encrypted</string>
+    <string name="pref_item_automatic_backups_password_set">Password is set; backup files are encrypted</string>
+    <string name="pref_item_automatic_backups_password_set_summary">Password set</string>
+    <string name="pref_item_automatic_backups_include_attachments_title">Include attachments</string>
+    <string name="pref_item_automatic_backups_include_attachments_enabled_summary">Included when available</string>
+    <string name="pref_item_automatic_backups_include_attachments_disabled_summary">Not included</string>
+    <string name="pref_item_automatic_backups_retention_title">Keep snapshots</string>
+    <string name="pref_item_automatic_backups_retention_never_clear_value">Never clear</string>
+    <string name="pref_item_automatic_backups_retention_value">%1$d snapshots</string>
+    <string name="pref_item_automatic_backups_disable_title">Turn off automatic backups</string>
+    <string name="pref_item_automatic_backups_disable_message">This only turns off future automatic backups. It clears the local folder, password, and attachment choice from Keyguard. The existing backup repository and files in that folder are not deleted.</string>
     <string name="pref_item_nav_label_title">Zobrazit popisky na navigačních tlačítkách</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">Verze aplikace</string>
     <string name="pref_item_app_build_date_title">Datum sestavení aplikace</string>
     <!--
@@ -1048,11 +1326,20 @@
     <string name="pref_item_color_accent_title">Barva</string>
     <string name="pref_item_color_scheme_title">Motiv</string>
     <string name="pref_item_color_scheme_amoled_dark_title">Použít kontrastní černý motiv</string>
-    <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
+    <string name="pref_item_color_scheme_expressive_title">Použít expresivní motiv</string>
     <string name="pref_item_open_links_in_external_browser_title">Otevírat odkazy v externím prohlížeči</string>
     <string name="pref_item_close_to_tray_title">Zavřít do systémové lišty</string>
+    <string name="pref_item_minimize_on_copy_title">Minimize on copy</string>
     <string name="pref_item_check_pwned_passwords_title">Zkontrolovat uniklá hesla</string>
     <string name="pref_item_check_pwned_services_title">Zkontrolovat úniky dat</string>
+    <string name="pref_item_hibp_api_token_title">Have I Been Pwned API token</string>
+    <string name="pref_item_hibp_api_token_text">Use HIBP directly instead of Bitwarden's premium proxy. Useful for local-only vaults.</string>
+    <string name="pref_item_hibp_api_token_field_label">API token</string>
+    <string name="pref_item_hibp_api_token_error">Enter a 32-character hexadecimal HIBP API token</string>
+    <string name="pref_item_hibp_api_token_status_checking">Checking...</string>
+    <string name="pref_item_hibp_api_token_status_verified">Verified</string>
+    <string name="pref_item_hibp_api_token_status_rejected">Rejected</string>
+    <string name="pref_item_hibp_api_token_status_failed">Could not verify</string>
     <string name="pref_item_check_inactive_2fa_title">Zkontrolovat neaktivní dvoufaktorové ověřování</string>
     <string name="pref_item_check_inactive_passkeys_title">Zkontrolovat neaktivní přístupové klíče</string>
     <string name="pref_item_conceal_fields_title">Skrýt pole</string>
@@ -1078,9 +1365,15 @@
     <string name="pref_item_erase_data_text">Zavřít aplikaci a vymazat všechna lokální data aplikace</string>
     <string name="pref_item_allow_screenshots_title">Povolit snímky obrazovky</string>
     <string name="pref_item_allow_screenshots_text_on">Zobrazit obsah této aplikace při přepínání mezi nedávnými aplikacemi a povolit zachycení obrazovky</string>
-    <string name="pref_item_allow_screenshots_text_off">Skrýt obsah této aplikace při přepínání mezi nedávnými aplikacemi a povolit zachycení obrazovky</string>
+    <string name="pref_item_allow_screenshots_text_off">Skrýt obsah této aplikace při přepínání mezi nedávnými aplikacemi a zakázat zachycení obrazovky</string>
+    <string name="pref_item_allow_screenshots_badge">Snímky obrazovky jsou nyní povoleny, klepnutím zakážete</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Zakázáno</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">Povoleno s vizuálním upozorněním</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">Povoleno</string>
     <string name="pref_item_data_safety_title">Bezpečnost dat</string>
     <string name="pref_item_logs_title">Protokoly</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">Uzamknout trezor</string>
     <string name="pref_item_lock_vault_after_reboot_title">Uzamknout po restartu</string>
     <string name="pref_item_lock_vault_after_reboot_text">Uzamknout trezor po restartu zařízení</string>
@@ -1096,9 +1389,36 @@
     <string name="pref_item_permissions_title">Oprávnění</string>
     <string name="pref_item_features_overview_title">Přehled funkcí</string>
     <string name="pref_item_url_override_title">Přepsání URL</string>
+    <string name="pref_item_ssh_agent_title">SSH agent</string>
+    <string name="pref_item_ssh_agent_text">Autentizujte své klienty systému Git a SSH prostřednictvím svých soukromých klíčů bez rizik jejich prozrazení</string>
+    <string name="pref_item_ssh_agent_status_unsupported">Nepodporováno</string>
+    <string name="pref_item_ssh_agent_status_stopped">Zastaveno</string>
+    <string name="pref_item_ssh_agent_status_starting">Spouštění</string>
+    <string name="pref_item_ssh_agent_status_ready">Připraveno</string>
+    <string name="pref_item_ssh_agent_status_failed">Selhání</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_local_storage_title">Local storage</string>
+    <string name="pref_item_ssh_agent_local_storage_text">When the SSH agent is on, Keyguard keeps unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
+    <string name="pref_item_ssh_agent_display_key_names_title">Display key names before vault is unlocked</string>
+    <string name="pref_item_ssh_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
+    <string name="pref_item_ssh_agent_setup_title">SSH client setup</string>
+    <string name="pref_item_ssh_agent_filters_title">Filtry SSH agenta</string>
+    <string name="pref_item_ssh_agent_filters_text">Zvolte klíče SSH, které budou přístupné agentu SSH</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">Dostupné jsou všechny klíče</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">Filtry aktivní</string>
+    <string name="pref_item_ssh_agent_history_title">Request log</string>
     <string name="pref_item_biometric_unlock_title">Biometrické odemčení</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Vyžadovat potvrzení</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Vyžadovat dodatečné klepnutí na tlačítko potvrzení po úspěšném biometrickém přihlášení</string>
+    <string name="pref_item_yubikey_unlock_title">Odemčení pomocí YubiKey</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Nakonfigurováno pro slot <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Provision slot</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Zakázat</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">Provision YubiKey slot?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Chcete pro odemykání trezoru nakonfigurovat slot <xliff:g id="slot_number" example="1">%1$s</xliff:g>? Nastavení vyžaduje USB připojení.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> je již konfigurován. Během nové konfigurace se provede přepis té původní; navíc vyžaduje zapojení zařízení skrze USB.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
@@ -1123,9 +1443,15 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Některé webové stránky jsou známé tím, že vypínají automatické vyplňování pole hesla, stejně jako tím, že některé prohlížeče ignorují příznak vypnutého automatického vyplňování</string>
     <string name="pref_item_autofill_save_request_title">Zeptat se na uložení dat</string>
     <string name="pref_item_autofill_save_request_text">Zeptá se na aktualizaci trezoru po dokončení vyplnění formuláře</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Podpora přístupových klíčů (passkeys)</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Automaticky uložit informace o aplikaci nebo webu</string>
-    <string name="pref_item_autofill_block_uri_title">Block autofill</string>
-    <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
+    <string name="pref_item_autofill_block_uri_title">Blokovat automatické vyplňování</string>
+    <string name="pref_item_autofill_block_uri_text">Zamezí nabízení automatického vyplňování pro tato URI</string>
+    <string name="pref_item_autofill_privileged_apps_title">Privilegované aplikace</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privilegované aplikace se mohou dotazovat na pověření jménem jiných služeb</string>
     <string name="pref_item_clipboard_auto_clear_title">Automaticky vymazat schránku</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Ihned</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Nikdy</string>
@@ -1212,6 +1538,14 @@
     <string name="datasafety_local_unlocking_vault">Odemknutí trezoru znamená uložení správného klíče v operační paměti zařízení, čímž získáte schopnost zobrazit a upravovat obsah šifrovaného trezoru.</string>
     <string name="datasafety_remote_section">Vzdálená data</string>
     <string name="datasafety_remote_text">Vzdálená data jsou uložena na serverech společnosti Bitwarden s šifrováním s nulovým přístupem.</string>
+    <string name="webdav_settings_header_title">WebDAV server configuration</string>
+    <string name="webdav_settings_url_title">WebDAV URL</string>
+    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
+    <string name="webdav_settings_auth_note">If your WebDAV server requires authentication, enter your server credentials here. Do not enter your master password.</string>
+    <string name="webdav_settings_test_title">Test connection</string>
+    <string name="webdav_settings_test_text">Writes and removes a small probe file to verify server access.</string>
+    <string name="webdav_settings_test_success">WebDAV connection verified.</string>
+    <string name="webdav_settings_password_requires_username_error">Enter a username before setting a WebDAV password.</string>
     <!-- Title of the 'Localization contributors' screen -->
     <string name="localization_contributors_title">Přispěvatelé lokalizace</string>
     <string name="localization_contributors_search_placeholder">Přispěvatelé vyhledávání</string>

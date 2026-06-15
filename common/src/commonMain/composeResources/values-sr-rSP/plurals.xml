@@ -15,6 +15,11 @@
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> words</item>
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
     </plurals>
+    <plurals name="character_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> character</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> characters</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> characters</item>
+    </plurals>
     <plurals name="result_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> result</item>
         <item quantity="few"><xliff:g id="number">%1$s</xliff:g> results</item>

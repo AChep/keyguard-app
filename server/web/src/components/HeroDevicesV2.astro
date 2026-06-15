@@ -1,0 +1,220 @@
+---
+import PhoneFrame from './devices/PhoneFrame.astro';
+import WatchFrame from './devices/WatchFrame.astro';
+import TabletFrame from './devices/TabletFrame.astro';
+import IphoneFrame from './devices/IphoneFrame.astro';
+import LaptopFrame from './devices/LaptopFrame.astro';
+// Screenshots live in src/assets so Astro optimizes them via <Image>.
+import watchShot from '../assets/screenshots/watch.png';
+import phoneShot from '../assets/screenshots/phone.png';
+import tabletShot from '../assets/screenshots/tablet.png';
+import desktopShot from '../assets/screenshots/desktop.png';
+import linuxShot from '../assets/screenshots/linux.png';
+
+// One entry per device drives both the tab bar and the carousel slides.
+// `width` must stay a complete class literal so the Tailwind scanner sees it.
+// Widths follow real hardware proportions (watch ~41mm, phone ~72mm, tablet
+// ~258mm, laptop ~310mm), anchored to the laptop at 52rem; the base sizes are
+// compressed so small devices stay legible on phone screens.
+const devices = [
+  {
+    id: 'watch',
+    label: 'Wear OS',
+    width: 'w-24 sm:w-28',
+    Frame: WatchFrame,
+    props: { src: watchShot, alt: 'Keyguard on a Wear OS watch' },
+  },
+  {
+    id: 'pixel',
+    label: 'Android (phone)',
+    width: 'w-36 sm:w-48',
+    Frame: PhoneFrame,
+    props: { src: phoneShot, alt: 'Keyguard on an Android phone' },
+  },
+  {
+    id: 'tablet',
+    label: 'Android (tablet)',
+    width: 'w-[17rem] sm:w-[43rem]',
+    Frame: TabletFrame,
+    props: { src: tabletShot, alt: 'Keyguard on an Android tablet' },
+  },
+  // {
+  //   id: 'iphone',
+  //   label: 'iPhone',
+  //   width: 'w-36 sm:w-48',
+  //   Frame: IphoneFrame,
+  //   props: {},
+  // },
+  {
+    id: 'macos',
+    label: 'macOS',
+    width: 'w-[20rem] sm:w-[52rem]',
+    Frame: LaptopFrame,
+    props: { variant: 'mac', src: linuxShot, alt: 'Keyguard on macOS' },
+  },
+  {
+    id: 'windows',
+    label: 'Windows',
+    width: 'w-[20rem] sm:w-[52rem]',
+    Frame: LaptopFrame,
+    props: { variant: 'windows', src: linuxShot, alt: 'Keyguard on Windows' },
+  },
+  {
+    id: 'linux',
+    label: 'Linux',
+    width: 'w-[20rem] sm:w-[52rem]',
+    Frame: LaptopFrame,
+    props: { variant: 'linux', src: linuxShot, alt: 'Keyguard on Linux' },
+  },
+] as const;
+---
+
+{/* The carousel bleeds the full viewport width so neighboring devices stay
+    visible to the screen edges; only the tab bar keeps the page max-width. */}
+<div data-hero-devices-v2 class="mt-8 w-full">
+  <div class="no-scrollbar mx-auto flex w-full max-w-6xl overflow-x-auto px-6">
+    <div
+      role="tablist"
+      aria-label="Keyguard devices"
+      class="glass mx-auto flex w-max shrink-0 items-center gap-1 rounded-full p-1"
+    >
+      {
+        devices.map((d, i) => (
+          <button
+            type="button"
+            role="tab"
+            id={`hdv2-tab-${d.id}`}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-controls={`hdv2-slide-${d.id}`}
+            tabindex={i === 0 ? 0 : -1}
+            data-device-tab={d.id}
+            class="shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium text-on-surface-variant transition hover:text-on-surface aria-selected:bg-primary aria-selected:text-on-primary"
+          >
+            {d.label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  {/* Carousel. The asymmetric edge padding equals half of the first/last slide
+      width, so scrollLeft 0 already centers the first slide and the last slide
+      can reach the center too. pt/pb keep the device shadows and the watch
+      bands from being clipped by the scroller's paint box. */}
+  <div
+    data-device-scroller
+    class="no-scrollbar relative mt-10 flex items-center gap-6 overflow-x-auto pt-4 pb-14 pl-[calc(50%-3rem)] pr-[calc(50%-10rem)] sm:gap-10 sm:pl-[calc(50%-3.5rem)] sm:pr-[calc(50%-26rem)]"
+  >
+    {
+      devices.map((d, i) => (
+        <div
+          id={`hdv2-slide-${d.id}`}
+          role="tabpanel"
+          aria-roledescription="slide"
+          aria-label={`${d.label}, ${i + 1} of ${devices.length}`}
+          data-device-slide={d.id}
+          data-active={i === 0 ? 'true' : undefined}
+          class:list={[
+            'shrink-0 scale-80 opacity-80 will-change-[scale,opacity]',
+            'motion-safe:transition-[scale,opacity] motion-safe:duration-500 motion-safe:ease-out',
+            'data-active:scale-100 data-active:opacity-100',
+            d.width,
+          ]}
+        >
+          <d.Frame {...d.props} />
+        </div>
+      ))
+    }
+  </div>
+</div>
+
+<script>
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  // Map the visitor's platform to a device id; null keeps the build-time
+  // default. Order matters: Android UAs also contain "Linux", and iPadOS
+  // reports itself as a Mac (but real Macs have no touch screen).
+  const detectDevice = (): string | null => {
+    const ua = navigator.userAgent;
+    if (/iPhone/.test(ua)) return 'iphone';
+    if (/iPad/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return 'tablet';
+    if (/Android/.test(ua)) return /Mobile/.test(ua) ? 'pixel' : 'tablet';
+    if (/Macintosh|Mac OS X/.test(ua)) return 'macos';
+    if (/Windows/.test(ua)) return 'windows';
+    if (/CrOS/.test(ua)) return 'tablet'; // Chromebooks run the Android app
+    if (/Linux/.test(ua)) return 'linux';
+    return null;
+  };
+
+  function init(root: HTMLElement) {
+    const scroller = root.querySelector<HTMLElement>('[data-device-scroller]');
+    const tablist = root.querySelector<HTMLElement>('[role="tablist"]');
+    const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-device-tab]'));
+    const slides = Array.from(root.querySelectorAll<HTMLElement>('[data-device-slide]'));
+    if (!scroller || !tablist || !tabs.length || !slides.length) return;
+
+    const centerOn = (slide: HTMLElement, behavior: ScrollBehavior) => {
+      // offsetLeft/offsetWidth are pre-transform layout values relative to the
+      // scroller (its offsetParent, since it is `relative`), so the target is
+      // exact even while a previous scale transition is still mid-flight.
+      const left = slide.offsetLeft + slide.offsetWidth / 2 - scroller.clientWidth / 2;
+      scroller.scrollTo({
+        left: Math.max(0, Math.min(left, scroller.scrollWidth - scroller.clientWidth)),
+        behavior,
+      });
+    };
+
+    const select = (id: string, behavior?: ScrollBehavior) => {
+      let target: HTMLElement | undefined;
+      for (const tab of tabs) {
+        const active = tab.dataset.deviceTab === id;
+        tab.setAttribute('aria-selected', String(active));
+        tab.tabIndex = active ? 0 : -1;
+      }
+      for (const slide of slides) {
+        const active = slide.dataset.deviceSlide === id;
+        slide.toggleAttribute('data-active', active);
+        if (active) target = slide;
+      }
+      if (target) centerOn(target, behavior ?? (reduceMotion.matches ? 'instant' : 'smooth'));
+    };
+
+    for (const tab of tabs)
+      tab.addEventListener('click', () => select(tab.dataset.deviceTab!));
+    for (const slide of slides)
+      slide.addEventListener('click', () => select(slide.dataset.deviceSlide!));
+
+    // Roving tabindex + arrow keys on the tablist.
+    tablist.addEventListener('keydown', (e: KeyboardEvent) => {
+      const idx = tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
+      let next = -1;
+      if (e.key === 'ArrowRight') next = (idx + 1) % tabs.length;
+      else if (e.key === 'ArrowLeft') next = (idx - 1 + tabs.length) % tabs.length;
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = tabs.length - 1;
+      if (next < 0) return;
+      e.preventDefault();
+      tabs[next].focus();
+      select(tabs[next].dataset.deviceTab!);
+    });
+
+    // Keep the selected slide centered across viewport resizes.
+    let raf = 0;
+    window.addEventListener('resize', () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const active = slides.find((s) => s.hasAttribute('data-active'));
+        if (active) centerOn(active, 'instant');
+      });
+    });
+
+    // Pre-select the visitor's own platform, jumping there without animation.
+    const detected = detectDevice();
+    const initial = slides.find((s) => s.hasAttribute('data-active'))?.dataset.deviceSlide;
+    if (detected && detected !== initial && slides.some((s) => s.dataset.deviceSlide === detected)) {
+      select(detected, 'instant');
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-hero-devices-v2]').forEach(init);
+</script>

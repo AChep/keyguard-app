@@ -35,12 +35,15 @@ data class PasskeysServiceListState(
     @Immutable
     sealed interface Item {
         val key: String
+        val contentType: String
 
         @Immutable
         data class Section(
             override val key: String,
             val name: String,
-        ) : Item
+        ) : Item {
+            override val contentType: String get() = "passkeys_section"
+        }
 
         @Immutable
         data class Content(
@@ -52,6 +55,8 @@ data class PasskeysServiceListState(
             val data: PassKeyServiceInfo,
             val onClick: (() -> Unit)? = null,
         ) : Item, GroupableShapeItem<Content> {
+            override val contentType: String get() = "passkeys_content"
+
             override fun withShape(shape: Int) = copy(shapeState = shape)
         }
     }

@@ -93,7 +93,6 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.generatorTarget
@@ -103,6 +102,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemLayout
+import com.artemchep.keyguard.ui.PLACEHOLDER_EMAIL
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardIcons
@@ -139,7 +139,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlin.time.Clock
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -163,7 +163,7 @@ private const val PASSWORD_EXCLUDE_AMBIGUOUS_CHARS = true
 
 private const val PASSPHRASE_LENGTH_DEFAULT = 5L
 private const val PASSPHRASE_LENGTH_MIN = 1
-private const val PASSPHRASE_LENGTH_MAX = 10
+private const val PASSPHRASE_LENGTH_MAX = 20
 private const val PASSPHRASE_DELIMITER_DEFAULT = "-"
 private const val PASSPHRASE_CAPITALIZE_DEFAULT = false
 private const val PASSPHRASE_NUMBER_DEFAULT = false
@@ -224,7 +224,7 @@ fun produceGeneratorState(
         getCanWrite = instance(),
         tldService = instance(),
         clipboardService = instance(),
-        emailRelays = allInstances(),
+        emailRelays = leAllInstances(),
     )
 }
 
@@ -278,9 +278,7 @@ fun produceGeneratorState(
     ),
 ) {
     val generatorContext = mode.generatorTarget
-    val copyItemFactory = copy(
-        clipboardService = clipboardService,
-    )
+    val copyItemFactory = copier()
 
     val webUriContextWordsRaw = mutablePersistedFlow(GENERATOR_KEY_ARG_URIS) {
         args.context.uris
@@ -391,7 +389,9 @@ fun produceGeneratorState(
 
     val storage = kotlin.run {
         val disk = loadDiskHandle(
-            key = key?.let { "$it:" }.orEmpty() + "generator",
+            key = key?.let { "$it:" }.orEmpty()
+                    + args.storageKey?.let { "$it:" }.orEmpty()
+                    + "generator",
             global = true,
         )
         PersistedStorage.InDisk(disk)
@@ -995,7 +995,7 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Switch(
                 key = "$PREFIX_PASSWORD.exclude_similar_chars",
                 title = translate(Res.string.generator_password_exclude_similar_symbols_title),
-                text = "il1Lo0O",
+                text = "il|1Lo0O",
                 model = SwitchFieldModel(
                     checked = config.excludeSimilarCharacters,
                     onChange = passwordExcludeSimilarCharactersSink::value::set,
@@ -1101,7 +1101,7 @@ fun produceGeneratorState(
                 model = TextFieldModel2(
                     state = emailPlusAddressingEmailState,
                     text = config.email,
-                    hint = "username@example.com",
+                    hint = PLACEHOLDER_EMAIL,
                     error = when {
                         config.email.isEmpty() ->
                             translate(Res.string.error_must_not_be_empty)
@@ -1153,7 +1153,7 @@ fun produceGeneratorState(
                 model = TextFieldModel2(
                     state = emailSubdomainAddressingEmailState,
                     text = config.email,
-                    hint = "username@example.com",
+                    hint = PLACEHOLDER_EMAIL,
                     error = when {
                         config.email.isEmpty() ->
                             translate(Res.string.error_must_not_be_empty)
@@ -1636,6 +1636,7 @@ fun produceGeneratorState(
                     password = "",
                     source = GetPasswordResult.Value(""),
                     strength = type.password && args.password,
+                    length = type.password && args.password,
                     dropdown = persistentListOf(),
                     actions = persistentListOf(),
                     onCopy = null,
@@ -1679,6 +1680,8 @@ fun produceGeneratorState(
                             source = passwordw,
                             strength = type.password && args.password &&
                                     type !is GeneratorType2.PinCode,
+                            length = type is GeneratorType2.Passphrase ||
+                                    type is GeneratorType2.Username,
                             dropdown = if (password.isNotEmpty()) {
                                 dropdown
                             } else {
@@ -1722,6 +1725,7 @@ fun produceGeneratorState(
                             password = keyPair.publicKey.fingerprint,
                             source = passwordw,
                             strength = false,
+                            length = false,
                             dropdown = dropdown,
                             actions = persistentListOf(),
                             onCopy = null,
@@ -1733,14 +1737,18 @@ fun produceGeneratorState(
         )
     }.stateIn(screenScope)
     val optionsStatic = buildContextItems {
-        this += EmailRelayListRoute.actionOrNull(
-            translator = this@produceScreenState,
-            navigate = ::navigate,
-        )
-        this += WordlistsRoute.actionOrNull(
-            translator = this@produceScreenState,
-            navigate = ::navigate,
-        )
+        if (getEmailRelays != null) {
+            this += EmailRelayListRoute.actionOrNull(
+                translator = this@produceScreenState,
+                navigate = ::navigate,
+            )
+        }
+        if (getWordlists != null) {
+            this += WordlistsRoute.actionOrNull(
+                translator = this@produceScreenState,
+                navigate = ::navigate,
+            )
+        }
     }
     val optionsFlow = tipVisibleSink
         .map { tipVisible ->
@@ -2044,7 +2052,8 @@ fun produceGeneratorState(
     optionsFlow
         .map { options ->
             val state = GeneratorState(
-                onOpenHistory = ::onOpenHistory,
+                onOpenHistory = ::onOpenHistory
+                    .takeIf { addGeneratorHistory != null },
                 options = options,
                 suggestionsState = suggestionsFlow,
                 loadedState = loadingFlow,

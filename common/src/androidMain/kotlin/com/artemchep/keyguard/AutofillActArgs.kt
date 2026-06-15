@@ -61,6 +61,9 @@ actual val AppMode.autofillTarget: AutofillTarget?
         is AppMode.Main ->
             null
 
+        is AppMode.QuickSearch ->
+            null
+
         is AppMode.PickPasskey ->
             null
 
@@ -77,6 +80,23 @@ actual val AppMode.autofillTarget: AutofillTarget?
                                 frontPageUrl = url,
                             )
                         },
+                    ),
+                    hints = listOf(
+                        AutofillHint.EMAIL_ADDRESS,
+                    ),
+                )
+            } else {
+                null
+            }
+        }
+
+        is AppMode.SavePassword -> {
+            val id = id
+            if (id != null) {
+                AutofillTarget(
+                    username = id,
+                    links = listOfNotNull(
+                        // TODO: Use the caller to fill the URI
                     ),
                     hints = listOf(
                         AutofillHint.EMAIL_ADDRESS,
@@ -110,6 +130,12 @@ actual val AppMode.generatorTarget: GeneratorContext
             )
         }
 
+        is AppMode.QuickSearch -> {
+            GeneratorContext(
+                host = null,
+            )
+        }
+
         is AppMode.PickPasskey -> {
             GeneratorContext(
                 host = null,
@@ -120,6 +146,12 @@ actual val AppMode.generatorTarget: GeneratorContext
             val host = rpId
             GeneratorContext(
                 host = host,
+            )
+        }
+
+        is AppMode.SavePassword -> {
+            GeneratorContext(
+                host = null,
             )
         }
     }

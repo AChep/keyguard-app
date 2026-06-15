@@ -78,10 +78,6 @@ class SyncWorker(
     }
 
     override suspend fun DI.doWork(): Result {
-//        if (BuildConfig.DEBUG) {
-//            AttachmentUploadWorker.enqueueOnce(applicationContext)
-//        }
-
         val io = if (accountIds.isEmpty()) {
             val syncAll = direct.instance<SyncAll>()
             syncAll()

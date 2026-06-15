@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.writeText
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.usecase.DateFormatter
@@ -32,9 +33,7 @@ class KeyPublicExportImpl(
             "${filePrefix}_$dt.pub"
         }
         dirsService.saveToDownloads(fileName) { os ->
-            parameter.ssh.byteInputStream().use {
-                it.copyTo(os)
-            }
+            os.writeText(parameter.ssh)
         }.bind()
     }
 }

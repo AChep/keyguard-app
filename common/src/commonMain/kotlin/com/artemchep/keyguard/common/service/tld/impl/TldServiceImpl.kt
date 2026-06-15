@@ -7,23 +7,26 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.sharedSoftRef
+import com.artemchep.keyguard.common.io.useLines
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.tld.TldService
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.Locale
+
+private const val PREFIX_EXCEPTION = "!"
 
 class TldServiceImpl(
     private val textService: TextService,
     private val logRepository: LogRepository,
 ) : TldService {
     companion object {
-        private const val TAG = "TldService.android"
+        private const val TAG = "TldService"
     }
 
     override val version: String
@@ -50,7 +53,7 @@ class TldServiceImpl(
         host: String,
     ): IO<String> = dataIo
         .effectMap { node ->
-            val parts = host.trim().lowercase(Locale.US).split(".").asReversed()
+            val parts = host.trim().lowercase().split(".").asReversed()
             val length = node.match(parts)
             parts
                 // Take N parts of TLD and then one
@@ -83,6 +86,7 @@ class TldServiceImpl(
 
 private data class Node(
     var leaf: Boolean = false,
+    var exception: Boolean = false,
     val children: MutableMap<String, Node> = mutableMapOf(),
 )
 
@@ -94,22 +98,31 @@ private suspend fun loadTld(
     textService: TextService,
 ) = withContext(Dispatchers.IO) {
     textService
-        .readFromResources(FileResource.publicSuffixList).use {
-            it
-                .bufferedReader()
-                .useLines { lines ->
-                    val root = Node()
-                    lines
-                        // Check
-                        // https://publicsuffix.org/list/
-                        // for formatting rules.
-                        .filter { it.isNotEmpty() && !it.startsWith("//") }
-                        .forEach { line ->
-                            val parts = line.trim().split(".").asReversed()
-                            root.append(parts)
-                        }
-                    root
+        .readFromResources(FileResource.publicSuffixList)
+        .useLines { lines ->
+            val root = Node()
+            lines
+                // Check
+                // https://publicsuffix.org/list/
+                // for formatting rules.
+                .map(String::trim)
+                .filter { it.isNotEmpty() && !it.startsWith("//") }
+                .forEach { line ->
+                    val exception = line
+                        .startsWith(PREFIX_EXCEPTION)
+                    val parts = if (exception) {
+                        line.substring(PREFIX_EXCEPTION.length)
+                    } else {
+                        line
+                    }
+                        .split(".")
+                        .asReversed()
+                    root.append(
+                        parts = parts,
+                        exception = exception,
+                    )
                 }
+            root
         }
 }
 
@@ -123,6 +136,9 @@ private fun Node._match(
     parts: List<String>,
     offset: Int,
 ): Int {
+    if (exception) {
+        return offset - 1
+    }
     if (offset >= parts.size) {
         return if (leaf) offset else -1
     }
@@ -141,7 +157,10 @@ private fun Node._match(
         }
 }
 
-private tailrec fun Node.append(parts: List<String>) {
+private tailrec fun Node.append(
+    parts: List<String>,
+    exception: Boolean,
+) {
     if (parts.isEmpty()) {
         return
     }
@@ -159,9 +178,19 @@ private tailrec fun Node.append(parts: List<String>) {
     //   artem.linode.com
     // should output 'linode.com' as a domain because 'linode.com' is not a leaf!
     if (parts.size == 1) {
-        next.leaf = true
+        if (exception) {
+            // Public Suffix List exception rules start with `!`. A matching
+            // exception means the public suffix is one label shorter than the
+            // listed rule. See https://publicsuffix.org/list/
+            next.exception = true
+        } else {
+            next.leaf = true
+        }
     }
-    next.append(parts = parts.subList(1, parts.size))
+    next.append(
+        parts = parts.subList(1, parts.size),
+        exception = exception,
+    )
 }
 
 private fun Node.getOrPut(key: String): Node = children

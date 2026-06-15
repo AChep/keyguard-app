@@ -11,13 +11,18 @@ data class GeneratorRoute(
         val username: Boolean = false,
         val password: Boolean = false,
         val sshKey: Boolean = false,
+        /**
+         * If specified, adds a prefix to all the persisted fields
+         * such as the email, configs etc.
+         */
+        val storageKey: String? = null,
     ) {
         data class Context(
             val uris: Array<String> = emptyArray(),
         ) {
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
-                if (javaClass != other?.javaClass) return false
+                if (this::class != other?.let { it::class }) return false
 
                 other as Context
 

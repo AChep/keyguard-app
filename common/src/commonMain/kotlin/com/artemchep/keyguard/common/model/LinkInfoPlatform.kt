@@ -19,11 +19,16 @@ sealed interface LinkInfoPlatform : LinkInfo {
          */
         val playStoreUrl = "https://play.google.com/store/apps/details?id=$packageName"
 
+        /**
+         * A url to the app's content page on the F-Droid.
+         */
+        val fDroidUrl = "https://f-droid.org/en/packages/$packageName"
+
         val uri get() = PROTOCOL_ANDROID_APP + packageName
     }
 
     data class IOS(
-        val packageName: String,
+        val bundleId: String,
     ) : LinkInfoPlatform
 
     data class Web(

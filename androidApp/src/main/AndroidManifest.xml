@@ -18,7 +18,8 @@
         android:networkSecurityConfig="@xml/network_configuration"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Keyguard.Splash">
+        android:theme="@style/Theme.Keyguard.Splash"
+        tools:ignore="Instantiatable">
 
         <provider
             android:name="androidx.core.content.FileProvider"

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import androidx.core.content.ContextCompat
@@ -9,10 +10,13 @@ import androidx.lifecycle.lifecycleScope
 import coil3.SingletonImageLoader
 import com.artemchep.bindin.bindBlock
 import com.artemchep.keyguard.android.BaseApp
+import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
+import com.artemchep.keyguard.android.PhoneCredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.coil3.AppIconFetcher
 import com.artemchep.keyguard.android.coil3.AppIconKeyer
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.worker.AttachmentDownloadAllWorker
+import com.artemchep.keyguard.android.worker.BackupWorker
 import com.artemchep.keyguard.android.passkeysModule
 import com.artemchep.keyguard.android.util.ShortcutIds
 import com.artemchep.keyguard.android.util.ShortcutInfo
@@ -24,6 +28,8 @@ import com.artemchep.keyguard.common.di.setFromDi
 import com.artemchep.keyguard.common.io.*
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.Screen
+import com.artemchep.keyguard.common.service.backup.AutomaticBackupPolicy
+import com.artemchep.keyguard.common.service.backup.automaticBackupScheduleStateFlow
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.usecase.*
@@ -32,10 +38,12 @@ import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.model.PersistedSession
+import com.artemchep.keyguard.common.service.vault.SessionReadRepository
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.worker.Wrker
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
 import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.lifecycle.toCommon
@@ -53,13 +61,27 @@ class Main : BaseApp(), DIAware {
     override val di by DI.lazy {
         import(androidXModule(this@Main))
         import(diFingerprintRepositoryModule())
-        if (Build.VERSION.SDK_INT >= 34) {
+
+        @SuppressLint("NewApi")
+        fun importPasskeysModule() {
             import(passkeysModule())
+            bindSingleton<CredentialProviderPlatformConfig> {
+                PhoneCredentialProviderPlatformConfig
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= 34) {
+            importPasskeysModule()
         }
         val imageLoaderModule = kotlin.run {
             val packageManager = packageManager
-            imageLoaderModule {
-                add(AppIconFetcher.Factory(packageManager))
+            imageLoaderModule { directDI ->
+                val appIconFetcher = AppIconFetcher.Factory(
+                    googlePlayParser = directDI.instance(),
+                    packageManager = packageManager,
+                    getWebsiteIcons = directDI.instance(),
+                )
+                add(appIconFetcher)
                 add(AppIconKeyer())
             }
         }
@@ -105,7 +127,9 @@ class Main : BaseApp(), DIAware {
         val clearVaultSession: ClearVaultSession by instance()
         val downloadRepository: DownloadRepository by instance()
         val cleanUpAttachment: CleanUpAttachment by instance()
+        val sessionReadRepository: SessionReadRepository by instance()
         val appWorker: AppWorker by instance(tag = AppWorker.Feature.SYNC)
+        val companionAuthBridge: CompanionAuthBridgeAndroid = di.direct.instance()
 //        val cleanUpDownload: CleanUpDownloadImpl by instance()
 
         val processLifecycleOwner = ProcessLifecycleOwner.get()
@@ -120,8 +144,26 @@ class Main : BaseApp(), DIAware {
         processLifecycleOwner.lifecycleScope.launch {
             appWorker.launch(this, processLifecycleFlow)
         }
+        processLifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
+            companionAuthBridge.sweepExpiredArtifacts()
+        }
 
         AttachmentDownloadAllWorker.enqueue(this)
+        processLifecycleOwner.lifecycleScope.launch {
+            automaticBackupScheduleStateFlow(sessionReadRepository)
+                .collectLatest { state ->
+                    if (!state.shouldRun) {
+                        BackupWorker.cancel(this@Main)
+                        return@collectLatest
+                    }
+
+                    delay(AutomaticBackupPolicy.DEBOUNCE_DELAY_MS)
+                    BackupWorker.enqueueOnce(
+                        context = this@Main,
+                        config = state.config,
+                    )
+                }
+        }
 
         // attachment clean-up
         ProcessLifecycleOwner.get().bindBlock {

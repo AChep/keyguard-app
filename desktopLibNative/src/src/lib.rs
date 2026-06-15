@@ -1,0 +1,141 @@
+#![allow(non_snake_case)]
+
+mod accent;
+mod autotype;
+mod biometrics;
+mod ffi;
+mod hotkey;
+mod keychain;
+mod notification;
+mod platform;
+
+use ffi::{BiometricsVerifyCallback, HotKeyPressedCallback};
+use std::ffi::c_char;
+use std::ffi::c_int;
+use std::ffi::c_void;
+use std::ptr;
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn autoType(payload: *const c_char) -> bool {
+    ffi::with_redacted_ffi_boundary("autoType", false, || {
+        let payload = ffi::require_string(payload, "payload")?;
+        autotype::execute(&payload)?;
+        Ok(true)
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn getSystemAccentColor() -> c_int {
+    ffi::with_ffi_boundary("getSystemAccentColor", 0, || {
+        Ok(accent::get_system_accent_color() as c_int)
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn biometricsIsSupported() -> bool {
+    ffi::with_ffi_boundary("biometricsIsSupported", false, || {
+        Ok(biometrics::is_supported())
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn biometricsVerify(title: *const c_char, callback: BiometricsVerifyCallback) {
+    ffi::with_ffi_boundary("biometricsVerify", (), || {
+        let title = ffi::require_non_null(title, "title")?;
+        biometrics::verify(title.cast(), callback);
+        Ok(())
+    });
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn keychainAddPassword(id: *const c_char, password: *const c_char) -> bool {
+    ffi::with_ffi_boundary("keychainAddPassword", false, || {
+        let id = ffi::require_non_null(id, "id")?;
+        let password = ffi::require_non_null(password, "password")?;
+        Ok(keychain::add_password(id.cast(), password.cast()))
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn keychainGetPassword(id: *const c_char) -> *mut c_char {
+    ffi::with_ffi_boundary("keychainGetPassword", ptr::null_mut(), || {
+        let id = ffi::require_non_null(id, "id")?;
+        Ok(keychain::get_password(id.cast()))
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn keychainDeletePassword(id: *const c_char) -> bool {
+    ffi::with_ffi_boundary("keychainDeletePassword", false, || {
+        let id = ffi::require_non_null(id, "id")?;
+        Ok(keychain::delete_password(id.cast()))
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn keychainContainsPassword(id: *const c_char) -> bool {
+    ffi::with_ffi_boundary("keychainContainsPassword", false, || {
+        let id = ffi::require_non_null(id, "id")?;
+        Ok(keychain::contains_password(id.cast()))
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn postNotification(id: c_int, title: *const c_char, text: *const c_char) -> c_int {
+    ffi::with_ffi_boundary("postNotification", 0, || {
+        let title = ffi::require_non_null(title, "title")?;
+        let text = ffi::require_non_null(text, "text")?;
+        Ok(notification::post(id, title.cast(), text.cast()))
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn registerNativeGlobalHotKey(
+    native_key_code: c_int,
+    native_modifiers: c_int,
+    callback: HotKeyPressedCallback,
+) -> c_int {
+    ffi::with_ffi_boundary(
+        "registerNativeGlobalHotKey",
+        hotkey::REGISTER_STATUS_INTERNAL_ERROR,
+        || {
+        let callback = callback.ok_or("callback pointer was null")?;
+        Ok(hotkey::register(
+            native_key_code as u32,
+            native_modifiers as u32,
+            Some(callback),
+        ) as c_int)
+        },
+    )
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn unregisterNativeGlobalHotKey(id: c_int) -> bool {
+    ffi::with_ffi_boundary("unregisterNativeGlobalHotKey", false, || {
+        Ok(hotkey::unregister(id))
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn freePointer(ptr: *mut c_void) {
+    if ptr.is_null() {
+        return;
+    }
+
+    ffi::with_ffi_boundary("freePointer", (), || {
+        ffi::free_ptr(ptr);
+        Ok(())
+    });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::registerNativeGlobalHotKey;
+    use crate::hotkey::REGISTER_STATUS_INTERNAL_ERROR;
+
+    #[test]
+    fn register_native_global_hotkey_rejects_null_callback() {
+        let result = registerNativeGlobalHotKey(49, 0, None);
+        assert_eq!(REGISTER_STATUS_INTERNAL_ERROR, result);
+    }
+}

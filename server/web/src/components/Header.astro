@@ -1,0 +1,47 @@
+---
+import { Image } from 'astro:assets';
+import { SITE, NAV } from '../consts';
+import ThemeToggle from './ThemeToggle.astro';
+import logo from '../assets/logo.png';
+const path = Astro.url.pathname;
+const isActive = (href: string) =>
+  href === '/' ? path === '/' : path.startsWith(href);
+---
+
+<header class="glass-bar sticky top-0 z-50">
+  <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+    <a href="/" class="flex items-center gap-2 font-bold text-on-surface">
+      <Image src={logo} alt="" width={28} height={28} densities={[2]} loading="eager" class="rounded-md" />
+      <span>{SITE.name}</span>
+    </a>
+
+    <ul class="flex items-center gap-6 text-sm font-medium text-on-surface-variant">
+      {
+        NAV.map((item) => (
+          <li>
+            <a
+              href={item.href}
+              class:list={[
+                'transition hover:text-primary',
+                isActive(item.href) && 'text-primary',
+              ]}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+      <li class="hidden sm:block">
+        <a
+          href="/download/"
+          class="rounded-full bg-primary px-4 py-2 font-semibold text-on-primary shadow-sm transition hover:opacity-90"
+        >
+          Get Keyguard
+        </a>
+      </li>
+      <li>
+        <ThemeToggle />
+      </li>
+    </ul>
+  </nav>
+</header>

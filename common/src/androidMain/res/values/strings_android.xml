@@ -1,11 +1,6 @@
 <resources>
     <string name="app_name">Keyguard</string>
 
-    <string name="notification_attachment_upload_channel_id" translatable="false">com.artemchep.keyguard.UPLOAD_ATTACHMENTS</string>
-    <string name="notification_attachment_upload_channel_name">Uploading attachments</string>
-    <string name="notification_attachment_upload_title">Uploading attachments</string>
-    <string name="notification_attachment_upload_content">Uploading attachments</string>
-
     <string name="notification_attachment_download_channel_id" translatable="false">com.artemchep.keyguard.DOWNLOAD_ATTACHMENTS</string>
     <string name="notification_attachment_download_channel_name">Download attachments</string>
     <string name="notification_attachment_download_title">Downloading attachments</string>
@@ -13,6 +8,9 @@
     <string name="notification_vault_export_channel_id" translatable="false">com.artemchep.keyguard.EXPORT_VAULT</string>
     <string name="notification_vault_export_channel_name">Export</string>
     <string name="notification_vault_export_title">Exporting vault</string>
+
+    <string name="notification_vault_backup_channel_id" translatable="false">com.artemchep.keyguard.BACKUP_VAULT</string>
+    <string name="notification_vault_backup_channel_name">Backup</string>
 
     <string name="notification_clipboard_channel_id" translatable="false">com.artemchep.keyguard.CLIPBOARD</string>
     <string name="notification_clipboard_channel_name">Clipboard</string>
@@ -24,8 +22,26 @@
     <string name="notification_sync_vault_channel_name">Sync vault</string>
     <string name="notification_sync_vault_title">Syncing vault</string>
 
+    <string name="notification_termux_ssh_channel_id" translatable="false">com.artemchep.keyguard.SSH_AGENT_STATUS</string>
+    <string name="notification_termux_ssh_channel_name">SSH agent status</string>
+
+    <string name="notification_termux_ssh_request_channel_id" translatable="false">com.artemchep.keyguard.SSH_AGENT_REQUEST</string>
+    <string name="notification_termux_ssh_request_channel_name">SSH agent request</string>
+    <string name="notification_termux_ssh_request_rejected_title">Dropped an SSH request, Keyguard has SSH agent disabled</string>
+
+    <string name="notification_termux_ssh_title">Keyguard SSH agent</string>
+    <string name="notification_termux_ssh_content">Connecting to SSH client</string>
+    <string name="notification_termux_ssh_error">SSH agent failure</string>
+    <string name="notification_termux_ssh_content_tap_to_start">Tap to approve a request</string>
+    <string name="notification_termux_ssh_content_tap_to_start_app">Tap to approve a request for %1$s</string>
+    <string name="notification_termux_ssh_content_unlock">Open Keyguard to unlock SSH access</string>
+    <string name="notification_termux_ssh_content_unlock_app">Open Keyguard to unlock SSH access for %1$s</string>
+    <string name="notification_termux_ssh_content_sign">Open Keyguard to continue SSH signing</string>
+    <string name="notification_termux_ssh_content_sign_app">Open Keyguard to continue SSH signing for %1$s</string>
+
     <string name="about">About</string>
-    <string name="home_generator_label">Generator</string>
+    <string name="tab_generator_label">Generator (tab)</string>
+    <string name="standalone_generator_label">Generator (standalone)</string>
     <string name="autofill_service_name">Keyguard form autofilling</string>
     <string name="autofill_sign_in_prompt">Unlock Keyguard</string>
     <string name="autofill_explanation_summary">Enable autofilling to quickly fill out forms in other apps</string>

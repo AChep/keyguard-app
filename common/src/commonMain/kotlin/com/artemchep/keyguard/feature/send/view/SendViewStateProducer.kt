@@ -44,6 +44,7 @@ import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.SendToolbox
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.ui.icons.FaviconIcon
@@ -58,7 +59,6 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.send.action.createSendActionOrNull
 import com.artemchep.keyguard.feature.send.action.createShareAction
@@ -75,8 +75,9 @@ import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardView
 import com.artemchep.keyguard.ui.text.annotate
-import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.artemchep.keyguard.ui.markdown.MarkdownParser
 import io.ktor.http.Url
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -84,7 +85,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -118,7 +119,8 @@ fun sendViewScreenState(
         getEnvSendUrl = instance(),
         dateFormatter = instance(),
         windowCoroutineScope = instance(),
-        linkInfoExtractors = allInstances(),
+        linkInfoExtractors = leAllInstances(),
+        confirmationRouteFactory = instance(),
         contentColor = contentColor,
         disabledContentColor = disabledContentColor,
         sendId = sendId,
@@ -158,6 +160,7 @@ fun sendViewScreenState(
     dateFormatter: DateFormatter,
     windowCoroutineScope: WindowCoroutineScope,
     linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     sendId: String,
     accountId: String,
 ) = produceScreenState(
@@ -181,12 +184,10 @@ fun sendViewScreenState(
         accountId,
     ),
 ) {
-    val copy = copy(
-        clipboardService = clipboardService,
-    )
+    val copy = copier()
 
     val markdown = getMarkdown().first()
-    val markdownParser = CommonmarkAstNodeParser()
+    val markdownParser = MarkdownParser()
 
     val accountFlow = getAccounts()
         .map { accounts ->
@@ -289,6 +290,7 @@ fun sendViewScreenState(
 
                 val action = flow<FlatItemAction> {
                     val deleteAction = deleteActionOrNull(
+                        confirmationRouteFactory = confirmationRouteFactory,
                         removeSendById = toolbox.removeSendById,
                         sends = listOf(sendExtra.send),
                         canDelete = sendExtra.canDelete,
@@ -315,6 +317,7 @@ fun sendViewScreenState(
 
                 val action = flow<FlatItemAction> {
                     val deleteAction = deleteActionOrNull(
+                        confirmationRouteFactory = confirmationRouteFactory,
                         removeSendById = toolbox.removeSendById,
                         sends = listOf(sendExtra.send),
                         canDelete = sendExtra.canDelete,
@@ -369,6 +372,7 @@ fun sendViewScreenState(
                 }
 
                 val actions = SendUtil.actions(
+                    confirmationRouteFactory = confirmationRouteFactory,
                     toolbox = toolbox,
                     sends = listOf(secretOrNull),
                     canEdit = canAddSecret,
@@ -440,7 +444,7 @@ fun sendViewScreenState(
 }
 
 private fun RememberStateFlowScope.oh(
-    markdownParser: CommonmarkAstNodeParser,
+    markdownParser: MarkdownParser,
     canEdit: Boolean,
     contentColor: Color,
     disabledContentColor: Color,
@@ -508,6 +512,29 @@ private fun RememberStateFlowScope.oh(
         emit(section)
         emit(url)
 
+        if (send.hasEmailProtection) {
+            val emailProtectionLabel = VaultViewItem.Label(
+                id = "url.email",
+                text = AnnotatedString(
+                    text = translate(Res.string.send_email_is_required_to_access_label),
+                ),
+            )
+            emit(emailProtectionLabel)
+            // Then we want to show all the emails that
+            // have access to this send.
+            val emailProtectionsBadges = VaultViewItem.QuickBadges(
+                id = "url.email.all",
+                actions = buildList {
+                    val sortedEmails = send.emails.sorted()
+                    sortedEmails.forEach { email ->
+                        this += VaultViewItem.QuickBadges.Item(
+                            title = TextHolder.Value(email),
+                        )
+                    }
+                }.toImmutableList(),
+            )
+            emit(emailProtectionsBadges)
+        }
         if (send.hasPassword) {
             val w = VaultViewItem.Label(
                 id = "url.password",
@@ -761,7 +788,7 @@ private suspend fun RememberStateFlowScope.aaaa(
             this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                 translator = this@aaaa,
                 data = url,
-                single = true,
+                disallowFormatSelection = true,
                 navigate = ::navigate,
             )
             this += createShareAction(

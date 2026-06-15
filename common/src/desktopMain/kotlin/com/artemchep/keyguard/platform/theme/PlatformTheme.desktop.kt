@@ -6,64 +6,86 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.artemchep.dbus.portal.PortalColorScheme
+import com.artemchep.dbus.portal.observePortalColorSchemeDbus
 import com.artemchep.keyguard.platform.Platform
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.withContext
-import java.util.concurrent.TimeUnit
+import org.jetbrains.skiko.SystemTheme
+import org.jetbrains.skiko.currentSystemTheme
 
 @Composable
 actual fun Platform.hasDarkThemeEnabled(): Boolean = when (this) {
     is Platform.Desktop.Linux -> isLinuxPortalInDarkTheme()
-    else -> isSystemInDarkTheme()
+    else -> isDesktopInDarkTheme()
+}
+
+@Composable
+private fun isDesktopInDarkTheme(): Boolean = rememberIsDarkThemeWithAutoUpdate(
+    initialValue = isSystemInDarkTheme(),
+) {
+    // We hook to the Skiko APIs, check the isSystemInDarkTheme()
+    // internals for the details/updates.
+    currentSystemTheme == SystemTheme.DARK
 }
 
 @Composable
 private fun isLinuxPortalInDarkTheme(): Boolean {
-    val darkThemeDefault = isSystemInDarkTheme()
-    var darkThemeState by remember {
-        mutableStateOf(darkThemeDefault)
+    val fallback = isSystemInDarkTheme()
+    var portalColorScheme by remember {
+        mutableStateOf<PortalColorScheme?>(null)
     }
+
+    LaunchedEffect(Unit) {
+        observePortalColorSchemeDbus()
+            .collect {
+                portalColorScheme = it
+            }
+    }
+
+    return portalColorScheme.resolve(fallback)
+}
+
+@Composable
+private fun rememberIsDarkThemeWithAutoUpdate(
+    initialValue: Boolean,
+    block: suspend () -> Boolean,
+): Boolean {
+    var currentTheme by remember {
+        mutableStateOf(initialValue)
+    }
+
+    val updatedLifecycle by rememberUpdatedState(LocalLifecycleOwner.current.lifecycle)
     LaunchedEffect(Unit) {
         while (true) {
             kotlin.runCatching {
-                darkThemeState = readLinuxPortalInDarkTheme()
+                currentTheme = block()
             }.getOrElse {
-                // Stop checking for the appearance, just use
-                // whatever Compose provides.
-                darkThemeState = darkThemeDefault
+                // Stop checking for the updates
                 return@LaunchedEffect
             }
 
-            delay(2000L)
+            val delayMs = if (updatedLifecycle.currentState >= Lifecycle.State.RESUMED) {
+                2000L
+            } else {
+                4000L
+            }
+            delay(delayMs)
             ensureActive()
         }
     }
-    return darkThemeState
+
+    return currentTheme
 }
 
-private suspend fun readLinuxPortalInDarkTheme() = withContext(Dispatchers.IO) {
-    val command = listOf(
-        "gdbus",
-        "call",
-        "--session",
-        "--dest=org.freedesktop.portal.Desktop",
-        "--object-path=/org/freedesktop/portal/desktop",
-        "--method=org.freedesktop.portal.Settings.Read",
-        "org.freedesktop.appearance",
-        "color-scheme",
-    )
-    val pb = ProcessBuilder(command)
-        .redirectError(ProcessBuilder.Redirect.INHERIT)
-    val process = pb.start().apply {
-        waitFor(60, TimeUnit.MINUTES)
+private fun PortalColorScheme?.resolve(fallback: Boolean): Boolean =
+    when (this) {
+        PortalColorScheme.NO_PREFERENCE -> fallback
+        PortalColorScheme.PREFER_DARK -> true
+        PortalColorScheme.PREFER_LIGHT -> false
+        null -> fallback
     }
-
-    val result = process.inputStream.reader().readText()
-    // 0: No preference
-    // 1: Prefer dark appearance
-    // 2: Prefer light appearance
-    result[10] == '1'
-}

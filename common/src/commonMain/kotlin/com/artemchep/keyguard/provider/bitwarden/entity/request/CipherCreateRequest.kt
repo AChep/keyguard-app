@@ -15,11 +15,13 @@ data class CipherCreateRequest(
 fun CipherCreateRequest.Companion.of(
     model: BitwardenCipher,
     folders: Map<String, String?>,
+    encryptedFor: String,
 ) = kotlin.run {
     CipherCreateRequest(
         cipher = CipherRequest.of(
             model = model,
             folders = folders,
+            encryptedFor = encryptedFor,
         ),
         collectionIds = model.collectionIds,
     )

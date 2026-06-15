@@ -1,0 +1,57 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import DocLink from '../components/DocLink.astro';
+import { getDocGroups } from '../lib/docs';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** id of the currently rendered doc, e.g. "getting-started"; undefined on the docs index */
+  currentId?: string;
+}
+
+const { title, description, currentId } = Astro.props;
+
+const groups = await getDocGroups();
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 md:flex-row">
+    <aside class="md:w-60 md:shrink-0">
+      <nav class="flex flex-col gap-6 text-sm">
+        {
+          groups.map((group) => (
+            <div>
+              <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+                {group.label}
+              </p>
+              <div class="flex flex-col gap-1">
+                {group.entries.map((entry) =>
+                  entry.kind === 'doc' ? (
+                    <DocLink doc={entry.doc} currentId={currentId} />
+                  ) : (
+                    <div class="mt-1 flex flex-col gap-1 border-l border-outline-variant pl-3 ml-3">
+                      <p class="px-3 pt-1 text-xs font-semibold text-on-surface-variant">
+                        {entry.subsection.label}
+                      </p>
+                      {entry.subsection.docs.map((doc) => (
+                        <DocLink doc={doc} currentId={currentId} />
+                      ))}
+                    </div>
+                  ),
+                )}
+              </div>
+            </div>
+          ))
+        }
+      </nav>
+    </aside>
+
+    <article class="prose-doc min-w-0 flex-1">
+      <h1 class="mb-6 text-3xl font-extrabold tracking-tight text-on-surface">
+        {title}
+      </h1>
+      <slot />
+    </article>
+  </div>
+</BaseLayout>

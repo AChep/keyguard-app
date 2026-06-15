@@ -3,15 +3,20 @@ package com.artemchep.keyguard.feature.home.settings.component
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Feedback
+import androidx.compose.material.icons.outlined.Functions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.feature.feedback.FeedbackRoute
+import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItem
@@ -26,6 +31,10 @@ fun settingFeedbackAppProvider(
 ) = settingFeedbackAppProvider()
 
 fun settingFeedbackAppProvider(): SettingComponent = kotlin.run {
+    if (CurrentPlatform.hasWatch()) {
+        return@run flowOf(null)
+    }
+
     val item = SettingIi(
         search = SettingIi.Search(
             group = "about",
@@ -55,16 +64,11 @@ fun settingFeedbackAppProvider(): SettingComponent = kotlin.run {
 fun SettingFeedbackAppItem(
     onClick: (() -> Unit)?,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.Feedback),
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.Feedback,
+        title = stringResource(Res.string.pref_item_contact_us_title),
         trailing = {
             ChevronIcon()
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_contact_us_title),
-            )
         },
         onClick = onClick,
     )

@@ -22,6 +22,7 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
@@ -30,7 +31,6 @@ import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
@@ -62,11 +62,22 @@ import kotlinx.coroutines.flow.stateIn
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
 
 @Composable
 fun produceGeneratorHistoryState() = with(localDI().direct) {
+    val getGeneratorHistory = instanceOrNull<GetGeneratorHistory>()
+    if (getGeneratorHistory == null) {
+        val stubState = GeneratorHistoryState(
+            selection = null,
+            options = persistentListOf(),
+            items = persistentListOf(),
+        )
+        return@with Loadable.Ok(stubState)
+    }
+
     produceGeneratorHistoryState(
-        getGeneratorHistory = instance(),
+        getGeneratorHistory = getGeneratorHistory,
         removeGeneratorHistory = instance(),
         removeGeneratorHistoryById = instance(),
         keyPairExport = instance(),
@@ -74,6 +85,7 @@ fun produceGeneratorHistoryState() = with(localDI().direct) {
         privateKeyExport = instance(),
         dateFormatter = instance(),
         clipboardService = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -87,6 +99,7 @@ fun produceGeneratorHistoryState(
     privateKeyExport: KeyPrivateExport,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): Loadable<GeneratorHistoryState> = produceScreenState(
     initial = Loadable.Loading,
     key = "generator_history",
@@ -99,7 +112,7 @@ fun produceGeneratorHistoryState(
     ),
 ) {
     val selectionHandle = selectionHandle("selection")
-    val copyFactory = copy(clipboardService)
+    val copyFactory = copier()
 
     val itemsRawFlow = getGeneratorHistory()
         .shareInScreenScope()
@@ -132,6 +145,7 @@ fun produceGeneratorHistoryState(
         val message = items
             .joinToString(separator = "\n") { it.value.message() }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,
@@ -147,6 +161,7 @@ fun produceGeneratorHistoryState(
 
     suspend fun onDeleteAll() {
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = translate(Res.string.generatorhistory_clear_history_confirmation_title),
             message = translate(Res.string.generatorhistory_clear_history_confirmation_text),

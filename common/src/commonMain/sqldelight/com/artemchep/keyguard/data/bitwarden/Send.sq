@@ -7,6 +7,8 @@ CREATE TABLE send (
   FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_send_accountId ON send(accountId);
+
 insert {
   UPDATE send
   SET

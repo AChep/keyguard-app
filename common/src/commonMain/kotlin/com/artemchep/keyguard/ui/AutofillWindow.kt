@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -60,6 +61,7 @@ import com.artemchep.keyguard.feature.generator.AutoResizeText
 import com.artemchep.keyguard.feature.generator.DecoratedSlider
 import com.artemchep.keyguard.feature.generator.FilterItem
 import com.artemchep.keyguard.feature.generator.GENERATOR_KEY_ARG_URIS
+import com.artemchep.keyguard.feature.generator.GeneratorBadgesRow
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
 import com.artemchep.keyguard.feature.generator.GeneratorState
 import com.artemchep.keyguard.feature.generator.GeneratorType
@@ -398,15 +400,13 @@ private fun ColumnScope.GeneratorValue2(
                         modifier = Modifier
                             .height(4.dp),
                     )
-
-                    val visible = value.strength
-                    ExpandedIfNotEmpty(
-                        valueOrNull = value.password.takeIf { visible },
-                    ) { password ->
-                        PasswordStrengthBadge(
-                            password = password,
-                        )
-                    }
+                    GeneratorBadgesRow(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        value = value.password,
+                        showStrength = value.strength,
+                        showLength = value.length,
+                    )
                 },
                 trailing = {
                     val updatedPassword by rememberUpdatedState(value.password)

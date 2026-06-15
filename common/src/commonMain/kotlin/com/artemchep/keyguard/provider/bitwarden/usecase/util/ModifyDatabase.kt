@@ -1,12 +1,15 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase.util
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.attempt
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetWriteAccess
+import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.premium
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
@@ -24,6 +27,7 @@ class ModifyDatabase(
     private val getCanWrite: GetCanWrite,
     private val getWriteAccess: GetWriteAccess,
     private val queueSyncById: QueueSyncById,
+    private val markBackupAsDirty: MarkBackupAsDirty,
 ) {
     companion object {
         private const val TAG = "ModifyDatabase.bitwarden"
@@ -48,6 +52,7 @@ class ModifyDatabase(
         getCanWrite = directDI.instance(),
         getWriteAccess = directDI.instance(),
         queueSyncById = directDI.instance(),
+        markBackupAsDirty = directDI.instance(),
     )
 
     operator fun <T> invoke(
@@ -62,6 +67,11 @@ class ModifyDatabase(
             result.changedAccountIds.forEach {
                 queueSyncById(it)
                     .launchIn(GlobalScope)
+            }
+            if (result.changedAccountIds.isNotEmpty()) {
+                markBackupAsDirty()
+                    .attempt()
+                    .bind()
             }
             // val accountIds = result.changedAccountIds
             // SyncWorker.enqueueOnce(context, accountIds)

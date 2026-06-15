@@ -1,17 +1,11 @@
 package com.artemchep.keyguard.common.service.passkey.impl
 
-import arrow.core.partially1
 import com.artemchep.keyguard.build.FileHashes
-import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.shared
-import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.common.model.FileResource
+import com.artemchep.keyguard.common.service.json.jsonResourceListIo
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.service.text.TextService
-import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
-import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.*
 import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -58,14 +52,14 @@ class PassKeyServiceImpl(
         private const val TAG = "PassKeyService"
     }
 
-    private val listIo = ::loadPassKeyRawData
-        .partially1(textService)
-        .effectMap { jsonString ->
-            val entities = json.decodeFromString<List<PassKeyEntity>>(jsonString)
-            val models = entities.map(PassKeyEntity::toDomain)
-            models
-        }
-        .sharedSoftRef(TAG)
+    private val listIo = jsonResourceListIo(
+        textService = textService,
+        json = json,
+        resource = FileResource.passkeys,
+        tag = TAG,
+    ) { entity: PassKeyEntity ->
+        entity.toDomain()
+    }
 
     override val version: String
         get() = FileHashes.passkeys
@@ -79,7 +73,3 @@ class PassKeyServiceImpl(
 
     override fun get() = listIo
 }
-
-private suspend fun loadPassKeyRawData(
-    textService: TextService,
-) = textService.readFromResourcesAsText(FileResource.passkeys)

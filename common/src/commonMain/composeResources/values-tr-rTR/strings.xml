@@ -2,18 +2,18 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">Tamam</string>
     <string name="close">Kapat</string>
-    <string name="quit">Çık</string>
+    <string name="quit">Çıkış</string>
     <string name="yes">Evet</string>
     <string name="no">Hayır</string>
     <!-- On click brings Keyguard app to the front -->
     <string name="show_keyguard">Keyguard'ı Göster</string>
     <!-- A name of a thing, such as an account -->
-    <string name="generic_name">Ad</string>
+    <string name="generic_name">İsim</string>
     <string name="description">Açıklama</string>
     <string name="account_name">Hesap adı</string>
     <string name="database_name">Veritabanı adı</string>
     <string name="enabled">Etkin</string>
-    <string name="disabled">Devre dışı</string>
+    <string name="disabled">Devre Dışı</string>
     <string name="wordlist">Kelime listesi</string>
     <string name="username">Kullanıcı adı</string>
     <string name="password">Parola</string>
@@ -21,11 +21,17 @@
     <string name="current_password">Mevcut parola</string>
     <string name="new_password">Yeni parola</string>
     <string name="no_password">Parola yok</string>
+    <string name="advanced_options">Gelişmiş</string>
+    <string name="file">Dosya</string>
+    <string name="file_name_placeholder">Dosya adı</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Yükleme başarısız oldu</string>
     <string name="email">E-posta</string>
     <string name="email_verified">Doğrulandı</string>
     <string name="email_not_verified">Doğrulanmadı</string>
     <string name="email_visibility">E-posta görünürlüğü</string>
-    <string name="public_url">Herkese açık URL</string>
+    <string name="public_url">Açık URL</string>
     <string name="url">URL</string>
     <string name="conceal_value">Değeri gizle</string>
     <string name="field_label">Etiket</string>
@@ -39,24 +45,25 @@
         -->
     <string name="max_access_count">Maksimum erişim sayısı</string>
     <string name="ready_status_beta">Beta</string>
-    <string name="ready_status_alpha">Alpha</string>
-    <string name="learn_more">Daha fazla bilgi</string>
+    <string name="ready_status_alpha">Alfa</string>
+    <string name="learn_more">Daha fazla bilgi edin</string>
     <string name="phone_number">Telefon numarası</string>
     <string name="passport_number">Pasaport numarası</string>
-    <string name="license_number">Ehliyet numarası</string>
+    <string name="license_number">Lisans numarası</string>
     <string name="card_number">Kart numarası</string>
     <string name="card_number_empty_label">Kart numarası yok</string>
     <string name="card_type">Marka</string>
     <string name="card_cvv">Güvenlik kodu</string>
-    <string name="card_valid_from">Başlangıç tarihi</string>
-    <string name="card_valid_to">Bitiş tarihi</string>
-    <string name="card_expiry_month">Kart son kullanma ayı</string>
-    <string name="card_expiry_year">Kart son kullanma yılı</string>
-    <string name="cardholder_name">Kart sahibi adı</string>
+    <string name="card_valid_from">Geçerlilik başlangıcı</string>
+    <string name="card_valid_to">Geçerlilik bitişi</string>
+    <string name="card_expiry_month">Kartın son kullanma ayı</string>
+    <string name="card_expiry_year">Kartın son kullanma yılı</string>
+    <string name="cardholder_name">Kart sahibinin adı</string>
     <string name="valid_from">Geçerlilik başlangıcı</string>
     <string name="expiry_date">Son kullanma tarihi</string>
     <string name="company">Şirket</string>
-    <string name="sync">Senkronize et</string>
+    <string name="sync">Eşitle</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Gizli</string>
     <!-- Opposite of 'hidden' -->
@@ -64,18 +71,18 @@
     <!-- Shows up instead of a value if a value is an empty text -->
     <string name="empty_value">Boş</string>
     <!-- Social Security Number -->
-    <string name="ssn">SSN</string>
+    <string name="ssn">SSN (Sosyal Güvenlik Numarası)</string>
     <string name="city">Şehir</string>
-    <string name="state">Eyalet</string>
+    <string name="state">Eyalet/Bölge</string>
     <string name="info">Bilgi</string>
     <string name="cancel">İptal</string>
     <string name="continue_">Devam et</string>
     <string name="country">Ülke</string>
     <string name="address">Adres</string>
     <string name="postal_code">Posta kodu</string>
-    <string name="pull_to_search">Aramak için çekin</string>
+    <string name="pull_to_search">Aramak için aşağı çekin</string>
     <string name="save">Kaydet</string>
-    <string name="save_to">Kaydet</string>
+    <string name="save_to">Şuraya kaydet:</string>
     <string name="uri">URI</string>
     <string name="uris">URI'ler</string>
     <string name="note">Not</string>
@@ -88,12 +95,12 @@
     <string name="expired">Süresi doldu</string>
     <string name="expiring_soon">Süresi yakında dolacak</string>
     <string name="item_incomplete_title">Eksik veri</string>
-    <string name="item_incomplete_text">Bu öğede bazı önemli bilgiler eksik.</string>
-    <string name="item">Öğe</string>
-    <string name="items">Öğeler</string>
-    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> öğe</string>
-    <string name="items_all">Tüm öğeler</string>
-    <string name="items_empty_label">Öğe yok</string>
+    <string name="item_incomplete_text">Bu ögede bazı önemli bilgiler eksik.</string>
+    <string name="item">Öge</string>
+    <string name="items">Ögeler</string>
+    <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> öge</string>
+    <string name="items_all">Tüm ögeler</string>
+    <string name="items_empty_label">Öge yok</string>
     <string name="sends">Gönderiler</string>
     <string name="folder_none">Klasör yok</string>
     <string name="folder_new">Yeni klasör</string>
@@ -108,17 +115,18 @@
     <string name="collection">Koleksiyon</string>
     <string name="collections">Koleksiyonlar</string>
     <string name="collections_empty_label">Koleksiyon yok</string>
-    <string name="organization_none">Kasam</string>
-    <string name="organization">Kuruluş</string>
-    <string name="organizations">Kuruluşlar</string>
-    <string name="organizations_empty_label">Kuruluş yok</string>
+    <string name="organization_none">Benim kasam</string>
+    <string name="organization">Organizasyon</string>
+    <string name="organizations">Organizasyonlar</string>
+    <string name="organizations_empty_label">Organizasyon yok</string>
     <string name="equivalent_domains">Eşdeğer alan adları</string>
     <string name="equivalent_domains_empty_label">Eşdeğer alan adı yok</string>
+    <string name="retry">Yeniden dene</string>
     <string name="misc">Çeşitli</string>
     <string name="category">Kategori</string>
     <string name="command">Komut</string>
-    <string name="execute_command">Uygula</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="execute_command">Çalıştır</string>
+    <string name="context_based_suggestions">Bağlam tabanlı öneriler</string>
     <!-- Add (something) -->
     <string name="add">Ekle</string>
     <string name="add_integration">Entegrasyon ekle</string>
@@ -128,7 +136,7 @@
     <string name="account_none">Hesap yok</string>
     <string name="type">Tür</string>
     <string name="options">Seçenekler</string>
-    <string name="send">Gönder</string>
+    <string name="send">Gönderi</string>
     <string name="reset">Sıfırla</string>
     <string name="length">Uzunluk</string>
     <string name="security">Güvenlik</string>
@@ -136,11 +144,13 @@
     <string name="identity_title">Unvan</string>
     <string name="identity_first_name">Ad</string>
     <string name="identity_middle_name">İkinci ad</string>
-    <string name="identity_last_name">Soyadı</string>
+    <string name="identity_last_name">Soyad</string>
     <string name="identity_full_name">Tam ad</string>
     <string name="address1">Adres satırı 1</string>
     <string name="address2">Adres satırı 2</string>
     <string name="address3">Adres satırı 3</string>
+    <string name="ssh_agent">SSH aracısı</string>
+    <string name="ssh_client">SSH istemcisi</string>
     <string name="rename">Yeniden adlandır</string>
     <string name="deletion_date">Silinme tarihi</string>
     <string name="deletion_date_custom">Özel</string>
@@ -149,11 +159,15 @@
     <string name="expiration_date_never">Asla</string>
     <string name="select_linked_type">Bir tür seçin</string>
     <string name="select_file">Bir dosya seçin</string>
-    <string name="autofill">Otomatik doldurma</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
+    <string name="autofill">Otomatik Doldurma</string>
     <string name="autofill_and_save_uri">Uygulama veya web sitesi bilgilerini otomatik doldur ve kaydet</string>
     <string name="backup_disclaimer_title">Verileriniz sizin sorumluluğunuzdadır.</string>
-    <string name="backup_disclaimer_text">Verilerinizin asla kaybolmamasını sağlamak için 3-2-1 Yedekleme Kuralı'nı benimseyin: kasanızın üç kopyasını iki farklı medya türünde bulundurun ve bir kopyasını ayrı, güvenli bir yerde saklayın.</string>
+    <string name="backup_disclaimer_text">Hiçbir zaman kaybolmadığından emin olmak için 3-2-1 Yedekleme Kuralını benimseyin: Kasanızın iki farklı ortam türünde üç kopyasını tutun ve bir kopyasını ayrı, güvenli bir konumda saklayın.</string>
     <string name="passkey">Geçiş anahtarı</string>
+    <string name="credential_login_create_header">Oturum açma bilgisi oluştur</string>
+    <string name="credential_password_create_header">Parola oluştur</string>
     <string name="passkey_create_header">Geçiş anahtarı oluştur</string>
     <string name="passkey_unlock_header">Keyguard Kilidini Aç</string>
     <string name="passkey_auth_via_header">Kimlik doğrulama isteği onaylanıyor…</string>
@@ -168,53 +182,62 @@
         to register and authenticate users. For example "Google" is a relying party.
         https://www.w3.org/TR/webauthn-2/#relying-party
         -->
-    <string name="passkey_relying_party">Güvenen taraf</string>
+    <string name="passkey_relying_party">Bağlı taraf (Relying party)</string>
     <!--
         https://www.w3.org/TR/webauthn-2/#discoverable-credential
         -->
     <string name="passkey_discoverable">Keşfedilebilir</string>
     <string name="passkey_user_username">Kullanıcı adı</string>
     <string name="passkey_user_display_name">Görünen ad</string>
-    <string name="ignored_alerts">Yoksayılan uyarılar</string>
+    <string name="ignored_alerts">Yok sayılan uyarılar</string>
     <string name="api_key">API anahtarı</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">Alan adı</string>
     <string name="add_to_home_screen">Ana ekrana ekle</string>
     <string name="edit">Düzenle</string>
     <string name="delete">Sil</string>
     <string name="remove">Kaldır</string>
     <string name="remove_from_history">Geçmişten kaldır</string>
-    <string name="reused_password">Tekrar kullanılan parola</string>
-    <string name="reused_passwords">Tekrar kullanılan parolalar</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
+    <string name="reused_password">Yeniden kullanılan parola</string>
+    <string name="reused_passwords">Yeniden kullanılan parolalar</string>
     <string name="one_time_password">Tek kullanımlık parola</string>
     <string name="one_time_password_authenticator_key">Doğrulayıcı anahtarı</string>
     <string name="passkey_use_short">Kullan</string>
+    <string name="password_save">Parolayı kaydet</string>
     <string name="passkey_save">Geçiş anahtarını kaydet</string>
     <string name="passkey_available">Geçiş anahtarı mevcut</string>
     <string name="twofa_available">İki faktörlü kimlik doğrulama mevcut</string>
     <string name="custom">Özel</string>
     <string name="grant_permission">İzin ver</string>
     <string name="create_account">Hesap oluştur</string>
-    <string name="follow_system_settings">Sistem ayarlarını kullan</string>
+    <string name="follow_system_settings">Sistem ayarlarını izle</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">Çok yakında</string>
-    <string name="powered_by">Sağlayıcı</string>
+    <string name="powered_by">Altyapı:</string>
     <string name="verification_code">Doğrulama kodu</string>
     <string name="resend_verification_code">Doğrulama kodunu tekrar gönder</string>
-    <string name="requested_verification_email">Doğrulama e-postası talep edildi</string>
+    <string name="requested_verification_email">Doğrulama e-postası istendi</string>
     <string name="web_vault">Web kasası</string>
     <string name="launch_web_vault">Web kasasını başlat</string>
     <string name="local_vault">Yerel kasa</string>
     <!-- Remember me to not have to enter OTP code second time -->
     <string name="remember_me">Beni hatırla</string>
+    <!-- An Archive screen -->
+    <string name="archive">Arşiv</string>
     <!-- A Trash screen -->
     <string name="trash">Çöp Kutusu</string>
     <!-- To download something -->
     <string name="download">İndir</string>
     <string name="downloads">İndirilenler</string>
-    <string name="downloads_empty_label">İndirilen yok</string>
-    <string name="duplicates_empty_label">Yinelenen öğe yok</string>
-    <string name="duplicate">Yinelenen</string>
-    <string name="regex">Normal ifade</string>
+    <string name="downloads_empty_label">İndirilen öge yok</string>
+    <string name="duplicates_empty_label">Kopya öge yok</string>
+    <string name="duplicate">Çoğalt</string>
+    <string name="regex">Düzenli ifade (Regex)</string>
     <string name="encryption">Şifreleme</string>
     <!-- Encryption key -->
     <string name="encryption_key">Anahtar</string>
@@ -222,7 +245,7 @@
     <string name="encryption_salt">Salt</string>
     <string name="encryption_algorithm_256bit_aes">256-bit AES</string>
     <string name="encryption_random_bits_data">Rastgele <xliff:g id="length" example="64">%1$d</xliff:g>-bit veri</string>
-    <string name="none">Hiçbiri</string>
+    <string name="none">Yok</string>
     <string name="text">Metin</string>
     <string name="linked_app">Bağlı uygulama</string>
     <string name="linked_apps">Bağlı uygulamalar</string>
@@ -234,8 +257,8 @@
     <string name="reveal_secure_note">Güvenli notu göster</string>
     <string name="hide_secure_note">Güvenli notu gizle</string>
     <string name="master_password_hint">Ana parola ipucu</string>
-    <string name="public_key">Açık anahtar</string>
-    <string name="private_key">Özel anahtar</string>
+    <string name="public_key">Açık anahtar (Public key)</string>
+    <string name="private_key">Özel anahtar (Private key)</string>
     <string name="fingerprint">Parmak izi</string>
     <string name="key_type">Anahtar türü</string>
     <string name="key_pair">Anahtar çifti</string>
@@ -252,50 +275,67 @@
     <string name="server_version">Sunucu sürümü <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="database_version">Veritabanı sürümü <xliff:g id="version" example="1.0.0">%1$s</xliff:g></string>
     <string name="clear_file">Temizle</string>
-    <string name="replace_key_file">Bir anahtar dosyasını değiştir</string>
-    <string name="select_key_file">Bir anahtar dosyası seç</string>
-    <string name="select_database_file">Bir veritabanı dosyası seç</string>
+    <string name="replace_key_file">Anahtar dosyasını değiştir</string>
+    <string name="select_key_file">Bir anahtar dosyası seçin</string>
+    <string name="select_database_file">Bir veritabanı dosyası seçin</string>
     <string name="replace_database_file">Bir veritabanı dosyasını değiştir</string>
     <string name="open_database">Bir veritabanı aç</string>
     <string name="create_database">Bir veritabanı oluştur</string>
-    <string name="qr_wifi_description_text">Bu WiFi ağına katılmak için bu QR kodunu başka bir cihazla tarayın.</string>
+    <string name="addaccount_method_header_title">Hesap ekle</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Telefon seç</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
+    <string name="qr_wifi_description_text">Bu Wi-Fi ağına katılmak için bu QR kodunu başka bir cihazla tarayın.</string>
     <string name="qr_generate_button">QR kodu oluştur</string>
-    <string name="pro_tip">Profesyonel ipucu: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
-    <string name="pro_tip_generate_email_relay_title">Daha iyi gizlilik için benzersiz e-postalar oluşturun.</string>
-    <string name="account_last_synced_at">Son senkronizasyon: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="pro_tip">İpucu: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip_generate_email_relay_title">Daha iyi gizlilik için benzersiz yönlendirme e-postaları oluşturun.</string>
+    <string name="account_last_synced_at">Son eşitleme: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">Adı değiştir</string>
     <string name="account_action_change_color_title">Rengi değiştir</string>
     <string name="account_action_change_master_password_hint_title">Ana parola ipucunu değiştir</string>
     <string name="account_action_sign_out_title">Oturumu kapat</string>
     <string name="account_action_sign_in_title">Oturum aç</string>
     <string name="account_action_export_vault_title">Kasayı dışa aktar</string>
-    <string name="account_action_export_individual_vault_title">Bireysel kasayı dışa aktar</string>
-    <string name="account_action_hide_title">Öğeleri gizle</string>
-    <string name="account_action_hide_text">Uygulamanın ana ekranlarındaki öğeleri gizle</string>
+    <string name="account_action_export_individual_vault_title">Kişisel kasayı dışa aktar</string>
+    <string name="account_action_hide_title">Ögeleri gizle</string>
+    <string name="account_action_hide_text">Ögeleri uygulamanın ana ekranlarından gizle</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">E-posta adresinizi doğrulamak için Web kasasını ziyaret edin</string>
     <string name="account_action_premium_purchase_instructions_title">Hesabınızı premium üyeliğe yükseltin ve harika ek özelliklerin kilidini açın</string>
     <string name="account_action_tfa_title">İki faktörlü kimlik doğrulama</string>
-    <string name="account_action_tfa_text">Güvenlik anahtarı, doğrulayıcı uygulaması, SMS veya e-posta gibi başka bir cihazla oturum açma doğrulaması gerektir</string>
-    <string name="account_action_tfa_active_status">Aktif</string>
-    <string name="account_action_items_title">Öğeler</string>
+    <string name="account_action_tfa_text">Güvenlik anahtarı, kimlik doğrulayıcı uygulama, SMS veya e-posta gibi başka bir cihazla giriş doğrulaması zorunlu tutun</string>
+    <string name="account_action_tfa_active_status">Etkin</string>
+    <string name="account_action_items_title">Ögeler</string>
     <string name="account_action_log_out_title">Oturumu kapat</string>
     <string name="account_log_out_confirmation_title">Oturum kapatılsın mı?</string>
-    <string name="account_log_out_confirmation_text">Tüm senkronize edilmemiş değişiklikler kaybolacak!</string>
+    <string name="account_log_out_confirmation_text">Eşitlenmemiş tüm değişiklikler kaybolacak!</string>
     <string name="folder_action_change_name_title">Adı değiştir</string>
     <string name="folder_action_change_names_title">Adları değiştir</string>
     <string name="folder_action_merge_title">Şununla birleştir…</string>
     <string name="folder_action_merge_confirmation_title">Bu klasörleri birleştirmek istediğinizden emin misiniz?</string>
-    <string name="folder_action_create_title">Bir klasör oluştur</string>
+    <string name="folder_action_create_title">Klasör oluştur</string>
     <string name="folder_delete_one_confirmation_title">Klasör silinsin mi?</string>
     <string name="folder_delete_many_confirmation_title">Klasörler silinsin mi?</string>
-    <string name="folder_delete_confirmation_text">Bu öğe(ler) hemen silinecek. Bu işlemi geri alamazsınız.</string>
+    <string name="folder_delete_confirmation_text">Bu öge(ler) hemen silinecek. Bu işlemi geri alamazsınız.</string>
     <string name="ciphers_recently_opened">Son açılanlar</string>
     <string name="ciphers_often_opened">Sık açılanlar</string>
     <string name="ciphers_history_empty">Henüz geçmiş yok</string>
     <string name="ciphers_view_details">Ayrıntıları görüntüle</string>
-    <string name="ciphers_save_to">Kaydet</string>
+    <string name="ciphers_save_to">Şuraya kaydet</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">Bir geçiş anahtarı ekler</string>
+    <string name="ciphers_save_to_replaces_credentials_username_password">Kullanıcı adını ve parolayı değiştirir</string>
     <string name="ciphers_action_add_to_favorites_title">Favorilere ekle</string>
-    <string name="ciphers_action_remove_from_favorites_title">Favorilerden kaldır</string>
+    <string name="ciphers_action_remove_from_favorites_title">Favorilerden çıkar</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Kimlik doğrulama tekrarını etkinleştir</string>
     <string name="ciphers_action_disable_auth_reprompt_title">Kimlik doğrulama tekrarını devre dışı bırak</string>
     <string name="ciphers_action_edit_title">Düzenle</string>
@@ -305,61 +345,79 @@
     <string name="ciphers_action_change_folder_title">Klasöre taşı</string>
     <string name="ciphers_action_change_name_title">Adı değiştir</string>
     <string name="ciphers_action_change_names_title">Adları değiştir</string>
+    <string name="ciphers_action_change_tags_title">Etiketleri değiştir</string>
     <string name="ciphers_action_add_password_title">Parola ekle</string>
-    <string name="ciphers_action_add_passwords_title">Parola ekle</string>
+    <string name="ciphers_action_add_passwords_title">Parolalar ekle</string>
     <string name="ciphers_action_change_password_title">Parolayı değiştir</string>
     <string name="ciphers_action_change_passwords_title">Parolaları değiştir</string>
     <string name="ciphers_action_view_password_history_title">Parola geçmişini görüntüle</string>
-    <string name="ciphers_action_trash_title">Çöp Kutusuna Taşı</string>
-    <string name="ciphers_action_trash_confirmation_title">Çöp kutusuna taşınsın mı?</string>
-    <string name="ciphers_action_trash_confirmation_text">Çöp kutusunda 30 günden fazla kalan öğeler otomatik olarak silinecektir.</string>
-    <string name="ciphers_action_restore_title">Geri yükle</string>
-    <string name="ciphers_action_restore_confirmation_title">Çöp kutusundan geri yüklensin mi?</string>
+    <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
+    <string name="ciphers_action_archive_title">Arşivle</string>
+    <string name="ciphers_action_archive_confirmation_title">Arşive taşınsın mı?</string>
+    <string name="ciphers_action_unarchive_title">Arşivden geri yükle</string>
+    <string name="ciphers_action_unarchive_confirmation_title">Arşivden geri yüklensin mi?</string>
+    <string name="ciphers_action_trash_title">Çöp Kutusu</string>
+    <string name="ciphers_action_trash_confirmation_title">Çöp Kutusuna taşınsın mı?</string>
+    <string name="ciphers_action_trash_confirmation_text">Çöp Kutusunda 30 günden fazla kalan ögeler otomatik olarak silinir.</string>
+    <string name="ciphers_action_restore_title">Çöp Kutusundan geri yükle</string>
+    <string name="ciphers_action_restore_confirmation_title">Çöp Kutusundan geri yüklensin mi?</string>
     <string name="ciphers_action_delete_title">Kalıcı olarak sil</string>
     <string name="ciphers_action_delete_confirmation_title">Kalıcı olarak silinsin mi?</string>
-    <string name="ciphers_action_configure_watchtower_alerts_title">Gözcü Kulesi uyarılarını yapılandır</string>
-    <string name="ciphers_action_cascade_trash_associated_items_title">İlişkili öğeleri çöp kutusuna taşı</string>
+    <string name="ciphers_action_configure_watchtower_alerts_title">Watchtower uyarılarını yapılandır</string>
+    <string name="ciphers_action_cascade_trash_associated_items_title">İlişkili ögeleri çöp kutusuna taşı</string>
     <string name="sends_action_change_name_title">Adı değiştir</string>
     <string name="sends_action_change_names_title">Adları değiştir</string>
     <string name="sends_action_change_filename_title">Dosya adını değiştir</string>
     <string name="sends_action_change_filenames_title">Dosya adlarını değiştir</string>
     <string name="sends_action_set_password_title">Parola belirle</string>
-    <string name="sends_action_set_passwords_title">Parola belirle</string>
-    <string name="sends_action_set_password_confirmation_message">Kullanıcıların bu öğeye erişmesi için bir parola iste</string>
+    <string name="sends_action_set_passwords_title">Parolalar belirle</string>
+    <string name="sends_action_set_password_confirmation_message">Kullanıcıların bu ögeye erişebilmesi için bir parola gereksin</string>
     <string name="sends_action_change_password_title">Parolayı değiştir</string>
     <string name="sends_action_change_passwords_title">Parolaları değiştir</string>
     <string name="sends_action_remove_password_title">Parolayı kaldır</string>
     <string name="sends_action_remove_passwords_title">Parolaları kaldır</string>
     <string name="sends_action_remove_password_confirmation_title">Parola kaldırılsın mı?</string>
     <string name="sends_action_remove_passwords_confirmation_title">Parolalar kaldırılsın mı?</string>
-    <string name="sends_action_remove_password_confirmation_message">Kullanıcıların bu öğeye erişmesi için parola isteme</string>
+    <string name="sends_action_remove_password_confirmation_message">Kullanıcıların bu ögeye erişebilmesi için parola gerekmesin</string>
     <string name="sends_action_hide_email_title">E-postayı gizle</string>
     <string name="sends_action_show_email_title">E-postayı göster</string>
     <string name="sends_action_enable_title">Etkinleştir</string>
-    <string name="sends_action_enable_text">Etkin gönderiye herkese açık bir URL ile erişilebilir</string>
+    <string name="sends_action_enable_text">Etkin gönderiye açık bir URL üzerinden erişilebilir</string>
     <string name="sends_action_enable_confirmation_title">Etkinleştirilsin mi?</string>
     <string name="sends_action_disable_title">Devre dışı bırak</string>
-    <string name="sends_action_disable_text">Devre dışı bırakılan gönderiye herkese açık bir URL ile erişilemez</string>
+    <string name="sends_action_disable_text">Devre dışı bırakılmış gönderiye açık bir URL üzerinden erişilemez</string>
     <string name="sends_action_disable_confirmation_title">Devre dışı bırakılsın mı?</string>
     <string name="sends_action_disabled_note">Bu gönderi devre dışı bırakıldı, kimse erişemez.</string>
     <string name="sends_action_delete_title">Kalıcı olarak sil</string>
     <string name="sends_action_delete_confirmation_title">Kalıcı olarak silinsin mi?</string>
-    <string name="file_action_open_with_title">Birlikte aç…</string>
-    <string name="file_action_send_with_title">Birlikte gönder…</string>
+    <string name="file_action_open_with_title">Şununla aç…</string>
+    <string name="file_action_preview_title">Preview</string>
+    <string name="file_action_send_with_title">Şununla gönder…</string>
     <string name="file_action_open_in_file_manager_title">Dosya yöneticisinde aç</string>
     <string name="file_action_delete_local_title">Yerel dosyayı sil</string>
     <string name="file_action_delete_local_many_title">Yerel dosyaları sil</string>
-    <string name="file_action_view_cipher_title">Üst öğeyi görüntüle</string>
+    <string name="file_action_view_cipher_title">Üst ögeyi görüntüle</string>
     <string name="file_action_reveal_title">Göster</string>
+    <string name="attachment_preview_error_unsupported_file">This file type cannot be previewed.</string>
+    <string name="attachment_preview_error_unsupported_platform">Attachment preview is not supported on this platform.</string>
+    <string name="attachment_preview_error_too_large">This attachment is larger than the 8 MB preview limit.</string>
+    <string name="attachment_preview_error_network">Failed to download the attachment preview.</string>
+    <string name="attachment_preview_error_decryption">Failed to decrypt the attachment preview.</string>
+    <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
+    <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
+    <string name="attachment_preview_action_copy_all">Copy all</string>
+    <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
+    <string name="attachment_preview_action_source">Source</string>
+    <string name="attachment_preview_action_rendered_preview">Preview</string>
     <string name="vault_action_always_show_keyboard_title">Klavyeyi her zaman göster</string>
     <string name="vault_action_remember_sorting_title">Sıralama yöntemini hatırla</string>
-    <string name="vault_action_sync_vault_title">Kasayı senkronize et</string>
+    <string name="vault_action_sync_vault_title">Kasayı eşitle</string>
     <string name="vault_action_lock_vault_title">Kasayı kilitle</string>
     <string name="vault_action_rename_folder_title">Klasörü yeniden adlandır</string>
-    <string name="email_action_check_data_breach_title">E-postayı bilinen veri sızıntılarında kontrol et</string>
-    <string name="username_action_check_data_breach_title">Kullanıcı adını bilinen veri sızıntılarında kontrol et</string>
-    <string name="password_action_check_data_breach_title">Parolayı bilinen veri sızıntılarında kontrol et</string>
-    <string name="website_action_check_data_breach_title">Web sitesini bilinen veri sızıntılarında kontrol et</string>
+    <string name="email_action_check_data_breach_title">E-postayı bilinen veri ihlallerinde kontrol et</string>
+    <string name="username_action_check_data_breach_title">Kullanıcı adını bilinen veri ihlallerinde kontrol et</string>
+    <string name="password_action_check_data_breach_title">Parolayı bilinen veri ihlallerinde kontrol et</string>
+    <string name="website_action_check_data_breach_title">Web sitesini bilinen veri ihlallerinde kontrol et</string>
     <string name="uri_action_launch_app_title">Uygulamayı başlat</string>
     <string name="uri_action_launch_website_title">Web sitesini başlat</string>
     <string name="uri_action_launch_docs_title">Belgeleri başlat</string>
@@ -367,31 +425,31 @@
     <string name="uri_action_launch_browser_main_page_title">Ana sayfayı başlat</string>
     <string name="uri_action_launch_play_store_title">Play Store'u başlat</string>
     <string name="uri_action_launch_in_app_title"><xliff:g id="app" example="Keyguard">%1$s</xliff:g> ile başlat</string>
-    <string name="uri_action_launch_in_smth_title">Birlikte başlat…</string>
+    <string name="uri_action_launch_in_smth_title">Şununla başlat…</string>
     <string name="uri_action_how_to_delete_account_title">Bir hesap nasıl silinir?</string>
-    <string name="uri_action_get_my_data_account_title">Verilerimi nasıl alabilirim?</string>
+    <string name="uri_action_get_my_data_account_title">Verilerimi nasıl alırım?</string>
     <string name="uri_action_autofix_unsecure_title">Güvensiz URL'yi otomatik düzelt</string>
-    <string name="uri_action_autofix_unsecure_text">Protokolü, mevcutsa güvenli varyantına değiştirir</string>
+    <string name="uri_action_autofix_unsecure_text">Mevcutsa protokolü güvenli bir varyanta değiştirir</string>
     <string name="uri_unsecure">Güvensiz</string>
-    <string name="uri_match_app_title">Uygulamayı eşleştir</string>
-    <string name="uri_match_detection_title">Eşleştirme tespiti</string>
+    <string name="uri_match_app_title">Eşleşme uygulaması</string>
+    <string name="uri_match_detection_title">Eşleşme algılaması</string>
     <string name="uri_match_detection_default_title">Varsayılan</string>
-    <string name="uri_match_detection_default_note">Ayarlar → Otomatik Doldurma → Varsayılan URI eşleştirme tespiti bölümünde seçilen genel Varsayılan eşleştirme tespiti davranışını kullanır. Temel alan adı eşleştirmesi varsayılan seçenektir.</string>
+    <string name="uri_match_detection_default_note">Ayarlar → Otomatik Doldurma → Varsayılan URI eşleşme algılaması bölümünde seçilen küresel Varsayılan eşleşme algılama davranışını kullanır. Temel alan adı (Base domain) eşleşmesi varsayılan seçenektir.</string>
     <string name="uri_match_detection_domain_title">Temel alan adı</string>
-    <string name="uri_match_detection_domain_note">Kaynakları üst düzey ve ikinci düzey alan adına göre eşleştirir.</string>
-    <string name="uri_match_detection_host_title">Sunucu</string>
-    <string name="uri_match_detection_host_note">Kaynakları sunucu adına ve (belirtilmişse) porta göre eşleştirir.</string>
+    <string name="uri_match_detection_domain_note">Kaynakları üst düzey (TLD) ve ikinci düzey alan adına göre eşleştirir.</string>
+    <string name="uri_match_detection_host_title">Sunucu (Host)</string>
+    <string name="uri_match_detection_host_note">Kaynakları sunucu adına ve (belirtilmişse) bağlantı noktasına (port) göre eşleştirir.</string>
     <string name="uri_match_detection_startswith_title">Şununla başlar</string>
-    <string name="uri_match_detection_startswith_note">Tespit edilen kaynak URI ile başladığında kaynakları eşleştirir.</string>
-    <string name="uri_match_detection_exact_title">Tam</string>
-    <string name="uri_match_detection_exact_note">Tespit edilen kaynak URI ile tam olarak eşleştiğinde kaynakları eşleştirir.</string>
-    <string name="uri_match_detection_regex_title">Normal ifade</string>
-    <string name="uri_match_detection_regex_note">Kaynakları normal ifadeyle eşleştirir. Gelişmiş seçenek.</string>
+    <string name="uri_match_detection_startswith_note">Algılanan kaynak ilgili URI ile başladığında kaynakları eşleştirir.</string>
+    <string name="uri_match_detection_exact_title">Tam Eşleşme</string>
+    <string name="uri_match_detection_exact_note">Algılanan kaynak ilgili URI ile tam olarak eşleştiğinde kaynakları eşleştirir.</string>
+    <string name="uri_match_detection_regex_title">Düzenli ifade (Regex)</string>
+    <string name="uri_match_detection_regex_note">Kaynakları düzenli ifadeye göre eşleştirir. Gelişmiş seçenektir.</string>
     <string name="uri_match_detection_never_title">Asla</string>
-    <string name="uri_match_detection_never_note">Otomatik doldurma öğesi arama sırasında URI'yi yoksay.</string>
+    <string name="uri_match_detection_never_note">Otomatik doldurma için öge ararken bu URI'yi yoksayar.</string>
     <string name="field_linked_to_password"><xliff:g id="name" example="passwordField">%1$s</xliff:g> parolaya bağlı</string>
     <string name="field_linked_to_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> kullanıcı adına bağlı</string>
-    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> kart sahibi adına bağlı</string>
+    <string name="field_linked_to_card_cardholdername"><xliff:g id="name" example="usernameField">%1$s</xliff:g> kart sahibinin adına bağlı</string>
     <string name="field_linked_to_card_expmonth"><xliff:g id="name" example="usernameField">%1$s</xliff:g> son kullanma ayına bağlı</string>
     <string name="field_linked_to_card_expyear"><xliff:g id="name" example="usernameField">%1$s</xliff:g> son kullanma yılına bağlı</string>
     <string name="field_linked_to_card_code"><xliff:g id="name" example="usernameField">%1$s</xliff:g> kart koduna bağlı</string>
@@ -403,7 +461,7 @@
     <string name="field_linked_to_identity_address2"><xliff:g id="name" example="usernameField">%1$s</xliff:g> adres satırına (2) bağlı</string>
     <string name="field_linked_to_identity_address3"><xliff:g id="name" example="usernameField">%1$s</xliff:g> adres satırına (3) bağlı</string>
     <string name="field_linked_to_identity_city"><xliff:g id="name" example="usernameField">%1$s</xliff:g> şehre bağlı</string>
-    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> eyalete bağlı</string>
+    <string name="field_linked_to_identity_state"><xliff:g id="name" example="usernameField">%1$s</xliff:g> eyalete/bölgeye bağlı</string>
     <string name="field_linked_to_identity_postalcode"><xliff:g id="name" example="usernameField">%1$s</xliff:g> posta koduna bağlı</string>
     <string name="field_linked_to_identity_country"><xliff:g id="name" example="usernameField">%1$s</xliff:g> ülkeye bağlı</string>
     <string name="field_linked_to_identity_company"><xliff:g id="name" example="usernameField">%1$s</xliff:g> şirkete bağlı</string>
@@ -412,21 +470,35 @@
     <string name="field_linked_to_identity_ssn"><xliff:g id="name" example="usernameField">%1$s</xliff:g> SSN'ye bağlı</string>
     <string name="field_linked_to_identity_username"><xliff:g id="name" example="usernameField">%1$s</xliff:g> kullanıcı adına bağlı</string>
     <string name="field_linked_to_identity_passportnumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> pasaport numarasına bağlı</string>
-    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> ehliyet numarasına bağlı</string>
+    <string name="field_linked_to_identity_licensenumber"><xliff:g id="name" example="usernameField">%1$s</xliff:g> lisans numarasına bağlı</string>
     <string name="field_linked_to_identity_firstname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> ada bağlı</string>
-    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> soyadına bağlı</string>
+    <string name="field_linked_to_identity_lastname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> soyada bağlı</string>
     <string name="field_linked_to_identity_fullname"><xliff:g id="name" example="usernameField">%1$s</xliff:g> tam ada bağlı</string>
     <string name="field_linked_to_unknown_field"><xliff:g id="name" example="usernameField">%1$s</xliff:g> bilinmeyen bir alana bağlı</string>
-    <string name="text_action_share_with_title">Birlikte paylaş…</string>
-    <string name="text_action_send_title">Bir gönderi oluştur</string>
+    <string name="text_action_share_with_title">Şununla paylaş…</string>
+    <string name="text_action_send_title">Gönderi oluştur</string>
     <string name="ssh_key_action_save_unencrypted_keys_title">Şifrelenmemiş anahtarları kaydet</string>
-    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Anahtarlar İndirilenler'e kaydedildi</string>
-    <string name="ssh_key_action_save_public_key_title">Açık anahtarı kaydet</string>
-    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Açık anahtar İndirilenler'e kaydedildi</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_title">Şifrelenmemiş özel anahtarı kaydet</string>
-    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Şifrelenmemiş özel anahtar İndirilenler'e kaydedildi</string>
-    <string name="ssh_key_action_add_key_title">Anahtar ekle</string>
+    <string name="ssh_key_action_save_unencrypted_keys_saved_downloads_success_title">Anahtarlar İndirilenler klasörüne kaydedildi</string>
+    <string name="ssh_key_action_save_public_key_title">Açık anahtarı (Public key) kaydet</string>
+    <string name="ssh_key_action_save_public_key_saved_downloads_success_title">Açık anahtar İndirilenler klasörüne kaydedildi</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_title">Şifrelenmemiş özel anahtarı (Private key) kaydet</string>
+    <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">Şifrelenmemiş özel anahtar İndirilenler klasörüne kaydedildi</string>
+    <string name="ssh_key_action_add_key_title">Anahtarları ekle</string>
     <string name="ssh_key_action_replace_key_title">Anahtarları değiştir</string>
+    <string name="ssh_key_import_title">SSH anahtarını içe aktar</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
+    <string name="ssh_key_import_failed_title">SSH anahtarı içe aktarılamadı</string>
+    <string name="ssh_key_import_success_title">SSH anahtarı içe aktarıldı</string>
+    <string name="ssh_key_import_error_unsupported_format">Desteklenmeyen SSH özel anahtar formatı.</string>
+    <string name="ssh_key_import_error_unsupported_algorithm">Yalnızca RSA ve Ed25519 SSH anahtarları desteklenmektedir.</string>
+    <string name="ssh_key_import_error_invalid_passphrase">SSH anahtarı parolası (passphrase) geçersiz.</string>
+    <string name="ssh_key_import_error_malformed_key">SSH anahtar dosyası hatalı biçimlendirilmiş.</string>
+    <string name="ssh_key_import_error_read">Seçilen dosya okunamıyor.</string>
+    <string name="ssh_key_import_error_passphrase_required">Bu SSH anahtarının kilidini açmak için parola (passphrase) gereklidir.</string>
+    <string name="ssh_key_import_passphrase_title">Anahtar Parolası (Passphrase)</string>
+    <string name="ssh_key_import_passphrase_hint">SSH anahtar parolasını girin</string>
+    <string name="ssh_key_import_passphrase_dialog_title">SSH anahtar parolasını girin</string>
+    <string name="ssh_key_import_passphrase_dialog_message">Bu <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> anahtarı şifrelenmiştir.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> seçildi</string>
     <string name="copy">Kopyala</string>
     <string name="copy_value">Değeri kopyala</string>
@@ -434,14 +506,15 @@
     <string name="copy_uri">URI'yi kopyala</string>
     <string name="copy_send">Gönderiyi kopyala</string>
     <string name="copy_package_name">Paket adını kopyala</string>
+    <string name="copy_bundle_id">Bundle ID'sini kopyala</string>
     <string name="copy_password">Parolayı kopyala</string>
     <string name="copy_username">Kullanıcı adını kopyala</string>
     <string name="copy_email">E-postayı kopyala</string>
     <string name="copy_phone_number">Telefon numarasını kopyala</string>
     <string name="copy_passport_number">Pasaport numarasını kopyala</string>
-    <string name="copy_license_number">Ehliyet numarasını kopyala</string>
+    <string name="copy_license_number">Lisans numarasını kopyala</string>
     <string name="copy_card_number">Kart numarasını kopyala</string>
-    <string name="copy_cardholder_name">Kart sahibi adını kopyala</string>
+    <string name="copy_cardholder_name">Kart sahibinin adını kopyala</string>
     <string name="copy_expiration_year">Son kullanma yılını kopyala</string>
     <string name="copy_expiration_month">Son kullanma ayını kopyala</string>
     <string name="copy_cvv_code">Güvenlik kodunu kopyala</string>
@@ -462,16 +535,16 @@
     <string name="copied_email">E-posta kopyalandı</string>
     <string name="copied_phone_number">Telefon numarası kopyalandı</string>
     <string name="copied_passport_number">Pasaport numarası kopyalandı</string>
-    <string name="copied_license_number">Ehliyet numarası kopyalandı</string>
+    <string name="copied_license_number">Lisans numarası kopyalandı</string>
     <string name="copied_card_number">Kart numarası kopyalandı</string>
-    <string name="copied_cardholder_name">Kart sahibi adı kopyalandı</string>
+    <string name="copied_cardholder_name">Kart sahibinin adı kopyalandı</string>
     <string name="copied_expiration_year">Son kullanma yılı kopyalandı</string>
     <string name="copied_expiration_month">Son kullanma ayı kopyalandı</string>
     <string name="copied_cvv_code">Güvenlik kodu kopyalandı</string>
     <string name="copied_otp_code">Tek kullanımlık parola kopyalandı</string>
     <string name="copied_otp_secret_code">Gizli anahtar kopyalandı</string>
-    <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_otp_code">Tek kullanımlık bir parola bulundu</string>
+    <string name="found_value">Bir değer bulundu</string>
     <string name="autofill_unlock_keyguard">Keyguard Kilidini Aç</string>
     <string name="autofill_open_keyguard">Keyguard'ı Aç</string>
     <string name="january">Ocak</string>
@@ -495,65 +568,85 @@
     <string name="list_move_up">Yukarı taşı</string>
     <string name="list_move_down">Aşağı taşı</string>
     <string name="list_remove">Kaldır</string>
-    <string name="list_remove_confirmation_title">Öğe kaldırılsın mı?</string>
+    <string name="list_remove_confirmation_title">Öge kaldırılsın mı?</string>
     <string name="list_add">Daha fazla ekle</string>
     <string name="fido2webauthn_web_title">FIDO2 WebAuthn</string>
-    <string name="fido2webauthn_action_go_title">WebAuthn ile kimlik doğrula</string>
+    <string name="fido2webauthn_action_go_title">WebAuthn Kimlik Doğrulaması</string>
     <string name="fido2webauthn_action_return_title">Uygulamaya dön</string>
-    <string name="expiry_tips_item_line1">Bu öğenin süresi <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> tarihinde doluyor.</string>
+    <string name="expiry_tips_item_line1">Bu ögenin süresi <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> tarihinde doluyor.</string>
     <string name="expiry_tips_card_line1">Bu kartın süresi <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> tarihinde doluyor. Sorunsuz bir geçiş sağlamak için yapabileceğiniz birkaç şey var:</string>
-    <string name="expiry_tips_card_line2">1. Yeni bir kart edinin: Kartınızı veren kurum size yeni bir son kullanma tarihine sahip yeni bir kart göndermiş olabilir. Eğer göndermediyse, yeni bir kart gönderip göndermeyeceklerini ve ne zaman bekleyebileceğinizi öğrenmek için kartınızı veren kurumla iletişime geçin.</string>
-    <string name="expiry_tips_card_line3">2. Otomatik ödemeleri güncelleyin: Aylık spor salonu üyeliği veya Netflix aboneliği gibi kartınızla ayarlanmış otomatik ödemeleriniz varsa, bilgileri yeni kart numarası ve son kullanma tarihi ile güncellediğinizden emin olun.</string>
-    <string name="expiry_tips_card_line4">3. Eski kartı imha edin: Yeni kartınız geldiğinde ve gerekli tüm bilgileri güncellediğinizde, kimlik hırsızlığını önlemek için eski, süresi dolmuş kartı güvenli bir şekilde imha ettiğinizden emin olun.</string>
+    <string name="expiry_tips_card_line2">1. Yeni bir kart edinin: Kartı düzenleyen kuruluş size yeni son kullanma tarihi olan bir yedek kart göndermiş olabilir. Eğer göndermediyse, yeni bir kart göndermeyi planlayıp planlamadıklarını ve ne zaman beklemeniz gerektiğini öğrenmek için kuruluşla iletişime geçin.</string>
+    <string name="expiry_tips_card_line3">2. Otomatik ödemeleri güncelleyin: Kartınızla ayarlanmış aylık spor salonu üyeliği veya Netflix aboneliği gibi otomatik ödemeleriniz varsa, bilgileri yeni kart numarası ve son kullanma tarihiyle güncellediğinizden emin olun.</string>
+    <string name="expiry_tips_card_line4">3. Eski kartı imha edin: Yeni kartınız ulaştığında ve gerekli bilgileri güncellediğinizde, kimlik hırsızlığını önlemek için süresi dolmuş eski kartı güvenli bir şekilde imha ettiğinizden emin olun.</string>
     <!--
         Empty string is a string that contains zero symbols in it,
         e.g. "" is an empty string -->
-    <string name="error_must_not_be_empty">Boş olmamalıdır</string>
+    <string name="error_must_not_be_empty">Boş bırakılamaz</string>
     <!--
         Blank string is an empty string or a string that consists
         solely of whitespace characters. It's OK to translate it exactly the same
         as the "Must not be empty" error. -->
-    <string name="error_must_not_be_blank">Boş olmamalıdır</string>
+    <string name="error_must_not_be_blank">Boş bırakılamaz</string>
     <string name="error_must_be_custom_domain">Özel alan adı olmalıdır</string>
-    <string name="error_must_be_number">Sayı olmalıdır</string>
-    <string name="error_must_be_less_than_days">Bugünden itibaren <xliff:g id="days" example="15">%1$d</xliff:g> günden az olmalıdır</string>
+    <string name="error_must_be_number">Bir sayı olmalıdır</string>
+    <string name="error_must_be_less_than_days">Şu andan itibaren <xliff:g id="days" example="15">%1$d</xliff:g> günden daha kısa olmalıdır</string>
     <string name="error_must_contain_only_us_ascii_chars">Yalnızca US-ASCII karakterleri içermelidir</string>
-    <string name="error_must_have_at_least_n_symbols">En az <xliff:g id="length" example="15">%1$d</xliff:g> sembol uzunluğunda olmalıdır</string>
-    <string name="error_must_have_exactly_n_symbols"><xliff:g id="length" example="15">%1$d</xliff:g> sembol uzunluğunda olmalıdır</string>
+    <string name="error_must_have_at_least_n_symbols">En az <xliff:g id="length" example="15">%1$d</xliff:g> karakter uzunluğunda olmalıdır</string>
+    <string name="error_must_have_exactly_n_symbols">Tam olarak <xliff:g id="length" example="15">%1$d</xliff:g> karakter uzunluğunda olmalıdır</string>
     <string name="error_invalid_domain">Geçersiz alan adı</string>
     <string name="error_invalid_email">Geçersiz e-posta</string>
     <string name="error_invalid_url">Geçersiz URL</string>
     <string name="error_invalid_uri">Geçersiz URI</string>
+    <string name="error_invalid_key">Geçersiz anahtar</string>
     <string name="error_invalid_card_number">Geçersiz kart numarası</string>
-    <string name="error_incorrect_password">Yanlış parola</string>
-    <string name="error_otp_key_must_not_be_empty">Tek kullanımlık parolanın gizli anahtarı boş olmamalıdır</string>
-    <string name="error_failed_file_already_exists">Dosya oluşturulamadı. Mevcut dosyanın üzerine yazmaya izin verilmiyor</string>
-    <string name="error_failed_generate_kdf_hash_oom">Anahtar oluşturulamadı, yeterli bellek yok. Lütfen KDF sunucu ayarlarınızı kontrol edin.</string>
+    <string name="error_webdav_url_required">WebDAV URL is required</string>
+    <string name="error_incorrect_password">Hatalı parola</string>
+    <string name="error_not_found">Bulunamadı</string>
+    <string name="error_file_must_be_500_mb_or_smaller">Dosya 500 MB yada daha küçük olmalıdır</string>
+    <string name="error_file_must_be_1_mb_or_smaller">Dosya 1 MB yada daha küçük olmalıdır</string>
+    <string name="error_otp_key_must_not_be_empty">Tek kullanımlık parolanın gizli anahtarı boş bırakılamaz</string>
+    <string name="error_otp_key_is_invalid">Tek kullanımlık parolanın gizli anahtarı geçersiz</string>
+    <string name="error_failed_file_already_exists">Dosya oluşturulamadı. Mevcut dosyanın değiştirilmesine izin verilmiyor</string>
+    <string name="error_failed_generate_kdf_hash_oom">Yetersiz bellek nedeniyle anahtar oluşturulamadı. Lütfen KDF sunucu ayarlarınızı kontrol edin.</string>
     <string name="error_failed_generate_otp_code">OTP kodu oluşturulamadı</string>
     <string name="error_failed_create_passkey">Geçiş anahtarı oluşturulamadı</string>
-    <string name="error_failed_use_passkey">İstek doğrulanamadı</string>
-    <string name="error_failed_open_uri">URI açılamadı</string>
+    <string name="error_failed_create_password">Parola oluşturulamadı</string>
+    <string name="error_failed_use_passkey">İsteğe yetki verilemedi</string>
+    <string name="error_failed_use_password">İsteğe yetki verilemedi</string>
+    <string name="error_failed_open_uri">Bir URI açılamadı</string>
     <string name="error_failed_format_placeholder">Yer tutucu biçimlendirilemedi</string>
     <string name="error_failed_open_app_for">Yüklü hiçbir uygulama bu isteği işleyemez</string>
     <string name="error_failed_unknown">Bir şeyler ters gitti</string>
     <string name="error_failed_encrypt_biometric_key">Biyometrik anahtar şifrelenemedi</string>
     <string name="error_failed_decrypt_biometric_key">Biyometrik anahtarın şifresi çözülemedi</string>
+    <string name="error_failed_ssh_agent_start">SSH aracısı başlatılamadı</string>
+    <string name="error_credential_calling_app_not_privileged">Çağıran uygulama ayrıcalıklı listede değil ve diğer uygulamalar adına kimlik doğrulama isteyemez.</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Ayrıcalık tanı ve devam et</string>
+    <!--
+        Shows up if the calling app is not privileged and allows a user
+        to permanently add it to the privileged apps. Describes the risks
+        a user takes by adding an app to the list -->
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Bir uygulamaya güvenmek, o uygulamanın herhangi bir hizmet için kimlik bilgisi talep etmesine izin verir. Kötü niyetli bir uygulama bunu kimlik bilgilerinizi çalmak için kullanabilir.</string>
     <string name="scanqr_title">QR kodunu tara</string>
-    <string name="scanqr_load_from_image_note">Bir resim dosyasından QR kodunu yükle ve ayrıştır.</string>
+    <string name="scanqr_load_from_image">Dosyadan yükle</string>
+    <string name="scanqr_load_from_image_note">Bir görüntü dosyasından QR kodunu yükleyin ve ayrıştırın.</string>
     <string name="scanqr_camera_permission_required_text">QR kodlarını taramak için kamera izni gereklidir.</string>
-    <string name="post_notifications_permission_banner_title">Bildirimler devre dışı</string>
-    <string name="post_notifications_permission_banner_text">Keyguard'ın otomatik doldurma sırasında tek kullanımlık parolaları göstermesine ve daha fazlasına izin vermek için bildirim izni verin.</string>
+    <string name="post_notifications_permission_banner_title">Bildirimler devre dışı bırakıldı</string>
+    <string name="post_notifications_permission_banner_text">Otomatik doldurma sırasında ve daha fazlasında Keyguard'ın tek kullanımlık parolaları göstermesine olanak tanımak için bildirim izni verin.</string>
     <!-- Title of the 'Show as Barcode' dialog -->
     <string name="barcodetype_title">Barkod</string>
-    <string name="barcodetype_action_show_in_barcode_title">Barkod Olarak Göster</string>
-    <string name="barcodetype_copy_otp_secret_code_note">QR kodunu tarayarak bu doğrulayıcıyı başka bir cihaza kopyalayın.</string>
+    <string name="barcodetype_action_show_in_barcode_title">Barkod olarak Göster</string>
+    <string name="barcodetype_copy_otp_secret_code_note">Bu kimlik doğrulayıcıyı QR kodunu tarayarak başka bir cihaza kopyalayın.</string>
     <!-- Title of the 'Date picker' dialog -->
     <string name="datepicker_title">Tarih seçici</string>
     <!-- Title of the 'Color picker' dialog -->
     <string name="colorpicker_title">Renk seçici</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justdeleteme_title">Bir hesap nasıl silinir?</string>
-    <string name="justdeleteme_subtitle">Web hizmetlerinden hesabınızı nasıl sileceğinize dair bilgilerin bir koleksiyonu</string>
+    <string name="justdeleteme_title">Hesap nasıl silinir?</string>
+    <string name="justdeleteme_subtitle">Web servislerinden hesabınızın nasıl silineceğine dair bilgi koleksiyonu</string>
     <!-- Simple process -->
     <string name="justdeleteme_difficulty_easy_label">Kolay</string>
     <!-- Some extra steps involved -->
@@ -564,11 +657,11 @@
     <string name="justdeleteme_difficulty_limited_availability_label">Sınırlı kullanılabilirlik</string>
     <!-- Cannot be deleted -->
     <string name="justdeleteme_difficulty_impossible_label">İmkansız</string>
-    <string name="justdeleteme_send_email_title">E-posta gönder</string>
+    <string name="justdeleteme_send_email_title">Bir e-posta gönderin</string>
     <string name="justdeleteme_search_placeholder">Web sitelerinde ara</string>
     <string name="justdeleteme_empty_label">Talimat yok</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justgetmydata_title">Verilerimi nasıl alabilirim?</string>
+    <string name="justgetmydata_title">Verilerimi nasıl alırım?</string>
     <string name="justgetmydata_subtitle">Web servislerindeki hesabınızdan verilerinizi nasıl alacağınıza dair bilgi koleksiyonu</string>
     <!-- Simple process -->
     <string name="justgetmydata_difficulty_easy_label">Kolay</string>
@@ -580,201 +673,241 @@
     <string name="justgetmydata_difficulty_limited_availability_label">Sınırlı kullanılabilirlik</string>
     <!-- Cannot be obtained -->
     <string name="justgetmydata_difficulty_impossible_label">İmkansız</string>
-    <string name="justgetmydata_send_email_title">E-posta gönder</string>
+    <string name="justgetmydata_send_email_title">Bir e-posta gönderin</string>
     <string name="justgetmydata_search_placeholder">Web sitelerinde ara</string>
     <string name="justgetmydata_empty_label">Talimat yok</string>
     <string name="tfa_directory_title">İki faktörlü kimlik doğrulama</string>
-    <string name="tfa_directory_text">İki faktörlü kimlik doğrulama desteği olan web sitelerinin listesi</string>
+    <string name="tfa_directory_text">İki faktörlü kimlik doğrulama destekli web sitelerinin listesi</string>
     <string name="tfa_directory_search_placeholder">Web sitelerinde ara</string>
     <string name="passkeys_directory_title">Geçiş anahtarları</string>
-    <string name="passkeys_directory_text">Geçiş anahtarı desteği olan web sitelerinin listesi</string>
+    <string name="passkeys_directory_text">Geçiş anahtarı destekli web sitelerinin listesi</string>
     <string name="passkeys_directory_search_placeholder">Web sitelerinde ara</string>
     <!-- Title of the 'Email data breach' dialog -->
-    <string name="emailleak_title">Veri sızıntısı</string>
-    <string name="emailleak_note">Sızdırılan hesap verileri, kötü niyetli aktörlere hassas kişisel ve finansal bilgilere erişim sağlayarak kimlik hırsızlığı, finansal dolandırıcılık ve diğer siber suç türlerine yol açabilir.</string>
-    <string name="emailleak_breach_not_found_title">Sızıntı bulunamadı</string>
-    <string name="emailleak_breach_found_title">Sızdırılmış hesaplar bulundu</string>
-    <string name="emailleak_breach_section">Sızıntılar</string>
-    <string name="emailleak_breach_occurred_at"><xliff:g id="date" example="1 January 1970">%1$s</xliff:g> tarihinde meydana geldi</string>
-    <string name="emailleak_breach_reported_at"><xliff:g id="date" example="1 January 1970">%1$s</xliff:g> tarihinde bildirildi</string>
-    <string name="emailleak_failed_to_load_status_text">Veri sızıntıları kontrol edilemedi. Şu anda çevrimdışı olabilirsiniz</string>
-    <string name="passwordleak_title">Veri sızıntısı</string>
-    <string name="passwordleak_note">Veri sızıntılarında bulunan bir parolanın kırılması önemli ölçüde daha az zaman alır ve asla kullanılmamalıdır.</string>
-    <string name="passwordleak_occurrences_found_title">Parola risk altında</string>
-    <string name="passwordleak_occurrences_found_text">Parola, bilinen veri sızıntılarında tespit edildi. Çevrimiçi güvenliğinizi korumak için lütfen hemen değiştirin</string>
-    <string name="passwordleak_occurrences_not_found_title">Sızıntı bulunamadı</string>
-    <string name="passwordleak_failed_to_load_status_text">Veri sızıntıları kontrol edilemedi. Şu anda çevrimdışı olabilirsiniz</string>
+    <string name="emailleak_title">Veri ihlali</string>
+    <string name="emailleak_note">İhlal edilmiş hesap verileri; kötü niyetli kişilerin hassas kişisel ve finansal bilgilere erişim sağlamasına neden olabilir ve bu durum kimlik hırsızlığı, finansal dolandırıcılık ve diğer siber suç türlerine zemin hazırlayabilir.</string>
+    <string name="emailleak_breach_not_found_title">İhlal bulunamadı</string>
+    <string name="emailleak_breach_found_title">İhlal edilmiş hesaplar bulundu</string>
+    <string name="emailleak_breach_section">İhlaller</string>
+    <string name="emailleak_breach_occurred_at">Gerçekleştiği tarih: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_reported_at">Bildirildiği tarih: <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_failed_to_load_status_text">Veri ihlalleri kontrol edilemedi. Çevrimdışı olabilirsiniz</string>
+    <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <string name="passwordleak_title">Veri ihlali</string>
+    <string name="passwordleak_note">Veri ihlallerinde açığa çıkmış bir parolanın kırılması çok daha az zaman alır ve asla kullanılmamalıdır.</string>
+    <string name="passwordleak_occurrences_found_title">Parola ele geçirilmiş</string>
+    <string name="passwordleak_occurrences_found_text">Bu parolanın bilinen veri ihlallerinde yer aldığı tespit edilmiştir. Çevrimiçi güvenliğinizi korumak için lütfen hemen değiştirin</string>
+    <string name="passwordleak_occurrences_not_found_title">İhlal bulunamadı</string>
+    <string name="passwordleak_failed_to_load_status_text">Veri ihlalleri kontrol edilemedi. Çevrimdışı olabilirsiniz</string>
     <!-- Title of the 'Show in Large Type' dialog -->
-    <string name="largetype_title">Büyük Yazı Tipi</string>
-    <string name="largetype_action_show_in_large_type_title">Büyük Yazı Tipiyle Göster</string>
-    <string name="largetype_action_show_in_large_type_and_lock_title">Büyük Yazı Tipiyle Göster ve Kasayı Kilitle</string>
+    <string name="largetype_title">Büyük Tipografi</string>
+    <string name="largetype_action_show_in_large_type_title">Büyük Tipografide Göster</string>
+    <string name="largetype_action_show_in_large_type_and_lock_title">Büyük Tipografide Göster ve Kasayı kilitle</string>
     <string name="largetype_unicode_surrogate_note">Metin bileşik Unicode sembolleri içeriyor!</string>
     <string name="apppicker_header_title">Uygulama Seçici</string>
     <string name="apppicker_search_placeholder">Yüklü uygulamalarda ara</string>
     <string name="apppicker_system_app_label">Sistem uygulaması</string>
     <string name="apppicker_empty_label">Uygulama yok</string>
     <string name="folderpicker_header_title">Bir klasör seçin</string>
-    <string name="folderpicker_create_new_folder">Yeni bir klasör oluştur:</string>
+    <string name="folderpicker_create_new_folder">Yeni bir klasör oluşturun:</string>
     <!--
         When you copy an item to a new destination and choose to copy it into
         an organization, this text shows up to warn you about ownership. -->
-    <string name="destinationpicker_organization_ownership_note">Bu kuruluş kopyanın sahibi olacaktır. Doğrudan sahip siz olmayacaksınız.</string>
-    <string name="emailrelay_list_header_title">E-posta yönlendiriciler</string>
-    <string name="emailrelay_list_section_title">E-posta yönlendiriciler</string>
-    <string name="emailrelay_delete_one_confirmation_title">E-posta yönlendirici silinsin mi?</string>
-    <string name="emailrelay_delete_many_confirmation_title">E-posta yönlendiriciler silinsin mi?</string>
-    <string name="emailrelay_integration_title">E-posta yönlendirici entegrasyonu</string>
-    <string name="emailrelay_empty_label">E-posta yönlendirici yok</string>
+    <string name="destinationpicker_organization_ownership_note">Bu organizasyon kopyanın sahipliğine sahip olacaktır. Doğrudan sahip olmayacaksınız.</string>
+    <string name="emailrelay_list_header_title">E-posta yönlendiricileri</string>
+    <string name="emailrelay_list_section_title">E-posta yönlendiricileri</string>
+    <string name="emailrelay_delete_one_confirmation_title">E-posta yönlendiricisi silinsin mi?</string>
+    <string name="emailrelay_delete_many_confirmation_title">E-posta yönlendiricileri silinsin mi?</string>
+    <string name="emailrelay_integration_title">E-posta yönlendiricisi entegrasyonu</string>
+    <string name="emailrelay_empty_label">E-posta yönlendiricisi yok</string>
     <string name="emailrelay_base_env_server_url_label">Sunucu URL'si</string>
-    <string name="emailrelay_base_env_note">Kendi barındırdığınız kurulumunuzun temel URL'sini belirtin.</string>
+    <string name="emailrelay_base_env_note">Kendi barındırdığınız (self-hosted) kurulumunuzun temel URL'sini belirtin.</string>
     <string name="wordlist_list_header_title">Kelime listeleri</string>
     <string name="wordlist_list_section_title">Kelime listeleri</string>
     <string name="wordlist_delete_one_confirmation_title">Kelime listesi silinsin mi?</string>
     <string name="wordlist_delete_many_confirmation_title">Kelime listeleri silinsin mi?</string>
     <string name="wordlist_edit_wordlist_title">Bir kelime listesini düzenle</string>
     <string name="wordlist_add_wordlist_title">Bir kelime listesi ekle</string>
-    <string name="wordlist_add_wordlist_via_file_title">Bir dosyadan yükle</string>
-    <string name="wordlist_add_wordlist_via_url_title">Bir URL'den yükle</string>
+    <string name="wordlist_add_wordlist_via_file_title">Dosyadan yükle</string>
+    <string name="wordlist_add_wordlist_via_url_title">URL'den yükle</string>
     <string name="wordlist_empty_label">Kelime listesi yok</string>
     <string name="wordlist_word_search_placeholder">Kelimelerde ara</string>
     <string name="urloverride_header_title">URL geçersiz kılma</string>
     <string name="urloverride_list_header_title">URL geçersiz kılmaları</string>
     <string name="urloverride_list_section_title">URL geçersiz kılmaları</string>
-    <string name="urloverride_regex_note">Geçersiz kılma, normal ifadeyle eşleşen URL'lere uygulanacaktır.</string>
+    <string name="urloverride_regex_note">Geçersiz kılma, düzenli ifadeyle (regex) eşleşen URL'lere uygulanacaktır.</string>
     <string name="urloverride_delete_one_confirmation_title">URL geçersiz kılma silinsin mi?</string>
     <string name="urloverride_delete_many_confirmation_title">URL geçersiz kılmaları silinsin mi?</string>
     <string name="urloverride_empty_label">URL geçersiz kılma yok</string>
-    <string name="urlblock_header_title">URI engelleme</string>
-    <string name="urlblock_list_header_title">Engellenen URI'ler</string>
-    <string name="urlblock_list_section_title">Engellenen URI'ler</string>
+    <string name="urlblock_header_title">URI bloğu</string>
+    <string name="urlblock_list_header_title">Engellenmiş URI'ler</string>
+    <string name="urlblock_list_section_title">Engellenmiş URI'ler</string>
     <string name="urlblock_delete_one_confirmation_title">Engellenen URI silinsin mi?</string>
-    <string name="urlblock_delete_many_confirmation_title">Engellenen URI silinsin mi?</string>
-    <string name="urlblock_empty_label">Engellenen URI yok</string>
-    <string name="urlblock_expose_title">Kasayı açmadan önce verileri Otomatik Doldurma'ya sun</string>
-    <string name="urlblock_expose_text">Etkinleştirildiğinde, öğe kasanın dışında saklanır ve bu da kasa kilitli olsa bile Otomatik Doldurma önerilerinin tamamen gizlenmesine olanak tanır</string>
+    <string name="urlblock_delete_many_confirmation_title">Engellenen URI'ler silinsin mi?</string>
+    <string name="urlblock_empty_label">Engellenmiş URI yok</string>
+    <string name="urlblock_expose_title">Kasayı açmadan önce verileri Otomatik Doldurma (Autofill) altyapısına göster</string>
+    <string name="urlblock_expose_text">Etkinleştirilirse, öge kasanın dışında saklanır ve kasa kilitli olsa bile otomatik doldurma önerilerini tamamen gizlemenize olanak tanır</string>
+    <string name="privilegedapps_header_title">Ayrıcalıklı uygulamalar</string>
+    <string name="privilegedapps_list_header_title">Ayrıcalıklı uygulamalar</string>
+    <string name="privilegedapps_list_section_title">Ayrıcalıklı uygulamalar</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Ayrıcalıklı uygulama silinsin mi?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Ayrıcalıklı uygulamalar silinsin mi?</string>
+    <string name="privilegedapps_empty_label">Ayrıcalıklı uygulama yok</string>
+    <string name="privilegedapps_user_apps">Kullanıcı uygulamaları</string>
+    <string name="privilegedapps_community_apps">Topluluk uygulamaları</string>
     <string name="setup_header_text">Yerel verilerin saklanacağı şifreli bir kasa oluşturun.</string>
-    <string name="setup_free_text">Devam ederek Keyguard'ı satın aldığınızı veya aktif bir lisansınız olduğunu onaylamış olursunuz.</string>
+    <string name="setup_free_text">Devam ederek Keyguard'ı satın aldığınızı veya aktif bir lisansa sahip olduğunuzu onaylıyorsunuz.</string>
     <string name="setup_field_app_password_label">Uygulama parolası</string>
     <string name="setup_checkbox_biometric_auth">Biyometrik kimlik doğrulama</string>
-    <string name="setup_biometric_auth_confirm_title">Bir kasa oluştur</string>
-    <string name="setup_button_send_crash_reports">Kilitlenme raporları gönder</string>
+    <string name="setup_biometric_auth_confirm_title">Bir kasa oluşturun</string>
+    <string name="setup_button_send_crash_reports">Kilitlenme raporlarını gönder</string>
     <string name="setup_button_create_vault">Bir kasa oluştur</string>
     <string name="setup_action_erase_data_title">Uygulama verilerini sil</string>
-    <string name="setup_action_erase_data_text">Uygulamayı kapat ve tüm yerel uygulama verilerini sil</string>
+    <string name="setup_action_erase_data_text">Uygulamayı kapatın ve tüm yerel uygulama verilerini silin</string>
     <string name="unlock_header_text">Kasa kilitli. Devam etmek için uygulama parolanızı girin.</string>
     <string name="unlock_button_unlock">Kilidi Aç</string>
     <!-- A title of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_title">Kasanın kilidini aç</string>
     <!-- A text of the system popup that asks a user to use his biometric to unlock a vault. -->
     <string name="unlock_biometric_auth_confirm_text">Kasanın kilidini açmak için biyometrik kimlik doğrulama kullanın.</string>
-    <string name="userverification_header_text">Kullanıcı doğrulaması gerekli. Devam etmek için uygulama parolanızı girin.</string>
+    <string name="userverification_header_text">Kullanıcı doğrulaması gereklidir. Devam etmek için uygulama parolanızı girin.</string>
     <string name="userverification_button_go">Doğrula</string>
-    <string name="syncstatus_header_title">Senkronizasyon durumu</string>
+    <string name="syncstatus_header_title">Eşitleme durumu</string>
     <string name="syncstatus_status_up_to_date">Güncel</string>
     <string name="syncstatus_status_pending">Beklemede</string>
-    <string name="syncstatus_status_syncing">Senkronize ediliyor</string>
-    <string name="syncstatus_status_failed">Senkronizasyon başarısız</string>
-    <string name="additem_header_new_title">Yeni öğe</string>
-    <string name="additem_header_edit_title">Öğeyi düzenle</string>
-    <string name="additem_header_merge_title">Öğeleri birleştir</string>
-    <string name="additem_merge_remove_origin_ciphers_title">Orijinal öğeleri çöp kutusuna taşı</string>
-    <string name="additem_merge_attachments_note">Öğeleri birleştirmek eklerini birleştirmez! Oluşturulan öğeye herhangi bir ek eklenmeyecektir.</string>
-    <string name="additem_note_placeholder">Bu öğe hakkındaki notlarınızı buraya ekleyin</string>
-    <string name="additem_markdown_note">Metni <xliff:g id="italic" example="italic">%1$s</xliff:g> veya <xliff:g id="bold" example="bold">%2$s</xliff:g> ve daha fazlasıyla biçimlendirin. Sınırlı Markdown söz dizimi desteklenir.</string>
-    <string name="additem_markdown_note_italic">italik</string>
-    <string name="additem_markdown_note_bold">kalın</string>
-    <string name="additem_markdown_render_preview">Önizlemeyi oluştur</string>
+    <string name="syncstatus_status_syncing">Eşitleniyor</string>
+    <string name="syncstatus_status_failed">Eşitleme başarısız</string>
+    <string name="additem_header_new_title">Yeni öge</string>
+    <string name="additem_header_edit_title">Ögeyi düzenle</string>
+    <string name="additem_header_merge_title">Ögeleri birleştir</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Orijinal ögeleri çöp kutusuna taşı</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
+    <string name="additem_merge_attachments_note">Ögeleri birleştirmek eklerini birleştirmez! Oluşturulan ögeye herhangi bir ek eklenmeyecektir.</string>
+    <string name="additem_note_placeholder">Bu ögeyle ilgili notlarınızı buraya ekleyin</string>
+    <string name="additem_markdown_note">Metni <xliff:g id="italic" example="italic">%1$s</xliff:g> veya <xliff:g id="bold" example="bold">%2$s</xliff:g> ve daha fazlasıyla şekillendirin. Sınırlı Markdown sözdizimi desteklenir.</string>
+    <string name="additem_markdown_note_italic">İtalik</string>
+    <string name="additem_markdown_note_bold">Kalın</string>
+    <string name="additem_markdown_render_preview">Önizleme oluştur</string>
     <string name="additem_auth_reprompt_title">Kimlik doğrulama tekrarı</string>
-    <string name="additem_auth_reprompt_text">Bir öğeyi görüntülerken veya otomatik doldururken tekrar kimlik doğrulaması iste</string>
+    <string name="additem_auth_reprompt_text">Bir ögeyi görüntülediğinizde veya otomatik doldurduğunuzda kimlik doğrulamasını tekrar isteyin</string>
     <string name="addsend_header_new_title">Yeni gönderi</string>
     <string name="addsend_header_edit_title">Gönderiyi düzenle</string>
-    <string name="addsend_text_hide_by_default_title">Öğeye erişirken metni varsayılan olarak gizle</string>
-    <string name="addsend_hide_text_by_default_title">Öğeye erişirken metni varsayılan olarak gizle</string>
+    <string name="addsend_text_hide_by_default_title">Ögeye erişirken metni varsayılan olarak gizle</string>
+    <string name="addsend_hide_text_by_default_title">Ögeye erişirken metni varsayılan olarak gizle</string>
     <string name="addsend_hide_email_title">E-posta adresini gizle</string>
-    <string name="addsend_max_access_count_note">Ayarlanırsa, maksimum erişim sayısına ulaşıldıktan sonra kullanıcılar bu öğeye artık erişemez.</string>
+    <string name="addsend_max_access_count_note">Ayarlandığında, maksimum erişim sayısına ulaşıldıktan sonra kullanıcılar artık bu ögeye erişemez.</string>
+    <string name="addsend_auth_emails_label">E-posta(lar)</string>
+    <string name="addsend_auth_emails_placeholder">Virgülle ayrılmış e-postalar</string>
+    <string name="addsend_auth_emails_note">Alıcılardan, bağlantıyı açtıktan sonra tek seferlik e-posta doğrulamasını tamamlamaları istenecektir.</string>
     <string name="addaccount_promo_title">Kasanız boş. Başlamak için bir hesap bağlayın:</string>
-    <string name="addaccount_promo_features">Deneyiminizden en iyi şekilde yararlanmak ister misiniz? Uygulamanın tüm temel özelliklerini aşağıda sizin için özetledik. Sizin için nasıl çalışabileceğini görmek için bir göz atın.</string>
-    <string name="addaccount_description_short_bitwarden_text">Şifrelenmiş kasayı bir bulutta saklayın.</string>
-    <string name="addaccount_description_short_keepass_text">Şifrelenmiş kasayı KDBX dosya formatını kullanarak yerel olarak saklayın.</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
+    <string name="addaccount_promo_features">Deneyiminizi en üst düzeye çıkarmak ister misiniz? Uygulamanın tüm temel özelliklerini aşağıda sizin için özetledik. Sizin için nasıl işe yarayabileceğini görmek için bir göz atın.</string>
+    <string name="addaccount_description_short_bitwarden_text">Şifreli kasayı bulutta saklayın.</string>
+    <string name="addaccount_description_short_keepass_text">KDBX dosya biçimini kullanarak şifreli kasayı yerel olarak saklayın.</string>
     <string name="addaccount_header_title">Bitwarden hesabı ekle</string>
-    <string name="addaccount_disclaimer_bitwarden_label">Bitwarden, Inc. veya yan kuruluşları veya iştirakleri ile herhangi bir şekilde bağlı, ilişkili, yetkili, onaylanmış veya resmi olarak bağlantılı değiliz.</string>
+    <string name="addaccount_disclaimer_bitwarden_label">Bitwarden, Inc. veya iştirakleri ya da bağlı kuruluşları ile herhangi bir bağımız, ilişkimiz, yetkimiz, onayımız veya resmi bir bağlantımız yoktur.</string>
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
-    <string name="addaccount_captcha_need_client_secret_note">Resmi olmayan bir Bitwarden istemcisinde captcha doğrulamasını geçmek için istemci sırrını belirtmeniz gerekir. Bulmak için Web kasası / Ayarlar / API Anahtarı'nı ziyaret edin.</string>
+    <string name="addaccount_captcha_need_client_secret_note">Resmi olmayan bir Bitwarden istemcisinde captcha doğrulamasını geçmek için istemci gizli anahtarını (client secret) belirtmelisiniz. Bulmak için Web kasası / Ayarlar / API Anahtarı bölümünü ziyaret edin.</string>
     <!-- A label on top of the Client secret field -->
-    <string name="addaccount_captcha_need_client_secret_label">İstemci sırrı</string>
+    <string name="addaccount_captcha_need_client_secret_label">İstemci gizli anahtarı (Client secret)</string>
     <string name="addaccount_create_an_account_title">Bir hesap oluştur</string>
     <string name="addaccount_sign_in_button">Oturum aç</string>
     <string name="addaccount_region_section">Bölge</string>
     <string name="addaccount_region_us_type">Amerika Birleşik Devletleri</string>
     <string name="addaccount_region_eu_type">Avrupa</string>
-    <string name="addaccount_region_custom_type">Özel (kendi barındırdığınız)</string>
+    <string name="addaccount_region_custom_type">Özel (Kendi Barındırdığınız)</string>
     <string name="addaccount_http_header_section">HTTP başlıkları</string>
     <string name="addaccount_http_header_type">HTTP başlığı</string>
-    <string name="addaccount_http_header_note">Sunucuya her istekte gönderilecek özel HTTP başlıkları ekleyebilirsiniz.</string>
+    <string name="addaccount_http_header_note">Sunucuya yapılan her istekle birlikte gönderilecek özel HTTP başlıkları ekleyebilirsiniz.</string>
     <string name="addaccount_http_header_key_label">Anahtar</string>
     <string name="addaccount_http_header_value_label">Değer</string>
     <string name="addaccount_http_header_add_more_button">Daha fazla ekle</string>
     <string name="addaccount_base_env_server_url_label">Sunucu URL'si</string>
-    <string name="addaccount_base_env_note">Kendi barındırdığınız Bitwarden kurulumunuzun temel URL'sini belirtin.</string>
+    <string name="addaccount_base_env_note">Kendi barındırdığınız (self-hosted) Bitwarden kurulumunuzun temel URL'sini belirtin.</string>
     <string name="addaccount_custom_env_section">Özel ortam</string>
-    <string name="addaccount_custom_env_note">Her hizmetin temel URL'sini bağımsız olarak belirleyebilirsiniz.</string>
+    <string name="addaccount_custom_env_note">Her bir servisin temel URL'sini bağımsız olarak belirtebilirsiniz.</string>
     <string name="addaccount_custom_env_web_vault_url_label">Web Kasası Sunucu URL'si</string>
     <string name="addaccount_custom_env_api_url_label">API Sunucu URL'si</string>
-    <string name="addaccount_custom_env_icons_url_label">Simgeler Sunucu URL'si</string>
+    <string name="addaccount_custom_env_icons_url_label">Simgeler Sunucusu URL'si</string>
     <string name="addaccount_custom_env_identity_url_label">Kimlik Sunucusu URL'si</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Doğrulama</string>
     <string name="addaccount2fa_unsupported_note">Bu kimlik doğrulama yöntemi henüz desteklenmiyor.</string>
-    <string name="addaccount2fa_otp_note">Doğrulayıcı uygulamanızdan gelen doğrulama kodunu girin.</string>
-    <string name="addaccount2fa_email_note"><xliff:g id="email" example="username@example.com">%1$s</xliff:g> adresine e-postayla gönderilen doğrulama kodunu girin.</string>
-    <string name="addaccount2fa_yubikey_manual_text">YubiKey kimlik doğrulama kodunu manuel olarak girin. İmleci aşağıdaki alana yerleştirin ve YubiKey'i tetikleyin.</string>
+    <string name="addaccount2fa_otp_note">Kimlik doğrulayıcı uygulamanızdan doğrulama kodunu girin.</string>
+    <string name="addaccount2fa_email_note"><xliff:g id="email" example="username@example.com">%1$s</xliff:g> adresine gönderilen doğrulama kodunu girin.</string>
+    <string name="addaccount2fa_yubikey_manual_text">YubiKey doğrulama kodunu manuel olarak girin. İmleci aşağıdaki alana getirin ve YubiKey'i tetikleyin.</string>
     <string name="addkeepass_header_title">KeePass hesabı ekle</string>
-    <string name="addkeepass_header_body">Tüm parolalarınızı doğrudan cihazınızda saklanan tek, yüksek düzeyde şifrelenmiş bir KDBX dosyasında kaydedin. Verileriniz üzerinde tam kontrole sahipsiniz. Bilgisayarınızda, bir USB sürücüde saklayın veya Google Drive veya Dropbox gibi bir bulut hizmeti kullanarak kendiniz senkronize edin.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
-    <string name="provider_2fa_authenticator">Doğrulayıcı</string>
-    <string name="provider_2fa_duo_organization">Duo (Kuruluş)</string>
+    <string name="addkeepass_header_body">Tüm parolalarınızı doğrudan cihazınızda depolanan tek, yüksek düzeyde şifrelenmiş bir KDBX dosyasına kaydedin. Verileriniz üzerinde tam kontrole sahipsiniz. Bilgisayarınızda, USB sürücünüzde saklayın veya Syncthing, Google Drive veya Dropbox gibi bir hizmeti kullanarak kendiniz eşitleyin.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass uygulaması beta aşamasındadır ve standart KeePass istemcileriyle henüz tam uyumlu değildir. Riski size aittir. Devam etmeden önce lütfen veritabanınızın doğrulanmış bir yedeğine sahip olduğunuzdan emin olun.</string>
+    <string name="provider_2fa_authenticator">Kimlik Doğrulayıcı</string>
+    <string name="provider_2fa_duo_organization">Duo (Organizasyon)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web Kimlik Doğrulaması</string>
     <string name="provider_2fa_email">E-posta</string>
     <string name="provider_2fa_fido_u2f">FIDO U2F</string>
-    <string name="yubikey_usb_title">YubiKey'i USB ile bağlayın</string>
+    <string name="yubikey_usb_title">YubiKey'i USB üzerinden bağlayın</string>
     <string name="yubikey_usb_text">USB OTG desteği gerektirir.</string>
-    <string name="yubikey_usb_touch_the_gold_sensor_note">Şimdi YubiKey'inizdeki altın sensöre dokunun.</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">Şimdi YubiKey'inizdeki altın renkli sensöre dokunun.</string>
     <string name="yubikey_nfc_title">YubiKey'inizi cihazınızın arkasına düz bir şekilde tutun</string>
     <string name="yubikey_nfc_text">NFC desteği gerektirir.</string>
     <string name="yubikey_error_failed_to_read">YubiKey okunamadı</string>
-    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">FIDO2 WebAuthn kullanmak, Bitwarden Web kasasının <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> veya daha yüksek bir sürümünü kullanmayı gerektirir. Eski sürümlerde kimlik doğrulama sonucu yanlışlıkla resmi Bitwarden uygulamasına yönlendirilecektir.</string>
+    <string name="yubikey_unlock_error_unsupported_title">YubiKey ile kilit açma desteklenmiyor</string>
+    <string name="yubikey_unlock_error_unsupported_text">Bu YubiKey veya bağlantı türü challenge-response kilit açma özelliğini desteklemiyor.</string>
+    <string name="yubikey_unlock_error_failed_title">YubiKey kullanılamadı</string>
+    <string name="yubikey_unlock_error_failed_text">YubiKey'i tekrar deneyin veya parolanızla kasanın kilidini açın.</string>
+    <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">FIDO2 WebAuthn kullanmak için Bitwarden Web kasasının <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> veya daha yeni bir sürümü kullanılmalıdır. Eski sürümlerde kimlik doğrulama sonucu yanlışlıkla resmi Bitwarden uygulamasına iletilir.</string>
     <string name="elevatedaccess_header_title">Erişimi onayla</string>
-    <string name="elevatedaccess_header_text">Bu veri korunuyor, devam etmek için lütfen uygulama parolanızı girin.</string>
+    <string name="elevatedaccess_header_text">Bu veriler korunmaktadır, devam etmek için lütfen uygulama parolanızı girin.</string>
     <!-- A title of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_title">Erişimi onayla</string>
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
-    <string name="elevatedaccess_biometric_auth_confirm_text">Erişiminizi onaylamak ve bu verinin kilidini açmak için biyometrik kimlik doğrulama kullanın.</string>
+    <string name="elevatedaccess_biometric_auth_confirm_text">Erişiminizi onaylamak ve bu verilerin kilidini açmak için biyometrik kimlik doğrulaması kullanın.</string>
     <string name="home_vault_label">Kasa</string>
-    <string name="home_send_label">Gönderi</string>
+    <string name="home_favorites_label">Favoriler</string>
+    <string name="home_other_label">Diğer</string>
+    <string name="home_send_label">Gönder</string>
     <string name="home_generator_label">Oluşturucu</string>
-    <string name="home_watchtower_label">Gözcü Kulesi</string>
+    <string name="home_watchtower_label">Watchtower</string>
     <string name="home_settings_label">Ayarlar</string>
     <string name="lock_reason_inactivity">Hareketsizlik nedeniyle kilitlendi</string>
-    <string name="lock_reason_screen_off">Ekran kapalı olduğu için kilitlendi</string>
+    <string name="lock_reason_screen_off">Ekran kapanması nedeniyle kilitlendi</string>
     <string name="lock_reason_manually">Manuel olarak kilitlendi</string>
     <string name="send_type_text">Metin</string>
     <string name="send_type_file">Dosya</string>
-    <string name="cipher_type_login">Giriş</string>
+    <string name="send_auth_title">Kimler görebilir</string>
+    <string name="send_auth_type_none">Bağlantıya sahip herkes</string>
+    <string name="send_auth_type_password">Bağlantıya ve parolaya sahip olanlar</string>
+    <string name="send_auth_type_email">Belirli kişiler</string>
+    <string name="cipher_type_login">Oturum Açma</string>
     <string name="cipher_type_card">Kart</string>
     <string name="cipher_type_identity">Kimlik</string>
     <string name="cipher_type_note">Not</string>
     <string name="cipher_type_ssh_key">SSH Anahtarı</string>
     <string name="cipher_type_passkey">Geçiş Anahtarı</string>
     <string name="field_type_text">Metin</string>
-    <string name="field_type_text_concealed">Metin (gizlenmiş)</string>
-    <string name="field_type_boolean">Doğru/Yanlış</string>
-    <string name="field_type_linked">Bağlı</string>
+    <string name="field_type_text_concealed">Metin (Gizli)</string>
+    <string name="field_type_boolean">Mantıksal (Boolean)</string>
+    <string name="field_type_linked">Bağlantılı</string>
     <!--
         Displayed below a password that was exposed in the known data breached. It
         ok to use other synonyms like 'exposed' or 'compromised' to avoid rude words. -->
-    <string name="password_pwned_label">Ele Geçirilmiş</string>
-    <string name="password_strength_very_strong_label">Çok güçlü</string>
+    <string name="password_pwned_label">Açığa çıkmış</string>
+    <string name="password_strength_very_strong_label">Çok Güçlü</string>
     <string name="password_strength_strong_label">Güçlü</string>
     <string name="password_strength_good_label">İyi</string>
     <string name="password_strength_fair_label">Orta</string>
@@ -782,78 +915,128 @@
     <string name="passwords_very_strong_label">Çok güçlü parolalar</string>
     <string name="passwords_strong_label">Güçlü parolalar</string>
     <string name="passwords_good_label">İyi parolalar</string>
-    <string name="passwords_fair_label">Orta düzey parolalar</string>
+    <string name="passwords_fair_label">Orta parolalar</string>
     <string name="passwords_weak_label">Zayıf parolalar</string>
     <string name="customfilters_header_title">Özel filtreler</string>
     <string name="customfilters_search_placeholder">Filtrelerde ara</string>
-    <string name="customfilters_dynamic_shortcut_tip">Ana ekranınıza bir kısayol ekleyerek filtreleri hızlıca uygulayabilirsiniz.</string>
+    <string name="customfilters_dynamic_shortcut_tip">Ana ekranınıza bir kısayol ekleyerek filtreleri hızla uygulayabilirsiniz.</string>
     <string name="customfilters_delete_one_confirmation_title">Filtre silinsin mi?</string>
     <string name="customfilters_delete_many_confirmation_title">Filtreler silinsin mi?</string>
     <string name="customfilters_edit_filter_title">Özel bir filtreyi düzenle</string>
     <string name="customfilters_add_filter_title">Özel bir filtre ekle</string>
     <string name="filter_header_title">Filtrele</string>
     <string name="filter_empty_label">Kullanılabilir filtre yok</string>
-    <string name="sort_header_title">Sırala</string>
-    <string name="sort_empty_label">Kullanılabilir sıralama yok</string>
+    <string name="ssh_agent_filters_header_title">SSH aracısı filtreleri</string>
+    <string name="ssh_agent_filters_note_save_to_apply">Değişiklikler Kaydet tuşuna bastıktan sonra uygulanır.</string>
+    <string name="ssh_agent_history_header_title">SSH agent history</string>
+    <string name="ssh_agent_history_request_list_keys">List keys</string>
+    <string name="ssh_agent_history_request_sign_data">Sign data</string>
+    <string name="ssh_agent_history_response_success">Success</string>
+    <string name="ssh_agent_history_response_user_denied">Denied</string>
+    <string name="ssh_agent_history_response_key_not_found">Key not found</string>
+    <string name="ssh_agent_history_response_failure">Failed</string>
+    <string name="ssh_agent_history_unknown_caller">Unknown caller</string>
+    <string name="ssh_agent_history_unknown_key">Unknown key</string>
+    <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
+    <string name="ssh_agent_history_clear_history_title">Clear history</string>
+    <string name="ssh_agent_history_clear_history_confirmation_title">Clear SSH agent history?</string>
+    <string name="ssh_agent_history_clear_history_confirmation_text">This will remove all SSH agent usage history.</string>
+    <string name="ssh_agent_setup_header_title">SSH istemci kurulumu</string>
+    <string name="ssh_agent_setup_intro">Özel anahtar materyalini ifşa etmeden onaylanmış anahtarlarınızla kimlik doğrulama veya imzalama yapabilmesi için Keyguard'ın SSH aracısına bağlanacak bir SSH istemcisi kurun.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Keyguard'da SSH aracısını etkinleştirin</string>
+    <string name="ssh_agent_setup_step_1_text">Güvenlik ayarlarını açın ve SSH aracısını etkinleştirin.</string>
+    <string name="ssh_agent_setup_step_2_title">2. SSH istemcinizi yapılandırın</string>
+    <string name="ssh_agent_setup_step_2_text">SSH istemcinizi Keyguard'ın soket yoluna (socket path) yönlendirin.</string>
+    <string name="ssh_agent_setup_linux_socket_fallback_note">Geri dönüş yolu: Bunu oturumunuzda XDG_RUNTIME_DIR kullanılamadığında kullanın.</string>
+    <string name="ssh_agent_setup_option_env_tab">Env</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">Yapılandırma</string>
+    <string name="ssh_agent_setup_option_env_label">SSH_AUTH_SOCK değişkenini Keyguard'ın soket yoluna ayarlayın.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">SSH yapılandırmanızda IdentityAgent'ı ayarlayın.</string>
+    <string name="ssh_agent_setup_step_3_title">3. Doğrulayın</string>
+    <string name="ssh_agent_setup_step_3_text">Bu komutları aracıyı yapılandırdığınız aynı kabuk (shell) oturumunda çalıştırın.</string>
+    <string name="ssh_agent_setup_windows_title">Windows</string>
+    <string name="ssh_agent_setup_windows_text">Mevcut Keyguard masaüstü SSH aracısı çalışma zamanı henüz Windows'ta mevcut değildir, bu nedenle buradaki kurulum sadece bilgi amaçlıdır.</string>
+    <string name="ssh_agent_setup_android_termux_text">Android'de Keyguard, SSH aracısını özel bir yardımcı paket aracılığıyla sağlar. Keyguard'da SSH aracısını etkinleştirin, paketi kurup yapılandırın ve SSH istemciniz bağlandığında istekleri onaylayın.</string>
+    <string name="ssh_agent_setup_android_termux_step_1_title">Termux'u yükle</string>
+    <string name="ssh_agent_setup_android_termux_step_1_text">Termux, bir Android terminal uygulaması ve Linux ortamıdır.</string>
+    <string name="ssh_agent_setup_android_termux_step_2_title">Paketi yükle</string>
+    <string name="ssh_agent_setup_android_termux_step_2_text">Termux'u açın ve paketi özel bir APT deposundan yükleyin:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_title">SSH istemcinizi yapılandırın</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Paketi başlatın ve soketi mevcut kabuğunuza (shell) aktarın:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">Paketin Termux her başladığında otomatik olarak çalışmasını istiyorsanız, kabuk (shell) başlangıç dosyanıza ekleyin:</string>
+    <string name="ssh_agent_setup_android_termux_step_4_title">Doğrula</string>
+    <string name="ssh_agent_setup_android_termux_step_4_text">Bu komutları aracıyı yapılandırdığınız aynı kabuk (shell) oturumunda çalıştırın.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_title">Nasıl çalışır?</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_1">SSH aracısı, SSH araçlarından gelen istekleri alır ve hassas işlemleri kendisi yürütmek yerine Keyguard uygulamasına yönlendirir.</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_2">İletişim iki aşamada gerçekleşir: Aracı önce bir oturum başlatması için uygulamaya sinyal gönderir, ardından her iki taraf yerel bir TCP kanalı üzerinden bağlanır ve şifreli mesaj alışverişinde bulunur. Asıl işlemleri Keyguard uygulaması gerçekleştirirken, SSH aracısı bir aktarıcı (relay) görevi görür.</string>
+    <string name="ssh_agent_request_approval_sign_title">SSH İmzalama Talebi</string>
+    <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> verileri imzalamak için aşağıdaki SSH anahtarını kullanmak istiyor:</string>
+    <string name="ssh_agent_request_approval_sign_message_unknown_app">Bir uygulama verileri imzalamak için aşağıdaki SSH anahtarını kullanmak istiyor:</string>
+    <string name="ssh_client_request">SSH istemci talebi</string>
+    <string name="sort_header_title">Sıralama ölçütü</string>
+    <string name="sort_empty_label">Sıralama kullanılamıyor</string>
     <string name="sortby_title_title">Başlık</string>
     <string name="sortby_title_normal_mode">Alfabetik</string>
     <string name="sortby_title_reverse_mode">Ters Alfabetik</string>
     <string name="sortby_access_count_title">Erişim sayısı</string>
-    <string name="sortby_access_count_normal_mode">En Büyükten Başlayarak</string>
-    <string name="sortby_access_count_reverse_mode">En Küçükten Başlayarak</string>
-    <string name="sortby_modification_date_title">Değiştirme tarihi</string>
-    <string name="sortby_modification_date_normal_mode">En Yeniden Başlayarak</string>
-    <string name="sortby_modification_date_reverse_mode">En Eskiden Başlayarak</string>
-    <string name="sortby_installation_date_title">Kurulum tarihi</string>
-    <string name="sortby_installation_date_normal_mode">En Yeniden Başlayarak</string>
-    <string name="sortby_installation_date_reverse_mode">En Eskiden Başlayarak</string>
+    <string name="sortby_access_count_normal_mode">Önce En Büyük</string>
+    <string name="sortby_access_count_reverse_mode">Önce En Küçük</string>
+    <string name="sortby_modification_date_title">Değiştirilme tarihi</string>
+    <string name="sortby_modification_date_normal_mode">Önce En Yeni</string>
+    <string name="sortby_modification_date_reverse_mode">Önce En Eski</string>
+    <string name="sortby_installation_date_title">Yüklenme tarihi</string>
+    <string name="sortby_installation_date_normal_mode">Önce En Son</string>
+    <string name="sortby_installation_date_reverse_mode">Önce En Eski</string>
     <string name="sortby_expiration_date_title">Son kullanma tarihi</string>
-    <string name="sortby_expiration_date_normal_mode">En Yeniden Başlayarak</string>
-    <string name="sortby_expiration_date_reverse_mode">En Eskiden Başlayarak</string>
+    <string name="sortby_expiration_date_normal_mode">Önce En Yeni</string>
+    <string name="sortby_expiration_date_reverse_mode">Önce En Eski</string>
     <string name="sortby_deletion_date_title">Silinme tarihi</string>
-    <string name="sortby_deletion_date_normal_mode">En Yeniden Başlayarak</string>
-    <string name="sortby_deletion_date_reverse_mode">En Eskiden Başlayarak</string>
+    <string name="sortby_deletion_date_normal_mode">Önce En Yeni</string>
+    <string name="sortby_deletion_date_reverse_mode">Önce En Eski</string>
     <string name="sortby_password_title">Parola</string>
     <string name="sortby_password_normal_mode">Alfabetik</string>
     <string name="sortby_password_reverse_mode">Ters Alfabetik</string>
-    <string name="sortby_password_modification_date_title">Parola değiştirme tarihi</string>
-    <string name="sortby_password_modification_date_normal_mode">En Yeniden Başlayarak</string>
-    <string name="sortby_password_modification_date_reverse_mode">En Eskiden Başlayarak</string>
+    <string name="sortby_password_modification_date_title">Parola değiştirilme tarihi</string>
+    <string name="sortby_password_modification_date_normal_mode">Önce En Yeni</string>
+    <string name="sortby_password_modification_date_reverse_mode">Önce En Eski</string>
     <string name="sortby_password_strength_title">Parola gücü</string>
-    <string name="sortby_password_strength_normal_mode">En Zayıftan Başlayarak</string>
-    <string name="sortby_password_strength_reverse_mode">En Güçlüden Başlayarak</string>
+    <string name="sortby_password_strength_normal_mode">Önce En Zayıf</string>
+    <string name="sortby_password_strength_reverse_mode">Önce En Güçlü</string>
     <string name="relative_time_just_now_short">şimdi</string>
     <string name="relative_time_minute_short"><xliff:g id="minute" example="1">%1$s</xliff:g>d önce</string>
     <string name="relative_time_hour_short"><xliff:g id="hour" example="1">%1$s</xliff:g>s önce</string>
     <string name="relative_time_day_short"><xliff:g id="day" example="1">%1$s</xliff:g>g önce</string>
     <string name="relative_time_week_short"><xliff:g id="week" example="1">%1$s</xliff:g>h önce</string>
     <string name="vault_main_search_placeholder">Kasada ara</string>
-    <string name="vault_main_new_item_button">Yeni öğe</string>
-    <string name="vault_main_no_suggested_items">Bu bağlam için önerilen öğe yok</string>
+    <string name="vault_main_new_item_button">Yeni öge</string>
+    <string name="vault_main_no_suggested_items">Bu bağlam için önerilen öge bulunmamaktadır</string>
     <!-- A label for the CVV code of the card -->
     <string name="vault_view_card_cvv_label">Güvenlik kodu</string>
-    <string name="vault_view_saved_to_label"><xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g> adresindeki <xliff:g id="email" example="username@example.com">%1$s</xliff:g> hesabına kaydedildi</string>
+    <string name="vault_view_saved_to_label"><xliff:g id="host" example="vault.bitwarden.com">%2$s</xliff:g> adresinde <xliff:g id="email" example="username@example.com">%1$s</xliff:g> için kaydedildi</string>
     <string name="vault_view_saved_to_account_name_label"><xliff:g id="name" example="My KeePass database">%1$s</xliff:g> hesabına kaydedildi</string>
-    <string name="vault_view_password_revision_label">Parola son değiştirilme tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_password_revision_label">Parolanın son değiştirilme tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_passkey_created_at_label">Geçiş anahtarı oluşturulma tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_revision_label">Son değiştirilme tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_created_at_label">Oluşturulma tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_archived_at_label">Arşivlenme tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_deleted_at_label">Silinme tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="vault_view_expired_at_label">Süresi dolma tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_expiration_scheduled_at_label">Süresi dolma planı: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="vault_view_deletion_scheduled_at_label">Silinme planı: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_expiration_scheduled_at_label">Zamanlanmış süre dolma tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="vault_view_deletion_scheduled_at_label">Zamanlanmış silinme tarihi: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <!-- Call the phone number. The text should be as short as possible! -->
     <string name="vault_view_call_phone_action">Ara</string>
     <!-- Text the phone number (SMS). The text should be as short as possible! -->
-    <string name="vault_view_text_phone_action">Mesaj</string>
+    <string name="vault_view_text_phone_action">SMS Gönder</string>
     <!-- Compose an email. The text should be as short as possible! -->
     <string name="vault_view_email_action">E-posta</string>
     <!-- Open navigation to address. The text should be as short as possible! -->
     <string name="vault_view_navigate_action">Yol Tarifi</string>
     <string name="send_main_header_title">Gönderiler</string>
     <string name="send_main_search_placeholder">Gönderilerde ara</string>
-    <string name="send_main_new_item_button">Yeni öğe</string>
-    <string name="send_password_is_required_to_access_label">Bu paylaşıma erişmek için bir parola gereklidir</string>
+    <string name="send_main_new_item_button">Yeni öge</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
+    <string name="send_email_is_required_to_access_label">E-posta onaylı alıcılar bu paylaşıma erişebilir</string>
+    <string name="send_password_is_required_to_access_label">Bu paylaşıma erişmek için parola gereklidir</string>
     <string name="generator_header_title">Oluşturucu</string>
     <string name="generator_header_username_title">Kullanıcı adı oluşturucu</string>
     <string name="generator_header_password_title">Parola oluşturucu</string>
@@ -862,18 +1045,18 @@
     <string name="generator_regenerate_button">Yeniden oluştur</string>
     <!-- 'Use' generated password as a password -->
     <string name="generator_use_button">Kullan</string>
-    <string name="generator_passphrase_type">Parola Cümlesi</string>
-    <string name="generator_passphrase_note">Rastgele parola cümleleri, ezberlenebilirlik ve güvenliğin en iyi kombinasyonunu sunar.</string>
+    <string name="generator_passphrase_type">Parola cümlesi</string>
+    <string name="generator_passphrase_note">Rastgele parola cümleleri akılda kalıcılık ve güvenliğin en iyi kombinasyonunu sağlar.</string>
     <string name="generator_passphrase_delimiter_title">Ayırıcı</string>
-    <string name="generator_passphrase_capitalize_title">Büyük Harfle Başlat</string>
+    <string name="generator_passphrase_capitalize_title">Büyük Harf</string>
     <string name="generator_passphrase_number_title">Sayı</string>
     <string name="generator_passphrase_wordlist_title">Kelime listesi</string>
     <string name="generator_pin_code_type">PIN</string>
-    <string name="generator_pin_code_note">Neredeyse her 10 kişiden biri aynı dört haneli PIN'i kullanır. Yaygın varyantlardan kaçınmak için PIN'ler oluşturun.</string>
-    <string name="generator_username_type">Kullanıcı Adı</string>
+    <string name="generator_pin_code_note">Neredeyse 10 kişiden biri aynı dört haneli PIN'i kullanıyor. Yaygın varyantlardan kaçınmak için PIN oluşturun.</string>
+    <string name="generator_username_type">Kullanıcı adı</string>
     <string name="generator_username_delimiter_title">Ayırıcı</string>
     <string name="generator_username_custom_word_title">Özel kelime</string>
-    <string name="generator_username_capitalize_title">Büyük Harfle Başlat</string>
+    <string name="generator_username_capitalize_title">Büyük Harf</string>
     <string name="generator_username_number_title">Sayı</string>
     <string name="generator_username_wordlist_title">Kelime listesi</string>
     <string name="generator_password_type">Rastgele semboller</string>
@@ -883,112 +1066,125 @@
     <string name="generator_password_uppercase_letters_title">Büyük harfler</string>
     <string name="generator_password_lowercase_letters_title">Küçük harfler</string>
     <!-- An option to exclude symbols like this: il1Lo0O -->
-    <string name="generator_password_exclude_similar_symbols_title">Benzer sembolleri hariç tut</string>
+    <string name="generator_password_exclude_similar_symbols_title">Benzer karakterleri hariç tut</string>
     <!-- An option to exclude symbols like this: {}[]()/'"`~,;:.<> -->
-    <string name="generator_password_exclude_ambiguous_symbols_title">Belirsiz sembolleri hariç tut</string>
-    <string name="generator_email_catch_all_type">Tümünü yakala e-postası</string>
-    <string name="generator_email_catch_all_note">Tümünü yakala e-posta adresi, kullanıcılara alan adlarına gönderilen tüm postaları, alan adları için ayarlanmamış bir e-posta adresine gönderilseler bile alma seçeneği sunar. Kullanmadan önce e-posta barındırma hizmetinizin bu özelliği desteklediğinden emin olun.</string>
+    <string name="generator_password_exclude_ambiguous_symbols_title">Kafa karıştırıcı sembolleri hariç tut</string>
+    <string name="generator_email_catch_all_type">Tümünü Yakala (Catch-all) e-posta</string>
+    <string name="generator_email_catch_all_note">Tümünü yakala e-posta adresi (catch-all), kullanıcılara alan adları için ayarlanmamış bir e-posta adresine gönderilmiş olsa bile alan adlarına gönderilen tüm postaları alma seçeneği sunar. Bu özelliği kullanmadan önce e-posta barındırıcınızın bunu desteklediğinden emin olun.</string>
     <!-- Referring to a website domain -->
     <string name="generator_email_catch_all_domain_title">Alan adı</string>
-    <string name="generator_email_plus_addressing_type">Artı adresleme e-postası</string>
-    <string name="generator_email_plus_addressing_note"><xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> adresine gönderilen tüm e-postalar yine de hesabınıza gönderilir. Bu, farklı kişilere, sitelere veya posta listelerine vermek için e-posta adresinizde birçok varyasyonunuz olabileceği anlamına gelir. Kullanmadan önce e-posta barındırma hizmetinizin bu özelliği desteklediğinden emin olun.</string>
+    <string name="generator_email_plus_addressing_type">Artı işaretli e-posta yönlendirme</string>
+    <string name="generator_email_plus_addressing_note">Artı işaretli adresleme (plus addressing), <xliff:g id="email" example="username+abc@example.com">%1$s</xliff:g> adresine gönderilen herhangi bir e-postanın hesabınıza gönderilmesi anlamına gelir. Bu, farklı kişilere, sitelere veya posta listelerine vermek için e-posta adresinizin birçok varyasyonuna sahip olabileceğiniz anlamına gelir. Bu özelliği kullanmadan önce e-posta barındırıcınızın bunu desteklediğinden emin olun.</string>
     <string name="generator_email_plus_addressing_email_title">E-posta</string>
-    <string name="generator_email_subdomain_addressing_type">Alt alan adı adresleme e-postası</string>
-    <string name="generator_email_subdomain_addressing_note"><xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> adresine gönderilen tüm e-postalar yine de hesabınıza gönderilir. Bu, farklı kişilere, sitelere veya posta listelerine vermek için e-posta adresinizde birçok varyasyonunuz olabileceği anlamına gelir. Kullanmadan önce e-posta barındırma hizmetinizin bu özelliği desteklediğinden emin olun.</string>
+    <string name="generator_email_subdomain_addressing_type">Alt alan adı ile e-posta yönlendirme</string>
+    <string name="generator_email_subdomain_addressing_note">Alt alan adı ile adresleme, <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> adresine gönderilen e-postaların hesabınıza ulaşması anlamına gelir. Bu sayede farklı kişilere veya sitelere vermek için e-posta adresinizde birçok varyasyon oluşturabilirsiniz. Bunu kullanmadan önce e-posta hizmetinizin desteklediğinden emin olun.</string>
     <string name="generator_email_subdomain_addressing_email_title">E-posta</string>
-    <string name="generator_email_forward_alias_type">Yönlendirilen e-posta takma adı</string>
+    <string name="generator_email_forward_alias_type">Yönlendirilmiş e-posta rumuzu (Alias)</string>
     <string name="generator_key_length_title">Uzunluk</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bit</string>
-    <string name="generator_key_rsa_note">Tüm SSH istemcileri bu algoritmayı destekler. RSA için en az 2048 bit anahtar boyutu önerilir; 4096 bit daha iyidir. RSA algoritmasının öngörülebilir gelecekte pratik olarak kırılabilir hale gelmesi oldukça olasıdır.</string>
+    <string name="generator_key_rsa_note">Tüm SSH istemcileri bu algoritmayı destekler. RSA için en az 2048 bit anahtar boyutu önerilir; 4096 bit daha iyidir. Öngörülebilir gelecekte RSA algoritmasının pratik olarak kırılabilir hale gelmesi oldukça olasıdır.</string>
     <string name="generator_key_rsa_text">Tüm SSH sunucularıyla uyumlu</string>
     <string name="generator_key_ed25519_note">Bu en hızlı ve en modern standarttır. SSH istemcilerindeki destek henüz evrensel değildir.</string>
     <string name="generator_key_ed25519_text">Hızlı ve en modern standart</string>
-    <string name="generator_create_item_with_password_title">Parola ile yeni giriş oluştur</string>
-    <string name="generator_create_item_with_username_title">Kullanıcı adı ile yeni giriş oluştur</string>
-    <string name="generator_create_item_with_ssh_key_title">Yeni SSH Anahtarı öğesi oluştur</string>
+    <string name="generator_create_item_with_password_title">Parola ile yeni oturum açma ögesi oluştur</string>
+    <string name="generator_create_item_with_username_title">Kullanıcı adıyla yeni oturum açma ögesi oluştur</string>
+    <string name="generator_create_item_with_ssh_key_title">Yeni SSH Anahtarı ögesi oluştur</string>
     <string name="generator_password_history_title">Parola geçmişi</string>
     <string name="generator_show_tips_title">İpuçlarını göster</string>
     <string name="generatorhistory_header_title">Oluşturucu geçmişi</string>
     <string name="generatorhistory_clear_history_title">Geçmişi temizle</string>
     <string name="generatorhistory_clear_history_confirmation_title">Oluşturucu geçmişi temizlensin mi?</string>
-    <string name="generatorhistory_clear_history_confirmation_text">Bu, geçmişteki tüm öğeleri kaldıracaktır.</string>
-    <string name="generatorhistory_delete_one_confirmation_title">Öğe geçmişten silinsin mi?</string>
-    <string name="generatorhistory_delete_many_confirmation_title">Öğeler geçmişten silinsin mi?</string>
+    <string name="generatorhistory_clear_history_confirmation_text">Bu, tüm ögeleri geçmişten kaldıracaktır.</string>
+    <string name="generatorhistory_delete_one_confirmation_title">Öge geçmişten silinsin mi?</string>
+    <string name="generatorhistory_delete_many_confirmation_title">Ögeler geçmişten silinsin mi?</string>
     <string name="passwordhistory_header_title">Parola geçmişi</string>
     <string name="passwordhistory_clear_history_title">Geçmişi temizle</string>
     <string name="passwordhistory_clear_history_confirmation_title">Parola geçmişi temizlensin mi?</string>
-    <string name="passwordhistory_clear_history_confirmation_text">Bu, geçmişteki tüm parolaları kaldıracaktır.</string>
+    <string name="passwordhistory_clear_history_confirmation_text">Bu, tüm parolaları geçmişten kaldıracaktır.</string>
     <string name="passwordhistory_delete_one_confirmation_title">Parola geçmişten silinsin mi?</string>
     <string name="passwordhistory_delete_many_confirmation_title">Parolalar geçmişten silinsin mi?</string>
     <string name="block_autofill_header_title">Otomatik doldurmayı engelle</string>
-    <string name="watchtower_header_title">Gözcü Kulesi</string>
+    <string name="watchtower_header_title">Watchtower</string>
     <string name="watchtower_section_password_strength_label">Parola gücü</string>
     <string name="watchtower_section_security_label">Güvenlik</string>
     <string name="watchtower_section_maintenance_label">Bakım</string>
     <string name="watchtower_item_new_alerts_title">Yeni uyarıları incele</string>
     <string name="watchtower_item_weak_passwords_title">Zayıf Parolalar</string>
-    <string name="watchtower_item_pwned_passwords_title">Ele Geçirilmiş Parolalar</string>
-    <string name="watchtower_item_pwned_passwords_text">Veri sızıntılarında açığa çıkmış parolalar. Bu tür parolalar derhal değiştirilmelidir.</string>
-    <string name="watchtower_item_reused_passwords_title">Tekrar Kullanılan Parolalar</string>
-    <string name="watchtower_item_reused_passwords_text">Birden fazla web sitesinde aynı parolayı kullanmayın. Güvenliği artırmak için benzersiz parolalar oluşturun.</string>
+    <string name="watchtower_item_pwned_passwords_title">Açığa Çıkmış Parolalar</string>
+    <string name="watchtower_item_pwned_passwords_text">Veri ihlallerinde ifşa olan parolalar. Bu tür parolalar derhal değiştirilmelidir.</string>
+    <string name="watchtower_item_reused_passwords_title">Yeniden Kullanılan Parolalar</string>
+    <string name="watchtower_item_reused_passwords_text">Aynı parolayı birden fazla web sitesinde kullanmayın. Güvenliği artırmak için benzersiz parolalar oluşturun.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Savunmasız Hesaplar</string>
-    <string name="watchtower_item_vulnerable_accounts_text">Parolanızı son değiştirdiğinizden bu yana bir veri sızıntısından etkilenen siteler. Hesabınızı güvende tutmak için parolanızı değiştirin.</string>
+    <string name="watchtower_item_vulnerable_accounts_text">Parolanızı en son değiştirdiğinizden beri veri ihlalinden etkilenen siteler. Hesabınızı güvende tutmak için parolanızı değiştirin.</string>
     <string name="watchtower_item_unsecure_websites_title">Güvensiz Web Siteleri</string>
-    <string name="watchtower_item_unsecure_websites_text">HTTP protokolü kullanan URL'leri HTTPS protokolü kullanacak şekilde değiştirin, çünkü ikincisi mevcut en gelişmiş şifrelemeyi kullanır.</string>
-    <string name="watchtower_item_inactive_2fa_title">Etkin olmayan iki faktörlü kimlik doğrulama</string>
-    <string name="watchtower_item_inactive_2fa_text">İki faktörlü kimlik doğrulamanın mevcut olduğu ancak henüz ayarlamadığınız siteler.</string>
-    <string name="watchtower_item_inactive_passkey_title">Mevcut Geçiş Anahtarları</string>
-    <string name="watchtower_item_inactive_passkey_text">Geçiş anahtarının mevcut olduğu ancak henüz ayarlamadığınız siteler. Paroladan daha basit ve daha güvenlidir.</string>
-    <string name="watchtower_item_incomplete_items_title">Eksik Öğeler</string>
-    <string name="watchtower_item_incomplete_items_text">Kasanızdaki eksik veya tamamlanmamış verileri belirlemenize yardımcı olur. Bu, eksik adları olan kimlikleri veya kullanıcı adı olmayan girişleri ifade edebilir.</string>
-    <string name="watchtower_item_expiring_items_title">Süresi Dolan Öğeler</string>
-    <string name="watchtower_item_expiring_items_text">Süresi dolmuş veya yakında dolacak olan öğeler.</string>
-    <string name="watchtower_item_duplicate_websites_title">Yinelenen URI'ler</string>
-    <string name="watchtower_item_duplicate_websites_text">Eşleştirme tespiti uygulandıktan sonra aynı web sitelerini kapsayan bir veya daha fazla URI'ye sahip öğeler.</string>
-    <string name="watchtower_item_broad_websites_title">Geniş URI eşleştirme tespiti</string>
-    <string name="watchtower_item_broad_websites_text">Eşleştirme tespit kurallarının muhtemelen daraltılması gereken bir veya daha fazla URI'ye sahip öğeler.</string>
-    <string name="watchtower_item_trashed_items_title">Çöpe Atılmış Öğeler</string>
-    <string name="watchtower_item_trashed_items_text">Çöp kutusuna taşınmış öğeler. Çöp kutusunda çok fazla öğe olması, kasanızdaki işlemleri yavaşlatabilir.</string>
+    <string name="watchtower_item_unsecure_websites_text">HTTP protokolünü kullanan URL'leri, mevcut en gelişmiş şifrelemeyi kullandığı için HTTPS protokolünü kullanacak şekilde değiştirin.</string>
+    <string name="watchtower_item_inactive_2fa_title">Etkin Olmayan İki Faktörlü Kimlik Doğrulama</string>
+    <string name="watchtower_item_inactive_2fa_text">İki faktörlü kimlik doğrulama sunan ancak henüz kurmadığınız siteler.</string>
+    <string name="watchtower_item_inactive_passkey_title">Kullanılabilir Geçiş Anahtarları</string>
+    <string name="watchtower_item_inactive_passkey_text">Geçiş anahtarları bulunan ancak henüz kurmadığınız siteler. Geçiş anahtarları parolalara göre daha basit ve güvenlidir.</string>
+    <string name="watchtower_item_incomplete_items_title">Eksik Ögeler</string>
+    <string name="watchtower_item_incomplete_items_text">Kasanızdaki eksik verileri belirlemenize yardımcı olur. Bu durum isimleri eksik kimlikleri veya kullanıcı adları olmayan hesapları kapsayabilir.</string>
+    <string name="watchtower_item_expiring_items_title">Süresi Dolan Ögeler</string>
+    <string name="watchtower_item_expiring_items_text">Süresi dolmuş veya yakında dolacak olan ögeler.</string>
+    <string name="watchtower_item_duplicate_websites_title">Kopya URI'ler</string>
+    <string name="watchtower_item_duplicate_websites_text">Eşleşme algılaması uygulandıktan sonra aynı web sitelerini kapsayan bir veya birden fazla URI'si bulunan ögeler.</string>
+    <string name="watchtower_item_broad_websites_title">Geniş kapsamlı URI eşleşme algılaması</string>
+    <string name="watchtower_item_broad_websites_text">Eşleşme algılama kuralları muhtemelen daraltılması gereken bir veya daha fazla URI'ye sahip ögeler.</string>
+    <string name="watchtower_item_trashed_items_title">Çöpteki Ögeler</string>
+    <string name="watchtower_item_trashed_items_text">Çöp kutusuna taşınmış ögeler. Çöpte çok fazla ögenin bulunması kasanızla ilgili işlemleri yavaşlatabilir.</string>
     <string name="watchtower_item_empty_folders_title">Boş Klasörler</string>
-    <string name="watchtower_item_empty_folders_text">İçinde hiç öğe olmayan klasörler.</string>
-    <string name="watchtower_item_duplicate_items_title">Yinelenen Öğeler</string>
-    <string name="watchtower_item_duplicate_items_text">Kasanızdaki yinelenen öğeleri belirlemenize ve ortadan kaldırmanıza yardımcı olur.</string>
-    <string name="watchtower_item_compromised_accounts_title">Risk Altındaki Hesaplar</string>
-    <string name="watchtower_item_compromised_accounts_text">Kullanıcı adı veya e-posta adresine göre veri sızıntılarını kontrol edin.</string>
-    <string name="watchtower_notification_new_alerts_title">Yeni Gözcü Kulesi uyarıları</string>
-    <string name="watchtower_alerts_header_title">Yeni gözcü kulesi uyarıları</string>
+    <string name="watchtower_item_empty_folders_text">İçinde herhangi bir öge bulunmayan klasörler.</string>
+    <string name="watchtower_item_duplicate_items_title">Kopya Ögeler</string>
+    <string name="watchtower_item_duplicate_items_text">Kasanızdaki kopya ögeleri belirlemenize ve kaldırmanıza yardımcı olur.</string>
+    <string name="watchtower_item_compromised_accounts_title">Tehlikeye Girmiş Hesaplar</string>
+    <string name="watchtower_item_compromised_accounts_text">Kullanıcı adı veya e-posta adresine göre veri ihlallerini kontrol edin.</string>
+    <string name="watchtower_notification_new_alerts_title">Yeni Watchtower uyarıları</string>
+    <string name="watchtower_alerts_header_title">Yeni Watchtower uyarıları</string>
     <string name="watchtower_mark_all_as_read_title">Tümünü okundu olarak işaretle</string>
+    <string name="notification_vault_backup_title">Backing up vault</string>
+    <string name="notification_vault_backup_step_preparing">Preparing backup</string>
+    <string name="notification_vault_backup_step_opening_repository">Opening backup repository</string>
+    <string name="notification_vault_backup_step_exporting_vault">Exporting vault data</string>
+    <string name="notification_vault_backup_step_scanning_attachments">Scanning attachments</string>
+    <string name="notification_vault_backup_step_backing_up_attachments">Backing up attachments</string>
+    <string name="notification_vault_backup_step_writing_index">Writing backup index</string>
+    <string name="notification_vault_backup_step_writing_snapshot">Writing snapshot</string>
+    <string name="notification_vault_backup_step_applying_retention">Applying retention</string>
+    <string name="notification_vault_backup_progress_bytes">%1$s / %2$s</string>
+    <string name="notification_vault_backup_progress_items">%1$d / %2$d</string>
     <string name="changepassword_header_title">Uygulama parolasını değiştir</string>
     <string name="changepassword_change_password_button">Parolayı değiştir</string>
     <string name="changepassword_biometric_auth_checkbox">Biyometrik kimlik doğrulama</string>
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
     <string name="changepassword_biometric_auth_confirm_title">Uygulama parolasını değiştir</string>
-    <string name="changepassword_disclaimer_local_note">Uygulama parolası asla cihazda saklanmaz veya ağ üzerinden gönderilmez. Yerel verileri şifrelemek için kullanılan gizli bir anahtar oluşturmak için kullanılır.</string>
-    <string name="changepassword_disclaimer_abuse_note">Yetkisiz erişimden şüphelenmediğiniz veya cihazda bir kötü amaçlı yazılım keşfetmediğiniz sürece, güçlü ve benzersiz bir parola ise parolayı değiştirmenize gerek yoktur.</string>
+    <string name="changepassword_disclaimer_local_note">Uygulama parolası asla cihazda depolanmaz veya ağ üzerinden gönderilmez. Yerel verileri şifrelemek için kullanılan gizli bir anahtar oluşturmak amacıyla kullanılır.</string>
+    <string name="changepassword_disclaimer_abuse_note">Yetkisiz erişimden şüphelenmediğiniz veya cihazınızda kötü amaçlı yazılım tespit etmediğiniz sürece, güçlü ve benzersiz olması koşuluyla parolayı değiştirmenize gerek yoktur.</string>
     <string name="changepassword_password_changed_successfully">Parola başarıyla değiştirildi</string>
-    <string name="exportaccount_header_title">Öğeleri dışa aktar</string>
+    <string name="exportaccount_header_title">Ögeleri dışa aktar</string>
     <string name="exportaccount_password_label">Arşiv parolası</string>
-    <string name="exportaccount_format_note">Kasayı şifreli bir ZIP arşivi olarak dışa aktarın.</string>
-    <string name="exportaccount_attachments_note">Kasa, dışa aktarma işlemi sırasında kilitli kalacaktır. Ekler, kasanın verilerinde referans alınır. Ekler, işlem sırasında asla şifrelenmemiş bir biçimde saklanmaz.</string>
+    <string name="exportaccount_format_note">Kasayı şifrelenmiş bir ZIP arşivi olarak dışa aktar.</string>
+    <string name="exportaccount_attachments_note">Dışa aktarma işlemi sırasında kasa açık (kilitsiz) tutulacaktır. Ekler kasanın verilerinde referans gösterilir. Süreç içerisinde ekler hiçbir zaman şifrelenmemiş formda saklanmaz.</string>
     <string name="exportaccount_include_attachments_title">Ekleri dışa aktar</string>
     <string name="exportaccount_export_button">Dışa aktar</string>
-    <string name="exportaccount_export_started">Dışa aktarma başladı</string>
+    <string name="exportaccount_export_started">Dışa aktarma başlatıldı</string>
     <string name="exportaccount_export_success">Dışa aktarma tamamlandı</string>
-    <string name="exportaccount_export_failure">Dışa aktarma başarısız</string>
+    <string name="exportaccount_export_failure">Dışa aktarma başarısız oldu</string>
     <string name="contactus_header_title">Bize ulaşın</string>
     <string name="contactus_message_label">Mesajınız</string>
-    <string name="contactus_english_note">Geri bildiriminizin yanlış anlaşılmadığından emin olmak için İngilizce kullanın.</string>
-    <string name="contactus_thanks_note">Bize mesaj göndermek için ayırdığınız zaman için teşekkür ederiz. Mesajınız doğrudan bize ulaşır ve onu sorunları gidermek, ürün iyileştirmeleri yapmak ve sorunları düzeltmek için kullanırız. Her rapora yanıt veremesek de, iyileştirmeleri inceliyor ve sorunları olabildiğince hızlı bir şekilde düzeltmeye çalışıyoruz.</string>
+    <string name="contactus_english_note">Geri bildiriminizin yanlış anlaşılmadığından emin olmak için lütfen İngilizce kullanın.</string>
+    <string name="contactus_thanks_note">Bize mesaj göndermek için harcadığınız zamanı takdir ediyoruz. Mesajınız doğrudan bize ulaşıyor; sorunları gidermek, ürün iyileştirmeleri yapmak ve hataları düzeltmek için kullanıyoruz. Her rapora yanıt veremesek de, bildirimleri inceliyor ve elimizden geldiğince hızlı şekilde iyileştirmeler ile hata düzeltmeleri üzerinde çalışıyoruz.</string>
     <string name="account_main_header_title">Hesaplar</string>
     <string name="account_main_add_account_title">Hesap ekle</string>
     <string name="team_header_title">Uygulamanın arkasındaki ekip</string>
-    <string name="team_artem_whoami_text">Ukraynalı bir yazılım mühendisiyim. Uygulama tasarımı ve geliştirme konusunda uzmanım.</string>
+    <string name="team_artem_whoami_text">Ukraynalı bir yazılım mühendisiyim. Uygulama tasarımı ve geliştirmesi alanında uzmanlaşıyorum.</string>
     <string name="team_follow_me_section">Beni takip et</string>
     <string name="settingssearch_header_title">Ara</string>
     <string name="settingssearch_header_subtitle">Ayarlar</string>
-    <string name="settingssearch_search_placeholder">Ayarları ara</string>
+    <string name="settingssearch_search_placeholder">Ayarlarda ara</string>
     <string name="settings_appearance_header_title">Görünüm</string>
-    <string name="settings_autofill_header_title">Otomatik doldurma</string>
+    <string name="settings_autofill_header_title">Otomatik Doldurma</string>
     <string name="settings_dev_header_title">Geliştirme</string>
     <string name="settings_experimental_header_title">Deneysel</string>
     <string name="settings_main_header_title">Ayarlar</string>
@@ -997,29 +1193,111 @@
     <string name="settings_permissions_header_title">İzinler</string>
     <string name="settings_security_header_title">Güvenlik</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
-    <string name="settings_watchtower_header_title">Gözcü Kulesi</string>
+    <string name="settings_developer_header_title">Developer</string>
+    <string name="settings_watchtower_header_title">Watchtower</string>
+    <string name="settings_automatic_backups_header_title">Backups</string>
     <string name="settings_open_source_licenses_header_title">Açık kaynak lisansları</string>
     <string name="pref_section_premium_title">Premium</string>
     <string name="pref_section_options_title">Seçenekler</string>
     <string name="pref_item_accounts_title">Hesaplar</string>
-    <string name="pref_item_accounts_text">Hesap ekle ve görüntüle</string>
-    <string name="pref_item_autofill_title">Otomatik doldurma</string>
-    <string name="pref_item_autofill_text">Android Otomatik Doldurma ve Kimlik Bilgisi hizmetleri</string>
+    <string name="pref_item_accounts_text">Hesapları ekleyin ve görüntüleyin</string>
+    <string name="pref_item_autofill_title">Otomatik Doldurma</string>
+    <string name="pref_item_autofill_text">Android Otomatik Doldurma ve Kimlik Bilgisi (Credential) servisleri</string>
     <string name="pref_item_security_title">Güvenlik</string>
     <string name="pref_item_security_text">Biyometri, parola değiştirme, kasa zaman aşımı</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard Premium</string>
-    <string name="pref_item_subscription_text">Özelliklerin kilidini açın ve uygulama gelişimini destekleyin</string>
-    <string name="pref_item_watchtower_title">Gözcü Kulesi</string>
-    <string name="pref_item_watchtower_text">Risk altındaki hizmetler, savunmasız parolalar</string>
+    <string name="pref_item_subscription_text">Özelliklerin kilidini açın ve geliştirme sürecini destekleyin</string>
+    <string name="pref_item_watchtower_title">Watchtower</string>
+    <string name="pref_item_watchtower_text">Tehlikedeki servisler, zayıf parolalar</string>
+    <string name="pref_item_automatic_backups_title">Backups</string>
+    <string name="pref_item_automatic_backups_text">Automatic encrypted vault backups</string>
     <string name="pref_item_notifications_title">Bildirimler</string>
     <string name="pref_item_notifications_text">Uyarılar</string>
     <string name="pref_item_appearance_title">Görünüm</string>
     <string name="pref_item_appearance_text">Dil, tema ve animasyonlar</string>
     <string name="pref_item_dev_title">Geliştirme</string>
-    <string name="pref_item_dev_text">Geliştirme için test ayarları</string>
+    <string name="pref_item_dev_text">Geliştirme amaçlı test ayarları</string>
     <string name="pref_item_other_title">Diğer</string>
     <string name="pref_item_other_text">Topluluk web siteleri, uygulama bilgileri</string>
-    <string name="pref_item_nav_label_title">Gezinme düğmelerinde etiketleri göster</string>
+    <string name="pref_section_automatic_backups_setup_title">Setup</string>
+    <string name="pref_section_automatic_backups_automation_title">Automation</string>
+    <string name="pref_section_automatic_backups_management_title">Management</string>
+    <string name="pref_item_automatic_backups_status_running_title">Backup running</string>
+    <string name="pref_item_automatic_backups_status_running_text_with_progress">%1$s. %2$s.</string>
+    <string name="pref_item_automatic_backups_step_preparing">Preparing backup</string>
+    <string name="pref_item_automatic_backups_step_opening_repository">Opening backup repository</string>
+    <string name="pref_item_automatic_backups_step_exporting_vault">Exporting vault data</string>
+    <string name="pref_item_automatic_backups_step_scanning_attachments">Scanning attachments</string>
+    <string name="pref_item_automatic_backups_step_backing_up_attachments">Backing up attachments</string>
+    <string name="pref_item_automatic_backups_step_writing_index">Writing backup index</string>
+    <string name="pref_item_automatic_backups_step_writing_snapshot">Writing snapshot</string>
+    <string name="pref_item_automatic_backups_step_applying_retention">Applying retention</string>
+    <string name="pref_item_automatic_backups_progress_bytes">%1$s / %2$s</string>
+    <string name="pref_item_automatic_backups_progress_items">%1$d / %2$d</string>
+    <string name="pref_item_automatic_backups_status_success_title">Last backup completed</string>
+    <string name="pref_item_automatic_backups_status_success_text">Finished %1$s. Exported %2$d items, %3$d attachments, %4$d new blobs, %5$d reused blobs.</string>
+    <string name="pref_item_automatic_backups_status_finished_text">Finished %1$s.</string>
+    <string name="pref_item_automatic_backups_status_error_title">Last backup failed</string>
+    <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_skipped_title">Last backup skipped</string>
+    <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_never_title">No backup yet</string>
+    <string name="pref_item_automatic_backups_status_never_text">Configure automatic backups, then run the first backup manually or wait for vault changes.</string>
+    <string name="pref_item_automatic_backups_status_reason_vault_locked">Vault was locked.</string>
+    <string name="pref_item_automatic_backups_status_reason_not_configured">Backup is not fully configured.</string>
+    <string name="pref_item_automatic_backups_status_reason_unknown">Unknown reason.</string>
+    <string name="pref_item_automatic_backups_panel_repository_title">Repository metadata</string>
+    <string name="pref_item_automatic_backups_panel_last_sync_title">Last backup</string>
+    <string name="pref_item_automatic_backups_panel_status_label">Status</string>
+    <string name="pref_item_automatic_backups_panel_started_label">Started</string>
+    <string name="pref_item_automatic_backups_panel_finished_label">Finished</string>
+    <string name="pref_item_automatic_backups_panel_progress_label">Progress</string>
+    <string name="pref_item_automatic_backups_panel_snapshot_label">Snapshot</string>
+    <string name="pref_item_automatic_backups_panel_error_label">Error</string>
+    <string name="pref_item_automatic_backups_panel_skipped_label">Skipped</string>
+    <string name="pref_item_automatic_backups_panel_vault_items_label">Vault items</string>
+    <string name="pref_item_automatic_backups_panel_attachments_label">Attachments</string>
+    <string name="pref_item_automatic_backups_panel_blobs_label">Attachment blobs</string>
+    <string name="pref_item_automatic_backups_panel_blobs_value">%1$d new, %2$d reused</string>
+    <string name="pref_item_automatic_backups_panel_last_change_label">Last vault change</string>
+    <string name="pref_item_automatic_backups_panel_pending_changes_label">Pending changes</string>
+    <string name="pref_item_automatic_backups_run_now_title">Run backup now</string>
+    <string name="pref_item_automatic_backups_unsupported_title">Unsupported platform</string>
+    <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android and desktop.</string>
+    <string name="pref_item_automatic_backups_enable_button">Enable backups</string>
+    <string name="pref_item_automatic_backups_setup_intro">Backups save vault snapshots to a location you choose. Keyguard creates them on vault changes, and you can trigger a snapshot manually anytime.</string>
+    <string name="pref_item_automatic_backups_setup_logic">The backup repository stores metadata, snapshots, and optional attachment files as separate ZIP archives. Specify the backup password to encrypt the archives using AES-256 encryption.</string>
+    <string name="pref_item_automatic_backups_details_321_title">3-2-1 backup rule</string>
+    <string name="pref_item_automatic_backups_details_321_text">Keep at least three copies of your vault data: your active vault and two backups. Store those copies in at least two independent places or storage types, and keep one copy off this device or off-site. A synced folder is useful, but it should not be your only backup because deletions, corruption, and unwanted changes can sync too.</string>
+    <string name="pref_item_automatic_backups_details_321_three">Active vault plus two backups</string>
+    <string name="pref_item_automatic_backups_details_321_two">Two independent places or storage types</string>
+    <string name="pref_item_automatic_backups_details_321_one">One copy off-device or off-site</string>
+    <string name="pref_item_automatic_backups_details_repository_structure_title">Repository structure</string>
+    <string name="pref_item_automatic_backups_details_repository_structure_text">Encrypted repositories use ZIP AES-256. Open repo.zip and the latest readable indexes/*.zip with the backup password; the index points to each snapshots/*.zip and blobs/**/*.zip archive and stores its ZIP password as encryption.keyBase64. If no backup password was set, these files are regular ZIP archives.</string>
+    <string name="pref_item_automatic_backups_details_retention_title">Snapshot retention</string>
+    <string name="pref_item_automatic_backups_details_retention_text">Retention is bucketed, so the history is not just the last snapshots in order. Keyguard keeps the newest snapshot, then prefers daily checkpoints from the last week and weekly checkpoints across the last month; any remaining slots go to the newest available snapshots.</string>
+    <string name="pref_item_automatic_backups_details_sync_title">Cloud sync</string>
+    <string name="pref_item_automatic_backups_details_sync_text">Sync the whole backup folder. Use the same backup password on every device that reads encrypted archives.</string>
+    <string name="pref_item_automatic_backups_location_title">Backup location</string>
+    <string name="pref_item_automatic_backups_store_folder_title">Folder</string>
+    <string name="pref_item_automatic_backups_store_webdav_title">WebDAV</string>
+    <string name="pref_item_automatic_backups_password_title">Backup password</string>
+    <string name="pref_item_automatic_backups_password_message">This password encrypts the backup repository. If multiple app instances share the backup repository they must use the same password.</string>
+    <string name="pref_item_automatic_backups_password_not_set">Password not set; backup files are not encrypted</string>
+    <string name="pref_item_automatic_backups_password_set">Password is set; backup files are encrypted</string>
+    <string name="pref_item_automatic_backups_password_set_summary">Password set</string>
+    <string name="pref_item_automatic_backups_include_attachments_title">Include attachments</string>
+    <string name="pref_item_automatic_backups_include_attachments_enabled_summary">Included when available</string>
+    <string name="pref_item_automatic_backups_include_attachments_disabled_summary">Not included</string>
+    <string name="pref_item_automatic_backups_retention_title">Keep snapshots</string>
+    <string name="pref_item_automatic_backups_retention_never_clear_value">Never clear</string>
+    <string name="pref_item_automatic_backups_retention_value">%1$d snapshots</string>
+    <string name="pref_item_automatic_backups_disable_title">Turn off automatic backups</string>
+    <string name="pref_item_automatic_backups_disable_message">This only turns off future automatic backups. It clears the local folder, password, and attachment choice from Keyguard. The existing backup repository and files in that folder are not deleted.</string>
+    <string name="pref_item_nav_label_title">Gezinme düğmelerindeki etiketleri göster</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">Uygulama sürümü</string>
     <string name="pref_item_app_build_date_title">Uygulama derleme tarihi</string>
     <!--
@@ -1027,7 +1305,7 @@
         This value matches the branch or tag name shown on GitHub.
         -->
     <string name="pref_item_app_build_ref_title">Uygulama derleme referansı</string>
-    <string name="pref_item_app_changelog_title">Uygulama değişiklik günlüğü</string>
+    <string name="pref_item_app_changelog_title">Uygulama değişiklik günlüğü (Changelog)</string>
     <string name="pref_item_app_team_title">Uygulamanın arkasındaki ekip</string>
     <string name="pref_item_reddit_community_title">Reddit topluluğu</string>
     <string name="pref_item_github_title">GitHub projesi</string>
@@ -1037,106 +1315,154 @@
     <string name="pref_item_download_apk_title">APK dosyasını indir</string>
     <string name="pref_item_load_app_icons_title">Uygulama simgelerini yükle</string>
     <string name="pref_item_load_website_icons_title">Web sitesi simgelerini yükle</string>
-    <string name="pref_item_load_website_icons_text">Web sitesi simgelerinin sıraya alınması, web sitesi adreslerinin internet sağlayıcınıza sızmasına neden olabilir</string>
+    <string name="pref_item_load_website_icons_text">Web sitesi simgelerini çekmek, ziyaret ettiğiniz web sitelerini internet sağlayıcınıza sızdırabilir</string>
     <string name="pref_item_load_gravatar_icons_title">Gravatar simgelerini yükle</string>
-    <string name="pref_item_markdown_title">Zengin metin biçimlendirme</string>
-    <string name="pref_item_markdown_text">Notları biçimlendirmek için Markdown kullan</string>
+    <string name="pref_item_markdown_title">Zengin metin biçimlendirmesi</string>
+    <string name="pref_item_markdown_text">Notları biçimlendirmek için Markdown kullanın</string>
     <string name="pref_item_locale_title">Dil</string>
     <string name="pref_item_locale_help_translation_button">Çeviri öner</string>
-    <string name="pref_item_font_title">Yazı Tipi</string>
-    <string name="pref_item_rate_on_play_store_title">Play Store'da oyla</string>
+    <string name="pref_item_font_title">Yazı tipi</string>
+    <string name="pref_item_rate_on_play_store_title">Play Store'da değerlendir</string>
     <string name="pref_item_color_accent_title">Vurgu rengi</string>
     <string name="pref_item_color_scheme_title">Tema</string>
-    <string name="pref_item_color_scheme_amoled_dark_title">Kontrastlı siyah tema kullan</string>
-    <string name="pref_item_color_scheme_expressive_title">Duygulu temayı kullan</string>
+    <string name="pref_item_color_scheme_amoled_dark_title">Yüksek kontrastlı siyah tema kullan</string>
+    <string name="pref_item_color_scheme_expressive_title">Dışavurumcu (Expressive) tema kullan</string>
     <string name="pref_item_open_links_in_external_browser_title">Bağlantıları harici tarayıcıda aç</string>
-    <string name="pref_item_close_to_tray_title">Sistem tepsisine kapat</string>
-    <string name="pref_item_check_pwned_passwords_title">Ele geçirilmiş parolaları kontrol et</string>
-    <string name="pref_item_check_pwned_services_title">Veri sızıntılarını kontrol et</string>
-    <string name="pref_item_check_inactive_2fa_title">Etkin olmayan iki faktörlü kimlik doğrulamasını kontrol et</string>
+    <string name="pref_item_close_to_tray_title">Sistem tepsisine küçült (Close to system tray)</string>
+    <string name="pref_item_minimize_on_copy_title">Minimize on copy</string>
+    <string name="pref_item_check_pwned_passwords_title">Açığa çıkmış (Pwned) parolaları kontrol et</string>
+    <string name="pref_item_check_pwned_services_title">Veri ihlallerini kontrol et</string>
+    <string name="pref_item_hibp_api_token_title">Have I Been Pwned API token</string>
+    <string name="pref_item_hibp_api_token_text">Use HIBP directly instead of Bitwarden's premium proxy. Useful for local-only vaults.</string>
+    <string name="pref_item_hibp_api_token_field_label">API token</string>
+    <string name="pref_item_hibp_api_token_error">Enter a 32-character hexadecimal HIBP API token</string>
+    <string name="pref_item_hibp_api_token_status_checking">Checking...</string>
+    <string name="pref_item_hibp_api_token_status_verified">Verified</string>
+    <string name="pref_item_hibp_api_token_status_rejected">Rejected</string>
+    <string name="pref_item_hibp_api_token_status_failed">Could not verify</string>
+    <string name="pref_item_check_inactive_2fa_title">Etkin olmayan iki faktörlü kimlik doğrulamayı kontrol et</string>
     <string name="pref_item_check_inactive_passkeys_title">Etkin olmayan geçiş anahtarlarını kontrol et</string>
     <string name="pref_item_conceal_fields_title">Alanları gizle</string>
-    <string name="pref_item_conceal_fields_text">Parolalar ve kredi kartı numaraları gibi hassas bilgileri gizle</string>
+    <string name="pref_item_conceal_fields_text">Parolalar ve kredi kartı numaraları gibi hassas bilgileri gizleyin</string>
     <!--
         When a user clicks this button, the app crashes. Not visible to
         regular users. -->
-    <string name="pref_item_crash_title">Çökert</string>
-    <string name="pref_item_credential_provider_title">Kimlik bilgisi sağlayıcısı</string>
+    <string name="pref_item_crash_title">Kilitlen (Crash)</string>
+    <string name="pref_item_credential_provider_title">Kimlik bilgisi sağlayıcısı (Credential provider)</string>
     <string name="pref_item_credential_provider_text">Geçiş anahtarları, parolalar ve veri hizmetleri</string>
-    <string name="pref_item_credential_provider_no_feature_note">Cihaz, kimlik bilgisi sağlayıcılarıyla entegrasyon yoluyla kullanıcı kimlik bilgilerinin alınmasını desteklemiyor. Daha fazla bilgi için üreticiyle iletişime geçin.</string>
+    <string name="pref_item_credential_provider_no_feature_note">Cihaz, kimlik bilgisi sağlayıcıları ile entegrasyon yoluyla kullanıcı kimlik bilgilerinin alınmasını desteklemiyor. Daha fazla bilgi için üreticiyle iletişime geçin.</string>
     <string name="pref_item_privacy_policy_title">Gizlilik politikası</string>
     <string name="pref_item_contact_us_title">Bize ulaşın</string>
     <string name="pref_item_experimental_title">Deneysel</string>
     <string name="pref_item_change_app_password_title">Uygulama parolasını değiştir</string>
     <string name="pref_item_require_app_password_title">Uygulama parolası gerektir</string>
-    <string name="pref_item_require_app_password_note">Normal güvenlik ayarlarınıza ek olarak, bu süreden sonra veya biyometri ayarları değiştirildiğinde uygulama parolanız gerekecektir</string>
+    <string name="pref_item_require_app_password_note">Normal güvenlik ayarlarınıza ek olarak, uygulama parolanız bu süreden sonra veya biyometri ayarları değiştirildiğinde gerekli olacaktır</string>
     <string name="pref_item_require_app_password_immediately_text">Hemen</string>
     <string name="pref_item_require_app_password_never_text">Asla</string>
-    <string name="pref_item_send_crash_reports_title">Kilitlenme raporları gönder</string>
+    <string name="pref_item_send_crash_reports_title">Kilitlenme raporlarını gönder</string>
     <string name="pref_item_nav_animation_title">Geçiş animasyonu</string>
     <string name="pref_item_erase_data_title">Uygulama verilerini sil</string>
-    <string name="pref_item_erase_data_text">Uygulamayı kapat ve tüm yerel uygulama verilerini sil</string>
+    <string name="pref_item_erase_data_text">Uygulamayı kapatın ve tüm yerel uygulama verilerini silin</string>
     <string name="pref_item_allow_screenshots_title">Ekran görüntülerine izin ver</string>
-    <string name="pref_item_allow_screenshots_text_on">Son uygulamalar arasında geçiş yaparken uygulamanın içeriğini göster ve ekran yakalamaya izin ver</string>
-    <string name="pref_item_allow_screenshots_text_off">Son uygulamalar arasında geçiş yaparken uygulamanın içeriğini gizle ve ekran yakalamayı yasakla</string>
+    <string name="pref_item_allow_screenshots_text_on">Son uygulamalar arasında geçiş yaparken uygulamanın içeriğini göster ve ekranın yakalanmasına izin ver</string>
+    <string name="pref_item_allow_screenshots_text_off">Son uygulamalar arasında geçiş yaparken uygulamanın içeriğini gizle ve ekranın yakalanmasını engelle</string>
+    <string name="pref_item_allow_screenshots_badge">Ekran görüntülerine izin veriliyor, devre dışı bırakmak için dokunun</string>
+    <string name="pref_item_allow_screenshots_disabled_notification">Ekran görüntüleri devre dışı bırakıldı</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Devre Dışı</string>
+    <string name="pref_item_allow_screenshots_mode_limited_title">İzin veriliyor, görsel bir ipucu ile</string>
+    <string name="pref_item_allow_screenshots_mode_full_title">İzin veriliyor</string>
     <string name="pref_item_data_safety_title">Veri güvenliği</string>
-    <string name="pref_item_logs_title">Kayıtlar</string>
+    <string name="pref_item_logs_title">Günlükler (Logs)</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">Kasayı kilitle</string>
-    <string name="pref_item_lock_vault_after_reboot_title">Yeniden başlatmanın ardından kilitle</string>
-    <string name="pref_item_lock_vault_after_reboot_text">Cihaz yeniden başlatıldıktan sonra kasayı kilitle</string>
+    <string name="pref_item_lock_vault_after_reboot_title">Yeniden başlatıldıktan sonra kilitle</string>
+    <string name="pref_item_lock_vault_after_reboot_text">Cihaz yeniden başlatıldıktan sonra kasayı kilitleyin</string>
     <string name="pref_item_lock_vault_after_screen_off_title">Ekran kapandığında kilitle</string>
-    <string name="pref_item_lock_vault_after_screen_off_text">Ekran kapandıktan birkaç saniye sonra kasayı kilitle</string>
+    <string name="pref_item_lock_vault_after_screen_off_text">Ekran kapandıktan birkaç saniye sonra kasayı kilitleyin</string>
     <string name="pref_item_lock_vault_after_delay_title">Bir gecikmeden sonra kilitle</string>
     <string name="pref_item_lock_vault_after_delay_immediately_text">Hemen</string>
     <string name="pref_item_lock_vault_after_delay_never_text">Asla</string>
     <string name="pref_item_persist_vault_key_title">Kasa anahtarını diskte kalıcı yap</string>
-    <string name="pref_item_persist_vault_key_text_on">Kasa anahtarı dahili depolamada kalıcıdır</string>
-    <string name="pref_item_persist_vault_key_text_off">Uygulama bellekten kaldırıldıktan sonra kasa kilitlenir</string>
-    <string name="pref_item_persist_vault_key_note">Kasa anahtarını diskte saklamak bir güvenlik riskidir. Cihazın dahili depolaması ele geçirilirse, saldırgan yerel kasa verilerine erişim kazanacaktır.</string>
+    <string name="pref_item_persist_vault_key_text_on">Kasa anahtarı dahili depolamada kalıcı tutuluyor</string>
+    <string name="pref_item_persist_vault_key_text_off">Uygulama bellekten boşaltıldıktan sonra kasa kilitlenir</string>
+    <string name="pref_item_persist_vault_key_note">Kasa anahtarını diskte saklamak bir güvenlik riskidir. Eğer cihazın dahili depolaması ihlal edilirse, saldırgan yerel kasa verilerine erişim elde edecektir.</string>
     <string name="pref_item_permissions_title">İzinler</string>
     <string name="pref_item_features_overview_title">Özelliklere genel bakış</string>
     <string name="pref_item_url_override_title">URL geçersiz kılmaları</string>
+    <string name="pref_item_ssh_agent_title">SSH aracısı</string>
+    <string name="pref_item_ssh_agent_text">Git ve SSH istemcileriniz, özel anahtarınızı (private key) hiçbir zaman okuyamadan kimlik doğrulaması yapsın</string>
+    <string name="pref_item_ssh_agent_status_unsupported">Desteklenmiyor</string>
+    <string name="pref_item_ssh_agent_status_stopped">Durduruldu</string>
+    <string name="pref_item_ssh_agent_status_starting">Başlatılıyor</string>
+    <string name="pref_item_ssh_agent_status_ready">Hazır</string>
+    <string name="pref_item_ssh_agent_status_failed">Başarısız</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_local_storage_title">Local storage</string>
+    <string name="pref_item_ssh_agent_local_storage_text">When the SSH agent is on, Keyguard keeps unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
+    <string name="pref_item_ssh_agent_display_key_names_title">Display key names before vault is unlocked</string>
+    <string name="pref_item_ssh_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
+    <string name="pref_item_ssh_agent_setup_title">SSH istemci kurulumu</string>
+    <string name="pref_item_ssh_agent_filters_title">SSH aracısı filtreleri</string>
+    <string name="pref_item_ssh_agent_filters_text">SSH aracısı tarafından hangi SSH anahtarlarına erişilebileceğini seçin</string>
+    <string name="pref_item_ssh_agent_filters_summary_all">Tüm anahtarlara erişilebilir</string>
+    <string name="pref_item_ssh_agent_filters_summary_active">Filtreler etkin</string>
+    <string name="pref_item_ssh_agent_history_title">Request log</string>
     <string name="pref_item_biometric_unlock_title">Biyometrik kilit açma</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Onay gerektir</string>
-    <string name="pref_item_biometric_unlock_require_confirmation_text">Başarılı bir biyometrik kimlik doğrulamasından sonra ek bir onay düğmesine dokunmayı gerektir</string>
+    <string name="pref_item_biometric_unlock_require_confirmation_text">Başarılı bir biyometrik kimlik doğrulamanın ardından ek bir onay düğmesine dokunmayı gerektir</string>
+    <string name="pref_item_yubikey_unlock_title">YubiKey ile kilit açma</string>
+    <string name="pref_item_yubikey_unlock_text_on_slot_n">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> ile yapılandırıldı</string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Slot tahsis et</string>
+    <string name="pref_item_yubikey_unlock_disable_title">Devre Dışı Bırak</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">YubiKey slotu tahsis edilsin mi?</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_empty">Kasanın kilidini açmak için <xliff:g id="slot_number" example="1">%1$s</xliff:g>. slotu tahsis etmek istiyor musunuz? Kurulum USB bağlantısı gerektirir.</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> zaten yapılandırılmış. Yeniden tahsis etmek USB bağlantısı gerektirir ve mevcut slot yapılandırmasının üzerine yazar.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
     <string name="pref_item_biometric_unlock_confirm_title">Biyometrik kilit açma</string>
-    <string name="pref_item_keep_screen_on_title">Öğeleri görüntülerken ekranı açık tut</string>
-    <string name="pref_item_autofill_service_title">Otomatik doldurma hizmeti</string>
-    <string name="pref_item_autofill_service_text">Cihazdaki diğer uygulamalara giriş bilgilerini doldurmada yardımcı olmak için Android Otomatik Doldurma Çerçevesini kullanın</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">Bazı Xiaomi cihazları, "Arka planda çalışırken açılır pencereleri göster" iznini manuel olarak vermenizi gerektirir. Lütfen ayarları açın ve iznin verildiğini doğrulayın.</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome'un üçüncü taraf otomatik doldurma hizmetlerini yerel olarak desteklemesi</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Chrome'un Ayarlarını açın ve Otomatik Doldurma Hizmetleri'ne dokunun
-2. Başka bir hizmet kullanarak otomatik doldur'u seçin
+    <string name="pref_item_keep_screen_on_title">Ögeleri görüntülerken ekranı açık tut</string>
+    <string name="pref_item_autofill_service_title">Otomatik Doldurma servisi</string>
+    <string name="pref_item_autofill_service_text">Cihazdaki diğer uygulamalara oturum açma bilgilerinin girilmesine yardımcı olmak için Android Otomatik Doldurma Çerçevesini (Autofill Framework) kullanın</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">Bazı Xiaomi cihazları, "Arka planda çalışırken açılır pencereleri göster" iznine manuel olarak izin vermenizi gerektirir. Lütfen ayarları açın ve bu iznin verildiğini doğrulayın.</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_title">Üçüncü taraf otomatik doldurma hizmetlerini yerel olarak desteklemesi için Chrome</string>
+    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. Chrome'un Ayarlarını açın ve Otomatik Doldurma Hizmetlerine dokunun
+2. Başka bir hizmet kullanarak otomatik doldur seçeneğini seçin
 3. Onaylayın ve Chrome'u yeniden başlatın</string>
     <string name="pref_item_autofill_auto_copy_otp_title">Tek kullanımlık parolaları otomatik kopyala</string>
-    <string name="pref_item_autofill_auto_copy_otp_text">Bir giriş bilgisini doldururken, tek kullanımlık parolaları otomatik olarak kopyala</string>
-    <string name="pref_item_autofill_default_match_detection_title">Varsayılan eşleştirme tespiti</string>
-    <string name="pref_item_autofill_inline_suggestions_title">Satır içi öneriler</string>
-    <string name="pref_item_autofill_inline_suggestions_text">Otomatik doldurma önerilerini uyumlu klavyelere doğrudan yerleştirir</string>
+    <string name="pref_item_autofill_auto_copy_otp_text">Oturum açma bilgilerini doldururken, tek kullanımlık parolaları (OTP) otomatik kopyala</string>
+    <string name="pref_item_autofill_default_match_detection_title">Varsayılan eşleşme algılaması</string>
+    <string name="pref_item_autofill_inline_suggestions_title">Satır içi (inline) öneriler</string>
+    <string name="pref_item_autofill_inline_suggestions_text">Otomatik doldurma önerilerini uyumlu klavyelere doğrudan gömer</string>
     <string name="pref_item_autofill_manual_selection_title">Manuel seçim</string>
-    <string name="pref_item_autofill_manual_selection_text">Bir giriş için kasayı manuel olarak arama seçeneği görüntüler</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_title">Otomatik doldurma devre dışı bırakma bayrağına saygı göster</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_text">Otomatik doldurma devre dışı bırakma bayrağı ayarlanmış bir tarayıcı alanı için otomatik doldurmayı devre dışı bırakır</string>
-    <string name="pref_item_autofill_respect_autofill_disabled_note">Bazı web sitelerinin parola alanlarında otomatik doldurmayı devre dışı bıraktığı bilinmektedir. Ayrıca, bazı tarayıcıların otomatik doldurma devre dışı bırakılmış olsa bile bu durumu dikkate almadığı da bilinmektedir.</string>
+    <string name="pref_item_autofill_manual_selection_text">Kasada bir kaydı manuel olarak aramak için bir seçenek görüntüler</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_title">Otomatik Doldurma devre dışı bayrağını (flag) dikkate al</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_text">Otomatik doldurmanın devre dışı bırakıldığı belirtilmiş bir tarayıcı alanında otomatik doldurmayı kapatır</string>
+    <string name="pref_item_autofill_respect_autofill_disabled_note">Bazı web sitelerinin parola alanları için otomatik doldurmayı devre dışı bıraktığı bilinmektedir. Ek olarak, bazı tarayıcıların da otomatik doldurma devre dışı bayrağını yok saydığı bilinmektedir.</string>
     <string name="pref_item_autofill_save_request_title">Verileri kaydetmeyi sor</string>
-    <string name="pref_item_autofill_save_request_text">Bir formun doldurulması tamamlandığında kasayı güncellemeyi sorar</string>
+    <string name="pref_item_autofill_save_request_text">Bir form doldurma işlemi tamamlandığında kasanın güncellenip güncellenmeyeceğini sorar</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Geçiş anahtarları desteği</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Geçiş anahtarı desteğini Kimlik Bilgisi Yöneticisine (Credential Manager) bildirerek uygulamanın talepleri karşılamasına olanak tanır</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Uygulama veya web sitesi bilgilerini otomatik kaydet</string>
     <string name="pref_item_autofill_block_uri_title">Otomatik doldurmayı engelle</string>
-    <string name="pref_item_autofill_block_uri_text">Bu URI'ler için otomatik doldurma önerilmesini engeller</string>
-    <string name="pref_item_clipboard_auto_clear_title">Panoyu otomatik olarak temizle</string>
+    <string name="pref_item_autofill_block_uri_text">Bu URI'ler için otomatik doldurma sunulmasını önler</string>
+    <string name="pref_item_autofill_privileged_apps_title">Ayrıcalıklı uygulamalar</string>
+    <string name="pref_item_autofill_privileged_apps_text">Ayrıcalıklı uygulamalar diğer hizmetler adına kimlik bilgisi taleplerinde bulunabilir</string>
+    <string name="pref_item_clipboard_auto_clear_title">Panoyu otomatik temizle</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Hemen</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Asla</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Tek kullanımlık parola bildirim süresi</string>
-    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Tek kullanımlık parolası olan bir giriş öğesini otomatik doldurduğunuzda, doğrulama kodunu içeren bildirim en az tanımlanan süre boyunca açılır</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_title">Tek kullanımlık parola bildirimini otomatik yenileme süresi</string>
+    <string name="pref_item_clipboard_auto_refresh_otp_duration_note">Tek kullanımlık parolası olan bir oturum açma ögesini otomatik doldurduğunuzda, doğrulama kodu içeren bildirim en az tanımlanan süre boyunca görünür kalacaktır</string>
     <string name="pref_item_clipboard_auto_refresh_otp_duration_never_text">Asla</string>
     <string name="pref_item_clipboard_notification_settings_title">Tek kullanımlık parola bildirim ayarları</string>
     <string name="pref_item_premium_membership_title">Keyguard üyeliği hakkında</string>
-    <string name="pref_item_premium_membership_text">Premium, ekstra özelliklerin kilidini açar ve uygulamanın gelişimini finanse eder. Bizi desteklediğiniz için teşekkür ederiz! ❤️</string>
+    <string name="pref_item_premium_membership_text">Premium sürüm, ekstra özelliklerin kilidini açar ve uygulamanın geliştirilmesini finanse eder. Bizi desteklediğiniz için teşekkür ederiz! ❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">Abonelikler</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">Aboneliğiniz süresi dolmadan 24 saat önce yenilenecek ve Google Play hesabınız o anda otomatik olarak ücretlendirilecektir. Otomatik yenilemeyi açabilir veya kapatabilir ve aboneliğinizi istediğiniz zaman Google Play'den iptal edebilirsiniz. Daha önce hiç abone olmadıysanız, ücretsiz bir deneme için uygun olabilirsiniz. Ücretsiz denemenizin sonundan önce iptal ederseniz ücretlendirilmezsiniz.</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">Aboneliğiniz süresi dolmadan 24 saat önce yenilenecek ve bu sırada Google Play hesabınızdan otomatik olarak ücret alınacaktır. Otomatik yenilemeyi açıp kapatabilir ve aboneliğinizi Google Play'de istediğiniz zaman iptal edebilirsiniz. Daha önce hiç abone olmadıysanız, ücretsiz deneme sürümünden faydalanabilirsiniz. Ücretsiz deneme süreniz bitmeden iptal ederseniz sizden ücret alınmayacaktır.</string>
     <string name="pref_item_premium_membership_section_products_title">Ürünler</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">Abonelik listesi yüklenemedi</string>
     <string name="pref_item_premium_membership_failed_to_load_products">Ürün listesi yüklenemedi</string>
@@ -1144,10 +1470,10 @@
     <string name="pref_item_premium_status_free_trial_n">Ücretsiz <xliff:g id="period" example="1 month">%1$s</xliff:g> deneme</string>
     <string name="pref_item_premium_status_will_not_renew">Yenilenmeyecek</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">Play Store'da yönet</string>
-    <string name="pref_item_permission_post_notifications_title">Bildirim gönder</string>
-    <string name="pref_item_permission_post_notifications_text">İndirme bildirimleri göndermek için kullanılır</string>
+    <string name="pref_item_permission_post_notifications_title">Bildirimleri göster</string>
+    <string name="pref_item_permission_post_notifications_text">İndirme bildirimlerini göstermek için kullanılır</string>
     <string name="pref_item_permission_write_external_storage_title">Harici depolamaya yaz</string>
-    <string name="pref_item_permission_write_external_storage_text">Kasa dışa aktarımlarını indirilenler dizinine kaydetmek için kullanılır</string>
+    <string name="pref_item_permission_write_external_storage_text">Dışa aktarılan kasa verilerini indirilenler dizinine kaydetmek için kullanılır</string>
     <string name="pref_item_permission_write_external_storage_grant">Harici depolamaya yazma izni ver</string>
     <string name="pref_item_permission_camera_title">Kamera</string>
     <string name="pref_item_permission_camera_text">QR kodlarını taramak için kullanılır</string>
@@ -1155,69 +1481,77 @@
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Dikey modda iki panelli düzene izin ver</string>
     <string name="theme_dark">Koyu</string>
     <string name="theme_light">Açık</string>
-    <string name="nav_animation_disabled">Devre dışı</string>
+    <string name="nav_animation_disabled">Devre Dışı</string>
     <string name="nav_animation_dynamic">Dinamik</string>
-    <string name="nav_animation_crossfade">Çapraz geçiş</string>
-    <string name="font_atkinson_hyperlegible_text">Düşük görüşlü okuyucular için okunabilirliği artırmak ve anlamayı geliştirmek için özel olarak geliştirilmiştir</string>
+    <string name="nav_animation_crossfade">Karartarak geçiş (Crossfade)</string>
+    <string name="font_atkinson_hyperlegible_text">Özellikle az gören okuyucular için okunabilirliği artırmak ve anlamayı geliştirmek için özel olarak geliştirilmiştir</string>
     <string name="feat_header_title">Özelliklere Genel Bakış</string>
     <string name="feat_keyguard_premium_label">Keyguard Premium</string>
-    <string name="feat_item_multiple_accounts_title">Çoklu Hesaplar</string>
-    <string name="feat_item_multiple_accounts_text">Aynı anda birden fazla hesapta oturum açın.</string>
-    <string name="feat_item_two_way_sync_title">İki yönlü senkronizasyon</string>
-    <string name="feat_item_two_way_sync_text">Öğeleri ekleyin veya düzenleyin ve değişiklikleri geri senkronize edin.</string>
+    <string name="feat_item_multiple_accounts_title">Birden Fazla Hesap</string>
+    <string name="feat_item_multiple_accounts_text">Birden fazla hesapta aynı anda oturum açın.</string>
+    <string name="feat_item_two_way_sync_title">İki yönlü eşitleme</string>
+    <string name="feat_item_two_way_sync_text">Öge ekleyin veya düzenleyin ve değişiklikleri geri eşitleyin.</string>
     <string name="feat_item_offline_editing_title">Çevrimdışı düzenleme</string>
-    <string name="feat_item_offline_editing_text">İnternet bağlantısı olmadan öğeleri ekleyin veya düzenleyin.</string>
+    <string name="feat_item_offline_editing_text">İnternet bağlantısı olmadan ögeleri ekleyin veya düzenleyin.</string>
     <string name="feat_section_search_title">Arama</string>
-    <string name="feat_item_search_by_anything_title">Herhangi bir şeye göre ara</string>
-    <string name="feat_item_search_by_anything_text">Ad, e-posta, parola, telefon numarası vb.</string>
+    <string name="feat_item_search_by_anything_title">Herhangi bir şeyle ara</string>
+    <string name="feat_item_search_by_anything_text">İsim, e-posta, parola, telefon numarası vb.</string>
     <string name="feat_item_filter_title">Filtrele</string>
-    <string name="feat_item_filter_text">Klasöre, kuruluşa, türe vb. göre filtreleyin.</string>
+    <string name="feat_item_filter_text">Klasör, organizasyon, tür vb. özelliklere göre filtreleyin.</string>
     <string name="feat_item_multiple_keywords_title">Çoklu anahtar kelimeler</string>
-    <string name="feat_item_multiple_keywords_text">'Bitwarden Test Hesabı' öğenizi bulmak için 'bitw test' ile arama yapın.</string>
-    <string name="feat_section_watchtower_title">Gözcü Kulesi</string>
-    <string name="feat_item_pwned_passwords_title">Ele geçirilmiş parolalar</string>
-    <string name="feat_item_pwned_passwords_text">Veri sızıntılarında açığa çıkmış parolalara sahip öğeleri bulun.</string>
+    <string name="feat_item_multiple_keywords_text">'Bitwarden Test Hesabı' ögenizi bulmak için 'bitw test' yazarak arayın.</string>
+    <string name="feat_section_watchtower_title">Watchtower</string>
+    <string name="feat_item_pwned_passwords_title">Açığa çıkmış parolalar</string>
+    <string name="feat_item_pwned_passwords_text">Veri ihlallerinde ifşa olan parolalara sahip ögeleri bulun.</string>
     <string name="feat_item_password_strength_title">Parola gücü</string>
-    <string name="feat_item_password_strength_text">Zayıf parolalara sahip öğeleri bulun.</string>
-    <string name="feat_item_reused_passwords_title">Tekrar kullanılan parolalar</string>
-    <string name="feat_item_reused_passwords_text">Tekrar kullanılan parolalara sahip öğeleri bulun.</string>
-    <string name="feat_item_inactive_totp_title">Etkin olmayan 2FA</string>
-    <string name="feat_item_inactive_totp_text">Mevcut TOTP iki faktörlü kimlik doğrulamasına sahip girişleri bulun.</string>
+    <string name="feat_item_password_strength_text">Zayıf parolalara sahip ögeleri bulun.</string>
+    <string name="feat_item_reused_passwords_title">Yeniden kullanılan parolalar</string>
+    <string name="feat_item_reused_passwords_text">Yeniden kullanılan parolalara sahip ögeleri bulun.</string>
+    <string name="feat_item_inactive_totp_title">Etkin Olmayan 2FA</string>
+    <string name="feat_item_inactive_totp_text">Kullanılabilir TOTP iki faktörlü kimlik doğrulaması olan oturum açma işlemlerini bulun.</string>
     <string name="feat_item_unsecure_websites_title">Güvensiz web siteleri</string>
-    <string name="feat_item_unsecure_websites_text">HTTP protokolü kullanan web sitelerini bulun, otomatik olarak HTTPS'ye düzeltin.</string>
-    <string name="feat_item_incomplete_items_title">Eksik öğeler</string>
-    <string name="feat_item_incomplete_items_text">Güncelleme gerektirebilecek boş öğeleri bulun.</string>
-    <string name="feat_item_expiring_items_title">Süresi dolan öğeler</string>
-    <string name="feat_item_expiring_items_text">Süresi dolmuş veya yakında dolacak öğeleri bulun.</string>
-    <string name="feat_item_duplicate_items_title">Yinelenen öğeler</string>
-    <string name="feat_item_duplicate_items_text">Yinelenen öğeleri bulun ve birleştirin.</string>
+    <string name="feat_item_unsecure_websites_text">HTTP protokolünü kullanan web sitelerini bulun ve HTTPS olarak otomatik düzeltin.</string>
+    <string name="feat_item_incomplete_items_title">Eksik ögeler</string>
+    <string name="feat_item_incomplete_items_text">Güncelleme gerektirebilecek boş ögeleri bulun.</string>
+    <string name="feat_item_expiring_items_title">Süresi dolan ögeler</string>
+    <string name="feat_item_expiring_items_text">Süresi dolmuş veya yakında dolacak ögeleri bulun.</string>
+    <string name="feat_item_duplicate_items_title">Kopya ögeler</string>
+    <string name="feat_item_duplicate_items_text">Kopya ögeleri bulun ve birleştirin.</string>
     <string name="feat_section_misc_title">Çeşitli</string>
     <string name="feat_item_multi_selection_title">Çoklu seçim</string>
-    <string name="feat_item_multi_selection_text">Öğeleri birleştirin, toplu işlemlerle yeniden düzenlemeyi hızlandırın.</string>
-    <string name="feat_item_show_barcode_title">Barkod Olarak Göster</string>
-    <string name="feat_item_show_barcode_text">Bir metni farklı barkodlar olarak kodlayın.</string>
+    <string name="feat_item_multi_selection_text">Ögeleri birleştirin, toplu işlemlerle yeniden düzenlemeyi (refactoring) hızlandırın.</string>
+    <string name="feat_item_show_barcode_title">Barkod olarak Göster</string>
+    <string name="feat_item_show_barcode_text">Bir metni farklı barkod formatlarında kodlayın.</string>
     <string name="feat_item_generator_title">Oluşturucu</string>
     <string name="feat_item_generator_text">Parolalar, kullanıcı adları, e-postalar ve anahtarlar oluşturun.</string>
     <string name="feat_item_export_title">Dışa Aktar</string>
-    <string name="feat_item_export_text">Ekler dahil Kasa verilerini dışa aktarın.</string>
+    <string name="feat_item_export_text">Kasanın verilerini eklerle birlikte dışa aktarın.</string>
     <string name="datasafety_header_title">Veri güvenliği</string>
-    <string name="datasafety_local_section">Yerel veriler</string>
-    <string name="datasafety_local_text">Yerel veriler İndirilenler, Kullanıcı ayarları, Kasa'dan oluşur. Bunlar, yalnızca Android sistemi veya Keyguard tarafından erişilebilen bir cihazın dahili depolamasında saklanır.</string>
+    <string name="datasafety_local_section">Yerel veri</string>
+    <string name="datasafety_local_text">Yerel veri; İndirilenler, Kullanıcı ayarları ve Kasa'dan oluşur. Bunlar yalnızca Android sistemi veya Keyguard tarafından erişilebilen cihazın dahili belleğinde saklanır.</string>
     <string name="datasafety_local_downloads_section">İndirilenler</string>
     <string name="datasafety_local_settings_section">Kullanıcı ayarları</string>
-    <string name="datasafety_local_settings_note">Kullanıcı ayarları cihaza özgü bir anahtarla şifrelenir.</string>
+    <string name="datasafety_local_settings_note">Kullanıcı ayarları, cihaza özgü bir anahtar kullanılarak şifrelenir.</string>
     <string name="datasafety_local_vault_section">Kasa</string>
-    <string name="datasafety_local_encryption_algorithm_intro">Kasa, aşağıdaki adımlar kullanılarak Uygulama parolasından türetilen bir Anahtar ile şifrelenir:</string>
-    <string name="datasafety_local_encryption_algorithm_outro">Salt ve Hash daha sonra kasanın kilidini açmak için bir ana anahtar oluşturmak üzere bir cihazda yerel olarak saklanır.</string>
-    <string name="datasafety_local_unlocking_vault">Bir Kasanın kilidini açmak, bir cihazın RAM'inde doğru bir Anahtar saklamak, şifreli Kasayı okuma ve değiştirme yeteneği kazanmak anlamına gelir.</string>
-    <string name="datasafety_remote_section">Uzak veriler</string>
-    <string name="datasafety_remote_text">Uzak veriler, sıfır bilgi şifrelemesi ile Bitwarden sunucularında saklanır.</string>
+    <string name="datasafety_local_encryption_algorithm_intro">Kasa, aşağıdaki adımlar kullanılarak Uygulama parolasından türetilen bir Anahtar kullanılarak şifrelenir:</string>
+    <string name="datasafety_local_encryption_algorithm_outro">Salt ve Hash, daha sonra kasayı açmak için bir ana (master) anahtar oluşturmak üzere bir cihazda yerel olarak saklanır.</string>
+    <string name="datasafety_local_unlocking_vault">Kasanın kilidini açmak, cihazın RAM belleğinde doğru Anahtarın tutulması ve böylece şifreli Kasanın okunabilmesi ile değiştirilebilmesi yeteneğinin kazanılması anlamına gelir.</string>
+    <string name="datasafety_remote_section">Uzak veri</string>
+    <string name="datasafety_remote_text">Uzak veri, Bitwarden sunucularında sıfır bilgi (zero-knowledge) şifrelemesi ile saklanır.</string>
+    <string name="webdav_settings_header_title">WebDAV server configuration</string>
+    <string name="webdav_settings_url_title">WebDAV URL</string>
+    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
+    <string name="webdav_settings_auth_note">If your WebDAV server requires authentication, enter your server credentials here. Do not enter your master password.</string>
+    <string name="webdav_settings_test_title">Test connection</string>
+    <string name="webdav_settings_test_text">Writes and removes a small probe file to verify server access.</string>
+    <string name="webdav_settings_test_success">WebDAV connection verified.</string>
+    <string name="webdav_settings_password_requires_username_error">Enter a username before setting a WebDAV password.</string>
     <!-- Title of the 'Localization contributors' screen -->
-    <string name="localization_contributors_title">Yerelleştirme katkıda bulunanları</string>
-    <string name="localization_contributors_search_placeholder">Katkıda bulunanları ara</string>
+    <string name="localization_contributors_title">Çeviriye katkıda bulunanlar</string>
+    <string name="localization_contributors_search_placeholder">Katkıda bulunanlarda ara</string>
     <string name="localization_contributors_empty_label">Katkıda bulunan yok</string>
-    <string name="logs_header_title">Kayıtlar</string>
-    <string name="logs_start_recording_fab_title">Kaydı başlat</string>
+    <string name="logs_header_title">Günlükler (Logs)</string>
+    <string name="logs_start_recording_fab_title">Kayda başla</string>
     <string name="logs_stop_recording_fab_title">Kaydı durdur</string>
     <string name="logs_export_button">Dışa aktar</string>
     <string name="logs_export_success">Dışa aktarma tamamlandı</string>

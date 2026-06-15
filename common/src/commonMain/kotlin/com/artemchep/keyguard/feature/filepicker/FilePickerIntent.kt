@@ -33,4 +33,11 @@ sealed interface FilePickerIntent<R> {
         val persistableUriPermission: Boolean = false,
         override val onResult: (FilePickerResult?) -> Unit,
     ) : FilePickerIntent<FilePickerResult?>
+
+    class OpenDirectory(
+        val readUriPermission: Boolean = true,
+        val writeUriPermission: Boolean = false,
+        val persistableUriPermission: Boolean = false,
+        override val onResult: (FilePickerResult?) -> Unit,
+    ) : FilePickerIntent<FilePickerResult?>
 }

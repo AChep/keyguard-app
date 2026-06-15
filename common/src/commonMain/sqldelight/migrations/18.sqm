@@ -1,0 +1,14 @@
+CREATE TABLE sshUsageHistory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cipherId TEXT,
+  sessionId TEXT NOT NULL,
+  caller TEXT,
+  request INTEGER NOT NULL,
+  response INTEGER NOT NULL,
+  fingerprint TEXT,
+  createdAt INTEGER NOT NULL,
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_sshUsageHistory_createdAt ON sshUsageHistory(createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_sshUsageHistory_cipherId_createdAt ON sshUsageHistory(cipherId, createdAt DESC);

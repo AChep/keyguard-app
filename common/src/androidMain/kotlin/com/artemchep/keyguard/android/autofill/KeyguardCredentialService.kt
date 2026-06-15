@@ -21,18 +21,24 @@ import androidx.credentials.provider.BeginGetCredentialResponse
 import androidx.credentials.provider.CreateEntry
 import androidx.credentials.provider.CredentialProviderService
 import androidx.credentials.provider.ProviderClearCredentialStateRequest
-import com.artemchep.keyguard.android.PasskeyBeginGetRequest
-import com.artemchep.keyguard.android.PasskeyCreateActivity
-import com.artemchep.keyguard.android.PasskeyGetUnlockActivity
-import com.artemchep.keyguard.android.PendingIntents
+import com.artemchep.keyguard.android.CredentialProviderGetRequestHandler
+import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
+import com.artemchep.keyguard.android.createCredentialProviderPendingIntent
+import com.artemchep.keyguard.android.filterCredentialProviderBeginGetOptions
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepository
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.combineIo
+import com.artemchep.keyguard.common.io.dispatchOn
+import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
+import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetProfiles
@@ -45,19 +51,14 @@ import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import org.kodein.di.DIAware
 import org.kodein.di.android.closestDI
-import org.kodein.di.direct
 import org.kodein.di.instance
 import kotlin.coroutines.CoroutineContext
 
 @RequiresApi(34)
-class KeyguardCredentialService : CredentialProviderService(), DIAware {
+open class KeyguardCredentialService : CredentialProviderService(), DIAware {
     private val job = Job()
 
     private val scope = object : CoroutineScope {
@@ -69,76 +70,84 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
 
     private val getCanWrite by instance<GetCanWrite>()
 
-    private val sessionFlow by lazy {
-        val getVaultSession: GetVaultSession by di.instance()
-        getVaultSession()
-            .distinctUntilChanged()
-            .shareIn(
-                scope,
-                SharingStarted.WhileSubscribed(KeyguardAutofillService.KEEP_CIPHERS_IN_MEMORY_FOR),
-                replay = 1,
-            )
-    }
+    private val getPasskeysEnabled by instance<GetAutofillPasskeysEnabled>()
 
-    private val passkeyBeginGetRequest by instance<PasskeyBeginGetRequest>()
+    private val getPasswordsEnabled by instance<GetAutofillPasswordsEnabled>()
+
+    private val credentialProviderPlatformConfig by instance<CredentialProviderPlatformConfig>()
+
+    private val credentialProviderGetRequestHandler by instance<CredentialProviderGetRequestHandler>()
 
     override fun onBeginCreateCredentialRequest(
         request: BeginCreateCredentialRequest,
         cancellationSignal: CancellationSignal,
         callback: OutcomeReceiver<BeginCreateCredentialResponse, CreateCredentialException>,
     ) {
-        ioEffect {
+        if (cancellationSignal.isCanceled) {
+            return
+        }
+
+        val requestJob = ioEffect {
             recordLog("Got begin create credential request")
-            // Check if you can modify items in the vault, if
-            // no then ignore the passkeys request.
-            val canWrite = getCanWrite()
-                .first()
-            if (!canWrite) {
+            val shouldSkip = shouldSkipCreateRequest(request)
+            if (shouldSkip) {
                 val e = CreateCredentialUnknownException()
                 throw e
             }
 
-            val response = ioEffect { processCreateCredentialsRequest(request) }
+            ioEffect { processCreateCredentialsRequest(request) }
                 .crashlyticsTap { e ->
                     e.takeIf { it !is CreateCredentialException }
                 }
                 .bind()
-            callback.onResult(response)
         }
+            .dispatchOn(Dispatchers.Default)
+            .effectTap(Dispatchers.Main) { response ->
+                if (cancellationSignal.isCanceled) {
+                    return@effectTap
+                }
+
+                callback.onResult(response)
+            }
             // Something went wrong, report back the
             // status to the credentials manager.
             .handleErrorTap {
+                if (cancellationSignal.isCanceled) {
+                    return@handleErrorTap
+                }
+
                 val e = it as? CreateCredentialException
                     ?: CreateCredentialUnknownException()
                 callback.onError(e)
             }
             .attempt()
             .launchIn(scope)
+        cancellationSignal.setOnCancelListener {
+            requestJob.cancel()
+        }
     }
 
     private suspend fun processCreateCredentialsRequest(
         request: BeginCreateCredentialRequest,
     ): BeginCreateCredentialResponse {
+        val createCredentialActivityClass =
+            credentialProviderPlatformConfig.createCredentialActivityClass
+                ?: throw CreateCredentialUnknownException()
         return when (request) {
-            is BeginCreatePublicKeyCredentialRequest -> {
-                val title = getString(R.string.app_name)
-                val pi = createCreatePasskeyPendingIntent()
+            is BeginCreatePublicKeyCredentialRequest,
+            is BeginCreatePasswordCredentialRequest,
+                -> {
+                val pendingIntent =
+                    createCreateCredentialPendingIntent(createCredentialActivityClass)
                 val entries = listOf(
                     CreateEntry(
-                        accountName = title,
-                        pendingIntent = pi,
+                        accountName = getString(R.string.app_name),
+                        pendingIntent = pendingIntent,
                     ),
                 )
                 BeginCreateCredentialResponse(
                     createEntries = entries,
                 )
-            }
-
-            is BeginCreatePasswordCredentialRequest -> {
-                // TODO: Add a support for storing the passwords. This
-                //  requires implementing:
-                //  https://github.com/AChep/keyguard-app/issues/5
-                throw CreateCredentialUnknownException()
             }
 
             else -> {
@@ -152,69 +161,74 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
         cancellationSignal: CancellationSignal,
         callback: OutcomeReceiver<BeginGetCredentialResponse, GetCredentialException>,
     ) {
-        ioEffect {
-            recordLog("Got begin get credential request")
-
-            when (val session = sessionFlow.first()) {
-                is MasterSession.Key -> {
-                    val cipherHistoryOpenedRepository =
-                        session.di.direct.instance<CipherHistoryOpenedRepository>()
-                    val getCiphers = session.di.direct.instance<GetCiphers>()
-                    val getProfiles = session.di.direct.instance<GetProfiles>()
-
-                    val ciphersRawFlow = filterHiddenProfiles(
-                        getProfiles = getProfiles,
-                        getCiphers = getCiphers,
-                        filter = null,
-                    )
-                    val ciphers = ciphersRawFlow
-                        .map { ciphers ->
-                            ciphers
-                                .filter { !it.deleted }
-                        }
-                        .first()
-                    val response = ioEffect {
-                        passkeyBeginGetRequest.processGetCredentialsRequest(
-                            cipherHistoryOpenedRepository = cipherHistoryOpenedRepository,
-                            request = request,
-                            ciphers = ciphers,
-                        )
-                    }
-                        .crashlyticsTap { e ->
-                            e.takeIf { it !is GetCredentialException }
-                        }
-                        .bind()
-                    callback.onResult(response)
-                }
-
-                // Need to authenticate a user to unlock
-                // the database first.
-                is MasterSession.Empty -> {
-                    val title = org.jetbrains.compose.resources.getString(Res.string.autofill_open_keyguard)
-                    val pi = createGetUnlockPasskeyPendingIntent()
-                    val actions = listOf(
-                        AuthenticationAction(
-                            title = title,
-                            pendingIntent = pi,
-                        ),
-                    )
-                    callback.onResult(
-                        BeginGetCredentialResponse(
-                            authenticationActions = actions,
-                        ),
-                    )
-                }
-            }
+        if (cancellationSignal.isCanceled) {
+            return
         }
+
+        val requestJob = ioEffect {
+            recordLog("Got begin get credential request")
+            val shouldSkip = shouldSkipGetRequest(request)
+            if (shouldSkip) {
+                val e = GetCredentialUnknownException()
+                throw e
+            }
+
+            ioEffect {
+                credentialProviderGetRequestHandler.process(request)
+            }
+                .crashlyticsTap { e ->
+                    e.takeIf { it !is GetCredentialException }
+                }
+                .bind()
+        }
+            .dispatchOn(Dispatchers.Default)
+            .effectTap(Dispatchers.Main) { response ->
+                if (cancellationSignal.isCanceled) {
+                    return@effectTap
+                }
+
+                callback.onResult(response)
+            }
             // Something went wrong, report back the
             // status to the credentials manager.
             .handleErrorTap {
+                if (cancellationSignal.isCanceled) {
+                    return@handleErrorTap
+                }
+
                 val e = it as? GetCredentialException
                     ?: GetCredentialUnknownException()
                 callback.onError(e)
             }
             .attempt()
             .launchIn(scope)
+        cancellationSignal.setOnCancelListener {
+            requestJob.cancel()
+        }
+    }
+
+    private suspend fun shouldSkipCreateRequest(request: BeginCreateCredentialRequest): Boolean {
+        val canCreate = getCanWrite().toIO().bind()
+        if (!canCreate) {
+            return true
+        }
+
+        return when (request) {
+            is BeginCreatePublicKeyCredentialRequest -> !getPasskeysEnabled().toIO().bind()
+            is BeginCreatePasswordCredentialRequest -> !getPasswordsEnabled().toIO().bind()
+            else -> true
+        }
+    }
+
+    private suspend fun shouldSkipGetRequest(request: BeginGetCredentialRequest): Boolean {
+        val passkeysEnabled = getPasskeysEnabled().toIO().bind()
+        val passwordsEnabled = getPasswordsEnabled().toIO().bind()
+        val remainingOptions = filterCredentialProviderBeginGetOptions(
+            options = request.beginGetCredentialOptions,
+            passkeysEnabled = passkeysEnabled,
+            passwordsEnabled = passwordsEnabled,
+        )
+        return remainingOptions.isEmpty()
     }
 
     override fun onClearCredentialStateRequest(
@@ -235,30 +249,13 @@ class KeyguardCredentialService : CredentialProviderService(), DIAware {
     // Intents
     //
 
-    private fun createGetUnlockPasskeyPendingIntent(
+    private fun createCreateCredentialPendingIntent(
+        activityClass: Class<out android.app.Activity>,
     ): PendingIntent {
-        val intent = PasskeyGetUnlockActivity.getIntent(
+        val intent = Intent(this, activityClass)
+        return createCredentialProviderPendingIntent(
             context = this,
+            intent = intent,
         )
-        return createPendingIntent(intent)
     }
-
-    private fun createCreatePasskeyPendingIntent(
-    ): PendingIntent {
-        val intent = PasskeyCreateActivity.getIntent(
-            context = this,
-        )
-        return createPendingIntent(intent)
-    }
-
-    private fun createPendingIntent(
-        intent: Intent,
-    ): PendingIntent {
-        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-        val rc = getNextPendingIntentRequestCode()
-        return PendingIntent.getActivity(this, rc, intent, flags)
-    }
-
-    private fun getNextPendingIntentRequestCode() = PendingIntents.credential.obtainId()
-
 }

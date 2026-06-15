@@ -5,28 +5,33 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+
 jobs:
   new-update:
     name: Deploy F-Droid
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout main repo"
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
       - name: "Checkout F-Droid repo"
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           repository: AChep/keyguard-repo-fdroid
           fetch-depth: 0
           lfs: true
           path: deploy_fdroid
           token: ${{ secrets.DEPLOY_FDROID_GITHUB_TOKEN }}
+          persist-credentials: false
       - name: "Prepare dependencies declaration"
         run: |
           mv .github/deploy_fdroid.requirements.txt requirements.txt
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: '3.10'
-          cache: 'pip'
       - name: "Download dependencies"
         run: |
           pip install -r requirements.txt
@@ -55,9 +60,12 @@ jobs:
       - name: "Commit and push changes"
         working-directory: ./deploy_fdroid
         if: ${{ startsWith(steps.check-changes.outputs.HAS_CHANGES, 'true') }}
+        env:
+          GH_TOKEN: ${{ secrets.DEPLOY_FDROID_GITHUB_TOKEN }}
         run: |
           git config user.email github-actions@github.com
-          git config user.name "${{ github.actor }}"
+          git config user.name "$GITHUB_ACTOR"
           git add .
           git commit -m "Mirror latest Keyguard artifact from GitHub Releases"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/AChep/keyguard-repo-fdroid.git"
           git push origin master

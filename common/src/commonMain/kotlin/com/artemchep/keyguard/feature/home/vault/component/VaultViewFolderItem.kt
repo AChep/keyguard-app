@@ -13,11 +13,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.minimumInteractiveComponentSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,7 +27,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.theme.combineAlpha
 
@@ -52,69 +49,80 @@ fun VaultViewFolderItem(
             ChevronIcon()
         },
         title = {
-            FlowRow(
-                verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
-                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-            ) {
-                val paddingModifier = Modifier
-                    .padding(
-                        horizontal = 8.dp,
-                        vertical = 4.dp,
-                    )
-                val tintColor = MaterialTheme.colorScheme
-                    .surfaceColorAtElevationSemi(1.dp)
-                item.nodes.forEachIndexed { index, s ->
-                    if (item.nodes.size > 1 && index != item.nodes.lastIndex) {
-                        val updatedOnClick by rememberUpdatedState(s.onClick)
-                        Row(
-                            modifier = Modifier
-                                .clip(MaterialTheme.shapes.small)
-                                .background(tintColor)
-                                .clickable {
-                                    updatedOnClick()
-                                }
-                                .then(paddingModifier),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            Text(
-                                modifier = Modifier
-                                    .weight(1f, fill = false),
-                                text = s.name,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 5,
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Icon(
-                                Icons.Outlined.ChevronRight,
-                                null,
-                                modifier = Modifier
-                                    .size(18.dp),
-                                tint = LocalContentColor.current
-                                    .combineAlpha(DisabledEmphasisAlpha),
-                            )
-                        }
-                    } else if (item.nodes.size == 1) {
-                        Text(
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically),
-                            text = s.name,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 5,
-                        )
-                    } else {
-                        Text(
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .then(paddingModifier),
-                            text = s.name,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 5,
-                        )
-                    }
-                }
-            }
+            VaultViewFolderTree(
+                item = item,
+            )
         },
         onClick = item.onClick,
     )
+}
+
+@Composable
+fun VaultViewFolderTree(
+    modifier: Modifier = Modifier,
+    item: VaultViewItem.Folder,
+) {
+    FlowRow(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
+        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
+    ) {
+        val paddingModifier = Modifier
+            .padding(
+                horizontal = 8.dp,
+                vertical = 4.dp,
+            )
+        val tintColor = MaterialTheme.colorScheme
+            .surfaceColorAtElevationSemi(1.dp)
+        item.nodes.forEachIndexed { index, s ->
+            if (item.nodes.size > 1 && index != item.nodes.lastIndex) {
+                val updatedOnClick by rememberUpdatedState(s.onClick)
+                Row(
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.small)
+                        .background(tintColor)
+                        .clickable {
+                            updatedOnClick()
+                        }
+                        .then(paddingModifier),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .weight(1f, fill = false),
+                        text = s.name,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 5,
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        Icons.Outlined.ChevronRight,
+                        null,
+                        modifier = Modifier
+                            .size(18.dp),
+                        tint = LocalContentColor.current
+                            .combineAlpha(DisabledEmphasisAlpha),
+                    )
+                }
+            } else if (item.nodes.size == 1) {
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically),
+                    text = s.name,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 5,
+                )
+            } else {
+                Text(
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .then(paddingModifier),
+                    text = s.name,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 5,
+                )
+            }
+        }
+    }
 }

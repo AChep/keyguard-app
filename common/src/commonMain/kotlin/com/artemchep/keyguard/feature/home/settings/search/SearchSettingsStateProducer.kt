@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.home.settings.search
 
 import androidx.compose.runtime.Composable
+import arrow.core.identity
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetOrganizations
@@ -11,6 +12,7 @@ import com.artemchep.keyguard.feature.home.settings.hub
 import com.artemchep.keyguard.feature.home.vault.search.findAlike
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.SEARCH_DEBOUNCE
+import com.artemchep.keyguard.feature.search.search.debounceSearch
 import com.artemchep.keyguard.feature.search.search.mapListShape
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.combine
@@ -47,7 +49,7 @@ fun produceSearchSettingsState(
     val queryState = mutableComposeState(querySink)
 
     val queryFlow = querySink
-        .debounce(SEARCH_DEBOUNCE)
+        .debounceSearch(::identity)
         .map { query ->
             query
                 .lowercase()

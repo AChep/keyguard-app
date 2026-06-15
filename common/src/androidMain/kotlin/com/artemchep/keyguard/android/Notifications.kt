@@ -13,4 +13,8 @@ object Notifications {
         start = 40000,
         endExclusive = 50000,
     )
+    val sshAgent = NotificationIdPool.sequential(
+        start = 50000,
+        endExclusive = 60000,
+    )
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.FlowRowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -32,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeFinishing
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.ui.DialogPopup
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.util.HorizontalDivider
@@ -56,45 +59,75 @@ fun Dialog(
         },
         expanded = !LocalNavigationNodeFinishing.current,
     ) {
-        val scrollState = rememberScrollState()
-        val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+        DialogContent(
+            icon = icon,
+            title = title,
+            content = content,
+            contentScrollable = contentScrollable,
+            actions = actions,
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun DialogContent(
+    icon: (@Composable () -> Unit)? = null,
+    title: (@Composable ColumnScope.() -> Unit)?,
+    content: (@Composable BoxScope.() -> Unit)?,
+    contentScrollable: Boolean = true,
+    fill: Boolean = false,
+    actions: @Composable FlowRowScope.() -> Unit,
+) {
+    val scrollState = rememberScrollState()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    Column(
+        modifier = Modifier,
+    ) {
         Column(
-            modifier = Modifier,
+            modifier = Modifier
+                .weight(1f, fill = fill)
+                .nestedScroll(scrollBehavior.nestedScrollConnection),
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .nestedScroll(scrollBehavior.nestedScrollConnection),
-            ) {
-                if (title != null) {
-                    Spacer(
-                        modifier = Modifier
-                            .height(24.dp),
-                    )
-                    val centerAlign = icon != null
-                    Column(
-                        modifier = Modifier
-                            .padding(horizontal = Dimens.horizontalPadding)
-                            .fillMaxWidth(),
-                        horizontalAlignment = if (centerAlign) {
-                            Alignment.CenterHorizontally
-                        } else {
-                            Alignment.Start
-                        },
-                    ) {
-                        if (icon != null) {
-                            CompositionLocalProvider(
-                                LocalContentColor provides MaterialTheme.colorScheme.secondary,
+            if (title != null || icon != null) {
+                Spacer(
+                    modifier = Modifier
+                        .height(24.dp),
+                )
+                val centerAlign = icon != null
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = Dimens.horizontalPadding)
+                        .fillMaxWidth(),
+                    horizontalAlignment = if (centerAlign) {
+                        Alignment.CenterHorizontally
+                    } else {
+                        Alignment.Start
+                    },
+                ) {
+                    if (icon != null) {
+                        CompositionLocalProvider(
+                            LocalContentColor provides MaterialTheme.colorScheme.secondary,
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .heightIn(max = 56.dp),
                             ) {
                                 icon()
                             }
-                            Spacer(
-                                modifier = Modifier
-                                    .height(16.dp),
-                            )
+                        }
+                        Spacer(
+                            modifier = Modifier
+                                .height(16.dp),
+                        )
+                    }
+                    if (title != null) {
+                        val titleStyle = when (CurrentPlatform) {
+                            is Platform.Desktop -> MaterialTheme.typography.titleMedium
+                            is Platform.Mobile -> MaterialTheme.typography.titleLarge
                         }
                         ProvideTextStyle(
-                            MaterialTheme.typography.titleLarge
+                            titleStyle
                                 .copy(
                                     textAlign = if (centerAlign) {
                                         TextAlign.Center
@@ -105,80 +138,84 @@ fun Dialog(
                         ) {
                             title()
                         }
+                        val spacerHeight = when (CurrentPlatform) {
+                            is Platform.Desktop -> 24.dp
+                            is Platform.Mobile -> 16.dp
+                        }
                         Spacer(
                             modifier = Modifier
-                                .height(16.dp),
+                                .height(spacerHeight),
                         )
                     }
                 }
-                if (content != null) {
-                    Box {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .then(
-                                    if (contentScrollable) {
-                                        Modifier
-                                            .verticalScroll(scrollState)
-                                    } else {
-                                        Modifier
-                                    },
-                                )
-                                .then(
-                                    if (title == null) {
-                                        Modifier
-                                            .padding(top = 24.dp)
-                                    } else {
-                                        Modifier
-                                    },
-                                ),
-                            contentAlignment = Alignment.TopStart,
+            }
+            if (content != null) {
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(
+                                if (contentScrollable) {
+                                    Modifier
+                                        .verticalScroll(scrollState)
+                                } else {
+                                    Modifier
+                                },
+                            )
+                            .then(
+                                if (title == null) {
+                                    Modifier
+                                        .padding(top = 24.dp)
+                                } else {
+                                    Modifier
+                                },
+                            ),
+                        contentAlignment = Alignment.TopStart,
+                    ) {
+                        CompositionLocalProvider(
+                            LocalTextStyle provides MaterialTheme.typography.bodyMedium,
                         ) {
-                            CompositionLocalProvider(
-                                LocalTextStyle provides MaterialTheme.typography.bodyMedium,
-                            ) {
-                                content()
-                            }
-                        }
-                        androidx.compose.animation.AnimatedVisibility(
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .fillMaxWidth(),
-                            visible = scrollState.canScrollBackward && contentScrollable && title != null,
-                        ) {
-                            HorizontalDivider(transparency = false)
-                        }
-                        androidx.compose.animation.AnimatedVisibility(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .fillMaxWidth(),
-                            visible = scrollState.canScrollForward && contentScrollable,
-                        ) {
-                            HorizontalDivider(transparency = false)
+                            content()
                         }
                     }
-                    Spacer(
+                    androidx.compose.animation.AnimatedVisibility(
                         modifier = Modifier
-                            .height(16.dp),
-                    )
+                            .align(Alignment.TopCenter)
+                            .fillMaxWidth(),
+                        visible = scrollState.canScrollBackward && contentScrollable && title != null,
+                    ) {
+                        HorizontalDivider(transparency = false)
+                    }
+                    androidx.compose.animation.AnimatedVisibility(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth(),
+                        visible = scrollState.canScrollForward && contentScrollable,
+                    ) {
+                        HorizontalDivider(transparency = false)
+                    }
                 }
+                Spacer(
+                    modifier = Modifier
+                        .height(16.dp),
+                )
             }
-            FlowRow(
-                modifier = Modifier
-                    .padding(
-                        start = 16.dp,
-                        end = 16.dp,
-                    )
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-            ) {
-                actions()
-            }
-            Spacer(
-                modifier = Modifier
-                    .height(16.dp),
-            )
         }
+        FlowRow(
+            modifier = Modifier
+                .padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                )
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+        ) {
+            actions()
+        }
+        Spacer(
+            modifier = Modifier
+                .height(16.dp),
+        )
     }
 }

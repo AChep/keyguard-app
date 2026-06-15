@@ -2,10 +2,14 @@ package com.artemchep.keyguard.copy
 
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
+import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.platform.toJavaFile
+import com.artemchep.keyguard.platform.toLocalPath
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -14,6 +18,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.kodein.di.DirectDI
 import java.io.File
 import java.io.IOException
@@ -27,11 +32,12 @@ class FileWatcherServiceJvm(
     ) : this()
 
     override fun fileChangedFlow(
-        file: File,
+        file: LocalPath,
     ): Flow<FileWatchEvent> = flow {
-        val isDir = file.isDirectory
+        val javaFile = file.toJavaFile()
+        val isDir = javaFile.isDirectory
         if (isDir) {
-            file.watchDirectoryFlow()
+            javaFile.watchDirectoryFlow()
                 .collect(this)
             return@flow
         }
@@ -41,16 +47,16 @@ class FileWatcherServiceJvm(
         // dump checker.
 
         val single = kotlin.run {
-            val parent = file.parentFile
+            val parent = javaFile.parentFile
             parent?.list()?.size == 1
         }
         if (single) {
-            file.watchDirectoryFlow()
+            javaFile.watchDirectoryFlow()
                 .collect(this)
             return@flow
         }
 
-        file.watchFileFlow()
+        javaFile.watchFileFlow()
             .collect(this)
     }.flowOn(Dispatchers.IO)
 }
@@ -65,7 +71,7 @@ fun File.watchFileFlow(
 ) = callbackFlow<FileWatchEvent> {
     send(
         FileWatchEvent(
-            file = this@watchFileFlow,
+            path = this@watchFileFlow.toLocalPath(),
             tag = tag,
             kind = FileWatchEvent.Kind.INITIALIZED,
         ),
@@ -88,7 +94,7 @@ fun File.watchFileFlow(
             val curModifiedTime = getLastModifiedTime()
             if (curModifiedTime != lastModifiedTime) {
                 val fileEvent = FileWatchEvent(
-                    file = this@watchFileFlow,
+                    path = this@watchFileFlow.toLocalPath(),
                     tag = tag,
                     kind = FileWatchEvent.Kind.MODIFIED,
                 )
@@ -125,7 +131,7 @@ fun File.watchDirectoryFlow(
     ) = run {
         trySendBlocking(
             FileWatchEvent(
-                file = path.toFile(),
+                path = path.toLocalPath(),
                 tag = tag,
                 kind = kind,
             ),
@@ -137,39 +143,45 @@ fun File.watchDirectoryFlow(
         kind = FileWatchEvent.Kind.INITIALIZED,
     )
 
-    var watcher: DirectoryWatcher? = null
-    try {
-        watcher = DirectoryWatcher.builder()
-            .path(path)
-            .fileHashing(false)
-            .listener { event: DirectoryChangeEvent ->
-                if (this@watchDirectoryFlow.isFile) {
-                    // Check that the event is related only to this
-                    // file!
-                    if (this@watchDirectoryFlow.toPath() != event.path()) {
-                        return@listener
-                    }
+    val watcher = DirectoryWatcher.builder()
+        .path(path)
+        .fileHashing(false)
+        .listener { event: DirectoryChangeEvent ->
+            if (this@watchDirectoryFlow.isFile) {
+                // Check that the event is related only to this
+                // file!
+                if (this@watchDirectoryFlow.toPath() != event.path()) {
+                    return@listener
                 }
-                val kind = when (event.eventType()) {
-                    DirectoryChangeEvent.EventType.CREATE -> FileWatchEvent.Kind.CREATED
-                    DirectoryChangeEvent.EventType.OVERFLOW,
-                    DirectoryChangeEvent.EventType.MODIFY,
-                        -> FileWatchEvent.Kind.MODIFIED
-
-                    DirectoryChangeEvent.EventType.DELETE -> FileWatchEvent.Kind.DELETED
-                    else -> return@listener
-                }
-                sendEvent(
-                    path = event.path(),
-                    kind = kind,
-                )
             }
-            .build()
-        watcher?.watch()
-    } finally {
+            val kind = when (event.eventType()) {
+                DirectoryChangeEvent.EventType.CREATE -> FileWatchEvent.Kind.CREATED
+                DirectoryChangeEvent.EventType.OVERFLOW,
+                DirectoryChangeEvent.EventType.MODIFY,
+                    -> FileWatchEvent.Kind.MODIFIED
+
+                DirectoryChangeEvent.EventType.DELETE -> FileWatchEvent.Kind.DELETED
+                else -> return@listener
+            }
+            sendEvent(
+                path = event.path(),
+                kind = kind,
+            )
+        }
+        .build()
+    val watchJob = launch(Dispatchers.IO) {
         try {
-            watcher?.close()
+            watcher.watch()
+            channel.close()
+        } catch (e: Exception) {
+            channel.close(e)
+        }
+    }
+    awaitClose {
+        try {
+            watcher.close()
         } catch (_: Exception) {
         }
+        watchJob.cancel()
     }
 }.flowOn(Dispatchers.IO)

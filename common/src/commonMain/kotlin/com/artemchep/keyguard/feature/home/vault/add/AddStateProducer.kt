@@ -34,13 +34,13 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.KeyPair
-import com.artemchep.keyguard.common.model.KeyPairDecor
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.UsernameVariation2
 import com.artemchep.keyguard.common.model.buildDocs
+import com.artemchep.keyguard.common.model.map
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.create.address1
 import com.artemchep.keyguard.common.model.create.address2
@@ -76,9 +76,15 @@ import com.artemchep.keyguard.common.model.creditCards
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.titleH
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportError
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportRequest
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.text.TextService
+import com.artemchep.keyguard.common.service.text.readFromFileAsText
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CopyText
@@ -114,6 +120,7 @@ import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
 import com.artemchep.keyguard.feature.auth.common.util.format
 import com.artemchep.keyguard.feature.auth.common.util.validateUri
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
@@ -122,10 +129,12 @@ import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConf
 import com.artemchep.keyguard.feature.datepicker.DatePickerResult
 import com.artemchep.keyguard.feature.datepicker.DatePickerRoute
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
-import com.artemchep.keyguard.feature.home.vault.add.AddStateItemPasskeyFactory.PasskeyHolder
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachmentItemFactory
+import com.artemchep.keyguard.feature.home.vault.add.attachment.toSkeletonAttachmentOrNull
+import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -134,9 +143,9 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.platform.LeSerializable
 import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
@@ -156,6 +165,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
@@ -171,15 +181,13 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.encodeToString
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
-import java.io.Serializable
-import kotlin.math.sin
 import kotlin.uuid.Uuid
 
 // TODO: Support hide password option
@@ -198,6 +206,8 @@ fun produceAddScreenState(
         getTotpCode = instance(),
         getGravatarUrl = instance(),
         getMarkdown = instance(),
+        textService = instance(),
+        sshKeyImportService = instance(),
         logRepository = instance(),
         clipboardService = instance(),
         otpMigrationService = instance(),
@@ -205,6 +215,7 @@ fun produceAddScreenState(
         cipherUnsecureUrlCheck = instance(),
         showMessage = instance(),
         addCipher = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -229,6 +240,8 @@ fun produceAddScreenState(
     getTotpCode: GetTotpCode,
     getGravatarUrl: GetGravatarUrl,
     getMarkdown: GetMarkdown,
+    textService: TextService,
+    sshKeyImportService: SshKeyImportService,
     logRepository: LogRepository,
     clipboardService: ClipboardService,
     otpMigrationService: OtpMigrationService,
@@ -236,6 +249,7 @@ fun produceAddScreenState(
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     showMessage: ShowMessage,
     addCipher: AddCipher,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): Loadable<AddState> = produceScreenState(
     key = "cipher_add",
     initial = Loadable.Loading,
@@ -249,8 +263,9 @@ fun produceAddScreenState(
         getTotpCode,
     ),
 ) {
-    val copyText = copy(clipboardService)
+    val copyText = copier()
     val markdown = getMarkdown().first()
+    val filePickerEvents = EventFlow<FilePickerIntent<*>>()
 
     val ownershipFlow = produceOwnershipFlow(
         args = args,
@@ -264,6 +279,13 @@ fun produceAddScreenState(
         .combine(ownershipFlow) { profiles, ownership ->
             profiles
                 .firstOrNull { it.accountId == ownership.data.accountId }
+        }
+        .distinctUntilChanged()
+    val accountTypeFlow = getAccounts()
+        .combine(ownershipFlow) { accounts, ownership ->
+            accounts
+                .firstOrNull { it.id.id == ownership.data.accountId }
+                ?.type
         }
         .distinctUntilChanged()
 
@@ -281,19 +303,16 @@ fun produceAddScreenState(
             else -> null
         }
 
-        val mergeRemoveCiphers = mutablePersistedFlow("merge.remove_ciphers") {
-            false
+        val mergePostActionSink = mutablePersistedFlow<CreateRequest.Merge.PostAction?>("merge.post_action") {
+            null
         }
-        mergeRemoveCiphers
-            .map { removeCiphers ->
-                val removeOrigin = SwitchFieldModel(
-                    checked = removeCiphers,
-                    onChange = mergeRemoveCiphers::value::set,
-                )
+        mergePostActionSink
+            .map { mergePostAction ->
                 AddState.Merge(
                     ciphers = args.merge.ciphers,
                     note = note,
-                    removeOrigin = removeOrigin,
+                    postAction = mergePostAction,
+                    onChangePostAction = mergePostActionSink::value::set,
                 )
             }
     } else {
@@ -320,6 +339,11 @@ fun produceAddScreenState(
     )
     val sshKeyHolder = produceSshKeyState(
         args = args,
+        textService = textService,
+        sshKeyImportService = sshKeyImportService,
+        showMessage = showMessage,
+        filePickerIntentSink = filePickerEvents,
+        confirmationRouteFactory = confirmationRouteFactory,
     )
 
     val typeFlow = kotlin.run {
@@ -330,10 +354,8 @@ fun produceAddScreenState(
         flowOf(initialValue)
     }
 
-    val filePickerIntentSink = EventFlow<FilePickerIntent<*>>()
-
     val sideEffects = AddState.SideEffects(
-        filePickerIntentFlow = filePickerIntentSink,
+        filePickerIntentFlow = filePickerEvents,
     )
 
     val passkeysFactories = kotlin.run {
@@ -352,6 +374,7 @@ fun produceAddScreenState(
             existingPasskeys
         },
         initialType = { "passkey" },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = passkeysFactories,
         afterList = {
             if (isEmpty()) {
@@ -368,6 +391,7 @@ fun produceAddScreenState(
 
     val urisFactories = kotlin.run {
         val uriFactory = AddStateItemUriFactory(
+            confirmationRouteFactory = confirmationRouteFactory,
             getAutofillDefaultMatchDetection = getAutofillDefaultMatchDetection,
             cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
         )
@@ -388,6 +412,7 @@ fun produceAddScreenState(
             )
         },
         initialType = { "uri" },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = urisFactories,
         afterList = {
             val header = AddStateItem.Section(
@@ -412,6 +437,7 @@ fun produceAddScreenState(
         },
     )
 
+    val attachmentsFileDragFlow = MutableStateFlow<AddState.FileDrag?>(null)
     val attachmentsFactories = kotlin.run {
         val attachmentFactory = SkeletonAttachmentItemFactory()
         listOf(
@@ -444,6 +470,7 @@ fun produceAddScreenState(
                                 id = it.id,
                                 uri = uri,
                                 size = it.fileSize(),
+                                keyBase64 = it.keyBase64,
                             ),
                             name = it.fileName(),
                             size = it.fileSize()?.let(::humanReadableByteCountSI).orEmpty(),
@@ -453,6 +480,7 @@ fun produceAddScreenState(
             }
             .filterNotNull(),
         initialType = { "attachment" },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = attachmentsFactories,
         afterList = {
             if (this.isEmpty()) {
@@ -466,38 +494,61 @@ fun produceAddScreenState(
             add(0, header)
         },
         extra = {
-            val action = FlatItemAction(
-                title = TextHolder.Value("Attachment"),
-                onClick = {
-                    val intent = FilePickerIntent.OpenDocument { info ->
-                        val msg = ToastMessage(
-                            title = "Picked a file!",
-                            text = info?.name?.toString(),
-                        )
-                        showMessage.copy(msg)
+            val bitwardenUploadLimitError = translate(Res.string.error_file_must_be_500_mb_or_smaller)
+            val keePassUploadLimitError = translate(Res.string.error_file_must_be_1_mb_or_smaller)
 
-                        if (info != null) {
-                            val model = SkeletonAttachment.Local(
-                                identity = SkeletonAttachment.Local.Identity(
-                                    id = Uuid.random().toString(),
-                                    uri = info.uri,
-                                    size = info.size,
-                                ),
-                                name = info.name ?: "File",
-                                size = info.size?.let(::humanReadableByteCountSI).orEmpty(),
-                            )
-                            add("attachment", model)
-                        }
+            fun addAttachmentFile(
+                info: FilePickerResult,
+                accountType: AccountType?,
+            ) {
+                val attachment = info.toSkeletonAttachmentOrNull(accountType)
+                if (attachment == null) {
+                    val title = when (accountType) {
+                        AccountType.KEEPASS -> keePassUploadLimitError
+                        AccountType.BITWARDEN,
+                        null,
+                        -> bitwardenUploadLimitError
                     }
-                    filePickerIntentSink.emit(intent)
-                },
-            )
-            val item = AddStateItem.Add(
-                id = "attachment.add",
-                text = translate(Res.string.list_add),
-                actions = persistentListOf(action),
-            )
-            flowOf(emptyList())
+                    val msg = ToastMessage(
+                        type = ToastMessage.Type.ERROR,
+                        title = title,
+                    )
+                    showMessage.copy(msg)
+                    return
+                }
+
+                add(
+                    type = "attachment",
+                    arg = attachment,
+                )
+            }
+
+            accountTypeFlow.map { accountType ->
+                attachmentsFileDragFlow.value = AddState.FileDrag(
+                    anchorItemId = "attachment.add",
+                    text = translate(Res.string.additem_attachments_drop_here),
+                    onFileDrop = { info ->
+                        addAttachmentFile(info, accountType)
+                    },
+                )
+                val action = FlatItemAction(
+                    title = TextHolder.Value("Attachment"),
+                    onClick = {
+                        val intent = FilePickerIntent.OpenDocument { info ->
+                            if (info != null) {
+                                addAttachmentFile(info, accountType)
+                            }
+                        }
+                        filePickerEvents.emit(intent)
+                    },
+                )
+                val item = AddStateItem.Add(
+                    id = "attachment.add",
+                    text = translate(Res.string.list_add),
+                    actions = persistentListOf(action),
+                )
+                listOf(item)
+            }
         },
     )
 
@@ -519,18 +570,29 @@ fun produceAddScreenState(
                 DSecret.Type.None -> flowOf(emptyList())
             }
         }
-    val miscItems by lazy {
-        listOf(
-            AddStateItem.Section(
-                id = "misc",
-            ),
-            AddStateItem.Note(
-                id = "misc.note",
-                state = noteHolder.note.state,
-                markdown = markdown,
-            ),
-        )
-    }
+    val noteItem = AddStateItem.Note(
+        id = "misc.note",
+        state = noteHolder.note.state,
+        markdown = markdown,
+    )
+    val noteSuggestionsItem = createItem2(
+        prefix = "misc.note",
+        key = "note",
+        args = args,
+        getSuggestion = { it.notes },
+        selectedFlow = noteItem.state.flow.map { it.text },
+        concealed = false,
+        onClick = {
+            noteItem.state.flow.value.onChange?.invoke(it)
+        },
+    )
+    val miscItems = listOfNotNull(
+        AddStateItem.Section(
+            id = "misc",
+        ),
+        noteItem,
+        noteSuggestionsItem,
+    )
     val miscFlow = typeFlow
         .map { type ->
             val hasNotes = when (type) {
@@ -642,6 +704,7 @@ fun produceAddScreenState(
                 DSecret.Field.Type.Linked -> "field.linked_id"
             }
         },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = fieldsFactories,
         afterList = {
             val header = AddStateItem.Section(
@@ -708,6 +771,7 @@ fun produceAddScreenState(
         scope = "tag",
         initial = args.initialValue?.tags.orEmpty(),
         initialType = { tag -> "tag.text" },
+        confirmationRouteFactory = confirmationRouteFactory,
         factories = tagsFactories,
         afterList = {
             val header = AddStateItem.Section(
@@ -872,7 +936,7 @@ fun produceAddScreenState(
 
                             val requestMerge = CreateRequest.Merge(
                                 ciphers = merge.ciphers,
-                                removeOrigin = merge.removeOrigin.checked,
+                                postAction = merge.postAction,
                             )
                             return r.copy(merge = requestMerge)
                         }
@@ -937,6 +1001,12 @@ fun produceAddScreenState(
             },
         )
         Loadable.Ok(state)
+    }.combine(attachmentsFileDragFlow) { state, fileDrag ->
+        state.map { value ->
+            value.copy(
+                fileDrag = fileDrag,
+            )
+        }
     }
     f
 }
@@ -998,6 +1068,7 @@ class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment<*>, DS
 }
 
 class AddStateItemUriFactory(
+    private val confirmationRouteFactory: ConfirmationRouteFactory,
     private val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
     private val cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
 ) : Foo2Factory<AddStateItem.Url<*>, DSecret.Uri> {
@@ -1059,6 +1130,7 @@ class AddStateItemUriFactory(
                                 )
                             }
                         val intent = createConfirmationDialogIntent(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             item = ConfirmationRoute.Args.Item.EnumItem(
                                 key = "name",
                                 value = selectedMatchType.name,
@@ -1694,7 +1766,7 @@ data class Foo2Type(
 data class Foo2Persistable(
     val key: String,
     val type: String,
-) : Serializable
+) : LeSerializable
 
 data class Foo2InitialState<Argument>(
     val items: List<Item<Argument>>,
@@ -1711,6 +1783,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo3(
     scope: String,
     initial: List<Argument>,
     initialType: (Argument) -> String,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     factories: List<Foo2Factory<T, Argument>>,
     afterList: suspend MutableList<AddStateItem>.() -> Unit,
     extra: suspend FieldBakeryScope<Argument>.() -> Flow<List<AddStateItem>> = {
@@ -1733,6 +1806,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo3(
     logRepository.post("Foo3", "Scope '$scope' with initial ${initial.size} items.")
     return foo<T, Argument>(
         scope = scope,
+        confirmationRouteFactory = confirmationRouteFactory,
         initialState = initialState,
         entryAdd = { (key, type), arg ->
             val factory = factories.first { it.type == type }
@@ -1756,6 +1830,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo3(
 
 suspend fun <T, Argument> RememberStateFlowScope.foo2(
     scope: String,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     initialState: Foo2InitialState<Argument>,
     factories: List<Foo2Factory<T, Argument>>,
     afterList: suspend MutableList<AddStateItem>.() -> Unit,
@@ -1765,6 +1840,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo2(
 ): Flow<List<AddStateItem>> where T : AddStateItem, T : AddStateItem.HasOptions<T> {
     return foo<T, Argument>(
         scope = scope,
+        confirmationRouteFactory = confirmationRouteFactory,
         initialState = initialState,
         entryAdd = { (key, type), arg ->
             val factory = factories.first { it.type == type }
@@ -1824,6 +1900,7 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
 suspend fun <T, Argument> RememberStateFlowScope.foo(
     // scope name,
     scope: String,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     initialState: Foo2InitialState<Argument>,
     entryAdd: RememberStateFlowScope.(Foo2Persistable, Argument?) -> T,
     entryRelease: RememberStateFlowScope.(Foo2Persistable) -> Unit,
@@ -1973,6 +2050,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
                         title = Res.string.list_remove.wrap(),
                         onClick = onClick {
                             val intent = createConfirmationDialogIntent(
+                                confirmationRouteFactory = confirmationRouteFactory,
                                 icon = icon(Icons.Outlined.DeleteForever),
                                 title = translate(Res.string.list_remove_confirmation_title),
                             ) {
@@ -2157,17 +2235,34 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
             is FolderInfo.Id -> {
                 val selectedFolderOrNull = folders
                     .firstOrNull { it.id == selectedFolder.id }
-                val el = AddStateOwnership.Element(
-                    readOnly = false,
-                    items = listOfNotNull(selectedFolderOrNull)
-                        .map { folder ->
-                            val key = "folder.${folder.id}"
-                            AddStateOwnership.Element.Item(
-                                key = key,
-                                title = folder.name,
-                            )
-                        },
-                )
+
+                // This might happen if the folder associated with the cipher was deleted.
+                // In that case the cipher continues to have the folder-id set, but we
+                // surface. The possible issue here is that if the "folders" are not complete
+                // yet, then the cipher will be shown as "No folder" for small period of time.
+                val el = if (selectedFolderOrNull == null) {
+                    val item = AddStateOwnership.Element.Item(
+                        key = "folder.empty",
+                        title = translate(Res.string.folder_none),
+                        stub = true,
+                    )
+                    AddStateOwnership.Element(
+                        readOnly = false,
+                        items = listOf(item),
+                    )
+                } else {
+                    AddStateOwnership.Element(
+                        readOnly = false,
+                        items = listOfNotNull(selectedFolderOrNull)
+                            .map { folder ->
+                                val key = "folder.${folder.id}"
+                                AddStateOwnership.Element.Item(
+                                    key = key,
+                                    title = folder.name,
+                                )
+                            },
+                    )
+                }
                 AddStateOwnershipElementHolder(
                     value = selectedFolder,
                     element = el,
@@ -2582,10 +2677,9 @@ private suspend fun RememberStateFlowScope.produceCardState(
                                 ),
                             ) { result ->
                                 if (result is DatePickerResult.Confirm) {
-                                    monthState.value = result.month.value
-                                        .toString()
-                                        .padStart(2, '0')
-                                    yearState.value = result.year.value.toString()
+                                    val (monthValue, yearValue) = result.toMonthAndYearStrings()
+                                    monthState.value = monthValue
+                                    yearState.value = yearValue
                                 }
                             }
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -3403,10 +3497,16 @@ data class KeyPairDecor2(
 data class KeyPairDecor2Brr(
     val keyPair: KeyPairDecor2? = null,
     val onChange: (KeyPair) -> Unit,
+    val onImport: () -> Unit,
 )
 
 private suspend fun RememberStateFlowScope.produceSshKeyState(
     args: AddRoute.Args,
+    textService: TextService,
+    sshKeyImportService: SshKeyImportService,
+    showMessage: ShowMessage,
+    filePickerIntentSink: EventFlow<FilePickerIntent<*>>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): TmpSshKey {
     val prefix = "sshKey"
 
@@ -3428,19 +3528,141 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                 fingerprint = args.keyPair?.publicKey?.fingerprint ?: args.initialValue?.sshKey?.fingerprint ?: "",
             )
         }
+
+        suspend fun importKey(
+            fileName: String?,
+            content: String,
+            passphrase: String?,
+            // callbacks
+            onNeedsPassphrase: suspend (SshKeyImportResult.NeedsPassphrase) -> Unit,
+        ) = when (
+            val result = sshKeyImportService.import(
+                SshKeyImportRequest(
+                    content = content,
+                    fileName = fileName,
+                    passphrase = passphrase,
+                ),
+            )
+        ) {
+            is SshKeyImportResult.Success -> {
+                val msg = ToastMessage(
+                    type = ToastMessage.Type.SUCCESS,
+                    title = translate(Res.string.ssh_key_import_success_title),
+                )
+                showMessage.copy(msg)
+                // success!
+                sink.value = result.keyPair.toDecor()
+            }
+
+            is SshKeyImportResult.NeedsPassphrase -> {
+                // Redirect to a next flow or
+                // exit there!
+                onNeedsPassphrase(result)
+            }
+
+            is SshKeyImportResult.Error -> {
+                val msg = createLocalizedSshKeyImportErrorToast(result.reason)
+                showMessage.copy(msg)
+            }
+        }
+
+        suspend fun onImportKeyWithPassphrase(
+            result: SshKeyImportResult.NeedsPassphrase,
+            fileName: String?,
+            content: String,
+        ) {
+            val passphraseTitle = translate(Res.string.ssh_key_import_passphrase_title)
+            val passphraseHint = translate(Res.string.ssh_key_import_passphrase_hint)
+
+            val intent = createConfirmationDialogIntent(
+                confirmationRouteFactory = confirmationRouteFactory,
+                item = ConfirmationRoute.Args.Item.StringItem(
+                    key = "$id.passphrase",
+                    title = passphraseTitle,
+                    hint = passphraseHint,
+                    type = ConfirmationRoute.Args.Item.StringItem.Type.Password,
+                    canBeEmpty = false,
+                ),
+                title = translate(Res.string.ssh_key_import_passphrase_dialog_title),
+                message = translate(
+                    Res.string.ssh_key_import_passphrase_dialog_message,
+                    result.formatLabel,
+                ),
+            ) { passphrase ->
+                appScope.launch {
+                    importKey(
+                        content = content,
+                        fileName = fileName,
+                        passphrase = passphrase,
+                        // callbacks
+                        onNeedsPassphrase = {
+                            // show error message
+                            val msg = createLocalizedSshKeyImportPassphraseErrorToast()
+                            showMessage.copy(msg)
+                        },
+                    )
+                }
+            }
+            navigate(intent)
+        }
+
+        suspend fun onImportKey(
+            info: FilePickerResult,
+        ) {
+            handleSshKeyFileImport(
+                info = info,
+                readText = textService::readFromFileAsText,
+                importSshKey = sshKeyImportService::import,
+                onSuccess = { keyPair ->
+                    val msg = ToastMessage(
+                        type = ToastMessage.Type.SUCCESS,
+                        title = translate(Res.string.ssh_key_import_success_title),
+                    )
+                    showMessage.copy(msg)
+                    sink.value = keyPair.toDecor()
+                },
+                onNeedsPassphrase = { result, fileName, content ->
+                    onImportKeyWithPassphrase(
+                        result = result,
+                        fileName = fileName,
+                        content = content,
+                    )
+                },
+                onImportError = { reason ->
+                    val msg = createLocalizedSshKeyImportErrorToast(reason)
+                    showMessage.copy(msg)
+                },
+                onReadError = {
+                    val msg = createLocalizedSshKeyImportReadErrorToast()
+                    showMessage.copy(msg)
+                },
+            )
+        }
+
+        fun requestImportKey() {
+            val intent = FilePickerIntent.OpenDocument(
+                mimeTypes = FilePickerIntent.mimeTypesAll,
+            ) { info ->
+                if (info == null) {
+                    return@OpenDocument
+                }
+
+                appScope.launch {
+                    onImportKey(info)
+                }
+            }
+            filePickerIntentSink.emit(intent)
+        }
+
         val stateItem = LocalStateItem<KeyPairDecor2Brr, CreateRequest>(
             flow = sink
                 .map { value ->
                     KeyPairDecor2Brr(
                         keyPair = value,
                         onChange = {
-                            val new = KeyPairDecor2(
-                                privateKey = it.privateKey.ssh,
-                                publicKey = it.publicKey.ssh,
-                                fingerprint = it.publicKey.fingerprint,
-                            )
-                            sink.value = new
+                            sink.value = it.toDecor()
                         },
+                        onImport = ::requestImportKey,
                     )
                 }
                 .persistingStateIn(
@@ -3450,6 +3672,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                         onChange = {
                             // Do nothing
                         },
+                        onImport = ::requestImportKey,
                     ),
                 ),
             populator = { state ->
@@ -3463,6 +3686,14 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
         )
         AddStateItem.SshKey(
             id = id,
+            fileDrop = AddStateItem.FileDrop(
+                text = translate(Res.string.ssh_key_import_drop_here),
+                onFileDrop = { info ->
+                    appScope.launch {
+                        onImportKey(info)
+                    }
+                },
+            ),
             state = stateItem,
         )
     }
@@ -3484,6 +3715,91 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
         ),
     )
 }
+
+suspend fun TranslatorScope.createLocalizedSshKeyImportErrorToast(
+    reason: SshKeyImportError,
+): ToastMessage = when (reason) {
+    SshKeyImportError.UnsupportedFormat -> createSshKeyImportToast(
+        title = translate(Res.string.ssh_key_import_failed_title),
+        text = translate(Res.string.ssh_key_import_error_unsupported_format),
+    )
+    SshKeyImportError.UnsupportedAlgorithm -> createSshKeyImportToast(
+        title = translate(Res.string.ssh_key_import_failed_title),
+        text = translate(Res.string.ssh_key_import_error_unsupported_algorithm),
+    )
+    SshKeyImportError.InvalidPassphrase -> createSshKeyImportToast(
+        title = translate(Res.string.ssh_key_import_failed_title),
+        text = translate(Res.string.ssh_key_import_error_invalid_passphrase),
+    )
+    SshKeyImportError.MalformedKey -> createSshKeyImportToast(
+        title = translate(Res.string.ssh_key_import_failed_title),
+        text = translate(Res.string.ssh_key_import_error_malformed_key),
+    )
+}
+
+suspend fun TranslatorScope.createLocalizedSshKeyImportReadErrorToast(): ToastMessage = createSshKeyImportToast(
+    title = translate(Res.string.ssh_key_import_failed_title),
+    text = translate(Res.string.ssh_key_import_error_read),
+)
+
+suspend fun TranslatorScope.createLocalizedSshKeyImportPassphraseErrorToast(): ToastMessage = createSshKeyImportToast(
+    title = translate(Res.string.ssh_key_import_failed_title),
+    text = translate(Res.string.ssh_key_import_error_passphrase_required),
+)
+
+private fun createSshKeyImportToast(
+    title: String = "Failed to import SSH key",
+    text: String,
+): ToastMessage = ToastMessage(
+    type = ToastMessage.Type.ERROR,
+    title = title,
+    text = text,
+)
+
+internal suspend fun handleSshKeyFileImport(
+    info: FilePickerResult,
+    readText: suspend (String) -> String,
+    importSshKey: suspend (SshKeyImportRequest) -> SshKeyImportResult,
+    onSuccess: suspend (KeyPair) -> Unit,
+    onNeedsPassphrase: suspend (SshKeyImportResult.NeedsPassphrase, String?, String) -> Unit,
+    onImportError: suspend (SshKeyImportError) -> Unit,
+    onReadError: suspend () -> Unit,
+) {
+    val content = kotlin.runCatching {
+        readText(info.uri.toString())
+    }.getOrElse {
+        onReadError()
+        return
+    }
+    val fileName = info.name
+    when (
+        val result = importSshKey(
+            SshKeyImportRequest(
+                content = content,
+                fileName = fileName,
+                passphrase = null,
+            ),
+        )
+    ) {
+        is SshKeyImportResult.Success -> {
+            onSuccess(result.keyPair)
+        }
+
+        is SshKeyImportResult.NeedsPassphrase -> {
+            onNeedsPassphrase(result, fileName, content)
+        }
+
+        is SshKeyImportResult.Error -> {
+            onImportError(result.reason)
+        }
+    }
+}
+
+private fun KeyPair.toDecor() = KeyPairDecor2(
+    privateKey = privateKey.ssh,
+    publicKey = publicKey.ssh,
+    fingerprint = publicKey.fingerprint,
+)
 
 suspend fun <Request> RememberStateFlowScope.createItem(
     prefix: String,

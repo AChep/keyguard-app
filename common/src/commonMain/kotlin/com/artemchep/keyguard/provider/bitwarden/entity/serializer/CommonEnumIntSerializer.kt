@@ -1,25 +1,28 @@
 package com.artemchep.keyguard.provider.bitwarden.entity.serializer
 
+import kotlin.enums.enumEntries
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlin.reflect.KClass
 
 interface IntEnum {
     val int: Int
 }
 
 open class CommonEnumIntSerializer<T>(
-    clazz: KClass<T>,
+    choices: Iterable<T>,
 ) : KSerializer<T> where T : Enum<T>, T : IntEnum {
+    constructor(choices: Array<T>) : this(choices.asIterable())
+
     override val descriptor = Int.serializer().descriptor
 
-    private val choices = clazz.java.enumConstants!!
+    private val choiceList = choices.toList()
+    private val choicesByInt = choiceList.associateBy { it.int }
 
     init {
-        val uniqueChoices = choices.distinctBy { it.int }
-        require(uniqueChoices.size == choices.size)
+        require(choicesByInt.size == choiceList.size)
     }
 
     final override fun serialize(encoder: Encoder, value: T) {
@@ -28,6 +31,11 @@ open class CommonEnumIntSerializer<T>(
 
     final override fun deserialize(decoder: Decoder): T {
         val value = decoder.decodeInt()
-        return choices.first { it.int == value }
+        return choicesByInt[value]
+            ?: throw SerializationException("Unknown ${descriptor.serialName} value: $value")
     }
 }
+
+inline fun <reified T> commonEnumIntSerializer(): KSerializer<T>
+    where T : Enum<T>, T : IntEnum =
+    CommonEnumIntSerializer(enumEntries<T>())

@@ -4,7 +4,7 @@ runs:
   steps:
     - name: "Delete unnecessary tools"
       if: ${{ env.ACTION_PREPARE_DISK_SPACE_COMPLETE != '1' }}
-      uses: jlumbroso/free-disk-space@v1.3.1
+      uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
       with:
         tool-cache: false
         android: false

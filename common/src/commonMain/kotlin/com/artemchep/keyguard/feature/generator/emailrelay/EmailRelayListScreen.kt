@@ -14,13 +14,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -47,6 +45,7 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
+import com.artemchep.keyguard.ui.RequestLazyListScrollOnRevision
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
@@ -55,9 +54,6 @@ import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.DividerColor
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.withIndex
 
 @Composable
 fun EmailRelayListScreen(
@@ -85,20 +81,10 @@ fun EmailRelayListScreen(
         )
     }
 
-    LaunchedEffect(listRevision) {
-        // TODO: How do you wait till the layout state start to represent
-        //  the actual data?
-        val listSize =
-            loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.items?.size
-        snapshotFlow { listState.layoutInfo.totalItemsCount }
-            .withIndex()
-            .filter {
-                it.index > 0 || it.value == listSize
-            }
-            .first()
-
-        listState.scrollToItem(0, 0)
-    }
+    RequestLazyListScrollOnRevision(
+        listState = listState,
+        revision = listRevision,
+    )
 
     val dp = remember {
         mutableStateOf(false)

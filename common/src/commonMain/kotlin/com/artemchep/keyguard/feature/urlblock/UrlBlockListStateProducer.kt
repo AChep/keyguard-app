@@ -21,9 +21,11 @@ import com.artemchep.keyguard.common.usecase.RemoveUrlBlockById
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
+import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
@@ -64,6 +66,7 @@ private class UrlBlockListUiException(
 fun produceUrlBlockListState(
 ) = with(localDI().direct) {
     produceUrlBlockListState(
+        confirmationRouteFactory = instance(),
         addUrlBlock = instance(),
         removeUrlBlockById = instance(),
         getUrlBlocks = instance(),
@@ -72,6 +75,7 @@ fun produceUrlBlockListState(
 
 @Composable
 fun produceUrlBlockListState(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     addUrlBlock: AddUrlBlock,
     removeUrlBlockById: RemoveUrlBlockById,
     getUrlBlocks: GetUrlBlocks,
@@ -156,20 +160,18 @@ fun produceUrlBlockListState(
             uriItem,
             modeItem,
         )
-        val route = registerRouteResultReceiver(
-            route = ConfirmationRoute(
-                args = ConfirmationRoute.Args(
-                    icon = icon(
-                        main = Icons.Outlined.Block,
-                        secondary = if (entity != null) {
-                            Icons.Outlined.Edit
-                        } else {
-                            Icons.Outlined.Add
-                        },
-                    ),
-                    title = translate(Res.string.urlblock_header_title),
-                    items = items2,
+        val route = confirmationRouteFactory.registerRouteResultReceiver(
+            args = ConfirmationRoute.Args(
+                icon = icon(
+                    main = Icons.Outlined.Block,
+                    secondary = if (entity != null) {
+                        Icons.Outlined.Edit
+                    } else {
+                        Icons.Outlined.Add
+                    },
                 ),
+                title = translate(Res.string.urlblock_header_title),
+                items = items2,
             ),
         ) { result ->
             if (result is ConfirmationResult.Confirm) {
@@ -227,6 +229,7 @@ fun produceUrlBlockListState(
         val message = items
             .joinToString(separator = "\n") { it.name }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,

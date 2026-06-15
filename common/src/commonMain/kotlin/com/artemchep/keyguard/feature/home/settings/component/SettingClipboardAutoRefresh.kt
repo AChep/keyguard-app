@@ -1,9 +1,11 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -16,12 +18,16 @@ import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefreshVariants
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.KgPicker
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
@@ -58,6 +64,10 @@ fun settingClipboardAutoRefreshProvider(
     getClipboardAutoRefresh(),
     getClipboardAutoRefreshVariants(),
 ) { timeout, variants ->
+    if (CurrentPlatform.hasWatch()) {
+        return@combine null
+    }
+
     val text = getAutoRefreshDurationTitle(timeout, context)
     val dropdown = variants
         .map { duration ->
@@ -74,7 +84,9 @@ fun settingClipboardAutoRefreshProvider(
         }
 
     SettingIi(
-        platformClass = Platform.Mobile::class,
+        platformClasses = listOf(
+            Platform.Mobile::class,
+        ),
     ) {
         SettingClipboardAutoRefresh(
             text = text,
@@ -97,30 +109,30 @@ private fun SettingClipboardAutoRefresh(
     text: String,
     dropdown: List<FlatItemAction>,
 ) {
-    FlatDropdownSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.KeyguardTwoFa, Icons.Outlined.Notifications),
-        content = {
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.pref_item_clipboard_auto_refresh_otp_duration_title),
-                    )
-                },
-                text = {
-                    Text(text)
-                    Spacer(
-                        modifier = Modifier
-                            .height(8.dp),
-                    )
-                    Text(
-                        color = LocalContentColor.current
-                            .combineAlpha(MediumEmphasisAlpha),
-                        style = MaterialTheme.typography.bodySmall,
-                        text = stringResource(Res.string.pref_item_clipboard_auto_refresh_otp_duration_note),
-                    )
-                },
+    val title = stringResource(Res.string.pref_item_clipboard_auto_refresh_otp_duration_title)
+    LocalSettingPaneComponents.current.KgPicker(
+        icon = Icons.Outlined.KeyguardTwoFa,
+        subIcon = Icons.Outlined.Notifications,
+        title = {
+            Text(
+                text = title,
             )
+        },
+        titleText = title,
+        text = {
+            Column {
+                Text(text)
+                Spacer(
+                    modifier = Modifier
+                        .height(8.dp),
+                )
+                Text(
+                    color = LocalContentColor.current
+                        .combineAlpha(MediumEmphasisAlpha),
+                    style = MaterialTheme.typography.bodySmall,
+                    text = stringResource(Res.string.pref_item_clipboard_auto_refresh_otp_duration_note),
+                )
+            }
         },
         dropdown = dropdown,
     )

@@ -1,14 +1,12 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.service.vault.FingerprintReadRepository
@@ -17,18 +15,17 @@ import com.artemchep.keyguard.common.usecase.GetBiometricTimeout
 import com.artemchep.keyguard.common.usecase.GetBiometricTimeoutVariants
 import com.artemchep.keyguard.common.usecase.PutBiometricTimeout
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
+import com.artemchep.keyguard.feature.home.settings.KgPicker
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
-import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.format
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
@@ -149,11 +146,13 @@ fun SettingRequireMasterPassword(
     text: String,
     dropdown: List<FlatItemAction>,
 ) {
-    FlatDropdownSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        content = {
-            SettingRequireMasterPasswordContent(
-                text = text,
+    LocalSettingPaneComponents.current.KgPicker(
+        title = stringResource(Res.string.pref_item_require_app_password_title),
+        text = text,
+        footer = {
+            SettingRequireMasterPasswordFooter(
+                modifier = Modifier
+                    .padding(horizontal = Dimens.contentPadding),
             )
         },
         dropdown = dropdown,
@@ -161,27 +160,14 @@ fun SettingRequireMasterPassword(
 }
 
 @Composable
-private fun ColumnScope.SettingRequireMasterPasswordContent(
-    text: String,
+private fun ColumnScope.SettingRequireMasterPasswordFooter(
+    modifier: Modifier = Modifier,
 ) {
-    FlatItemTextContent(
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_require_app_password_title),
-            )
-        },
-        text = {
-            Text(text)
-            Spacer(
-                modifier = Modifier
-                    .height(8.dp),
-            )
-            Text(
-                color = LocalContentColor.current
-                    .combineAlpha(MediumEmphasisAlpha),
-                style = MaterialTheme.typography.bodySmall,
-                text = stringResource(Res.string.pref_item_require_app_password_note),
-            )
-        },
+    Text(
+        modifier = modifier,
+        color = LocalContentColor.current
+            .combineAlpha(MediumEmphasisAlpha),
+        style = MaterialTheme.typography.bodySmall,
+        text = stringResource(Res.string.pref_item_require_app_password_note),
     )
 }

@@ -1,23 +1,20 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Link
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.settings.KgAction
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.urloverride.UrlOverrideListRoute
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
-import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
@@ -27,6 +24,10 @@ fun settingUrlOverrideProvider(
 ) = settingUrlOverrideProvider()
 
 fun settingUrlOverrideProvider(): SettingComponent = kotlin.run {
+    if (CurrentPlatform.hasWatch()) {
+        return@run flowOf(null)
+    }
+
     val item = SettingIi(
         search = SettingIi.Search(
             group = "about",
@@ -55,17 +56,12 @@ fun settingUrlOverrideProvider(): SettingComponent = kotlin.run {
 private fun SettingUrlOverride(
     onClick: (() -> Unit)?,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.Link),
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.Link,
         trailing = {
             ChevronIcon()
         },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_url_override_title),
-            )
-        },
+        title = stringResource(Res.string.pref_item_url_override_title),
         onClick = onClick,
     )
 }

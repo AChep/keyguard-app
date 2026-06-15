@@ -44,6 +44,7 @@ import com.artemchep.keyguard.feature.home.vault.component.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.screen.toVaultViewHeaderState
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -257,7 +258,7 @@ private fun VaultViewTitle(
 ) = Row(
     verticalAlignment = Alignment.CenterVertically,
 ) {
-    val isLoading = state.content is SendViewState.Content.Loading
+    val header = state.toVaultViewHeaderState()
     val shimmerColor = LocalContentColor.current
         .combineAlpha(DisabledEmphasisAlpha)
 
@@ -265,7 +266,7 @@ private fun VaultViewTitle(
         is SendViewState.Content.Loading -> shimmerColor
         is SendViewState.Content.NotFound -> shimmerColor
         is SendViewState.Content.Cipher -> {
-            val avatarIcon = state.content.icon
+            val avatarIcon = header.icon
             val avatarBackground = if (
                 avatarIcon !is VaultItemIcon.VectorIcon &&
                 avatarIcon !is VaultItemIcon.TextIcon
@@ -276,8 +277,8 @@ private fun VaultViewTitle(
                     .combineAlpha(LocalContentColor.current.alpha)
             } else {
                 rememberSecretAccentColor(
-                    accentLight = state.content.data.accentLight,
-                    accentDark = state.content.data.accentDark,
+                    accentLight = header.accentLight,
+                    accentDark = header.accentDark,
                 )
             }
             avatarBackground
@@ -286,7 +287,7 @@ private fun VaultViewTitle(
     Avatar(
         modifier = Modifier
             .then(
-                if (isLoading) {
+                if (header.isLoading) {
                     Modifier
                         .shimmer()
                 } else {
@@ -295,7 +296,7 @@ private fun VaultViewTitle(
             ),
         color = avatarBackground,
     ) {
-        val icon = SendViewState.content.cipher.icon.getOrNull(state)
+        val icon = header.icon
         if (icon != null) {
             VaultItemIcon2(
                 icon,
@@ -317,8 +318,8 @@ private fun VaultViewTitle(
         }
 
         is SendViewState.Content.Cipher -> {
-            val title = state.content.data.name
-                .takeUnless { it.isEmpty() }
+            val title = header.name
+                ?.takeUnless { it.isEmpty() }
             if (title != null) {
                 AutoSizeText(
                     text = title,

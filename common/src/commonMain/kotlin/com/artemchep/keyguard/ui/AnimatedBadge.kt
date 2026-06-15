@@ -30,10 +30,19 @@ inline fun AnimatedTotalCounterBadge(
 fun AnimatedCounterBadge(
     text: String?,
 ) {
+    val motionScheme = MaterialTheme.motionScheme
     ExpandedIfNotEmpty(
         valueOrNull = text,
-        enter = fadeIn() + scaleIn(),
-        exit = fadeOut() + scaleOut(),
+        enter = fadeIn(
+            animationSpec = motionScheme.fastEffectsSpec(),
+        ) + scaleIn(
+            animationSpec = motionScheme.fastSpatialSpec(),
+        ),
+        exit = fadeOut(
+            animationSpec = motionScheme.fastEffectsSpec(),
+        ) + scaleOut(
+            animationSpec = motionScheme.fastSpatialSpec(),
+        ),
     ) {
         Badge(
             containerColor = MaterialTheme.colorScheme.badgeContainer,

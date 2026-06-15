@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.zip
 
-import java.io.InputStream
-import java.io.OutputStream
+import kotlinx.io.Sink
+import kotlinx.io.Source
 
 class ZipEntry(
     val name: String,
@@ -9,11 +9,11 @@ class ZipEntry(
 ) {
     sealed interface Data {
         data class In(
-            val stream: suspend () -> InputStream,
+            val stream: suspend () -> Source,
         ) : Data
 
         data class Out(
-            val stream: suspend (OutputStream) -> Unit,
+            val stream: suspend (Sink) -> Unit,
         ) : Data
     }
 }

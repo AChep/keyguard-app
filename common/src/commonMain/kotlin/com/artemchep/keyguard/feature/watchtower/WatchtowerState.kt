@@ -28,6 +28,7 @@ data class WatchtowerState(
         val pwned: StateFlow<Loadable<PwnedPasswords?>>,
         val pwnedWebsites: StateFlow<Loadable<PwnedWebsites?>>,
         val reused: StateFlow<Loadable<ReusedPasswords?>>,
+        val weakSshKeys: StateFlow<Loadable<WeakSshKeys?>>,
         val incompleteItems: StateFlow<Loadable<IncompleteItems?>>,
         val expiringItems: StateFlow<Loadable<ExpiringItems?>>,
         val duplicateItems: StateFlow<Loadable<DuplicateItems?>>,
@@ -92,6 +93,13 @@ data class WatchtowerState(
         )
 
         data class ReusedPasswords(
+            val revision: Int,
+            val count: Int,
+            val new: Int,
+            val onClick: (() -> Unit)? = null,
+        )
+
+        data class WeakSshKeys(
             val revision: Int,
             val count: Int,
             val new: Int,

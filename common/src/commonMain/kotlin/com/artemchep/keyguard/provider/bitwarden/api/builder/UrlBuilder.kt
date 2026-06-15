@@ -61,7 +61,8 @@ fun ServerEnv.buildSendUrl() = run {
         baseUrlModifier = ::urlModifier,
         default = when (region) {
             ServerEnv.Region.US -> "https://send.$BITWARDEN_DOMAIN_US/#"
-            ServerEnv.Region.EU -> "https://send.$BITWARDEN_DOMAIN_EU/#"
+            // https://github.com/AChep/keyguard-app/issues/1319
+            ServerEnv.Region.EU -> "https://vault.$BITWARDEN_DOMAIN_EU/#/send/"
         },
     )
 }

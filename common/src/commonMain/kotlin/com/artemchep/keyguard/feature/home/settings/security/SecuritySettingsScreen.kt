@@ -7,12 +7,23 @@ import com.artemchep.keyguard.feature.home.settings.SettingPaneContent
 import com.artemchep.keyguard.feature.home.settings.SettingPaneItem
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SecuritySettingsScreen() {
-    val items = remember {
+    val items = rememberSettingsSecurityItems()
+    SettingPaneContent(
+        title = stringResource(Res.string.settings_security_header_title),
+        items = items,
+    )
+}
+
+@Composable
+fun rememberSettingsSecurityItems(
+): ImmutableList<SettingPaneItem> {
+    return remember {
         persistentListOf(
             SettingPaneItem.Item(Setting.VAULT_PERSIST),
             SettingPaneItem.Item(Setting.VAULT_LOCK_AFTER_TIMEOUT),
@@ -22,6 +33,7 @@ fun SecuritySettingsScreen() {
             SettingPaneItem.Group(
                 key = "clipboard",
                 list = persistentListOf(
+                    SettingPaneItem.Item(Setting.CLIPBOARD_AUTO_CLEAR),
                     SettingPaneItem.Item(Setting.CLIPBOARD_AUTO_REFRESH),
                     SettingPaneItem.Item(Setting.CLIPBOARD_NOTIFICATION_SETTINGS),
                 ),
@@ -44,15 +56,18 @@ fun SecuritySettingsScreen() {
                 ),
             ),
             SettingPaneItem.Group(
+                key = "yubikey",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.YUBIKEY_UNLOCK),
+                ),
+            ),
+            SettingPaneItem.Group(
                 key = "password",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.MASTER_PASSWORD),
+                    SettingPaneItem.Item(Setting.VAULT_CLEAR),
                 ),
             ),
         )
     }
-    SettingPaneContent(
-        title = stringResource(Res.string.settings_security_header_title),
-        items = items,
-    )
 }

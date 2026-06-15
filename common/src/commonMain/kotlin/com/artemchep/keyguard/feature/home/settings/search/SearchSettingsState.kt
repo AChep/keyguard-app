@@ -13,6 +13,7 @@ data class SearchSettingsState(
 ) {
     sealed interface Item {
         val key: String
+        val contentType: String
 
         data class Settings(
             override val key: String,
@@ -20,6 +21,8 @@ data class SearchSettingsState(
             val shapeState: Int = ShapeState.ALL,
             val content: @Composable () -> Unit,
         ) : Item, GroupableShapeItem<Settings> {
+            override val contentType: String get() = "settings_search_item"
+
             override fun withShape(shape: Int): Settings = copy(shapeState = shape)
         }
     }

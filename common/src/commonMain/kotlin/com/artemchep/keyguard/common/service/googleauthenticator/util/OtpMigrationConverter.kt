@@ -51,11 +51,9 @@ private fun OtpAuthMigrationData.OtpParameters.buildHotp(
     "hotp",
     base32Service = base32Service,
 ) {
-    // counter
-    val counter = counter
-    if (counter != null) {
-        parameters.append("counter", counter.toString())
-    }
+    // Counter is required for HOTP by the Key Uri Format spec. The migration
+    // payload omits a zero counter (proto3 default), so fall back to 0.
+    parameters.append("counter", (counter ?: 0).toString())
 }
 
 private fun OtpAuthMigrationData.OtpParameters.build(
@@ -64,8 +62,17 @@ private fun OtpAuthMigrationData.OtpParameters.build(
     builder: URLBuilder.() -> Unit,
 ): String {
     return URLBuilder("otpauth://$host/").apply {
-        val path = issuer.orEmpty() + ":" + name.orEmpty()
-        appendPathSegments(path)
+        val issuer = issuer?.takeIf(String::isNotEmpty)
+        val name = name?.takeIf(String::isNotEmpty)
+
+        // Label = "Issuer:Account" when both are present, otherwise the bare
+        // account name. The colon is only a separator between two values: the
+        // Key Uri Format ABNF requires an account name after it, so we never
+        // synthesize a trailing "Issuer:" for the issuer-only case.
+        val label = listOfNotNull(issuer, name).joinToString(separator = ":")
+        if (label.isNotEmpty()) {
+            appendPathSegments(label)
+        }
 
         // digits
         val digits = digits.count
@@ -73,9 +80,15 @@ private fun OtpAuthMigrationData.OtpParameters.build(
             parameters.append("digits", digits.toString())
         }
 
-        // secret
-        val secret = base32Service.encodeToString(secret)
+        // The Key Uri Format requires the RFC 4648 '=' padding to be
+        // omitted from the Base32 secret.
+        val secret = base32Service.encodeToString(secret).trimEnd('=')
         parameters.append("secret", secret)
+        // Strongly recommended by the Key Uri Format spec; kept
+        // consistent with the issuer prefix in the label above.
+        if (issuer != null) {
+            parameters.append("issuer", issuer)
+        }
         // algorithm
         val algorithm = algorithm.str
         if (algorithm != null) {

@@ -15,6 +15,7 @@ ref = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('u
 
 text = f"""
 versionDate={date}
+versionTag={tag}
 versionRef={ref}
 buildkonfig.flavor=release
 """

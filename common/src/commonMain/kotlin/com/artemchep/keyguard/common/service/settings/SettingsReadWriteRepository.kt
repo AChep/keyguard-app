@@ -1,11 +1,13 @@
 package com.artemchep.keyguard.common.service.settings
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
 import kotlin.time.Instant
 import kotlin.time.Duration
@@ -44,6 +46,14 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setAutofillSaveUri(
         saveUri: Boolean,
+    ): IO<Unit>
+
+    fun setAdvertisePasskeysSupport(
+        advertisePasskeysSupport: Boolean,
+    ): IO<Unit>
+
+    fun setAdvertisePasswordsSupport(
+        advertisePasswordsSupport: Boolean,
     ): IO<Unit>
 
     fun setAutofillCopyTotp(
@@ -87,7 +97,7 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
     ): IO<Unit>
 
     fun setAllowScreenshots(
-        allowScreenshots: Boolean,
+        allowScreenshots: AllowScreenshots,
     ): IO<Unit>
 
     fun setCheckPwnedPasswords(
@@ -122,6 +132,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         premium: Boolean,
     ): IO<Unit>
 
+    fun setCacheHiddenSend(
+        hiddenSend: Boolean,
+    ): IO<Unit>
+
     fun setAppIcons(
         appIcons: Boolean,
     ): IO<Unit>
@@ -132,6 +146,22 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setMarkdown(
         markdown: Boolean,
+    ): IO<Unit>
+
+    fun setSshAgent(
+        sshAgent: Boolean,
+    ): IO<Unit>
+
+    fun setSshAgentApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setSshAgentDisplayKeyNames(
+        displayKeyNames: Boolean,
+    ): IO<Unit>
+
+    fun setSshAgentFilter(
+        filter: SshAgentFilter,
     ): IO<Unit>
 
     fun setAppVersionLog(
@@ -148,6 +178,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setNavLabel(
         visible: Boolean,
+    ): IO<Unit>
+
+    fun setNavHiddenSend(
+        hidden: Boolean,
     ): IO<Unit>
 
     fun setFont(
@@ -188,6 +222,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setCloseToTray(
         closeToTray: Boolean,
+    ): IO<Unit>
+
+    fun setMinimizeOnCopy(
+        minimizeOnCopy: Boolean,
     ): IO<Unit>
 
     fun setColors(

@@ -5,17 +5,68 @@
   <developer id="com.artemchep">
     <name>Artem Chepurnyi</name>
   </developer>
-  <summary>Keyguard is an alternative client for the Bitwarden® platform &amp; KeePass (KDBX), created to provide the best user experience possible.</summary>
+  <summary>
+    <keyguard_text_res token="listing_summary" />
+  </summary>
+  <branding>
+    <color type="primary" scheme_preference="light">#c4eff4</color>
+    <color type="primary" scheme_preference="dark">#081f26</color>
+  </branding>
   <metadata_license>FSFAP</metadata_license>
-  <project_license>LicenseRef-proprietary</project_license>
+  <project_license>LicenseRef-proprietary=https://github.com/AChep/keyguard-app/blob/master/LICENSE</project_license>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
   <supports>
     <control>pointing</control>
     <control>keyboard</control>
     <control>touch</control>
   </supports>
   <description>
-    <p>Keyguard is a multi-client for the Bitwarden® platform and KeePass (KDBX), created to provide the best user experience possible.</p>
-    <p>Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc.</p>
+    <p>
+      <keyguard_text_res token="listing_description_title" />
+    </p>
+    <p>
+      <keyguard_text_res token="listing_description_disclaimer_bitwarden_legal" />
+    </p>
+    <p>
+      <keyguard_text_res token="listing_description_highlights" />
+    </p>
+    <ul>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_design" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_search" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_watchtower" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_multiple_accounts" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_offline" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_export" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_backup" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_generator" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_attachment_preview" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_ssh_agent" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_other" />
+      </li>
+    </ul>
   </description>
   <launchable type="desktop-id">com.artemchep.keyguard.desktop</launchable>
   <url type="homepage">https://github.com/AChep/keyguard-app/</url>
@@ -35,27 +86,31 @@
     <keyword>password generator</keyword>
   </keywords>
   <screenshots>
-    <screenshot type="default" xml:lang="en">
-      <caption>Home screen</caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/home_light.png</image>
+    <screenshot type="default">
+      <caption>
+        <keyguard_text_res token="listing_screenshot_home_default" />
+      </caption>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/9217702b8ff861c7432fc7f2385e833d17f8e6a8/screenshots/linux/home_default.png</image>
     </screenshot>
-    <screenshot xml:lang="en">
-      <caption>Home screen, dark theme</caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/home_dark.png</image>
+    <screenshot>
+      <caption>
+        <keyguard_text_res token="listing_screenshot_home_dark" />
+      </caption>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/9217702b8ff861c7432fc7f2385e833d17f8e6a8/screenshots/linux/home_dark.png</image>
     </screenshot>
-    <screenshot xml:lang="en">
-      <caption>Generator screen, dark theme</caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/generator_dark.png</image>
+    <screenshot>
+      <caption>
+        <keyguard_text_res token="listing_screenshot_generator_default" />
+      </caption>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/9217702b8ff861c7432fc7f2385e833d17f8e6a8/screenshots/linux/generator_default.png</image>
     </screenshot>
-    <screenshot xml:lang="en">
-      <caption>Watchtower screen, dark theme</caption>
-      <image>https://raw.githubusercontent.com/AChep/keyguard-app/cd75e88730b7459cb22e754715d54a0ea7e443eb/screenshots/linux/watchtower_dark.png</image>
+    <screenshot>
+      <caption>
+        <keyguard_text_res token="listing_screenshot_watchtower_default" />
+      </caption>
+      <image>https://raw.githubusercontent.com/AChep/keyguard-app/9217702b8ff861c7432fc7f2385e833d17f8e6a8/screenshots/linux/watchtower_default.png</image>
     </screenshot>
   </screenshots>
-  <releases>
-    <release version="2.0.1" date="2025-12-28">
-      <description />
-    </release>
-  </releases>
+  <keyguard_releases />
   <content_rating type="oars-1.1" />
 </component>

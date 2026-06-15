@@ -2,8 +2,10 @@ package com.artemchep.keyguard.feature.home.vault.util
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
+import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Edit
@@ -16,6 +18,7 @@ import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.RestoreFromTrash
 import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.outlined.Unarchive
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -30,8 +33,10 @@ import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.FolderOwnership2
 import com.artemchep.keyguard.common.model.PatchWatchtowerAlertCipherRequest
 import com.artemchep.keyguard.common.model.create.CreateRequest
+import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
+import com.artemchep.keyguard.common.usecase.ChangeCipherTagsById
 import com.artemchep.keyguard.common.usecase.CipherMerge
 import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
@@ -40,14 +45,19 @@ import com.artemchep.keyguard.common.usecase.RePromptCipherById
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.TrashCipherById
+import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.tags.TagsConfirmationResult
+import com.artemchep.keyguard.feature.confirmation.tags.TagsConfirmationRoute
 import com.artemchep.keyguard.feature.export.ExportRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
@@ -60,6 +70,8 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
+import com.artemchep.keyguard.feature.sshagent.history.SshAgentHistoryRoute
+import com.artemchep.keyguard.platform.LeSystem
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
@@ -240,6 +252,7 @@ fun RememberStateFlowScope.cipherExportAction(
 }
 
 fun RememberStateFlowScope.cipherSendAction(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     ciphers: List<DSecret>,
     before: (() -> Unit)? = null,
     after: ((Boolean) -> Unit)? = null,
@@ -471,14 +484,12 @@ fun RememberStateFlowScope.cipherSendAction(
                     )
                 }
 
-            val route = registerRouteResultReceiver(
-                route = ConfirmationRoute(
-                    args = ConfirmationRoute.Args(
-                        icon = icon(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),
-                        title = translate(Res.string.text_action_send_title),
-                        subtitle = sendTitle,
-                        items = items,
-                    ),
+            val route = confirmationRouteFactory.registerRouteResultReceiver(
+                args = ConfirmationRoute.Args(
+                    icon = icon(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),
+                    title = translate(Res.string.text_action_send_title),
+                    subtitle = sendTitle,
+                    items = items,
                 ),
             ) { result ->
                 if (result is ConfirmationResult.Confirm) {
@@ -497,7 +508,7 @@ fun RememberStateFlowScope.cipherSendAction(
                                 yield("")
                             }
                         }
-                        .joinToString(separator = System.lineSeparator())
+                        .joinToString(separator = LeSystem.lineSeparator)
                         .trimEnd()
                     val args = SendAddRoute.Args(
                         type = DSend.Type.Text,
@@ -659,6 +670,7 @@ fun RememberStateFlowScope.cipherMoveToFolderAction(
 }
 
 fun RememberStateFlowScope.cipherChangeNameAction(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     changeCipherNameById: ChangeCipherNameById,
     ciphers: List<DSecret>,
     before: (() -> Unit)? = null,
@@ -687,13 +699,11 @@ fun RememberStateFlowScope.cipherChangeNameAction(
                         canBeEmpty = false,
                     )
                 }
-            val route = registerRouteResultReceiver(
-                route = ConfirmationRoute(
-                    args = ConfirmationRoute.Args(
-                        icon = icon,
-                        title = translate(title),
-                        items = items,
-                    ),
+            val route = confirmationRouteFactory.registerRouteResultReceiver(
+                args = ConfirmationRoute.Args(
+                    icon = icon,
+                    title = translate(title),
+                    items = items,
                 ),
             ) { result ->
                 if (result is ConfirmationResult.Confirm) {
@@ -713,7 +723,57 @@ fun RememberStateFlowScope.cipherChangeNameAction(
     )
 }
 
+fun RememberStateFlowScope.cipherChangeTagsAction(
+    changeCipherTagsById: ChangeCipherTagsById,
+    ciphers: List<DSecret>,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    val icon = icon(Icons.AutoMirrored.Outlined.Label)
+    val title = Res.string.ciphers_action_change_tags_title.wrap()
+    FlatItemAction(
+        leading = icon,
+        title = title,
+        onClick = onClick {
+            before?.invoke()
+
+            val initialTags = aggregateCipherTags(ciphers)
+            val route = registerRouteResultReceiver(
+                route = TagsConfirmationRoute(
+                    args = TagsConfirmationRoute.Args(
+                        initialTags = initialTags,
+                    ),
+                ),
+            ) { result ->
+                if (result is TagsConfirmationResult.Confirm) {
+                    val cipherIdsToTags = ciphers
+                        .associate { cipher ->
+                            cipher.id to result.tags
+                        }
+                    changeCipherTagsById(cipherIdsToTags)
+                        .launchIn(appScope)
+                }
+
+                val success = result is TagsConfirmationResult.Confirm
+                after?.invoke(success)
+            }
+            val intent = NavigationIntent.NavigateToRoute(route)
+            navigate(intent)
+        },
+    )
+}
+
+internal fun aggregateCipherTags(
+    ciphers: List<DSecret>,
+): List<String> = ciphers
+    .asSequence()
+    .flatMap { cipher -> cipher.tags }
+    .distinct()
+    .toList()
+    .sortedWith(StringComparatorIgnoreCase { it })
+
 fun RememberStateFlowScope.cipherChangePasswordAction(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     changeCipherPasswordById: ChangeCipherPasswordById,
     ciphers: List<DSecret>,
     before: (() -> Unit)? = null,
@@ -754,14 +814,12 @@ fun RememberStateFlowScope.cipherChangePasswordAction(
                         canBeEmpty = true, // so you can clear passwords
                     )
                 }
-            val route = registerRouteResultReceiver(
-                route = ConfirmationRoute(
-                    args = ConfirmationRoute.Args(
-                        icon = icon,
-                        title = translate(title),
-                        message = translate(Res.string.generator_password_note, 16),
-                        items = items,
-                    ),
+            val route = confirmationRouteFactory.registerRouteResultReceiver(
+                args = ConfirmationRoute.Args(
+                    icon = icon,
+                    title = translate(title),
+                    message = translate(Res.string.generator_password_note, 16),
+                    items = items,
                 ),
             ) { result ->
                 if (result is ConfirmationResult.Confirm) {
@@ -791,7 +849,7 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
         leading = {
             BadgedBox(
                 badge = {
-                    val count = cipher.login?.passwordHistory?.size ?: 0
+                    val count = cipher.passwordHistory.size
                     AnimatedTotalCounterBadge(
                         count = count,
                     )
@@ -818,7 +876,104 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
     )
 }
 
+fun RememberStateFlowScope.cipherViewSshAgentHistoryAction(
+    cipher: DSecret,
+) = kotlin.run {
+    FlatItemAction(
+        leading = icon(Icons.Outlined.History),
+        title = Res.string.ciphers_action_view_ssh_agent_history_title.wrap(),
+        trailing = {
+            ChevronIcon()
+        },
+        onClick = {
+            val intent = NavigationIntent.NavigateToRoute(
+                SshAgentHistoryRoute(
+                    cipherId = cipher.id,
+                ),
+            )
+            navigate(intent)
+        },
+    )
+}
+
+fun RememberStateFlowScope.cipherArchiveAction(
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    archiveCipherById: ArchiveCipherById,
+    ciphers: List<DSecret>,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    val icon = icon(Icons.Outlined.Archive)
+    val title = Res.string.ciphers_action_archive_title.wrap()
+    FlatItemAction(
+        leading = icon,
+        title = title,
+        onClick = onClick {
+            before?.invoke()
+
+            val route = confirmationRouteFactory.registerRouteResultReceiver(
+                args = ConfirmationRoute.Args(
+                    icon = icon(Icons.Outlined.Archive),
+                    title = translate(Res.string.ciphers_action_archive_confirmation_title.wrap()),
+                ),
+            ) { result ->
+                if (result is ConfirmationResult.Confirm) {
+                    val cipherIds = ciphers
+                        .map { it.id }
+                        .toSet()
+                    archiveCipherById(cipherIds)
+                        .launchIn(appScope)
+                }
+
+                val success = result is ConfirmationResult.Confirm
+                after?.invoke(success)
+            }
+            val intent = NavigationIntent.NavigateToRoute(route)
+            navigate(intent)
+        },
+    )
+}
+
+fun RememberStateFlowScope.cipherUnarchiveAction(
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    unarchiveCipherById: UnarchiveCipherById,
+    ciphers: List<DSecret>,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    val icon = icon(Icons.Outlined.Unarchive)
+    val title = Res.string.ciphers_action_unarchive_title.wrap()
+    FlatItemAction(
+        leading = icon,
+        title = title,
+        onClick = onClick {
+            before?.invoke()
+
+            val route = confirmationRouteFactory.registerRouteResultReceiver(
+                args = ConfirmationRoute.Args(
+                    icon = icon(Icons.Outlined.Unarchive),
+                    title = translate(Res.string.ciphers_action_unarchive_confirmation_title.wrap()),
+                ),
+            ) { result ->
+                if (result is ConfirmationResult.Confirm) {
+                    val cipherIds = ciphers
+                        .map { it.id }
+                        .toSet()
+                    unarchiveCipherById(cipherIds)
+                        .launchIn(appScope)
+                }
+
+                val success = result is ConfirmationResult.Confirm
+                after?.invoke(success)
+            }
+            val intent = NavigationIntent.NavigateToRoute(route)
+            navigate(intent)
+        },
+    )
+}
+
 fun RememberStateFlowScope.cipherTrashAction(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     trashCipherById: TrashCipherById,
     ciphers: List<DSecret>,
     before: (() -> Unit)? = null,
@@ -832,13 +987,11 @@ fun RememberStateFlowScope.cipherTrashAction(
         onClick = onClick {
             before?.invoke()
 
-            val route = registerRouteResultReceiver(
-                route = ConfirmationRoute(
-                    args = ConfirmationRoute.Args(
-                        icon = icon(Icons.Outlined.Delete),
-                        title = translate(Res.string.ciphers_action_trash_confirmation_title.wrap()),
-                        message = translate(Res.string.ciphers_action_trash_confirmation_text.wrap()),
-                    ),
+            val route = confirmationRouteFactory.registerRouteResultReceiver(
+                args = ConfirmationRoute.Args(
+                    icon = icon(Icons.Outlined.Delete),
+                    title = translate(Res.string.ciphers_action_trash_confirmation_title.wrap()),
+                    message = translate(Res.string.ciphers_action_trash_confirmation_text.wrap()),
                 ),
             ) { result ->
                 if (result is ConfirmationResult.Confirm) {
@@ -859,6 +1012,7 @@ fun RememberStateFlowScope.cipherTrashAction(
 }
 
 fun RememberStateFlowScope.cipherRestoreAction(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     restoreCipherById: RestoreCipherById,
     ciphers: List<DSecret>,
     before: (() -> Unit)? = null,
@@ -872,12 +1026,10 @@ fun RememberStateFlowScope.cipherRestoreAction(
         onClick = onClick {
             before?.invoke()
 
-            val route = registerRouteResultReceiver(
-                route = ConfirmationRoute(
-                    args = ConfirmationRoute.Args(
-                        icon = icon(Icons.Outlined.RestoreFromTrash),
-                        title = translate(Res.string.ciphers_action_restore_confirmation_title.wrap()),
-                    ),
+            val route = confirmationRouteFactory.registerRouteResultReceiver(
+                args = ConfirmationRoute.Args(
+                    icon = icon(Icons.Outlined.RestoreFromTrash),
+                    title = translate(Res.string.ciphers_action_restore_confirmation_title.wrap()),
                 ),
             ) { result ->
                 if (result is ConfirmationResult.Confirm) {
@@ -898,6 +1050,7 @@ fun RememberStateFlowScope.cipherRestoreAction(
 }
 
 fun RememberStateFlowScope.cipherDeleteAction(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     removeCipherById: RemoveCipherById,
     ciphers: List<DSecret>,
     before: (() -> Unit)? = null,
@@ -911,12 +1064,10 @@ fun RememberStateFlowScope.cipherDeleteAction(
         onClick = onClick {
             before?.invoke()
 
-            val route = registerRouteResultReceiver(
-                route = ConfirmationRoute(
-                    args = ConfirmationRoute.Args(
-                        icon = icon(Icons.Outlined.DeleteForever),
-                        title = translate(Res.string.ciphers_action_delete_confirmation_title),
-                    ),
+            val route = confirmationRouteFactory.registerRouteResultReceiver(
+                args = ConfirmationRoute.Args(
+                    icon = icon(Icons.Outlined.DeleteForever),
+                    title = translate(Res.string.ciphers_action_delete_confirmation_title),
                 ),
             ) { result ->
                 if (result is ConfirmationResult.Confirm) {
@@ -937,6 +1088,7 @@ fun RememberStateFlowScope.cipherDeleteAction(
 }
 
 fun RememberStateFlowScope.cipherWatchtowerAlerts(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     patchWatchtowerAlertCipher: PatchWatchtowerAlertCipher,
     ciphers: List<DSecret>,
     before: (() -> Unit)? = null,
@@ -982,13 +1134,11 @@ fun RememberStateFlowScope.cipherWatchtowerAlerts(
                     )
                 }
 
-            val route = registerRouteResultReceiver(
-                route = ConfirmationRoute(
-                    args = ConfirmationRoute.Args(
-                        icon = icon(Icons.Outlined.EditNotifications),
-                        title = translate(title),
-                        items = items,
-                    ),
+            val route = confirmationRouteFactory.registerRouteResultReceiver(
+                args = ConfirmationRoute.Args(
+                    icon = icon(Icons.Outlined.EditNotifications),
+                    title = translate(title),
+                    items = items,
                 ),
             ) { result ->
                 if (result is ConfirmationResult.Confirm) {

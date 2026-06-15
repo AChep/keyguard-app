@@ -1,30 +1,26 @@
 package com.artemchep.keyguard.common.service.download
 
-import io.ktor.utils.io.core.use
-import java.io.File
-import java.io.OutputStream
-import kotlin.io.writeBytes
+import com.artemchep.keyguard.common.io.writeBytes
+import com.artemchep.keyguard.platform.LocalPath
+import kotlinx.io.Sink
 
 sealed interface DownloadWriter {
-    data class FileWriter(
-        val file: File,
+    data class LocalPathWriter(
+        val path: LocalPath,
     ) : DownloadWriter
 
-    data class StreamWriter(
-        val outputStream: OutputStream,
+    data class SinkWriter(
+        val sink: Sink,
     ) : DownloadWriter
 }
 
 fun DownloadWriter.writeBytes(data: ByteArray) = when (this) {
-    is DownloadWriter.FileWriter -> {
-        file.writeBytes(data)
+    is DownloadWriter.LocalPathWriter -> {
+        path.writeBytes(data)
     }
 
-    is DownloadWriter.StreamWriter -> {
-        // Convert the data into a stream and copy
-        // it over into the output stream.
-        data.inputStream().use { inputStream ->
-            inputStream.copyTo(outputStream)
-        }
+    is DownloadWriter.SinkWriter -> {
+        sink.write(data)
+        sink.flush()
     }
 }

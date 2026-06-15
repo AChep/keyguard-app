@@ -7,12 +7,23 @@ import com.artemchep.keyguard.feature.home.settings.SettingPaneContent
 import com.artemchep.keyguard.feature.home.settings.SettingPaneItem
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun UiSettingsScreen() {
-    val items = remember {
+    val items = rememberSettingsUiItems()
+    SettingPaneContent(
+        title = stringResource(Res.string.settings_appearance_header_title),
+        items = items,
+    )
+}
+
+@Composable
+fun rememberSettingsUiItems(
+): ImmutableList<SettingPaneItem> {
+    return remember {
         persistentListOf(
             SettingPaneItem.Group(
                 key = "locale",
@@ -30,6 +41,7 @@ fun UiSettingsScreen() {
                     SettingPaneItem.Item(Setting.FONT),
                     SettingPaneItem.Item(Setting.MARKDOWN),
                     SettingPaneItem.Item(Setting.NAV_ANIMATION),
+                    SettingPaneItem.Item(Setting.NAV_HIDDEN_SEND),
                     SettingPaneItem.Item(Setting.NAV_LABEL),
                 ),
             ),
@@ -46,6 +58,7 @@ fun UiSettingsScreen() {
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.USE_EXTERNAL_BROWSER),
                     SettingPaneItem.Item(Setting.KEEP_SCREEN_ON),
+                    SettingPaneItem.Item(Setting.MINIMIZE_ON_COPY),
                     SettingPaneItem.Item(Setting.CLOSE_TO_TRAY),
                 ),
             ),
@@ -58,8 +71,4 @@ fun UiSettingsScreen() {
             ),
         )
     }
-    SettingPaneContent(
-        title = stringResource(Res.string.settings_appearance_header_title),
-        items = items,
-    )
 }

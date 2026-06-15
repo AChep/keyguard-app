@@ -1,11 +1,11 @@
 package com.artemchep.keyguard.provider.bitwarden.crypto
 
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
-import com.artemchep.keyguard.provider.bitwarden.entity.SyncProfile
+import com.artemchep.keyguard.provider.bitwarden.entity.ProfileEntity
 
 fun BitwardenProfile.Companion.encrypted(
     accountId: String,
-    entity: SyncProfile,
+    entity: ProfileEntity,
     unofficialServer: Boolean,
 ) = kotlin.run {
     BitwardenProfile(

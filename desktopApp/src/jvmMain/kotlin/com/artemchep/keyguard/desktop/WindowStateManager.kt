@@ -20,6 +20,7 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.getObject
 import com.artemchep.keyguard.common.service.state.impl.toJson
 import com.artemchep.keyguard.common.service.state.impl.toMap
+import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.platform.recordLogDebug
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
@@ -68,12 +69,18 @@ class WindowStateManager(
 
     private var windowStateLatest: SaveableWindowState? = null
 
+    private val requestForegroundSink = EventFlow<Unit>()
+
     constructor(directDI: DirectDI) : this(
         store = directDI.instance<Files, KeyValueStore>(
             arg = Files.WINDOW_STATE,
         ),
         json = directDI.instance(),
     )
+
+    fun requestForeground() {
+        requestForegroundSink.emit(Unit)
+    }
 
     private data class SaveableWindowState(
         val placement: WindowPlacement,
@@ -210,6 +217,13 @@ class WindowStateManager(
             size = restoredState.size,
         )
 
+        LaunchedEffect(state) {
+            requestForegroundSink
+                .onEach {
+                    state.isMinimized = false
+                }
+                .collect()
+        }
         LaunchSaveEffect(state)
         return state
     }

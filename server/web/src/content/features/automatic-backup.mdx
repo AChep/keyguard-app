@@ -1,0 +1,19 @@
+---
+title: "Automatic backup"
+summary: "Keep a managed backup repository of your vault so you always have a recent copy."
+icon: "💾"
+group: "Your data"
+order: 10
+featured: false
+premium: false
+---
+
+import backupRepository from '../../assets/screenshots/backup-repository.png';
+
+Keyguard can quietly maintain a backup repository of your vault, capturing recent copies as your data changes. Unlike a one-off export, this happens in the background and stays current. The backups are incremental are securely encrypted with a password. 
+
+If something goes wrong, whether an accidental deletion or a sync problem, you always have a backup of your data.
+
+<Screenshot src={backupRepository} caption="The backup screen — a snapshot in progress, repository metadata, and snapshot retention." />
+
+See the [backups documentation](/docs/backups/) for the extended read. See the [data export page](/features/data-export/) for a one-time data export.

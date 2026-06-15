@@ -2,14 +2,18 @@
 
 package com.artemchep.keyguard.common.model
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.PermIdentity
 import androidx.compose.ui.graphics.Color
+import arrow.core.getOrElse
 import arrow.optics.optics
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.usecase.GetTotpCode
@@ -26,6 +30,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardNote
 import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.generateAccentColors
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlin.time.Instant
 
@@ -43,6 +48,7 @@ data class DSecret(
     val collectionIds: Set<String>,
     val revisionDate: Instant,
     val createdDate: Instant?,
+    val archivedDate: Instant?,
     val deletedDate: Instant?,
     val service: BitwardenService,
     // common
@@ -57,6 +63,7 @@ data class DSecret(
     val uris: List<Uri> = emptyList(),
     val fields: List<Field> = emptyList(),
     val attachments: List<Attachment> = emptyList(),
+    val passwordHistory: List<Login.PasswordHistory> = emptyList(),
     // types
     val type: Type,
     val login: Login? = null,
@@ -66,6 +73,8 @@ data class DSecret(
 ) : HasAccountId, HasCipherId {
     companion object {
         private const val ignoreLength = 3
+
+        private val nameSeparatorRegex = "[\\.\\,\\[\\]\\!]".toRegex()
 
         private val ignoreWords = setOf(
             // popular domains
@@ -95,6 +104,8 @@ data class DSecret(
     }
 
     val hasError = service.error.exists(revisionDate)
+
+    val archived: Boolean get() = archivedDate != null
 
     val deleted: Boolean get() = deletedDate != null
 
@@ -130,7 +141,7 @@ data class DSecret(
     val tokens = kotlin.run {
         val out = mutableListOf<SearchToken>()
         // Split the name into tokens
-        name.lowercase().replace("[\\.\\,\\[\\]\\!]".toRegex(), " ")
+        name.lowercase().replace(nameSeparatorRegex, " ")
             .split(' ')
             .forEach {
                 if (it.length <= ignoreLength || it in ignoreWords) {
@@ -215,6 +226,7 @@ data class DSecret(
             override val url: String,
             val fileName: String,
             val size: Long? = null,
+            val keyBase64: String? = null,
         ) : Attachment {
             companion object
         }
@@ -305,7 +317,6 @@ data class DSecret(
         val password: String? = null,
         val passwordStrength: PasswordStrength? = null,
         val passwordRevisionDate: Instant? = null,
-        val passwordHistory: List<PasswordHistory> = emptyList(),
         val fido2Credentials: List<Fido2Credentials> = emptyList(),
         val totp: Totp? = null,
     ) {
@@ -592,10 +603,14 @@ fun DSecret.get(
         AutofillHint.SMS_OTP -> null
         AutofillHint.EMAIL_OTP -> null
         AutofillHint.APP_OTP -> login?.totp?.token?.let {
-            getTotpCode(it)
+            val totpCodeResult = getTotpCode(it)
+                .first()
+            totpCodeResult
                 .map { it.code }
-                .toIO()
-                .bind()
+                // re-throw the exception
+                .getOrElse { e ->
+                    throw e
+                }
         }
 
         AutofillHint.NOT_APPLICABLE -> null

@@ -11,12 +11,17 @@ on:
       - '.github/update_google_play_listing.py'
       - '.github/update_google_play_listing.requirements.py'
 
+permissions:
+  contents: read
+
 jobs:
   sync-google-listing:
     name: Upload Google Play Store listing
     runs-on: ubuntu-slim
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
       - run: pip install -r .github/update_google_play_listing.requirements.txt
       - name: "Setup secrets"
         run: |

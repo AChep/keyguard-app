@@ -296,7 +296,7 @@
       "Adobe Account Access"
     ],
     "documentation": "https://helpx.adobe.com/manage-account/using/secure-your-adobe-account.html",
-    "name": "Adobe ID"
+    "name": "Adobe"
   },
   {
     "domain": "adt.com",
@@ -676,9 +676,14 @@
   {
     "domain": "ameriprise.com",
     "tfa": [
-      "sms"
+      "sms",
+      "totp",
+      "custom-software"
     ],
-    "documentation": "https://www.ameriprise.com/privacy-security-fraud/how-we-protect-information/#02",
+    "custom-software": [
+      "Ameriprise Financial app"
+    ],
+    "documentation": "https://www.ameriprise.com/customer-service/2-step-verification-faq",
     "name": "Ameriprise Financial"
   },
   {
@@ -1127,7 +1132,7 @@
       "sms",
       "email"
     ],
-    "notes": "Requires contacting customer service to activate",
+    "documentation": "https://www.australianretirementtrust.com.au/articles/mfa-security",
     "name": "Australian Retirement Trust"
   },
   {
@@ -1235,6 +1240,13 @@
     ],
     "documentation": "https://awardwallet.com/faqs#44",
     "name": "AwardWallet"
+  },
+  {
+    "domain": "aware.com.au",
+    "tfa": [
+      "sms"
+    ],
+    "name": "Aware Super"
   },
   {
     "domain": "awin.com",
@@ -1526,6 +1538,16 @@
     "name": "Beget"
   },
   {
+    "domain": "bell.ca",
+    "tfa": [
+      "sms",
+      "call",
+      "email"
+    ],
+    "documentation": "https://support.bell.ca/billing-and-accounts/security_and_privacy/mybell_mfa",
+    "name": "Bell"
+  },
+  {
     "domain": "belong.com.au",
     "tfa": [
       "sms",
@@ -1536,13 +1558,18 @@
   },
   {
     "domain": "bendigobank.com.au",
+    "additional-domains": [
+      "adelaidebank.com.au",
+      "adelaidebendigo.com.au"
+    ],
     "tfa": [
       "sms",
       "email",
       "custom-software"
     ],
     "custom-software": [
-      "Bendigo Bank app"
+      "Bendigo Bank app",
+      "Symantec VIP Access"
     ],
     "documentation": "https://www.bendigobank.com.au/support/e-banking/multi-factor-authentication",
     "notes": "If the app hasn't been setup, only SMS and email tokens will work. If the app has been setup, only the app will work.",
@@ -1702,6 +1729,9 @@
   },
   {
     "domain": "bigw.com.au",
+    "additional-domains": [
+      "mydeal.com.au"
+    ],
     "tfa": [
       "sms",
       "call",
@@ -2090,10 +2120,13 @@
     "domain": "bmo.com",
     "tfa": [
       "sms",
-      "email",
-      "call"
+      "call",
+      "custom-software"
     ],
-    "documentation": "https://www.bmoinvestorline.com/General_Info/MFA_preEnroll_SD_EN.html",
+    "custom-software": [
+      "BMO App Push Notification"
+    ],
+    "documentation": "https://www.bmo.com/en-ca/main/personal/security-centre/how-to-protect-yourself/",
     "name": "BMO Bank of Montreal"
   },
   {
@@ -3209,6 +3242,13 @@
     "name": "Clio"
   },
   {
+    "domain": "clippercard.com",
+    "tfa": [
+      "email"
+    ],
+    "name": "Clipper"
+  },
+  {
     "domain": "close.com",
     "tfa": [
       "totp"
@@ -4110,14 +4150,13 @@
   {
     "domain": "crashplan.com",
     "additional-domains": [
-      "crashplanpro.com",
-      "console.us2.crashplanpro.com"
+      "crashplanpro.com"
     ],
     "tfa": [
-      "totp"
+      "totp",
+      "email"
     ],
-    "documentation": "https://support.crashplan.com/hc/en-us/articles/8724455295245",
-    "notes": "2FA is not available on the CrashPlan/Code42 desktop application.",
+    "documentation": "https://support.crashplan.com/hc/articles/43858880152461",
     "name": "CrashPlan"
   },
   {
@@ -5031,7 +5070,6 @@
     "additional-domains": [
       "docusign.net"
     ],
-    "url": "https://www.docusign.com",
     "tfa": [
       "sms",
       "call",
@@ -5357,7 +5395,6 @@
       "ebay.ie",
       "ebay.it",
       "ebay.co.jp",
-      "gmarket.co.kr",
       "ebay.com.my",
       "ebay.nl",
       "ebay.ph",
@@ -5678,14 +5715,20 @@
     "domain": "epicgames.com",
     "additional-domains": [
       "fortnite.com",
-      "fallguys.com"
+      "fallguys.com",
+      "rocketleague.com"
     ],
     "tfa": [
       "sms",
       "email",
-      "totp"
+      "totp",
+      "custom-software"
     ],
-    "documentation": "https://www.epicgames.com/help/en-US/c74/c112/a3218",
+    "custom-software": [
+      "Epic Games app",
+      "Epic Games Store app"
+    ],
+    "documentation": "https://www.epicgames.com/help/c74/c112/a3218",
     "name": "Epic Games"
   },
   {
@@ -6373,6 +6416,14 @@
     "name": "Flexera"
   },
   {
+    "domain": "flightaware.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.flightaware.com/hc/articles/30610324836759",
+    "name": "FlightAware"
+  },
+  {
     "domain": "flipsnack.com",
     "tfa": [
       "totp"
@@ -6830,6 +6881,13 @@
     ],
     "documentation": "https://getscreen.me/en/docs/dashboard#account-authentication",
     "name": "Getscreen.me"
+  },
+  {
+    "domain": "gitguardian.com",
+    "tfa": [
+      "email"
+    ],
+    "name": "GitGuardian"
   },
   {
     "domain": "github.com",
@@ -7995,9 +8053,11 @@
     "domain": "hypixel.net",
     "tfa": [
       "email",
-      "totp"
+      "totp",
+      "u2f"
     ],
     "documentation": "https://support.hypixel.net/hc/en-us/articles/360019538060",
+    "notes": "In-game 2FA is limited to Hypixel staff and players with the [YOUTUBE] rank; website 2FA is available to anyone.",
     "name": "Hypixel"
   },
   {
@@ -8015,6 +8075,17 @@
     ],
     "documentation": "https://www.hypovereinsbank.de/hvb/services/digitales-banking/psd2/tan-verfahren",
     "name": "HypoVereinsbank"
+  },
+  {
+    "domain": "hytale.com",
+    "additional-domains": [
+      "hytale.net"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.hytale.com/hc/articles/44212029550491",
+    "name": "Hytale"
   },
   {
     "domain": "icabanken.se",
@@ -8670,6 +8741,13 @@
     ],
     "documentation": "https://sales.jetbrains.com/hc/en-gb/articles/360013015240",
     "name": "JetBrains"
+  },
+  {
+    "domain": "jetstar.com",
+    "tfa": [
+      "email"
+    ],
+    "name": "Jetstar"
   },
   {
     "domain": "jianguoyun.com",
@@ -9387,7 +9465,8 @@
     "domain": "linktr.ee",
     "tfa": [
       "sms",
-      "call"
+      "call",
+      "totp"
     ],
     "documentation": "https://linktr.ee/help/articles/6108442",
     "name": "Linktree"
@@ -9755,6 +9834,10 @@
   },
   {
     "domain": "mail.google.com",
+    "additional-domains": [
+      "gmail.com",
+      "googlemail.com"
+    ],
     "tfa": [
       "sms",
       "call",
@@ -10704,12 +10787,9 @@
     "domain": "my.gov.au",
     "tfa": [
       "sms",
-      "custom-software"
+      "totp"
     ],
-    "custom-software": [
-      "myGov Code Generator"
-    ],
-    "documentation": "https://my.gov.au/en/about/help/mygov-account/help-using-your-account/manage-sign-in-details",
+    "documentation": "https://my.gov.au/en/about/help/mygov-website/sign-in-to-mygov/use-an-authenticator",
     "name": "myGov"
   },
   {
@@ -10743,15 +10823,6 @@
     ],
     "documentation": "https://www.mychart.org/Help/two-factor-auth",
     "name": "MyChart"
-  },
-  {
-    "domain": "mydeal.com.au",
-    "tfa": [
-      "sms",
-      "email"
-    ],
-    "documentation": "https://help.mydeal.com.au/hc/en-us/articles/8901216981391",
-    "name": "MyDeal"
   },
   {
     "domain": "myemma.com",
@@ -11459,7 +11530,7 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://support.nordpass.com/hc/en-us/articles/360002770497",
+    "documentation": "https://support.nordvpn.com/hc/articles/19442299167889",
     "name": "NordLocker"
   },
   {
@@ -11481,8 +11552,16 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://support.nordpass.com/hc/en-us/articles/360002770497",
+    "documentation": "https://support.nordpass.com/hc/articles/360002770497",
     "name": "NordPass"
+  },
+  {
+    "domain": "nordstellar.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.nordpass.com/hc/articles/40207000238993",
+    "name": "NordStellar"
   },
   {
     "domain": "nordvpn.com",
@@ -11493,7 +11572,7 @@
       "totp",
       "u2f"
     ],
-    "documentation": "https://support.nordvpn.com/hc/en-us/articles/19442299167889",
+    "documentation": "https://support.nordvpn.com/hc/articles/19442299167889",
     "name": "NordVPN"
   },
   {
@@ -11916,7 +11995,8 @@
       "chatgpt.com"
     ],
     "tfa": [
-      "totp"
+      "totp",
+      "sms"
     ],
     "documentation": "https://help.openai.com/articles/7967234",
     "name": "OpenAI (ChatGPT)"
@@ -12239,6 +12319,15 @@
     "name": "Parallels"
   },
   {
+    "domain": "paribu.com",
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://destek.paribu.com/hc/articles/360010998153",
+    "name": "Paribu"
+  },
+  {
     "domain": "parimatch.com",
     "url": "https://www.parimatch.com/",
     "tfa": [
@@ -12452,9 +12541,10 @@
       "paypal-search.com"
     ],
     "tfa": [
-      "totp"
+      "totp",
+      "u2f"
     ],
-    "notes": "2FA can only be setup in web browser and not through the PayPal App.",
+    "notes": "2FA can only be setup on the website. A backup 2FA method is needed to setup security key.",
     "documentation": "https://www.paypal.com/us/cshelp/article/help167",
     "name": "PayPal"
   },
@@ -12467,15 +12557,16 @@
   },
   {
     "domain": "paysafecard.com",
-    "url": "https://www.paysafecard.com/",
     "tfa": [
       "sms",
+      "email",
       "custom-software"
     ],
     "custom-software": [
-      "paysafecard app"
+      "PaysafeCard app"
     ],
-    "name": "Paysafecard"
+    "documentation": "https://www.paysafecard.com/en/support/question/38/",
+    "name": "PaysafeCard"
   },
   {
     "domain": "paytm.com",
@@ -12517,6 +12608,20 @@
     ],
     "documentation": "https://www.pcloud.com/help/general-help-center/how-can-i-set-up-two-factor-authentication",
     "name": "PCloud"
+  },
+  {
+    "domain": "penfed.org",
+    "tfa": [
+      "sms",
+      "email",
+      "totp",
+      "custom-software"
+    ],
+    "documentation": "https://home.penfed.org/help/s/article/PenFed-Security-Center",
+    "custom-software": [
+      "PenFed App"
+    ],
+    "name": "PenFed"
   },
   {
     "domain": "perimeter81.com",
@@ -14448,6 +14553,29 @@
     "name": "Santa Clara University"
   },
   {
+    "domain": "sdccd.edu",
+    "additional-domains": [
+      "sdcity.edu",
+      "sdmesa.edu",
+      "sdmiramar.edu",
+      "sdcce.edu"
+    ],
+    "tfa": [
+      "sms",
+      "call",
+      "custom-software",
+      "custom-hardware"
+    ],
+    "custom-software": [
+      "Microsoft Authenticator"
+    ],
+    "custom-hardware": [
+      "SafeID token"
+    ],
+    "documentation": "https://www.sdccd.edu/students/student-email.aspx",
+    "name": "San Diego Community College District"
+  },
+  {
     "domain": "sdfcu.org",
     "additional-domains": [
       "sdfcuib.org"
@@ -14681,10 +14809,24 @@
   {
     "domain": "service.nsw.gov.au",
     "tfa": [
-      "sms"
+      "sms",
+      "totp",
+      "custom-software"
     ],
-    "documentation": "https://www.service.nsw.gov.au/services/myservicensw-account/turn-on-2-step-authentication",
+    "custom-software": [
+      "Service NSW app"
+    ],
+    "documentation": "https://www.service.nsw.gov.au/services/myservicensw-account/multi-factor-authentication",
     "name": "Service NSW"
+  },
+  {
+    "domain": "service.vic.gov.au",
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://service.vic.gov.au/find-services/digital-wallet/create-account/account-security",
+    "name": "Service Victoria"
   },
   {
     "domain": "serviceportal.hamburg.de",
@@ -14704,6 +14846,17 @@
     ],
     "documentation": "https://www.servus.ca/security/protect-yourself/two-step-authentication",
     "name": "Servus Credit Union"
+  },
+  {
+    "domain": "settle.com",
+    "additional-domains": [
+      "settle.co"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://help.settle.com/articles/6801735",
+    "name": "Settle"
   },
   {
     "domain": "seznam.cz",
@@ -14776,6 +14929,15 @@
     ],
     "documentation": "https://support.3dcart.com/knowledgebase/article/View/866/11/",
     "name": "Shift4Shop"
+  },
+  {
+    "domain": "shop.app",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://help.shop.app/en/shop/shop-pay-settings/security/verification-code",
+    "name": "Shop"
   },
   {
     "domain": "shopify.com",
@@ -16317,6 +16479,16 @@
     "name": "Stiftung Warentest"
   },
   {
+    "domain": "texas.gov",
+    "url": "https://www.texas.gov/texas-by-texas/",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.texas.gov/help-support/frequently-asked-questions/#what-services-can-i-complete-on-txt-",
+    "name": "Texas by Texas (TxT)"
+  },
+  {
     "domain": "textlocal.com",
     "tfa": [
       "sms",
@@ -16612,6 +16784,16 @@
     "name": "Tower Federal Credit Union"
   },
   {
+    "domain": "toya.net.pl",
+    "tfa": [
+      "email",
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://toya.net.pl/dokumenty/pobierz/instrukcja-2fa",
+    "name": "Toya"
+  },
+  {
     "domain": "tpg.com.au",
     "tfa": [
       "sms"
@@ -16665,6 +16847,20 @@
       "Transperth app"
     ],
     "name": "Transperth"
+  },
+  {
+    "domain": "transport.vic.gov.au",
+    "additional-domains": [
+      "ptv.vic.gov.au",
+      "myki.com.au",
+      "mymyki.com.au"
+    ],
+    "tfa": [
+      "sms",
+      "totp"
+    ],
+    "documentation": "https://transport.vic.gov.au/help-and-support/ptv-app-help/set-up-multi-factor-authentication-for-myki-in-the-ptv-app",
+    "name": "Transport Victoria"
   },
   {
     "domain": "travala.com",
@@ -17252,7 +17448,6 @@
   {
     "domain": "ucsd.edu",
     "tfa": [
-      "sms",
       "u2f",
       "custom-hardware",
       "custom-software"
@@ -17631,6 +17826,16 @@
     ],
     "documentation": "https://support.uphold.com/hc/en-us/articles/360023791072",
     "name": "Uphold"
+  },
+  {
+    "domain": "ups.com",
+    "url": "https://www.ups.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://www.ups.com/us/en/support/manage-your-profile#faq",
+    "name": "UPS"
   },
   {
     "domain": "uptimerobot.com",
@@ -18111,6 +18316,15 @@
     ],
     "documentation": "https://uk.virginmoney.com/sca",
     "name": "Virgin Money"
+  },
+  {
+    "domain": "virginplus.ca",
+    "tfa": [
+      "sms",
+      "email"
+    ],
+    "documentation": "https://www.virginplus.ca/en/support/myaccount-mfa.html",
+    "name": "Virgin Plus"
   },
   {
     "domain": "virginpulse.com",
@@ -18844,19 +19058,6 @@
     ],
     "documentation": "https://workflowy.zendesk.com/hc/en-us/articles/4401923146516",
     "name": "Workflowy"
-  },
-  {
-    "domain": "workplace.com",
-    "tfa": [
-      "totp",
-      "sms",
-      "custom-software"
-    ],
-    "custom-software": [
-      "Workplace App Code Generator"
-    ],
-    "documentation": "https://www.workplace.com/help/work/1331628866920315",
-    "name": "Workplace"
   },
   {
     "domain": "world4you.com",

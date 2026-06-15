@@ -8,6 +8,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.input.key.KeyEvent
 import arrow.core.partially1
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.ShowMessage
@@ -24,11 +27,13 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyEventInterceptorHos
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvent
 import com.artemchep.keyguard.platform.LeBundle
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.WindowId
 import com.artemchep.keyguard.platform.contains
 import com.artemchep.keyguard.platform.get
 import com.artemchep.keyguard.platform.leBundleOf
 import com.artemchep.keyguard.platform.util.isRelease
-import org.jetbrains.compose.resources.StringResource
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -51,6 +56,8 @@ class RememberStateFlowScopeImpl(
     private val key: String,
     private val bundle: LeBundle,
     private val showMessage: ShowMessage,
+    private val clipboardService: ClipboardService,
+    private val clipboardEventBus: ClipboardEventBus,
     private val getScreenState: GetScreenState,
     private val putScreenState: PutScreenState,
     private val windowCoroutineScope: WindowCoroutineScope,
@@ -61,11 +68,14 @@ class RememberStateFlowScopeImpl(
     private val scope: CoroutineScope,
     private val screen: String,
     private val colorSchemeState: State<ColorScheme>,
+    private val windowIdState: State<WindowId>,
     override val screenName: String,
     override val context: LeContext,
 ) : RememberStateFlowScopeZygote,
     TranslatorScope by TranslatorScope.of(context),
     CoroutineScope by scope {
+    private val lock = SynchronizedObject()
+
     private val registry = mutableMapOf<String, Entry<Any?, Any?>>()
 
     override val colorScheme get() = colorSchemeState.value
@@ -126,6 +136,16 @@ class RememberStateFlowScopeImpl(
     override val keepAliveFlow get() = keepAliveSharedFlow
 
     private fun getBundleKey(key: String) = "${this.key}:$key"
+
+    override fun copier(): CopyText {
+        return CopyText(
+            clipboardService = clipboardService,
+            clipboardEventBus = clipboardEventBus,
+            translator = this,
+            onMessage = ::message,
+            windowIdState = windowIdState,
+        )
+    }
 
     override fun navigate(
         intent: NavigationIntent,
@@ -208,7 +228,7 @@ class RememberStateFlowScopeImpl(
         }
     }
 
-    override fun launchUi(block: CoroutineScope.() -> Unit): () -> Unit {
+    override fun launchUi(block: suspend CoroutineScope.() -> Unit): () -> Unit {
         val job = isStartedFlow
             .mapLatest { active ->
                 if (!active) {
@@ -267,7 +287,7 @@ class RememberStateFlowScopeImpl(
         serialize: (Json, T) -> S,
         deserialize: (Json, S) -> T,
         initialValue: () -> T,
-    ): MutableStateFlow<T> = synchronized(this) {
+    ): MutableStateFlow<T> = synchronized(lock) {
         registry.getOrPut(key) {
             val value = kotlin.run {
                 val bundleKey = getBundleKey(key)
@@ -334,15 +354,18 @@ class RememberStateFlowScopeImpl(
                 storage.disk.link(key, flow)
             }
             entry
-        }.sink as MutableStateFlow<T>
+        }.sink.let {
+            @Suppress("UNCHECKED_CAST")
+            it as MutableStateFlow<T>
+        }
     }
 
-    override fun <T> asComposeState(key: String) = synchronized(this) {
+    override fun <T> asComposeState(key: String) = synchronized(lock) {
         registry[key]!!.composeState.mutableState as MutableState<T>
     }
 
     override fun clearPersistedFlow(key: String) {
-        val entry = synchronized(this) {
+        val entry = synchronized(lock) {
             registry.remove(key)
         }
         @Suppress("IfThenToSafeAccess")
@@ -352,17 +375,18 @@ class RememberStateFlowScopeImpl(
     }
 
     override fun <T> mutableComposeState(sink: MutableStateFlow<T>): MutableState<T> {
-        val entry = synchronized(this) {
+        val entry = synchronized(lock) {
             registry.values.firstOrNull { it.sink === sink }
         }
         requireNotNull(entry) {
             "Provided sink must be created using mutablePersistedFlow(...)!"
         }
+        @Suppress("UNCHECKED_CAST")
         return entry.composeState.mutableState as MutableState<T>
     }
 
     override fun persistedState(): LeBundle {
-        val state = synchronized(this) {
+        val state = synchronized(lock) {
             registry
                 .map { (key, entry) ->
                     val fullKey = getBundleKey(key)

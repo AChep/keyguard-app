@@ -303,6 +303,8 @@ class GetSuggestionsImpl(
             localAutofillTargetWeb = unfilteredAutofillTargetWeb,
         )
 
+        val autofillTargetUsername = target.username
+
         val c = ciphers
             .parallelSearch { wrapper ->
                 val cipher = getter.get(wrapper)
@@ -324,9 +326,22 @@ class GetSuggestionsImpl(
                     AutofillHint.PHONE_NUMBER in target.hints ||
                     AutofillHint.USERNAME in target.hints ||
                     AutofillHint.PASSWORD in target.hints ||
-                    AutofillHint.APP_OTP in target.hints
+                    AutofillHint.APP_OTP in target.hints ||
+                    // If the username is specified then we are forced to search
+                    // through the logins.
+                    autofillTargetUsername != null
                 ) {
                     run {
+                        // Fast path:
+                        // If we search by the login, then it's the easiest way
+                        // to filter out the obviously non-matching items.
+                        if (autofillTargetUsername != null && cipher.login?.username != autofillTargetUsername) {
+                            return@run 0f
+                        }
+                        val scoreByUsername = if (autofillTargetUsername != null) {
+                            20f
+                        } else 0f
+
                         val equivalentDomains = equivalentDomainsHolder
                             .getAndCache(cipher.accountId)
                         val scoreByWebDomainRaw = autofillTargetWeb
@@ -354,7 +369,7 @@ class GetSuggestionsImpl(
                         } else {
                             scoreByAppId
                         }
-                        scaledScoreByWebDomain + scaledScoreByAppId
+                        scaledScoreByWebDomain + scaledScoreByAppId + scoreByUsername
                     }
                 } else if (
                     AutofillHint.CREDIT_CARD_NUMBER in target.hints ||

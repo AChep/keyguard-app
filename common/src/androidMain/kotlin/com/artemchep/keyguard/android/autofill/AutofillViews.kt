@@ -39,12 +39,7 @@ object AutofillViews {
                 )
             }
         } else if (!appId.isNullOrEmpty()) {
-            RemoteViews(context.packageName, R.layout.item_autofill_unlock_app_id).apply {
-                setTextViewText(
-                    R.id.autofill_app_id_text,
-                    appId,
-                )
-            }
+            RemoteViews(context.packageName, R.layout.item_autofill_unlock_app_id)
         } else {
             RemoteViews(context.packageName, R.layout.item_autofill_unlock)
         }
@@ -66,12 +61,7 @@ object AutofillViews {
                 )
             }
         } else if (!appId.isNullOrEmpty()) {
-            RemoteViews(context.packageName, R.layout.item_autofill_select_entry_app_id).apply {
-                setTextViewText(
-                    R.id.autofill_app_id_text,
-                    appId,
-                )
-            }
+            RemoteViews(context.packageName, R.layout.item_autofill_select_entry_app_id)
         } else {
             RemoteViews(context.packageName, R.layout.item_autofill_select_entry)
         }

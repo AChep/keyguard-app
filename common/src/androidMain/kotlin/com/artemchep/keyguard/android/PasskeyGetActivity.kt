@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.android
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -13,7 +12,6 @@ import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,7 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
@@ -32,7 +29,6 @@ import androidx.credentials.provider.PendingIntentHandler
 import androidx.lifecycle.lifecycleScope
 import arrow.optics.optics
 import com.artemchep.keyguard.android.util.getParcelableCompat
-import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
@@ -40,7 +36,6 @@ import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.AddCipherUsedPasskeyHistoryRequest
 import com.artemchep.keyguard.common.model.BiometricAuthException
-import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.Loadable
@@ -48,12 +43,16 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PureBiometricAuthPrompt
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.VaultState
+import com.artemchep.keyguard.common.model.YubiKeyAuthPrompt
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.ConfirmAccessByPasswordUseCase
+import com.artemchep.keyguard.common.usecase.ConfirmAccessByYubiKeyUseCase
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -72,29 +71,32 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.yubikey.YubiKeyPromptEffect
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
-import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OtherScaffold
 import com.artemchep.keyguard.ui.PasswordFlatTextField
-import com.artemchep.keyguard.ui.theme.Dimens
-import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.ui.focus.FocusRequester2
+import com.artemchep.keyguard.ui.focus.focusRequester2
+import com.artemchep.keyguard.ui.icons.KeyguardYubiKey
+import org.jetbrains.compose.resources.getString as getComposeString
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlinx.parcelize.Parcelize
 import org.kodein.di.*
@@ -103,42 +105,30 @@ import org.kodein.di.compose.localDI
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasskeyGetActivity : BaseActivity(), DIAware {
     companion object {
-        private const val KEY_ARGUMENTS = "arguments"
-
-        fun getIntent(
-            context: Context,
-            args: Args,
-        ): Intent = Intent(context, PasskeyGetActivity::class.java).apply {
-            putExtra(KEY_ARGUMENTS, args)
-        }
+        const val KEY_ARGUMENTS = "arguments"
     }
-
-    @Parcelize
-    data class Args(
-        val accountId: String,
-        val cipherId: String,
-        val credId: String,
-        val cipherName: String,
-        val credRpId: String,
-        val credUserDisplayName: String,
-        val requiresUserVerification: Boolean,
-        val userVerified: Boolean,
-    ) : Parcelable
 
     private val _args by lazy {
-        intent.extras?.getParcelableCompat<Args>(KEY_ARGUMENTS)
+        intent.extras?.getParcelableCompat<PasskeyProviderGetActivityArgs>(KEY_ARGUMENTS)
     }
 
-    private val args: Args get() = requireNotNull(_args)
+    protected val args: PasskeyProviderGetActivityArgs get() = requireNotNull(_args)
 
     private val getVaultSession by instance<GetVaultSession>()
 
-    private val passkeyBeginGetRequest by instance<PasskeyProviderGetRequest>()
+    private val passkeyProviderGetFlow by instance<PasskeyProviderGetFlow>()
 
-    private val eheheState = mutableStateOf<Ahhehe>(Ahhehe.Loading)
+    private val getCredentialRequest by lazy {
+        val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
+        requireNotNull(request) {
+            "Get request from framework is empty."
+        }
+    }
 
-    private sealed interface Ahhehe {
-        data object Loading : Ahhehe
+    private val uiStateSink = mutableStateOf<UiState>(UiState.Loading)
+
+    private sealed interface UiState {
+        data object Loading : UiState
 
         /**
          * A screen that asks a user to
@@ -146,17 +136,15 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
          */
         class RequiresAuthentication(
             val onAuthenticated: () -> Unit,
-        ) : Ahhehe
+        ) : UiState
 
         /**
          * A screen that shows an error to a user and
          * offers a button to close the app.
          */
         class Error(
-            val title: String? = null,
-            val message: String,
-            val onFinish: () -> Unit,
-        ) : Ahhehe
+            val data: UiStateError,
+        ) : UiState
     }
 
     @SuppressLint("RestrictedApi")
@@ -185,138 +173,120 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                 MutableStateFlow(initialValue)
             }
             if (!userVerifiedState.value && args.requiresUserVerification) {
-                eheheState.value = Ahhehe.RequiresAuthentication {
+                uiStateSink.value = UiState.RequiresAuthentication {
                     userVerifiedState.value = true
                 }
                 // Wait till the user passes verification process.
                 userVerifiedState.first { it }
             }
-            eheheState.value = Ahhehe.Loading
+            uiStateSink.value = UiState.Loading
 
-            val response = runCatching {
+            // An attempt of handling the cipher.
+            val retrySink = MutableStateFlow(0)
+            retrySink
+                .onEach { attempt ->
+                    handleCredentialRequest(
+                        session = session,
+                        onRetry = {
+                            retrySink.value = attempt + 1
+                        },
+                    )
+                }
+                .collect()
+        }
+    }
+
+    private suspend fun handleCredentialRequest(
+        session: MasterSession.Key,
+        onRetry: () -> Unit,
+    ) {
+        val response = runCatching {
+            withContext(Dispatchers.Default) {
                 PasskeyUtils.withProcessingMinTime {
-                    val userVerified = userVerifiedState.value
                     processUnlockedVault(
                         session = session,
-                        userVerified = userVerified,
+                        userVerified = true,
                     )
                 }
-            }.getOrElse {
-                recordException(it)
-
-                // Something went wrong, finish with the
-                // exception.
-                val intent = Intent().apply {
-                    val e = it as? GetCredentialException
-                        ?: GetCredentialUnknownException()
-                    PendingIntentHandler.setGetCredentialException(
-                        intent = this,
-                        exception = e,
-                    )
-                }
-                setResult(Activity.RESULT_OK, intent)
-
-                // Show the error to a user
-                val uiState = Ahhehe.Error(
-                    title = org.jetbrains.compose.resources.getString(Res.string.error_failed_use_passkey),
-                    message = it.localizedMessage
-                        ?: it.message
-                        ?: "Something went wrong",
-                    onFinish = {
-                        finish()
-                    },
-                )
-                eheheState.value = uiState
-                return@launch // end
             }
+        }.getOrElse {
+            recordException(it)
 
-            // Log that a used has used the passkey. We only do
-            // it after a successful attempt.
-            val addCipherUsedPasskey = session.di.direct.instance<AddCipherUsedPasskeyHistory>()
-            val addCipherUsedPasskeyRequest = AddCipherUsedPasskeyHistoryRequest(
-                accountId = args.accountId,
-                cipherId = args.cipherId,
-                credentialId = args.credId,
+            val uiState = getCredentialErrorUiState(
+                session = session,
+                exception = it,
+                onRetry = onRetry,
             )
-            addCipherUsedPasskey(addCipherUsedPasskeyRequest)
-                .attempt()
-                .bind()
-
-            val intent = Intent().apply {
-                PendingIntentHandler.setGetCredentialResponse(
-                    intent = this,
-                    response = response,
-                )
-            }
-            setResult(Activity.RESULT_OK, intent)
-            finish()
+            uiStateSink.value = uiState
+            return // end
         }
+
+        // Log that a used has used the passkey. We only do
+        // it after a successful attempt.
+        withContext(Dispatchers.Default) {
+            passkeyProviderGetFlow.recordUsage(
+                session = session,
+                args = args,
+            )
+        }
+
+        val intent = Intent().apply {
+            PendingIntentHandler.setGetCredentialResponse(
+                intent = this,
+                response = response,
+            )
+        }
+        setResult(RESULT_OK, intent)
+        finish()
+    }
+
+    private suspend fun getCredentialErrorUiState(
+        session: MasterSession.Key,
+        exception: Throwable,
+        onRetry: () -> Unit,
+    ): UiState.Error {
+        val intent = Intent().apply {
+            val e = exception as? GetCredentialException
+                ?: GetCredentialUnknownException()
+            PendingIntentHandler.setGetCredentialException(
+                intent = this,
+                exception = e,
+            )
+        }
+        setResult(RESULT_OK, intent)
+
+        // Get the UI model of an error
+
+        val title = getComposeString(Res.string.error_failed_use_passkey)
+        val data = getCredentialErrorUiState(
+            session = session,
+            callingAppInfo = getCredentialRequest.callingAppInfo,
+            title = title,
+            exception = exception,
+            beforeRetry = {
+                uiStateSink.value = UiState.Loading
+            },
+            onRetry = onRetry,
+        )
+        return UiState.Error(data)
     }
 
     @Composable
     override fun Content() {
-        ExtensionScaffold(
-            header = {
-                Row(
-                    modifier = Modifier
-                        .padding(
-                            start = Dimens.horizontalPadding,
-                            end = 8.dp,
-                            top = 8.dp,
-                            bottom = 8.dp,
-                        ),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .align(Alignment.CenterVertically),
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.passkey_auth_via_header),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = LocalContentColor.current
-                                .combineAlpha(MediumEmphasisAlpha),
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                        )
-                        Row {
-                            Text(
-                                text = args.credUserDisplayName,
-                                style = MaterialTheme.typography.titleSmall,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1,
-                            )
-                            Text(
-                                modifier = Modifier
-                                    .weight(1f, fill = false),
-                                text = "@" + args.credRpId,
-                                style = MaterialTheme.typography.titleSmall,
-                                color = LocalContentColor.current
-                                    .combineAlpha(MediumEmphasisAlpha),
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1,
-                            )
-                        }
-                    }
-
-                    val context by rememberUpdatedState(newValue = LocalContext.current)
-                    TextButton(
-                        onClick = {
-                            context.closestActivityOrNull?.finish()
-                        },
-                    ) {
-                        Icon(Icons.Outlined.Close, null)
-                        Spacer(
-                            modifier = Modifier
-                                .width(Dimens.buttonIconPadding),
-                        )
-                        Text(
-                            text = stringResource(Res.string.cancel),
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                }
+        val title = stringResource(Res.string.passkey_auth_via_header)
+        val context by rememberUpdatedState(newValue = LocalContext.current)
+        CredentialScaffold(
+            onCancel = {
+                context.closestActivityOrNull?.finish()
+            },
+            titleText = title,
+            // Render the subtitle basing on the create
+            // credential type.
+            subtitle = {
+                CredentialSubtitlePublicKey(
+                    username = args.credUserDisplayName,
+                    rpId = args.credRpId,
+                )
             },
         ) {
             // Instead of showing a vault to a user, we continue showing the
@@ -328,22 +298,23 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
                     is VaultState.Unlock -> ManualAppScreenOnUnlock(vaultState)
                     is VaultState.Loading -> ManualAppScreenOnLoading(vaultState)
                     is VaultState.Main -> {
-                        val state = eheheState.value
-                        when (state) {
-                            is Ahhehe.Loading -> {
+                        when (val state = uiStateSink.value) {
+                            is UiState.Loading -> {
                                 val fakeLoadingState = VaultState.Loading
                                 ManualAppScreenOnLoading(fakeLoadingState)
                             }
 
-                            is Ahhehe.Error -> {
-                                PasskeyError(
-                                    title = state.title,
-                                    message = state.message,
-                                    onFinish = state.onFinish,
+                            is UiState.Error -> {
+                                val data = state.data
+                                CredentialError(
+                                    title = data.title,
+                                    message = data.message,
+                                    advanced = data.advanced,
+                                    onFinish = data.onFinish,
                                 )
                             }
 
-                            is Ahhehe.RequiresAuthentication -> {
+                            is UiState.RequiresAuthentication -> {
                                 val updatedOnAuthenticated by rememberUpdatedState(state.onAuthenticated)
                                 val route = remember {
                                     UserVerificationRoute(
@@ -367,37 +338,12 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
     private suspend fun processUnlockedVault(
         session: MasterSession.Key,
         userVerified: Boolean,
-    ): GetCredentialResponse {
-        val request = PendingIntentHandler.retrieveProviderGetCredentialRequest(intent)
-        requireNotNull(request) {
-            "Provider get request from framework is empty."
-        }
-        val ciphers = kotlin.run {
-            val getCiphers = session.di.direct.instance<GetCiphers>()
-            getCiphers()
-                .first()
-        }
-        val credential = ciphers
-            .firstNotNullOfOrNull { cipher ->
-                if (
-                    args.accountId != cipher.accountId &&
-                    args.cipherId != cipher.id
-                ) {
-                    return@firstNotNullOfOrNull null
-                }
-
-                cipher.login?.fido2Credentials
-                    ?.firstOrNull { credential ->
-                        args.credId == credential.credentialId
-                    }
-            }
-        requireNotNull(credential)
-        return passkeyBeginGetRequest.processGetCredentialsRequest(
-            request = request,
-            credential = credential,
-            userVerified = userVerified,
-        )
-    }
+    ): GetCredentialResponse = passkeyProviderGetFlow.processUnlockedVault(
+        session = session,
+        request = getCredentialRequest,
+        args = args,
+        userVerified = userVerified,
+    )
 }
 
 class UserVerificationRoute(
@@ -412,6 +358,7 @@ class UserVerificationRoute(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun UserVerificationScreen(
     onAuthenticated: () -> Unit,
@@ -423,6 +370,7 @@ fun UserVerificationScreen(
         ?: return
 
     BiometricPromptEffect(content.sideEffects.showBiometricPromptFlow)
+    YubiKeyPromptEffect(content.sideEffects.showYubiKeyPromptFlow)
     OtherScaffold {
         UnlockScreenContainer(
             top = {
@@ -433,6 +381,9 @@ fun UserVerificationScreen(
                 )
             },
             center = {
+                val requester = remember {
+                    FocusRequester2()
+                }
                 val keyboardOnGo: (KeyboardActionScope.() -> Unit)? =
                     if (content.onVerify != null) {
                         // lambda
@@ -443,7 +394,8 @@ fun UserVerificationScreen(
                         null
                     }
                 PasswordFlatTextField(
-                    modifier = Modifier,
+                    modifier = Modifier
+                        .focusRequester2(requester),
                     testTag = "field:password",
                     value = content.password,
                     keyboardOptions = KeyboardOptions(
@@ -453,6 +405,12 @@ fun UserVerificationScreen(
                         onGo = keyboardOnGo,
                     ),
                 )
+                LaunchedEffect(requester) {
+                    delay(80L)
+                    if (content.biometric == null && content.yubiKey == null) {
+                        requester.requestFocus()
+                    }
+                }
             },
             bottom = {
                 val onUnlockButtonClick by rememberUpdatedState(
@@ -474,22 +432,61 @@ fun UserVerificationScreen(
                 val onBiometricButtonClick by rememberUpdatedState(
                     content.biometric?.onClick,
                 )
+                val onYubiKeyButtonClick by rememberUpdatedState(
+                    content.yubiKey?.onClick,
+                )
                 ExpandedIfNotEmpty(
-                    valueOrNull = content.biometric,
-                ) { b ->
-                    ElevatedButton(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally),
+                    valueOrNull = Unit.takeIf {
+                        content.biometric != null || content.yubiKey != null
+                    },
+                ) {
+                    Row(
                         modifier = Modifier
                             .padding(top = 32.dp),
-                        enabled = b.onClick != null,
-                        onClick = {
-                            onBiometricButtonClick?.invoke()
-                        },
-                        contentPadding = PaddingValues(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Fingerprint,
-                            contentDescription = null,
-                        )
+                        if (content.biometric != null) {
+                            Button(
+                                enabled = content.biometric.onClick != null,
+                                shapes = ButtonDefaults.shapes(),
+                                colors = ButtonDefaults.outlinedButtonColors(),
+                                elevation = null,
+                                border = ButtonDefaults.outlinedButtonBorder(
+                                    enabled = content.biometric.onClick != null,
+                                ),
+                                onClick = {
+                                    onBiometricButtonClick?.invoke()
+                                },
+                                contentPadding = PaddingValues(16.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Fingerprint,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
+                        if (content.yubiKey != null) {
+                            Button(
+                                enabled = content.yubiKey.onClick != null,
+                                shapes = ButtonDefaults.shapes(),
+                                colors = ButtonDefaults.outlinedButtonColors(),
+                                elevation = null,
+                                border = ButtonDefaults.outlinedButtonBorder(
+                                    enabled = content.yubiKey.onClick != null,
+                                ),
+                                onClick = {
+                                    onYubiKeyButtonClick?.invoke()
+                                },
+                                contentPadding = PaddingValues(16.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.KeyguardYubiKey,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
                     }
                 }
             },
@@ -506,6 +503,7 @@ data class UserVerificationState(
         val sideEffects: UnlockState.SideEffects,
         val password: TextFieldModel2,
         val biometric: Biometric? = null,
+        val yubiKey: YubiKey? = null,
         val isLoading: Boolean = false,
         val onVerify: (() -> Unit)? = null,
     )
@@ -520,8 +518,8 @@ data class UserVerificationState(
 
     @Immutable
     @optics
-    data class SideEffects(
-        val showBiometricPromptFlow: Flow<BiometricAuthPrompt>,
+    data class YubiKey(
+        val onClick: (() -> Unit)? = null,
     ) {
         companion object
     }
@@ -538,6 +536,7 @@ fun produceUserVerificationState(
         biometricStatusUseCase = instance(),
         getBiometricRequireConfirmation = instance(),
         confirmAccessByPasswordUseCase = instance(),
+        confirmAccessByYubiKeyUseCase = instance(),
         windowCoroutineScope = instance(),
     )
 }
@@ -548,6 +547,7 @@ fun produceUserVerificationState(
     biometricStatusUseCase: BiometricStatusUseCase,
     getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
     confirmAccessByPasswordUseCase: ConfirmAccessByPasswordUseCase,
+    confirmAccessByYubiKeyUseCase: ConfirmAccessByYubiKeyUseCase,
     windowCoroutineScope: WindowCoroutineScope,
 ): UserVerificationState = produceScreenState(
     key = "user_verification",
@@ -560,6 +560,10 @@ fun produceUserVerificationState(
 
     val passwordSink = mutablePersistedFlow("password") { DEFAULT_PASSWORD }
     val passwordState = mutableComposeState(passwordSink)
+    val yubiKeyRequest = confirmAccessByYubiKeyUseCase()
+        .attempt()
+        .bind()
+        .getOrNull()
 
     val biometricPrompt = kotlin.run {
         val biometricStatus = biometricStatusUseCase()
@@ -606,6 +610,45 @@ fun produceUserVerificationState(
             onClick = null,
         )
     }
+    val yubiKeyPromptSink = EventFlow<YubiKeyAuthPrompt>()
+    val yubiKeyPromptFlow = yubiKeyPromptSink
+        .shareIn(screenScope, SharingStarted.WhileSubscribed(5000L))
+    val yubiKeyStateEnabled = yubiKeyRequest?.let { request ->
+        UserVerificationState.YubiKey(
+            onClick = {
+                yubiKeyPromptSink.emit(
+                    YubiKeyAuthPrompt(
+                        slot = request.slot,
+                        challenge = request.challenge,
+                        onComplete = { result ->
+                            result.fold(
+                                ifLeft = { exception ->
+                                    if (exception is YubiKeyAuthCanceledException) {
+                                        return@fold
+                                    }
+
+                                    val io = ioRaise<Unit>(exception)
+                                    executor.execute(io)
+                                },
+                                ifRight = { response ->
+                                    val io = request.confirm(response)
+                                        .effectTap {
+                                            onAuthenticated()
+                                        }
+                                    executor.execute(io)
+                                },
+                            )
+                        },
+                    ),
+                )
+            },
+        )
+    }
+    val yubiKeyStateDisabled = yubiKeyRequest?.let {
+        UserVerificationState.YubiKey(
+            onClick = null,
+        )
+    }
 
     combine(
         passwordSink
@@ -620,8 +663,14 @@ fun produceUserVerificationState(
             } else {
                 biometricStateEnabled
             },
+            yubiKey = if (taskExecuting) {
+                yubiKeyStateDisabled
+            } else {
+                yubiKeyStateEnabled
+            },
             sideEffects = UnlockState.SideEffects(
                 showBiometricPromptFlow = biometricPromptFlow,
+                showYubiKeyPromptFlow = yubiKeyPromptFlow,
             ),
             password = TextFieldModel2.of(
                 state = passwordState,
@@ -662,7 +711,6 @@ private fun createPromptOrNull(
 ): PureBiometricAuthPrompt = run {
     BiometricAuthPromptSimple(
         title = TextHolder.Res(Res.string.elevatedaccess_biometric_auth_confirm_title),
-        text = TextHolder.Res(Res.string.elevatedaccess_biometric_auth_confirm_text),
         requireConfirmation = requireConfirmation,
         onComplete = { result ->
             result.fold(

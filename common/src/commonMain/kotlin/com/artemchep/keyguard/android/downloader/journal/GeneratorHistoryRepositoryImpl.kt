@@ -32,7 +32,7 @@ data class KeyPairEntity(
     val publicKey: KeyParameter,
 ) {
     companion object {
-        context(Base64Service)
+        context(base64Service: Base64Service)
         fun of(
             model: KeyParameterRawZero,
         ): KeyPairEntity {
@@ -53,11 +53,11 @@ data class KeyPairEntity(
             KeyPair.Type.ED25519 -> Type.ED25519
         }
 
-        context(Base64Service)
+        context(base64Service: Base64Service)
         private fun of(
             model: KeyParameterRawZero.KeyParameterRaw,
         ): KeyParameter {
-            val encodedBase64 = encodeToString(model.encoded)
+            val encodedBase64 = base64Service.encodeToString(model.encoded)
             return KeyParameter(
                 encodedBase64 = encodedBase64,
             )
@@ -80,7 +80,7 @@ data class KeyPairEntity(
     )
 }
 
-context(Base64Service)
+context(base64Service: Base64Service)
 fun KeyPairEntity.toDomain(): KeyParameterRawZero {
     val type = type.toDomain()
     val privateKey = privateKey.toDomain()
@@ -97,10 +97,10 @@ private fun KeyPairEntity.Type.toDomain() = when (this) {
     KeyPairEntity.Type.ED25519 -> KeyPair.Type.ED25519
 }
 
-context(Base64Service)
+context(base64Service: Base64Service)
 private fun KeyPairEntity.KeyParameter.toDomain(
 ): KeyPairRaw.KeyParameter {
-    val encoded = decode(encodedBase64)
+    val encoded = base64Service.decode(encodedBase64)
     return KeyPairRaw.KeyParameter(
         encoded = encoded,
     )

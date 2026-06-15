@@ -17,6 +17,8 @@ import kotlinx.serialization.Serializable
 data class CipherRequest(
     @SerialName("key")
     val key: String?,
+    @SerialName("encryptedFor")
+    val encryptedFor: String? = null,
     @SerialName("type")
     val type: CipherTypeEntity,
     @SerialName("organizationId")
@@ -24,7 +26,7 @@ data class CipherRequest(
     @SerialName("folderId")
     val folderId: String?,
     @SerialName("name")
-    val name: String?,
+    val name: String,
     @SerialName("notes")
     val notes: String?,
     @SerialName("favorite")
@@ -49,6 +51,8 @@ data class CipherRequest(
     val attachments2: Map<String, AttachmentRequest>?,
     @SerialName("lastKnownRevisionDate")
     val lastKnownRevisionDate: Instant?,
+    @SerialName("archivedDate")
+    val archivedDate: Instant?,
     @SerialName("reprompt")
     val reprompt: CipherRepromptTypeEntity,
 ) {
@@ -58,7 +62,14 @@ data class CipherRequest(
 fun CipherRequest.Companion.of(
     model: BitwardenCipher,
     folders: Map<String, String?>,
+    encryptedFor: String,
 ) = kotlin.run {
+    // https://github.com/dani-garcia/vaultwarden/pull/6934
+    val name = model.name
+    if (name == null) {
+        val msg = "The name was not de-nullified before forming the request!"
+        throw IllegalStateException(msg)
+    }
     if (model.tags.isNotEmpty()) {
         val msg = "The tags were not transformed into the fields before forming the request!"
         throw IllegalStateException(msg)
@@ -83,7 +94,7 @@ fun CipherRequest.Companion.of(
             FieldApi.of(field)
         }
         .takeUnless { it.isEmpty() }
-    val passwordHistory = model.login?.passwordHistory.orEmpty()
+    val passwordHistory = model.passwordHistory
         .map { passwordHistory ->
             PasswordHistoryRequest.of(passwordHistory)
         }
@@ -107,13 +118,14 @@ fun CipherRequest.Companion.of(
     val keyBase64 = model.keyBase64
     CipherRequest(
         key = keyBase64,
+        encryptedFor = encryptedFor,
         type = type,
         organizationId = model.organizationId,
         folderId = model.folderId
             // Folders might not include the folder id of this cipher, and
             // that could be cause because the folder was deleted.
             ?.let { folders[it] },
-        name = model.name,
+        name = name,
         notes = model.notes,
         favorite = model.favorite,
         login = login,
@@ -126,6 +138,7 @@ fun CipherRequest.Companion.of(
         attachments = attachments,
         attachments2 = attachments2,
         lastKnownRevisionDate = model.service.remote?.revisionDate,
+        archivedDate = model.archivedDate,
         reprompt = reprompt,
     )
 }

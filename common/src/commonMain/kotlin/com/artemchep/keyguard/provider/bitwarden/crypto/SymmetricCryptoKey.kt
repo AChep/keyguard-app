@@ -49,7 +49,7 @@ data class SymmetricCryptoKey2(
     ) : EncKeyProvider {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (javaClass != other?.javaClass) return false
+            if (this::class != other?.let { it::class }) return false
 
             other as Crypto
 
@@ -72,7 +72,7 @@ data class SymmetricCryptoKey2(
     ) : EncKeyProvider, MacKeyProvider {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (javaClass != other?.javaClass) return false
+            if (this::class != other?.let { it::class }) return false
 
             other as CryptoWithMac
 
@@ -120,7 +120,7 @@ data class SymmetricCryptoKey2(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (this::class != other?.let { it::class }) return false
 
         other as SymmetricCryptoKey2
 
@@ -152,7 +152,7 @@ data class AsymmetricCryptoKey(
 ) : CryptoKey {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (this::class != other?.let { it::class }) return false
 
         other as AsymmetricCryptoKey
 
@@ -175,7 +175,7 @@ data class DecodeResult(
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
+        if (this::class != other?.let { it::class }) return false
 
         other as DecodeResult
 

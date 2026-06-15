@@ -75,7 +75,7 @@
         android:fullBackupContent="@xml/backup_full_backup_content">
         <activity
             android:name="com.artemchep.keyguard.android.MainActivity"
-            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
             android:exported="true"
             android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">
@@ -106,6 +106,35 @@
                 android:resource="@xml/shortcuts" />
         </activity>
         <activity
+            android:name="com.artemchep.keyguard.android.GeneratorActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:exported="true"
+            android:label="@string/standalone_generator_label"
+            android:taskAffinity=":generator"
+            android:windowSoftInputMode="adjustResize">
+            <layout
+                android:defaultWidth="640dp"
+                android:defaultHeight="480dp" />
+        </activity>
+        <activity
+            android:name="com.artemchep.keyguard.android.CompanionAuthActivity"
+            android:configChanges="uiMode|keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=":wear_companion_auth"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="wear-companion-auth"
+                    android:scheme="keyguard" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name="com.artemchep.keyguard.android.LargeTypeActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
             android:excludeFromRecents="true"
@@ -131,6 +160,15 @@
             android:windowSoftInputMode="adjustResize"
             tools:ignore="NewApi" />
         <activity
+            android:name="com.artemchep.keyguard.android.PasswordGetActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=":password"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="NewApi" />
+        <activity
             android:name="com.artemchep.keyguard.android.PasskeyGetActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
             android:excludeFromRecents="true"
@@ -140,7 +178,7 @@
             android:windowSoftInputMode="adjustResize"
             tools:ignore="NewApi" />
         <activity
-            android:name="com.artemchep.keyguard.android.PasskeyGetUnlockActivity"
+            android:name="com.artemchep.keyguard.android.CredentialGetUnlockActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
             android:excludeFromRecents="true"
             android:exported="false"
@@ -162,6 +200,16 @@
             android:exported="false"
             android:noHistory="true"
             android:taskAffinity=":autofill_fake_auth" />
+        <activity
+            android:name="com.artemchep.keyguard.android.sshagent.SshRequestActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:noHistory="true"
+            android:taskAffinity=":termux_ssh"
+            android:theme="@style/Theme.Keyguard.Dialog"
+            android:windowSoftInputMode="adjustResize" />
 
         <receiver
             android:name="com.artemchep.keyguard.android.downloader.receiver.AttachmentDownloadActionReceiver"
@@ -187,6 +235,18 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name="com.artemchep.keyguard.android.sshagent.SshAgentReceiver"
+            android:exported="true" />
+
+        <receiver
+            android:name="com.artemchep.keyguard.android.sshagent.SshRequestNotificationActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="${applicationId}.ACTION_SSH_REQUEST_NOTIFICATION_DISMISS" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name="com.artemchep.keyguard.android.clipboard.KeyguardClipboardService"
             android:exported="false"
@@ -194,6 +254,15 @@
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Show/update one-time password notifications" />
+        </service>
+
+        <service
+            android:name="com.artemchep.keyguard.android.sshagent.SshAgentService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Bridge SSH agent requests over a localhost socket" />
         </service>
 
         <service
@@ -221,6 +290,18 @@
                 android:name="android.credentials.provider"
                 android:resource="@xml/config_credential_service" />
         </service>
+        <service
+            android:name="com.artemchep.keyguard.feature.auth.companion.CompanionAuthListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <action android:name="com.google.android.gms.wearable.CHANNEL_EVENT" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/companion-auth" />
+            </intent-filter>
+        </service>
 
         <service
             android:name="com.artemchep.keyguard.android.shortcut.ShortcutTileService"
@@ -236,11 +317,28 @@
                 android:value="false" />
         </service>
 
+        <!-- Generator inside the vault, requires the master password -->
         <service
             android:name="com.artemchep.keyguard.android.shortcut.GeneratorTileService"
             android:exported="true"
             android:icon="@drawable/ic_password"
-            android:label="@string/home_generator_label"
+            android:label="@string/tab_generator_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="false" />
+        </service>
+
+        <!-- Generator outside the vault, passwordless -->
+        <service
+            android:name="com.artemchep.keyguard.android.shortcut.GeneratorStatelessTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_password"
+            android:label="@string/standalone_generator_label"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />

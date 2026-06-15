@@ -20,6 +20,11 @@ enum class DWatchtowerAlertType(
         level = Level.ERROR,
         canBeDisabled = false,
     ),
+    WEAK_SSH_KEY(
+        value = 13L,
+        title = Res.string.watchtower_item_weak_ssh_keys_title,
+        level = Level.ERROR,
+    ),
     PWNED_PASSWORD(
         value = 4L,
         title = Res.string.watchtower_item_pwned_passwords_title,

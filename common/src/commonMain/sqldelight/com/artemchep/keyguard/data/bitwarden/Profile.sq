@@ -7,6 +7,8 @@ CREATE TABLE profile (
   FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
 );
 
+CREATE INDEX idx_profile_accountId ON profile(accountId);
+
 insert {
   UPDATE profile
   SET

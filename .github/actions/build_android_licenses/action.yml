@@ -8,8 +8,12 @@ runs:
   steps:
     - name: "Check and Build licenses"
       shell: bash
-      run: ./gradlew :androidApp:licenseeAndroid${{ inputs.build-flavor }}Release
+      env:
+        BUILD_FLAVOR: ${{ inputs.build-flavor }}
+      run: ./gradlew ":androidApp:licenseeAndroid${BUILD_FLAVOR}Release"
     - name: "Move licenses"
       shell: bash
+      env:
+        BUILD_FLAVOR: ${{ inputs.build-flavor }}
       run: |
-        mv -f androidApp/build/reports/licensee/android${{ inputs.build-flavor }}Release/artifacts.json common/src/commonMain/composeResources/files/licenses.json
+        mv -f "androidApp/build/reports/licensee/android${BUILD_FLAVOR}Release/artifacts.json" common/src/commonMain/composeResources/files/licenses.json

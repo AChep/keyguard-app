@@ -91,7 +91,10 @@ fun YubiKeyUsbCard(
             )
             val colorTarget =
                 if (isActive) MaterialTheme.colorScheme.primary else LocalContentColor.current
-            val color by animateColorAsState(colorTarget)
+            val color by animateColorAsState(
+                targetValue = colorTarget,
+                animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+            )
             Icon(
                 Icons.Outlined.Usb,
                 modifier = Modifier

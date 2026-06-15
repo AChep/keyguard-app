@@ -84,10 +84,10 @@ inline fun <reified T> KeyValueStore.getSerializable(
     },
 )
 
-inline fun <reified T : Enum<*>> KeyValueStore.getEnumNullable(
+inline fun <reified T> KeyValueStore.getEnumNullable(
     key: String,
     crossinline lens: (T) -> String,
-): KeyValuePreference<T?> = getObject(
+): KeyValuePreference<T?> where T : Enum<T> = getObject(
     key,
     defaultValue = null,
     serialize = { value ->
@@ -95,8 +95,7 @@ inline fun <reified T : Enum<*>> KeyValueStore.getEnumNullable(
             .orEmpty()
     },
     deserialize = { serializedKey ->
-        T::class.java
-            .enumConstants
+        enumValues<T>()
             .firstOrNull {
                 lens(it) == serializedKey
             }

@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.CleanUpAttachment
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.feature.filepicker.AndroidFileDropStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -139,7 +140,8 @@ class CleanUpAttachmentImpl(
         filesToDelete.forEach { file ->
             file.delete()
         }
-        filesToDelete.size
+        val droppedFilesToDelete = AndroidFileDropStorage.cleanUpStale(context)
+        filesToDelete.size + droppedFilesToDelete
     }.measure { duration, deletedFiles ->
         val message = "Deleted $deletedFiles files in $duration"
         logRepository.post(TAG, message, LogLevel.INFO)

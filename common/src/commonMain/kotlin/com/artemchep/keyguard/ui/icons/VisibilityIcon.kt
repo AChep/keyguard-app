@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -21,6 +22,8 @@ fun VisibilityIcon(
     Crossfade(
         modifier = modifier,
         targetState = targetImage,
+        animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+        label = "VisibilityIcon",
     ) { image ->
         Icon(
             imageVector = image,

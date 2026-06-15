@@ -2,6 +2,8 @@
 
 package com.artemchep.keyguard.common.model
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.Password
@@ -72,6 +74,8 @@ data class DSecret(
     companion object {
         private const val ignoreLength = 3
 
+        private val nameSeparatorRegex = "[\\.\\,\\[\\]\\!]".toRegex()
+
         private val ignoreWords = setOf(
             // popular domains
             "com",
@@ -137,7 +141,7 @@ data class DSecret(
     val tokens = kotlin.run {
         val out = mutableListOf<SearchToken>()
         // Split the name into tokens
-        name.lowercase().replace("[\\.\\,\\[\\]\\!]".toRegex(), " ")
+        name.lowercase().replace(nameSeparatorRegex, " ")
             .split(' ')
             .forEach {
                 if (it.length <= ignoreLength || it in ignoreWords) {
@@ -222,6 +226,7 @@ data class DSecret(
             override val url: String,
             val fileName: String,
             val size: Long? = null,
+            val keyBase64: String? = null,
         ) : Attachment {
             companion object
         }

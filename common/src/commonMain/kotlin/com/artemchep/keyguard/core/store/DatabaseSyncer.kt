@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.yield
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -98,6 +99,8 @@ class DatabaseSyncer(
         val mutex: SimpleMutex,
     )
 
+    private val mapMutex = Mutex()
+
     private val map: MutableMap<Key, MutableList<Entry>> = mutableMapOf()
 
     suspend fun <T> withLock(
@@ -106,7 +109,7 @@ class DatabaseSyncer(
     ): T {
         val id = cryptoGenerator.uuid()
         try {
-            val mutex = synchronized(map) {
+            val mutex = mapMutex.withLock {
                 val entry = kotlin.run {
                     val existingLocks = keys.flatMap { key -> map[key].orEmpty() }
                     val newLock: SimpleMutex =
@@ -145,7 +148,7 @@ class DatabaseSyncer(
                 block()
             }
         } finally {
-            synchronized(map) {
+            mapMutex.withLock {
                 keys.forEach { key ->
                     val list = map[key]
                     if (list != null) {

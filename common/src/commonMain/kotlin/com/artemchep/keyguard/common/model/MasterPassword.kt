@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.model
 
+import kotlin.jvm.JvmInline
+
 @JvmInline
 value class MasterPassword(
     val byteArray: ByteArray,
@@ -10,7 +12,7 @@ value class MasterPassword(
         ) = MasterPassword(
             byteArray = password
                 .trim()
-                .toByteArray(),
+                .encodeToByteArray(),
         )
     }
 }

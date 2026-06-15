@@ -72,6 +72,10 @@ public interface DesktopLibJna : Library {
 
     public fun autoType(payload: Pointer): Boolean
 
+    // System accent color
+
+    public fun getSystemAccentColor(): Int
+
     // Biometrics
 
     public fun biometricsIsSupported(): Boolean

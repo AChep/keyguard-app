@@ -52,6 +52,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         advertisePasskeysSupport: Boolean,
     ): IO<Unit>
 
+    fun setAdvertisePasswordsSupport(
+        advertisePasswordsSupport: Boolean,
+    ): IO<Unit>
+
     fun setAutofillCopyTotp(
         copyTotp: Boolean,
     ): IO<Unit>
@@ -128,6 +132,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         premium: Boolean,
     ): IO<Unit>
 
+    fun setCacheHiddenSend(
+        hiddenSend: Boolean,
+    ): IO<Unit>
+
     fun setAppIcons(
         appIcons: Boolean,
     ): IO<Unit>
@@ -142,6 +150,14 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setSshAgent(
         sshAgent: Boolean,
+    ): IO<Unit>
+
+    fun setSshAgentApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setSshAgentDisplayKeyNames(
+        displayKeyNames: Boolean,
     ): IO<Unit>
 
     fun setSshAgentFilter(
@@ -162,6 +178,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setNavLabel(
         visible: Boolean,
+    ): IO<Unit>
+
+    fun setNavHiddenSend(
+        hidden: Boolean,
     ): IO<Unit>
 
     fun setFont(
@@ -202,6 +222,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setCloseToTray(
         closeToTray: Boolean,
+    ): IO<Unit>
+
+    fun setMinimizeOnCopy(
+        minimizeOnCopy: Boolean,
     ): IO<Unit>
 
     fun setColors(

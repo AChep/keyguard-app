@@ -9,11 +9,24 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DesktopLibInteropTest {
+    @Test
+    fun `system accent color returns native color`() {
+        val expected = 0xFF33_6699.toInt()
+        val lib = FakeDesktopLibJna().apply {
+            nativeSystemAccentColor = expected
+        }
+
+        val result = getSystemAccentColorOrDefault(lib)
+
+        assertEquals(expected, result)
+    }
+
     @Test
     fun `keychain add throws when native write fails`() {
         val lib = FakeDesktopLibJna().apply {
@@ -125,9 +138,12 @@ class DesktopLibInteropTest {
         var keychainAddPasswordResult: Boolean = true
         var keychainGetPasswordResult: Pointer? = null
         var biometricsCallback: DesktopLibJna.BiometricsVerifyCallback? = null
+        var nativeSystemAccentColor: Int = 0
         val freedPointers = mutableListOf<Pointer>()
 
         override fun autoType(payload: Pointer): Boolean = true
+
+        override fun getSystemAccentColor(): Int = nativeSystemAccentColor
 
         override fun biometricsIsSupported(): Boolean = true
 

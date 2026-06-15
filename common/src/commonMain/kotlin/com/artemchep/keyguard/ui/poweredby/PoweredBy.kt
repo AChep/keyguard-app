@@ -127,6 +127,7 @@ fun PoweredByLabel(
             Text(
                 text = domain,
                 maxLines = 1,
+                style = MaterialTheme.typography.labelMedium,
             )
         }
     }

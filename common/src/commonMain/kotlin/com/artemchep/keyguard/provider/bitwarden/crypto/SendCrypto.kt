@@ -20,7 +20,6 @@ fun BitwardenSend.File.transform(
     crypto: BitwardenCrCta,
 ) = copy(
     fileName = crypto.transformString(fileName),
-    keyBase64 = keyBase64?.let(crypto::transformBase64),
 )
 
 fun BitwardenSend.Text.transform(

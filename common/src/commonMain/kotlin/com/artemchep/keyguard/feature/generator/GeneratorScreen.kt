@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -91,6 +92,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import arrow.core.partially1
 import com.artemchep.keyguard.LocalAppMode
+import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ShapeState
@@ -116,6 +118,7 @@ import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
+import com.artemchep.keyguard.ui.FingerprintPlaneta
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
@@ -142,6 +145,7 @@ import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.SmallToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
+import com.artemchep.keyguard.util.planeta.Planeta
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Job
@@ -718,6 +722,22 @@ fun ColumnScope.GeneratorValue(
                     )
                 },
                 trailing = {
+                    val fingerprint = value.source
+                        .let { it as? GetPasswordResult.AsyncKey }
+                        ?.keyPair?.publicKey?.fingerprint
+                    if (fingerprint != null) {
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp),
+                        ) {
+                            FingerprintPlaneta(
+                                fingerprint = fingerprint,
+                                modifier = Modifier
+                                    .wrapContentSize(unbounded = true)
+                                    .size(96.dp),
+                            )
+                        }
+                    }
                     ExpandedIfNotEmptyForRow(
                         valueOrNull = Unit.takeIf { value.onCopy != null },
                     ) {

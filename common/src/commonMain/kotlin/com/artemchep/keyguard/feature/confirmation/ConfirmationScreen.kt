@@ -191,27 +191,38 @@ fun ConfirmationScreen(
 private fun ConfirmationItem(
     modifier: Modifier = Modifier,
     item: ConfirmationState.Item,
-) = when (item) {
-    is ConfirmationState.Item.BooleanItem -> ConfirmationBooleanItem(
-        modifier = modifier,
-        item = item,
-    )
+) = ConfirmationItemContent(
+    modifier = modifier,
+    item = item,
+    renderers = commonConfirmationItemRenderers,
+)
 
-    is ConfirmationState.Item.StringItem -> ConfirmationStringItem(
-        modifier = modifier,
-        item = item,
-    )
-
-    is ConfirmationState.Item.EnumItem -> ConfirmationEnumItem(
-        modifier = modifier,
-        item = item,
-    )
-
-    is ConfirmationState.Item.FileItem -> ConfirmationFileItem(
-        modifier = modifier,
-        item = item,
-    )
-}
+private val commonConfirmationItemRenderers = ConfirmationItemRenderers(
+    booleanItem = { modifier, item ->
+        ConfirmationBooleanItem(
+            modifier = modifier,
+            item = item,
+        )
+    },
+    stringItem = { modifier, item ->
+        ConfirmationStringItem(
+            modifier = modifier,
+            item = item,
+        )
+    },
+    enumItem = { modifier, item ->
+        ConfirmationEnumItem(
+            modifier = modifier,
+            item = item,
+        )
+    },
+    fileItem = { modifier, item ->
+        ConfirmationFileItem(
+            modifier = modifier,
+            item = item,
+        )
+    },
+)
 
 @Composable
 private fun ConfirmationBooleanItem(
@@ -463,7 +474,10 @@ private fun ConfirmationFileItem(
             } else {
                 MaterialTheme.colorScheme.error
             }
-            val colorState = animateColorAsState(colorTarget)
+            val colorState = animateColorAsState(
+                targetValue = colorTarget,
+                animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+            )
             Icon(
                 imageVector = Icons.Outlined.AttachFile,
                 contentDescription = null,

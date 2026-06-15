@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.compose
 import arrow.core.getOrElse
 import arrow.core.partially1
+import com.artemchep.keyguard.common.exception.isKeyException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyDecryptException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyEncryptException
 import com.artemchep.keyguard.common.exception.YubiKeyUnlockDecryptException
@@ -75,7 +76,6 @@ import org.kodein.di.DI
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import org.kodein.di.subDI
-import java.security.KeyException
 
 class UnlockUseCaseImpl(
     private val di: DI,
@@ -550,7 +550,8 @@ class UnlockUseCaseImpl(
             suspend {
                 try {
                     createCipher()
-                } catch (e: KeyException) {
+                } catch (e: Throwable) {
+                    if (!e.isKeyException()) throw e
                     // If the key is not valid, then we want to disable the
                     // biometrics for now.
                     disableBiometric()

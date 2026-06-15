@@ -975,13 +975,17 @@ fun FlatItemLayoutExpressive(
                 if (padding != null) {
                     Modifier
                         .padding(padding)
-                } else Modifier
-                    .padding(
-                        start = outerHorizontalPadding,
-                        end = outerHorizontalPadding,
-                        top = 1.dp,
-                        bottom = 2.dp, // in Android notifications the margin is 3 dp
-                    ),
+                } else {
+                    // Should match the values defined at
+                    // defaultFlatItemPaddingValues()
+                    Modifier
+                        .padding(
+                            start = outerHorizontalPadding,
+                            end = outerHorizontalPadding,
+                            top = 1.dp,
+                            bottom = 2.dp, // in Android notifications the margin is 3 dp
+                        )
+                },
             )
             .clip(shape)
             .then(background),
@@ -1032,6 +1036,14 @@ fun FlatItemLayoutExpressive(
         }
     }
 }
+
+@Composable
+fun defaultFlatItemPaddingValues() = PaddingValues(
+    start = Dimens.contentPadding,
+    end = Dimens.contentPadding,
+    top = 1.dp,
+    bottom = 2.dp, // in Android notifications the margin is 3 dp
+)
 
 @Composable
 fun rememberFlatSurfaceExpressiveColor(

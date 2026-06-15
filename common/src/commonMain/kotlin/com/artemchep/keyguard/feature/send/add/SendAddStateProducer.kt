@@ -9,6 +9,7 @@ import androidx.compose.material.icons.outlined.AutoDelete
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.text.input.KeyboardType
 import arrow.core.flatten
 import arrow.core.partially1
@@ -19,6 +20,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.create.CreateSendRequest
 import com.artemchep.keyguard.common.model.create.authType
 import com.artemchep.keyguard.common.model.create.deletionDate
@@ -37,7 +39,6 @@ import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.requiresPremium
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.AddSend
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -50,6 +51,7 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
@@ -57,6 +59,8 @@ import com.artemchep.keyguard.feature.add.AddStateItem
 import com.artemchep.keyguard.feature.add.AddStateOwnership
 import com.artemchep.keyguard.feature.add.LocalStateItem
 import com.artemchep.keyguard.feature.add.OwnershipState
+import com.artemchep.keyguard.feature.add.attachment.AttachmentItemStateConfig
+import com.artemchep.keyguard.feature.add.attachment.createAttachmentStateItem
 import com.artemchep.keyguard.feature.add.accountFlow
 import com.artemchep.keyguard.feature.add.ownershipHandle
 import com.artemchep.keyguard.feature.add.produceItemFlow
@@ -67,6 +71,11 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedInteger
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
+import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountBin
+import com.artemchep.keyguard.feature.fileupload.isBitwardenUploadFileSizeAllowed
+import com.artemchep.keyguard.feature.fileupload.toAttachmentFileMetadata
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.add.createItem
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -76,7 +85,8 @@ import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.feature.send.view.SendViewRoute
+import com.artemchep.keyguard.feature.send.canUseAccountForSendType
+import com.artemchep.keyguard.feature.send.view.SendViewRouteFactory
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import com.artemchep.keyguard.res.Res
@@ -89,7 +99,7 @@ import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -97,7 +107,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
@@ -122,12 +131,93 @@ data class TmpText(
     val items: List<AddStateItem>,
 )
 
+data class TmpFile(
+    val attachment: AddStateItem.Attachment<CreateSendRequest>?,
+    val items: List<AddStateItem>,
+)
+
 data class TmpOptions(
     val deletionDate: AddStateItem.DateTime<CreateSendRequest>,
     val expirationDate: AddStateItem.DateTime<CreateSendRequest>,
     val password: AddStateItem.Password<CreateSendRequest>,
     val emails: AddStateItem.Text<CreateSendRequest>,
     val items: Flow<List<AddStateItem>>,
+)
+
+internal fun canSaveFileSend(
+    output: CreateSendRequest,
+    initialValue: DSend?,
+): Boolean = when {
+    initialValue?.file != null -> true
+    else -> output.file.uri != null &&
+            !output.file.name.isNullOrBlank()
+}
+
+internal fun existingSendFileAttachmentConfig(
+    file: DSend.File,
+): AttachmentItemStateConfig = AttachmentItemStateConfig(
+    id = file.id,
+    size = file.sizeName ?: file.size?.let(::humanReadableByteCountBin),
+    synced = true,
+    editable = false,
+)
+
+private const val DURATION_INFINITE_MILLISECONDS = Long.MAX_VALUE
+
+internal fun encodeDurationForPersistedState(
+    duration: Duration?,
+): Long? = when (duration) {
+    null -> null
+    Duration.INFINITE -> DURATION_INFINITE_MILLISECONDS
+    else -> duration.inWholeMilliseconds
+}
+
+internal fun decodeDurationFromPersistedState(
+    duration: Long?,
+): Duration? = when (duration) {
+    null -> null
+    DURATION_INFINITE_MILLISECONDS -> Duration.INFINITE
+    else -> with(Duration) { duration.milliseconds }
+}
+
+internal fun applySelectedSendFile(
+    result: FilePickerResult,
+    uriSink: MutableStateFlow<String?>,
+    nameSink: MutableStateFlow<String>,
+    nameState: MutableState<String>? = null,
+    sizeSink: MutableStateFlow<Long?>,
+): Boolean {
+    if (!isBitwardenUploadFileSizeAllowed(result.size)) {
+        return false
+    }
+
+    val metadata = result.toAttachmentFileMetadata()
+    uriSink.value = metadata.uriString
+    nameSink.value = metadata.name
+    nameState?.value = metadata.name
+    sizeSink.value = metadata.size
+    return true
+}
+
+internal fun createSendFileAttachmentConfig(
+    uri: String?,
+    size: Long?,
+): AttachmentItemStateConfig = AttachmentItemStateConfig(
+    id = uri ?: "send.file",
+    size = size?.let(::humanReadableByteCountBin),
+    synced = false,
+)
+
+internal fun CreateSendRequest.withSendFile(
+    uri: String?,
+    size: Long?,
+    name: String,
+): CreateSendRequest = copy(
+    file = file.copy(
+        uri = uri,
+        name = name.takeIf { it.isNotBlank() },
+        size = size,
+    ),
 )
 
 @Composable
@@ -146,10 +236,10 @@ fun produceSendAddScreenState(
         getTotpCode = instance(),
         getGravatarUrl = instance(),
         getMarkdown = instance(),
-        logRepository = instance(),
         clipboardService = instance(),
         dateFormatter = instance(),
         addSend = instance(),
+        sendViewRouteFactory = instance(),
     )
 }
 
@@ -166,10 +256,10 @@ fun produceSendAddScreenState(
     getTotpCode: GetTotpCode,
     getGravatarUrl: GetGravatarUrl,
     getMarkdown: GetMarkdown,
-    logRepository: LogRepository,
     clipboardService: ClipboardService,
     dateFormatter: DateFormatter,
     addSend: AddSend,
+    sendViewRouteFactory: SendViewRouteFactory,
 ): Loadable<SendAddState> = produceScreenState(
     key = "send_add",
     initial = Loadable.Loading,
@@ -184,6 +274,11 @@ fun produceSendAddScreenState(
     ),
 ) {
     val markdown = getMarkdown().first()
+    val filePickerEvents = EventFlow<FilePickerIntent<*>>()
+
+    val sideEffects = SendAddState.SideEffects(
+        filePickerIntentFlow = filePickerEvents,
+    )
 
     val title = if (args.ownershipRo) {
         translate(Res.string.addsend_header_edit_title)
@@ -214,6 +309,10 @@ fun produceSendAddScreenState(
     val textHolder = produceTextState(
         args = args,
     )
+    val fileHolder = produceFileState(
+        args = args,
+        filePickerIntentSink = filePickerEvents,
+    )
     val optionsHolder = produceOptionsState(
         args = args,
         markdown = markdown,
@@ -229,7 +328,7 @@ fun produceSendAddScreenState(
         .flatMapLatest { type ->
             when (type) {
                 DSend.Type.Text -> flowOf(textHolder.items)
-                DSend.Type.File -> flowOf(emptyList())
+                DSend.Type.File -> flowOf(fileHolder.items)
                 DSend.Type.None -> flowOf(emptyList())
             }
         }
@@ -348,18 +447,15 @@ fun produceSendAddScreenState(
                 }
         }
 
-    val itfff = combine(
+    val itemFlows = combine(
         typeItemsFlow,
         optionsFlow,
     ) { arr ->
         arr.toList().flatten()
     }
-        .onEach { l ->
-            logRepository.post("Foo3", "combine ${l.size}")
-        }
 
     val outputFlow = combine(
-        stetify(itfff),
+        stetify(itemFlows),
         stetify(flowOf(items1 + deactivate)),
     ) { arr ->
         arr
@@ -403,39 +499,52 @@ fun produceSendAddScreenState(
         actionsFlow,
         ownershipFlow,
         outputFlow,
-        itfff,
+        itemFlows,
     ) { actions, ownership, output, ddd ->
+        val canSave = when (output.type) {
+            DSend.Type.File -> canSaveFileSend(
+                output = output,
+                initialValue = args.initialValue,
+            )
+
+            else -> true
+        }
         val state = SendAddState(
             title = title,
             ownership = ownership,
+            sideEffects = sideEffects,
             actions = actions,
             items = items1 + ddd,
-            onSave = {
-                val request = output
-                val sendIdToRequestMap = mapOf(
-                    args.initialValue?.id?.takeIf { args.ownershipRo } to request,
-                )
-                addSend(sendIdToRequestMap)
-                    .effectTap {
-                        val intent = kotlin.run {
-                            val list = mutableListOf<NavigationIntent>()
-                            list += NavigationIntent.PopById(screenId, exclusive = false)
-                            if (args.behavior.launchEditedCipher) {
-                                val sendId = it.first()
-                                val accountId = ownership.data.accountId!!
-                                val route = SendViewRoute(
-                                    sendId = sendId,
-                                    accountId = accountId,
+            onSave = if (canSave) {
+                {
+                    val request = output
+                    val sendIdToRequestMap = mapOf(
+                        args.initialValue?.id?.takeIf { args.ownershipRo } to request,
+                    )
+                    addSend(sendIdToRequestMap)
+                        .effectTap {
+                            val intent = kotlin.run {
+                                val list = mutableListOf<NavigationIntent>()
+                                list += NavigationIntent.PopById(screenId, exclusive = false)
+                                if (args.behavior.launchEditedCipher) {
+                                    val sendId = it.first()
+                                    val accountId = ownership.data.accountId!!
+                                    val route = sendViewRouteFactory.create(
+                                        sendId = sendId,
+                                        accountId = accountId,
+                                    )
+                                    list += NavigationIntent.NavigateToRoute(route)
+                                }
+                                NavigationIntent.Composite(
+                                    list = list,
                                 )
-                                list += NavigationIntent.NavigateToRoute(route)
                             }
-                            NavigationIntent.Composite(
-                                list = list,
-                            )
+                            navigate(intent)
                         }
-                        navigate(intent)
-                    }
-                    .launchIn(appScope)
+                        .launchIn(appScope)
+                }
+            } else {
+                null
             },
         )
         Loadable.Ok(state)
@@ -451,7 +560,6 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
 ): Flow<SendAddState.Ownership> {
     val readOnly = args.ownershipRo
     val requiresPremium = DSend.requiresPremium(args.type)
-
     val ownershipHandle = ownershipHandle(
         key = "new_send",
         profilesFlow = combine(
@@ -462,8 +570,11 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
                 .filter { profile ->
                     val account = accounts.firstOrNull(AccountId(profile.accountId))
                         ?: return@filter false
-                    account.type == AccountType.BITWARDEN &&
-                            (profile.premium == true || !requiresPremium)
+                    canUseAccountForSendType(
+                        account = account,
+                        profile = profile,
+                        type = args.type,
+                    )
                 }
         },
         ciphersFlow = getCiphers(),
@@ -603,6 +714,154 @@ private suspend fun RememberStateFlowScope.produceTextState(
             text,
             hidden,
         ),
+    )
+}
+
+private suspend fun RememberStateFlowScope.produceFileState(
+    args: SendAddRoute.Args,
+    filePickerIntentSink: EventFlow<FilePickerIntent<*>>,
+): TmpFile {
+    val prefix = "file"
+    val attachmentKey = "$prefix.attachment"
+    val existingFile = args.initialValue?.file
+    if (existingFile != null) {
+        val attachment = AddStateItem.Attachment<CreateSendRequest>(
+            id = attachmentKey,
+            state = createAttachmentStateItem<CreateSendRequest>(
+                key = attachmentKey,
+                initialName = existingFile.fileName,
+                initialConfig = existingSendFileAttachmentConfig(existingFile),
+                configFlow = flowOf(
+                    existingSendFileAttachmentConfig(existingFile),
+                ),
+                populator = { this },
+            ),
+        )
+        return TmpFile(
+            attachment = attachment,
+            items = listOf(attachment),
+        )
+    }
+    if (args.initialValue != null) {
+        return TmpFile(
+            attachment = null,
+            items = emptyList(),
+        )
+    }
+
+    val selectedFile = selectedFileToCreateSendFile(
+        selectedFile = args.selectedFile,
+    )
+    if (args.selectedFile != null && !isBitwardenUploadFileSizeAllowed(args.selectedFile.size)) {
+        message(
+            ToastMessage(
+                type = ToastMessage.Type.ERROR,
+                title = translate(Res.string.error_file_must_be_500_mb_or_smaller),
+            ),
+        )
+    }
+    val uriSink = mutablePersistedFlow<String?>("$prefix.uri") {
+        selectedFile.uri
+    }
+
+    val nameSink = mutablePersistedFlow("$prefix.name") {
+        selectedFile.name.orEmpty()
+    }
+    val nameState = mutableComposeState(nameSink)
+    val sizeSink = mutablePersistedFlow<Long?>("$prefix.size") {
+        selectedFile.size
+    }
+    val upperSizeLimitError = translate(Res.string.error_file_must_be_500_mb_or_smaller)
+
+    fun clearFile() {
+        uriSink.value = null
+        nameSink.value = ""
+        nameState.value = ""
+        sizeSink.value = null
+    }
+
+    fun applySelectedFile(
+        result: FilePickerResult,
+    ) {
+        val applied = applySelectedSendFile(
+            result = result,
+            uriSink = uriSink,
+            nameSink = nameSink,
+            nameState = nameState,
+            sizeSink = sizeSink,
+        )
+        if (!applied) {
+            message(
+                ToastMessage(
+                    type = ToastMessage.Type.ERROR,
+                    title = upperSizeLimitError,
+                ),
+            )
+        }
+    }
+
+    fun selectFile() {
+        val intent = FilePickerIntent.OpenDocument(
+            mimeTypes = FilePickerIntent.mimeTypesAll,
+        ) { result ->
+            if (result == null) {
+                return@OpenDocument
+            }
+
+            applySelectedFile(result)
+        }
+        filePickerIntentSink.emit(intent)
+    }
+
+    val initialConfig = createSendFileAttachmentConfig(
+        uri = selectedFile.uri,
+        size = selectedFile.size,
+    )
+    val state = createAttachmentStateItem<CreateSendRequest>(
+        key = attachmentKey,
+        initialName = selectedFile.name.orEmpty(),
+        nameSink = nameSink,
+        initialConfig = initialConfig,
+        configFlow = combine(
+            uriSink,
+            sizeSink,
+        ) { uri, size ->
+            createSendFileAttachmentConfig(
+                uri = uri,
+                size = size,
+            )
+        },
+        populator = { state ->
+            withSendFile(
+                uri = uriSink.value,
+                size = sizeSink.value,
+                name = state.name.text,
+            )
+        },
+    )
+    val attachment = AddStateItem.Attachment<CreateSendRequest>(
+        id = attachmentKey,
+        options = buildContextItems {
+            section {
+                this += FlatItemAction(
+                    title = TextHolder.Res(Res.string.select_file),
+                    onClick = ::selectFile,
+                )
+                this += FlatItemAction(
+                    title = TextHolder.Res(Res.string.clear_file),
+                    onClick = ::clearFile,
+                )
+            }
+        },
+        fileDrop = AddStateItem.FileDrop(
+            text = translate(Res.string.addsend_drop_file_to_replace),
+            onFileDrop = ::applySelectedFile,
+        ),
+        state = state,
+    )
+    return TmpFile(
+        attachment = attachment,
+        items = listOf(attachment),
     )
 }
 
@@ -829,7 +1088,11 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
     val deletionDateAsDurationItem = kotlin.run {
         val id = "$prefix.deletion_date_as_duration"
 
-        val sink = mutablePersistedFlow<Duration?>(id) {
+        val sink = mutablePersistedFlow<Duration?, Long?>(
+            key = id,
+            serialize = { _, value -> encodeDurationForPersistedState(value) },
+            deserialize = { _, value -> decodeDurationFromPersistedState(value) },
+        ) {
             val defaultValue = with(Duration) { 7.days }
             defaultValue
                 .takeIf { args.initialValue?.deletedDate == null }
@@ -923,7 +1186,11 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
     val expirationDateAsDurationItem = kotlin.run {
         val id = "$prefix.expiration_date_as_duration"
 
-        val sink = mutablePersistedFlow<Duration?>(id) {
+        val sink = mutablePersistedFlow<Duration?, Long?>(
+            key = id,
+            serialize = { _, value -> encodeDurationForPersistedState(value) },
+            deserialize = { _, value -> decodeDurationFromPersistedState(value) },
+        ) {
             val defaultValue = with(Duration) { INFINITE }
             defaultValue
                 .takeIf { args.initialValue?.expirationDate == null }

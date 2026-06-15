@@ -2,6 +2,8 @@
 
 package com.artemchep.keyguard.feature.generator
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.vector.ImageVector

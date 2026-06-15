@@ -2,8 +2,9 @@ package com.artemchep.keyguard.provider.bitwarden.entity
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import com.artemchep.keyguard.provider.bitwarden.entity.serializer.CommonEnumIntSerializer
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.IntEnum
+import com.artemchep.keyguard.provider.bitwarden.entity.serializer.commonEnumIntSerializer
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable(FieldTypeEntitySerializer::class)
@@ -19,7 +20,8 @@ enum class FieldTypeEntity(
     companion object
 }
 
-object FieldTypeEntitySerializer : CommonEnumIntSerializer<FieldTypeEntity>(FieldTypeEntity::class)
+object FieldTypeEntitySerializer :
+    KSerializer<FieldTypeEntity> by commonEnumIntSerializer<FieldTypeEntity>()
 
 fun FieldTypeEntity.Companion.of(
     model: BitwardenCipher.Field.Type,

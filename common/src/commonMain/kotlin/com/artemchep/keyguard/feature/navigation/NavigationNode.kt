@@ -35,8 +35,7 @@ import kotlinx.collections.immutable.persistentListOf
 import org.kodein.di.compose.rememberInstance
 
 /**
- * A definition of the distinct application component that
- * makes sense when rendered in a separate window.
+ * Renders one root entry and adds it to the logical navigation stack.
  */
 @Composable
 fun NavigationNode(
@@ -52,13 +51,13 @@ fun NavigationNode(
 }
 
 @Immutable
-private data class Foo(
+private data class NodeRenderState(
     val logicalStack: PersistentList<NavigationEntry>,
     val visualStack: PersistentList<NavigationEntry>,
     val entry: NavigationEntry?,
 ) {
     companion object {
-        val empty = Foo(
+        val empty = NodeRenderState(
             logicalStack = persistentListOf(),
             visualStack = persistentListOf(),
             entry = null,
@@ -66,6 +65,9 @@ private data class Foo(
     }
 }
 
+/**
+ * Renders a stack as one active fullscreen route plus optional dialog routes.
+ */
 @Composable
 fun NavigationNode(
     entries: PersistentList<NavigationEntry>,
@@ -95,13 +97,13 @@ fun NavigationNode(
         // Draw screen stack
         //
 
-        val prevFoo = remember {
-            mutableStateOf<Foo?>(null)
+        val previousRenderState = remember {
+            mutableStateOf<NodeRenderState?>(null)
         }
-        val oldFoo = remember {
-            mutableStateOf<Foo?>(null)
+        val oldRenderState = remember {
+            mutableStateOf<NodeRenderState?>(null)
         }
-        val foo = remember(
+        val screenRenderState = remember(
             logicalStack,
             visualStack,
             entries,
@@ -110,7 +112,7 @@ fun NavigationNode(
         ) {
             // There are no screens in the stack.
             if (lastFullscreenEntryIndex == -1) {
-                return@remember Foo.empty
+                return@remember NodeRenderState.empty
             }
 
             val newLogicalStack = kotlin.run {
@@ -123,15 +125,15 @@ fun NavigationNode(
                     .subList(fromIndex = 0, toIndex = lastFullscreenEntryIndex + 1)
                 visualStack.addAll(items)
             }
-            Foo(
+            NodeRenderState(
                 logicalStack = newLogicalStack,
                 visualStack = newVisualStack,
                 entry = newVisualStack.last(),
             )
         }
-        remember(foo) {
-            prevFoo.value = oldFoo.value
-            oldFoo.value = foo
+        remember(screenRenderState) {
+            previousRenderState.value = oldRenderState.value
+            oldRenderState.value = screenRenderState
             1
         }
 
@@ -139,7 +141,7 @@ fun NavigationNode(
         AnimatedContent(
             modifier = Modifier
                 .fillMaxSize(),
-            targetState = foo,
+            targetState = screenRenderState,
             transitionSpec = {
                 val animationType = getNavAnimation().value
                 val transitionType = kotlin.run {
@@ -170,13 +172,13 @@ fun NavigationNode(
                 )
             },
             label = "",
-        ) { foo ->
-            val entry = foo.entry
+        ) { renderState ->
+            val entry = renderState.entry
             key(entry?.id) {
                 if (entry != null) {
                     CompositionLocalProvider(
-                        LocalNavigationNodeLogicalStack provides foo.logicalStack,
-                        LocalNavigationNodeVisualStack provides foo.visualStack,
+                        LocalNavigationNodeLogicalStack provides renderState.logicalStack,
+                        LocalNavigationNodeVisualStack provides renderState.visualStack,
                     ) {
                         NavigationRoute(
                             entry = entry,
@@ -190,7 +192,7 @@ fun NavigationNode(
         // Draw dialog stack
         //
 
-        val bar = remember(
+        val dialogRenderState = remember(
             logicalStack,
             visualStack,
             entries,
@@ -202,7 +204,7 @@ fun NavigationNode(
                 newVisualEntries.isEmpty() ||
                 lastFullscreenEntryIndex == newVisualEntries.lastIndex
             ) {
-                return@remember Foo.empty
+                return@remember NodeRenderState.empty
             }
 
             val newLogicalStack = logicalStack.addAll(entries)
@@ -214,13 +216,13 @@ fun NavigationNode(
                     )
                 visualStack.addAll(items)
             }
-            Foo(
+            NodeRenderState(
                 logicalStack = newLogicalStack,
                 visualStack = newVisualStack,
                 entry = entries.last(),
             )
         }
-        val transition = updateTransition(bar, "Dialog Transition")
+        val transition = updateTransition(dialogRenderState, "Dialog Transition")
         transition.DialogCrossLifecycle(modifier) { el, alive ->
             val entry = el.entry
             key(entry?.id) {

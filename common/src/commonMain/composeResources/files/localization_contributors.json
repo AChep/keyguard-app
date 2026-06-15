@@ -121,12 +121,12 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 31018,
-    "target": 31917,
+    "translated": 32684,
+    "target": 33619,
     "approved": 1050,
     "voted": 0,
     "positiveVotes": 63,
-    "negativeVotes": 1,
+    "negativeVotes": 2,
     "winning": 558
   },
   {
@@ -187,8 +187,8 @@
         "name": "Portuguese, Brazilian"
       }
     ],
-    "translated": 1264,
-    "target": 1426,
+    "translated": 2452,
+    "target": 2806,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -341,10 +341,10 @@
         "name": "Korean"
       }
     ],
-    "translated": 5801,
-    "target": 5000,
+    "translated": 6314,
+    "target": 5433,
     "approved": 0,
-    "voted": 0,
+    "voted": 1,
     "positiveVotes": 0,
     "negativeVotes": 0,
     "winning": 0
@@ -375,7 +375,7 @@
     "user": {
       "id": "13460838",
       "username": "hugoalh",
-      "fullName": "hugoalh",
+      "fullName": "HUGOALH (hugoalh)",
       "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/13460838/medium/16ade1f68cc69048c02bcb4f5a444667.png",
       "joined": "2024-10-25 23:28:28"
     },
@@ -561,8 +561,8 @@
         "name": "Polish"
       }
     ],
-    "translated": 347,
-    "target": 338,
+    "translated": 440,
+    "target": 428,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -727,10 +727,10 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 3490,
-    "target": 5628,
+    "translated": 4667,
+    "target": 7707,
     "approved": 0,
-    "voted": 16,
+    "voted": 17,
     "positiveVotes": 7,
     "negativeVotes": 0,
     "winning": 0
@@ -870,8 +870,8 @@
   {
     "user": {
       "id": "15837729",
-      "username": "Hotarun",
-      "fullName": "Hotarun",
+      "username": "Kaorun",
+      "fullName": "Kaorun",
       "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/15837729/medium/78cf73587f9e2d0a209e530dd5ee828f_default.png",
       "joined": "2023-12-25 05:28:59"
     },
@@ -925,8 +925,8 @@
         "name": "Spanish"
       }
     ],
-    "translated": 1446,
-    "target": 1678,
+    "translated": 1752,
+    "target": 2025,
     "approved": 0,
     "voted": 8,
     "positiveVotes": 0,
@@ -947,13 +947,13 @@
         "name": "Turkish"
       }
     ],
-    "translated": 6941,
-    "target": 6525,
-    "approved": 7172,
+    "translated": 7117,
+    "target": 6663,
+    "approved": 7348,
     "voted": 0,
     "positiveVotes": 0,
     "negativeVotes": 0,
-    "winning": 6906
+    "winning": 7082
   },
   {
     "user": {
@@ -1083,8 +1083,8 @@
         "name": "Italian"
       }
     ],
-    "translated": 1061,
-    "target": 1133,
+    "translated": 1214,
+    "target": 1293,
     "approved": 0,
     "voted": 1,
     "positiveVotes": 3,
@@ -1377,7 +1377,7 @@
     "target": 1831,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 12,
+    "positiveVotes": 119,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1443,7 +1443,7 @@
     "target": 873,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 0,
+    "positiveVotes": 5,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1465,7 +1465,7 @@
     "target": 3938,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 2,
+    "positiveVotes": 3,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1645,7 +1645,7 @@
     "target": 197,
     "approved": 0,
     "voted": 14,
-    "positiveVotes": 0,
+    "positiveVotes": 1,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1915,6 +1915,28 @@
   },
   {
     "user": {
+      "id": "17740657",
+      "username": "alfekoen",
+      "fullName": "alfekoen",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17740657/medium/282a6845481561152dd91d7a51677fe8_default.png",
+      "joined": "2026-06-08 00:37:43"
+    },
+    "languages": [
+      {
+        "id": "da",
+        "name": "Danish"
+      }
+    ],
+    "translated": 89,
+    "target": 89,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "18711",
       "username": "NCAA",
       "fullName": "NCAA",
@@ -1971,8 +1993,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 6870,
-    "target": 7598,
+    "translated": 7944,
+    "target": 8972,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

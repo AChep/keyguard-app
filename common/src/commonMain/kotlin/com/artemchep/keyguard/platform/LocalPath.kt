@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.platform
 
+import kotlin.jvm.JvmInline
+
 import kotlinx.io.files.Path
 
 @JvmInline

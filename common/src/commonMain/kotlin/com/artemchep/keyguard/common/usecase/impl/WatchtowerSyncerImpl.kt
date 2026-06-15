@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.measure
+import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.model.CheckPasswordSetLeakRequest
 import com.artemchep.keyguard.common.model.DNotification
 import com.artemchep.keyguard.common.model.DNotificationChannel
@@ -36,6 +37,7 @@ import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
+import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
@@ -54,6 +56,7 @@ import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.ShowNotification
+import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
@@ -72,9 +75,11 @@ import io.ktor.http.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
@@ -93,6 +98,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.runningReduce
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.toSet
@@ -100,7 +106,7 @@ import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Instant
 import org.kodein.di.DirectDI
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.direct
 import org.kodein.di.instance
 
@@ -252,6 +258,7 @@ private class WatchtowerClient(
     private val getBreaches: GetBreaches,
     private val databaseManager: VaultDatabaseManager,
     private val logRepository: LogRepository,
+    private val syncSupervisor: SupervisorRead,
     private val list: List<WatchtowerClientTyped>,
     private val defaultDispatcher: CoroutineDispatcher,
     private val dbDispatcher: CoroutineDispatcher,
@@ -265,7 +272,8 @@ private class WatchtowerClient(
         getBreaches = directDI.instance(),
         databaseManager = directDI.instance(),
         logRepository = directDI.instance(),
-        list = directDI.allInstances(),
+        syncSupervisor = directDI.instance(),
+        list = directDI.leAllInstances(),
         defaultDispatcher = Dispatchers.Default.limitedParallelism(1),
         dbDispatcher = directDI.instance(tag = DatabaseDispatcher),
     )
@@ -277,6 +285,10 @@ private class WatchtowerClient(
                     .associateBy { it.id }
             }
             .shareIn(this, SharingStarted.Lazily, replay = 1)
+        val processingAllowedFlow = syncSupervisor
+            .get(AccountTask.SYNC)
+            .watchtowerProcessingAllowedFlow()
+            .shareIn(this, SharingStarted.Eagerly, replay = 1)
 
         val db = databaseManager.get()
             .bind()
@@ -318,6 +330,7 @@ private class WatchtowerClient(
                         .map { ciphers -> version to ciphers }
                 }
             requestsFlow
+                .gateLatestWhenAllowed(processingAllowedFlow)
                 .debounce(debounceTimeoutMs)
                 .buffer(
                     capacity = 1,
@@ -430,6 +443,90 @@ private class WatchtowerClient(
         .distinctUntilChanged()
 }
 
+private const val WATCHTOWER_PROCESSING_RESUME_DELAY_MS = 2_000L
+
+@OptIn(ExperimentalCoroutinesApi::class)
+internal fun Flow<Set<*>>.watchtowerProcessingAllowedFlow(
+    resumeDelayMs: Long = WATCHTOWER_PROCESSING_RESUME_DELAY_MS,
+): Flow<Boolean> = map { accounts -> accounts.isNotEmpty() }
+    .distinctUntilChanged()
+    .runningFold(null as WatchtowerProcessingGateState?) { state, syncing ->
+        WatchtowerProcessingGateState(
+            syncing = syncing,
+            seenBefore = state != null,
+        )
+    }
+    .mapNotNull { it }
+    .flatMapLatest { state ->
+        flow {
+            if (state.syncing) {
+                emit(false)
+            } else {
+                if (state.seenBefore) {
+                    delay(resumeDelayMs)
+                }
+                emit(true)
+            }
+        }
+    }
+    .distinctUntilChanged()
+
+private data class WatchtowerProcessingGateState(
+    val syncing: Boolean,
+    val seenBefore: Boolean,
+)
+
+internal fun <T> Flow<T>.gateLatestWhenAllowed(
+    allowedFlow: Flow<Boolean>,
+): Flow<T> {
+    val requestFlow = flow {
+        var requestId = 0L
+        collect { value ->
+            emit(
+                PendingValue(
+                    id = requestId++,
+                    value = value,
+                ),
+            )
+        }
+    }
+
+    return requestFlow
+        .combine(allowedFlow.distinctUntilChanged()) { request, allowed ->
+            GateLatestSnapshot(
+                request = request,
+                allowed = allowed,
+            )
+        }
+        .runningFold(GateLatestState<T>()) { state, snapshot ->
+            val emitValue = snapshot
+                .request
+                .takeIf { snapshot.allowed && it.id != state.emittedRequestId }
+            GateLatestState(
+                emittedRequestId = emitValue?.id ?: state.emittedRequestId,
+                emitValue = emitValue,
+            )
+        }
+        .mapNotNull { state ->
+            state.emitValue?.value
+        }
+}
+
+private data class GateLatestSnapshot<T>(
+    val request: PendingValue<T>,
+    val allowed: Boolean,
+)
+
+private data class GateLatestState<T>(
+    val emittedRequestId: Long? = null,
+    val emitValue: PendingValue<T>? = null,
+)
+
+private data class PendingValue<T>(
+    val id: Long,
+    val value: T,
+)
+
 data class WatchtowerClientResult(
     val value: String? = null,
     val threat: Boolean,
@@ -477,6 +574,38 @@ class WatchtowerPasswordStrength(
                 )
             }
     }
+}
+
+class WatchtowerSshKeyStrength(
+    private val cipherSshKeyWeakCheck: CipherSshKeyWeakCheck,
+) : WatchtowerClientTyped {
+    override val type: Long
+        get() = DWatchtowerAlertType.WEAK_SSH_KEY.value
+
+    constructor(directDI: DirectDI) : this(
+        cipherSshKeyWeakCheck = directDI.instance(),
+    )
+
+    override fun version() = flowOf("1")
+
+    override suspend fun process(
+        ciphers: List<DSecret>,
+    ): List<WatchtowerClientResult> {
+        return ciphers
+            .map { cipher ->
+                val threat = !shouldIgnore(cipher) &&
+                        cipherSshKeyWeakCheck(cipher)
+                WatchtowerClientResult(
+                    value = cipher.sshKey?.privateKey,
+                    threat = threat,
+                    cipher = cipher,
+                )
+            }
+    }
+
+    private fun shouldIgnore(
+        cipher: DSecret,
+    ) = cipher.ignores(DWatchtowerAlertType.WEAK_SSH_KEY)
 }
 
 class WatchtowerPasswordPwned(
@@ -682,7 +811,7 @@ class WatchtowerInactivePasskey(
     private val getCheckPasskeys: GetCheckPasskeys,
 ) : WatchtowerClientTyped {
     companion object {
-        context(TldService)
+        context(tldService: TldService)
         suspend fun hasAlert(
             cipher: DSecret,
             passkeyLibrary: List<PassKeyServiceInfo>,
@@ -701,12 +830,13 @@ class WatchtowerInactivePasskey(
                 .getAndCache(cipher.accountId)
             val group = match(cipher, passkeyLibrary, equivalentDomains)
                 .map { info -> info.domain }
-                .toSet(destination = sortedSetOf())
+                .toSet()
+                .sorted()
                 .joinToString()
             return group.takeIf { it.isNotEmpty() }
         }
 
-        context(TldService)
+        context(tldService: TldService)
         suspend fun match(
             cipher: DSecret,
             passkeyLibrary: List<PassKeyServiceInfo>,
@@ -717,7 +847,7 @@ class WatchtowerInactivePasskey(
             .mapNotNull { uri ->
                 val host = parseHost(uri)
                     ?: return@mapNotNull null
-                val domain = getDomainName(host)
+                val domain = tldService.getDomainName(host)
                     .bind()
                 val domainEq = equivalentDomains.findEqDomains(domain)
 
@@ -1006,7 +1136,7 @@ class WatchtowerInactiveTfa(
     private val getCheckTwoFA: GetCheckTwoFA,
 ) : WatchtowerClientTyped {
     companion object {
-        context(TldService)
+        context(tldService: TldService)
         suspend fun hasAlert(
             cipher: DSecret,
             tfaLibrary: List<TwoFaServiceInfo>,
@@ -1028,12 +1158,13 @@ class WatchtowerInactiveTfa(
             val equivalentDomains = equivalentDomainsBuilder.getAndCache(cipher.accountId)
             val group = match(cipher, tfaLibrary, equivalentDomains)
                 .map { info -> info.domain }
-                .toSet(destination = sortedSetOf())
+                .toSet()
+                .sorted()
                 .joinToString()
             return group.takeIf { it.isNotEmpty() }
         }
 
-        context(TldService)
+        context(tldService: TldService)
         fun match(
             cipher: DSecret,
             tfaLibrary: List<TwoFaServiceInfo>,
@@ -1044,7 +1175,7 @@ class WatchtowerInactiveTfa(
             .mapNotNull { uri ->
                 val host = parseHost(uri)
                     ?: return@mapNotNull null
-                val domain = getDomainName(host)
+                val domain = tldService.getDomainName(host)
                     .bind()
                 val domainEq = equivalentDomains.findEqDomains(domain)
                 val result = tfaLibrary

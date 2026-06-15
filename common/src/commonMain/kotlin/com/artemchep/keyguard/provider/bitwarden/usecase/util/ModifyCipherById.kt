@@ -2,10 +2,16 @@ package com.artemchep.keyguard.provider.bitwarden.usecase.util
 
 import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.login
 import com.artemchep.keyguard.data.bitwarden.Cipher
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -29,8 +35,11 @@ class ModifyCipherById(
         checkIfStub: Boolean = true,
         checkIfChanged: Boolean = true,
         updateRevisionDate: Boolean = true,
-        transform: suspend (Cipher) -> Cipher,
+        transform: suspend CipherModifyScope.(Cipher) -> Cipher,
     ): IO<Set<String>> = modifyDatabase { database ->
+        val accountHasPremiumMap = mutableMapOf<String, IO<Boolean>>()
+        val accountHasPremiumMapLock = SynchronizedObject()
+
         val dao = database.cipherQueries
         val now = Clock.System.now()
         val models = dao
@@ -46,8 +55,23 @@ class ModifyCipherById(
                 if (checkIfStub && !service.canEdit()) {
                     return@mapNotNull null
                 }
+                val scope = CipherModifyScopeImpl(
+                    hasPremiumProvider = {
+                        val accountId = model.accountId
+                        synchronized(accountHasPremiumMapLock) {
+                            accountHasPremiumMap.getOrPut(accountId) {
+                                ioEffect(Dispatchers.IO) {
+                                    val profile = database.profileQueries
+                                        .getByAccountId(accountId)
+                                        .executeAsOneOrNull()
+                                    profile?.data_?.premium != false
+                                }.shared(tag = "ModifyCipher:premium")
+                            }
+                        }
+                    },
+                )
                 var new = model
-                new = transform(new)
+                new = scope.transform(new)
                 // If the cipher was not changed, then we do not need to
                 // update it in the database.
                 if (checkIfChanged && new == model) {
@@ -90,7 +114,7 @@ class ModifyCipherById(
                     accountId = cipher.accountId,
                     folderId = cipher.folderId,
                     data = cipher.data_,
-                    updatedAt = cipher.data_.revisionDate,
+                    updatedAt = now,
                 )
             }
         }
@@ -105,5 +129,16 @@ class ModifyCipherById(
             changedAccountIds = changedAccountIds,
             value = changedCipherIds,
         )
+    }
+
+    interface CipherModifyScope {
+        val hasPremium: IO<Boolean>
+    }
+
+    class CipherModifyScopeImpl(
+        private val hasPremiumProvider: () -> IO<Boolean>,
+    ) : CipherModifyScope {
+        override val hasPremium: IO<Boolean>
+            get() = hasPremiumProvider()
     }
 }

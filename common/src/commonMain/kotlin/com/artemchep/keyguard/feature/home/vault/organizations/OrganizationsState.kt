@@ -33,6 +33,7 @@ data class OrganizationsState(
             val shapeState: Int = ShapeState.ALL,
             val accentColors: AccentColors,
             val icon: ImageVector? = null,
+            val onViewItemsClick: (() -> Unit)? = null,
             val actions: ImmutableList<ContextItem>,
             val onClick: (() -> Unit)?,
             val onLongClick: (() -> Unit)?,

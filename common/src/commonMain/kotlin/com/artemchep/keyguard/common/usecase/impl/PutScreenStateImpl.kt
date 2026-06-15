@@ -5,11 +5,11 @@ import com.artemchep.keyguard.common.service.state.StateRepository
 import com.artemchep.keyguard.common.service.state.impl.toSchema
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
+import kotlinx.io.IOException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.io.IOException
 
 class PutScreenStateImpl(
     private val stateRepository: StateRepository,

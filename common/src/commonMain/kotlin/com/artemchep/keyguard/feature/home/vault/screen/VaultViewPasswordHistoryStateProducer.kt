@@ -15,12 +15,12 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.wrap
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
@@ -59,6 +59,7 @@ fun vaultViewPasswordHistoryScreenState(
         cipherRemovePasswordHistoryById = instance(),
         clipboardService = instance(),
         dateFormatter = instance(),
+        confirmationRouteFactory = instance(),
         itemId = itemId,
     )
 }
@@ -72,6 +73,7 @@ fun vaultViewPasswordHistoryScreenState(
     cipherRemovePasswordHistoryById: CipherRemovePasswordHistoryById,
     clipboardService: ClipboardService,
     dateFormatter: DateFormatter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     itemId: String,
 ) = produceScreenState(
     key = "vault_password_history",
@@ -87,7 +89,7 @@ fun vaultViewPasswordHistoryScreenState(
     ),
 ) {
     val selectionHandle = selectionHandle("selection")
-    val copyFactory = copy(clipboardService)
+    val copyFactory = copier()
 
     val secretFlow = getCiphers()
         .map { secrets ->
@@ -133,6 +135,7 @@ fun vaultViewPasswordHistoryScreenState(
         val message = items
             .joinToString(separator = "\n") { it.password }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,
@@ -149,6 +152,7 @@ fun vaultViewPasswordHistoryScreenState(
 
     suspend fun onDeleteAll() {
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = translate(Res.string.passwordhistory_clear_history_confirmation_title),
             message = translate(Res.string.passwordhistory_clear_history_confirmation_text),

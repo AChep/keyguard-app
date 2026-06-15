@@ -1,6 +1,9 @@
 package com.artemchep.keyguard.feature.home.vault.screen
 
+import kotlin.jvm.JvmName
+
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
@@ -8,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Launch
@@ -48,7 +52,6 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.model.AccountId
@@ -87,6 +90,7 @@ import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
@@ -101,6 +105,7 @@ import com.artemchep.keyguard.common.service.placeholder.placeholderFormat
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
 import com.artemchep.keyguard.common.usecase.ArchiveCipherById
+import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
@@ -154,18 +159,24 @@ import com.artemchep.keyguard.core.store.bitwarden.canRetry
 import com.artemchep.keyguard.core.store.bitwarden.expired
 import com.artemchep.keyguard.core.store.bitwarden.message
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
+import com.artemchep.keyguard.feature.attachments.util.createPendingAttachmentItem
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
+import com.artemchep.keyguard.feature.barcodetype.createBarcodeTypeHistoryKey
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
-import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
+import com.artemchep.keyguard.feature.home.vault.by
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
+import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRouteFactory
 import com.artemchep.keyguard.feature.home.vault.component.UrlAppStoreListings
 import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
@@ -186,7 +197,9 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherSendAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherUnarchiveAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherViewSshAgentHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
+import com.artemchep.keyguard.feature.home.vault.watchtower
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewDialogRoute
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataViewDialogRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
@@ -197,10 +210,10 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
+import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRouteFactory
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServiceViewDialogRoute
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
 import com.artemchep.keyguard.feature.send.action.createSendActionOrNull
@@ -209,6 +222,7 @@ import com.artemchep.keyguard.feature.tfa.directory.TwoFaServiceViewDialogRoute
 import com.artemchep.keyguard.feature.websiteleak.WebsiteLeakRoute
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -230,7 +244,8 @@ import com.artemchep.keyguard.ui.text.annotate
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.totp.formatCode2
-import com.halilibo.richtext.commonmark.CommonmarkAstNodeParser
+import com.artemchep.keyguard.ui.markdown.MarkdownParser
+import io.ktor.http.Url
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -255,11 +270,12 @@ import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
+import com.artemchep.keyguard.ui.FingerprintPlaneta
+import com.artemchep.keyguard.util.planeta.Planeta
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
-import java.net.URI
 
 typealias RevealConcealFlow = Flow<Unit>
 
@@ -291,6 +307,7 @@ fun vaultViewScreenState(
         passkeyTargetCheck = instance(),
         getWatchtowerUnreadAlerts = instance(),
         markWatchtowerAlertAsRead = instance(),
+        cryptoGenerator = instance(),
         keyPairGenerator = instance(),
         keyPrivateExport = instance(),
         keyPublicExport = instance(),
@@ -317,6 +334,12 @@ fun vaultViewScreenState(
         downloadManager = instance(),
         downloadAttachment = instance(),
         removeAttachment = instance(),
+        canPreviewAttachment = instance(),
+        attachmentPreviewRouteFactory = instance(),
+        passkeysCredentialViewRouteFactory = instance(),
+        vaultViewRouteFactory = instance(),
+        vaultRouteFactory = instance(),
+        collectionsRouteFactory = instance(),
         cipherExpiringCheck = instance(),
         cipherIncompleteCheck = instance(),
         clipboardService = instance(),
@@ -326,11 +349,12 @@ fun vaultViewScreenState(
         getJustDeleteMeByUrl = instance(),
         getJustGetMyDataByUrl = instance(),
         windowCoroutineScope = instance(),
-        placeholderFactories = allInstances(),
-        linkInfoExtractors = allInstances(),
+        placeholderFactories = leAllInstances(),
+        linkInfoExtractors = leAllInstances(),
         iosAppAppStoreParser = instance(),
         androidAppGooglePlayParser = instance(),
         androidAppFDroidParser = instance(),
+        confirmationRouteFactory = instance(),
         mode = mode,
         contentColor = contentColor,
         disabledContentColor = disabledContentColor,
@@ -386,6 +410,7 @@ fun vaultViewScreenState(
     passkeyTargetCheck: PasskeyTargetCheck,
     getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
     markWatchtowerAlertAsRead: MarkWatchtowerAlertAsRead,
+    cryptoGenerator: CryptoGenerator,
     keyPairGenerator: KeyPairGenerator,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
@@ -412,6 +437,12 @@ fun vaultViewScreenState(
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
+    canPreviewAttachment: CanPreviewAttachment,
+    attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
+    passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
+    vaultViewRouteFactory: VaultViewRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
     cipherExpiringCheck: CipherExpiringCheck,
     cipherIncompleteCheck: CipherIncompleteCheck,
     clipboardService: ClipboardService,
@@ -426,6 +457,7 @@ fun vaultViewScreenState(
     windowCoroutineScope: WindowCoroutineScope,
     placeholderFactories: List<Placeholder.Factory>,
     linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     itemId: String,
     accountId: String,
 ) = produceScreenState(
@@ -459,14 +491,12 @@ fun vaultViewScreenState(
         .attempt()
         .launchIn(windowCoroutineScope)
 
-    val copy = copy(
-        clipboardService = clipboardService,
-    )
+    val copy = copier()
 
     val equivalentDomainsBuilder = equivalentDomainsBuilderFactory.build()
     val selectionHandle = selectionHandle("selection")
     val markdown = getMarkdown().first()
-    val markdownParser = CommonmarkAstNodeParser()
+    val markdownParser = MarkdownParser()
 
     val accountFlow = getAccounts()
         .map { accounts ->
@@ -681,7 +711,11 @@ fun vaultViewScreenState(
     // should not show the reprompt.
     secretFlow
         .onEach { cipher ->
-            defaultReprompt = cipher?.reprompt == true
+            // We disable the re-prompt feature for the watches as
+            // it's very unlikely to be useful + it's super annoying
+            // to perform an unlock on a watch.
+            defaultReprompt = cipher?.reprompt == true &&
+                    !CurrentPlatform.hasWatch()
         }
         .launchIn(appScope)
 
@@ -770,7 +804,7 @@ fun vaultViewScreenState(
                         ?: pairUnlessEmpty(cipher?.card?.number, CopyText.Type.CARD_NUMBER)
                         ?: pairUnlessEmpty(cipher?.identity?.email, CopyText.Type.EMAIL)
                         ?: pairUnlessEmpty(cipher?.identity?.phone, CopyText.Type.PHONE_NUMBER)
-                        ?: pairUnlessEmpty(cipher?.sshKey?.publicKey, CopyText.Type.KEY)
+                        ?: pairUnlessEmpty(cipher?.sshKey?.publicKey, CopyText.Type.PUBLIC_KEY)
                         ?: pairUnlessEmpty(cipher?.notes, CopyText.Type.VALUE)
                 if (primaryFieldPair == null) {
                     return@map null
@@ -792,7 +826,7 @@ fun vaultViewScreenState(
                 val secretFieldPair =
                     pairUnlessEmpty(cipher?.login?.password, CopyText.Type.PASSWORD)
                         ?: pairUnlessEmpty(cipher?.card?.code, CopyText.Type.CARD_CVV)
-                        ?: pairUnlessEmpty(cipher?.sshKey?.privateKey, CopyText.Type.KEY)
+                        ?: pairUnlessEmpty(cipher?.sshKey?.privateKey, CopyText.Type.PRIVATE_KEY)
                 if (secretFieldPair == null) {
                     return@map null
                 }
@@ -946,6 +980,7 @@ fun vaultViewScreenState(
                 val action = flow<FlatItemAction> {
                     if (cipher.deletedDate == null && cipher.service.remote != null) {
                         val trashAction = cipherTrashAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             trashCipherById = trashCipherById,
                             ciphers = listOf(cipher),
                         )
@@ -956,6 +991,7 @@ fun vaultViewScreenState(
                         cipher.hasError
                     ) {
                         val deleteAction = cipherDeleteAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             removeCipherById = removeCipherById,
                             ciphers = listOf(cipher),
                         )
@@ -982,6 +1018,7 @@ fun vaultViewScreenState(
                 val cipher = cipherExtra.cipher
                 val action = flow<FlatItemAction> {
                     val deleteAction = cipherDeleteAction(
+                        confirmationRouteFactory = confirmationRouteFactory,
                         removeCipherById = removeCipherById,
                         ciphers = listOf(cipher),
                     )
@@ -1139,16 +1176,24 @@ fun vaultViewScreenState(
                         )
                             .takeIf { secretOrNull.passwordHistory.isNotEmpty() }
                             ?.verify(verify),
+                        cipherViewSshAgentHistoryAction(
+                            cipher = secretOrNull,
+                        )
+                            .takeIf { secretOrNull.type == DSecret.Type.SshKey }
+                            ?.verify(verify),
                         cipherChangeNameAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             changeCipherNameById = changeCipherNameById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit },
                         cipherChangePasswordAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             changeCipherPasswordById = changeCipherPasswordById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit && secretOrNull.login != null }
                             ?.verify(verify),
                         cipherSendAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canAddSecret }?.verify(verify),
                         cipherCopyToAction(
@@ -1161,6 +1206,7 @@ fun vaultViewScreenState(
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit },
                         cipherWatchtowerAlerts(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             patchWatchtowerAlertCipher = patchWatchtowerAlertCipher,
                             ciphers = listOf(secretOrNull),
                         ),
@@ -1168,22 +1214,27 @@ fun vaultViewScreenState(
                             ciphers = listOf(secretOrNull),
                         ),
                         cipherArchiveAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             archiveCipherById = archiveCipherById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit && secretOrNull.archivedDate == null },
                         cipherUnarchiveAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             unarchiveCipherById = unarchiveCipherById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canEdit && secretOrNull.archivedDate != null },
                         cipherTrashAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             trashCipherById = trashCipherById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canDelete && (secretOrNull.deletedDate == null && secretOrNull.service.remote != null) },
                         cipherRestoreAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             restoreCipherById = restoreCipherById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf { canDelete && secretOrNull.deletedDate != null },
                         cipherDeleteAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
                             removeCipherById = removeCipherById,
                             ciphers = listOf(secretOrNull),
                         ).takeIf {
@@ -1197,6 +1248,9 @@ fun vaultViewScreenState(
                     items = oh(
                         mode = mode,
                         markdownParser = markdownParser,
+                        vaultViewRouteFactory = vaultViewRouteFactory,
+                        vaultRouteFactory = vaultRouteFactory,
+                        collectionsRouteFactory = collectionsRouteFactory,
                         sharingScope = screenScope, // FIXME: must not be a screen scope!!
                         selectionHandle = selectionHandle,
                         canEdit = canEdit,
@@ -1206,11 +1260,15 @@ fun vaultViewScreenState(
                         downloadManager = downloadManager,
                         downloadAttachment = downloadAttachment,
                         removeAttachment = removeAttachment,
+                        canPreviewAttachment = canPreviewAttachment,
+                        attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
                         getPasskeys = getPasskeys,
                         getTwoFa = getTwoFa,
                         getTotpCode = getTotpCode,
                         getPasswordStrength = getPasswordStrength,
                         passkeyTargetCheck = passkeyTargetCheck,
+                        passkeysCredentialViewRouteFactory = passkeysCredentialViewRouteFactory,
+                        cryptoGenerator = cryptoGenerator,
                         keyPairGenerator = keyPairGenerator,
                         keyPrivateExport = keyPrivateExport,
                         keyPublicExport = keyPublicExport,
@@ -1258,7 +1316,10 @@ fun vaultViewScreenState(
 
 private fun RememberStateFlowScope.oh(
     mode: AppMode,
-    markdownParser: CommonmarkAstNodeParser,
+    markdownParser: MarkdownParser,
+    vaultViewRouteFactory: VaultViewRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
     sharingScope: CoroutineScope,
     selectionHandle: SelectionHandle,
     canEdit: Boolean,
@@ -1268,11 +1329,15 @@ private fun RememberStateFlowScope.oh(
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
+    canPreviewAttachment: CanPreviewAttachment,
+    attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
     getPasskeys: GetPasskeys,
     getTwoFa: GetTwoFa,
     getTotpCode: GetTotpCode,
     getPasswordStrength: GetPasswordStrength,
     passkeyTargetCheck: PasskeyTargetCheck,
+    passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
+    cryptoGenerator: CryptoGenerator,
     keyPairGenerator: KeyPairGenerator,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
@@ -1475,6 +1540,8 @@ private fun RememberStateFlowScope.oh(
         if (sshKey.publicKey != null) {
             val publicKeyItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "sshKey.publicKey",
                 accountId = account.id,
                 title = translate(Res.string.public_key),
@@ -1503,8 +1570,23 @@ private fun RememberStateFlowScope.oh(
         if (sshKey.fingerprint != null) {
             val fingerprintItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "sshKey.fingerprint",
                 accountId = account.id,
+                trailing = {
+                    Box(
+                        modifier = Modifier
+                            .size(72.dp),
+                    ) {
+                        FingerprintPlaneta(
+                            fingerprint = sshKey.fingerprint,
+                            modifier = Modifier
+                                .wrapContentSize(unbounded = true)
+                                .size(96.dp),
+                        )
+                    }
+                },
                 title = translate(Res.string.fingerprint),
                 value = sshKey.fingerprint,
                 monospace = true,
@@ -1516,6 +1598,8 @@ private fun RememberStateFlowScope.oh(
         if (sshKey.privateKey != null) {
             val privateKeyItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "sshKey.privateKey",
                 accountId = account.id,
                 title = translate(Res.string.private_key),
@@ -1564,6 +1648,8 @@ private fun RememberStateFlowScope.oh(
             }
             val typeItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "sshKey.keyType",
                 accountId = account.id,
                 title = translate(Res.string.key_type),
@@ -1578,6 +1664,8 @@ private fun RememberStateFlowScope.oh(
     if (cipherCard != null) {
         val model = create(
             copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
             copyShortcut = KeyShortcut(
                 Key.C,
                 isCtrlPressed = true,
@@ -1623,6 +1711,8 @@ private fun RememberStateFlowScope.oh(
         if (cipherCardCode != null) {
             val cvv = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "card.cvv",
                 accountId = account.id,
                 title = translate(Res.string.vault_view_card_cvv_label),
@@ -1662,6 +1752,8 @@ private fun RememberStateFlowScope.oh(
             } else translate(Res.string.username)
             val model = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "login.username",
                 accountId = account.id,
                 title = title,
@@ -1701,6 +1793,8 @@ private fun RememberStateFlowScope.oh(
                 .stateIn(sharingScope, SharingStarted.Eagerly, null)
             val model = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "login.password",
                 accountId = account.id,
                 title = translate(Res.string.password),
@@ -1753,7 +1847,7 @@ private fun RememberStateFlowScope.oh(
                     count = reusedPasswords,
                     onClick = onClick {
                         val intent = NavigationIntent.NavigateToRoute(
-                            VaultRoute.watchtower(
+                            vaultRouteFactory.watchtower(
                                 title = translate(Res.string.reused_passwords),
                                 subtitle = translate(Res.string.watchtower_header_title),
                                 filter = DFilter.ByPasswordValue(cipherLoginPassword),
@@ -1811,7 +1905,7 @@ private fun RememberStateFlowScope.oh(
                                         translator = this@oh,
                                         data = cipherLoginTotp.token.raw,
                                         text = translate(Res.string.barcodetype_copy_otp_secret_code_note),
-                                        single = true,
+                                        disallowFormatSelection = true,
                                         navigate = ::navigate,
                                     )
                                     this += createShareAction(
@@ -1965,7 +2059,7 @@ private fun RememberStateFlowScope.oh(
                     source = item,
                     onUse = onUse,
                     onClick = {
-                        val route = PasskeysCredentialViewRoute(
+                        val route = passkeysCredentialViewRouteFactory.create(
                             args = PasskeysCredentialViewRoute.Args(
                                 cipherId = cipher.id,
                                 credentialId = item.credentialId,
@@ -2066,6 +2160,8 @@ private fun RememberStateFlowScope.oh(
 
             val contactFieldItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "identity.contact.$key",
                 accountId = account.id,
                 title = title,
@@ -2110,6 +2206,8 @@ private fun RememberStateFlowScope.oh(
 
             val miscFieldItem = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "identity.misc.$key",
                 accountId = account.id,
                 title = title,
@@ -2169,6 +2267,8 @@ private fun RememberStateFlowScope.oh(
 
             val addressFieldModel = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "identity.address.$key",
                 accountId = account.id,
                 title = title,
@@ -2426,6 +2526,8 @@ private fun RememberStateFlowScope.oh(
             val concealed = hidden && concealFields
             val m = create(
                 copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
                 id = "custom.$index",
                 accountId = account.id,
                 title = field.name.orEmpty(),
@@ -2494,10 +2596,13 @@ private fun RememberStateFlowScope.oh(
                             attachmentId = attachment.id,
                         ),
                         selectionHandle = selectionHandle,
+                        vaultViewRouteFactory = vaultViewRouteFactory,
                         sharingScope = sharingScope,
                         attachment = attachment,
                         launchViewCipherData = null,
                         downloadManager = downloadManager,
+                        canPreviewAttachment = canPreviewAttachment,
+                        attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
                         downloadIo = downloadIo,
                         removeIo = removeIo,
                         verify = verify,
@@ -2510,27 +2615,10 @@ private fun RememberStateFlowScope.oh(
                 }
 
                 is DSecret.Attachment.Local -> {
-                    val downloadIo = kotlin.run {
-                        ioUnit()
-                    }
-                    val removeIo = kotlin.run {
-                        ioUnit()
-                    }
-
-                    val actualItem = createAttachmentItem(
-                        tag = DownloadInfoEntity2.AttachmentDownloadTag(
-                            localCipherId = cipher.id,
-                            remoteCipherId = cipher.service.remote?.id,
-                            attachmentId = attachment.id,
-                        ),
+                    val actualItem = createPendingAttachmentItem(
                         selectionHandle = selectionHandle,
                         sharingScope = sharingScope,
                         attachment = attachment,
-                        launchViewCipherData = null,
-                        downloadManager = downloadManager,
-                        downloadIo = downloadIo,
-                        removeIo = removeIo,
-                        verify = verify,
                     )
                     val wrapperItem = VaultViewItem.Attachment(
                         id = actualItem.key,
@@ -2557,7 +2645,7 @@ private fun RememberStateFlowScope.oh(
             tags = cipher.tags,
             onClick = { tag ->
                 action {
-                    val route = VaultRoute.by(
+                    val route = vaultRouteFactory.by(
                         tag = tag,
                     )
                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -2582,7 +2670,7 @@ private fun RememberStateFlowScope.oh(
                     VaultViewItem.Folder.FolderNode(
                         name = it.name,
                         onClick = onClick {
-                            val route = VaultRoute.by(
+                            val route = vaultRouteFactory.by(
                                 folder = it.folder,
                             )
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -2591,7 +2679,7 @@ private fun RememberStateFlowScope.oh(
                     )
                 },
             onClick = onClick {
-                val route = VaultRoute.by(
+                val route = vaultRouteFactory.by(
                     folder = folder.folder,
                 )
                 val intent = NavigationIntent.NavigateToRoute(route)
@@ -2617,7 +2705,7 @@ private fun RememberStateFlowScope.oh(
                 id = "collection.${collection.id}",
                 title = collection.name,
                 onClick = onClick {
-                    val route = VaultRoute.by(
+                    val route = vaultRouteFactory.by(
                         collection = collection,
                     )
                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -2638,14 +2726,13 @@ private fun RememberStateFlowScope.oh(
             id = "organization.0",
             title = organization.name,
             onClick = {
-                val intent = NavigationIntent.NavigateToRoute(
-                    CollectionsRoute(
-                        args = CollectionsRoute.Args(
-                            accountId = organization.accountId.let(::AccountId),
-                            organizationId = organization.id,
-                        ),
+                val route = collectionsRouteFactory.create(
+                    args = CollectionsRoute.Args(
+                        accountId = organization.accountId.let(::AccountId),
+                        organizationId = organization.id,
                     ),
                 )
+                val intent = NavigationIntent.NavigateToRoute(route)
                 navigate(intent)
             },
         )
@@ -2745,6 +2832,8 @@ private fun RememberStateFlowScope.oh(
         // IDs
         val localId = create(
             copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
             id = "debug.local_id",
             accountId = account.id,
             title = "Local ID",
@@ -2753,6 +2842,8 @@ private fun RememberStateFlowScope.oh(
         emit(localId)
         val remoteId = create(
             copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
             id = "debug.remote_id",
             accountId = account.id,
             title = "Remote ID",
@@ -2761,6 +2852,8 @@ private fun RememberStateFlowScope.oh(
         emit(remoteId)
         val remoteRevDate = create(
             copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
             id = "debug.remote_rev_date",
             accountId = account.id,
             title = "Remote revision date",
@@ -3059,7 +3152,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                     else -> {
                         kotlin.runCatching {
                             val url = uri.uri
-                            val host = URI(url).host
+                            val host = Url(url).host
 
                             buildAnnotatedString {
                                 append(uri.uri)
@@ -3156,7 +3249,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                             this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                                 translator = this@createUriItemContextItems,
                                 data = platformMarker.playStoreUrl,
-                                single = true,
+                                disallowFormatSelection = true,
                                 navigate = ::navigate,
                             )
                             this += createShareAction(
@@ -3188,7 +3281,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                             this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                                 translator = this@createUriItemContextItems,
                                 data = platformMarker.playStoreUrl,
-                                single = true,
+                                disallowFormatSelection = true,
                                 navigate = ::navigate,
                             )
                             this += createShareAction(
@@ -3293,7 +3386,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                         translator = this@createUriItemContextItems,
                         data = uri,
-                        single = true,
+                        disallowFormatSelection = true,
                         navigate = ::navigate,
                     )
                     this += createShareAction(
@@ -3413,7 +3506,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                         translator = this@createUriItemContextItems,
                         data = uri,
-                        single = true,
+                        disallowFormatSelection = true,
                         navigate = ::navigate,
                     )
                     this += createShareAction(
@@ -3504,6 +3597,8 @@ private fun RememberStateFlowScope.createUriContextAppStoreListingIOS(
 
 suspend fun RememberStateFlowScope.create(
     copy: CopyText,
+    cryptoGenerator: CryptoGenerator,
+    cipherLocalId: String,
     id: String,
     accountId: AccountId,
     title: String?,
@@ -3513,6 +3608,7 @@ suspend fun RememberStateFlowScope.create(
     badge: VaultViewItem.Value.Badge? = null,
     badge2: List<StateFlow<VaultViewItem.Value.Badge?>> = emptyList(),
     leading: (@Composable RowScope.() -> Unit)? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
     verify: ((() -> Unit) -> Unit)? = null,
     onBuildActions: (ContextItemBuilder.() -> Unit)? = null,
     maxLines: Int = 64,
@@ -3554,6 +3650,11 @@ suspend fun RememberStateFlowScope.create(
                     translator = this@create,
                     data = value,
                     format = BarcodeImageFormat.QR_CODE,
+                    historyKey = createBarcodeTypeHistoryKey(
+                        cryptoGenerator = cryptoGenerator,
+                        cipherLocalId = cipherLocalId,
+                        value = value,
+                    ),
                     navigate = ::navigate,
                 )
                 this += createShareAction(
@@ -3605,6 +3706,7 @@ suspend fun RememberStateFlowScope.create(
         monospace = monospace,
         colorize = colorize,
         leading = leading,
+        trailing = trailing,
         badge = badge,
         badge2 = badge2,
         dropdown = dropdown.verify(verify),
@@ -3665,6 +3767,8 @@ suspend fun RememberStateFlowScope.createExpDate(
 
 private suspend fun RememberStateFlowScope.create(
     copy: CopyText,
+    cryptoGenerator: CryptoGenerator,
+    cipherLocalId: String,
     copyShortcut: KeyShortcut?,
     id: String,
     verify: ((() -> Unit) -> Unit)? = null,
@@ -3707,6 +3811,11 @@ private suspend fun RememberStateFlowScope.create(
                     translator = this@create,
                     data = cardNumber,
                     format = BarcodeImageFormat.QR_CODE,
+                    historyKey = createBarcodeTypeHistoryKey(
+                        cryptoGenerator = cryptoGenerator,
+                        cipherLocalId = cipherLocalId,
+                        value = cardNumber,
+                    ),
                     navigate = ::navigate,
                 )?.verify(verify)
                 this += createShareAction(

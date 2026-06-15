@@ -9,9 +9,9 @@ import kotlinx.io.buffered
 import java.io.InputStream
 import java.io.OutputStream
 
-actual fun Source.toInputStream(): InputStream = asInputStream()
+fun Source.toInputStream(): InputStream = asInputStream()
 
-actual fun Sink.toOutputStream(): OutputStream = asOutputStream()
+fun Sink.toOutputStream(): OutputStream = asOutputStream()
 
 suspend inline fun <T> OutputStream.useBufferedSink(
     block: suspend (Sink) -> T,

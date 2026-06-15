@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.hasPendingAttachmentMutations
 
 suspend fun BitwardenCipher.toDomain(
     getPasswordStrength: GetPasswordStrength,
@@ -45,7 +46,8 @@ suspend fun BitwardenCipher.toDomain(
         reprompt = reprompt == BitwardenCipher.RepromptType.Password,
         synced = !service.deleted &&
                 revisionDate == service.remote?.revisionDate &&
-                deletedDate == service.remote.deletedDate,
+                deletedDate == service.remote.deletedDate &&
+                !hasPendingAttachmentMutations(),
         ignoredAlerts = ignoredAlerts,
         uris = login?.uris.orEmpty().map(BitwardenCipher.Login.Uri::toDomain),
         tags = tags.map(BitwardenCipher.Tag::toDomain),
@@ -90,6 +92,7 @@ fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
     BitwardenCipher.IgnoreAlertType.BROAD_URIS -> DWatchtowerAlertType.BROAD_URIS
     BitwardenCipher.IgnoreAlertType.INCOMPLETE -> DWatchtowerAlertType.INCOMPLETE
     BitwardenCipher.IgnoreAlertType.EXPIRING -> DWatchtowerAlertType.EXPIRING
+    BitwardenCipher.IgnoreAlertType.WEAK_SSH_KEY -> DWatchtowerAlertType.WEAK_SSH_KEY
 }
 
 fun BitwardenCipher.Login.Uri.MatchType.toDomain() = when (this) {
@@ -163,6 +166,7 @@ fun BitwardenCipher.Attachment.Local.toDomain() = DSecret.Attachment.Local(
     url = url,
     fileName = fileName,
     size = size,
+    keyBase64 = keyBase64,
 )
 
 suspend fun BitwardenCipher.Login.toDomain(

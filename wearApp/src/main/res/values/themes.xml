@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="WearTheme.Keyguard.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="windowSplashScreenAnimationDuration">0</item>
+        <!-- Set the splash screen background to black -->
+        <item name="windowSplashScreenBackground">@android:color/black</item>
+
+        <item name="postSplashScreenTheme">@style/WearTheme.Keyguard</item>
+    </style>
+
+    <style name="WearTheme.Keyguard" parent="@android:style/Theme.DeviceDefault">
+    </style>
+</resources>

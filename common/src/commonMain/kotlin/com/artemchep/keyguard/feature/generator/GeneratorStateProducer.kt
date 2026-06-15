@@ -93,7 +93,6 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.generatorTarget
@@ -140,7 +139,7 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlin.time.Clock
-import org.kodein.di.allInstances
+import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -225,7 +224,7 @@ fun produceGeneratorState(
         getCanWrite = instance(),
         tldService = instance(),
         clipboardService = instance(),
-        emailRelays = allInstances(),
+        emailRelays = leAllInstances(),
     )
 }
 
@@ -279,9 +278,7 @@ fun produceGeneratorState(
     ),
 ) {
     val generatorContext = mode.generatorTarget
-    val copyItemFactory = copy(
-        clipboardService = clipboardService,
-    )
+    val copyItemFactory = copier()
 
     val webUriContextWordsRaw = mutablePersistedFlow(GENERATOR_KEY_ARG_URIS) {
         args.context.uris

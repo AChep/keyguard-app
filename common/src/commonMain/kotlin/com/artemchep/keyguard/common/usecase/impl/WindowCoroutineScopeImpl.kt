@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.common.exception.isIoException
 import com.artemchep.keyguard.common.model.NoAnalytics
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
@@ -13,7 +14,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.plus
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.io.IOException
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -31,7 +31,7 @@ class WindowCoroutineScopeImpl(
             return@CoroutineExceptionHandler
         }
         if (
-            exception !is IOException &&
+            !exception.isIoException() &&
             exception !is NoAnalytics
         ) {
             recordException(exception)
@@ -39,9 +39,9 @@ class WindowCoroutineScopeImpl(
 
         exception.printStackTrace()
 
-        val title = exception.localizedMessage
-            ?: exception.message
-            ?: exception.javaClass.simpleName
+        val title = exception.message
+            ?: exception::class.simpleName
+            ?: "Error"
         val msg = ToastMessage(
             title = title,
             type = ToastMessage.Type.ERROR,

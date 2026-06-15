@@ -13,7 +13,7 @@ class GetClipboardAutoClearImpl(
     settingsReadRepository: SettingsReadRepository,
 ) : GetClipboardAutoClear {
     companion object {
-        private val DEFAULT_DURATION = with(Duration) { 1L.minutes }
+        private val DEFAULT_DURATION = with(Duration) { INFINITE }
     }
 
     private val sharedFlow = settingsReadRepository.getClipboardClearDelay()

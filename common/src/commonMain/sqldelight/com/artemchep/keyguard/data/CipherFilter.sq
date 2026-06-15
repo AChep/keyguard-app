@@ -96,4 +96,4 @@ DELETE FROM cipherFilter;
 
 deleteByIds:
 DELETE FROM cipherFilter
-WHERE id IN (:ids);
+WHERE id IN :ids;

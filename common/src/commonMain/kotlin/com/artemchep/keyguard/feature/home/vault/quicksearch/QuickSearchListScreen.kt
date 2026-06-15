@@ -268,6 +268,7 @@ internal fun QuickSearchListScreen(
                             itemsIndexed(
                                 items = state.results,
                                 key = { _, result -> result.item.id },
+                                contentType = { _, _ -> "quick_search_result" },
                             ) { _, result ->
                                 QuickSearchResultRow(
                                     item = result.item,

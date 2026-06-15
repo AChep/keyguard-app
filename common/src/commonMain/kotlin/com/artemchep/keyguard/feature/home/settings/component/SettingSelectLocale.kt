@@ -2,9 +2,14 @@ package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Screenshot
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -17,24 +22,30 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetLocaleVariants
 import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.KgPicker
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.LeLocale
+import com.artemchep.keyguard.platform.util.hasBrowser
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.Locale
 
 fun settingSelectLocaleProvider(
     directDI: DirectDI,
@@ -95,14 +106,21 @@ fun settingSelectLocaleProvider(
         ),
     ) {
         val navigationController by rememberUpdatedState(LocalNavigationController.current)
+        val hasBrowser = CurrentPlatform
+            .hasBrowser()
         SettingLocale(
             text = text,
             dropdown = dropdown,
-            onHelpTranslate = {
-                val intent = NavigationIntent.NavigateToBrowser(
-                    url = "https://crowdin.com/project/keyguard",
-                )
-                navigationController.queue(intent)
+            onHelpTranslate = if (hasBrowser) {
+                // lambda
+                {
+                    val intent = NavigationIntent.NavigateToBrowser(
+                        url = "https://crowdin.com/project/keyguard",
+                    )
+                    navigationController.queue(intent)
+                }
+            } else {
+                null
             },
         )
     }
@@ -115,10 +133,7 @@ private data class LocaleItem(
 
 private suspend fun getLocaleTitle(locale: String?, context: LeContext) = locale
     ?.let {
-        Locale.forLanguageTag(it).let { locale ->
-            locale.getDisplayName(locale)
-                .capitalize(locale)
-        }
+        LeLocale.displayName(it)
     }
     ?: textResource(Res.string.follow_system_settings, context)
 
@@ -128,37 +143,30 @@ private fun SettingLocale(
     dropdown: List<FlatItemAction>,
     onHelpTranslate: (() -> Unit)? = null,
 ) {
-    FlatDropdownSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.Language),
-        content = {
-            FlatItemTextContent(
-                title = {
+    LocalSettingPaneComponents.current.KgPicker(
+        icon = Icons.Outlined.Language,
+        title = stringResource(Res.string.pref_item_locale_title),
+        text = text,
+        footer = if (onHelpTranslate != null) {
+            // composable
+            {
+                TextButton(
+                    modifier = Modifier
+                        .padding(
+                            horizontal = getSettingsButtonStartPadding(),
+                            vertical = 4.dp,
+                        ),
+                    onClick = {
+                        onHelpTranslate()
+                    },
+                ) {
                     Text(
-                        text = stringResource(Res.string.pref_item_locale_title),
+                        text = stringResource(Res.string.pref_item_locale_help_translation_button),
                     )
-                },
-                text = {
-                    Text(text)
-                },
-            )
-        },
-        footer = {
-            TextButton(
-                modifier = Modifier
-                    .padding(
-                        horizontal = getSettingsButtonStartPadding(),
-                        vertical = 4.dp,
-                    ),
-                enabled = onHelpTranslate != null,
-                onClick = {
-                    onHelpTranslate?.invoke()
-                },
-            ) {
-                Text(
-                    text = stringResource(Res.string.pref_item_locale_help_translation_button),
-                )
+                }
             }
+        } else {
+            null
         },
         dropdown = dropdown,
     )

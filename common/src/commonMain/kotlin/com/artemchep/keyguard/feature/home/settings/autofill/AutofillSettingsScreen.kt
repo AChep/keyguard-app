@@ -7,12 +7,23 @@ import com.artemchep.keyguard.feature.home.settings.SettingPaneContent
 import com.artemchep.keyguard.feature.home.settings.SettingPaneItem
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AutofillSettingsScreen() {
-    val items = remember {
+    val items = rememberSettingsAutofillItems()
+    SettingPaneContent(
+        title = stringResource(Res.string.settings_autofill_header_title),
+        items = items,
+    )
+}
+
+@Composable
+fun rememberSettingsAutofillItems(
+): ImmutableList<SettingPaneItem> {
+    return remember {
         persistentListOf(
             SettingPaneItem.Group(
                 key = "credential",
@@ -56,12 +67,9 @@ fun AutofillSettingsScreen() {
                     SettingPaneItem.Item(Setting.AUTOFILL_BLOCK_URI),
                     SettingPaneItem.Item(Setting.AUTOFILL_PRIVILEGED_APPS),
                     SettingPaneItem.Item(Setting.AUTOFILL_PASSKEYS),
+                    SettingPaneItem.Item(Setting.AUTOFILL_PASSWORDS),
                 ),
             ),
         )
     }
-    SettingPaneContent(
-        title = stringResource(Res.string.settings_autofill_header_title),
-        items = items,
-    )
 }

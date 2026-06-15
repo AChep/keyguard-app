@@ -114,10 +114,10 @@ suspend fun <T : OwnershipState> RememberStateFlowScope.ownershipHandle(
     }
 }
 
-context(RememberStateFlowScope)
+context(stateScope: RememberStateFlowScope)
 fun <T : OwnershipState> OwnershipHandle<T>.accountFlow(
     readOnly: Boolean,
-): Flow<AddStateOwnershipElementHolder<String?>> {
+): Flow<AddStateOwnershipElementHolder<String?>> = with(stateScope) {
     val accountFlow = combine(
         stateSink
             .map { it.accountId }

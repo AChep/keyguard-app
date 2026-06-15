@@ -1,15 +1,12 @@
 package com.artemchep.keyguard.common.service.justgetmydata.impl
 
-import arrow.core.partially1
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.common.model.FileResource
+import com.artemchep.keyguard.common.service.json.jsonResourceListIo
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataService
 import com.artemchep.keyguard.common.service.justgetmydata.JustGetMyDataServiceInfo
 import com.artemchep.keyguard.common.service.text.TextService
-import com.artemchep.keyguard.common.service.text.readFromResourcesAsText
 import com.artemchep.keyguard.common.service.tld.TldService
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -63,30 +60,27 @@ class JustGetMyDataServiceImpl(
 
     private val hostRegex = "://(.*@)?([^/]+)".toRegex()
 
-    private val listIo = ::loadJustGetMyDataRawData
-        .partially1(textService)
-        .effectMap { jsonString ->
-            val entities = json.decodeFromString<List<JustGetMyDataEntity>>(jsonString)
-            val models = entities
-                .map { entity ->
-                    val host = entity.url
-                        ?.let { url ->
-                            val result = hostRegex.find(url)
-                            result?.groupValues?.getOrNull(2) // get the host
-                        }
-                    val domain = host?.let {
-                        tldService.getDomainName(host)
-                            .attempt()
-                            .bind()
-                            .getOrNull()
-                    }
-                    entity.toDomain(
-                        additionalDomain = domain,
-                    )
-                }
-            models
+    private val listIo = jsonResourceListIo(
+        textService = textService,
+        json = json,
+        resource = FileResource.justGetMyData,
+        tag = TAG,
+    ) { entity: JustGetMyDataEntity ->
+        val host = entity.url
+            ?.let { url ->
+                val result = hostRegex.find(url)
+                result?.groupValues?.getOrNull(2) // get the host
+            }
+        val domain = host?.let {
+            tldService.getDomainName(host)
+                .attempt()
+                .bind()
+                .getOrNull()
         }
-        .sharedSoftRef(TAG)
+        entity.toDomain(
+            additionalDomain = domain,
+        )
+    }
 
     constructor(
         directDI: DirectDI,
@@ -98,7 +92,3 @@ class JustGetMyDataServiceImpl(
 
     override fun get() = listIo
 }
-
-private suspend fun loadJustGetMyDataRawData(
-    textService: TextService,
-) = textService.readFromResourcesAsText(FileResource.justGetMyData)

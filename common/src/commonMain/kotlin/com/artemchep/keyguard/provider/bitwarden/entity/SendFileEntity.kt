@@ -12,9 +12,6 @@ data class SendFileEntity(
     @JsonNames("fileName")
     @SerialName("FileName")
     val fileName: String? = null,
-    @JsonNames("key")
-    @SerialName("Key")
-    val key: String? = null,
     @JsonNames("size")
     @SerialName("Size")
     val size: String? = null,

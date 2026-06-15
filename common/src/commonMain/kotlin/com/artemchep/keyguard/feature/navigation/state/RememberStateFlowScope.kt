@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.navigation.state
 import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.input.key.KeyEvent
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
@@ -80,6 +81,8 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
         intent: NavigationIntent,
     )
 
+    fun copier(): CopyText
+
     /** Sends a message from this screen */
     fun message(
         message: ToastMessage,
@@ -115,7 +118,7 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
     ): () -> Unit
 
     fun launchUi(
-        block: CoroutineScope.() -> Unit,
+        block: suspend CoroutineScope.() -> Unit,
     ): () -> Unit
 
     fun action(block: suspend () -> Unit)

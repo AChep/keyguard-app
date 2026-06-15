@@ -9,8 +9,6 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.feature.home.vault.component.ObscureCharBlock
 import com.artemchep.keyguard.feature.home.vault.component.obscureCardNumber
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
-import java.text.BreakIterator
-import java.util.Locale
 
 private const val MAX_SNIPPET_GRAPHEME_COUNT = 64
 private val WHITESPACE_REGEX = "\\s+".toRegex()
@@ -147,14 +145,10 @@ private fun String.toFoldedTextMapping(): FoldedTextMapping {
         )
     }
 
-    val iterator = BreakIterator.getCharacterInstance(Locale.ROOT)
-    iterator.setText(this)
     val startOffsets = mutableListOf<Int>()
     val endOffsets = mutableListOf<Int>()
     val folded = buildString(length) {
-        var clusterStart = iterator.first()
-        var clusterEnd = iterator.next()
-        while (clusterEnd != BreakIterator.DONE) {
+        forEachPlatformGraphemeCluster(this@toFoldedTextMapping) { clusterStart, clusterEnd ->
             val cluster = this@toFoldedTextMapping.substring(clusterStart, clusterEnd)
             val foldedCluster =
                 normalizeSearchValue(
@@ -166,8 +160,6 @@ private fun String.toFoldedTextMapping(): FoldedTextMapping {
                 startOffsets += clusterStart
                 endOffsets += clusterEnd
             }
-            clusterStart = clusterEnd
-            clusterEnd = iterator.next()
         }
     }
     return FoldedTextMapping(
@@ -184,15 +176,13 @@ private fun String.truncateGraphemeSafe(
         return this
     }
 
-    val iterator = BreakIterator.getCharacterInstance(Locale.ROOT)
-    iterator.setText(this)
     var clusterCount = 0
-    var end = iterator.first()
-    var next = iterator.next()
-    while (next != BreakIterator.DONE && clusterCount < maxGraphemeCount) {
-        end = next
-        clusterCount += 1
-        next = iterator.next()
+    var end = 0
+    forEachPlatformGraphemeCluster(this) { _, clusterEnd ->
+        if (clusterCount < maxGraphemeCount) {
+            end = clusterEnd
+            clusterCount += 1
+        }
     }
     return if (clusterCount < maxGraphemeCount) {
         this

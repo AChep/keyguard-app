@@ -2,6 +2,9 @@ package com.artemchep.keyguard.feature.navigation
 
 import androidx.compose.runtime.staticCompositionLocalOf
 
+/**
+ * Short-lived holder used to move router piles across app lock/unlock UI swaps.
+ */
 class NavigationStore {
     private var piles = mutableMapOf<String, NavigationPile>()
 

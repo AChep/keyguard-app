@@ -16,9 +16,11 @@ import com.artemchep.keyguard.common.usecase.GetMetas
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.feature.auth.AccountViewRoute
+import com.artemchep.keyguard.feature.auth.AccountViewRouteFactory
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
-import com.artemchep.keyguard.feature.home.vault.screen.VaultListRoute
+import com.artemchep.keyguard.feature.home.vault.folders.FoldersRouteFactory
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -48,6 +50,9 @@ fun produceSyncState(
         getCollections = instance(),
         getOrganizations = instance(),
         getFolders = instance(),
+        accountViewRouteFactory = instance(),
+        vaultRouteFactory = instance(),
+        foldersRouteFactory = instance(),
     )
 }
 
@@ -72,6 +77,9 @@ fun produceSyncState(
     getCollections: GetCollections,
     getOrganizations: GetOrganizations,
     getFolders: GetFolders,
+    accountViewRouteFactory: AccountViewRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+    foldersRouteFactory: FoldersRouteFactory,
 ): Loadable<SyncState> = produceScreenState(
     key = "sync_state",
     initial = Loadable.Loading,
@@ -177,7 +185,7 @@ fun produceSyncState(
                                         ),
                                     ),
                                 )
-                                val route = VaultListRoute(
+                                val route = vaultRouteFactory.create(
                                     args = VaultRoute.Args(
                                         appBar = VaultRoute.Args.AppBar(
                                             title = translate(Res.string.items),
@@ -209,7 +217,7 @@ fun produceSyncState(
                                         ),
                                     ),
                                 )
-                                val route = FoldersRoute(
+                                val route = foldersRouteFactory.create(
                                     args = FoldersRoute.Args(
                                         filter = filter,
                                     ),
@@ -228,7 +236,7 @@ fun produceSyncState(
                     items = items,
                     lastSyncTimestamp = lastSyncTimestamp,
                     onClick = {
-                        val route = AccountViewRoute(
+                        val route = accountViewRouteFactory.create(
                             accountId = AccountId(c.id),
                         )
                         val intent = NavigationIntent.NavigateToRoute(route)

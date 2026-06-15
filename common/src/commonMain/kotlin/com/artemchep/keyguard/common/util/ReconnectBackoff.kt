@@ -4,11 +4,13 @@ import arrow.core.throwIfFatal
 import com.artemchep.keyguard.platform.recordException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
-import kotlin.concurrent.Volatile
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.pow
 import kotlin.math.roundToLong
 import kotlin.random.Random
 
+@OptIn(ExperimentalAtomicApi::class)
 internal class ReconnectBackoff(
     private val baseDelayMs: Long = DEFAULT_BASE_DELAY_MS,
     private val multiplier: Double = DEFAULT_MULTIPLIER,
@@ -23,22 +25,21 @@ internal class ReconnectBackoff(
         const val DEFAULT_JITTER_RATIO: Double = 0.2
     }
 
-    @Volatile
-    private var _attempt: Int = 0
+    private val attemptRef = AtomicInt(0)
 
     val attempt: Int
-        get() = _attempt
+        get() = attemptRef.load()
 
     fun nextDelayMs(): Long {
-        val exponentialDelay = baseDelayMs.toDouble() * multiplier.pow(_attempt.toDouble())
+        val attempt = attemptRef.fetchAndAdd(1)
+        val exponentialDelay = baseDelayMs.toDouble() * multiplier.pow(attempt.toDouble())
         val clampedDelay = exponentialDelay.coerceAtMost(maxDelayMs.toDouble())
         val jitteredDelay = clampedDelay * jitterMultiplier()
-        _attempt += 1
         return jitteredDelay.roundToLong().coerceAtLeast(0L)
     }
 
     fun reset() {
-        _attempt = 0
+        attemptRef.store(0)
     }
 
     private fun jitterMultiplier(): Double {

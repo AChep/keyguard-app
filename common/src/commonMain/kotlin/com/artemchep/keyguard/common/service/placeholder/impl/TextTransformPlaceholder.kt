@@ -5,11 +5,11 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.util.Parser
-import io.ktor.util.*
+import com.artemchep.keyguard.common.util.toHex
+import io.ktor.http.URLDecodeException
+import io.ktor.http.decodeURLQueryComponent
 import org.kodein.di.DirectDI
-import java.net.URLDecoder
-import java.net.URLEncoder
-import java.util.Locale
+import kotlin.io.encoding.Base64
 
 class TextTransformPlaceholder(
 ) : Placeholder {
@@ -54,38 +54,35 @@ class TextTransformPlaceholder(
 
     private fun transformLowercase(
         value: String,
-    ): String = value.lowercase(Locale.ENGLISH)
+    ): String = value.lowercase()
 
     private fun transformUppercase(
         value: String,
-    ): String = value.uppercase(Locale.ENGLISH)
+    ): String = value.uppercase()
 
     private fun transformBase64(
         value: String,
-    ): String {
-        val bytes = value.toByteArray()
-        return java.util.Base64.getUrlEncoder()
-            .withoutPadding()
-            .encodeToString(bytes)
-    }
+    ): String = Base64.UrlSafe
+        .withPadding(Base64.PaddingOption.ABSENT)
+        .encode(value.encodeToByteArray())
 
     private fun transformHex(
         value: String,
     ): String {
-        val bytes = value.toByteArray()
-        return hex(bytes)
+        val bytes = value.encodeToByteArray()
+        return bytes.toHex()
     }
 
     private fun transformUriEncode(
         value: String,
-    ): String {
-        return URLEncoder.encode(value, "UTF-8")
-    }
+    ): String = urlEncodeUtf8(value)
 
     private fun transformUriDecode(
         value: String,
-    ): String {
-        return URLDecoder.decode(value, "UTF-8")
+    ): String = try {
+        value.decodeURLQueryComponent(plusIsSpace = true)
+    } catch (e: URLDecodeException) {
+        throw IllegalArgumentException(e.message, e)
     }
 
     class Factory(
@@ -98,5 +95,28 @@ class TextTransformPlaceholder(
         override fun createOrNull(
             scope: PlaceholderScope,
         ) = TextTransformPlaceholder()
+    }
+}
+
+private fun urlEncodeUtf8(value: String): String = buildString {
+    // Match java.net.URLEncoder UTF-8 form semantics.
+    // Ktor's public encoders differ for '*' and '~'.
+    value.encodeToByteArray().forEach { byte ->
+        val int = byte.toInt() and 0xff
+        val char = int.toChar()
+        when {
+            int in 'A'.code..'Z'.code ||
+                    int in 'a'.code..'z'.code ||
+                    int in '0'.code..'9'.code ||
+                    char == '-' ||
+                    char == '_' ||
+                    char == '.' ||
+                    char == '*' -> append(char)
+            char == ' ' -> append('+')
+            else -> {
+                append('%')
+                append(int.toString(radix = 16).padStart(2, '0').uppercase())
+            }
+        }
     }
 }

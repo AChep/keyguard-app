@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.model
 
+import kotlin.jvm.JvmInline
+
 @JvmInline
 value class FileResource(
     val name: String,

@@ -23,7 +23,7 @@ class LinkInfoRegistry(
                     extractors
                         .mapNotNull { extractor ->
                             val inputMatches =
-                                extractor.from.java.isAssignableFrom(linkInfo.javaClass) &&
+                                extractor.from.isInstance(linkInfo) &&
                                         extractor.handles(linkInfo)
                             if (inputMatches) {
                                 extractor.extractInfo(linkInfo)

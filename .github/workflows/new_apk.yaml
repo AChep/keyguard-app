@@ -3,13 +3,18 @@ name: "New APK"
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build-android-app:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup_gradle
       - name: "Prepare env"
         run: |
@@ -25,7 +30,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :androidApp:assembleNoneRelease
       - name: 'Upload .apk'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-android
           path: |

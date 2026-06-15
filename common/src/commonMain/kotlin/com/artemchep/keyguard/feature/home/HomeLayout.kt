@@ -8,7 +8,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 
-internal val LocalHomeLayout = staticCompositionLocalOf<HomeLayout> {
+val LocalHomeLayout = staticCompositionLocalOf<HomeLayout> {
     throw IllegalStateException("Home layout must be initialized!")
 }
 

@@ -1,0 +1,19 @@
+---
+import { SITE, NAV, REPO_URL } from '../consts';
+const year = 2026;
+---
+
+<footer class="bg-surface">
+  <div class="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-10 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-center gap-2 text-on-surface">
+      <span class="font-semibold">Artem Chepurnyi</span>
+      <span class="text-on-surface-variant">© 2021-{year}</span>
+    </div>
+
+    <ul class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-on-surface-variant">
+      <li>
+        <a href={REPO_URL} class="transition hover:text-primary">keyguard@artemchep.com</a>
+      </li>
+    </ul>
+  </div>
+</footer>

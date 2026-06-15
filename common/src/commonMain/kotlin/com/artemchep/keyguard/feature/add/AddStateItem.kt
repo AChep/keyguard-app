@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.model.UsernameVariation2
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.home.vault.add.KeyPairDecor2Brr
 import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.collections.immutable.ImmutableList
@@ -20,6 +21,11 @@ import kotlinx.datetime.LocalDateTime
 
 sealed interface AddStateItem {
     val id: String
+
+    data class FileDrop(
+        val text: String,
+        val onFileDrop: (FilePickerResult) -> Unit,
+    )
 
     interface HasOptions<T> {
         val options: ImmutableList<ContextItem>
@@ -126,6 +132,7 @@ sealed interface AddStateItem {
     data class Attachment<Request>(
         override val id: String,
         override val options: ImmutableList<ContextItem> = persistentListOf(),
+        val fileDrop: FileDrop? = null,
         override val state: LocalStateItem<State, Request>,
     ) : AddStateItem, HasOptions<Attachment<*>>, HasState<Attachment.State, Request> {
         override fun withOptions(
@@ -257,6 +264,7 @@ sealed interface AddStateItem {
 
     data class SshKey<Request>(
         override val id: String,
+        val fileDrop: FileDrop? = null,
         override val state: LocalStateItem<KeyPairDecor2Brr, Request>,
     ) : AddStateItem, HasState<KeyPairDecor2Brr, Request>
 

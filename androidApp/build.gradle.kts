@@ -96,6 +96,7 @@ android {
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
+                "../common/proguard-rules.pro",
                 "proguard-rules.pro",
             )
         }
@@ -133,6 +134,10 @@ dependencies {
     implementation(project(":common"))
     baselineProfile(project(":androidBenchmark"))
     coreLibraryDesugaring(libs.android.desugarjdklibs)
+
+    // Unit tests
+    testImplementation(kotlin("test"))
+    testImplementation(libs.junit)
 
     // Android tests
     androidTestImplementation(project(":androidTest"))

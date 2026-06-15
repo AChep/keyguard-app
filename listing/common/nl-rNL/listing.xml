@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Multi-account ondersteuning: Meerdere accounts tegelijkertijd ingelogd hebben.</string>
     <string name="listing_description_highlight_offline">Offline beheer: Items en sends toevoegen, wijzigen en uw kluis offline bekijken.</string>
     <string name="listing_description_highlight_export">Gegevensexport: Individuele of organisatie-items exporteren, inclusief bijlagen.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Generator: Wachtwoorden, SSH-sleutels en e-mail doorstuurders maken, met ondersteuning voor aangepaste woordenlijsten.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Geavanceerde functies: Ondersteuning voor sneltoetsen, veldplaatshouders, URL-overschrijvingen en slimme conflictoplossing.</string>

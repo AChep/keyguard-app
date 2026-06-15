@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.GeneratorContext
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
+import org.jetbrains.compose.resources.DrawableResource
 
 interface EmailRelay {
     val type: String
@@ -13,6 +14,8 @@ interface EmailRelay {
      * be shown directly to a user.
      */
     val name: String
+
+    val iconRes: DrawableResource?
 
     val docUrl: String?
         get() = null

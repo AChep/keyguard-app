@@ -46,6 +46,8 @@ interface SettingsReadRepository {
 
     fun getAdvertisePasskeysSupport(): Flow<Boolean>
 
+    fun getAdvertisePasswordsSupport(): Flow<Boolean>
+
     fun getAutofillCopyTotp(): Flow<Boolean>
 
     fun getVaultPersist(): Flow<Boolean>
@@ -86,6 +88,8 @@ interface SettingsReadRepository {
 
     fun getCachePremium(): Flow<Boolean>
 
+    fun getCacheHiddenSend(): Flow<Boolean>
+
     fun getAppIcons(): Flow<Boolean>
 
     fun getWebsiteIcons(): Flow<Boolean>
@@ -94,6 +98,10 @@ interface SettingsReadRepository {
 
     fun getSshAgent(): Flow<Boolean>
 
+    fun getSshAgentApprovalWindow(): Flow<Duration>
+
+    fun getSshAgentDisplayKeyNames(): Flow<Boolean>
+
     fun getSshAgentFilter(): Flow<SshAgentFilter>
 
     fun getAppVersionLog(): Flow<List<AppVersionLog>>
@@ -101,6 +109,8 @@ interface SettingsReadRepository {
     fun getNavAnimation(): Flow<NavAnimation?>
 
     fun getNavLabel(): Flow<Boolean>
+
+    fun getNavHiddenSend(): Flow<Boolean>
 
     fun getFont(): Flow<AppFont?>
 
@@ -121,6 +131,8 @@ interface SettingsReadRepository {
     fun getUseExternalBrowser(): Flow<Boolean>
 
     fun getCloseToTray(): Flow<Boolean>
+
+    fun getMinimizeOnCopy(): Flow<Boolean>
 
     fun getColors(): Flow<AppColors?>
 

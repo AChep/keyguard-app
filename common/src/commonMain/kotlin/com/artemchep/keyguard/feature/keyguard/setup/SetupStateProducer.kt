@@ -26,6 +26,7 @@ import com.artemchep.keyguard.platform.crashlyticsIsEnabled
 import com.artemchep.keyguard.platform.crashlyticsSetEnabled
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -62,6 +63,17 @@ fun setupScreenState(
 
     val passwordSink = mutablePersistedFlow("password") { DEFAULT_PASSWORD }
     val passwordState = mutableComposeState(passwordSink)
+
+    // Clear the password field when the screen
+    // moves into background.
+    launchUi {
+        try {
+            awaitCancellation()
+        } finally {
+            passwordState.value = DEFAULT_PASSWORD
+            passwordSink.value = DEFAULT_PASSWORD
+        }
+    }
 
     val createVaultByMasterPasswordFn = createVaultWithMasterPassword
         .let {

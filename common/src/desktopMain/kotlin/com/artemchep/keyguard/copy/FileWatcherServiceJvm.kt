@@ -9,6 +9,7 @@ import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.kodein.di.DirectDI
 import java.io.File
 import java.io.IOException
@@ -141,39 +143,45 @@ fun File.watchDirectoryFlow(
         kind = FileWatchEvent.Kind.INITIALIZED,
     )
 
-    var watcher: DirectoryWatcher? = null
-    try {
-        watcher = DirectoryWatcher.builder()
-            .path(path)
-            .fileHashing(false)
-            .listener { event: DirectoryChangeEvent ->
-                if (this@watchDirectoryFlow.isFile) {
-                    // Check that the event is related only to this
-                    // file!
-                    if (this@watchDirectoryFlow.toPath() != event.path()) {
-                        return@listener
-                    }
+    val watcher = DirectoryWatcher.builder()
+        .path(path)
+        .fileHashing(false)
+        .listener { event: DirectoryChangeEvent ->
+            if (this@watchDirectoryFlow.isFile) {
+                // Check that the event is related only to this
+                // file!
+                if (this@watchDirectoryFlow.toPath() != event.path()) {
+                    return@listener
                 }
-                val kind = when (event.eventType()) {
-                    DirectoryChangeEvent.EventType.CREATE -> FileWatchEvent.Kind.CREATED
-                    DirectoryChangeEvent.EventType.OVERFLOW,
-                    DirectoryChangeEvent.EventType.MODIFY,
-                        -> FileWatchEvent.Kind.MODIFIED
-
-                    DirectoryChangeEvent.EventType.DELETE -> FileWatchEvent.Kind.DELETED
-                    else -> return@listener
-                }
-                sendEvent(
-                    path = event.path(),
-                    kind = kind,
-                )
             }
-            .build()
-        watcher?.watch()
-    } finally {
+            val kind = when (event.eventType()) {
+                DirectoryChangeEvent.EventType.CREATE -> FileWatchEvent.Kind.CREATED
+                DirectoryChangeEvent.EventType.OVERFLOW,
+                DirectoryChangeEvent.EventType.MODIFY,
+                    -> FileWatchEvent.Kind.MODIFIED
+
+                DirectoryChangeEvent.EventType.DELETE -> FileWatchEvent.Kind.DELETED
+                else -> return@listener
+            }
+            sendEvent(
+                path = event.path(),
+                kind = kind,
+            )
+        }
+        .build()
+    val watchJob = launch(Dispatchers.IO) {
         try {
-            watcher?.close()
+            watcher.watch()
+            channel.close()
+        } catch (e: Exception) {
+            channel.close(e)
+        }
+    }
+    awaitClose {
+        try {
+            watcher.close()
         } catch (_: Exception) {
         }
+        watchJob.cancel()
     }
 }.flowOn(Dispatchers.IO)

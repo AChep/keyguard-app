@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.usecase.GenerateMasterSaltUseCase
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.dataexposed.UrlBlock
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex

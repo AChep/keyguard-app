@@ -17,7 +17,7 @@ class EntryCrypto(
     }
 }
 
-fun EntryCrypto.transformToString(value: String): String = String(transform(value))
+fun EntryCrypto.transformToString(value: String): String = transform(value).decodeToString()
 
 fun EntryCrypto.transformToBase64(value: String): String = whatIf(
     isEncrypt = { base64Service.decodeToString(value).let(::transformToString) },

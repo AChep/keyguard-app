@@ -21,12 +21,14 @@ import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.AddCredentialCipher
+import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
@@ -39,8 +41,8 @@ import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import org.jetbrains.compose.resources.getString as getComposeString
-import org.jetbrains.compose.resources.stringResource
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNotNull
@@ -48,8 +50,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.getString as getComposeString
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.*
 import kotlin.String
 
@@ -116,6 +121,9 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
 
     private val uiStateSink = mutableStateOf<UiState>(UiState.Loading)
 
+    private val preparedCreateCredentialDataSink =
+        mutableStateOf<PasskeyCreateRequest.PreparedCreateCredentialRequest?>(null)
+
     private sealed interface UiState {
         data object Loading : UiState
 
@@ -124,6 +132,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
          * authenticate himself.
          */
         class PickCipher(
+            val data: PasskeyCreateRequest.PreparedCreateCredentialRequest,
             val onComplete: (DSecret) -> Unit,
         ) : UiState
 
@@ -148,9 +157,11 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
             val session = getVaultSession()
                 .mapNotNull { it as? MasterSession.Key }
                 .first()
+            val preparedRequest = prepareCredentialRequestWithRetry(session)
+            preparedCreateCredentialDataSink.value = preparedRequest
 
             val cipherState = MutableStateFlow<DSecret?>(null)
-            uiStateSink.value = UiState.PickCipher {
+            uiStateSink.value = UiState.PickCipher(preparedRequest) {
                 cipherState.value = it
             }
             // Wait till the user picks a cipher to
@@ -167,6 +178,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                     handleCredentialRequest(
                         session = session,
                         cipher = cipher,
+                        preparedRequest = preparedRequest,
                         onRetry = {
                             retrySink.value = attempt + 1
                         },
@@ -179,14 +191,18 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
     private suspend fun handleCredentialRequest(
         session: MasterSession.Key,
         cipher: DSecret,
+        preparedRequest: PasskeyCreateRequest.PreparedCreateCredentialRequest,
         onRetry: () -> Unit,
     ) {
         val (response, local) = runCatching {
-            PasskeyUtils.withProcessingMinTime {
-                processUnlockedVault(
-                    session = session,
-                    userVerified = true,
-                )
+            withContext(Dispatchers.Default) {
+                PasskeyUtils.withProcessingMinTime {
+                    processUnlockedVault(
+                        session = session,
+                        preparedRequest = preparedRequest,
+                        userVerified = true,
+                    )
+                }
             }
         }.getOrElse {
             recordException(it)
@@ -201,7 +217,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
         }
 
         // Add the credential
-        val result = kotlin.run {
+        val result = withContext(Dispatchers.Default) {
             val request = AddCredentialCipherRequest(
                 cipherId = cipher.id,
                 data = local,
@@ -281,6 +297,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
 
             null -> ""
         }
+        val preparedCreateCredentialData = preparedCreateCredentialDataSink.value
         val context by rememberUpdatedState(newValue = LocalContext.current)
         CredentialScaffold(
             onCancel = {
@@ -292,9 +309,12 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
             subtitle = {
                 when (val data = createCredentialData) {
                     is CreateCredentialData.PublicKey -> {
+                        val rpId =
+                            (preparedCreateCredentialData as? PasskeyCreateRequest.PreparedCreateCredentialRequest.PublicKey)
+                                ?.rpId
                         CredentialSubtitlePublicKey(
                             username = data.data.user.displayName,
-                            rpId = data.data.rp.id.orEmpty(),
+                            rpId = rpId,
                         )
                     }
 
@@ -341,27 +361,26 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
                             }
 
                             is UiState.PickCipher -> {
-                                val updatedOnAuthenticated by rememberUpdatedState(state.onComplete)
-                                val appMode = remember {
-                                    when (val data = createCredentialData) {
-                                        is CreateCredentialData.PublicKey ->
+                                val updatedOnAuthenticatedState =
+                                    rememberUpdatedState(state.onComplete)
+                                val appMode = remember(state.data) {
+                                    when (val data = state.data) {
+                                        is PasskeyCreateRequest.PreparedCreateCredentialRequest.PublicKey ->
                                             AppMode.SavePasskey(
-                                                rpId = data.data.rp.id,
+                                                rpId = data.rpId,
                                                 onComplete = { cipher ->
-                                                    updatedOnAuthenticated.invoke(cipher)
+                                                    updatedOnAuthenticatedState.value.invoke(cipher)
                                                 },
                                             )
 
-                                        is CreateCredentialData.Password ->
+                                        is PasskeyCreateRequest.PreparedCreateCredentialRequest.Password ->
                                             AppMode.SavePassword(
-                                                id = data.id,
+                                                id = data.data.id,
                                                 uri = data.uri,
                                                 onComplete = { cipher ->
-                                                    updatedOnAuthenticated.invoke(cipher)
+                                                    updatedOnAuthenticatedState.value.invoke(cipher)
                                                 },
                                             )
-
-                                        null -> AppMode.Main
                                     }
                                 }
                                 CompositionLocalProvider(
@@ -377,19 +396,71 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
         }
     }
 
-    private suspend fun processUnlockedVault(
+    private suspend fun prepareCredentialRequestWithRetry(
         session: MasterSession.Key,
-        userVerified: Boolean,
-    ): Pair<CreateCredentialResponse, AddCredentialCipherRequestData> {
+    ): PasskeyCreateRequest.PreparedCreateCredentialRequest {
+        while (true) {
+            preparedCreateCredentialDataSink.value = null
+            uiStateSink.value = UiState.Loading
+
+            val preparedRequest = runCatching {
+                withContext(Dispatchers.Default) {
+                    prepareUnlockedVault(session)
+                }
+            }.getOrElse {
+                it.throwIfFatalOrCancellation()
+                recordException(it)
+
+                val retrySignal = CompletableDeferred<Unit>()
+                val uiState = getCredentialErrorUiState(
+                    session = session,
+                    exception = it,
+                    onRetry = {
+                        retrySignal.complete(Unit)
+                    },
+                )
+                uiStateSink.value = uiState
+                retrySignal.await()
+                null
+            }
+            if (preparedRequest != null) {
+                return preparedRequest
+            }
+        }
+    }
+
+    private suspend fun prepareUnlockedVault(
+        session: MasterSession.Key,
+    ): PasskeyCreateRequest.PreparedCreateCredentialRequest {
         val privilegedApps = kotlin.run {
             val getPrivilegedApps = session.di.direct.instance<GetPrivilegedApps>()
             getPrivilegedApps()
                 .first()
         }
-        return createCredentialRequestUtils.processCreateCredentialsRequest(
+        return createCredentialRequestUtils.prepareCreateCredentialsRequest(
             request = createCredentialRequest,
-            userVerified = userVerified,
             privilegedApps = privilegedApps,
+        )
+    }
+
+    private suspend fun processUnlockedVault(
+        session: MasterSession.Key,
+        preparedRequest: PasskeyCreateRequest.PreparedCreateCredentialRequest,
+        userVerified: Boolean,
+    ): Pair<CreateCredentialResponse, AddCredentialCipherRequestData> {
+        val ciphers = when (preparedRequest) {
+            is PasskeyCreateRequest.PreparedCreateCredentialRequest.PublicKey -> {
+                val getCiphers = session.di.direct.instance<GetCiphers>()
+                getCiphers()
+                    .first()
+            }
+
+            is PasskeyCreateRequest.PreparedCreateCredentialRequest.Password -> emptyList()
+        }
+        return createCredentialRequestUtils.processCreateCredentialsRequest(
+            request = preparedRequest,
+            userVerified = userVerified,
+            ciphers = ciphers,
         )
     }
 }

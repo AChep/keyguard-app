@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.util.hexToByteArray
+import com.artemchep.keyguard.common.util.toHex
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -16,7 +18,7 @@ class ProstDecodeTest {
     @Test
     fun `decode prost-encoded AuthenticateRequest bytes`() {
         val hex = "080112220a20fba9b3fd1613d5eaa05cfc2bb7e0988e0bb06e5e88dbd85db75322912de256f3"
-        val bytes = hexToBytes(hex)
+        val bytes = hex.hexToByteArray()
         val decoded = protoBuf.decodeFromByteArray<SshAgentMessages.IpcRequest>(bytes)
         assertEquals(1L, decoded.id)
         assertNull(decoded.listKeys)
@@ -28,7 +30,7 @@ class ProstDecodeTest {
     @Test
     fun `decode prost-encoded SignDataRequest bytes`() {
         val hex = "080722230a187373682d6564323535313920414141412e2e2e2074657374120501020304051804"
-        val bytes = hexToBytes(hex)
+        val bytes = hex.hexToByteArray()
         val decoded = protoBuf.decodeFromByteArray<SshAgentMessages.IpcRequest>(bytes)
 
         assertEquals(7L, decoded.id)
@@ -44,7 +46,7 @@ class ProstDecodeTest {
     @Test
     fun `decode prost-encoded ListKeysResponse bytes`() {
         val hex = "08021a3b0a390a066d792d6b657912137373682d6564323535313920414141412e2e2e1a0b7373682d65643235353139220d5348413235363a616263646566"
-        val bytes = hexToBytes(hex)
+        val bytes = hex.hexToByteArray()
         val decoded = protoBuf.decodeFromByteArray<SshAgentMessages.IpcResponse>(bytes)
 
         assertEquals(2L, decoded.id)
@@ -62,7 +64,7 @@ class ProstDecodeTest {
     @Test
     fun `decode prost-encoded ErrorResponse bytes`() {
         val hex = "08047a130a0f7661756c74206973206c6f636b65641001"
-        val bytes = hexToBytes(hex)
+        val bytes = hex.hexToByteArray()
         val decoded = protoBuf.decodeFromByteArray<SshAgentMessages.IpcResponse>(bytes)
 
         assertEquals(4L, decoded.id)
@@ -91,16 +93,11 @@ class ProstDecodeTest {
             id = 1L,
             authenticate = SshAgentMessages.AuthenticateRequest(token = token),
         )
-        val kotlinxBytes = protoBuf.encodeToByteArray(original)
-        val kotlinxHex = kotlinxBytes.joinToString("") { "%02x".format(it) }
+        val kotlinxHex = protoBuf.encodeToByteArray(original).toHex()
         val prostHex = "080112220a20fba9b3fd1613d5eaa05cfc2bb7e0988e0bb06e5e88dbd85db75322912de256f3"
         println("kotlinx hex: $kotlinxHex")
         println("prost hex:   $prostHex")
         println("match: ${kotlinxHex == prostHex}")
     }
 
-    private fun hexToBytes(hex: String): ByteArray =
-        hex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-
-    private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
 }

@@ -4,30 +4,49 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.credentials.exceptions.domerrors.EncodingError
+import androidx.credentials.exceptions.domerrors.NotAllowedError
+import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException
+import androidx.credentials.provider.BeginGetCredentialOption
 import androidx.credentials.provider.BeginGetCredentialRequest
 import androidx.credentials.provider.BeginGetCredentialResponse
 import androidx.credentials.provider.BeginGetPasswordOption
 import androidx.credentials.provider.BeginGetPublicKeyCredentialOption
 import androidx.credentials.provider.CallingAppInfo
 import androidx.credentials.provider.CredentialEntry
+import androidx.credentials.provider.PasswordCredentialEntry
 import androidx.credentials.provider.PublicKeyCredentialEntry
+import arrow.optics.Getter
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepository
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.toIO
+import com.artemchep.keyguard.common.model.AutofillHint
+import com.artemchep.keyguard.common.model.AutofillTarget
+import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
+import com.artemchep.keyguard.common.model.LinkInfoPlatform
+import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
+import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
+import com.artemchep.keyguard.common.service.webauthn.WebAuthnEncodingException
+import com.artemchep.keyguard.common.service.webauthn.WebAuthnNotAllowedException
+import com.artemchep.keyguard.common.service.webauthn.parseWebAuthnAllowedCredentialDescriptors
+import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
+import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
+import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
-import com.artemchep.keyguard.feature.auth.common.util.REGEX_IPV4
-import kotlin.time.Instant
+import io.ktor.http.Url
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 
 @SuppressLint("RestrictedApi")
@@ -35,7 +54,12 @@ import kotlin.time.toJavaInstant
 class PasskeyBeginGetRequest(
     private val context: Context,
     private val json: Json,
+    private val getAutofillPasskeysEnabled: GetAutofillPasskeysEnabled,
+    private val getAutofillPasswordsEnabled: GetAutofillPasswordsEnabled,
     private val passkeyTargetCheck: PasskeyTargetCheck,
+    private val privilegedAppsService: PrivilegedAppsService,
+    private val credentialProviderPlatformConfig: CredentialProviderPlatformConfig,
+    private val passkeyUtils: PasskeyUtils,
 ) {
     // https://www.w3.org/TR/webauthn-2/#dictionary-assertion-options
     @Serializable
@@ -43,7 +67,7 @@ class PasskeyBeginGetRequest(
         val allowCredentials: List<PublicKeyCredentialDescriptor> = emptyList(),
         @SerialName("challenge")
         val challengeBase64: String,
-        val rpId: String,
+        val rpId: String? = null,
         val userVerification: UserVerification? = UserVerification.PREFERRED,
         // https://www.w3.org/TR/webauthn-2/#enum-attestation-convey
         val attestation: String? = "none",
@@ -76,23 +100,38 @@ class PasskeyBeginGetRequest(
     ) : this(
         context = directDI.instance<Application>(),
         json = directDI.instance(),
+        getAutofillPasskeysEnabled = directDI.instance(),
+        getAutofillPasswordsEnabled = directDI.instance(),
         passkeyTargetCheck = directDI.instance(),
+        privilegedAppsService = directDI.instance(),
+        credentialProviderPlatformConfig = directDI.instance(),
+        passkeyUtils = directDI.instance(),
     )
 
     suspend fun processGetCredentialsRequest(
         cipherHistoryOpenedRepository: CipherHistoryOpenedRepository,
+        getSuggestions: GetSuggestions<Any?>,
+        equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
         request: BeginGetCredentialRequest,
         ciphers: List<DSecret>,
+        privilegedApps: List<DPrivilegedApp>,
         userVerified: Boolean = false,
     ): BeginGetCredentialResponse {
-        val credentialEntries = request
-            .beginGetCredentialOptions
+        val passkeysEnabled = getAutofillPasskeysEnabled().toIO().bind()
+        val passwordsEnabled = getAutofillPasswordsEnabled().toIO().bind()
+        val credentialEntries = filterCredentialProviderBeginGetOptions(
+            options = request.beginGetCredentialOptions,
+            passkeysEnabled = passkeysEnabled,
+            passwordsEnabled = passwordsEnabled,
+        )
             .flatMap { option ->
                 when (option) {
                     is BeginGetPasswordOption -> populatePasswordData(
                         callingAppInfo = request.callingAppInfo,
                         option = option,
                         ciphers = ciphers,
+                        getSuggestions = getSuggestions,
+                        equivalentDomainsBuilderFactory = equivalentDomainsBuilderFactory,
                         userVerified = userVerified,
                     )
 
@@ -101,6 +140,7 @@ class PasskeyBeginGetRequest(
                         callingAppInfo = request.callingAppInfo,
                         option = option,
                         ciphers = ciphers,
+                        privilegedApps = privilegedApps,
                         userVerified = userVerified,
                     )
 
@@ -116,9 +156,52 @@ class PasskeyBeginGetRequest(
         callingAppInfo: CallingAppInfo?,
         option: BeginGetPasswordOption,
         ciphers: List<DSecret>,
+        getSuggestions: GetSuggestions<Any?>,
+        equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
         userVerified: Boolean,
     ): List<CredentialEntry> {
-        return emptyList()
+        return findCredentialProviderPasswordCiphers(
+            callingAppInfo = callingAppInfo,
+            option = option,
+            ciphers = ciphers,
+            provideTrustedOrigin = { appInfo ->
+                getCredentialProviderTrustedOriginOrNull(
+                    appInfo = appInfo,
+                    privilegedAppsService = privilegedAppsService,
+                )
+            },
+            getSuggestions = { target, passwordCiphers ->
+                getSuggestions(
+                    passwordCiphers,
+                    Getter { it as DSecret },
+                    target,
+                    equivalentDomainsBuilderFactory,
+                )
+                    .bind()
+                    .mapNotNull { it as? DSecret }
+            },
+        )
+            .map { cipher ->
+                val login = requireNotNull(cipher.login)
+                val username = requireNotNull(login.username)
+                val requiresUserVerification = cipher.reprompt
+                PasswordCredentialEntry.Builder(
+                    context = context,
+                    username = username,
+                    pendingIntent = createGetPasswordPendingIntent(
+                        args = PasswordProviderGetActivityArgs(
+                            accountId = cipher.accountId,
+                            cipherId = cipher.id,
+                            id = username,
+                            requiresUserVerification = requiresUserVerification,
+                            userVerified = userVerified,
+                        ),
+                    ),
+                    beginGetPasswordOption = option,
+                )
+                    .setDisplayName(cipher.name)
+                    .build()
+            }
     }
 
     private suspend fun populatePasskeyData(
@@ -126,29 +209,37 @@ class PasskeyBeginGetRequest(
         callingAppInfo: CallingAppInfo?,
         option: BeginGetPublicKeyCredentialOption,
         ciphers: List<DSecret>,
+        privilegedApps: List<DPrivilegedApp>,
         userVerified: Boolean,
     ): List<CredentialEntry> {
         val requestOptions: PublicKeyCredentialRequestOptions =
             json.decodeFromString(option.requestJson)
-        // Ignore not allowed relying party IDs.
-        if (!validateRpId(requestOptions.rpId)) {
-            return emptyList()
-        }
+        // WebAuthn L3 get() sets a missing `pkOptions.rpId` to the caller
+        // origin's effective domain before finding matching credentials.
+        // Explicit RP IDs are also validated against the caller origin at this
+        // stage so unauthorized callers do not see credential entries.
+        // See https://www.w3.org/TR/webauthn-3/#sctn-discover-from-external-source
+        val rpId = resolveCredentialProviderBeginGetRpId(
+            requestRpId = requestOptions.rpId,
+            callingAppInfo = callingAppInfo,
+            privilegedApps = privilegedApps,
+            passkeyUtils = passkeyUtils,
+        ) ?: return emptyList()
+        val allowCredentialDescriptors = parseCredentialProviderBeginGetAllowedCredentialDescriptors(
+            requestJson = option.requestJson,
+            json = json,
+        )
         val target = kotlin.run {
-            val allowCredentials = requestOptions.allowCredentials
-                .map { credentialDescriptor ->
-                    val credentialId = kotlin.run {
-                        val data = PasskeyBase64.decode(credentialDescriptor.idBase64)
-                        PasskeyCredentialId.decode(data)
-                    }
-                    PasskeyTarget.AllowedCredential(
-                        credentialId = credentialId,
-                    )
-                }
             PasskeyTarget(
-                allowedCredentials = allowCredentials
-                    .takeIf { it.isNotEmpty() },
-                rpId = requestOptions.rpId,
+                // WebAuthn descriptor matching is based on both descriptor ID
+                // and type. Unknown descriptor types are ignored in the shared
+                // parser; if every supplied descriptor has an unknown type, the
+                // parser raises NotAllowedError instead of using discoverable
+                // credential fallback.
+                // Spec: https://www.w3.org/TR/webauthn-3/#dictdef-publickeycredentialdescriptor
+                allowedCredentials = allowCredentialDescriptors
+                    .toPasskeyTargetAllowedCredentials(),
+                rpId = rpId,
             )
         }
         return ciphers
@@ -187,6 +278,7 @@ class PasskeyBeginGetRequest(
                             credentialId = credential.credentialId,
                         )
                         val requiresUserVerification = cipher.reprompt ||
+                                requestOptions.userVerification == PublicKeyCredentialRequestOptions.UserVerification.PREFERRED ||
                                 requestOptions.userVerification == PublicKeyCredentialRequestOptions.UserVerification.REQUIRED
 
                         val username = credential.userDisplayName
@@ -197,14 +289,16 @@ class PasskeyBeginGetRequest(
                             context = context,
                             username = username,
                             pendingIntent = createGetPasskeyPendingIntent(
-                                accountId = cipher.accountId,
-                                cipherId = cipher.id,
-                                credId = credential.credentialId,
-                                cipherName = cipher.name,
-                                credRpId = credential.rpId,
-                                credUserDisplayName = username,
-                                requiresUserVerification = requiresUserVerification,
-                                userVerified = userVerified,
+                                args = PasskeyProviderGetActivityArgs(
+                                    accountId = cipher.accountId,
+                                    cipherId = cipher.id,
+                                    credId = credential.credentialId,
+                                    cipherName = cipher.name,
+                                    credRpId = credential.rpId,
+                                    credUserDisplayName = username,
+                                    requiresUserVerification = requiresUserVerification,
+                                    userVerified = userVerified,
+                                ),
                             ),
                             beginGetPublicKeyCredentialOption = option,
                         )
@@ -230,46 +324,227 @@ class PasskeyBeginGetRequest(
         .bind()
         .getOrNull()
 
-    // See:
-    // https://webauthn-doc.spomky-labs.com/prerequisites/the-relying-party#relying-party-id
-    private suspend fun validateRpId(
-        rpId: String,
-    ): Boolean = '/' !in rpId &&
-            ':' !in rpId &&
-            '@' !in rpId &&
-            !REGEX_IPV4.matches(rpId)
-
     //
     // Pending intent
     //
 
     private fun createGetPasskeyPendingIntent(
-        accountId: String,
-        cipherId: String,
-        credId: String,
-        cipherName: String,
-        credRpId: String,
-        credUserDisplayName: String,
-        requiresUserVerification: Boolean,
-        userVerified: Boolean,
+        args: PasskeyProviderGetActivityArgs,
     ): PendingIntent {
-        val intent = PasskeyGetActivity.getIntent(
+        val intent = Intent(
+            context,
+            credentialProviderPlatformConfig.getPasskeyActivityClass,
+        ).apply {
+            putExtra(
+                PasskeyGetActivity.KEY_ARGUMENTS,
+                args,
+            )
+        }
+        return createCredentialProviderPendingIntent(
             context = context,
-            args = PasskeyGetActivity.Args(
-                accountId = accountId,
-                cipherId = cipherId,
-                credId = credId,
-                cipherName = cipherName,
-                credRpId = credRpId,
-                credUserDisplayName = credUserDisplayName,
-                requiresUserVerification = requiresUserVerification,
-                userVerified = userVerified,
-            ),
+            intent = intent,
         )
-        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-        val rc = getNextPendingIntentRequestCode()
-        return PendingIntent.getActivity(context, rc, intent, flags)
     }
 
-    private fun getNextPendingIntentRequestCode() = PendingIntents.credential.obtainId()
+    private fun createGetPasswordPendingIntent(
+        args: PasswordProviderGetActivityArgs,
+    ): PendingIntent {
+        val intent = Intent(
+            context,
+            credentialProviderPlatformConfig.getPasswordActivityClass,
+        ).apply {
+            putExtra(
+                PasswordGetActivity.KEY_ARGUMENTS,
+                args,
+            )
+        }
+        return createCredentialProviderPendingIntent(
+            context = context,
+            intent = intent,
+        )
+    }
+}
+
+@RequiresApi(Build.VERSION_CODES.P)
+internal suspend fun resolveCredentialProviderBeginGetRpId(
+    requestRpId: String?,
+    callingAppInfo: CallingAppInfo?,
+    privilegedApps: List<DPrivilegedApp>,
+    passkeyUtils: PasskeyUtils,
+): String? {
+    val appInfo = callingAppInfo
+        ?: return null
+    val origin = runCatching {
+        passkeyUtils.callingAppOrigin(
+            appInfo = appInfo,
+            privilegedApps = privilegedApps,
+        )
+    }.getOrElse {
+        return null
+    }
+    return resolveCredentialProviderBeginGetRpId(
+        requestRpId = requestRpId,
+        origin = origin,
+        packageName = appInfo.packageName,
+        passkeyUtils = passkeyUtils,
+    )
+}
+
+internal suspend fun resolveCredentialProviderBeginGetRpId(
+    requestRpId: String?,
+    origin: String,
+    packageName: String,
+    passkeyUtils: PasskeyUtils,
+): String? = runCatching {
+    passkeyUtils.resolveAndValidateRpId(
+        rpId = requestRpId,
+        origin = origin,
+        packageName = packageName,
+    )
+}.getOrNull()
+
+internal fun parseCredentialProviderBeginGetAllowedCredentialDescriptors(
+    requestJson: String,
+    json: Json,
+    decodeCredentialId: (String) -> ByteArray = PasskeyBase64::decode,
+) = mapCredentialProviderBeginGetWebAuthnExceptions {
+    parseWebAuthnAllowedCredentialDescriptors(
+        requestJson = requestJson,
+        json = json,
+        decodeCredentialId = decodeCredentialId,
+    )
+}
+
+private inline fun <T> mapCredentialProviderBeginGetWebAuthnExceptions(
+    block: () -> T,
+): T {
+    try {
+        return block()
+    } catch (e: WebAuthnEncodingException) {
+        throw GetPublicKeyCredentialDomException(
+            domError = EncodingError(),
+            errorMessage = e.message.orEmpty(),
+        )
+    } catch (e: WebAuthnNotAllowedException) {
+        throw GetPublicKeyCredentialDomException(
+            domError = NotAllowedError(),
+            errorMessage = e.message.orEmpty(),
+        )
+    }
+}
+
+internal fun filterCredentialProviderBeginGetOptions(
+    options: List<BeginGetCredentialOption>,
+    passkeysEnabled: Boolean,
+    passwordsEnabled: Boolean,
+): List<BeginGetCredentialOption> = options.filter { option ->
+    when (option) {
+        is BeginGetPublicKeyCredentialOption -> passkeysEnabled
+        is BeginGetPasswordOption -> passwordsEnabled
+        else -> false
+    }
+}
+
+internal suspend fun findCredentialProviderPasswordCiphers(
+    callingAppInfo: CallingAppInfo?,
+    option: BeginGetPasswordOption,
+    ciphers: List<DSecret>,
+    provideTrustedOrigin: suspend (CallingAppInfo) -> String?,
+    getSuggestions: suspend (AutofillTarget, List<DSecret>) -> List<DSecret>,
+): List<DSecret> {
+    val passwordCiphers = ciphers.filter { cipher ->
+        if (
+            cipher.archived ||
+            cipher.deleted ||
+            cipher.type != DSecret.Type.Login
+        ) {
+            return@filter false
+        }
+
+        val login = cipher.login ?: return@filter false
+        if (
+            login.username == null ||
+            login.password == null
+        ) {
+            return@filter false
+        }
+
+        option.allowedUserIds.isEmpty() || login.username in option.allowedUserIds
+    }
+    if (passwordCiphers.isEmpty()) {
+        return emptyList()
+    }
+
+    val target = createCredentialProviderAutofillTarget(
+        callingAppInfo = callingAppInfo,
+        trustedOrigin = if (callingAppInfo != null) {
+            provideTrustedOrigin(callingAppInfo)
+        } else {
+            null
+        },
+        option = option,
+    ) ?: return passwordCiphers
+
+    return getSuggestions(target, passwordCiphers)
+}
+
+internal fun createCredentialProviderAutofillTarget(
+    callingAppInfo: CallingAppInfo?,
+    trustedOrigin: String?,
+    option: BeginGetPasswordOption,
+): AutofillTarget? {
+    val links = buildList {
+        callingAppInfo?.packageName?.let { packageName ->
+            add(
+                LinkInfoPlatform.Android(
+                    packageName = packageName,
+                ),
+            )
+        }
+        trustedOrigin
+            ?.takeIf { origin ->
+                origin.startsWith("https://", ignoreCase = true) ||
+                        origin.startsWith("http://", ignoreCase = true)
+            }
+            ?.let { origin ->
+                runCatching {
+                    Url(origin)
+                }.getOrNull()
+            }
+            ?.let { url ->
+                add(
+                    LinkInfoPlatform.Web(
+                        url = url,
+                        frontPageUrl = url,
+                    ),
+                )
+            }
+    }
+    if (links.isEmpty() && option.allowedUserIds.isEmpty()) {
+        return null
+    }
+
+    return AutofillTarget(
+        username = option.allowedUserIds.singleOrNull(),
+        links = links,
+        hints = listOf(
+            AutofillHint.EMAIL_ADDRESS,
+            AutofillHint.USERNAME,
+            AutofillHint.PASSWORD,
+        ),
+    )
+}
+
+internal suspend fun getCredentialProviderTrustedOriginOrNull(
+    appInfo: CallingAppInfo,
+    privilegedAppsService: PrivilegedAppsService,
+): String? {
+    if (!appInfo.isOriginPopulated()) {
+        return null
+    }
+
+    return runCatching {
+        val privilegedAllowlist = privilegedAppsService.get().bind()
+        appInfo.getOrigin(privilegedAllowlist)
+    }.getOrNull()
 }

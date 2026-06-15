@@ -4,6 +4,21 @@ import arrow.optics.Lens
 import arrow.optics.optics
 
 class ModelDiffUtil {
+    companion object {
+        fun isSameDiffValueAs(
+            a: Any?,
+            b: Any?,
+        ): Boolean {
+            if (a == b)
+                return true
+            // Treat "" (empty string) and null as the same values during
+            // the diff-ing. Semantically those are the same to a user.
+            return a.isNullOrEmptyString() && b.isNullOrEmptyString()
+        }
+
+        private fun Any?.isNullOrEmptyString(): Boolean = this == null || this == ""
+    }
+
     fun DiffFinderNode<out Any>.merge(
         base: Any?, // old remote
         a: Any?, // local
@@ -90,8 +105,7 @@ class ModelDiffUtil {
         ) : DiffFinderNode<Input>
     }
 
-    @FunctionalInterface
-    interface DiffFinder<T> {
+    fun interface DiffFinder<T> {
         fun compare(base: T, a: T, b: T): T
     }
 
@@ -101,11 +115,11 @@ class ModelDiffUtil {
             a: T,
             b: T,
         ): T {
-            return b.takeIf { it != base }
-                ?: a.takeIf { it != base }
-                // Otherwise return the value that is
-                // the same between all the values.
-                ?: base
+            return when {
+                !isSameDiffValueAs(b, base) -> b
+                !isSameDiffValueAs(a, base) -> a
+                else -> base
+            }
         }
     }
 

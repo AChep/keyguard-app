@@ -1,9 +1,7 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.EditNotifications
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
@@ -14,12 +12,13 @@ import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.ShowMessage
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.settings.KgAction
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.ChevronIcon
-import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
@@ -31,6 +30,9 @@ actual fun settingClipboardNotificationSettingsProvider(
 
 fun settingClipboardNotificationSettingsProvider(
 ): SettingComponent = run {
+    if (CurrentPlatform.hasWatch()) {
+        return@run flowOf(null)
+    }
 
     val item = SettingIi {
         SettingClipboardNotificationSettings()
@@ -45,14 +47,9 @@ fun SettingClipboardNotificationSettings(
     val clipboardService by rememberInstance<ClipboardService>()
 
     val updatedContext by rememberUpdatedState(LocalContext.current)
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.EditNotifications),
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_clipboard_notification_settings_title),
-            )
-        },
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.EditNotifications,
+        title = stringResource(Res.string.pref_item_clipboard_notification_settings_title),
         trailing = {
             ChevronIcon()
         },

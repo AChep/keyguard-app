@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.export.impl
 
+import arrow.core.getOrElse
+import arrow.core.getOrNone
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
@@ -110,7 +112,8 @@ class JsonExportServiceImpl(
         // ensures that the entries can be correctly restores later.
         val folderId = folderId
             ?.let { id ->
-                localToRemoteFolderIdMap.getOrDefault(id, id)
+                localToRemoteFolderIdMap.getOrNone(id)
+                    .getOrElse { id }
             }
         put("folderId", folderId)
         // Organizations and collections.

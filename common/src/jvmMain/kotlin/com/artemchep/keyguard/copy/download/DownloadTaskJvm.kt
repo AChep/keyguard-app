@@ -2,7 +2,6 @@ package com.artemchep.keyguard.copy.download
 
 import arrow.core.left
 import arrow.core.right
-import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
@@ -13,31 +12,16 @@ import com.artemchep.keyguard.common.service.download.DownloadWriter
 import com.artemchep.keyguard.common.service.download.writeBytes
 import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.platform.toJavaFile
-import io.ktor.http.HttpStatusCode
-import io.ktor.utils.io.core.use
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.channels.ProducerScope
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.io.asOutputStream
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.File
-import java.io.IOException
-import java.io.OutputStream
 
 open class DownloadTaskJvm(
     private val cacheDirProvider: CacheDirProvider,
@@ -45,10 +29,6 @@ open class DownloadTaskJvm(
     private val okHttpClient: OkHttpClient,
     private val fileEncryptor: FileEncryptor,
 ) : DownloadTask {
-    companion object {
-        private const val DOWNLOAD_PROGRESS_POOLING_PERIOD_MS = 1000L
-    }
-
     constructor(
         directDI: DirectDI,
     ) : this(
@@ -72,7 +52,7 @@ open class DownloadTaskJvm(
         writer: DownloadWriter,
     ): Flow<DownloadProgress> = flow {
         // If we do not have to do any decryption, then we do not need
-        // to create a temporarily file for the download.
+        // to create a temporary file for the download.
         if (key == null) {
             emit(DownloadProgress.Loading())
             // 1. Save the data into the writer.
@@ -120,42 +100,34 @@ open class DownloadTaskJvm(
             // 2. Download the encrypted content of a file
             // to the temporary file.
             val result = try {
-                downloadToFile(
+                downloadToFileJvm(
+                    okHttpClient = okHttpClient,
                     src = url,
                     dst = cacheFile,
                 )
 
-                kotlin.runCatching {
-                    cacheFile.decryptAndMove(
-                        key = key,
-                        writer = writer,
-                    )
-                }.fold(
-                    onFailure = { e ->
-                        e.printStackTrace()
-                        DownloadProgress.Complete(e.left())
-                    },
-                    onSuccess = {
-                        val location = when (writer) {
-                            is DownloadWriter.LocalPathWriter -> writer.path.toJavaFile().toURI().toString()
-                            is DownloadWriter.SinkWriter -> null
-                        }
-                        DownloadProgress.Complete(location.right())
-                    },
+                cacheFile.decryptAndMove(
+                    key = key,
+                    writer = writer,
                 )
-            } catch (e: Exception) {
-                // Delete cache file in case of
-                // an error.
-                runCatching {
-                    cacheFile.delete()
-                }
 
+                val location = when (writer) {
+                    is DownloadWriter.LocalPathWriter -> writer.path.toJavaFile().toURI().toString()
+                    is DownloadWriter.SinkWriter -> null
+                }
+                DownloadProgress.Complete(location.right())
+            } catch (e: Exception) {
                 e.throwIfFatalOrCancellation()
+                e.printStackTrace()
 
                 val result = e.left()
                 DownloadProgress.Complete(
                     result = result,
                 )
+            } finally {
+                runCatching {
+                    cacheFile.delete()
+                }
             }
             send(result)
         }
@@ -184,120 +156,22 @@ open class DownloadTaskJvm(
     private suspend fun File.decryptAndMove(
         key: ByteArray?,
         writer: DownloadWriter.LocalPathWriter,
-    ) = withContext(Dispatchers.IO) {
-        val dst = writer.path.toJavaFile()
-        dst.parentFile?.mkdirs()
-        dst.delete()
-
-        dst.outputStream().use { stream ->
-            decryptAndMove(
-                key = key,
-                stream = stream,
-            )
-        }
-    }
+    ) = copyDecryptedToLocalFileAfterVerification(
+        dst = writer.path.toJavaFile(),
+        key = key,
+        fileEncryptor = fileEncryptor,
+    )
 
     private suspend fun File.decryptAndMove(
         key: ByteArray?,
         writer: DownloadWriter.SinkWriter,
-    ) = withContext(Dispatchers.IO) {
+    ) {
         val stream = writer.sink.asOutputStream()
-        decryptAndMove(
+        copyDecryptedToSinkAfterVerification(
             key = key,
-            stream = stream,
+            fileEncryptor = fileEncryptor,
+            output = stream,
         )
         writer.sink.flush()
-    }
-
-    private suspend fun File.decryptAndMove(
-        key: ByteArray?,
-        stream: OutputStream,
-    ) = withContext(Dispatchers.IO) {
-        inputStream()
-            .use { fis ->
-                if (key != null) {
-                    fileEncryptor
-                        .decode(
-                            input = fis,
-                            key = key,
-                        )
-                        .use { i -> i.copyTo(stream) }
-                } else {
-                    fis.copyTo(stream)
-                }
-            }
-    }
-
-    private suspend fun ProducerScope<DownloadProgress>.downloadToFile(
-        src: String,
-        dst: File,
-    ): File {
-        val response = kotlin.run {
-            val request = Request.Builder()
-                .get()
-                .url(src)
-                .build()
-            okHttpClient.newCall(request).execute()
-        }
-        if (!response.isSuccessful) {
-            throw HttpException(
-                statusCode = HttpStatusCode.fromValue(response.code),
-                m = response.message,
-                e = null,
-            )
-        }
-        val responseBody = response.body
-            ?: throw IOException("File is not available!")
-
-        //
-        // Check if the file is already loaded
-        //
-
-        val dstContentLength = dst.length()
-        val srcContentLength = responseBody.contentLength()
-        if (dstContentLength == srcContentLength) {
-            return dst
-        }
-
-        dst.delete()
-        dst.parentFile?.mkdirs()
-
-        coroutineScope {
-            var totalBytesWritten = 0L
-
-            val monitorJob = launch {
-                delay(DOWNLOAD_PROGRESS_POOLING_PERIOD_MS / 2)
-                while (isActive) {
-                    val event = DownloadProgress.Loading(
-                        downloaded = totalBytesWritten,
-                        total = srcContentLength,
-                    )
-                    trySend(event)
-
-                    // Wait a bit before the next status update.
-                    delay(DOWNLOAD_PROGRESS_POOLING_PERIOD_MS)
-                }
-            }
-
-            withContext(Dispatchers.IO) {
-                responseBody.byteStream().use { inputStream ->
-                    dst.outputStream().use { outputStream ->
-                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                        while (true) {
-                            val bytes = inputStream.read(buffer)
-                            if (bytes != -1) {
-                                outputStream.write(buffer, 0, bytes)
-                                totalBytesWritten += bytes
-                            } else {
-                                break
-                            }
-                        }
-                    }
-                }
-            }
-            monitorJob.cancelAndJoin()
-        }
-
-        return dst
     }
 }

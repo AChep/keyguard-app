@@ -6,13 +6,12 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.usecase.GetGravatar
 import com.artemchep.keyguard.common.usecase.GetGravatarUrl
+import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.feature.favicon.GravatarUrl
-import io.ktor.util.hex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.util.Locale
 
 class GetGravatarUrlImpl(
     private val cryptoGenerator: CryptoGenerator,
@@ -37,9 +36,9 @@ class GetGravatarUrlImpl(
         val emailHash = run {
             // https://en.gravatar.com/site/implement/hash/
             val sanitizedEmail = transformEmail(email)
-            val sanitizedEmailBytes = sanitizedEmail.toByteArray()
+            val sanitizedEmailBytes = sanitizedEmail.encodeToByteArray()
             cryptoGenerator.hashMd5(sanitizedEmailBytes)
-                .let(::hex)
+                .toHex()
         }
         val gravatarUrl = "https://www.gravatar.com/avatar/$emailHash?s=200&r=pg&d=404"
         GravatarUrl(gravatarUrl)
@@ -48,6 +47,6 @@ class GetGravatarUrlImpl(
     private fun transformEmail(email: String): String = email
         .trim()
         .replace(emailPlusAddressingRegex, "")
-        .lowercase(Locale.ENGLISH)
+        .lowercase()
 
 }

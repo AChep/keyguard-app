@@ -1,0 +1,34 @@
+CREATE TABLE sshAgentPublicKey (
+  publicKeyBlobSha256 TEXT NOT NULL PRIMARY KEY,
+  publicKey TEXT NOT NULL,
+  keyType TEXT NOT NULL,
+  fingerprint TEXT NOT NULL,
+  name TEXT
+);
+
+insert:
+INSERT OR REPLACE INTO sshAgentPublicKey(
+  publicKeyBlobSha256,
+  publicKey,
+  keyType,
+  fingerprint,
+  name
+)
+VALUES (:publicKeyBlobSha256, :publicKey, :keyType, :fingerprint, :name);
+
+get:
+SELECT *
+FROM sshAgentPublicKey
+ORDER BY keyType ASC, fingerprint ASC, publicKeyBlobSha256 ASC;
+
+getByPublicKeyBlobSha256:
+SELECT *
+FROM sshAgentPublicKey
+WHERE publicKeyBlobSha256 = :publicKeyBlobSha256;
+
+deleteAll:
+DELETE FROM sshAgentPublicKey;
+
+clearNames:
+UPDATE sshAgentPublicKey
+SET name = NULL;

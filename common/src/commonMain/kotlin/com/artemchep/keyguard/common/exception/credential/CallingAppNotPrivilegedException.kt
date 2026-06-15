@@ -4,7 +4,6 @@ import com.artemchep.keyguard.common.exception.Readable
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.error_credential_calling_app_not_privileged
-import java.lang.IllegalStateException
 
 class CallingAppNotPrivilegedException(
     e: Throwable? = null,

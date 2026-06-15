@@ -44,7 +44,7 @@ import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.usecase.GetProducts
 import com.artemchep.keyguard.common.usecase.GetSubscriptions
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.onboarding.OnboardingCard
@@ -121,10 +121,7 @@ private fun SettingSubscriptions(
     loadableSubscriptions: Loadable<List<Subscription>?>,
     loadableProducts: Loadable<List<Product>?>,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth(),
-    ) {
+    LocalSettingPaneComponents.current.KgBlock {
         Text(
             stringResource(Res.string.pref_item_premium_membership_title),
             style = MaterialTheme.typography.bodyLarge,

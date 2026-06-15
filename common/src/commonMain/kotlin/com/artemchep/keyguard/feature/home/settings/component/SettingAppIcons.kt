@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.home.settings.component
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Diamond
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -13,7 +14,9 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.PutAppIcons
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -66,29 +69,10 @@ private fun SettingAppIcons(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItemLayoutExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Stub),
-        trailing = {
-            CompositionLocalProvider(
-                LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
-            ) {
-                Switch(
-                    checked = checked,
-                    enabled = onCheckedChange != null,
-                    onCheckedChange = onCheckedChange,
-                )
-            }
-        },
-        content = {
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.pref_item_load_app_icons_title),
-                    )
-                },
-            )
-        },
-        onClick = onCheckedChange?.partially1(!checked),
+    LocalSettingPaneComponents.current.KgSwitch(
+        icon = Icons.Stub,
+        title = stringResource(Res.string.pref_item_load_app_icons_title),
+        checked = checked,
+        onCheckedChange = onCheckedChange,
     )
 }

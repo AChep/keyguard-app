@@ -23,6 +23,12 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.uuid.Uuid
 
+/**
+ * Runtime instance of a route in a stack.
+ *
+ * Entries own route-scoped state, coroutine lifetime, child routers, and local
+ * back/key interceptors. Removing an entry destroys all of that owned state.
+ */
 interface NavigationEntry : BackPressInterceptorHost, KeyEventInterceptorHost {
     companion object {
         fun new() {
@@ -56,10 +62,13 @@ interface NavigationEntry : BackPressInterceptorHost, KeyEventInterceptorHost {
     fun destroy()
 }
 
-internal val LocalNavigationEntry = staticCompositionLocalOf<NavigationEntry> {
+val LocalNavigationEntry = staticCompositionLocalOf<NavigationEntry> {
     throw IllegalStateException("Home layout must be initialized!")
 }
 
+/**
+ * Default route entry implementation used by routers and root nodes.
+ */
 data class NavigationEntryImpl(
     private val source: String,
     private val parent: CoroutineScope,

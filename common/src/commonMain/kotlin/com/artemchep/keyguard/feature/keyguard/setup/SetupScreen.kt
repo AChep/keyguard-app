@@ -31,9 +31,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.autofill.contentType
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
@@ -48,7 +48,6 @@ import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
-import com.artemchep.keyguard.feature.auth.common.autofill
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenActionPadding
@@ -156,8 +155,9 @@ fun SetupScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class,
-    ExperimentalMaterial3ExpressiveApi::class
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
 )
 @Composable
 fun ColumnScope.SetupContent(
@@ -185,13 +185,7 @@ fun ColumnScope.SetupContent(
         modifier = Modifier
             .focusRequester(focusRequester),
         fieldModifier = Modifier
-            .autofill(
-                value = setupState.password.state.value,
-                autofillTypes = listOf(
-                    AutofillType.NewPassword,
-                ),
-                onFill = setupState.password.onChange,
-            ),
+            .contentType(ContentType.NewPassword),
         shapeState = ShapeState.START,
         testTag = "field:password",
         label = stringResource(Res.string.setup_field_app_password_label),
@@ -298,7 +292,7 @@ fun ColumnScope.SetupContent(
 }
 
 @Composable
-private fun ColumnScope.SetupScreenCreateVaultTitle() {
+fun ColumnScope.SetupScreenCreateVaultTitle() {
     Row(
         verticalAlignment = Alignment.CenterVertically,
     ) {

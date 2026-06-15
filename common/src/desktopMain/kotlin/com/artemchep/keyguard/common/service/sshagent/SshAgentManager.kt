@@ -1,18 +1,22 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.seedHex
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.util.flow.EventFlow
+import com.artemchep.keyguard.common.util.toHex
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.nio.file.Files
 import java.nio.file.Path
-import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -30,7 +34,9 @@ class SshAgentManager(
     private val logRepository: LogRepository,
     private val cryptoGenerator: CryptoGenerator,
     private val getVaultSession: GetVaultSession,
+    private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
     private val getSshAgentFilter: GetSshAgentFilter,
+    private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository,
 ) {
     companion object {
         private const val TAG = "SshAgentManager"
@@ -132,9 +138,15 @@ class SshAgentManager(
             logRepository.post(TAG, "SSH agent is already running", LogLevel.INFO)
             return existingProcess
         }
-        if (existingProcess != null) {
-            logRepository.post(TAG, "Cleaning up stale SSH agent process reference", LogLevel.INFO)
-            agentProcess = null
+        // The previous agent process is dead or was never started. Fully
+        // tear down any leftover state before allocating new resources.
+        if (existingProcess != null ||
+            serverScope != null ||
+            serverJob != null ||
+            ipcSocketPath != null
+        ) {
+            logRepository.post(TAG, "Cleaning up stale SSH agent state", LogLevel.INFO)
+            stopLocked()
         }
 
         val binaryPath = binaryPath
@@ -145,7 +157,8 @@ class SshAgentManager(
 
         // Generate cryptographically random auth token.
         val authToken = cryptoGenerator.seed(AUTH_TOKEN_BYTES)
-        val authTokenHex = authToken.joinToString("") { "%02x".format(it) }
+        val authTokenHex = authToken.toHex()
+        val agentSessionId = cryptoGenerator.seedHex(length = 16)
 
         // Determine IPC socket path (temporary file).
         val ipcSocketPath = createTempSocketPath("keyguard-ipc")
@@ -166,9 +179,12 @@ class SshAgentManager(
         val ipcServer = SshAgentIpcServer(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
+            getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentFilter = getSshAgentFilter,
+            sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
             authToken = authToken,
             scope = serverScope,
+            sessionId = agentSessionId,
             onApprovalRequest = { caller, keyName, keyFingerprint ->
                 val deferred = CompletableDeferred<Boolean>()
                 val request = SshAgentApprovalRequest(
@@ -176,11 +192,11 @@ class SshAgentManager(
                     keyFingerprint = keyFingerprint,
                     caller = caller,
                     notificationTag = null,
-                    timeout = SshAgentIpcServer.APPROVAL_TIMEOUT_MS.milliseconds,
+                    expiresAt = Clock.System.now() + SshAgentIpcServer.APPROVAL_TIMEOUT_MS.milliseconds,
                     deferred = deferred,
                 )
                 approvalRequests.emit(request)
-                deferred.await()
+                awaitWithExpiry(request, reason = "desktop_approval_timeout")
             },
             onGetListRequest = {
                 requestGetList(it)
@@ -241,14 +257,15 @@ class SshAgentManager(
             processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT)
 
             val process = processBuilder.start()
+            val processStdin = process.outputStream
+            agentProcess = process
             // Pass the auth token via stdin -- this avoids exposing the
             // token in the process environment, which is readable by
-            // other same-user processes on Linux and macOS.
-            process.outputStream.bufferedWriter().use { writer ->
-                writer.write(authTokenHex)
-                writer.newLine()
-            }
-            agentProcess = process
+            // other same-user processes on Linux and macOS. Keep stdin
+            // open so the agent can use EOF as a parent-death signal.
+            processStdin.write(authTokenHex.encodeToByteArray())
+            processStdin.write('\n'.code)
+            processStdin.flush()
             logRepository.post(
                 TAG,
                 "SSH agent process started (PID: ${process.pid()})",
@@ -266,6 +283,7 @@ class SshAgentManager(
                 )
                 mutex.withLock {
                     if (agentProcess === process) {
+                        process.closeStdinQuietly()
                         agentProcess = null
                     }
                 }
@@ -301,7 +319,7 @@ class SshAgentManager(
             val request = SshAgentGetListRequest(
                 caller = caller,
                 notificationTag = null,
-                timeout = SshAgentIpcServer.APPROVAL_TIMEOUT_MS.milliseconds,
+                expiresAt = Clock.System.now() + SshAgentIpcServer.APPROVAL_TIMEOUT_MS.milliseconds,
                 deferred = deferred,
             )
             pendingGetListRequest = request
@@ -309,15 +327,7 @@ class SshAgentManager(
             request
         }
         return try {
-            withTimeoutOrNull(request.timeout.inWholeMilliseconds) {
-                request.deferred.await()
-            } ?: run {
-                request.completeWithLog(
-                    value = false,
-                    reason = "desktop_get_list_timeout",
-                )
-                false
-            }
+            awaitWithExpiry(request, reason = "desktop_get_list_timeout")
         } finally {
             unlockMutex.withLock {
                 if (pendingGetListRequest === request) {
@@ -325,6 +335,23 @@ class SshAgentManager(
                 }
             }
         }
+    }
+
+    /**
+     * Suspends until [request] is completed or its [SshAgentRequest.expiresAt]
+     * deadline is reached, whichever comes first.
+     */
+    private suspend fun awaitWithExpiry(
+        request: SshAgentRequest,
+        reason: String,
+    ): Boolean = withTimeoutOrNull(request.expiresAt - Clock.System.now()) {
+        request.deferred.await()
+    } ?: run {
+        request.completeWithLog(
+            value = false,
+            reason = reason,
+        )
+        false
     }
 
     /**
@@ -343,13 +370,19 @@ class SshAgentManager(
     private fun stopLocked() {
         logRepository.post(TAG, "Stopping SSH agent system", LogLevel.INFO)
 
+        val process = agentProcess
+        agentProcess = null
+
         // Kill the agent process.
-        agentProcess?.let { process ->
+        process?.let {
             try {
-                process.destroy()
-                // Give it a moment to exit gracefully.
-                if (!process.waitFor(3, java.util.concurrent.TimeUnit.SECONDS)) {
-                    process.destroyForcibly()
+                it.closeStdinQuietly()
+                // Give the agent a moment to observe stdin EOF and remove its socket.
+                if (!it.waitFor(3, TimeUnit.SECONDS)) {
+                    it.destroy()
+                    if (!it.waitFor(3, TimeUnit.SECONDS)) {
+                        it.destroyForcibly()
+                    }
                 }
             } catch (e: Exception) {
                 logRepository.post(
@@ -359,7 +392,6 @@ class SshAgentManager(
                 )
             }
         }
-        agentProcess = null
 
         // Cancel the IPC server.
         serverJob?.cancel()
@@ -387,10 +419,15 @@ class SshAgentManager(
      */
     private fun createTempSocketPath(prefix: String): Path {
         val tempDir = Path.of(System.getProperty("java.io.tmpdir"))
-        val randomHex = ByteArray(16)
-            .also { SecureRandom().nextBytes(it) }
-            .joinToString("") { "%02x".format(it) }
-        val socketName = "$prefix-$randomHex.sock"
+        val suffix = cryptoGenerator.seedHex(length = 16)
+        val socketName = "$prefix-$suffix.sock"
         return tempDir.resolve(socketName)
+    }
+
+    private fun Process.closeStdinQuietly() {
+        try {
+            outputStream.close()
+        } catch (_: Exception) {
+        }
     }
 }

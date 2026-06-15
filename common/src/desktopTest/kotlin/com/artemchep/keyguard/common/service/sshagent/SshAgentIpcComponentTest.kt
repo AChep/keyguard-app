@@ -24,6 +24,7 @@ import java.io.IOException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -112,7 +113,7 @@ class SshAgentIpcComponentTest {
     }
 
     @Test
-    fun `server returns vault locked for list keys over unix socket`() = runBlocking {
+    fun `server returns empty list keys when locked cache is empty over unix socket`() = runBlocking {
         withTempSocket { socketPath ->
             val ready = CompletableDeferred<Unit>()
             val serverScope = CoroutineScope(Dispatchers.IO + Job())
@@ -162,11 +163,8 @@ class SshAgentIpcComponentTest {
                 val listResponse = readResponseWithTimeout(client, "list keys response")
 
                 assertEquals(2L, listResponse.id)
-                assertNotNull(listResponse.error)
-                assertEquals(
-                    SshAgentMessages.ErrorCode.VAULT_LOCKED,
-                    listResponse.error!!.code,
-                )
+                assertNull(listResponse.error)
+                assertEquals(emptyList(), listResponse.listKeys?.keys)
             } finally {
                 client.close()
                 server.stop()
@@ -318,7 +316,7 @@ class SshAgentIpcComponentTest {
                 val r1 = readResponseWithTimeout(client, "first authenticate response")
                 assertTrue(r1.authenticate!!.success)
 
-                // List keys (should get vault locked).
+                // List keys (should return an empty locked-cache success).
                 sendMessage(
                     client,
                     SshAgentMessages.IpcRequest(
@@ -328,7 +326,8 @@ class SshAgentIpcComponentTest {
                 )
                 val r2 = readResponseWithTimeout(client, "list keys response")
                 assertEquals(2L, r2.id)
-                assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, r2.error!!.code)
+                assertNull(r2.error)
+                assertEquals(emptyList(), r2.listKeys?.keys)
 
                 // Sign data (should get vault locked).
                 sendMessage(

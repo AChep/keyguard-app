@@ -53,6 +53,7 @@ import com.artemchep.keyguard.common.usecase.AddPrivilegedApp
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
@@ -130,7 +131,7 @@ fun CredentialScaffold(
 fun CredentialSubtitlePublicKey(
     modifier: Modifier = Modifier,
     username: String,
-    rpId: String,
+    rpId: String?,
 ) {
     Row(
         modifier = modifier,
@@ -140,15 +141,17 @@ fun CredentialSubtitlePublicKey(
             overflow = TextOverflow.Ellipsis,
             maxLines = 1,
         )
-        Text(
-            modifier = Modifier
-                .weight(1f, fill = false),
-            text = "@$rpId",
-            color = LocalContentColor.current
-                .combineAlpha(MediumEmphasisAlpha),
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-        )
+        if (rpId != null) {
+            Text(
+                modifier = Modifier
+                    .weight(1f, fill = false),
+                text = "@$rpId",
+                color = LocalContentColor.current
+                    .combineAlpha(MediumEmphasisAlpha),
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+            )
+        }
     }
 }
 
@@ -335,6 +338,27 @@ suspend fun BaseActivity.getCredentialErrorUiState(
     exception: Throwable,
     beforeRetry: () -> Unit,
     onRetry: () -> Unit,
+): UiStateError = getCredentialErrorUiState(
+    translatorScope = translatorScope,
+    session = session,
+    callingAppInfo = callingAppInfo,
+    title = title,
+    exception = exception,
+    beforeRetry = beforeRetry,
+    onRetry = onRetry,
+    onFinish = ::finish,
+)
+
+@RequiresApi(Build.VERSION_CODES.P)
+suspend fun getCredentialErrorUiState(
+    translatorScope: TranslatorScope,
+    session: MasterSession.Key,
+    callingAppInfo: CallingAppInfo,
+    title: String?,
+    exception: Throwable,
+    beforeRetry: () -> Unit,
+    onRetry: () -> Unit,
+    onFinish: () -> Unit,
 ): UiStateError {
     val advanced = when (exception) {
         // If the calling app is not privileged then we
@@ -395,9 +419,7 @@ suspend fun BaseActivity.getCredentialErrorUiState(
         message = message,
         exception = exception,
         advanced = advanced,
-        onFinish = {
-            finish()
-        },
+        onFinish = onFinish,
     )
 }
 

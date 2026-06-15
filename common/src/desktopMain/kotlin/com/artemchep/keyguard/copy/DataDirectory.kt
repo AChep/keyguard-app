@@ -22,6 +22,10 @@ class DataDirectory(
     constructor(directDI: DirectDI) : this()
 
     fun data(): IO<String> = ioEffect(Dispatchers.IO) {
+        dataBlocking()
+    }
+
+    fun dataBlocking(): String = run {
         val appDirs = AppDirsFactory.getInstance()
         appDirs.getUserDataDir(APP_NAME, null, APP_AUTHOR)
     }

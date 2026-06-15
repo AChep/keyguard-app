@@ -1,48 +1,39 @@
 package com.artemchep.keyguard.common.util.flow
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.InternalCoroutinesApi
-import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
-import java.util.LinkedList
-import java.util.Queue
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.coroutines.resume
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * @author Artem Chepurnyi
  */
 open class EventFlow<T>(
-    private val context: CoroutineContext = EmptyCoroutineContext,
+    extraBufferCapacity: Int = DEFAULT_EXTRA_BUFFER_CAPACITY,
+    onBufferOverflow: BufferOverflow = BufferOverflow.DROP_OLDEST,
 ) : Flow<T> {
+    private val events = MutableSharedFlow<T>(
+        replay = 0,
+        extraBufferCapacity = extraBufferCapacity,
+        onBufferOverflow = onBufferOverflow,
+    )
+
     /**
      * Returns `true` if the live flow has any active observers,
      * `false` otherwise.
      */
     val isActive: Boolean
-        get() = channels.isNotEmpty()
+        get() = collectorCount.value > 0
 
-    val monitor get() = this
-
-    private val channels: Queue<SendChannel<T>> = LinkedList()
+    private val collectorCount = MutableStateFlow(0)
 
     fun emit(value: T) {
-        // Copy the list of events to try
-        // to send the event to.
-        val channels = synchronized(monitor) {
-            channels.toList()
-        }
+        events.tryEmit(value)
+    }
 
-        GlobalScope.launch(context) {
-            channels.forEach { channel ->
-                channel.trySend(value)
-            }
-        }
+    suspend fun emitSuspending(value: T) {
+        events.emit(value)
     }
 
     open fun onActive() {
@@ -53,43 +44,45 @@ open class EventFlow<T>(
         // By default does nothing.
     }
 
-    fun asFlow(): Flow<T> = flowWithLifecycle<T>(
-        onActive = { channel ->
-            // Add a channel to the list of
-            // consumers.
-            synchronized(monitor) {
-                channels += channel
-                if (channels.size == 1) onActive()
+    fun asFlow(): Flow<T> = this
+
+    override suspend fun collect(collector: FlowCollector<T>) {
+        val wasInactive = incrementCollectorCount()
+        try {
+            if (wasInactive) {
+                onActive()
             }
-        },
-        onInactive = { channel ->
-            // Remove a channel from the list of
-            // consumers.
-            synchronized(monitor) {
-                channels -= channel
-                if (channels.size == 0) onInactive()
-            }
-        },
-    )
 
-    override suspend fun collect(collector: FlowCollector<T>) = asFlow().collect(collector)
-}
-
-private fun <T> flowWithLifecycle(
-    onActive: (SendChannel<T>) -> Unit,
-    onInactive: (SendChannel<T>) -> Unit,
-): Flow<T> = channelFlow {
-    try {
-        onActive(this)
-
-        // Suspend the flow until manually
-        // canceled.
-        suspendCancellableCoroutine<Unit> { cont ->
-            invokeOnClose {
-                cont.resume(Unit)
+            events.collect(collector)
+        } finally {
+            val isInactive = decrementCollectorCount()
+            if (isInactive) {
+                onInactive()
             }
         }
-    } finally {
-        onInactive(this)
+    }
+
+    private fun incrementCollectorCount(): Boolean {
+        while (true) {
+            val current = collectorCount.value
+            val updated = current + 1
+            if (collectorCount.compareAndSet(current, updated)) {
+                return current == 0
+            }
+        }
+    }
+
+    private fun decrementCollectorCount(): Boolean {
+        while (true) {
+            val current = collectorCount.value
+            require(current > 0)
+
+            val updated = current - 1
+            if (collectorCount.compareAndSet(current, updated)) {
+                return updated == 0
+            }
+        }
     }
 }
+
+private const val DEFAULT_EXTRA_BUFFER_CAPACITY = 64

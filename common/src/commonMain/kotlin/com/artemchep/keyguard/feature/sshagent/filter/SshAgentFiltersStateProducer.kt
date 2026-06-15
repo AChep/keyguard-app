@@ -3,9 +3,9 @@ package com.artemchep.keyguard.feature.sshagent.filter
 import androidx.compose.runtime.Composable
 import arrow.core.identity
 import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.service.sshagent.isEligibleForSshAgent
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
@@ -134,7 +134,7 @@ fun produceSshAgentFiltersState(
 
     val allSshKeysFlow = getCiphers()
         .map { ciphers ->
-            ciphers.filter { it.type == DSecret.Type.SshKey }
+            ciphers.filter { it.isEligibleForSshAgent() }
         }
         .distinctUntilChanged()
 

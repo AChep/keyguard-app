@@ -50,6 +50,7 @@ data class CollectionsState(
                 val selected: Boolean,
                 val organization: DOrganization?,
                 val icon: ImageVector? = null,
+                val onViewItemsClick: (() -> Unit)? = null,
                 val actions: ImmutableList<ContextItem>,
                 val onClick: (() -> Unit)?,
                 val onLongClick: (() -> Unit)?,

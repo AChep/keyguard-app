@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+mod accent;
 mod autotype;
 mod biometrics;
 mod ffi;
@@ -20,6 +21,13 @@ pub extern "C" fn autoType(payload: *const c_char) -> bool {
         let payload = ffi::require_string(payload, "payload")?;
         autotype::execute(&payload)?;
         Ok(true)
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn getSystemAccentColor() -> c_int {
+    ffi::with_ffi_boundary("getSystemAccentColor", 0, || {
+        Ok(accent::get_system_accent_color() as c_int)
     })
 }
 

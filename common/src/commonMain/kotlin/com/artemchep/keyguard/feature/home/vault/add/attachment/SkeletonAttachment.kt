@@ -32,6 +32,7 @@ sealed interface SkeletonAttachment {
             val id: String,
             val uri: LeUri,
             val size: Long? = null,
+            val keyBase64: String? = null,
         ) : SkeletonAttachment.Identity, LeParcelable
     }
 }

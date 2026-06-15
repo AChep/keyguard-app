@@ -145,8 +145,7 @@ class CipherMergeImpl() : CipherMerge {
         ) : Node<Input>
     }
 
-    @FunctionalInterface
-    private interface PickStrategy<T> {
+    private fun interface PickStrategy<T> {
         fun pick(list: List<T>): T
     }
 

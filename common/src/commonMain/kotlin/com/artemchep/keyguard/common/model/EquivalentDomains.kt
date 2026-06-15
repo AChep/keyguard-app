@@ -8,19 +8,20 @@ import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.lang.ref.WeakReference
-import java.util.Locale
 
 data class EquivalentDomains(
     val domains: Map<String, List<String>>,
 ) {
     fun findEqDomains(domain: String): List<String> {
-        val domainLowerCase = domain.lowercase(Locale.US)
+        val domainLowerCase = domain.lowercase()
         return domains[domainLowerCase] ?: listOf(domain)
     }
 }
@@ -33,7 +34,8 @@ class EquivalentDomainsBuilderFactory(
         private const val TAG = "EqDomainsFactory"
     }
 
-    private var ref = WeakReference<EquivalentDomainsBuilder?>(null)
+    private val ref = atomic<EquivalentDomainsBuilder?>(null)
+    private val refLock = SynchronizedObject()
 
     constructor(
         directDI: DirectDI,
@@ -44,7 +46,7 @@ class EquivalentDomainsBuilderFactory(
 
     fun build(
     ): EquivalentDomainsBuilder {
-        val existingBuilder = ref.get()
+        val existingBuilder = ref.value
         if (existingBuilder != null) {
             logRepository.postDebug(TAG) {
                 "Reused exiting equivalent domains builder!"
@@ -52,13 +54,13 @@ class EquivalentDomainsBuilderFactory(
             return existingBuilder
         }
 
-        return synchronized(this) {
-            val existingBuilder2 = ref.get()
+        return synchronized(refLock) {
+            val existingBuilder2 = ref.value
             if (existingBuilder2 != null) {
                 logRepository.postDebug(TAG) {
                     "Reused exiting equivalent domains builder!"
                 }
-                return existingBuilder2
+                return@synchronized existingBuilder2
             }
 
             logRepository.postDebug(TAG) {
@@ -66,7 +68,7 @@ class EquivalentDomainsBuilderFactory(
             }
 
             val builder = createNewEquivalentDomainsBuilder()
-            ref = WeakReference(builder)
+            ref.value = builder
             builder
         }
     }

@@ -23,7 +23,7 @@ import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
-import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
@@ -46,7 +46,6 @@ import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
-import com.artemchep.keyguard.feature.navigation.state.copy
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
@@ -92,6 +91,7 @@ internal fun quickSearchScreenState(): QuickSearchState = with(localDI().direct)
         getAppIcons = instance(),
         getWebsiteIcons = instance(),
         clipboardService = instance(),
+        bitwardenLoginRouteFactory = instance(),
     )
 }
 
@@ -112,6 +112,7 @@ internal fun quickSearchScreenState(
     getAppIcons: GetAppIcons,
     getWebsiteIcons: GetWebsiteIcons,
     clipboardService: ClipboardService,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
 ): QuickSearchState = produceScreenState(
     key = QUICK_SEARCH_SCREEN_STATE_KEY,
     initial = QuickSearchState(),
@@ -122,7 +123,7 @@ internal fun quickSearchScreenState(
         clipboardService,
     ),
 ) {
-    val copy = copy(clipboardService)
+    val copy = copier()
     val queryHandle = vaultSearchQueryHandle(
         key = "query",
         searchBy = com.artemchep.keyguard.feature.home.vault.VaultRoute.Args.SearchBy.ALL,
@@ -313,7 +314,10 @@ internal fun quickSearchScreenState(
         val content = quickSearchContent(
             results = input.items,
             hasAccounts = input.hasAccounts,
-            onAddAccount = quickSearchAddAccountAction(input.hasAccounts),
+            onAddAccount = quickSearchAddAccountAction(
+                hasAccounts = input.hasAccounts,
+                bitwardenLoginRouteFactory = bitwardenLoginRouteFactory,
+            ),
         )
         val queryField = if (input.hasAccounts) {
             TextFieldModel2(
@@ -423,12 +427,13 @@ private data class QuickSearchSelectionState(
 
 private fun RememberStateFlowScope.quickSearchAddAccountAction(
     hasAccounts: Boolean,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
 ): ((AccountType) -> Unit)? = if (hasAccounts) {
     null
 } else {
     { type ->
         val routeMain = when (type) {
-            AccountType.BITWARDEN -> BitwardenLoginRoute()
+            AccountType.BITWARDEN -> bitwardenLoginRouteFactory.create()
             AccountType.KEEPASS -> KeePassLoginRoute
         }
         val route = registerRouteResultReceiver(routeMain) {
@@ -498,35 +503,15 @@ private suspend fun TranslatorScope.quickSearchActionTitle(
     actionType: QuickSearchActionType,
     item: VaultItem2.Item?,
 ): String = when (actionType) {
-    QuickSearchActionType.CopyPrimary -> when (quickSearchPrimaryCopy(item!!.source)?.type) {
-        com.artemchep.keyguard.common.usecase.CopyText.Type.USERNAME ->
-            translate(Res.string.copy_username)
+    QuickSearchActionType.CopyPrimary -> quickSearchPrimaryCopy(item!!.source)?.type?.actionRes
+        ?.let { translate(it) }
 
-        com.artemchep.keyguard.common.usecase.CopyText.Type.CARD_NUMBER ->
-            translate(Res.string.copy_card_number)
-
-        com.artemchep.keyguard.common.usecase.CopyText.Type.EMAIL ->
-            translate(Res.string.copy_email)
-
-        com.artemchep.keyguard.common.usecase.CopyText.Type.PHONE_NUMBER ->
-            translate(Res.string.copy_phone_number)
-
-        else -> translate(Res.string.copy_value)
-    }
-
-    QuickSearchActionType.CopySecret -> when (quickSearchSecretCopy(item!!.source)?.type) {
-        com.artemchep.keyguard.common.usecase.CopyText.Type.PASSWORD ->
-            translate(Res.string.copy_password)
-
-        com.artemchep.keyguard.common.usecase.CopyText.Type.CARD_CVV ->
-            translate(Res.string.copy_cvv_code)
-
-        else -> translate(Res.string.copy_value)
-    }
+    QuickSearchActionType.CopySecret -> quickSearchSecretCopy(item!!.source)?.type?.actionRes
+        ?.let { translate(it) }
 
     QuickSearchActionType.CopyOtp ->
         translate(Res.string.copy_otp_code)
 
     QuickSearchActionType.OpenInBrowser ->
         translate(Res.string.uri_action_launch_browser_title)
-}
+} ?: translate(Res.string.copy_value)

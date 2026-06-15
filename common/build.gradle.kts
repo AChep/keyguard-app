@@ -56,8 +56,14 @@ kotlin {
         }
 
         androidResources.enable = true
+
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
     }
     jvm("desktop")
+    iosArm64()
+    iosSimulatorArm64()
 
     sourceSets {
         all {
@@ -79,12 +85,11 @@ kotlin {
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material)
                 implementation(libs.jetbrains.compose.material3)
-                implementation(libs.jetbrains.compose.material.icons.extended)
+                api(libs.jetbrains.compose.material.icons.extended)
                 implementation(libs.jetbrains.compose.ui.tooling.preview)
                 api(libs.jetbrains.compose.components.resources)
                 api(libs.kotlin.stdlib)
-                api(libs.kdrag0n.colorkt)
-                api(libs.kyant0.m3color)
+                implementation(libs.kotlinx.atomicfu)
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.collections.immutable)
                 api(libs.kotlinx.datetime)
@@ -106,30 +111,80 @@ kotlin {
                 api(libs.ktor.ktor.client.content.negotiation)
                 api(libs.ktor.ktor.client.websockets)
                 api(libs.ktor.ktor.serialization.kotlinx)
-                api(libs.keemobile.kotpass)
+                api(project(":util:signalr"))
+                api(project(":util:webdav"))
+                api(project(":util:planeta"))
                 api(libs.coil3.coil.compose)
                 api(libs.coil3.coil.network.ktor3)
                 api(libs.cash.sqldelight.coroutines.extensions)
-                api(libs.halilibo.richtext.ui.material3)
-                api(libs.halilibo.richtext.commonmark)
-                api(libs.halilibo.richtext.markdown)
                 api(libs.devsrsouza.feather)
-                api(libs.mm2d.touchicon)
                 api(libs.html.text)
+                api(libs.haze.core)
+                api(libs.haze.blur)
+                api(libs.haze.materials)
                 api(libs.ksoup.html)
                 api(libs.snipme.highlights)
                 api(libs.kdroidfilter.platformtools.darkmodedetector)
             }
         }
-        commonTest.dependencies {
-            implementation(kotlin("test"))
-            implementation(libs.kotlinx.coroutines.test)
-        }
-
-        val desktopTest by getting {
+        val commonTest by getting {
+            kotlin.setSrcDirs(emptyList<String>())
             dependencies {
                 implementation(kotlin("test"))
                 implementation(libs.kotlinx.coroutines.test)
+            }
+        }
+
+        val jvmTest by creating {
+            dependsOn(commonTest)
+            kotlin.srcDir("src/commonTest/kotlin")
+        }
+
+        val iosMain by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(libs.diglol.crypto.kdf)
+                api(libs.cash.sqldelight.native.driver)
+                api(libs.ktor.ktor.client.darwin)
+            }
+        }
+
+        val iosArm64Main by getting {
+            dependsOn(iosMain)
+        }
+
+        val iosSimulatorArm64Main by getting {
+            dependsOn(iosMain)
+        }
+
+        val iosTest by creating {
+            dependsOn(commonTest)
+        }
+
+        val iosArm64Test by getting {
+            dependsOn(iosTest)
+        }
+
+        val iosSimulatorArm64Test by getting {
+            dependsOn(iosTest)
+        }
+
+        val androidHostTest by getting {
+            dependsOn(jvmTest)
+            kotlin.srcDir("src/androidUnitTest/kotlin")
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.ktor.ktor.client.mock)
+            }
+        }
+
+        val desktopTest by getting {
+            dependsOn(jvmTest)
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.ktor.ktor.client.mock)
             }
         }
 
@@ -140,20 +195,20 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.lingala.zip4j)
+                implementation(libs.kdrag0n.colorkt)
+                implementation(libs.kyant0.m3color)
                 implementation(libs.nulabinc.zxcvbn)
                 implementation(libs.commons.codec)
                 implementation(libs.bouncycastle.bcpkix)
                 implementation(libs.bouncycastle.bcprov)
+                implementation(libs.keemobile.kotpass)
+                implementation(libs.halilibo.richtext.ui.material3)
+                implementation(libs.halilibo.richtext.commonmark)
+                implementation(libs.halilibo.richtext.markdown)
+                implementation(libs.mm2d.touchicon)
                 implementation(libs.hierynomus.sshj)
-                implementation(libs.ricecode.string.similarity)
                 implementation(libs.google.zxing.core)
-                // SignalR
-                implementation(libs.microsoft.signalr)
-                implementation(libs.microsoft.signalr.messagepack)
-                implementation(libs.msgpack.core)
-                implementation(libs.msgpack.jackson.dataformat)
-                // ...implicitly added by SignalR, so we might as well opt-in
-                // for the latest and 'best-est' version.
+                implementation(libs.icu4j)
                 implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
                 implementation(libs.squareup.okhttp)
                 implementation(libs.squareup.logging.interceptor)
@@ -186,6 +241,7 @@ kotlin {
         val androidMain by getting {
             dependsOn(jvmMain)
             dependencies {
+                api(project(":androidLibAutofill"))
                 api(project.dependencies.platform(libs.firebase.bom.get()))
                 api(libs.firebase.analytics)
                 api(libs.firebase.crashlytics)
@@ -218,6 +274,8 @@ kotlin {
                 api(libs.android.billing.ktx)
                 api(libs.android.billing)
                 api(libs.google.accompanist.drawablepainter)
+                api(libs.androidx.wear.remote.interactions)
+                api(libs.google.play.services.wearable)
                 api(libs.google.accompanist.permissions)
                 api(libs.google.play.review.ktx)
                 api(libs.google.play.services.base)
@@ -267,7 +325,7 @@ tasks.configureEach {
     }
 }
 kotlin.compilerOptions {
-    freeCompilerArgs.add("-Xcontext-receivers")
+    freeCompilerArgs.add("-Xcontext-parameters")
 }
 kotlin.compilerOptions.freeCompilerArgs.addAll(
     "-P",

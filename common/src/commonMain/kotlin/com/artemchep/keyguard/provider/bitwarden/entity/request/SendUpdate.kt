@@ -21,7 +21,7 @@ sealed interface SendUpdate {
     ) : SendUpdate
 }
 
-context(CryptoGenerator, Base64Service)
+context(cryptoGenerator: CryptoGenerator, base64Service: Base64Service)
 fun SendUpdate.Companion.of(
     model: BitwardenSend,
     key: ByteArray,

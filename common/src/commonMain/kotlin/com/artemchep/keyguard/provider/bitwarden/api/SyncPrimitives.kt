@@ -27,17 +27,21 @@ import kotlin.Unit
 import kotlin.let
 import kotlin.time.Instant
 
-interface RemotePutScope<Remote> {
+interface RemotePutScope<Remote, RemoteDecoded> {
     val force: Boolean
 
     fun updateRemoteModel(remote: Remote)
+
+    fun updateLocalModel(local: RemoteDecoded)
+
+    fun afterLocalPut(block: suspend () -> Unit)
 }
 
 suspend fun <
         Local : BitwardenService.Has<Local>,
         LocalDecoded : Any,
         Remote : Any,
-        RemoteDecoded : Any,
+        RemoteDecoded : BitwardenService.Has<RemoteDecoded>,
         > syncX(
     sync: (String, IO<Any?>) -> IO<Any?> = { _, io -> io },
     name: String,
@@ -58,7 +62,7 @@ suspend fun <
     remoteDecodedToString: (RemoteDecoded) -> String = { it.toString() },
     remoteDecodedFallback: suspend (Remote, Local?, Throwable) -> RemoteDecoded,
     remoteDeleteById: suspend (String) -> Unit,
-    remotePut: suspend RemotePutScope<Remote>.(LocalDecoded) -> RemoteDecoded,
+    remotePut: suspend RemotePutScope<Remote, RemoteDecoded>.(LocalDecoded) -> RemoteDecoded,
     onLog: suspend (String, LogLevel) -> Unit,
 ) {
     onLog(
@@ -165,7 +169,9 @@ suspend fun <
 
     suspend fun handleFailedToPut(
         local: Local,
+        localDecodedOverride: RemoteDecoded? = null,
         remote: Remote? = null,
+        afterLocalPutBlocks: List<suspend () -> Unit> = emptyList(),
         e: Throwable,
     ) {
         e.printStackTrace()
@@ -177,8 +183,7 @@ suspend fun <
         }
         val newError = BitwardenService.Error(
             code = code,
-            message = e.localizedMessage
-                ?: e.message,
+            message = e.message,
             revisionDate = Clock.System.now(),
         )
         val newRemote = remote
@@ -194,11 +199,17 @@ suspend fun <
             error = newError,
             remote = newRemote,
         )
-        val newLocal = local
-            .withService(newService)
-
-        val update = localReEncoder(newLocal)
+        val update = localDecodedOverride
+            ?.withService(newService)
+            ?: local
+                .withService(newService)
+                .let(localReEncoder)
         localPut(listOf(update))
+        afterLocalPutBlocks.forEach { block ->
+            runCatching {
+                block()
+            }
+        }
     }
 
     /**
@@ -216,11 +227,21 @@ suspend fun <
         }
         .flatMap { localDecoded ->
             var lastRemote: Remote? = null
-            val scope = object : RemotePutScope<Remote> {
+            var lastLocalDecoded: RemoteDecoded? = null
+            val afterLocalPutBlocks = mutableListOf<suspend () -> Unit>()
+            val scope = object : RemotePutScope<Remote, RemoteDecoded> {
                 override val force: Boolean get() = force
 
                 override fun updateRemoteModel(remote: Remote) {
                     lastRemote = remote
+                }
+
+                override fun updateLocalModel(local: RemoteDecoded) {
+                    lastLocalDecoded = local
+                }
+
+                override fun afterLocalPut(block: suspend () -> Unit) {
+                    afterLocalPutBlocks += block
                 }
             }
             ioEffect {
@@ -243,13 +264,20 @@ suspend fun <
                 .handleErrorTap { e ->
                     handleFailedToPut(
                         local = local,
+                        localDecodedOverride = lastLocalDecoded,
                         remote = lastRemote,
+                        afterLocalPutBlocks = afterLocalPutBlocks,
                         e = e,
                     )
                 }
                 .effectMap {
                     val update = listOf(it)
                     localPut(update)
+                    afterLocalPutBlocks.forEach { block ->
+                        runCatching {
+                            block()
+                        }
+                    }
                 }
                 // If a client wants to block an access to database
                 // while we are doing this operation -> this is a right place.

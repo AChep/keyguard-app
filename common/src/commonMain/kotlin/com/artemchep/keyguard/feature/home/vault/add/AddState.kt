@@ -17,6 +17,7 @@ import com.artemchep.keyguard.feature.add.AddStateOwnership
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.SimpleNote
@@ -33,11 +34,18 @@ data class AddState(
     val favourite: SwitchFieldModel,
     val ownership: Ownership,
     val merge: Merge? = null,
+    val fileDrag: FileDrag? = null,
     val sideEffects: SideEffects,
     val actions: List<FlatItemAction> = emptyList(),
     val items: List<AddStateItem> = emptyList(),
     val onSave: (() -> Unit)? = null,
 ) {
+    data class FileDrag(
+        val anchorItemId: String,
+        val text: String,
+        val onFileDrop: (FilePickerResult) -> Unit,
+    )
+
     @Immutable
     data class SideEffects(
         val filePickerIntentFlow: Flow<FilePickerIntent<*>>,
@@ -60,6 +68,7 @@ data class AddState(
     data class Merge(
         val ciphers: List<DSecret>,
         val note: SimpleNote?,
-        val removeOrigin: SwitchFieldModel,
+        val postAction: CreateRequest.Merge.PostAction?,
+        val onChangePostAction: ((CreateRequest.Merge.PostAction?) -> Unit)? = null,
     )
 }

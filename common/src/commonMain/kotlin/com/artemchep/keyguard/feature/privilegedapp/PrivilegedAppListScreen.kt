@@ -15,18 +15,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.flatMap
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.ErrorView
@@ -41,6 +38,7 @@ import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.RequestLazyListScrollOnRevision
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
@@ -48,9 +46,6 @@ import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.withIndex
 
 @Composable
 fun PrivilegedAppListScreen() {
@@ -77,20 +72,10 @@ fun PrivilegedAppListScreen(
         )
     }
 
-    LaunchedEffect(listRevision) {
-        // TODO: How do you wait till the layout state start to represent
-        //  the actual data?
-        val listSize =
-            loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.items?.size
-        snapshotFlow { listState.layoutInfo.totalItemsCount }
-            .withIndex()
-            .filter {
-                it.index > 0 || it.value == listSize
-            }
-            .first()
-
-        listState.scrollToItem(0, 0)
-    }
+    RequestLazyListScrollOnRevision(
+        listState = listState,
+        revision = listRevision,
+    )
 
     ScaffoldLazyColumn(
         modifier = Modifier
@@ -117,48 +102,45 @@ fun PrivilegedAppListScreen(
         },
         listState = listState,
     ) {
-        val contentState = loadableState
-            .flatMap { it.content }
+        val contentState = loadableState.toPrivilegedAppListContentState()
         when (contentState) {
-            is Loadable.Loading -> {
+            is PrivilegedAppListContentState.Loading -> {
                 skeletonItems(
                     avatar = SkeletonItemAvatar.LARGE,
                     count = 1, // usually there's less than one
                 )
             }
 
-            is Loadable.Ok -> {
-                contentState.value.fold(
-                    ifLeft = { e ->
-                        item("error") {
-                            ErrorView(
-                                text = {
-                                    Text(text = "Failed to load privileged app list!")
-                                },
-                                exception = e,
-                            )
-                        }
-                    },
-                    ifRight = { content ->
-                        val items = content.items
-                        if (items.isEmpty()) {
-                            item("empty") {
-                                NoItemsPlaceholder()
-                            }
-                        }
+            is PrivilegedAppListContentState.Error -> {
+                item("error") {
+                    ErrorView(
+                        text = {
+                            Text(text = "Failed to load privileged app list!")
+                        },
+                        exception = contentState.exception,
+                    )
+                }
+            }
 
-                        items(
-                            items = items,
-                            key = { it.key },
-                        ) { item ->
-                            PrivilegedAppItem(
-                                modifier = Modifier
-                                    .animateItem(),
-                                item = item,
-                            )
-                        }
-                    },
-                )
+            is PrivilegedAppListContentState.Content -> {
+                val content = contentState.content
+                val items = content.items
+                if (items.isEmpty()) {
+                    item("empty") {
+                        NoItemsPlaceholder()
+                    }
+                }
+
+                items(
+                    items = items,
+                    key = { it.key },
+                ) { item ->
+                    PrivilegedAppItem(
+                        modifier = Modifier
+                            .animateItem(),
+                        item = item,
+                    )
+                }
             }
         }
     }
@@ -182,25 +164,29 @@ private fun NoItemsPlaceholder(
 private fun PrivilegedAppItem(
     modifier: Modifier,
     item: PrivilegedAppListState.Item,
-) {
-    when (item) {
-        is PrivilegedAppListState.Item.Section -> {
-            Section(
-                modifier = modifier,
-                text = item.name,
-            )
-        }
-        is PrivilegedAppListState.Item.Content -> {
-            PrivilegedAppItemContent(
-                modifier = modifier,
-                item = item,
-            )
-        }
-    }
-}
+) = PrivilegedAppItemContent(
+    modifier = modifier,
+    item = item,
+    renderers = commonPrivilegedAppItemRenderers,
+)
+
+private val commonPrivilegedAppItemRenderers = PrivilegedAppItemRenderers(
+    section = { modifier, item ->
+        Section(
+            modifier = modifier,
+            text = item.name,
+        )
+    },
+    content = { modifier, item ->
+        PrivilegedAppItemContentRow(
+            modifier = modifier,
+            item = item,
+        )
+    },
+)
 
 @Composable
-private fun PrivilegedAppItemContent(
+private fun PrivilegedAppItemContentRow(
     modifier: Modifier,
     item: PrivilegedAppListState.Item.Content,
 ) {

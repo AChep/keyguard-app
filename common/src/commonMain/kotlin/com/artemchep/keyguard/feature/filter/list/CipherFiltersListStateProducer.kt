@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.service.filter.RenameCipherFilter
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.filter.CipherFiltersRoute
 import com.artemchep.keyguard.feature.filter.util.CipherFilterUtil
@@ -65,6 +66,7 @@ fun produceCipherFiltersListState(
         getCipherFilters = instance(),
         removeCipherFilterById = instance(),
         renameCipherFilter = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -73,6 +75,7 @@ fun produceCipherFiltersListState(
     getCipherFilters: GetCipherFilters,
     removeCipherFilterById: RemoveCipherFilterById,
     renameCipherFilter: RenameCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): Loadable<CipherFiltersListState> = produceScreenState(
     key = "cipher_filter_list",
     initial = Loadable.Loading,
@@ -230,6 +233,7 @@ fun produceCipherFiltersListState(
                             title = Res.string.edit.wrap(),
                             onClick = onClick {
                                 CipherFilterUtil.onRename(
+                                    confirmationRouteFactory = confirmationRouteFactory,
                                     renameCipherFilter = renameCipherFilter,
                                     model = selectedItem,
                                 )
@@ -243,6 +247,7 @@ fun produceCipherFiltersListState(
                         title = Res.string.delete.wrap(),
                         onClick = onClick {
                             CipherFilterUtil.onDeleteByItems(
+                                confirmationRouteFactory = confirmationRouteFactory,
                                 removeCipherFilterById = removeCipherFilterById,
                                 items = selectedItems,
                             )

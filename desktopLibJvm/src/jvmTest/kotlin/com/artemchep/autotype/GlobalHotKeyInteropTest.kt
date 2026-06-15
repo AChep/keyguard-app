@@ -162,6 +162,8 @@ class GlobalHotKeyInteropTest {
 
         override fun autoType(payload: Pointer): Boolean = true
 
+        override fun getSystemAccentColor(): Int = 0
+
         override fun biometricsIsSupported(): Boolean = true
 
         override fun biometricsVerify(

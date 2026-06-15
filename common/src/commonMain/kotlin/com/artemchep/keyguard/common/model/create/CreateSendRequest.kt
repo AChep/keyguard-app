@@ -39,7 +39,9 @@ data class CreateSendRequest(
 
     @optics
     data class File(
-        val text: String? = null,
+        val uri: String? = null,
+        val name: String? = null,
+        val size: Long? = null,
     ) {
         companion object;
     }

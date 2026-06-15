@@ -1,10 +1,10 @@
 package com.artemchep.keyguard.feature.attachments.model
 
 import com.artemchep.keyguard.common.service.download.DownloadProgress
-import com.artemchep.keyguard.feature.attachments.SelectableItemState
-import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.common.util.canRetry
 import com.artemchep.keyguard.common.util.getHttpCode
+import com.artemchep.keyguard.feature.attachments.SelectableItemState
+import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.coroutines.flow.StateFlow
 
 data class AttachmentItem(
@@ -15,7 +15,12 @@ data class AttachmentItem(
     val statusState: StateFlow<Status>,
     val actionsState: StateFlow<List<ContextItem>>,
     val selectableState: StateFlow<SelectableItemState>,
+    val preview: Preview? = null,
 ) {
+    data class Preview(
+        val onClick: () -> Unit,
+    )
+
     sealed interface Status {
         companion object {
             fun of(
@@ -76,6 +81,10 @@ data class AttachmentItem(
             val localUrl: String,
         ) : Status {
             override val previewUrl get() = localUrl
+        }
+
+        data object PendingUpload : Status {
+            override val previewUrl get() = null
         }
     }
 }

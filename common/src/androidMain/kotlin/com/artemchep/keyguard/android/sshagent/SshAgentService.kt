@@ -18,14 +18,17 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.buildAndroidSshAgentCallerIdentity
 import com.artemchep.keyguard.common.service.sshagent.launchSshAgentProxyBridge
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorJvm
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.decodeOrNull
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.util.toHex
 import java.util.LinkedHashSet
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -78,7 +81,9 @@ class SshAgentService : Service(), DIAware {
     private val logRepository: LogRepository by instance()
     private val base64Service: Base64Service by instance()
     private val getVaultSession: GetVaultSession by instance()
+    private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow by instance()
     private val getSshAgentFilter: GetSshAgentFilter by instance()
+    private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository by instance()
 
     private val notificationIdPool = Notifications.sshAgent
     private var notificationId: Int? = null
@@ -112,13 +117,17 @@ class SshAgentService : Service(), DIAware {
 
     private fun createRequestProcessor(
         requestFlow: AndroidSshAgentRequestFlow,
+        sessionId: String,
         notificationTag: String,
     ): SshAgentRequestProcessor =
         SshAgentRequestProcessorJvm(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
+            getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
+            sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
+            sessionId = sessionId,
             onApprovalRequest = { caller, keyName, keyFingerprint ->
                 requestSigningApproval(
                     requestFlow = requestFlow,
@@ -217,6 +226,7 @@ class SshAgentService : Service(), DIAware {
         val requestFlow = createRequestFlow(notificationTag)
         val requestProcessor = createRequestProcessor(
             requestFlow = requestFlow,
+            sessionId = sessionId.toHex(),
             notificationTag = notificationTag,
         )
         val bridgeFailureHandler = CoroutineExceptionHandler { _, error ->

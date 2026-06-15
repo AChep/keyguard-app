@@ -52,7 +52,6 @@ fun BitwardenSend.Companion.encrypted(
                     id = file.id
                         ?: file.fileName.orEmpty(),
                     fileName = file.fileName.orEmpty(),
-                    keyBase64 = file.key,
                     size = file.size?.toLongOrNull(),
                     sizeName = file.sizeName,
                 )

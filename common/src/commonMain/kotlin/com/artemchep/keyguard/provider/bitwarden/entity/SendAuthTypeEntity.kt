@@ -2,8 +2,9 @@ package com.artemchep.keyguard.provider.bitwarden.entity
 
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
-import com.artemchep.keyguard.provider.bitwarden.entity.serializer.CommonEnumIntSerializer
 import com.artemchep.keyguard.provider.bitwarden.entity.serializer.IntEnum
+import com.artemchep.keyguard.provider.bitwarden.entity.serializer.commonEnumIntSerializer
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 
 @Serializable(SendAuthTypeEntitySerializer::class)
@@ -19,7 +20,7 @@ enum class SendAuthTypeEntity(
 }
 
 object SendAuthTypeEntitySerializer :
-    CommonEnumIntSerializer<SendAuthTypeEntity>(SendAuthTypeEntity::class)
+    KSerializer<SendAuthTypeEntity> by commonEnumIntSerializer<SendAuthTypeEntity>()
 
 fun SendAuthTypeEntity.domain() = when (this) {
     SendAuthTypeEntity.Email -> BitwardenSend.AuthType.Email

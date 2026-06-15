@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
@@ -64,6 +65,7 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import com.artemchep.keyguard.ui.totp.formatCode2
+import com.artemchep.keyguard.ui.totp.remainingProgressAt
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flatMapLatest
@@ -81,7 +83,7 @@ private sealed interface VaultViewTotpItemBadgeState {
     data object Error : VaultViewTotpItemBadgeState
 
     data class Success(
-        val codes: PersistentList<List<String>>,
+        val codes: PersistentList<PersistentList<String>>,
         val codeRaw: String,
         val counter: Counter,
     ) : VaultViewTotpItemBadgeState {
@@ -283,7 +285,7 @@ fun VaultViewTotpBadge2(
 @Composable
 private fun RowScope.VaultViewTotpCodeContent(
     totp: TotpToken,
-    codes: PersistentList<List<String>>?,
+    codes: PersistentList<PersistentList<String>>?,
 ) {
     val symbolColor = LocalContentColor.current
         .combineAlpha(DisabledEmphasisAlpha)
@@ -305,6 +307,7 @@ private fun RowScope.VaultViewTotpCodeContent(
         }
         return
     }
+    val motionScheme = MaterialTheme.motionScheme
     codes.forEachIndexed { index, text ->
         if (index > 0) {
             Box(
@@ -333,14 +336,25 @@ private fun RowScope.VaultViewTotpCodeContent(
 
                             val to = this.targetState
                             val currentFavorite = from > to
-                            val enter = slideInVertically {
+                            val slideSpec = motionScheme.fastSpatialSpec<IntOffset>()
+                            val scaleSpec = motionScheme.fastSpatialSpec<Float>()
+                            val enter = slideInVertically(
+                                animationSpec = slideSpec,
+                            ) {
                                 if (currentFavorite) -it else it
-                            } + scaleIn()
-                            val exit = slideOutVertically {
+                            } + scaleIn(
+                                animationSpec = scaleSpec,
+                            )
+                            val exit = slideOutVertically(
+                                animationSpec = slideSpec,
+                            ) {
                                 if (currentFavorite) it else -it
-                            } + scaleOut()
+                            } + scaleOut(
+                                animationSpec = scaleSpec,
+                            )
                             enter togetherWith exit
                         },
+                        label = "TotpCode",
                     ) { text ->
                         Text(
                             text = text,
@@ -454,9 +468,7 @@ private fun produceTotpCode(
                     is TotpCode.TimeBasedCounter -> flow<VaultViewTotpItemBadgeState.Success> {
                         while (true) {
                             val now = Clock.System.now()
-                            val totalDuration = counter.duration
                             val remainingDuration = counter.expiration - now
-                            val elapsedDuration = totalDuration - remainingDuration
 
                             val time = remainingDuration
                                 .inWholeMilliseconds
@@ -465,8 +477,7 @@ private fun produceTotpCode(
                                 .roundToInt()
                                 .coerceAtLeast(0)
                                 .toString()
-                            val progress =
-                                1f - elapsedDuration.inWholeSeconds.toFloat() / totalDuration.inWholeSeconds.toFloat()
+                            val progress = counter.remainingProgressAt(now)
                             val c = VaultViewTotpItemBadgeState.Success.TimeBasedCounter(
                                 time = time,
                                 progress = progress,

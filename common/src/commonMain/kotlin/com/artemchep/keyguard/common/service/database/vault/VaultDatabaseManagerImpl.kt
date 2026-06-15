@@ -15,6 +15,8 @@ import com.artemchep.keyguard.common.service.database.AfterVersionWithTransactio
 import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
 import com.artemchep.keyguard.common.service.database.ObjectToStringAdapter
+import com.artemchep.keyguard.common.service.database.SshUsageHistoryRequestTypeToLongAdapter
+import com.artemchep.keyguard.common.service.database.SshUsageHistoryResponseTypeToLongAdapter
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
@@ -25,6 +27,7 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenOrganization
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
+import com.artemchep.keyguard.data.BarcodeUsageHistory
 import com.artemchep.keyguard.data.CipherFilter
 import com.artemchep.keyguard.data.CipherUsageHistory
 import com.artemchep.keyguard.data.Database
@@ -32,6 +35,7 @@ import com.artemchep.keyguard.data.GeneratorWordlist
 import com.artemchep.keyguard.data.GeneratorEmailRelay
 import com.artemchep.keyguard.data.GeneratorHistory
 import com.artemchep.keyguard.data.PrivilegedApp
+import com.artemchep.keyguard.data.SshUsageHistory
 import com.artemchep.keyguard.data.UrlBlock
 import com.artemchep.keyguard.data.UrlOverride
 import com.artemchep.keyguard.data.WatchtowerThreat
@@ -48,6 +52,7 @@ import com.artemchep.keyguard.data.pwnage.AccountBreach
 import com.artemchep.keyguard.data.pwnage.PasswordBreach
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -86,7 +91,13 @@ class VaultDatabaseManagerImpl(
             val databaseFactory = { driver: SqlDriver ->
                 Database(
                     driver = driver,
+                    barcodeUsageHistoryAdapter = BarcodeUsageHistory.Adapter(InstantToLongAdapter),
                     cipherUsageHistoryAdapter = CipherUsageHistory.Adapter(InstantToLongAdapter),
+                    sshUsageHistoryAdapter = SshUsageHistory.Adapter(
+                        requestAdapter = SshUsageHistoryRequestTypeToLongAdapter,
+                        responseAdapter = SshUsageHistoryResponseTypeToLongAdapter,
+                        createdAtAdapter = InstantToLongAdapter,
+                    ),
                     cipherFilterAdapter = CipherFilter.Adapter(
                         updatedAtAdapter = InstantToLongAdapter,
                         createdAtAdapter = InstantToLongAdapter,

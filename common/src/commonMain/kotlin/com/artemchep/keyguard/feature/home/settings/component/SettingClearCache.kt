@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cached
 import androidx.compose.material.icons.outlined.Remove
@@ -10,9 +9,9 @@ import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.service.hibp.breaches.all.BreachesLocalDataSource
 import com.artemchep.keyguard.common.service.hibp.passwords.PasswordPwnageDataSourceLocal
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.feature.home.vault.component.VaultViewButtonItem
+import com.artemchep.keyguard.feature.home.settings.KgAction
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.coroutines.flow.flow
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -56,9 +55,10 @@ fun settingClearCache(
 private fun SettingClearCache(
     onClick: (() -> Unit),
 ) {
-    VaultViewButtonItem(
-        leading = icon<RowScope>(Icons.Outlined.Cached, Icons.Outlined.Remove),
-        text = "Clear cache",
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.Cached,
+        subIcon = Icons.Outlined.Remove,
+        title = "Clear cache",
         onClick = onClick,
     )
 }

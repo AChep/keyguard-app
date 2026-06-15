@@ -72,7 +72,7 @@ fun produceJustDeleteMeServiceListState(
             .mapIndexed { index, contributor ->
                 val key = kotlin.run {
                     val newNameCollisionCounter = nameCollisions
-                        .getOrDefault(contributor.user.username, 0) + 1
+                        .getOrElse(contributor.user.username) { 0 } + 1
                     nameCollisions[contributor.user.username] =
                         newNameCollisionCounter
                     contributor.user.username + ":" + newNameCollisionCounter

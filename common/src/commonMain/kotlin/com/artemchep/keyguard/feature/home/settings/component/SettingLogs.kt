@@ -1,22 +1,20 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.settings.KgAction
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.logs.LogsRoute
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.Stub
-import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DirectDI
@@ -26,6 +24,10 @@ fun settingLogsProvider(
 ) = settingLogsProvider()
 
 fun settingLogsProvider(): SettingComponent = kotlin.run {
+    if (CurrentPlatform.hasWatch()) {
+        return@run flowOf(null)
+    }
+
     val item = SettingIi(
         search = SettingIi.Search(
             group = "about",
@@ -53,17 +55,12 @@ fun settingLogsProvider(): SettingComponent = kotlin.run {
 private fun SettingLogs(
     onClick: (() -> Unit)?,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Stub),
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Stub,
         trailing = {
             ChevronIcon()
         },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_logs_title),
-            )
-        },
+        title = stringResource(Res.string.pref_item_logs_title),
         onClick = onClick,
     )
 }

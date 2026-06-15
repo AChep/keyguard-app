@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.flowOf
 
 private const val TAG = "Controller"
 
+/**
+ * Installs a controller that handles local intents and delegates leftovers.
+ */
 @Composable
 fun NavigationController(
     scope: CoroutineScope? = null,
@@ -49,6 +52,9 @@ fun NavigationController(
     }
 }
 
+/**
+ * Queues navigation commands and exposes whether this branch can handle back.
+ */
 interface NavigationController {
     val scope: CoroutineScope
 
@@ -57,7 +63,7 @@ interface NavigationController {
     fun canPop(): Flow<Boolean>
 }
 
-internal val LocalNavigationController = staticCompositionLocalOf<NavigationController> {
+val LocalNavigationController = staticCompositionLocalOf<NavigationController> {
     object : NavigationController {
         override val scope: CoroutineScope get() = GlobalScope
 

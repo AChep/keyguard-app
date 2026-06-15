@@ -1,12 +1,12 @@
 package com.artemchep.keyguard.common.util
 
 import com.artemchep.keyguard.common.exception.HttpException
+import com.artemchep.keyguard.common.exception.isProtocolException
+import com.artemchep.keyguard.common.exception.isSocketTimeoutException
+import com.artemchep.keyguard.common.exception.isUnknownHostException
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import io.ktor.http.HttpStatusCode
-import java.io.IOException
-import java.net.ProtocolException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
+import kotlinx.io.IOException
 
 class CodeException(
     val code: Int,
@@ -20,10 +20,10 @@ fun Throwable.getHttpCode(): Int {
     if (this is CodeException) {
         return this.code
     }
-    if (this is UnknownHostException) {
+    if (isUnknownHostException()) {
         return BitwardenService.Error.CODE_UNKNOWN_HOST
     }
-    if (this is ProtocolException) {
+    if (isProtocolException()) {
         val regex = "^Expected HTTP \\d+ .* was '(\\d+).*'.*".toRegex()
         val code = this.message
             ?.let { msg ->
@@ -34,7 +34,7 @@ fun Throwable.getHttpCode(): Int {
         return code
             ?: BitwardenService.Error.CODE_PROTOCOL_EXCEPTION
     }
-    if (this is SocketTimeoutException) {
+    if (isSocketTimeoutException()) {
         return BitwardenService.Error.CODE_UNKNOWN_HOST
     }
     return cause?.getHttpCode()
@@ -50,5 +50,6 @@ fun Int.canRetry(): Boolean =
             this == HttpStatusCode.PaymentRequired.value ||
             this == HttpStatusCode.ProxyAuthenticationRequired.value ||
             this == HttpStatusCode.RequestTimeout.value ||
+            this == HttpStatusCode.TooManyRequests.value ||
             // 500x
             this in 500..599

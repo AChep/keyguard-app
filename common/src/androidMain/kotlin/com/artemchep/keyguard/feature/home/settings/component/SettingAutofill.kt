@@ -2,10 +2,8 @@ package com.artemchep.keyguard.feature.home.settings.component
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoAwesome
@@ -13,31 +11,26 @@ import androidx.compose.material.icons.outlined.OpenInBrowser
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import arrow.core.partially1
 import com.artemchep.keyguard.android.closestActivityOrNull
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.feature.apppicker.flowOfInstalledAppsAnyOf
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.settings.KgSwitch
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.SimpleNote
-import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -127,28 +120,13 @@ private fun SettingAutofill(
     onCheckedChange: ((Boolean) -> Unit)?,
     footer: @Composable ColumnScope.() -> Unit,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.AutoAwesome),
-        trailing = {
-            Switch(
-                checked = checked,
-                enabled = onCheckedChange != null,
-                onCheckedChange = onCheckedChange,
-            )
-        },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_service_title),
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(Res.string.pref_item_autofill_service_text),
-            )
-        },
+    LocalSettingPaneComponents.current.KgSwitch(
+        icon = Icons.Outlined.AutoAwesome,
+        title = stringResource(Res.string.pref_item_autofill_service_title),
+        text = stringResource(Res.string.pref_item_autofill_service_text),
         footer = footer,
-        onClick = onCheckedChange?.partially1(!checked),
+        checked = checked,
+        onCheckedChange = onCheckedChange,
     )
 }
 

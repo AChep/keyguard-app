@@ -12,7 +12,15 @@ class ApiException(
     val error: String,
     val type: Type?,
     message: String?,
-) : HttpException(code, message, exception), Readable {
+    errorCode: String? = null,
+    route: String? = null,
+) : HttpException(
+    statusCode = code,
+    m = message,
+    e = exception,
+    errorCode = errorCode,
+    route = route,
+), Readable {
     sealed interface Type {
         data class CaptchaRequired(
             val siteKey: String,

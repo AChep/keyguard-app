@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.api.builder
 
+import kotlin.jvm.JvmInline
+
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 
 /**
@@ -28,6 +30,8 @@ value class ServerEnvIdentity @Deprecated("Use the [ServerEnv.identity] property
         private val url: String,
     ) {
         val prelogin get() = url + "prelogin"
+
+        val preloginPassword get() = url + "prelogin/password"
     }
 }
 

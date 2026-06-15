@@ -115,6 +115,64 @@ class DiffTest {
                 ),
             ),
             // Local:
+            // - first name
+            // Remote:
+            // - cleared counter
+            // Expected: merged first name from local, cleared counter from remote
+            TestRow(
+                oldRemote = ModelDiffUtil.TestEntity(
+                    counter = 1,
+                ),
+                curLocal = ModelDiffUtil.TestEntity(
+                    firstName = "Marta",
+                    counter = 1,
+                ),
+                curRemote = ModelDiffUtil.TestEntity(
+                    counter = null,
+                ),
+                expected = ModelDiffUtil.TestEntity(
+                    firstName = "Marta",
+                    counter = null,
+                ),
+            ),
+            // Local:
+            // - cleared counter
+            // Remote:
+            // Expected: merged cleared counter from local
+            TestRow(
+                oldRemote = ModelDiffUtil.TestEntity(
+                    counter = 1,
+                ),
+                curLocal = ModelDiffUtil.TestEntity(
+                    counter = null,
+                ),
+                curRemote = ModelDiffUtil.TestEntity(
+                    counter = 1,
+                ),
+                expected = ModelDiffUtil.TestEntity(
+                    counter = null,
+                ),
+            ),
+            // Local:
+            // - counter
+            // Remote:
+            // - cleared counter
+            // Expected: merged cleared counter from remote
+            TestRow(
+                oldRemote = ModelDiffUtil.TestEntity(
+                    counter = 1,
+                ),
+                curLocal = ModelDiffUtil.TestEntity(
+                    counter = 2,
+                ),
+                curRemote = ModelDiffUtil.TestEntity(
+                    counter = null,
+                ),
+                expected = ModelDiffUtil.TestEntity(
+                    counter = null,
+                ),
+            ),
+            // Local:
             // - Favorite dish
             // Remote:
             // Expected: merged favorite dish from local

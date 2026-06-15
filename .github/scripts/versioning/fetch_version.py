@@ -124,7 +124,16 @@ def write_json_output(data: dict[str, Any], output_path: Path) -> None:
 # =============================================================================
 
 # Standard Google Play tracks
-DEFAULT_TRACKS = ["internal", "alpha", "beta", "production"]
+DEFAULT_TRACKS = [
+    "internal",
+    "alpha",
+    "beta",
+    "production",
+    "wear:internal",
+    "wear:alpha",
+    "wear:beta",
+    "wear:production",
+]
 
 # Required scope for reading app information
 SCOPES = ["https://www.googleapis.com/auth/androidpublisher"]
@@ -248,6 +257,9 @@ def fetch_max_version_code(
         Dictionary with version information:
         {
             "max_version_code": int,
+            "version_code_base": int,
+            "wear_version_code": int,
+            "android_version_code": int,
             "next_version_code": int,
             "versions_by_track": dict[str, int],
             "package_name": str,
@@ -272,9 +284,14 @@ def fetch_max_version_code(
 
     max_version = max(versions_by_track.values()) if versions_by_track else 0
 
+    version_code_base = max_version + 1
+
     return {
         "max_version_code": max_version,
-        "next_version_code": max_version + 1,
+        "version_code_base": version_code_base,
+        "wear_version_code": version_code_base,
+        "android_version_code": version_code_base + 1,
+        "next_version_code": version_code_base,
         "versions_by_track": versions_by_track,
         "package_name": package_name,
         "timestamp": create_timestamp(),
@@ -327,7 +344,9 @@ def main(
         write_json_output(result, output)
         typer.echo(f"Version info written to {output}")
         typer.echo(f"Max version code: {result['max_version_code']}")
-        typer.echo(f"Next version code: {result['next_version_code']}")
+        typer.echo(f"Base version code: {result['version_code_base']}")
+        typer.echo(f"Wear version code: {result['wear_version_code']}")
+        typer.echo(f"Android version code: {result['android_version_code']}")
 
     except (InputValidationError, CredentialsError, ApiError) as e:
         typer.echo(f"Error: {e}", err=True)

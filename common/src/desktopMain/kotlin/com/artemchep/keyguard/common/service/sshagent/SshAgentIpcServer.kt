@@ -2,6 +2,8 @@ package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import kotlinx.coroutines.CancellationException
@@ -25,6 +27,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
 import java.security.MessageDigest
+import kotlin.time.Duration
 
 /**
  * IPC server that listens for connections from the keyguard-ssh-agent
@@ -69,9 +72,11 @@ class SshAgentIpcServer(
     constructor(
         logRepository: LogRepository,
         getVaultSession: GetVaultSession,
+        getSshAgentApprovalWindow: GetSshAgentApprovalWindow = GetSshAgentApprovalWindowNoOp,
         getSshAgentFilter: GetSshAgentFilter,
         authToken: ByteArray,
         scope: CoroutineScope,
+        sessionId: String = "",
         maxConcurrentConnections: Int = 8,
         onApprovalRequest: suspend (
             caller: SshAgentMessages.CallerIdentity?,
@@ -81,6 +86,7 @@ class SshAgentIpcServer(
         onGetListRequest: suspend (
             caller: SshAgentMessages.CallerIdentity?,
         ) -> Boolean = { _ -> false },
+        sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
     ) : this(
         logRepository = logRepository,
         authToken = authToken,
@@ -88,8 +94,11 @@ class SshAgentIpcServer(
         requestProcessor = SshAgentRequestProcessorJvm(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
+            getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
+            sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
+            sessionId = sessionId,
             onApprovalRequest = onApprovalRequest,
             onGetListRequest = onGetListRequest,
         ),

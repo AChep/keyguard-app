@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.usecase.SyncAll
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByToken
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

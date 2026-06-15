@@ -103,6 +103,7 @@ import com.artemchep.keyguard.ui.GridLayout
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ProvideScaffoldLocalValues
 import com.artemchep.keyguard.ui.animatedNumberText
+import com.artemchep.keyguard.ui.grid.calculateSimpleGridLayoutColumnsCount
 import com.artemchep.keyguard.ui.grid.preferredGridWidth
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardBroadWebsites
@@ -113,6 +114,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardIncompleteItems
 import com.artemchep.keyguard.ui.icons.KeyguardPasskey
 import com.artemchep.keyguard.ui.icons.KeyguardPwnedPassword
 import com.artemchep.keyguard.ui.icons.KeyguardReusedPassword
+import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardPwnedWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardTrashedItems
@@ -357,6 +359,12 @@ fun WatchtowerScreen2(
                     transform = { reused },
                 ) { reusedPasswords ->
                     CardReusedPassword(reusedPasswords)
+                }
+
+                state.content.RenderCard(
+                    transform = { weakSshKeys },
+                ) { weakSshKeys ->
+                    CardWeakSshKeys(weakSshKeys)
                 }
 
                 state.content.RenderCard(
@@ -823,6 +831,26 @@ private fun CardReusedPassword(
 }
 
 @Composable
+private fun CardWeakSshKeys(
+    state: WatchtowerState.Content.WeakSshKeys,
+) {
+    Card(
+        number = state.count,
+        new = state.new,
+        title = {
+            ContentCardsContentTitle(
+                icon = WatchtowerStatusIcon.ERROR.takeIf { state.count > 0 }
+                    ?: WatchtowerStatusIcon.OK,
+                title = stringResource(Res.string.watchtower_item_weak_ssh_keys_title),
+            )
+        },
+        text = stringResource(Res.string.watchtower_item_weak_ssh_keys_text),
+        imageVector = Icons.Outlined.KeyguardSshKey,
+        onClick = state.onClick,
+    )
+}
+
+@Composable
 private fun CardVulnerableAccounts(
     state: WatchtowerState.Content.PwnedWebsites,
 ) {
@@ -1193,15 +1221,12 @@ private fun ContentLayout(
                     .verticalScroll(scrollState)
                     .padding(contentPadding),
             ) {
-                val columns = (this@BoxWithConstraints.maxWidth / preferredGridWidth)
-                    .roundToInt()
-                    .coerceAtLeast(1)
-                val dashboardWidth = this@BoxWithConstraints.maxWidth / columns *
-                        2.coerceAtMost(columns)
-
+                val columns = calculateSimpleGridLayoutColumnsCount(
+                    maxWidth = this@BoxWithConstraints.maxWidth,
+                    minCellWidth = 188.dp, // tuned specifically for the screen
+                )
                 Column(
                     modifier = Modifier
-                        //   .widthIn(max = dashboardWidth)
                         .fillMaxWidth(),
                 ) {
                     dashboardContent()

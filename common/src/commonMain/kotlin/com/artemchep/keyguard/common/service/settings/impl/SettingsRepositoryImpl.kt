@@ -26,6 +26,8 @@ import com.artemchep.keyguard.common.service.settings.entity.VersionLogEntity
 import com.artemchep.keyguard.common.service.settings.entity.of
 import com.artemchep.keyguard.common.service.settings.entity.toDomain
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -53,6 +55,7 @@ class SettingsRepositoryImpl(
         private const val KEY_AUTOFILL_SAVE_REQUEST = "autofill.save_request"
         private const val KEY_AUTOFILL_SAVE_URI = "autofill.save_uri"
         private const val KEY_AUTOFILL_ADVERTISE_PASSKEYS_SUPPORT = "autofill.advertise_passkeys_support"
+        private const val KEY_AUTOFILL_ADVERTISE_PASSWORDS_SUPPORT = "autofill.advertise_passwords_support"
         private const val KEY_AUTOFILL_COPY_TOTP = "autofill.copy_totp"
         private const val KEY_VAULT_PERSIST = "vault_persist"
         private const val KEY_VAULT_REBOOT = "vault_reboot"
@@ -73,18 +76,23 @@ class SettingsRepositoryImpl(
         private const val KEY_DEBUG_PREMIUM = "debug_premium"
         private const val KEY_DEBUG_SCREEN_DELAY = "debug_screen_delay"
         private const val KEY_CACHE_PREMIUM = "cache_premium"
+        private const val KEY_CACHE_HIDDEN_SEND = "cache_hidden_send"
         private const val KEY_APP_ICONS = "app_icons"
         private const val KEY_WEBSITE_ICONS = "website_icons"
         private const val KEY_MARKDOWN = "markdown"
         private const val KEY_SSH_AGENT = "ssh_agent"
+        private const val KEY_SSH_AGENT_APPROVAL_WINDOW = "ssh_agent.approval_window"
+        private const val KEY_SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent.display_key_names"
         private const val KEY_SSH_AGENT_FILTER = "ssh_agent.filters"
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
         private const val KEY_NAV_LABEL = "nav_label"
+        private const val KEY_NAV_HIDDEN_SEND = "nav_hidden_send"
         private const val KEY_TWO_PANEL_LAYOUT_LANDSCAPE = "two_panel_layout_landscape"
         private const val KEY_TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
         private const val KEY_USE_EXTERNAL_BROWSER = "use_external_browser"
         private const val KEY_CLOSE_TO_TRAY = "close_to_tray"
+        private const val KEY_MINIMIZE_ON_COPY = "minimize_on_copy"
         private const val KEY_FONT = "font"
         private const val KEY_THEME = "theme"
         private const val KEY_THEME_USE_AMOLED_DARK = "theme_use_amoled_dark"
@@ -119,6 +127,9 @@ class SettingsRepositoryImpl(
 
     private val advertisePasskeysSupportPref =
         store.getBoolean(KEY_AUTOFILL_ADVERTISE_PASSKEYS_SUPPORT, true)
+
+    private val advertisePasswordsSupportPref =
+        store.getBoolean(KEY_AUTOFILL_ADVERTISE_PASSWORDS_SUPPORT, true)
 
     private val autofillCopyTotpPref =
         store.getBoolean(KEY_AUTOFILL_COPY_TOTP, true)
@@ -156,17 +167,18 @@ class SettingsRepositoryImpl(
     private val allowScreenshotsEnumPref =
         store.getEnumNullable(KEY_ALLOW_SCREENSHOTS_ENUM, lens = AllowScreenshots::key)
 
+    private val isWatch = CurrentPlatform.hasWatch()
     private val checkPwnedPasswordsPref =
-        store.getBoolean(KEY_CHECK_PWNED_PASSWORDS, true)
+        store.getBoolean(KEY_CHECK_PWNED_PASSWORDS, !isWatch)
 
     private val checkPwnedServicesPref =
-        store.getBoolean(KEY_CHECK_PWNED_SERVICES, true)
+        store.getBoolean(KEY_CHECK_PWNED_SERVICES, !isWatch)
 
     private val checkTwoFAPref =
-        store.getBoolean(KEY_CHECK_TWO_FA, true)
+        store.getBoolean(KEY_CHECK_TWO_FA, !isWatch)
 
     private val checkPasskeysPref =
-        store.getBoolean(KEY_CHECK_PASSKEYS, true)
+        store.getBoolean(KEY_CHECK_PASSKEYS, !isWatch)
 
     private val writeAccessPref =
         store.getBoolean(KEY_WRITE_ACCESS, true)
@@ -180,6 +192,9 @@ class SettingsRepositoryImpl(
     private val cachePremiumPref =
         store.getBoolean(KEY_CACHE_PREMIUM, false)
 
+    private val cacheHiddenSendPref =
+        store.getBoolean(KEY_CACHE_HIDDEN_SEND, true)
+
     private val appIconsPref =
         store.getBoolean(KEY_APP_ICONS, true)
 
@@ -191,6 +206,17 @@ class SettingsRepositoryImpl(
 
     private val sshAgentPref =
         store.getBoolean(KEY_SSH_AGENT, false)
+
+    private val sshAgentApprovalWindowPref =
+        store.getLong(
+            key = KEY_SSH_AGENT_APPROVAL_WINDOW,
+            with(Duration) {
+                5L.minutes
+            }.inWholeMilliseconds,
+        )
+
+    private val sshAgentDisplayKeyNamesPref =
+        store.getBoolean(KEY_SSH_AGENT_DISPLAY_KEY_NAMES, false)
 
     private val sshAgentFilterPref =
         store.getSerializable(
@@ -214,6 +240,9 @@ class SettingsRepositoryImpl(
     private val navLabelPref =
         store.getBoolean(KEY_NAV_LABEL, true)
 
+    private val navHiddenSendPref =
+        store.getBoolean(KEY_NAV_HIDDEN_SEND, false)
+
     private val allowTwoPanelLayoutInLandscapePref =
         store.getBoolean(KEY_TWO_PANEL_LAYOUT_LANDSCAPE, true)
 
@@ -225,6 +254,9 @@ class SettingsRepositoryImpl(
 
     private val closeToTrayPref =
         store.getBoolean(KEY_CLOSE_TO_TRAY, false)
+
+    private val minimizeOnCopyPref =
+        store.getBoolean(KEY_MINIMIZE_ON_COPY, false)
 
     private val navAnimationPref =
         store.getEnumNullable(KEY_NAV_ANIMATION, lens = NavAnimation::key)
@@ -283,6 +315,7 @@ class SettingsRepositoryImpl(
         KEY_DEBUG_PREMIUM,
         KEY_DEBUG_SCREEN_DELAY,
         KEY_CACHE_PREMIUM,
+        KEY_CACHE_HIDDEN_SEND,
         KEY_ONBOARDING_LAST_VISIT,
         KEY_VERSION_LOG,
         KEY_DATABASE_EXPOSED_KEY,
@@ -319,15 +352,18 @@ class SettingsRepositoryImpl(
             websiteIconsPref,
             markdownPref,
             sshAgentPref,
+            sshAgentApprovalWindowPref,
             sshAgentFilterPref,
             themeUseAmoledDarkPref,
             keepScreenOnPref,
             gravatarPref,
             navLabelPref,
+            navHiddenSendPref,
             allowTwoPanelLayoutInLandscapePref,
             allowTwoPanelLayoutInPortraitPref,
             useExternalBrowserPref,
             closeToTrayPref,
+            minimizeOnCopyPref,
             navAnimationPref,
             fontPref,
             themePref,
@@ -411,6 +447,11 @@ class SettingsRepositoryImpl(
 
     override fun setAdvertisePasskeysSupport(advertisePasskeysSupport: Boolean) = advertisePasskeysSupportPref
         .setAndCommit(advertisePasskeysSupport)
+
+    override fun getAdvertisePasswordsSupport() = advertisePasswordsSupportPref
+
+    override fun setAdvertisePasswordsSupport(advertisePasswordsSupport: Boolean) = advertisePasswordsSupportPref
+        .setAndCommit(advertisePasswordsSupport)
 
     override fun getAutofillSaveUri() = autofillSaveUriPref
 
@@ -535,6 +576,11 @@ class SettingsRepositoryImpl(
 
     override fun getCachePremium() = cachePremiumPref
 
+    override fun setCacheHiddenSend(hiddenSend: Boolean) = cacheHiddenSendPref
+        .setAndCommit(hiddenSend)
+
+    override fun getCacheHiddenSend() = cacheHiddenSendPref
+
     override fun setAppIcons(appIcons: Boolean) = appIconsPref
         .setAndCommit(appIcons)
 
@@ -554,6 +600,18 @@ class SettingsRepositoryImpl(
         .setAndCommit(sshAgent)
 
     override fun getSshAgent() = sshAgentPref
+
+    override fun setSshAgentApprovalWindow(duration: Duration) = sshAgentApprovalWindowPref
+        .setAndCommit(duration)
+
+    override fun getSshAgentApprovalWindow() = sshAgentApprovalWindowPref
+        .asDuration()
+        .map { it ?: Duration.ZERO }
+
+    override fun setSshAgentDisplayKeyNames(displayKeyNames: Boolean) = sshAgentDisplayKeyNamesPref
+        .setAndCommit(displayKeyNames)
+
+    override fun getSshAgentDisplayKeyNames() = sshAgentDisplayKeyNamesPref
 
     override fun setSshAgentFilter(filter: SshAgentFilter) = sshAgentFilterPref
         .setAndCommit(filter)
@@ -589,6 +647,11 @@ class SettingsRepositoryImpl(
         .setAndCommit(visible)
 
     override fun getNavLabel() = navLabelPref
+
+    override fun setNavHiddenSend(hidden: Boolean) = navHiddenSendPref
+        .setAndCommit(hidden)
+
+    override fun getNavHiddenSend() = navHiddenSendPref
 
     override fun setFont(font: AppFont?) = fontPref
         .setAndCommit(font)
@@ -643,6 +706,13 @@ class SettingsRepositoryImpl(
         .setAndCommit(closeToTray)
 
     override fun getCloseToTray() = closeToTrayPref
+
+    override fun setMinimizeOnCopy(
+        minimizeOnCopy: Boolean,
+    ) = minimizeOnCopyPref
+        .setAndCommit(minimizeOnCopy)
+
+    override fun getMinimizeOnCopy() = minimizeOnCopyPref
 
     override fun setColors(colors: AppColors?) = colorsPref
         .setAndCommit(colors)

@@ -1,0 +1,43 @@
+import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType;
+import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType;
+import kotlin.time.Instant;
+
+CREATE TABLE sshUsageHistory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cipherId TEXT,
+  sessionId TEXT NOT NULL,
+  caller TEXT,
+  request INTEGER AS SshUsageHistoryRequestType NOT NULL,
+  response INTEGER AS SshUsageHistoryResponseType NOT NULL,
+  fingerprint TEXT,
+  createdAt INTEGER AS Instant NOT NULL,
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_sshUsageHistory_createdAt ON sshUsageHistory(createdAt DESC);
+CREATE INDEX idx_sshUsageHistory_cipherId_createdAt ON sshUsageHistory(cipherId, createdAt DESC);
+
+insert:
+INSERT INTO sshUsageHistory(cipherId, sessionId, caller, request, response, fingerprint, createdAt)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+getRecent:
+SELECT *
+FROM sshUsageHistory
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+getByCipherId:
+SELECT *
+FROM sshUsageHistory
+WHERE cipherId = :cipherId
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+getCount:
+SELECT
+    COUNT(*) AS count
+FROM sshUsageHistory;
+
+deleteAll:
+DELETE FROM sshUsageHistory;

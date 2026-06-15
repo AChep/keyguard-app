@@ -30,7 +30,8 @@ suspend fun BitwardenSend.toDomain(
         maxAccessCount = maxAccessCount,
         hasPassword = authType == DSend.AuthType.Password,
         synced = !service.deleted &&
-                revisionDate == service.remote?.revisionDate,
+                revisionDate == service.remote?.revisionDate &&
+                file?.pendingUpload == null,
         disabled = disabled,
         hideEmail = hideEmail ?: false,
         emails = emails
@@ -51,7 +52,6 @@ fun BitwardenSend.Text.toDomain() = DSend.Text(
 fun BitwardenSend.File.toDomain() = DSend.File(
     id = id,
     fileName = fileName,
-    keyBase64 = keyBase64,
     size = size,
     sizeName = sizeName,
 )

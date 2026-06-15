@@ -202,7 +202,7 @@ internal fun quickSearchPrimaryCopy(
 
     !secret.sshKey?.publicKey.isNullOrEmpty() -> QuickSearchCopyValue(
         value = secret.sshKey!!.publicKey!!,
-        type = CopyText.Type.KEY,
+        type = CopyText.Type.PUBLIC_KEY,
     )
 
     secret.notes.isNotBlank() && !secret.reprompt -> QuickSearchCopyValue(
@@ -233,7 +233,7 @@ internal fun quickSearchSecretCopy(
 
         !secret.sshKey?.privateKey.isNullOrEmpty() -> QuickSearchCopyValue(
             value = secret.sshKey!!.privateKey!!,
-            type = CopyText.Type.KEY,
+            type = CopyText.Type.PRIVATE_KEY,
         )
 
         else -> null

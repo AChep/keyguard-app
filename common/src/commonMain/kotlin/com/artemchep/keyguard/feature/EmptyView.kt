@@ -36,6 +36,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -96,7 +98,7 @@ fun EmptyView(
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            if (largeArtwork) {
+            if (largeArtwork && !CurrentPlatform.hasWatch()) {
                 val shape = MaterialShapes.Pill.toShape()
                 Image(
                     modifier = Modifier

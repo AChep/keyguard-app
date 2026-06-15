@@ -15,11 +15,16 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+
 jobs:
   check-desktop-tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
@@ -34,7 +39,9 @@ jobs:
           - 30
           - 26
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
@@ -42,7 +49,9 @@ jobs:
       - uses: ./.github/actions/prepare_disk_space
       - name: "Prepare env"
         run: |
-          echo ${{ vars.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
+          echo ${VARS_GOOGLE_SERVICES} | base64 -d | zcat >> androidApp/google-services.json
+        env:
+          VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
       - uses: ./.github/actions/build_android_licenses
         with:
           build-flavor: "PlayStore"
@@ -61,7 +70,7 @@ jobs:
             adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
             exit $RESULT
       - name: 'Upload screen recordings'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
           name: android-${{ matrix.api-level }}-screen-recordings
@@ -69,7 +78,7 @@ jobs:
             artifactsScreenRecording/
           retention-days: 7
       - name: 'Upload logs'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
           name: android-${{ matrix.api-level }}-logs

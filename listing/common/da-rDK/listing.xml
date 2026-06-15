@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Multi-konto understøttelse: Hav flere konti logget ind samtidigt.</string>
     <string name="listing_description_highlight_offline">Offline administration: Tilføj elementer og sends, rediger og se din boks offline.</string>
     <string name="listing_description_highlight_export">Dataeksport: Eksporter individuelle eller organisations-elementer, inklusive vedhæftede filer.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Generator: Opret adgangskoder, SSH-nøgler og e-mail-videresendelser, med understøttelse af brugerdefinerede ordlister.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Avancerede funktioner: Understøttelse af genveje, feltpladsholdere, URL-tilsidesættelser og smart konfliktløsning.</string>

@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
-import app.keemobile.kotpass.database.modifiers.modifyMeta
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.combineIo
@@ -10,13 +9,10 @@ import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.AccountId
-import com.artemchep.keyguard.common.service.file.FileService
-import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
-import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.PutAccountNameById
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -36,15 +32,12 @@ import org.kodein.di.instance
 /**
  * @author Artem Chepurnyi
  */
-class PutAccountNameByIdImpl(
+class PutAccountNameByIdImpl internal constructor(
     private val logRepository: LogRepository,
     private val tokenRepository: ServiceTokenRepository,
     private val profileRepository: BitwardenProfileRepository,
-    private val base64Service: Base64Service,
-    private val fileService: FileService,
-    private val json: Json,
-    private val httpClient: HttpClient,
-    private val db: VaultDatabaseManager,
+    private val putBitwardenAccountNameById: PutBitwardenAccountNameByIdImpl,
+    private val putKeePassAccountNameById: PutKeePassAccountNameById,
 ) : PutAccountNameById {
     companion object {
         private const val TAG = "PutAccountNameById"
@@ -54,11 +47,8 @@ class PutAccountNameByIdImpl(
         logRepository = directDI.instance(),
         tokenRepository = directDI.instance(),
         profileRepository = directDI.instance(),
-        base64Service = directDI.instance(),
-        fileService = directDI.instance(),
-        json = directDI.instance(),
-        httpClient = directDI.instance(),
-        db = directDI.instance(),
+        putBitwardenAccountNameById = directDI.instance(),
+        putKeePassAccountNameById = directDI.instance(),
     )
 
     override fun invoke(
@@ -90,13 +80,13 @@ class PutAccountNameByIdImpl(
         requireNotNull(profile) { "Failed to find the account profile!" }
 
         when (token) {
-            is BitwardenToken -> submitChangeIo(
+            is BitwardenToken -> putBitwardenAccountNameById(
                 accountName = accountName,
                 token = token,
                 profile = profile,
             )
 
-            is KeePassToken -> submitChangeIo(
+            is KeePassToken -> putKeePassAccountNameById(
                 accountName = accountName,
                 token = token,
                 profile = profile,
@@ -111,8 +101,24 @@ class PutAccountNameByIdImpl(
             }
             .bind()
     }
+}
 
-    private fun submitChangeIo(
+internal class PutBitwardenAccountNameByIdImpl(
+    private val profileRepository: BitwardenProfileRepository,
+    private val base64Service: Base64Service,
+    private val json: Json,
+    private val httpClient: HttpClient,
+    private val db: VaultDatabaseManager,
+) {
+    constructor(directDI: DirectDI) : this(
+        profileRepository = directDI.instance(),
+        base64Service = directDI.instance(),
+        json = directDI.instance(),
+        httpClient = directDI.instance(),
+        db = directDI.instance(),
+    )
+
+    operator fun invoke(
         accountName: String,
         token: BitwardenToken,
         profile: BitwardenProfile,
@@ -145,32 +151,16 @@ class PutAccountNameByIdImpl(
         profileRepository.put(newProfile)
             .bind()
     }
+}
 
-    private fun submitChangeIo(
+internal interface PutKeePassAccountNameById {
+    operator fun invoke(
         accountName: String,
         token: KeePassToken,
         profile: BitwardenProfile,
-    ) = ioEffect {
-        val curDatabase = openKeePassDatabase(
-            token = token,
-            fileService = fileService,
-            base64Service = base64Service,
-        )
-        val newDatabase = curDatabase.modifyMeta {
-            copy(
-                name = accountName,
-            )
-        }
-        saveKeePassDatabase(
-            fileService = fileService,
-            token = token,
-            database = newDatabase,
-        )
-
-        // TODO: Instead of using cached profile model, use the one returned
-        //  from the avatar update call.
-        val newProfile = BitwardenProfile.name.set(profile, accountName)
-        profileRepository.put(newProfile)
-            .bind()
-    }
+    ): IO<Unit>
 }
+
+internal expect fun createPutKeePassAccountNameById(
+    directDI: DirectDI,
+): PutKeePassAccountNameById

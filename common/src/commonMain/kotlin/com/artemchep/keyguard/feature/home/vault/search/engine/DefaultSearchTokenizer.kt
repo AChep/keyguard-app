@@ -1,8 +1,5 @@
 package com.artemchep.keyguard.feature.home.vault.search.engine
 
-import java.text.BreakIterator
-import java.util.Locale
-
 class DefaultSearchTokenizer(
     private val defaultConfig: SearchTokenizerConfig = SearchTokenizerConfig(),
 ) : SearchTokenizer {
@@ -42,8 +39,8 @@ class DefaultSearchTokenizer(
         profile: SearchTokenizerProfile,
         config: SearchTokenizerConfig,
     ): List<String> {
-        val normalized = value.lowercase(Locale.ROOT)
-        if (profile == SearchTokenizerProfile.TEXT && normalized.requiresWordSegmentation()) {
+        val normalized = value.lowercase()
+        if (profile == SearchTokenizerProfile.TEXT && requiresPlatformWordSegmentation(normalized)) {
             return tokenizeTextWithWordSegmentation(
                 value = normalized,
                 config = config,
@@ -108,21 +105,12 @@ class DefaultSearchTokenizer(
         config: SearchTokenizerConfig,
     ): List<String> {
         val tokens = mutableListOf<String>()
-        val iterator = BreakIterator.getWordInstance(Locale.getDefault())
-        iterator.setText(value)
-        var start = iterator.first()
-        var end = iterator.next()
-        while (end != BreakIterator.DONE) {
-            val token = value.substring(start, end)
-            if (token.any(Char::isLetterOrDigit)) {
-                pushToken(
-                    tokens = tokens,
-                    token = token,
-                    config = config,
-                )
-            }
-            start = end
-            end = iterator.next()
+        platformWordSegments(value).forEach { token ->
+            pushToken(
+                tokens = tokens,
+                token = token,
+                config = config,
+            )
         }
         return tokens
     }
@@ -141,17 +129,3 @@ class DefaultSearchTokenizer(
         tokens += token
     }
 }
-
-private fun String.requiresWordSegmentation(): Boolean =
-    codePoints().anyMatch { codePoint ->
-        when (Character.UnicodeScript.of(codePoint)) {
-            Character.UnicodeScript.HAN,
-            Character.UnicodeScript.HIRAGANA,
-            Character.UnicodeScript.KATAKANA,
-            Character.UnicodeScript.HANGUL,
-            Character.UnicodeScript.THAI,
-            -> true
-
-            else -> false
-        }
-    }

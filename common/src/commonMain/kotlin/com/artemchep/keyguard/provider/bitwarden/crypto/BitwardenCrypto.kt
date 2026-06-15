@@ -1,11 +1,15 @@
 package com.artemchep.keyguard.provider.bitwarden.crypto
 
+import kotlin.jvm.JvmName
+
 import arrow.core.partially2
 import arrow.core.partially3
 import com.artemchep.keyguard.common.exception.DecodeException
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import kotlinx.coroutines.CancellationException
 
 private typealias Decoder = (String) -> DecodeResult
 
@@ -88,7 +92,7 @@ fun BitwardenCrCta.transformString(
 ): String = whatIf(
     isEncrypt = {
         val encryptionType = env.encryptionType
-        val data = value.toByteArray()
+        val data = value.encodeToByteArray()
         encoder(env.key).invoke(encryptionType, data)
     },
     isDecrypt = {
@@ -98,7 +102,7 @@ fun BitwardenCrCta.transformString(
             return@whatIf value
         }
         val data = decoder(env.key).invoke(value).data
-        String(data)
+        data.decodeToString()
     },
 )
 
@@ -210,6 +214,9 @@ private fun Decoder.withExceptionHandling(
         val result = kotlin.runCatching {
             this(cipherText)
         }.getOrElse { e ->
+            if (e is CancellationException) {
+                throw e
+            }
             val type = cipherText.substringBefore('.')
                 // If the cipher text for some reason doesn't have a
                 // dot separated type, then take only first N symbols
@@ -220,7 +227,7 @@ private fun Decoder.withExceptionHandling(
                 symmetricCryptoKey?.let { "symmetric key is ${it.data.size}b long" },
                 asymmetricCryptoKey?.let { "asymmetric key is ${it.privateKey.size}b long" },
             ).joinToString()
-            val cause = e.localizedMessage ?: e.message
+            val cause = e.message
             val msg = "Failed to decode a cipher-text with the type '$type': $key, $info. " +
                     "$cause"
             throw DecodeException(msg, e)
@@ -348,6 +355,30 @@ fun BitwardenCrFactoryScope.appendOrganizationToken2(
 
 fun CryptoGenerator.makeCipherCryptoKeyMaterial() = seed(length = 64)
 
+internal fun BitwardenCipher?.keyBase64OrGenerate(
+    cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
+): String = this?.keyBase64
+    ?: cryptoGenerator
+        .makeCipherCryptoKeyMaterial()
+        .let(base64Service::encodeToString)
+
+internal fun BitwardenCipher.withCipherKeyBase64(
+    cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
+): BitwardenCipher = if (keyBase64 != null) {
+    this
+} else {
+    copy(
+        keyBase64 = this.keyBase64OrGenerate(
+            cryptoGenerator = cryptoGenerator,
+            base64Service = base64Service,
+        ),
+    )
+}
+
+fun CryptoGenerator.makeCipherAttachmentCryptoKeyMaterial() = seed(length = 64)
+
 //
 // Sends
 //
@@ -359,8 +390,8 @@ fun CryptoGenerator.makeSendCryptoKey(
 ): ByteArray {
     return hkdf(
         seed = keyMaterial,
-        salt = "bitwarden-send".toByteArray(),
-        info = "send".toByteArray(),
+        salt = "bitwarden-send".encodeToByteArray(),
+        info = "send".encodeToByteArray(),
         length = 64,
     )
 }

@@ -92,9 +92,12 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.vault.component.surfaceShape
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.platform.input.IncognitoInput
+import com.artemchep.keyguard.platform.util.hasAutofill
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.bringIntoView
 import com.artemchep.keyguard.ui.focus.focusRequester2
@@ -137,11 +140,16 @@ fun UrlFlatTextField(
     expressive: Boolean = LocalExpressive.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    clearButton: Boolean = true,
-    leading: (@Composable RowScope.() -> Unit)? = {
-        IconBox(
-            main = Icons.Outlined.KeyguardWebsite,
-        )
+    clearButton: Boolean = defaultClearButton(),
+    leading: (@Composable RowScope.() -> Unit)? = if (defaultLeading()) {
+        // composable
+        {
+            IconBox(
+                main = Icons.Outlined.KeyguardWebsite,
+            )
+        }
+    } else {
+        null
     },
     trailing: (@Composable RowScope.() -> Unit)? = null,
     content: (@Composable ColumnScope.() -> Unit)? = null,
@@ -180,11 +188,16 @@ fun TagFlatTextField(
     expressive: Boolean = LocalExpressive.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    clearButton: Boolean = true,
-    leading: (@Composable RowScope.() -> Unit)? = {
-        IconBox(
-            main = Icons.AutoMirrored.Outlined.Label,
-        )
+    clearButton: Boolean = defaultClearButton(),
+    leading: (@Composable RowScope.() -> Unit)? = if (defaultLeading()) {
+        // composable
+        {
+            IconBox(
+                main = Icons.AutoMirrored.Outlined.Label,
+            )
+        }
+    } else {
+        null
     },
     trailing: (@Composable RowScope.() -> Unit)? = null,
     content: (@Composable ColumnScope.() -> Unit)? = null,
@@ -225,11 +238,16 @@ fun EmailFlatTextField(
     expressive: Boolean = LocalExpressive.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    clearButton: Boolean = true,
-    leading: (@Composable RowScope.() -> Unit)? = {
-        IconBox(
-            main = Icons.Outlined.Email,
-        )
+    clearButton: Boolean = defaultClearButton(),
+    leading: (@Composable RowScope.() -> Unit)? = if (defaultLeading()) {
+        // composable
+        {
+            IconBox(
+                main = Icons.Outlined.Email,
+            )
+        }
+    } else {
+        null
     },
     trailing: (@Composable RowScope.() -> Unit)? = null,
     content: (@Composable ColumnScope.() -> Unit)? = null,
@@ -272,11 +290,16 @@ fun PasswordFlatTextField(
     expressive: Boolean = LocalExpressive.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
-    clearButton: Boolean = true,
-    leading: (@Composable RowScope.() -> Unit)? = {
-        IconBox(
-            main = Icons.Outlined.Password,
-        )
+    clearButton: Boolean = defaultClearButton(),
+    leading: (@Composable RowScope.() -> Unit)? = if (defaultLeading()) {
+        // composable
+        {
+            IconBox(
+                main = Icons.Outlined.Password,
+            )
+        }
+    } else {
+        null
     },
     trailing: (@Composable RowScope.() -> Unit)? = null,
     content: (@Composable ColumnScope.() -> Unit)? = null,
@@ -294,7 +317,9 @@ fun PasswordFlatTextField(
         expressive = expressive,
         keyboardOptions = keyboardOptions.copy(
             autoCorrectEnabled = false,
-            keyboardType = KeyboardType.Password,
+            keyboardType = keyboardOptions.keyboardType
+                .takeIf { it != KeyboardType.Unspecified }
+                ?: KeyboardType.Password,
         ),
         keyboardActions = keyboardActions,
         singleLine = true,
@@ -322,7 +347,7 @@ fun ConcealedFlatTextField(
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    clearButton: Boolean = true,
+    clearButton: Boolean = defaultClearButton(),
     leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
     content: (@Composable ColumnScope.() -> Unit)? = null,
@@ -330,7 +355,10 @@ fun ConcealedFlatTextField(
     val visibilityState = remember {
         VisibilityState()
     }
-    IncognitoInput {
+    val passwordVisualTransformation = remember {
+        PasswordVisualTransformation()
+    }
+    PlatformIncognitoInput {
         FlatTextField(
             modifier = modifier,
             fieldModifier = fieldModifier,
@@ -345,7 +373,7 @@ fun ConcealedFlatTextField(
             visualTransformation = if (visibilityState.isVisible) {
                 VisualTransformation.None
             } else {
-                PasswordVisualTransformation()
+                passwordVisualTransformation
             },
             shapeState = shapeState,
             expressive = expressive,
@@ -366,6 +394,15 @@ fun ConcealedFlatTextField(
             },
             content = content,
         )
+    }
+}
+
+@Composable
+private fun PlatformIncognitoInput(
+    content: @Composable () -> Unit,
+) {
+    IncognitoInput {
+        content()
     }
 }
 
@@ -575,7 +612,7 @@ fun FlatTextField(
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    clearButton: Boolean = true,
+    clearButton: Boolean = defaultClearButton(),
     leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
     content: (@Composable ColumnScope.() -> Unit)? = null,
@@ -902,6 +939,7 @@ private fun TextFieldLabel(
         .combineAlpha(HighEmphasisAlpha)
     val textColor by animateColorAsState(
         targetValue = if (expanded) expandedTextColor else normalTextColor,
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
     )
 
     Text(
@@ -1451,7 +1489,10 @@ private fun FlatTextFieldSurface(
                 .combineAlpha(0.1f)
                 .compositeOver(MaterialTheme.colorScheme.surfaceVariant)
     }
-    val borderColor by animateColorAsState(targetValue = borderColorTarget)
+    val borderColor by animateColorAsState(
+        targetValue = borderColorTarget,
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+    )
     val shape = surfaceShape(
         shapeState = shapeState,
         expressive = expressive,
@@ -1517,7 +1558,10 @@ fun FlatTextFieldBadge(
     text: String,
     icon: ImageVector? = null,
 ) {
-    val backgroundColorState = animateColorAsState(backgroundColor)
+    val backgroundColorState = animateColorAsState(
+        targetValue = backgroundColor,
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+    )
     val contentColor = run {
         val color = if (backgroundColor.luminance() > 0.5f) {
             Color.Black
@@ -1527,7 +1571,10 @@ fun FlatTextFieldBadge(
         val tint = backgroundColor.copy(alpha = 0.1f)
         tint.compositeOver(color)
     }
-    val contentColorState = animateColorAsState(contentColor)
+    val contentColorState = animateColorAsState(
+        targetValue = contentColor,
+        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+    )
     Row(
         modifier = modifier
             .clip(MaterialTheme.shapes.small)
@@ -1564,3 +1611,7 @@ fun FlatTextFieldBadge(
         )
     }
 }
+
+private fun defaultLeading(): Boolean = !CurrentPlatform.hasWatch()
+
+private fun defaultClearButton(): Boolean = !CurrentPlatform.hasWatch()

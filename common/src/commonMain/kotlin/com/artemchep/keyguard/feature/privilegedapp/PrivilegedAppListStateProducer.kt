@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.usecase.RemovePrivilegedAppById
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
@@ -50,6 +51,7 @@ private class PrivilegedAppListUiException(
 fun producePrivilegedAppListState(
 ) = with(localDI().direct) {
     producePrivilegedAppListState(
+        confirmationRouteFactory = instance(),
         removePrivilegedAppById = instance(),
         getPrivilegedApps = instance(),
     )
@@ -57,6 +59,7 @@ fun producePrivilegedAppListState(
 
 @Composable
 fun producePrivilegedAppListState(
+    confirmationRouteFactory: ConfirmationRouteFactory,
     removePrivilegedAppById: RemovePrivilegedAppById,
     getPrivilegedApps: GetPrivilegedApps,
 ): Loadable<PrivilegedAppListState> = produceScreenState(
@@ -81,6 +84,7 @@ fun producePrivilegedAppListState(
         val message = items
             .joinToString(separator = "\n") { it.name.orEmpty() }
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.Outlined.Delete),
             title = title,
             message = message,

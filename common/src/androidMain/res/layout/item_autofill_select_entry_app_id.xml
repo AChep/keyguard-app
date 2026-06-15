@@ -4,7 +4,5 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-    <include layout="@layout/item_autofill_app_id" />
-
     <include layout="@layout/item_autofill_select_entry" />
 </LinearLayout>

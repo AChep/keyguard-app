@@ -56,9 +56,14 @@ data class CreateRequest(
     @optics
     data class Merge(
         val ciphers: List<DSecret>,
-        val removeOrigin: Boolean,
+        val postAction: PostAction?,
     ) {
         companion object;
+
+        enum class PostAction {
+            ARCHIVE,
+            TRASH,
+        }
     }
 
     @optics
@@ -81,6 +86,7 @@ data class CreateRequest(
             val uri: LeUri,
             val name: String,
             val size: Long? = null,
+            val keyBase64: String? = null,
         ) : Attachment {
             companion object
         }

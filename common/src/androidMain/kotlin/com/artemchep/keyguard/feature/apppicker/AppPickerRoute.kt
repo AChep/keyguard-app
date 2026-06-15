@@ -6,7 +6,7 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 
 actual object AppPickerRoute : RouteForResult<AppPickerResult> {
     @Composable
-    override fun Content(
+    actual override fun Content(
         transmitter: RouteResultTransmitter<AppPickerResult>,
     ) {
         AppPickerScreen(

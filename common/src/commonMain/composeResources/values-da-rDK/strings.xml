@@ -22,6 +22,11 @@
     <string name="new_password">Ny adgangskode</string>
     <string name="no_password">Ingen adgangskode</string>
     <string name="advanced_options">Geavanceerd</string>
+    <string name="file">File</string>
+    <string name="file_name_placeholder">File name</string>
+    <string name="file_status_pending_upload">Pending upload</string>
+    <string name="file_status_auto_resume">Auto-resumes</string>
+    <string name="file_status_downloading_failed">Downloading failed</string>
     <string name="email">E-mail</string>
     <string name="email_verified">Bekræftet</string>
     <string name="email_not_verified">Ikke bekræftet</string>
@@ -31,7 +36,7 @@
     <string name="conceal_value">Skjul værdi</string>
     <string name="field_label">Etiket</string>
     <string name="field_value">Værdi</string>
-    <string name="tag_value">Waarde</string>
+    <string name="tag_value">Værdi</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
     <string name="access_count">Adgangsantal</string>
     <!--
@@ -58,6 +63,7 @@
     <string name="expiry_date">Udløbsdato</string>
     <string name="company">Virksomhed</string>
     <string name="sync">Synk</string>
+    <string name="sync_requested">Sync was requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Skjult</string>
     <!-- Opposite of 'hidden' -->
@@ -115,6 +121,7 @@
     <string name="organizations_empty_label">Ingen organisationer</string>
     <string name="equivalent_domains">Tilsvarende domæner</string>
     <string name="equivalent_domains_empty_label">Ingen tilsvarende domæner</string>
+    <string name="retry">Retry</string>
     <string name="misc">Diverse</string>
     <string name="category">Kategori</string>
     <string name="command">Kommando</string>
@@ -152,6 +159,8 @@
     <string name="expiration_date_never">Aldrig</string>
     <string name="select_linked_type">Vælg en type</string>
     <string name="select_file">Vælg en fil</string>
+    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Autofyld</string>
     <string name="autofill_and_save_uri">Autofyld og gem app- eller webstedsinfo</string>
     <string name="backup_disclaimer_title">Je gegevens zijn jouw verantwoordelijkheid.</string>
@@ -182,12 +191,18 @@
     <string name="passkey_user_display_name">Visningsnavn</string>
     <string name="ignored_alerts">Ignorerede advarsler</string>
     <string name="api_key">API-nøgle</string>
+    <string name="api_token">API token</string>
+    <string name="zone_id">Zone ID</string>
+    <string name="destination_email">Destination email</string>
     <string name="domain">Domæne</string>
     <string name="add_to_home_screen">Føj til startskærm</string>
     <string name="edit">Redigér</string>
     <string name="delete">Slet</string>
     <string name="remove">Fjern</string>
     <string name="remove_from_history">Fjern fra historikken</string>
+    <string name="pkcs12_password">PKCS#12 password</string>
+    <string name="pkcs12_password_title">Enter PKCS#12 password</string>
+    <string name="pkcs12_password_note">This PKCS#12 bundle is encrypted.</string>
     <string name="reused_password">Genbrugt adgangskode</string>
     <string name="reused_passwords">Genbrugte adgangskoder</string>
     <string name="one_time_password">Engangsadgangskode</string>
@@ -266,6 +281,19 @@
     <string name="replace_database_file">Vervang een databasebestand</string>
     <string name="open_database">Open een database</string>
     <string name="create_database">Maak een database aan</string>
+    <string name="addaccount_method_header_title">Add account</string>
+    <string name="addaccount_method_manual_title">Manual login</string>
+    <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_phone_text">Use your paired Android phone</string>
+    <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
+    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
+    <string name="addaccount_method_phone_importing">Importing account</string>
+    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="companionauth_header_title">Watch setup</string>
+    <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">Scan deze QR-code met een ander apparaat om verbinding te maken met dit wifinetwerk.</string>
     <string name="qr_generate_button">Genereer QR-code</string>
     <string name="pro_tip">Pro-tip: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
@@ -280,6 +308,8 @@
     <string name="account_action_export_individual_vault_title">Eksportér individuel boks</string>
     <string name="account_action_hide_title">Skjul emner</string>
     <string name="account_action_hide_text">Skjul emnerne fra appens hovedskærme</string>
+    <string name="account_action_hide_success_on_title">Items were hidden</string>
+    <string name="account_action_hide_success_off_title">Items were revealed</string>
     <string name="account_action_email_verify_instructions_title">Besøg Web-boks for at bekræfte e-mailadressen</string>
     <string name="account_action_premium_purchase_instructions_title">Opgradér kontoen til et Premium-medlemskab og oplås nogle fantastiske ekstra-funktioner</string>
     <string name="account_action_tfa_title">Tofaktorgodkendelse</string>
@@ -321,7 +351,8 @@
     <string name="ciphers_action_change_password_title">Skift adgangskode</string>
     <string name="ciphers_action_change_passwords_title">Skift adgangskoder</string>
     <string name="ciphers_action_view_password_history_title">Vis adgangskodehistorik</string>
-    <string name="ciphers_action_archive_title">Archiveren</string>
+    <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
+    <string name="ciphers_action_archive_title">Arkivér</string>
     <string name="ciphers_action_archive_confirmation_title">Naar archief verplaatsen?</string>
     <string name="ciphers_action_unarchive_title">Uit archief herstellen</string>
     <string name="ciphers_action_unarchive_confirmation_title">Uit archief herstellen?</string>
@@ -360,12 +391,24 @@
     <string name="sends_action_delete_title">Slet permanent</string>
     <string name="sends_action_delete_confirmation_title">Slet permanent?</string>
     <string name="file_action_open_with_title">Åbn med…</string>
+    <string name="file_action_preview_title">Preview</string>
     <string name="file_action_send_with_title">Send med…</string>
     <string name="file_action_open_in_file_manager_title">Åbn i en filhåndtering</string>
     <string name="file_action_delete_local_title">Slet lokal fil</string>
     <string name="file_action_delete_local_many_title">Slet lokale filer</string>
     <string name="file_action_view_cipher_title">Vis overordnet emne</string>
     <string name="file_action_reveal_title">Vis</string>
+    <string name="attachment_preview_error_unsupported_file">This file type cannot be previewed.</string>
+    <string name="attachment_preview_error_unsupported_platform">Attachment preview is not supported on this platform.</string>
+    <string name="attachment_preview_error_too_large">This attachment is larger than the 8 MB preview limit.</string>
+    <string name="attachment_preview_error_network">Failed to download the attachment preview.</string>
+    <string name="attachment_preview_error_decryption">Failed to decrypt the attachment preview.</string>
+    <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
+    <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
+    <string name="attachment_preview_action_copy_all">Copy all</string>
+    <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
+    <string name="attachment_preview_action_source">Source</string>
+    <string name="attachment_preview_action_rendered_preview">Preview</string>
     <string name="vault_action_always_show_keyboard_title">Vis altid tastatur</string>
     <string name="vault_action_remember_sorting_title">Husk sorteringsmetode</string>
     <string name="vault_action_sync_vault_title">Synk boks</string>
@@ -443,6 +486,7 @@
     <string name="ssh_key_action_add_key_title">Tilføje nøgler</string>
     <string name="ssh_key_action_replace_key_title">Erstat nøgler</string>
     <string name="ssh_key_import_title">Import SSH key</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>
     <string name="ssh_key_import_success_title">Imported SSH key</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -555,8 +599,11 @@
     <string name="error_invalid_uri">Ugyldig URI</string>
     <string name="error_invalid_key">Invalid key</string>
     <string name="error_invalid_card_number">Ugyldigt kortnummer</string>
+    <string name="error_webdav_url_required">WebDAV URL is required</string>
     <string name="error_incorrect_password">Forkert adgangskode</string>
     <string name="error_not_found">Niet gevonden</string>
+    <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
+    <string name="error_file_must_be_1_mb_or_smaller">File must be 1 MB or smaller</string>
     <string name="error_otp_key_must_not_be_empty">Engangsadgangskodes hemmelige nøgle er obligatorisk</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Aanmaken van bestand mislukt. Vervangen van een bestaand bestand is niet toegestaan</string>
@@ -565,7 +612,7 @@
     <string name="error_failed_create_passkey">Mislykkedes at oprette en adgangsnøgle</string>
     <string name="error_failed_create_password">Wachtwoord aanmaken mislukt</string>
     <string name="error_failed_use_passkey">Mislykkedes at godkende en anmodning</string>
-    <string name="error_failed_use_password">Autoriseren van verzoek mislukt</string>
+    <string name="error_failed_use_password">Mislykkedes at godkende en anmodning</string>
     <string name="error_failed_open_uri">Mislykkedes at åbne en URI</string>
     <string name="error_failed_format_placeholder">Mislykkedes at formatere pladsholderen</string>
     <string name="error_failed_open_app_for">Ingen installeret app kan håndtere denne anmodning</string>
@@ -584,6 +631,7 @@
         a user takes by adding an app to the list -->
     <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Door een app te vertrouwen, kan deze om inloggegevens voor elke dienst vragen. Een kwaadaardige app zou dit kunnen gebruiken om je inloggegevens te stelen.</string>
     <string name="scanqr_title">Skan QR-kode</string>
+    <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">Indlæs og fortolk QR-kode fra billedfil.</string>
     <string name="scanqr_camera_permission_required_text">Kamera-tilladelse kræves for at skanne QR-koderne.</string>
     <string name="post_notifications_permission_banner_title">Notifikationer er slået fra</string>
@@ -643,6 +691,7 @@
     <string name="emailleak_breach_occurred_at">Opstod pr. <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Anmeldt pr. <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Mislykkedes at tjekke datalæk. Man er muligvis offline</string>
+    <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
     <string name="passwordleak_title">Datalæk</string>
     <string name="passwordleak_note">En adgangskode fundet i datalæk tager betydeligt mindre tid at bryde og bør aldrig bruges.</string>
     <string name="passwordleak_occurrences_found_title">Adgangskode er kompromitteret</string>
@@ -731,6 +780,8 @@
     <string name="additem_header_edit_title">Redigér emne</string>
     <string name="additem_header_merge_title">Flet emner</string>
     <string name="additem_merge_remove_origin_ciphers_title">Flyt oprindelige emner til papirkurv</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
     <string name="additem_merge_attachments_note">Fletning af emner fletter ikke deres vedhæftninger! Det oprettede emne vil ikke have nogen vedhæftninger tilføjet.</string>
     <string name="additem_note_placeholder">Tilføj notater om dette emne her</string>
     <string name="additem_markdown_note">Brug tekststile med <xliff:g id="italic" example="italic">%1$s</xliff:g> eller <xliff:g id="bold" example="bold">%2$s</xliff:g> med mere. Begrænset Markdown-syntaks er understøttet.</string>
@@ -749,9 +800,10 @@
     <string name="addsend_auth_emails_placeholder">Kommagescheiden e-mails</string>
     <string name="addsend_auth_emails_note">Ontvangers worden gevraagd om een eenmalige e-mailverificatie te voltooien na het openen van de link.</string>
     <string name="addaccount_promo_title">Je kluis is leeg. Koppel een account om te beginnen:</string>
-    <string name="addaccount_promo_features">Wil je het maximale uit de app halen? Hieronder staan de belangrijkste functies. Kijk hoe het voor je kan werken.</string>
-    <string name="addaccount_description_short_bitwarden_text">Sla je versleutelde kluis op in de cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Sla je versleutelde kluis lokaal op in het KDBX-bestandsformaat.</string>
+    <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
+    <string name="addaccount_promo_features">Vil du have det maksimale ud af din oplevelse? Vi har ridset alle appens primære funktioner op for dig nedenfor. Tag et kig og se, hvordan den kan arbejde for dig.</string>
+    <string name="addaccount_description_short_bitwarden_text">Gem krypteret boks i skyen.</string>
+    <string name="addaccount_description_short_keepass_text">Gem krypteret boks lokalt ved hjælp af KDBX-filformatet.</string>
     <string name="addaccount_header_title">Tilføj Bitwarden-konto</string>
     <string name="addaccount_disclaimer_bitwarden_label">Vi er ikke tilknyttet, associeret, godkendt af eller på nogen måde officielt forbundet med Bitwarden, Inc. eller et af dets datterselskaber eller dettes datterselskaber.</string>
     <!--
@@ -780,13 +832,28 @@
     <string name="addaccount_custom_env_api_url_label">API-server URL</string>
     <string name="addaccount_custom_env_icons_url_label">Pictogrammen Server URL</string>
     <string name="addaccount_custom_env_identity_url_label">Identiteit Server URL</string>
+    <string name="addaccount_custom_env_notifications_url_label">Notifications Server URL</string>
+    <string name="addaccount_mutual_tls_section">Mutual TLS</string>
+    <string name="addaccount_mutual_tls_file_label">Client certificate</string>
+    <string name="addaccount_mutual_tls_note">Certificate used for client authentication.</string>
+    <string name="addaccount_mutual_tls_password_label">PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">Enter PKCS#12 password</string>
+    <string name="addaccount_mutual_tls_password_dialog_message">This PKCS#12 bundle is encrypted.</string>
+    <!-- Explains that the text next to it is the Display name of the certificate -->
+    <string name="addaccount_mutual_tls_display_name_label">Display name</string>
+    <!-- Explains that the text next to it is the Issuer of the certificate -->
+    <string name="addaccount_mutual_tls_issuer_label">Issuer</string>
+    <!-- Explains that the text next to it is the Expiry date of the certificate -->
+    <string name="addaccount_mutual_tls_expires_on_label">Expires on</string>
+    <string name="addaccount_mutual_tls_status_imported">Imported</string>
+    <string name="addaccount_mutual_tls_status_failed">Failed to import</string>
     <string name="addaccount2fa_header_title">Bekræftelse</string>
     <string name="addaccount2fa_unsupported_note">Denne godkendelsesmetode understøttes endnu ikke.</string>
     <string name="addaccount2fa_otp_note">Angiv bekræftelseskoden fra godkendelses-appen.</string>
     <string name="addaccount2fa_email_note">Angiv bekræftelseskoden sendt til <xliff:g id="email" example="username@example.com">%1$s</xliff:g>.</string>
     <string name="addaccount2fa_yubikey_manual_text">Angiv YubiKey-godkendelseskoden manuelt. Placér markøren på feltet nedenfor og udløs YubiKey'en.</string>
     <string name="addkeepass_header_title">KeePass-account toevoegen</string>
-    <string name="addkeepass_header_body">Sla al je wachtwoorden op in één, sterk versleuteld KDBX-bestand, direct op je apparaat. Je hebt de volledige controle over je gegevens. Bewaar ze op je computer, een USB-stick of synchroniseer zelf met diensten zoals Syncthing, Google Drive of Dropbox.</string>
+    <string name="addkeepass_header_body">Gem alle dine adgangskoder i en enkelt, stærkt krypteret KDBX-fil, der lagres direkte på din enhed. Du har fuld kontrol over dine data. Gem den på din computer, et USB-stik, eller synkroniser den selv ved hjælp af en tjeneste som Syncthing, Google Drive eller Dropbox.</string>
     <string name="addkeepass_use_at_your_own_risk_beta_text">De KeePass integratie bevindt zich in bèta en is nog niet volledig compatibel met standaard KeePass-clients. Gebruik op eigen risico. Zorg dat je een geverifieerde back-up van je database hebt voordat je verdergaat.</string>
     <string name="provider_2fa_authenticator">Authenticator</string>
     <string name="provider_2fa_duo_organization">Duo (organisation)</string>
@@ -811,6 +878,8 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Brug biometrisk godkendelse til at bekræfte adgangen og oplåse disse data.</string>
     <string name="home_vault_label">Boks</string>
+    <string name="home_favorites_label">Favorites</string>
+    <string name="home_other_label">Other</string>
     <string name="home_send_label">Send</string>
     <string name="home_generator_label">Generator</string>
     <string name="home_watchtower_label">Watchtower</string>
@@ -859,6 +928,19 @@
     <string name="filter_empty_label">Ingen tilgængelige filtre</string>
     <string name="ssh_agent_filters_header_title">SSH agent filters</string>
     <string name="ssh_agent_filters_note_save_to_apply">Wijzigingen zijn van kracht na Opslaan.</string>
+    <string name="ssh_agent_history_header_title">SSH agent history</string>
+    <string name="ssh_agent_history_request_list_keys">List keys</string>
+    <string name="ssh_agent_history_request_sign_data">Sign data</string>
+    <string name="ssh_agent_history_response_success">Success</string>
+    <string name="ssh_agent_history_response_user_denied">Denied</string>
+    <string name="ssh_agent_history_response_key_not_found">Key not found</string>
+    <string name="ssh_agent_history_response_failure">Failed</string>
+    <string name="ssh_agent_history_unknown_caller">Unknown caller</string>
+    <string name="ssh_agent_history_unknown_key">Unknown key</string>
+    <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
+    <string name="ssh_agent_history_clear_history_title">Clear history</string>
+    <string name="ssh_agent_history_clear_history_confirmation_title">Clear SSH agent history?</string>
+    <string name="ssh_agent_history_clear_history_confirmation_text">This will remove all SSH agent usage history.</string>
     <string name="ssh_agent_setup_header_title">SSH client instellen</string>
     <string name="ssh_agent_setup_intro">Stel een SSH client in om verbinding te maken met de SSH agent van Keyguard voor authenticatie of ondertekening met je goedgekeurde sleutels, zonder je privésleutelmateriaal prijs te geven.</string>
     <string name="ssh_agent_setup_step_1_title">1. SSH agent inschakelen in Keyguard</string>
@@ -952,6 +1034,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">Søg i sends</string>
     <string name="send_main_new_item_button">Nyt emne</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
     <string name="send_email_is_required_to_access_label">Ontvangers met geverifieerde e-mail krijgen toegang tot deze gedeelde link</string>
     <string name="send_password_is_required_to_access_label">Adgangskode kræves for at tilgå denne deling</string>
     <string name="generator_header_title">Generator</string>
@@ -1031,6 +1114,8 @@
     <string name="watchtower_item_pwned_passwords_text">Adgangskoder afsløret via datasikkerhedsbrud. Sådanne adgangskoder bør ændres øjeblikkeligt.</string>
     <string name="watchtower_item_reused_passwords_title">Genbrugte adgangskoder</string>
     <string name="watchtower_item_reused_passwords_text">Genbrug ikke samme adgangskode på flere websteder. Generér unikke adgangskoder for forbedret sikkerhed.</string>
+    <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Sårbare konti</string>
     <string name="watchtower_item_vulnerable_accounts_text">Websteder påvirket af et databrud, siden man sidst ændrede en adgangskode. Skift adgangskoden for at holde kontoen sikker.</string>
     <string name="watchtower_item_unsecure_websites_title">Usikre websteder</string>
@@ -1058,6 +1143,17 @@
     <string name="watchtower_notification_new_alerts_title">Nye Watchtower-advarsler</string>
     <string name="watchtower_alerts_header_title">Nye Watchtower-advarsler</string>
     <string name="watchtower_mark_all_as_read_title">Markér alle som læst</string>
+    <string name="notification_vault_backup_title">Backing up vault</string>
+    <string name="notification_vault_backup_step_preparing">Preparing backup</string>
+    <string name="notification_vault_backup_step_opening_repository">Opening backup repository</string>
+    <string name="notification_vault_backup_step_exporting_vault">Exporting vault data</string>
+    <string name="notification_vault_backup_step_scanning_attachments">Scanning attachments</string>
+    <string name="notification_vault_backup_step_backing_up_attachments">Backing up attachments</string>
+    <string name="notification_vault_backup_step_writing_index">Writing backup index</string>
+    <string name="notification_vault_backup_step_writing_snapshot">Writing snapshot</string>
+    <string name="notification_vault_backup_step_applying_retention">Applying retention</string>
+    <string name="notification_vault_backup_progress_bytes">%1$s / %2$s</string>
+    <string name="notification_vault_backup_progress_items">%1$d / %2$d</string>
     <string name="changepassword_header_title">Skift app-adgangskode</string>
     <string name="changepassword_change_password_button">Skift adgangskode</string>
     <string name="changepassword_biometric_auth_checkbox">Biometrisk godkendelse</string>
@@ -1097,7 +1193,9 @@
     <string name="settings_permissions_header_title">Tilladelser</string>
     <string name="settings_security_header_title">Sikkerhed</string>
     <string name="settings_subscriptions_header_title">Keyguard Premium</string>
+    <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
+    <string name="settings_automatic_backups_header_title">Backups</string>
     <string name="settings_open_source_licenses_header_title">Open-source licenser</string>
     <string name="pref_section_premium_title">Premium</string>
     <string name="pref_section_options_title">Options</string>
@@ -1107,10 +1205,14 @@
     <string name="pref_item_autofill_text">Android Autofill og Legitimationsoplysningstjeneste</string>
     <string name="pref_item_security_title">Sikkerhed</string>
     <string name="pref_item_security_text">Biometri, skift adgangskode, boks-timeout</string>
+    <string name="pref_item_developer_title">Developer</string>
+    <string name="pref_item_developer_text">SSH agent</string>
     <string name="pref_item_subscription_title">Keyguard Premium</string>
     <string name="pref_item_subscription_text">Oplås funktioner og støt app-udvikling</string>
     <string name="pref_item_watchtower_title">Watchtower</string>
     <string name="pref_item_watchtower_text">Kompromitterede tjenester, sårbare adgangskoder</string>
+    <string name="pref_item_automatic_backups_title">Backups</string>
+    <string name="pref_item_automatic_backups_text">Automatic encrypted vault backups</string>
     <string name="pref_item_notifications_title">Notifikationer</string>
     <string name="pref_item_notifications_text">Alarmer</string>
     <string name="pref_item_appearance_title">Udseende</string>
@@ -1119,7 +1221,83 @@
     <string name="pref_item_dev_text">Test settings for development</string>
     <string name="pref_item_other_title">Andre</string>
     <string name="pref_item_other_text">Fællesskabswebsteder, app-info</string>
+    <string name="pref_section_automatic_backups_setup_title">Setup</string>
+    <string name="pref_section_automatic_backups_automation_title">Automation</string>
+    <string name="pref_section_automatic_backups_management_title">Management</string>
+    <string name="pref_item_automatic_backups_status_running_title">Backup running</string>
+    <string name="pref_item_automatic_backups_status_running_text_with_progress">%1$s. %2$s.</string>
+    <string name="pref_item_automatic_backups_step_preparing">Preparing backup</string>
+    <string name="pref_item_automatic_backups_step_opening_repository">Opening backup repository</string>
+    <string name="pref_item_automatic_backups_step_exporting_vault">Exporting vault data</string>
+    <string name="pref_item_automatic_backups_step_scanning_attachments">Scanning attachments</string>
+    <string name="pref_item_automatic_backups_step_backing_up_attachments">Backing up attachments</string>
+    <string name="pref_item_automatic_backups_step_writing_index">Writing backup index</string>
+    <string name="pref_item_automatic_backups_step_writing_snapshot">Writing snapshot</string>
+    <string name="pref_item_automatic_backups_step_applying_retention">Applying retention</string>
+    <string name="pref_item_automatic_backups_progress_bytes">%1$s / %2$s</string>
+    <string name="pref_item_automatic_backups_progress_items">%1$d / %2$d</string>
+    <string name="pref_item_automatic_backups_status_success_title">Last backup completed</string>
+    <string name="pref_item_automatic_backups_status_success_text">Finished %1$s. Exported %2$d items, %3$d attachments, %4$d new blobs, %5$d reused blobs.</string>
+    <string name="pref_item_automatic_backups_status_finished_text">Finished %1$s.</string>
+    <string name="pref_item_automatic_backups_status_error_title">Last backup failed</string>
+    <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_skipped_title">Last backup skipped</string>
+    <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_never_title">No backup yet</string>
+    <string name="pref_item_automatic_backups_status_never_text">Configure automatic backups, then run the first backup manually or wait for vault changes.</string>
+    <string name="pref_item_automatic_backups_status_reason_vault_locked">Vault was locked.</string>
+    <string name="pref_item_automatic_backups_status_reason_not_configured">Backup is not fully configured.</string>
+    <string name="pref_item_automatic_backups_status_reason_unknown">Unknown reason.</string>
+    <string name="pref_item_automatic_backups_panel_repository_title">Repository metadata</string>
+    <string name="pref_item_automatic_backups_panel_last_sync_title">Last backup</string>
+    <string name="pref_item_automatic_backups_panel_status_label">Status</string>
+    <string name="pref_item_automatic_backups_panel_started_label">Started</string>
+    <string name="pref_item_automatic_backups_panel_finished_label">Finished</string>
+    <string name="pref_item_automatic_backups_panel_progress_label">Progress</string>
+    <string name="pref_item_automatic_backups_panel_snapshot_label">Snapshot</string>
+    <string name="pref_item_automatic_backups_panel_error_label">Error</string>
+    <string name="pref_item_automatic_backups_panel_skipped_label">Skipped</string>
+    <string name="pref_item_automatic_backups_panel_vault_items_label">Vault items</string>
+    <string name="pref_item_automatic_backups_panel_attachments_label">Attachments</string>
+    <string name="pref_item_automatic_backups_panel_blobs_label">Attachment blobs</string>
+    <string name="pref_item_automatic_backups_panel_blobs_value">%1$d new, %2$d reused</string>
+    <string name="pref_item_automatic_backups_panel_last_change_label">Last vault change</string>
+    <string name="pref_item_automatic_backups_panel_pending_changes_label">Pending changes</string>
+    <string name="pref_item_automatic_backups_run_now_title">Run backup now</string>
+    <string name="pref_item_automatic_backups_unsupported_title">Unsupported platform</string>
+    <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android and desktop.</string>
+    <string name="pref_item_automatic_backups_enable_button">Enable backups</string>
+    <string name="pref_item_automatic_backups_setup_intro">Backups save vault snapshots to a location you choose. Keyguard creates them on vault changes, and you can trigger a snapshot manually anytime.</string>
+    <string name="pref_item_automatic_backups_setup_logic">The backup repository stores metadata, snapshots, and optional attachment files as separate ZIP archives. Specify the backup password to encrypt the archives using AES-256 encryption.</string>
+    <string name="pref_item_automatic_backups_details_321_title">3-2-1 backup rule</string>
+    <string name="pref_item_automatic_backups_details_321_text">Keep at least three copies of your vault data: your active vault and two backups. Store those copies in at least two independent places or storage types, and keep one copy off this device or off-site. A synced folder is useful, but it should not be your only backup because deletions, corruption, and unwanted changes can sync too.</string>
+    <string name="pref_item_automatic_backups_details_321_three">Active vault plus two backups</string>
+    <string name="pref_item_automatic_backups_details_321_two">Two independent places or storage types</string>
+    <string name="pref_item_automatic_backups_details_321_one">One copy off-device or off-site</string>
+    <string name="pref_item_automatic_backups_details_repository_structure_title">Repository structure</string>
+    <string name="pref_item_automatic_backups_details_repository_structure_text">Encrypted repositories use ZIP AES-256. Open repo.zip and the latest readable indexes/*.zip with the backup password; the index points to each snapshots/*.zip and blobs/**/*.zip archive and stores its ZIP password as encryption.keyBase64. If no backup password was set, these files are regular ZIP archives.</string>
+    <string name="pref_item_automatic_backups_details_retention_title">Snapshot retention</string>
+    <string name="pref_item_automatic_backups_details_retention_text">Retention is bucketed, so the history is not just the last snapshots in order. Keyguard keeps the newest snapshot, then prefers daily checkpoints from the last week and weekly checkpoints across the last month; any remaining slots go to the newest available snapshots.</string>
+    <string name="pref_item_automatic_backups_details_sync_title">Cloud sync</string>
+    <string name="pref_item_automatic_backups_details_sync_text">Sync the whole backup folder. Use the same backup password on every device that reads encrypted archives.</string>
+    <string name="pref_item_automatic_backups_location_title">Backup location</string>
+    <string name="pref_item_automatic_backups_store_folder_title">Folder</string>
+    <string name="pref_item_automatic_backups_store_webdav_title">WebDAV</string>
+    <string name="pref_item_automatic_backups_password_title">Backup password</string>
+    <string name="pref_item_automatic_backups_password_message">This password encrypts the backup repository. If multiple app instances share the backup repository they must use the same password.</string>
+    <string name="pref_item_automatic_backups_password_not_set">Password not set; backup files are not encrypted</string>
+    <string name="pref_item_automatic_backups_password_set">Password is set; backup files are encrypted</string>
+    <string name="pref_item_automatic_backups_password_set_summary">Password set</string>
+    <string name="pref_item_automatic_backups_include_attachments_title">Include attachments</string>
+    <string name="pref_item_automatic_backups_include_attachments_enabled_summary">Included when available</string>
+    <string name="pref_item_automatic_backups_include_attachments_disabled_summary">Not included</string>
+    <string name="pref_item_automatic_backups_retention_title">Keep snapshots</string>
+    <string name="pref_item_automatic_backups_retention_never_clear_value">Never clear</string>
+    <string name="pref_item_automatic_backups_retention_value">%1$d snapshots</string>
+    <string name="pref_item_automatic_backups_disable_title">Turn off automatic backups</string>
+    <string name="pref_item_automatic_backups_disable_message">This only turns off future automatic backups. It clears the local folder, password, and attachment choice from Keyguard. The existing backup repository and files in that folder are not deleted.</string>
     <string name="pref_item_nav_label_title">Vis etiketter på navigationsknapper</string>
+    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
     <string name="pref_item_app_version_title">App-version</string>
     <string name="pref_item_app_build_date_title">App build-dato</string>
     <!--
@@ -1151,8 +1329,17 @@
     <string name="pref_item_color_scheme_expressive_title">Use expressive theme</string>
     <string name="pref_item_open_links_in_external_browser_title">Åbn links i ekstern webbrowser</string>
     <string name="pref_item_close_to_tray_title">Luk til Systembakke</string>
+    <string name="pref_item_minimize_on_copy_title">Minimize on copy</string>
     <string name="pref_item_check_pwned_passwords_title">Tjek for kompromitterede adgangskoder</string>
     <string name="pref_item_check_pwned_services_title">Tjek for datalæk</string>
+    <string name="pref_item_hibp_api_token_title">Have I Been Pwned API token</string>
+    <string name="pref_item_hibp_api_token_text">Use HIBP directly instead of Bitwarden's premium proxy. Useful for local-only vaults.</string>
+    <string name="pref_item_hibp_api_token_field_label">API token</string>
+    <string name="pref_item_hibp_api_token_error">Enter a 32-character hexadecimal HIBP API token</string>
+    <string name="pref_item_hibp_api_token_status_checking">Checking...</string>
+    <string name="pref_item_hibp_api_token_status_verified">Verified</string>
+    <string name="pref_item_hibp_api_token_status_rejected">Rejected</string>
+    <string name="pref_item_hibp_api_token_status_failed">Could not verify</string>
     <string name="pref_item_check_inactive_2fa_title">Tjek for inaktiv tofaktorgodkendelse</string>
     <string name="pref_item_check_inactive_passkeys_title">Tjek for inaktive adgangsnøgler</string>
     <string name="pref_item_conceal_fields_title">Skjul felter</string>
@@ -1178,14 +1365,15 @@
     <string name="pref_item_erase_data_text">Luk appen og slet alle lokale app-data</string>
     <string name="pref_item_allow_screenshots_title">Tillad skærmfotos</string>
     <string name="pref_item_allow_screenshots_text_on">Vis indholdet af appen, når der skiftes mellem seneste apps og tillad skærmoptagelse</string>
-    <string name="pref_item_allow_screenshots_text_off">Vis indholdet af appen, når der skiftes mellem seneste apps og forbyd skærmoptagelse</string>
+    <string name="pref_item_allow_screenshots_text_off">Skjul indholdet af appen, når der skiftes mellem seneste apps og forbyd skærmoptagelse</string>
     <string name="pref_item_allow_screenshots_badge">Schermafbeeldingen zijn toegestaan, tik om uit te schakelen</string>
     <string name="pref_item_allow_screenshots_disabled_notification">Schermafbeeldingen zijn uitgeschakeld</string>
-    <string name="pref_item_allow_screenshots_mode_disabled_title">Uitgeschakeld</string>
+    <string name="pref_item_allow_screenshots_mode_disabled_title">Deaktiveret</string>
     <string name="pref_item_allow_screenshots_mode_limited_title">Toegestaan, met een visuele aanwijzing</string>
     <string name="pref_item_allow_screenshots_mode_full_title">Toegestaan</string>
     <string name="pref_item_data_safety_title">Datasikkerhed</string>
     <string name="pref_item_logs_title">Logger</string>
+    <string name="pref_item_clear_vault_title">Clear vault</string>
     <string name="pref_item_lock_vault_title">Lås boks</string>
     <string name="pref_item_lock_vault_after_reboot_title">Lås efter en genstart</string>
     <string name="pref_item_lock_vault_after_reboot_text">Lås boksen efter enhedsgenstart</string>
@@ -1208,11 +1396,19 @@
     <string name="pref_item_ssh_agent_status_starting">Starten</string>
     <string name="pref_item_ssh_agent_status_ready">Klaar</string>
     <string name="pref_item_ssh_agent_status_failed">Mislukt</string>
+    <string name="pref_item_ssh_agent_approval_window_title">Remember key approvals</string>
+    <string name="pref_item_ssh_agent_local_storage_title">Local storage</string>
+    <string name="pref_item_ssh_agent_local_storage_text">When the SSH agent is on, Keyguard keeps unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
+    <string name="pref_item_ssh_agent_display_key_names_title">Display key names before vault is unlocked</string>
+    <string name="pref_item_ssh_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
+    <string name="pref_item_ssh_agent_approval_window_always_ask">Ask every time</string>
+    <string name="pref_item_ssh_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_ssh_agent_setup_title">SSH client instellen</string>
     <string name="pref_item_ssh_agent_filters_title">SSH agent filters</string>
     <string name="pref_item_ssh_agent_filters_text">Kies welke SSH sleutels toegankelijk zijn voor de SSH agent</string>
     <string name="pref_item_ssh_agent_filters_summary_all">Alle sleutels toegankelijk</string>
     <string name="pref_item_ssh_agent_filters_summary_active">Filters actief</string>
+    <string name="pref_item_ssh_agent_history_title">Request log</string>
     <string name="pref_item_biometric_unlock_title">Biometrisk oplåsning</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Kræv bekræftelse</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Kræv et ekstra tryk på bekræftelsesknappen efter biometrisk godkendelse</string>
@@ -1249,6 +1445,8 @@
     <string name="pref_item_autofill_save_request_text">Spørger om opdatering af boksen, når udfyldelsen af en formular er afsluttet</string>
     <string name="pref_item_autofill_passkeys_enabled_title">Passkey-ondersteuning</string>
     <string name="pref_item_autofill_passkeys_enabled_text">Kondigt passkey-ondersteuning aan bij de Credential Manager, waardoor de app verzoeken kan inwilligen</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Autogem app- eller webstedsinfo</string>
     <string name="pref_item_autofill_block_uri_title">Automatisch invullen blokkeren</string>
     <string name="pref_item_autofill_block_uri_text">Voorkomt dat u automatisch aanvullen voor deze URI's aanbiedt</string>
@@ -1340,6 +1538,14 @@
     <string name="datasafety_local_unlocking_vault">Oplåsning af en boks betyder lagring af en korrekt nøgle i en enheds RAM, og derved kunne læse og ændre en krypteret boks.</string>
     <string name="datasafety_remote_section">Fjerndata</string>
     <string name="datasafety_remote_text">Fjerndata gemmes på Bitwarden-servere med nul-viden kryptering.</string>
+    <string name="webdav_settings_header_title">WebDAV server configuration</string>
+    <string name="webdav_settings_url_title">WebDAV URL</string>
+    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
+    <string name="webdav_settings_auth_note">If your WebDAV server requires authentication, enter your server credentials here. Do not enter your master password.</string>
+    <string name="webdav_settings_test_title">Test connection</string>
+    <string name="webdav_settings_test_text">Writes and removes a small probe file to verify server access.</string>
+    <string name="webdav_settings_test_success">WebDAV connection verified.</string>
+    <string name="webdav_settings_password_requires_username_error">Enter a username before setting a WebDAV password.</string>
     <!-- Title of the 'Localization contributors' screen -->
     <string name="localization_contributors_title">Lokaliseringsbidragsydere</string>
     <string name="localization_contributors_search_placeholder">Søg i bidragsydere</string>

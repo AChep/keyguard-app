@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.model
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -18,6 +19,7 @@ import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
+import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.usecase.CipherUrlDuplicateCheck
@@ -47,6 +49,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardPendingSyncItems
 import com.artemchep.keyguard.ui.icons.KeyguardPwnedPassword
 import com.artemchep.keyguard.ui.icons.KeyguardPwnedWebsites
 import com.artemchep.keyguard.ui.icons.KeyguardReusedPassword
+import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.KeyguardUnsecureWebsites
 import kotlinx.coroutines.flow.asFlow
@@ -84,6 +87,7 @@ import kotlin.collections.mapValues
 import kotlin.collections.mutableMapOf
 import kotlin.collections.orEmpty
 import kotlin.collections.toSet
+import kotlin.reflect.KClass
 
 @Serializable
 sealed interface DFilter {
@@ -93,13 +97,13 @@ sealed interface DFilter {
             noinline predicate: (T) -> Boolean = { true },
         ): T? = findOne(
             filter = filter,
-            target = T::class.java,
+            target = T::class,
             predicate = predicate,
         )
 
         fun <T> findOne(
             filter: DFilter,
-            target: Class<T>,
+            target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): T? = _findOne(
             filter = filter,
@@ -109,7 +113,7 @@ sealed interface DFilter {
 
         private fun <T> _findOne(
             filter: DFilter,
-            target: Class<T>,
+            target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): Either<Unit, T?> = when (filter) {
             is Or<*> -> {
@@ -163,7 +167,7 @@ sealed interface DFilter {
             }
 
             else -> {
-                if (filter.javaClass == target) {
+                if (filter::class == target) {
                     val f = filter as T
                     val v = predicate(f)
                     if (v) {
@@ -182,13 +186,13 @@ sealed interface DFilter {
             noinline predicate: (T) -> Boolean = { true },
         ): T? = findAny(
             filter = filter,
-            target = T::class.java,
+            target = T::class,
             predicate = predicate,
         )
 
         fun <T> findAny(
             filter: DFilter,
-            target: Class<T>,
+            target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): T? = _findAny(
             filter = filter,
@@ -198,7 +202,7 @@ sealed interface DFilter {
 
         private fun <T> _findAny(
             filter: DFilter,
-            target: Class<T>,
+            target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): T? = when (filter) {
             is Or<*> -> filter
@@ -214,7 +218,7 @@ sealed interface DFilter {
                 }
 
             else -> {
-                if (filter.javaClass == target) {
+                if (filter::class == target) {
                     val f = filter as T
                     f.takeIf(predicate)
                 } else {
@@ -449,6 +453,29 @@ sealed interface DFilter {
     }
 
     @Serializable
+    @SerialName("by_favorite")
+    data object ByFavorite : PrimitiveSimple {
+        @Transient
+        override val key: String = "favorite"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.string.home_favorites_label
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.Star,
+        )
+
+        override suspend fun prepare(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = ::predicate
+
+        private fun predicate(
+            cipher: DSecret,
+        ) = cipher.favorite
+    }
+
+    @Serializable
     @SerialName("by_type")
     data class ByType(
         @SerialName("cipherType")
@@ -597,6 +624,57 @@ sealed interface DFilter {
         private fun predicate(
             cipher: DSecret,
         ) = cipher.login?.passwordStrength?.score == score
+    }
+
+    @Serializable
+    @SerialName("by_weak_ssh_keys")
+    data object ByWeakSshKeys : PrimitiveSimple {
+        @Transient
+        override val key: String = "weak_ssh_keys"
+
+        @Transient
+        override val content
+            get() = PrimitiveSimple.Content(
+                title = Res.string.watchtower_item_weak_ssh_keys_title
+                    .let(TextHolder::Res),
+                icon = Icons.Outlined.KeyguardSshKey,
+            )
+
+        override suspend fun prepare(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val ids = filterWeakSshKeys(directDI, ciphers)
+                .map { it.id }
+                .toSet()
+            ::predicate.partially1(ids)
+        }
+
+        private fun predicate(
+            ids: Set<String>,
+            cipher: DSecret,
+        ) = cipher.id in ids
+
+        /** Counts a number of SSH key ciphers with weak key material. */
+        fun count(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = filterWeakSshKeys(directDI, ciphers).count()
+
+        private fun filterWeakSshKeys(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val cipherSshKeyWeakCheck = directDI.instance<CipherSshKeyWeakCheck>()
+            ciphers
+                .asSequence()
+                .filter { !shouldIgnore(it) }
+                .filter(cipherSshKeyWeakCheck::invoke)
+        }
+
+        private fun shouldIgnore(
+            cipher: DSecret,
+        ) = cipher.ignores(DWatchtowerAlertType.WEAK_SSH_KEY)
     }
 
     @Serializable

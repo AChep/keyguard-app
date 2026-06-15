@@ -1,20 +1,15 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.unit.Dp
-import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetWriteAccess
 import com.artemchep.keyguard.common.usecase.PutWriteAccess
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
-import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.feature.home.settings.KgSwitch
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
+import com.artemchep.keyguard.ui.icons.Stub
 import kotlinx.coroutines.flow.combine
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -56,25 +51,11 @@ private fun SettingWriteAccess(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        trailing = {
-            CompositionLocalProvider(
-                LocalMinimumInteractiveComponentSize provides Dp.Unspecified,
-            ) {
-                Switch(
-                    checked = checked,
-                    enabled = onCheckedChange != null,
-                    onCheckedChange = onCheckedChange,
-                )
-            }
-        },
-        title = {
-            Text("Save edited changes")
-        },
-        text = {
-            Text("May cause a partial data loss, be careful!")
-        },
-        onClick = onCheckedChange?.partially1(!checked),
+    LocalSettingPaneComponents.current.KgSwitch(
+        icon = Icons.Stub,
+        title = "Save edited changes",
+        text = "May cause a partial data loss, be careful!",
+        checked = checked,
+        onCheckedChange = onCheckedChange,
     )
 }

@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           submodules: recursive
       - name: "Generate changelog"
@@ -49,7 +49,7 @@ jobs:
             cat changelog-raw.md
           } > changelog-full.md
       - name: "Upload"
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: changelog
           path: |
@@ -77,12 +77,12 @@ jobs:
       release-name: ${{ steps.producer.outputs.release_name }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           path: keyguard-app
           submodules: recursive
       - name: "Checkout AChep/keyguard-version"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           path: keyguard-version
           repository: AChep/keyguard-version
@@ -96,7 +96,7 @@ jobs:
         id: producer
         run: |
           VERSION_SEMANTIC=$(sed -nE 's/.*appVersionName *= *"(.*)".*/\1/p' keyguard-app/gradle/libs.versions.toml)
-          VERSION_TAG="${{ github.ref_name }}"
+          VERSION_TAG="$GITHUB_REF_NAME"
           VERSION_TAG_NO_PREFIX="${VERSION_TAG#r}"
           RELEASE_NAME="v${VERSION_SEMANTIC}-${VERSION_TAG_NO_PREFIX}"
           DATE=$(echo "$VERSION_TAG" | sed -E 's/^r([0-9]{4})([0-9]{2})([0-9]{2}).*$/\1-\2-\3/')
@@ -113,7 +113,7 @@ jobs:
             --changelog_summary_file artifacts-changelog/changelog-summary.md \
             --changelog_raw_file artifacts-changelog/changelog-raw.md
       - name: "Upload versions.json"
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: versions
           path: keyguard-version/versions.json
@@ -121,10 +121,11 @@ jobs:
     name: "Generate versions code for Google Play Store"
     runs-on: ubuntu-slim
     outputs:
-      version-code: ${{ steps.producer.outputs.version_code }}
+      wear-version-code: ${{ steps.producer.outputs.wear_version_code }}
+      android-version-code: ${{ steps.producer.outputs.android_version_code }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - uses: ./.github/actions/setup_python
       - name: "Prepare env"
         run: |
@@ -134,8 +135,10 @@ jobs:
         run: |
           pip install -r .github/scripts/versioning/requirements.txt
           python .github/scripts/versioning/fetch_version.py --package-name com.artemchep.keyguard --credentials service-account-google.json --output play-store-versions.json
-          VERSION_CODE=$(jq -r '.next_version_code' play-store-versions.json)
-          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+          WEAR_VERSION_CODE=$(jq -r '.wear_version_code' play-store-versions.json)
+          ANDROID_VERSION_CODE=$(jq -r '.android_version_code' play-store-versions.json)
+          echo "wear_version_code=$WEAR_VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "android_version_code=$ANDROID_VERSION_CODE" >> $GITHUB_OUTPUT
   build-macos-app:
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -150,13 +153,11 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           lfs: true
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
-        with:
-          java-distribution: "liberica"
       - name: "Setup Rust toolchain"
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
@@ -170,13 +171,13 @@ jobs:
         run: |
           echo ${{ secrets.CERT_B64 }} | base64 -d | zcat > desktopApp/macos-dev.cer
       - name: "Import signing certificate"
-        uses: apple-actions/import-codesign-certs@fe74d46e82474f87e1ba79832ad28a4013d0e33a
+        uses: apple-actions/import-codesign-certs@5142e029c445c10ffc7149d172e540235a065466
         with:
           p12-filepath: desktopApp/macos-dev.cer
           p12-password: ${{ secrets.CERT_PASSWD }}
       - name: "Setup build env"
         run: |
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Setup signing config"
         run: |
           echo "" >> gradle.properties
@@ -205,14 +206,14 @@ jobs:
       - name: "Build and notarize DMG"
         run: ./gradlew :desktopApp:packageReleaseDmg :desktopApp:notarizeReleaseDmg -x :desktopApp:createReleaseDistributable
       - name: "Upload logs"
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
           name: logs-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/logs/**/*.txt
           retention-days: 30
       - name: "Upload binaries"
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: binaries-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/**
@@ -222,7 +223,7 @@ jobs:
           cd desktopApp/build/compose/binaries/main-release/dmg
           for f in * ; do mv -- "$f" "$(echo $f | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
       - name: "Upload .dmg"
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
@@ -240,7 +241,7 @@ jobs:
             arch: aarch64
     steps:
       - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           lfs: true
           submodules: recursive
@@ -257,7 +258,7 @@ jobs:
         run: |
           pwd
           git config --global --add safe.directory "$(pwd)"
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Download versions"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -275,7 +276,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :desktopApp:packageReleaseDistributable
       - name: 'Upload .tar'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-linux-${{ matrix.arch }}
           path: |
@@ -301,7 +302,7 @@ jobs:
           flatpak-builder --force-clean --state-dir=build/flatpak-builder --repo=build/flatpak-repo build/flatpak-target com.artemchep.keyguard.yml
           flatpak build-bundle build/flatpak-repo "Keyguard-$(find ../build/distributions -type f -name '*.tar.gz' | sed -E 's/.*-([0-9]+\.[0-9]+\.[0-9]+)-.*/\1/')-${{ matrix.arch }}.flatpak" com.artemchep.keyguard
       - name: 'Upload .flatpak'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-linux-flatpak-${{ matrix.arch }}
           path: |
@@ -312,7 +313,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           lfs: true
           submodules: recursive
@@ -332,15 +333,68 @@ jobs:
           protoc --version
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
+        shell: pwsh
         run: |
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$env:GITHUB_REF_NAME"
       - name: "Build"
         run: ./gradlew :desktopApp:packageReleaseMsi
       - name: 'Upload .msi'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-windows
           path: desktopApp/build/compose/binaries/main-release/msi/*.msi
+          retention-days: 1
+  build-wearos-app:
+    runs-on: ubuntu-latest
+    needs:
+      - generate-versions-code-google-play-store
+    strategy:
+      fail-fast: true
+      matrix:
+        config:
+          - { flavor: None, build-type: assemble }
+          - { flavor: PlayStore, build-type: bundle }
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          lfs: true
+          submodules: recursive
+      - uses: ./.github/actions/setup_gradle
+      - uses: ./.github/actions/setup_python
+      - name: "Prepare env"
+        run: |
+          echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > wearApp/keyguard-release.keystore
+          echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat > wearApp/keyguard-release.properties
+          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat > wearApp/google-services.json
+          python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
+      - name: "Prepare version code"
+        run: |
+          echo "" >> gradle.properties
+          echo "versionCode=${{ needs.generate-versions-code-google-play-store.outputs.wear-version-code }}" >> gradle.properties
+      - uses: ./.github/actions/build_wearos_licenses
+        with:
+          build-flavor: ${{ matrix.config.flavor }}
+      - name: "Build"
+        run: ./gradlew :wearApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
+      - name: 'Upload .apk'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: matrix.config.build-type == 'assemble'
+        with:
+          name: app-wearos-apk
+          path: |
+            wearApp/build/outputs/apk/**/*.apk
+            wearApp/build/outputs/mapping/**/mapping.txt
+          retention-days: 1
+      - name: 'Upload .aab'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: matrix.config.build-type == 'bundle'
+        with:
+          name: app-wearos-aab
+          path: |
+            wearApp/build/outputs/bundle/**/*.aab
           retention-days: 1
   build-android-app:
     runs-on: ubuntu-latest
@@ -356,7 +410,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           lfs: true
           submodules: recursive
@@ -367,11 +421,11 @@ jobs:
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > androidApp/keyguard-release.keystore
           echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat > androidApp/keyguard-release.properties
           echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat > androidApp/google-services.json
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Prepare version code"
         run: |
           echo "" >> gradle.properties
-          echo "versionCode=${{ needs.generate-versions-code-google-play-store.outputs.version-code }}" >> gradle.properties
+          echo "versionCode=${{ needs.generate-versions-code-google-play-store.outputs.android-version-code }}" >> gradle.properties
       - uses: ./.github/actions/build_android_licenses
         with:
           build-flavor: ${{ matrix.config.flavor }}
@@ -382,7 +436,7 @@ jobs:
       - name: "Build"
         run: ./gradlew :androidApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
       - name: 'Upload .apk'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: matrix.config.build-type == 'assemble'
         with:
           name: app-android-apk
@@ -391,7 +445,7 @@ jobs:
             androidApp/build/outputs/mapping/**/mapping.txt
           retention-days: 1
       - name: 'Upload .aab'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: matrix.config.build-type == 'bundle'
         with:
           name: app-android-aab
@@ -404,7 +458,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           lfs: true
           submodules: recursive
@@ -412,7 +466,7 @@ jobs:
       - uses: ./.github/actions/setup_python
       - name: "Prepare release gradle properties"
         run: |
-          python .github/setup_gradle_properties_release.py tag=${{ github.ref_name }}
+          python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Setup Rust toolchain"
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
@@ -435,7 +489,7 @@ jobs:
         run: |
           ./gradlew :androidSshAgent:packageAndroidSshAgentTermuxAll
       - name: "Upload .deb"
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-termux
           path: androidSshAgent/build/termux/debs/*.deb
@@ -445,6 +499,7 @@ jobs:
     needs:
       - generate-changelog
       - generate-versions
+      - build-wearos-app
       - build-android-app
       - build-android-ssh-agent
       - build-linux-app
@@ -509,7 +564,7 @@ jobs:
           name: app-termux
           path: artifacts
       - name: "Create release"
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda
         if: startsWith(github.ref, 'refs/tags/')
         with:
           name: Release ${{ needs.generate-versions.outputs.release-name }}
@@ -526,7 +581,7 @@ jobs:
       - dist
     steps:
       - name: "Checkout AChep/keyguard-version"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           path: keyguard-version
           repository: AChep/keyguard-version
@@ -570,7 +625,12 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: app-android-aab
-          path: artifacts
+          path: artifacts-android
+      - name: "Download WearOS app (aab)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-wearos-aab
+          path: artifacts-wearos
       - name: "Download changelog"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -581,13 +641,21 @@ jobs:
           echo ${{ secrets.SERVICE_ACCOUNT_B64 }} | base64 -d | zcat > service-account-google.json
           mkdir whatsnew
           mv artifacts-changelog/changelog-summary.md whatsnew/whatsnew-en-US
-      - name: "Distribute on Play Store"
-        uses: r0adkll/upload-google-play@935ef9c68bb393a8e6116b1575626a7f5be3a7fb
+      - name: "Distribute Android on Play Store"
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
         with:
           serviceAccountJson: service-account-google.json
           whatsNewDirectory: whatsnew
           packageName: com.artemchep.keyguard
-          releaseFiles: artifacts/**/*.aab
+          releaseFiles: artifacts-android/**/*.aab
+      - name: "Distribute WearOS on Play Store"
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
+        with:
+          serviceAccountJson: service-account-google.json
+          whatsNewDirectory: whatsnew
+          packageName: com.artemchep.keyguard
+          releaseFiles: artifacts-wearos/**/*.aab
+          track: wear:production
   deploy-termux:
     name: Deploy Termux
     runs-on: ubuntu-latest
@@ -597,9 +665,9 @@ jobs:
       GNUPGHOME: ${{ github.workspace }}/.gnupg-termux
     steps:
       - name: "Checkout main repo"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - name: "Checkout Termux repo"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
           repository: AChep/keyguard-repo-termux
           fetch-depth: 0
@@ -650,7 +718,7 @@ jobs:
         if: ${{ steps.check-changes.outputs.HAS_CHANGES == 'true' }}
         run: |
           git config user.email github-actions@github.com
-          git config user.name "${{ github.actor }}"
+          git config user.name "$GITHUB_ACTOR"
           git add -A
           git commit -m "Mirror latest Keyguard Termux packages"
           git push origin HEAD:master
@@ -697,7 +765,7 @@ jobs:
           - new_release_deploy_scoop.yml
     steps:
       - name: "Checkout"
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
       - name: "Trigger Workflow"
         uses: ./.github/actions/github_trigger_wf
         with:

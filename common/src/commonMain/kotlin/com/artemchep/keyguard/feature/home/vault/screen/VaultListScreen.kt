@@ -75,6 +75,7 @@ import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.OptionsButton
+import com.artemchep.keyguard.ui.RequestLazyListScrollOnRevision
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.SmallFab
 import com.artemchep.keyguard.ui.focus.FocusRequester2
@@ -92,9 +93,6 @@ import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import com.artemchep.keyguard.ui.toolbar.content.CustomSearchbarContent
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.withIndex
 
 @Composable
 fun VaultListScreen(
@@ -301,27 +299,12 @@ fun VaultHomeScreenListPane(
         )
     }
 
-    LaunchedEffect(listRevision?.id) {
-        // Scroll to the start of the list if the list has
-        // no real content.
-        if (listRevision == null) {
-            listState.scrollToItem(0, 0)
-            return@LaunchedEffect
-        }
-
-        // TODO: How do you wait till the layout state start to represent
-        //  the actual data?
-        snapshotFlow { listState.layoutInfo.totalItemsCount }
-            .withIndex()
-            .filter {
-                it.index > 0 || it.value == itemsState.list.size
-            }
-            .first()
-
-        val index = listRevision.firstVisibleItemIndex.value
-        val offset = listRevision.firstVisibleItemScrollOffset.value
-        listState.scrollToItem(index, offset)
-    }
+    RequestLazyListScrollOnRevision(
+        listState = listState,
+        revision = listRevision?.id,
+        index = listRevision?.firstVisibleItemIndex?.value ?: 0,
+        offset = listRevision?.firstVisibleItemScrollOffset?.value ?: 0,
+    )
 
     LaunchedEffect(listRevision?.onScroll) {
         if (listRevision == null) return@LaunchedEffect // do nothing, just cancel old job
@@ -329,12 +312,17 @@ fun VaultHomeScreenListPane(
         val visibleItemScrollStateFlow = snapshotFlow {
             val index = listState.firstVisibleItemIndex
             val offset = listState.firstVisibleItemScrollOffset
-            index to offset
+            val key = listState.layoutInfo.visibleItemsInfo
+                .firstOrNull { it.index == index }
+                ?.key
+            Triple(index, offset, key)
         }
-        visibleItemScrollStateFlow.collect { (index, offset) ->
-            // TODO: How do you wait till the layout state start to represent
-            //  the actual data?
-            if (listState.layoutInfo.totalItemsCount != itemsState.list.size) {
+        visibleItemScrollStateFlow.collect { (index, offset, key) ->
+            val itemKey = itemsState.list
+                .getOrNull(index)
+                ?.id
+                ?: return@collect
+            if (key != itemKey) {
                 return@collect
             }
 
@@ -561,6 +549,7 @@ fun VaultHomeScreenListPane(
                 items(
                     items = list,
                     key = { model -> model.id },
+                    contentType = { model -> model.contentType },
                 ) { model ->
                     if (model is VaultItem2.QuickFilters && !tabletUi) {
                         Box(
@@ -607,8 +596,4 @@ fun VaultHomeScreenListPane(
             }
         }
     }
-}
-
-@Composable
-private fun NoItemsPlaceholder() {
 }

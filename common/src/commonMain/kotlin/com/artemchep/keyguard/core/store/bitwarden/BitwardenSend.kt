@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.core.store.bitwarden
 
 import arrow.optics.optics
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -94,9 +95,9 @@ data class BitwardenSend(
     data class File(
         val id: String,
         val fileName: String,
-        val keyBase64: String? = null,
         val size: Long? = null,
         val sizeName: String? = null,
+        val pendingUpload: PendingUploadFile? = null,
     ) {
         companion object;
     }

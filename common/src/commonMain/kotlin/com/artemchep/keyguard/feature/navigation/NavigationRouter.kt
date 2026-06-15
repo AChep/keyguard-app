@@ -18,6 +18,12 @@ import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.rememberInstance
 import kotlin.uuid.Uuid
 
+/**
+ * Owns a nested navigation pile for the current [NavigationEntry].
+ *
+ * A router receives intents from child content, mutates the active stack when it
+ * can, and passes unhandled intents to the parent controller.
+ */
 @Composable
 fun NavigationRouter(
     id: String,
@@ -271,6 +277,11 @@ private fun tryToRestore(
     return pile
 }
 
+/**
+ * A group of stacks owned by one router.
+ *
+ * The last stack is active; switching stacks preserves inactive stack lifecycles.
+ */
 class NavigationPile(
     val id: String,
     stack: NavigationStack,
@@ -305,6 +316,9 @@ class NavigationPile(
     }
 }
 
+/**
+ * A linear back stack rendered by [NavigationNode].
+ */
 class NavigationStack(
     val id: String,
     entries: PersistentList<NavigationEntry>,

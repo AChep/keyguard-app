@@ -45,6 +45,8 @@ data class SendRequest(
     val text: SendTextRequest?,
     @SerialName("file")
     val file: SendFileRequest?,
+    @SerialName("fileLength")
+    val fileLength: Long? = null,
     @SerialName("emails")
     val emails: String? = null,
 ) {
@@ -69,7 +71,7 @@ data class SendFileRequest(
     companion object
 }
 
-context(CryptoGenerator, Base64Service)
+context(cryptoGenerator: CryptoGenerator, base64Service: Base64Service)
 fun SendRequest.Companion.of(
     model: BitwardenSend,
     key: ByteArray,
@@ -77,8 +79,14 @@ fun SendRequest.Companion.of(
     val type = SendTypeEntity.of(model.type)
     val text = model.text
         ?.let(SendTextRequest::of)
+    val remoteExists = model.service.remote != null
     val file = model.file
+        ?.takeIf { !remoteExists }
         ?.let(SendFileRequest::of)
+    val fileLength = model.file
+        ?.pendingUpload
+        ?.encryptedSize
+        ?.takeIf { !remoteExists }
     val deletionDate = model.deletedDate
         ?: Clock.System.now()
 
@@ -115,6 +123,7 @@ fun SendRequest.Companion.of(
         maxAccessCount = model.maxAccessCount,
         text = text,
         file = file,
+        fileLength = fileLength,
         emails = newEmails,
     )
 }
@@ -125,7 +134,7 @@ private fun getNewEmails(
     .takeUnless { it.isEmpty() }
     ?.joinToString(",")
 
-context(CryptoGenerator, Base64Service)
+context(cryptoGenerator: CryptoGenerator, base64Service: Base64Service)
 private fun getNewPass(
     model: BitwardenSend,
     key: ByteArray,
@@ -135,15 +144,15 @@ private fun getNewPass(
         // Bitwarden doesn't allow us to remove the password
         // within the PUT request.
             ?: return@run null
-        val password = decode(pwd.value)
+        val password = base64Service.decode(pwd.value)
         // Send the hash code of that password, instead of
         // sending the actual password.
-        val passwordHash = pbkdf2(
+        val passwordHash = cryptoGenerator.pbkdf2(
             seed = password,
             salt = key,
             iterations = 100_000,
         )
-        encodeToString(passwordHash)
+        base64Service.encodeToString(passwordHash)
     }
 
     is BitwardenOptionalStringNullable.None,

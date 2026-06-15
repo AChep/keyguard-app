@@ -13,16 +13,18 @@ fun AppReopenedListenerEffect(
     onAppReopened: () -> Unit,
 ) {
     DisposableEffect(Unit) {
-        val desktop = Desktop.getDesktop()
+        val desktop = getAwtDesktopOrNull(
+            action = Desktop.Action.APP_EVENT_REOPENED,
+        )
         var listener: AppReopenedListener? = null
 
-        if (desktop.isSupported(Desktop.Action.APP_EVENT_REOPENED)) {
+        if (desktop != null) {
             listener = AppReopenedListener { onAppReopened() }
             desktop.addAppEventListener(listener)
         }
 
         onDispose {
-            listener?.let { desktop.removeAppEventListener(it) }
+            listener?.let { desktop?.removeAppEventListener(it) }
         }
     }
 }

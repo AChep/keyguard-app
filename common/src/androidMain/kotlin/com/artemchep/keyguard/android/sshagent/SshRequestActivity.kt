@@ -57,6 +57,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ssh_client_request
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.delay
+import kotlin.time.Clock
 
 internal class SshRequestActivity : BaseActivity() {
     companion object {
@@ -176,7 +177,10 @@ internal class SshRequestActivity : BaseActivity() {
             val initialY = 48.dp
             mutableStateOf(initialY)
         }
-        val dimColor by animateColorAsState(dimColorTarget)
+        val dimColor by animateColorAsState(
+            targetValue = dimColorTarget,
+            animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
+        )
         val contentScale by animateFloatAsState(
             targetValue = contentScaleTarget,
             animationSpec = tween(durationMillis = 300),
@@ -238,6 +242,7 @@ internal class SshRequestActivity : BaseActivity() {
                 ) {
                     val authScreen = AuthScreen(
                         reason = TextHolder.Res(Res.string.ssh_client_request),
+                        style = AuthScreen.Style.DIALOG,
                     )
                     CompositionLocalProvider(
                         LocalAuthScreen provides authScreen,
@@ -330,12 +335,13 @@ internal class SshRequestActivity : BaseActivity() {
                 value = null
                 return@produceState
             }
-            val timeoutMs = state.request.timeout.inWholeMilliseconds
+            val expiresAt = state.request.expiresAt
+            val totalMs = (expiresAt - Clock.System.now()).inWholeMilliseconds
                 .coerceAtLeast(1L)
             while (true) {
-                val elapsedMs = (System.nanoTime() / 1_000_000L) - state.activatedAtMonotonicMillis
-                val remainingMs = (timeoutMs - elapsedMs).coerceAtLeast(0L)
-                value = remainingMs.toFloat() / timeoutMs.toFloat()
+                val remainingMs = (expiresAt - Clock.System.now()).inWholeMilliseconds
+                    .coerceAtLeast(0L)
+                value = remainingMs.toFloat() / totalMs.toFloat()
                 if (remainingMs == 0L) {
                     break
                 }

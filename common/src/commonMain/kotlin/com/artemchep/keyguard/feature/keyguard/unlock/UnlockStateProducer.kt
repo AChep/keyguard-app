@@ -41,6 +41,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.onStart
@@ -127,6 +128,17 @@ fun unlockScreenState(
 
     val passwordSink = mutablePersistedFlow("password") { DEFAULT_PASSWORD }
     val passwordState = mutableComposeState(passwordSink)
+
+    // Clear the password field when the screen
+    // moves into background.
+    launchUi {
+        try {
+            awaitCancellation()
+        } finally {
+            passwordState.value = DEFAULT_PASSWORD
+            passwordSink.value = DEFAULT_PASSWORD
+        }
+    }
 
     val actions = persistentListOf(
         FlatItemAction(
@@ -316,7 +328,6 @@ private suspend fun createPromptOrNull(
         )
     BiometricAuthPrompt(
         title = TextHolder.Res(Res.string.unlock_biometric_auth_confirm_title),
-        text = TextHolder.Res(Res.string.unlock_biometric_auth_confirm_text),
         cipher = cipher,
         requireConfirmation = fn.requireConfirmation,
         onComplete = { result ->

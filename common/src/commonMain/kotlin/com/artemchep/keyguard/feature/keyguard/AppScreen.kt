@@ -5,6 +5,7 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,6 +45,7 @@ import com.artemchep.keyguard.ui.ToastMessageHost
 import com.artemchep.keyguard.ui.theme.Dimen
 import org.kodein.di.compose.rememberInstance
 import org.kodein.di.compose.withDI
+import kotlin.time.Instant
 
 val LocalAuthScreen = staticCompositionLocalOf {
     AuthScreen(
@@ -53,7 +55,15 @@ val LocalAuthScreen = staticCompositionLocalOf {
 
 data class AuthScreen(
     val reason: TextHolder?,
-)
+    val style: Style = Style.FULL_SCREEN,
+    val onCancel: (() -> Unit)? = null,
+    val expiresAt: Instant? = null,
+) {
+    enum class Style {
+        FULL_SCREEN,
+        DIALOG,
+    }
+}
 
 @Composable
 fun AppScreen() {
@@ -197,7 +207,18 @@ fun ManualAppScreenOnMain(
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ManualAppScreen(
-    content: @Composable (VaultState) -> Unit,
+    toastHost: @Composable BoxScope.() -> Unit = {
+        val insets = WindowInsets.leNavigationBars
+            .union(WindowInsets.leIme)
+            .asPaddingValues()
+        ToastMessageHost(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(insets)
+                .widthIn(max = 300.dp),
+        )
+    },
+    content: @Composable BoxScope.(VaultState) -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -228,14 +249,6 @@ fun ManualAppScreen(
             content(state)
         }
 
-        val insets = WindowInsets.leNavigationBars
-            .union(WindowInsets.leIme)
-            .asPaddingValues()
-        ToastMessageHost(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(insets)
-                .widthIn(max = 300.dp),
-        )
+        toastHost()
     }
 }

@@ -1,22 +1,20 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PrivacyTip
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.settings.KgAction
+import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasBrowser
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.FlatItem
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardWebsite
-import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.DirectDI
@@ -26,6 +24,12 @@ fun settingPrivacyPolicyProvider(
 ): SettingComponent = settingPrivacyPolicyProvider()
 
 fun settingPrivacyPolicyProvider(): SettingComponent = kotlin.run {
+    // Do not render the field if there's nothing
+    // to show its full content in.
+    if (!CurrentPlatform.hasBrowser()) {
+        return@run flowOf(null)
+    }
+
     val item = SettingIi(
         search = SettingIi.Search(
             group = "about",
@@ -52,17 +56,13 @@ fun settingPrivacyPolicyProvider(): SettingComponent = kotlin.run {
 private fun SettingPrivacyPolicy(
     onClick: (() -> Unit)?,
 ) {
-    FlatItemSimpleExpressive(
-        shapeState = LocalSettingItemShape.current,
-        leading = icon<RowScope>(Icons.Outlined.PrivacyTip, Icons.Outlined.KeyguardWebsite),
+    LocalSettingPaneComponents.current.KgAction(
+        icon = Icons.Outlined.PrivacyTip,
+        subIcon = Icons.Outlined.KeyguardWebsite,
         trailing = {
             ChevronIcon()
         },
-        title = {
-            Text(
-                text = stringResource(Res.string.pref_item_privacy_policy_title),
-            )
-        },
+        title = stringResource(Res.string.pref_item_privacy_policy_title),
         onClick = onClick,
     )
 }

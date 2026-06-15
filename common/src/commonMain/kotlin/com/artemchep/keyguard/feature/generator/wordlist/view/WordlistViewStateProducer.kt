@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.RemoveWordlistById
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
@@ -49,6 +50,7 @@ fun produceWordlistViewState(
         removeWordlistById = instance(),
         getWordlists = instance(),
         getWordlistPrimitive = instance(),
+        confirmationRouteFactory = instance(),
     )
 }
 
@@ -59,6 +61,7 @@ fun produceWordlistViewState(
     removeWordlistById: RemoveWordlistById,
     getWordlists: GetWordlists,
     getWordlistPrimitive: GetWordlistPrimitive,
+    confirmationRouteFactory: ConfirmationRouteFactory,
 ): Loadable<WordlistViewState> = produceScreenState(
     key = "wordlist_view",
     initial = Loadable.Loading,
@@ -87,6 +90,7 @@ fun produceWordlistViewState(
                             title = Res.string.edit.wrap(),
                             onClick = onClick {
                                 WordlistUtil.onRename(
+                                    confirmationRouteFactory = confirmationRouteFactory,
                                     editWordlist = editWordlist,
                                     entity = wordlist,
                                 )
@@ -100,6 +104,7 @@ fun produceWordlistViewState(
                             title = Res.string.delete.wrap(),
                             onClick = onClick {
                                 WordlistUtil.onDeleteByItems(
+                                    confirmationRouteFactory = confirmationRouteFactory,
                                     removeWordlistById = removeWordlistById,
                                     items = wordlistAsItems,
                                 )
@@ -127,7 +132,7 @@ fun produceWordlistViewState(
             .map { word ->
                 val key = kotlin.run {
                     val newPackageNameCollisionCounter = nameCollisions
-                        .getOrDefault(word, 0) + 1
+                        .getOrElse(word) { 0 } + 1
                     nameCollisions[word] =
                         newPackageNameCollisionCounter
                     word + ":" + newPackageNameCollisionCounter

@@ -25,10 +25,14 @@ import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.auth.AccountViewRoute
+import com.artemchep.keyguard.feature.auth.AccountViewRouteFactory
+import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountItem
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
+import com.artemchep.keyguard.feature.home.vault.by
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -36,6 +40,8 @@ import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.BetaBadge
@@ -60,7 +66,7 @@ import org.kodein.di.instance
 
 @Composable
 fun accountListScreenState(
-    rootRouterName: String,
+    rootRouterName: String?,
 ): AccountListStateWrapper = with(localDI().direct) {
     accountListScreenState(
         rootRouterName = rootRouterName,
@@ -71,13 +77,16 @@ fun accountListScreenState(
         getProfiles = instance(),
         getAccountHasError = instance(),
         getCanAddAccount = instance(),
+        vaultRouteFactory = instance(),
+        accountViewRouteFactory = instance(),
+        confirmationRouteFactory = instance(),
         windowCoroutineScope = instance(),
     )
 }
 
 @Composable
 fun accountListScreenState(
-    rootRouterName: String,
+    rootRouterName: String?,
     queueSyncById: QueueSyncById,
     syncSupervisor: SupervisorRead,
     removeAccountById: RemoveAccountById,
@@ -85,6 +94,9 @@ fun accountListScreenState(
     getProfiles: GetProfiles,
     getAccountHasError: GetAccountHasError,
     getCanAddAccount: GetCanAddAccount,
+    vaultRouteFactory: VaultRouteFactory,
+    accountViewRouteFactory: AccountViewRouteFactory,
+    confirmationRouteFactory: ConfirmationRouteFactory,
     windowCoroutineScope: WindowCoroutineScope,
 ): AccountListStateWrapper = produceScreenState(
     key = "account_list",
@@ -151,6 +163,7 @@ fun accountListScreenState(
         accountIds: Set<AccountId>,
     ) {
         val intent = createConfirmationDialogIntent(
+            confirmationRouteFactory = confirmationRouteFactory,
             icon = icon(Icons.AutoMirrored.Outlined.Logout),
             title = translate(Res.string.account_log_out_confirmation_title),
             message = translate(Res.string.account_log_out_confirmation_text),
@@ -196,7 +209,7 @@ fun accountListScreenState(
                     title = Res.string.items.wrap(),
                     onClick = onClick {
                         val accounts = selectedAccounts.values
-                        val route = VaultRoute.by(accounts = accounts)
+                        val route = vaultRouteFactory.by(accounts = accounts)
                         val intent = NavigationIntent.NavigateToRoute(route)
                         navigate(intent)
                     },
@@ -273,10 +286,11 @@ fun accountListScreenState(
                         if (selectionMode) {
                             selectionHandle.toggleSelection(it.id.id)
                         } else {
-                            val route = AccountViewRoute(it.id)
+                            val route = accountViewRouteFactory.create(it.id)
                             val intent = NavigationIntent.Composite(
-                                listOf(
-                                    NavigationIntent.PopById(rootRouterName),
+                                listOfNotNull(
+                                    rootRouterName
+                                        ?.let(NavigationIntent::PopById),
                                     NavigationIntent.NavigateToRoute(route),
                                 ),
                             )

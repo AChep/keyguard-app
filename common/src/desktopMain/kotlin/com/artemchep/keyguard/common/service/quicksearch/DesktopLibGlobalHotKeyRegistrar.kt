@@ -8,7 +8,9 @@ import arrow.core.throwIfFatal
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
 
-class DesktopLibGlobalHotKeyRegistrar : GlobalHotKeyRegistrar {
+class DesktopLibGlobalHotKeyRegistrar(
+    private val name: String,
+) : GlobalHotKeyRegistrar {
     override fun register(
         hotKey: GlobalHotKeySpec,
         onPressed: () -> Unit,
@@ -18,13 +20,13 @@ class DesktopLibGlobalHotKeyRegistrar : GlobalHotKeyRegistrar {
         }) {
             is GlobalHotKeyRegistrationResult.Success -> result
             is GlobalHotKeyRegistrationResult.Failure -> {
-                recordLog("Quick search global hotkey registration failed: ${result.reason}.")
+                recordLog("$name global hotkey registration failed: ${result.reason}.")
                 result
             }
         }
     } catch (e: Throwable) {
         e.throwIfFatal()
-        recordLog("Quick search global hotkey registration failed: ${GlobalHotKeyRegistrationFailureReason.InternalError}.")
+        recordLog("$name global hotkey registration failed: ${GlobalHotKeyRegistrationFailureReason.InternalError}.")
         recordException(e)
         GlobalHotKeyRegistrationResult.Failure(GlobalHotKeyRegistrationFailureReason.InternalError)
     }

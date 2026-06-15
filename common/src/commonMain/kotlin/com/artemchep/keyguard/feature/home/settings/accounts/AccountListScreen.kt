@@ -15,7 +15,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.artemchep.keyguard.feature.EmptyView
-import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.home.settings.accounts.component.AccountListItem
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -30,11 +30,15 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
+import org.kodein.di.compose.localDI
+import org.kodein.di.direct
+import org.kodein.di.instance
 
 @Composable
 fun AccountListScreen() {
     val controller by rememberUpdatedState(LocalNavigationController.current)
-    val r = registerRouteResultReceiver(BitwardenLoginRoute()) {
+    val bitwardenLoginRouteFactory = localDI().direct.instance<BitwardenLoginRouteFactory>()
+    val r = registerRouteResultReceiver(bitwardenLoginRouteFactory.create()) {
         controller.queue(NavigationIntent.Pop)
     }
 

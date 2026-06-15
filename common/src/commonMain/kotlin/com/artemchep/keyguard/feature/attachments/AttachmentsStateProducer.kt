@@ -9,6 +9,7 @@ import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
 import arrow.core.identity
 import arrow.core.partially1
@@ -22,6 +23,7 @@ import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.RemoveAttachmentRequest
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -34,6 +36,7 @@ import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.foldAsList
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
@@ -41,12 +44,14 @@ import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
+import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRouteFactory
 import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -99,6 +104,9 @@ fun produceAttachmentsScreenState() = with(localDI().direct) {
         downloadManager = instance(),
         downloadAttachment = instance(),
         removeAttachment = instance(),
+        canPreviewAttachment = instance(),
+        attachmentPreviewRouteFactory = instance(),
+        vaultViewRouteFactory = instance(),
     )
 }
 
@@ -134,6 +142,9 @@ fun produceAttachmentsScreenState(
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
     removeAttachment: RemoveAttachment,
+    canPreviewAttachment: CanPreviewAttachment,
+    attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
+    vaultViewRouteFactory: VaultViewRouteFactory,
 ): Loadable<AttachmentsState> = produceScreenState(
     key = "attachments",
     args = arrayOf(
@@ -221,6 +232,7 @@ fun produceAttachmentsScreenState(
                                 coroutineScope {
                                     val actualItem = createAttachmentItem(
                                         selectionHandle = selectionHandle,
+                                        vaultViewRouteFactory = vaultViewRouteFactory,
                                         tag = ref,
                                         sharingScope = this,
                                         attachment = attachment,
@@ -229,6 +241,8 @@ fun produceAttachmentsScreenState(
                                             cipherId = cipher.id,
                                         ),
                                         downloadManager = downloadManager,
+                                        canPreviewAttachment = canPreviewAttachment,
+                                        attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
                                         downloadIo = downloadIo,
                                         removeIo = removeIo,
                                     )
@@ -533,6 +547,7 @@ sealed interface FooStatus {
             is AttachmentItem.Status.None -> None
             is AttachmentItem.Status.Loading -> Loading
             is AttachmentItem.Status.Failed -> Failed
+            is AttachmentItem.Status.PendingUpload -> PendingUpload
             is AttachmentItem.Status.Downloaded ->
                 Downloaded(
                     localUrl = attachmentStatus.localUrl,
@@ -546,6 +561,8 @@ sealed interface FooStatus {
 
     data object Failed : FooStatus
 
+    data object PendingUpload : FooStatus
+
     data class Downloaded(
         val localUrl: String,
     ) : FooStatus
@@ -558,9 +575,11 @@ data class LaunchViewCipherData(
 
 fun foo(
     translatorScope: TranslatorScope,
+    vaultViewRouteFactory: VaultViewRouteFactory,
     fileName: String,
     status: FooStatus,
     launchViewCipherData: LaunchViewCipherData?,
+    previewRoute: Route? = null,
     downloadIo: IO<Unit>,
     removeIo: IO<Unit>,
     navigate: (NavigationIntent) -> Unit,
@@ -579,6 +598,23 @@ fun foo(
 
     return buildContextItems {
         section {
+            if (previewRoute != null) {
+                this += FlatItemAction(
+                    leading = icon(Icons.Outlined.Visibility),
+                    trailing = {
+                        ChevronIcon()
+                    },
+                    title = Res.string.file_action_preview_title.wrap(),
+                    onClick = {
+                        val intent = NavigationIntent.NavigateToRoute(
+                            route = previewRoute,
+                        )
+                        navigate(intent)
+                    },
+                    type = FlatItemAction.Type.VIEW,
+                )
+            }
+
             when (status) {
                 is FooStatus.None -> {
                     this += FlatItemAction(
@@ -609,6 +645,10 @@ fun foo(
                         onClick = ::performDownload,
                         type = FlatItemAction.Type.DOWNLOAD,
                     )
+                }
+
+                is FooStatus.PendingUpload -> {
+                    // No actions
                 }
 
                 is FooStatus.Downloaded -> {

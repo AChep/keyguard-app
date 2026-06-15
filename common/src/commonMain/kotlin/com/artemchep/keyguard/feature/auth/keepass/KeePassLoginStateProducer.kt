@@ -33,12 +33,63 @@ private const val DEFAULT_DATABASE_NAME = "MyKeyguardDatabase.kdbx"
 
 private const val MODE_OPEN = "open"
 private const val MODE_NEW = "new"
+private const val DEFAULT_SCREEN_KEY = "keepasslogin"
+
+internal fun createKeePassLoginAction(
+    mode: String?,
+    dbFile: KeePassLoginState.FileItem.File?,
+    keyFile: KeePassLoginState.FileItem.File?,
+    passwordValidated: Validated<String>,
+    onSubmit: (
+        mode: String,
+        dbFile: KeePassLoginState.FileItem.File,
+        keyFile: KeePassLoginState.FileItem.File?,
+        password: String,
+    ) -> Unit,
+): KeePassLoginState.Action? {
+    if (mode == null || dbFile == null) {
+        return null
+    }
+    val password = (passwordValidated as? Validated.Success)
+        ?.model
+        ?: return null
+    return KeePassLoginState.Action(
+        onClick = {
+            onSubmit(
+                mode,
+                dbFile,
+                keyFile,
+                password,
+            )
+        },
+    )
+}
+
+internal fun createKeePassLoginState(
+    sideEffects: KeePassLoginState.SideEffect,
+    dbFileState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.FileItem>,
+    keyFileState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.FileItem>,
+    password: kotlinx.coroutines.flow.StateFlow<TextFieldModel2>,
+    actionState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.Action?>,
+    tabsState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.Tabs>,
+    isLoading: Boolean,
+): KeePassLoginState = KeePassLoginState(
+    sideEffects = sideEffects,
+    dbFileState = dbFileState,
+    keyFileState = keyFileState,
+    tabsState = tabsState,
+    password = password,
+    actionState = actionState,
+    isLoading = isLoading,
+)
 
 @Composable
 fun produceKeePassLoginScreenState(
+    screenKey: String = DEFAULT_SCREEN_KEY,
 ): Loadable<KeePassLoginState> = with(localDI().direct) {
     produceKeePassLoginScreenState(
         addKeepassAccount = instance(),
+        screenKey = screenKey,
     )
 }
 
@@ -48,11 +99,13 @@ private inline val defaultPassword get() = ""
 @Composable
 fun produceKeePassLoginScreenState(
     addKeepassAccount: AddKeePassAccount,
+    screenKey: String = DEFAULT_SCREEN_KEY,
 ): Loadable<KeePassLoginState> = produceScreenState(
     initial = Loadable.Loading,
-    key = "keepasslogin",
+    key = screenKey,
     args = arrayOf(
         addKeepassAccount,
+        screenKey,
     ),
 ) {
     val onSuccessFlow = EventFlow<Unit>()
@@ -272,40 +325,34 @@ fun produceKeePassLoginScreenState(
         keyFileSink,
         passwordValidatedFlow,
     ) { mode, dbFile, keyFile, passwordValidated ->
-        // The mode and database file are required
-        // for the login process.
-        if (mode == null || dbFile == null) {
-            return@combine null
-        }
-
-        // The password should be valid.
-        if (passwordValidated !is Validated.Success) {
-            return@combine null
-        }
-
-        KeePassLoginState.Action(
-            onClick = {
+        createKeePassLoginAction(
+            mode = mode,
+            dbFile = dbFile,
+            keyFile = keyFile,
+            passwordValidated = passwordValidated,
+            onSubmit = { actionMode, actionDbFile, actionKeyFile, actionPassword ->
                 onSubmit(
-                    mode = mode,
-                    dbFile = dbFile,
-                    keyFile = keyFile,
-                    password = passwordValidated.model,
+                    mode = actionMode,
+                    dbFile = actionDbFile,
+                    keyFile = actionKeyFile,
+                    password = actionPassword,
                 )
             },
         )
     }
         .stateIn(screenScope)
 
-    flowOf(
+    actionExecutor.isExecutingFlow.map { taskIsExecuting ->
         Loadable.Ok(
-            KeePassLoginState(
+            createKeePassLoginState(
                 sideEffects = sideEffects,
                 dbFileState = dbFileState,
                 keyFileState = keyFileState,
                 tabsState = tabsState,
                 password = passwordFlow,
                 actionState = actionState,
-            )
+                isLoading = taskIsExecuting,
+            ),
         )
-    )
+    }
 }

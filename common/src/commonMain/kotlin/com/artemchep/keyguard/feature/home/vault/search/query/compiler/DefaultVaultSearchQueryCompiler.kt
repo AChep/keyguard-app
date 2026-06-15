@@ -16,7 +16,6 @@ import com.artemchep.keyguard.feature.home.vault.search.query.model.QueryValueNo
 import com.artemchep.keyguard.feature.home.vault.search.query.model.SourceSpan
 import com.artemchep.keyguard.feature.home.vault.search.query.model.TextValueNode
 import com.artemchep.keyguard.feature.home.vault.search.query.model.TextTermNode
-import java.util.Locale
 
 class DefaultVaultSearchQueryCompiler(
     private val tokenizer: SearchTokenizer,
@@ -292,7 +291,7 @@ class DefaultVaultSearchQueryCompiler(
         value: QueryValueNode,
         field: VaultBooleanField,
     ): CompiledBooleanClause? {
-        val normalized = value.value.trim().lowercase(Locale.ROOT)
+        val normalized = value.value.trim().lowercase()
         val booleanValue =
             when (normalized) {
                 "true" -> true
@@ -309,7 +308,7 @@ class DefaultVaultSearchQueryCompiler(
     private fun normalizeType(value: String): String =
         value
             .trim()
-            .lowercase(Locale.ROOT)
+            .lowercase()
             .replace("_", "")
             .replace("-", "")
             .replace(" ", "")

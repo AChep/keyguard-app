@@ -7,12 +7,23 @@ import com.artemchep.keyguard.feature.home.settings.SettingPaneContent
 import com.artemchep.keyguard.feature.home.settings.SettingPaneItem
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun OtherSettingsScreen() {
-    val items = remember {
+    val items = rememberSettingsOtherItems()
+    SettingPaneContent(
+        title = stringResource(Res.string.settings_other_header_title),
+        items = items,
+    )
+}
+
+@Composable
+fun rememberSettingsOtherItems(
+): ImmutableList<SettingPaneItem> {
+    return remember {
         persistentListOf(
             SettingPaneItem.Group(
                 key = "features",
@@ -29,7 +40,7 @@ fun OtherSettingsScreen() {
             SettingPaneItem.Group(
                 key = "security",
                 list = persistentListOf(
-                    SettingPaneItem.Item(Setting.CRASHLYTICS),
+//                    SettingPaneItem.Item(Setting.CRASHLYTICS),
                     SettingPaneItem.Item(Setting.DATA_SAFETY),
                     SettingPaneItem.Item(Setting.PERMISSION_DETAILS),
                     SettingPaneItem.Item(Setting.LOGS),
@@ -54,8 +65,4 @@ fun OtherSettingsScreen() {
             SettingPaneItem.Item(Setting.ABOUT_APP_CHANGELOG),
         )
     }
-    SettingPaneContent(
-        title = stringResource(Res.string.settings_other_header_title),
-        items = items,
-    )
 }

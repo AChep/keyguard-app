@@ -35,12 +35,15 @@ data class JustGetMyDataListState(
     @Immutable
     sealed interface Item {
         val key: String
+        val contentType: String
 
         @Immutable
         data class Section(
             override val key: String,
             val name: String,
-        ) : Item
+        ) : Item {
+            override val contentType: String get() = "just_get_my_data_section"
+        }
 
         @Immutable
         data class Content(
@@ -51,6 +54,8 @@ data class JustGetMyDataListState(
             val data: JustGetMyDataServiceInfo,
             val onClick: (() -> Unit)? = null,
         ) : Item, GroupableShapeItem<Content> {
+            override val contentType: String get() = "just_get_my_data_content"
+
             override fun withShape(shape: Int) = copy(shapeState = shape)
         }
     }

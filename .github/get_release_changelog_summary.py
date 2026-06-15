@@ -19,9 +19,11 @@ from google.genai import types
 # --- Configuration Constants ---
 MODEL_NAME = "gemini-2.5-pro"
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+CHANGELOG_SUMMARY_LENGTH_LIMIT = 500
+TRUNCATION_SUFFIX = "…"
 
 PROMPT_TEMPLATE = """
-You are an expert Release Note Writer. Your goal is to take a raw list of git commit messages and convert them into a friendly, positive human-readable changelog. Prioritize the features, then improvements then other changes.
+You are an expert release-note writer. Convert raw git commit messages into concise, fluent app-store release notes for Keyguard. Write natural English that sounds edited by a human, not like a categorized digest.
 
 **Input Context:**
 The input will be a list of raw git commit messages, recent commits first. 
@@ -39,16 +41,18 @@ Key features include:
 **Guidelines & Constraints:**
 1. **Precision:** Summarize only the explicit changes mentioned in the commits. Do not infer features, guess "why" changes were made, or elaborate on potential benefits. If the commit is vague, keep the summary brief.
 2. **Audience:** Write for a technical end-user. Focus on functional changes, UI updates, and bug fixes.
-3. **Filtering:** Strictly ignore non-functional commits: "chore", "build", "deps", "version bumps", "CI/CD", and merge commits. Treat commits marked as "auto" (localization/watchtower) as lowest priority; include them only if they represent a notable user-facing change.
-4. **Style:** Professional and objective. No emojis. No fluff or marketing adjectives (e.g., "exciting," "improved," "better").
-5. **Format:** 2-7 sentences in a single cohesive paragraph. No lists or bullet points. You are allowed to use a column and a semicolumn.
+3. **Filtering:** Strictly ignore non-functional commits: "chore", "build", "deps", "version bumps", "CI/CD", and merge commits; do not mention them directly or indirectly. Treat commits marked as "auto" (localization/watchtower) as lowest priority; include them only if they represent a notable user-facing change.
+4. **Prioritization:** Lead with the most notable user-facing changes. Prefer features before fixes when it reads naturally, but do not force category transitions.
+5. **Style:** Use concrete verbs and plain, professional language. No emojis. No fluff, marketing adjectives (e.g., "exciting," "better"), or generic openers like "This update brings", "This release includes", or "We've improved".
+6. **Flow:** Combine related changes by user impact and readability, not strictly by commit order, platform labels, or feature buckets. Name platforms and features only when needed for clarity.
+7. **Format:** Prefer 2-4 sentences in a single cohesive paragraph. No lists or bullet points. You may use a colon and a semicolon sparingly.
 
 **STRICT Output Rules:**
 * Output **ONLY** the release note text.
 * Do not include introductory text (e.g., "Here is your changelog").
 * Do not include concluding text.
 * Do not use markdown code blocks or quotes. Start directly with the first word of the changelog.
-* Limit the output by 500 characters at max.
+* Keep the output under 500 characters.
 * Zero-Tolerance Policy for Hallucination: If the commits do not provide enough information for a specific feature, do not fill in the gaps.
 
 **Input Commits:**
@@ -59,6 +63,25 @@ Key features include:
 
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt="%H:%M:%S")
 logger = logging.getLogger(__name__)
+
+
+def truncate_changelog_summary(text: str) -> str:
+    text = text.strip()
+    if len(text) < CHANGELOG_SUMMARY_LENGTH_LIMIT:
+        return text
+
+    max_length = CHANGELOG_SUMMARY_LENGTH_LIMIT - 1
+    text_length = max_length - len(TRUNCATION_SUFFIX)
+    truncated = text[:text_length].rstrip()
+
+    if text_length < len(text) and text[text_length].isspace():
+        return truncated + TRUNCATION_SUFFIX
+
+    parts = truncated.rsplit(maxsplit=1)
+    if len(parts) > 1:
+        truncated = parts[0].rstrip()
+
+    return truncated + TRUNCATION_SUFFIX
 
 
 class GeminiSummarizer:
@@ -103,6 +126,7 @@ def main():
 
     summarizer = GeminiSummarizer(api_token=args.token)
     summary = summarizer.summarize(commit_text)
+    summary = truncate_changelog_summary(summary)
 
     if args.output:
         args.output.write_text(summary + "\n", encoding="utf-8")

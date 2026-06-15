@@ -4,6 +4,7 @@ import arrow.core.Either
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.kodein.di.DirectDI
+import kotlin.reflect.KClass
 
 @Serializable
 sealed interface DSendFilter {
@@ -13,13 +14,13 @@ sealed interface DSendFilter {
             noinline predicate: (T) -> Boolean = { true },
         ): T? = findOne(
             filter = filter,
-            target = T::class.java,
+            target = T::class,
             predicate = predicate,
         )
 
         fun <T> findOne(
             filter: DSendFilter,
-            target: Class<T>,
+            target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): T? = _findOne(
             filter = filter,
@@ -29,7 +30,7 @@ sealed interface DSendFilter {
 
         private fun <T> _findOne(
             filter: DSendFilter,
-            target: Class<T>,
+            target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): Either<Unit, T?> = when (filter) {
             is Or<*> -> {
@@ -48,7 +49,7 @@ sealed interface DSendFilter {
                 val results = filter
                     .filters
                     .map { f ->
-                        _findOne(f, target)
+                        _findOne(f, target, predicate)
                     }
                 // If any of the variants has returned that
                 // we must abort the search then abort the search.
@@ -66,7 +67,7 @@ sealed interface DSendFilter {
             }
 
             else -> {
-                if (filter.javaClass == target) {
+                if (filter::class == target) {
                     val f = filter as T
                     val v = predicate(f)
                     if (v) {

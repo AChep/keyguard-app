@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.model
 
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import org.jetbrains.compose.resources.StringResource
@@ -24,25 +25,29 @@ data class TwoFactorProvider(
                 type = TwoFactorProviderType.YubiKey,
                 name = Res.string.provider_2fa_yubikey,
                 priority = 30,
-                supported = true,
+                supported = CurrentPlatform
+                    .let { !it.hasWatch() },
             ),
             TwoFactorProviderType.Duo to TwoFactorProvider(
                 type = TwoFactorProviderType.Duo,
                 name = Res.string.provider_2fa_duo,
                 priority = 20,
-                supported = CurrentPlatform is Platform.Mobile,
+                supported = CurrentPlatform
+                    .let { it is Platform.Mobile && !it.hasWatch() },
             ),
             TwoFactorProviderType.OrganizationDuo to TwoFactorProvider(
                 type = TwoFactorProviderType.OrganizationDuo,
                 name = Res.string.provider_2fa_duo_organization,
                 priority = 21,
-                supported = CurrentPlatform is Platform.Mobile,
+                supported = CurrentPlatform
+                    .let { it is Platform.Mobile && !it.hasWatch() },
             ),
             TwoFactorProviderType.Fido2WebAuthn to TwoFactorProvider(
                 type = TwoFactorProviderType.Fido2WebAuthn,
                 name = Res.string.provider_2fa_fido2_webauthn,
                 priority = 50,
-                supported = CurrentPlatform is Platform.Mobile,
+                supported = CurrentPlatform
+                    .let { it is Platform.Mobile && !it.hasWatch() },
             ),
             TwoFactorProviderType.Email to TwoFactorProvider(
                 type = TwoFactorProviderType.Email,

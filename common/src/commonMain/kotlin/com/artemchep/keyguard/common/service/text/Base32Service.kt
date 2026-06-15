@@ -7,11 +7,11 @@ interface Base32Service {
 
     fun encode(
         text: String,
-    ): ByteArray = encode(text.toByteArray())
+    ): ByteArray = encode(text.encodeToByteArray())
 
     fun encodeToString(
         text: String,
-    ): String = encode(text).let(::String)
+    ): String = encode(text).decodeToString()
 
     fun encode(
         bytes: ByteArray,
@@ -19,7 +19,7 @@ interface Base32Service {
 
     fun encodeToString(
         bytes: ByteArray,
-    ): String = encode(bytes).let(::String)
+    ): String = encode(bytes).decodeToString()
 
     //
     // Decoders
@@ -27,11 +27,11 @@ interface Base32Service {
 
     fun decode(
         text: String,
-    ): ByteArray = decode(text.toByteArray())
+    ): ByteArray = decode(text.encodeToByteArray())
 
     fun decodeToString(
         text: String,
-    ): String = decode(text).let(::String)
+    ): String = decode(text).decodeToString()
 
     fun decode(
         bytes: ByteArray,
@@ -39,5 +39,5 @@ interface Base32Service {
 
     fun decodeToString(
         bytes: ByteArray,
-    ): String = decode(bytes).let(::String)
+    ): String = decode(bytes).decodeToString()
 }

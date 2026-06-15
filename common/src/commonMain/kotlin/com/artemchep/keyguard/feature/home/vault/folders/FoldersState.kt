@@ -45,6 +45,7 @@ data class FoldersState(
                 val synced: Boolean,
                 val failed: Boolean,
                 val icon: ImageVector? = null,
+                val onViewItemsClick: (() -> Unit)? = null,
                 val actions: ImmutableList<ContextItem>,
                 val onClick: (() -> Unit)?,
                 val onLongClick: (() -> Unit)?,

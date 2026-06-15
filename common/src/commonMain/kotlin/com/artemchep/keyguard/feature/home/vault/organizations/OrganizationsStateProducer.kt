@@ -15,7 +15,10 @@ import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
+import com.artemchep.keyguard.feature.home.vault.by
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
+import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRouteFactory
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.organization.OrganizationRoute
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
@@ -53,6 +56,8 @@ fun organizationsScreenState(
         getCollections = instance(),
         getCiphers = instance(),
         getCanWrite = instance(),
+        vaultRouteFactory = instance(),
+        collectionsRouteFactory = instance(),
     )
 }
 
@@ -63,6 +68,8 @@ fun organizationsScreenState(
     getCollections: GetCollections,
     getCiphers: GetCiphers,
     getCanWrite: GetCanWrite,
+    vaultRouteFactory: VaultRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
 ): OrganizationsState = produceScreenState(
     key = "organizations",
     initial = OrganizationsState(),
@@ -188,7 +195,7 @@ fun organizationsScreenState(
                                     ChevronIcon()
                                 },
                                 onClick = onClick {
-                                    val route = VaultRoute.by(
+                                    val route = vaultRouteFactory.by(
                                         organization = organization,
                                     )
                                     val intent = NavigationIntent.NavigateToRoute(route)
@@ -206,14 +213,13 @@ fun organizationsScreenState(
                                     ChevronIcon()
                                 },
                                 onClick = {
-                                    val intent = NavigationIntent.NavigateToRoute(
-                                        CollectionsRoute(
-                                            args = CollectionsRoute.Args(
-                                                accountId = organization.accountId.let(::AccountId),
-                                                organizationId = organization.id,
-                                            ),
+                                    val route = collectionsRouteFactory.create(
+                                        args = CollectionsRoute.Args(
+                                            accountId = organization.accountId.let(::AccountId),
+                                            organizationId = organization.id,
                                         ),
                                     )
+                                    val intent = NavigationIntent.NavigateToRoute(route)
                                     navigate(intent)
                                 },
                             )
@@ -243,6 +249,13 @@ fun organizationsScreenState(
                     ciphers = organizationWithCiphers.ciphers.size,
                     selecting = selecting,
                     selected = selected,
+                    onViewItemsClick = onClick {
+                        val route = vaultRouteFactory.by(
+                            organization = organization,
+                        )
+                        val intent = NavigationIntent.NavigateToRoute(route)
+                        navigate(intent)
+                    },
                     actions = actions.toImmutableList(),
                     onClick = if (selecting) {
                         // lambda

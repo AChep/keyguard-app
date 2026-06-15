@@ -9,9 +9,14 @@ actual abstract class LeUri : Parcelable
 
 @Parcelize
 data class LeUriImpl(
-    val uri: Uri,
+    private val rawUri: String,
 ) : LeUri() {
-    override fun toString(): String = uri.toString()
+    constructor(uri: Uri) : this(uri.toString())
+
+    val uri: Uri
+        get() = rawUri.toUri()
+
+    override fun toString(): String = rawUri
 }
 
-actual fun leParseUri(uri: String): LeUri = uri.toUri().let(::LeUriImpl)
+actual fun leParseUri(uri: String): LeUri = LeUriImpl(uri)

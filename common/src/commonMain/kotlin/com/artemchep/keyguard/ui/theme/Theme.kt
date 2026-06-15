@@ -425,7 +425,7 @@ fun rememberThemeDarkState(
 }
 
 @Composable
-private fun appColorScheme(
+fun appColorScheme(
     colors: AppColors?,
     isDarkColorScheme: Boolean,
 ): ColorScheme = colors?.let { c ->

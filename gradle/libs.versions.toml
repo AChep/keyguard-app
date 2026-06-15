@@ -76,7 +76,7 @@ coil3 = "3.4.0"
 composeNativeTray = "1.3.0"
 conscrypt = "2.5.2"
 crashlyticsPlugin = "3.0.7"
-dbusJava = "5.1.1"
+dbusJava = "5.2.0"
 # https://github.com/gmethvin/directory-watcher
 directoryWatcher = "0.19.1"
 # https://github.com/diglol/crypto

@@ -1,5 +1,6 @@
 ---
 import { SITE, NAV, REPO_URL } from '../consts';
+import ThemeToggle from './ThemeToggle.astro';
 const year = 2026;
 ---
 
@@ -10,10 +11,13 @@ const year = 2026;
       <span class="text-on-surface-variant">© 2021-{year}</span>
     </div>
 
-    <ul class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-on-surface-variant">
-      <li>
-        <a href={REPO_URL} class="transition hover:text-primary">keyguard@artemchep.com</a>
-      </li>
-    </ul>
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+      <ul class="flex flex-wrap gap-x-6 gap-y-2 text-sm text-on-surface-variant">
+        <li>
+          <a href={REPO_URL} class="transition hover:text-primary">keyguard@artemchep.com</a>
+        </li>
+      </ul>
+      <ThemeToggle />
+    </div>
   </div>
 </footer>

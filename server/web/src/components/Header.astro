@@ -1,7 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import { SITE, NAV } from '../consts';
-import ThemeToggle from './ThemeToggle.astro';
+import Icon from './Icon.astro';
 import logo from '../assets/logo.png';
 const path = Astro.url.pathname;
 const isActive = (href: string) =>
@@ -31,6 +31,15 @@ const isActive = (href: string) =>
           </li>
         ))
       }
+      <li class="sm:hidden">
+        <a
+          href="/download/"
+          aria-label="Get Keyguard"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-on-primary shadow-sm transition hover:opacity-90"
+        >
+          <Icon name="download" class="h-5 w-5" />
+        </a>
+      </li>
       <li class="hidden sm:block">
         <a
           href="/download/"
@@ -38,9 +47,6 @@ const isActive = (href: string) =>
         >
           Get Keyguard
         </a>
-      </li>
-      <li>
-        <ThemeToggle />
       </li>
     </ul>
   </nav>

@@ -51,7 +51,7 @@ horologist = "0.8.3-alpha"
 # https://github.com/harawata/appdirs
 appDirs = "1.5.0"
 # https://github.com/arrow-kt/arrow
-arrow = "2.2.2.1"
+arrow = "2.2.3"
 # https://github.com/AChep/bindin
 bindIn = "1.4.0"
 # https://github.com/yshrsmz/BuildKonfig

@@ -131,14 +131,6 @@ internal fun ApplicationScope.SshRequestWindow(
 }
 
 /**
- * Forces animations in the enclosing coroutine to run at their declared
- * duration regardless of the system animator duration scale.
- */
-private val FullMotionDurationScale = object : MotionDurationScale {
-    override val scaleFactor: Float = 1f
-}
-
-/**
  * Composable that observes [UnlockUseCase] and renders the SSH agent unlock
  * dialog content. When the vault transitions to [VaultState.Main], completes
  * the request's deferred with `true` and calls [onDismiss].
@@ -157,28 +149,6 @@ private fun SshAgentUnlockWindow(
                 ?: return@LaunchedEffect
             if (vaultState is VaultState.Main && getListRequest.deferred.complete(true)) {
                 onDismiss()
-            }
-        }
-
-        // Animate from 1f (full time remaining) to 0f (expired) over the
-        // time left until the request's expiresAt deadline. This is purely a
-        // visual countdown — the SshAgentManager enforces the actual expiry.
-        val timeoutProgress = remember { Animatable(1f) }
-        LaunchedEffect(sshAgentRequestUiState) {
-            val request = sshAgentRequestUiState.getOrNull()
-                ?: return@LaunchedEffect
-            timeoutProgress.snapTo(1f)
-            // The countdown conveys real remaining time, so it must run even when
-            // the system disables animations
-            withContext(FullMotionDurationScale) {
-                timeoutProgress.animateTo(
-                    targetValue = 0f,
-                    animationSpec = tween(
-                        durationMillis = (request.request.expiresAt - Clock.System.now())
-                            .inWholeMilliseconds.coerceAtLeast(0L).toInt(),
-                        easing = LinearEasing,
-                    ),
-                )
             }
         }
 

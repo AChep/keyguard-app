@@ -144,7 +144,7 @@ logback = "3.0.0"
 # https://developers.google.com/android/guides/setup
 mlkitBarcodeScanning = "18.3.1"
 # https://square.github.io/okhttp/changelogs/changelog/
-okHttp = "5.3.2"
+okHttp = "5.4.0"
 # https://mvnrepository.com/artifact/com.google.android.play/review-ktx
 playReviewKtx = "2.0.2"
 # https://developers.google.com/android/guides/setup

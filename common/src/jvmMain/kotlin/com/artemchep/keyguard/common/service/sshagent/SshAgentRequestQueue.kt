@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.Clock
 
 class SshAgentRequestQueue(
     private val scope: CoroutineScope,
@@ -49,6 +50,8 @@ class SshAgentRequestQueue(
         }
         mutex.withLock {
             queue.addLast(pending)
+            armTimeoutLocked(pending)
+
             if (activeRequest == null) {
                 activateNextLocked()
             }
@@ -80,7 +83,7 @@ class SshAgentRequestQueue(
                     ?.takeIf { it.notificationTag == notificationTag }
                     ?: queue.indexOfFirst { it.request.notificationTag == notificationTag }
                         .takeIf { it >= 0 }
-                        ?.let { index -> queue.removeAt(index).request }
+                        ?.let { index -> removeRequestAtAndCancelTimeout(index).request }
             } ?: return@launch
 
             request.completeWithLog(
@@ -93,23 +96,38 @@ class SshAgentRequestQueue(
     fun hasPendingRequest(): Boolean = _state.value != null
 
     private fun activateNextLocked() {
-        val next = queue.removeFirstOrNull()
-        if (next == null) {
-            activeRequest = null
-            _state.value = null
+        while (true) {
+            val next = queue.removeFirstOrNull()
+            if (next == null) {
+                activeRequest = null
+                _state.value = null
+                return
+            }
+
+            if (next.request.deferred.isCompleted) {
+                next.timeoutJob?.cancel()
+                continue
+            }
+
+            activeRequest = next
+            val activatedAtMonotonicMillis = System.nanoTime() / 1_000_000L
+            _state.value = ActiveRequestState(
+                request = next.request,
+                activatedAtMonotonicMillis = activatedAtMonotonicMillis,
+                queueSize = queue.size,
+            )
             return
         }
+    }
 
-        activeRequest = next
-        val activatedAtMonotonicMillis = System.nanoTime() / 1_000_000L
-        _state.value = ActiveRequestState(
-            request = next.request,
-            activatedAtMonotonicMillis = activatedAtMonotonicMillis,
-            queueSize = queue.size,
-        )
-        next.timeoutJob = scope.launch {
-            delay(next.request.timeout)
-            next.request.completeWithLog(
+    /**
+     * Arms the auto-deny timer for [pending] based on its
+     * [SshAgentRequest.expiresAt] deadline.
+     */
+    private fun armTimeoutLocked(pending: PendingRequest) {
+        pending.timeoutJob = scope.launch {
+            delay(pending.request.expiresAt - Clock.System.now())
+            pending.request.completeWithLog(
                 value = false,
                 reason = "request_timeout",
             )
@@ -130,7 +148,14 @@ class SshAgentRequestQueue(
 
         val index = queue.indexOfFirst { it.request === request }
         if (index >= 0) {
-            queue.removeAt(index)
+            removeRequestAtAndCancelTimeout(index)
         }
     }
+
+    private fun removeRequestAtAndCancelTimeout(
+        index: Int,
+    ) = queue.removeAt(index)
+        .apply {
+            timeoutJob?.cancel()
+        }
 }

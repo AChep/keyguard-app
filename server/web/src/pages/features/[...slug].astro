@@ -1,0 +1,25 @@
+---
+import { getCollection, render } from 'astro:content';
+import FeatureLayout from '../../layouts/FeatureLayout.astro';
+import Screenshot from '../../components/Screenshot.astro';
+
+export async function getStaticPaths() {
+  const features = await getCollection('features');
+  return features.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<FeatureLayout
+  title={entry.data.title}
+  summary={entry.data.summary}
+  slug={entry.id}
+  premium={entry.data.premium}
+>
+  <Content components={{ Screenshot }} />
+</FeatureLayout>

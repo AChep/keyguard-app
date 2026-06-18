@@ -13,6 +13,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.GetCredentialUnknownException
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.lifecycle.lifecycleScope
+import com.artemchep.keyguard.android.PasskeyUtils
 import com.artemchep.keyguard.android.PasswordGetActivity
 import com.artemchep.keyguard.android.PasswordProviderGetActivityArgs
 import com.artemchep.keyguard.android.PasswordProviderGetFlow
@@ -29,12 +30,14 @@ import com.artemchep.keyguard.res.error_failed_use_password
 import com.artemchep.keyguard.wear.feature.WearCreateVaultScreen
 import com.artemchep.keyguard.wear.feature.WearLoadingScreen
 import com.artemchep.keyguard.wear.feature.WearUnlockVaultScreen
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString as getComposeString
 import org.kodein.di.instance
 import kotlin.time.Clock
@@ -134,11 +137,13 @@ class WearPasswordGetActivity : WearCredentialProviderActivity() {
         onRetry: () -> Unit,
     ) {
         val response = runCatching {
-            com.artemchep.keyguard.android.PasskeyUtils.withProcessingMinTime {
-                processUnlockedVault(
-                    session = session,
-                    userVerified = true,
-                )
+            withContext(Dispatchers.Default) {
+                PasskeyUtils.withProcessingMinTime {
+                    processUnlockedVault(
+                        session = session,
+                        userVerified = true,
+                    )
+                }
             }
         }.getOrElse {
             recordException(it)
@@ -152,10 +157,12 @@ class WearPasswordGetActivity : WearCredentialProviderActivity() {
             return
         }
 
-        passwordProviderGetFlow.recordUsage(
-            session = session,
-            args = args,
-        )
+        withContext(Dispatchers.Default) {
+            passwordProviderGetFlow.recordUsage(
+                session = session,
+                args = args,
+            )
+        }
 
         val intent = Intent().apply {
             PendingIntentHandler.setGetCredentialResponse(

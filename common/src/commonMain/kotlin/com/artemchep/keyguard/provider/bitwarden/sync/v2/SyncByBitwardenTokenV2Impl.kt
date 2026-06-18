@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.biFlatTap
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.measure
@@ -15,6 +16,7 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -126,6 +128,7 @@ class SyncByBitwardenTokenV2Impl(
     private val dbSyncer: DatabaseSyncer,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val watchdog: Watchdog,
+    private val markBackupAsDirty: MarkBackupAsDirty,
 ) : SyncByBitwardenToken {
     companion object {
         private const val TAG = "SyncByIdV2.bitwarden"
@@ -145,6 +148,7 @@ class SyncByBitwardenTokenV2Impl(
         dbSyncer = directDI.instance(),
         pendingUploadCoordinator = directDI.instance(),
         watchdog = directDI.instance(),
+        markBackupAsDirty = directDI.instance(),
     )
 
     override fun invoke(user: BitwardenToken): IO<Unit> =
@@ -478,7 +482,9 @@ class SyncByBitwardenTokenV2Impl(
                 coordinator.safeSyncEntityType(
                     EntitySyncConfig(
                         name = "ciphers",
-                        strategy = CipherSyncStrategy(),
+                        strategy = CipherSyncStrategy(
+                            remoteFolderIdToLocalId = folderIdMappings.remoteToLocalFolders::get,
+                        ),
                         localEntities = existingCiphersToSync,
                         serverEntities = serverCiphersToSync,
                         ops = cipherOps,
@@ -589,6 +595,13 @@ class SyncByBitwardenTokenV2Impl(
         val syncResult = SyncResult(outcomes = outcomes)
         diagnostics.syncResult(syncResult)
         logSyncResult(syncResult)
+
+        if (syncResult.totalSucceeded > 0) {
+            markBackupAsDirty()
+                .attempt()
+                .bind()
+        }
+
         syncResult.requireCleanForRevisionCache()
 
         if (serverRevisionDate != null && syncResult.canCacheServerRevisionDate) {
@@ -1043,7 +1056,11 @@ internal fun LocalItemMeta.hasPendingLocalWork(): Boolean {
 }
 
 internal fun Sequence<BitwardenCipher>.anyPendingCipherLocalWork(): Boolean {
-    val cipherStrategy = CipherSyncStrategy()
+    val cipherStrategy = CipherSyncStrategy(
+        // The mapping only affects toServerItemMeta, which this
+        // local-only check never invokes.
+        remoteFolderIdToLocalId = { null },
+    )
     return any { cipher ->
         cipher.hasPendingAttachmentMutations() ||
             cipherStrategy.toLocalItemMeta(cipher).hasPendingLocalWork()

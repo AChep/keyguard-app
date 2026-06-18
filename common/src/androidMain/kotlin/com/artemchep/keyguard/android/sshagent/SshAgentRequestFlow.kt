@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentRequest
 import kotlinx.coroutines.CompletableDeferred
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
+import kotlin.time.Clock
 import kotlin.time.Duration
 
 internal enum class AndroidSshAgentPromptKind {
@@ -28,7 +29,7 @@ internal class AndroidSshAgentRequestFlow(
         request = SshAgentGetListRequest(
             caller = caller,
             notificationTag = notificationTag,
-            timeout = timeout,
+            expiresAt = Clock.System.now() + timeout,
             deferred = CompletableDeferred(),
         ),
         promptKind = AndroidSshAgentPromptKind.Unlock,
@@ -46,7 +47,7 @@ internal class AndroidSshAgentRequestFlow(
             keyFingerprint = keyFingerprint,
             caller = caller,
             notificationTag = notificationTag,
-            timeout = timeout,
+            expiresAt = Clock.System.now() + timeout,
             deferred = CompletableDeferred(),
         ),
         promptKind = AndroidSshAgentPromptKind.Sign,

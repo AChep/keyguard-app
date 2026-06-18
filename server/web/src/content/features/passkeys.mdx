@@ -1,0 +1,24 @@
+---
+title: "Passkeys"
+summary: "Create and sign in with passkeys, the modern, phishing-resistant alternative to passwords."
+icon: "🔑"
+group: "Essentials"
+order: 4
+featured: true
+premium: false
+---
+
+import passkeyCreate from '../../assets/screenshots/passkey-create.png';
+import passkeyItem from '../../assets/screenshots/passkey-item.png';
+
+On Android, Keyguard can create passkeys and use them to sign in as a system credential provider, giving you a phishing-resistant way to authenticate without typing or remembering a password. On Wear OS it can sign in with passkeys already in your vault. When a website offers passkey sign-in, you generate one in a moment and use it on your next visit.
+
+Each passkey lives in your vault alongside your logins, notes, and cards, so it stays in sync and is protected by the same encryption as everything else. You can view the details of the passkey and/or export it to a file if you want to.
+
+<Screenshot src={passkeyCreate} caption="Creating a passkey for a website during account sign-up" />
+
+Watchtower can also point out sites that support passkeys where you haven't created one yet, so you know where to add them. To register Keyguard as your device's passkey provider, see the [autofill & passkeys guide](/docs/autofill/).
+
+<Screenshot src={passkeyItem} caption="A passkey item stored in the vault next to other login entries" />
+
+Interested in how passkeys work, and why they resist phishing and breaches in ways passwords can't? See the [passkeys reference](/docs/passkeys/).

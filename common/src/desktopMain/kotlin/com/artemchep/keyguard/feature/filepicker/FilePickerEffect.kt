@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.filepicker
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.artemchep.keyguard.desktop.util.showDirectoryPicker
 import com.artemchep.keyguard.desktop.util.showFilePicker
 import com.artemchep.keyguard.desktop.util.showFileSaver
 import com.artemchep.keyguard.platform.leParseUri
@@ -45,6 +46,16 @@ actual fun FilePickerEffect(
                         uri = leParseUri(file.toURI().toString()),
                         name = file.name,
                         size = file.length(),
+                    )
+                    intent.onResult(info)
+                }
+            }
+            is FilePickerIntent.OpenDirectory -> {
+                showDirectoryPicker { file ->
+                    val info = FilePickerResult(
+                        uri = leParseUri(file.toURI().toString()),
+                        name = file.name,
+                        size = null,
                     )
                     intent.onResult(info)
                 }

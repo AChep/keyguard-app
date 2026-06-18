@@ -112,7 +112,11 @@ sealed interface TotpToken {
         override val raw: String,
     ) : TotpToken {
         companion object {
-            const val PERIOD = 30L
+            // The mOTP code is derived from the current epoch-time 
+            // in a 10 second granularity. In is valid for the next 3 minutes.
+            //
+            // See: https://motp.sourceforge.net/#1.1
+            const val PERIOD = 10L
             const val DIGITS = 6
         }
 
@@ -211,7 +215,7 @@ private fun parseHashAlgorithmOrNull(name: String) = when (name.lowercase()) {
     "sha1" -> CryptoHashAlgorithm.SHA_1
     "sha256" -> CryptoHashAlgorithm.SHA_256
     "sha512" -> CryptoHashAlgorithm.SHA_512
-    "md5" -> CryptoHashAlgorithm.MD5
+    "md5" -> throw IllegalArgumentException("MD5 is not supported for HOTP/TOTP.")
     else -> null
 }
 

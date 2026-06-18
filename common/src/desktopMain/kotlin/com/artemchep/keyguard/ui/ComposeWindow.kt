@@ -1,8 +1,8 @@
 package com.artemchep.keyguard.ui
 
 import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.awt.ComposeWindow
+import java.awt.Window
 
-val LocalComposeWindow = staticCompositionLocalOf<ComposeWindow> {
+val LocalComposeWindow = staticCompositionLocalOf<Window> {
     throw IllegalStateException()
 }

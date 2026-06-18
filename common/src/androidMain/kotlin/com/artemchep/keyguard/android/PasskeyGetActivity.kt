@@ -93,8 +93,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlinx.parcelize.Parcelize
 import org.kodein.di.*
@@ -199,11 +201,13 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
         onRetry: () -> Unit,
     ) {
         val response = runCatching {
-            PasskeyUtils.withProcessingMinTime {
-                processUnlockedVault(
-                    session = session,
-                    userVerified = true,
-                )
+            withContext(Dispatchers.Default) {
+                PasskeyUtils.withProcessingMinTime {
+                    processUnlockedVault(
+                        session = session,
+                        userVerified = true,
+                    )
+                }
             }
         }.getOrElse {
             recordException(it)
@@ -219,10 +223,12 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
 
         // Log that a used has used the passkey. We only do
         // it after a successful attempt.
-        passkeyProviderGetFlow.recordUsage(
-            session = session,
-            args = args,
-        )
+        withContext(Dispatchers.Default) {
+            passkeyProviderGetFlow.recordUsage(
+                session = session,
+                args = args,
+            )
+        }
 
         val intent = Intent().apply {
             PendingIntentHandler.setGetCredentialResponse(

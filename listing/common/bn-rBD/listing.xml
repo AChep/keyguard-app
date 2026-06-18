@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">একাধিক-অ্যাকাউন্ট সুবিধা: একইসাথে একাধিক অ্যাকাউন্ট সাইন ইন করা যায়।</string>
     <string name="listing_description_highlight_offline">অফলাইন ব্যবস্থাপনা: অফলাইনেও আইটেম যুক্ত করা, সেন্ড করা, পরিবর্তন করা, এবং দেখা যায়।</string>
     <string name="listing_description_highlight_export">ডাটা এক্সপোর্ট: সংযুক্তি সহ ব্যক্তিগত কিংবা সংগঠনের আইটেম এক্সপোর্ট করুন।</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">জেনারেটর: কাস্টম শব্দতালিকার সুবিধাসহ পাসওয়ার্ড, SSH কী, এবং ইমেইল ফরোয়ার্ড তৈরি করুন।</string>
     <string name="listing_description_highlight_ssh_agent">SSH এজেন্ট: সার্ভারে যাচাই করা, গিট কমিট সাক্ষর করা, SSH-ভিত্তিক পরিষেবাগুলোর সাথে কাজ করা।</string>
     <string name="listing_description_highlight_other">উন্নত বৈশিষ্ট্যগুলো: শর্টকাটের সুবিধা, ফিল্ডের প্লেসহোল্ডার, URL পরিবর্তন করা, এবং স্মার্ট সমস্যার সমাধান।</string>

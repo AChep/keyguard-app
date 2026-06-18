@@ -61,6 +61,8 @@ import com.artemchep.keyguard.common.service.settings.SettingsReadRepository
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.settings.impl.SettingsRepositoryImpl
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
+import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeyRepositoryImpl
 import com.artemchep.keyguard.common.service.state.StateRepository
 import com.artemchep.keyguard.common.service.state.impl.StateRepositoryImpl
 import com.artemchep.keyguard.common.service.tld.TldService
@@ -397,6 +399,7 @@ import com.artemchep.keyguard.common.usecase.GetNavForceHiddenSend
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
+import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
@@ -406,6 +409,7 @@ import com.artemchep.keyguard.common.usecase.PutCacheHiddenSend
 import com.artemchep.keyguard.common.usecase.PutNavForceHiddenSend
 import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.PutSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
 import com.artemchep.keyguard.common.usecase.impl.GetAllowScreenshotsVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
@@ -415,6 +419,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetCacheHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavForceHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentStatusImpl
@@ -424,6 +429,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasswordsEnabledImp
 import com.artemchep.keyguard.common.usecase.impl.PutCacheHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.PutNavForceForceHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.PutSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentFilterImpl
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
@@ -770,6 +776,9 @@ fun globalModuleCommon() = DI.Module(
     bindSingleton<PutSshAgentApprovalWindow> {
         PutSshAgentApprovalWindowImpl(this)
     }
+    bindSingleton<PutSshAgentDisplayKeyNames> {
+        PutSshAgentDisplayKeyNamesImpl(this)
+    }
     bindSingleton<PutSshAgentFilter> {
         PutSshAgentFilterImpl(this)
     }
@@ -781,6 +790,9 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<GetSshAgentApprovalWindowVariants> {
         GetSshAgentApprovalWindowVariantsImpl(this)
+    }
+    bindSingleton<GetSshAgentDisplayKeyNames> {
+        GetSshAgentDisplayKeyNamesImpl(this)
     }
     bindSingleton<GetSshAgentFilter> {
         GetSshAgentFilterImpl(this)
@@ -1578,5 +1590,8 @@ private fun DI.Builder.installSettingsRepo() {
 private fun DI.Builder.installExposedRepo() {
     bindSingleton<UrlBlockRepositoryExposed> {
         UrlBlockRepositoryExposed(this)
+    }
+    bindSingleton<SshAgentPublicKeyRepository> {
+        SshAgentPublicKeyRepositoryImpl(this)
     }
 }

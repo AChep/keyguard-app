@@ -140,6 +140,31 @@ class GetAttachmentPreviewImplTest {
     }
 
     @Test
+    fun `url source surfaces network failure for non-success status`() = runTest {
+        val useCase = useCase(
+            metadata = metadata(
+                source = DownloadAttachmentRequestData.UrlSource(
+                    url = "https://example.com/attachment",
+                    urlIsOneTime = true,
+                ),
+            ),
+            httpClient = HttpClient(
+                MockEngine {
+                    respond(
+                        content = ByteReadChannel(ByteArray(0)),
+                        status = HttpStatusCode.NotFound,
+                        headers = headersOf(),
+                    )
+                },
+            ),
+        )
+
+        assertFailsWith<AttachmentPreviewException.NetworkFailed> {
+            useCase(request)()
+        }
+    }
+
+    @Test
     fun `encrypted source decrypts in memory`() = runTest {
         val plainBytes = "secret preview".encodeToByteArray()
         val key = ByteArray(64) { index -> index.toByte() }

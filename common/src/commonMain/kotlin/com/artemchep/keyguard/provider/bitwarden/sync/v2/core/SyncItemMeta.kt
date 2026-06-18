@@ -25,7 +25,9 @@ import kotlin.time.Instant
  * @param hasError `true` if the entity has a pending sync error.
  * @param canRetryError `true` if the error is transient and retryable.
  * @param attachmentIds set of attachment IDs for drift detection.
- * @param folderId local folder ID for drift detection.
+ * @param localFolderId local folder ID used for folder drift detection
+ *   against [ServerItemMeta.localFolderId]. Unlike most fields, `null`
+ *   is a real value here ("no folder").
  * @param favorite favorite flag for drift detection.
  * @param collectionIds set of collection IDs for drift detection.
  * @param requiresLocalRefreshWhenDatesMatch forces a local update even
@@ -53,7 +55,7 @@ data class LocalItemMeta(
     val hasError: Boolean = false,
     val canRetryError: Boolean = true,
     val attachmentIds: Set<String>? = null,
-    val folderId: String? = null,
+    val localFolderId: String? = null,
     val favorite: Boolean? = null,
     val collectionIds: Set<String>? = null,
     val requiresLocalRefreshWhenDatesMatch: Boolean = false,
@@ -70,7 +72,9 @@ data class LocalItemMeta(
  * @param revisionDate the server entity's revision timestamp.
  * @param deletedDate soft-delete timestamp from the server, or `null`.
  * @param attachmentIds set of attachment IDs for drift detection against local state.
- * @param folderId remote folder ID for drift detection.
+ * @param localFolderId the server entity's folder reference resolved to
+ *   the local folder ID namespace. Used for folder drift
+ *   detection against [LocalItemMeta.localFolderId].
  * @param favorite favorite flag for drift detection.
  * @param collectionIds set of collection IDs for drift detection.
  */
@@ -79,7 +83,7 @@ data class ServerItemMeta(
     val revisionDate: Instant,
     val deletedDate: Instant? = null,
     val attachmentIds: Set<String>? = null,
-    val folderId: String? = null,
+    val localFolderId: String? = null,
     val favorite: Boolean? = null,
     val collectionIds: Set<String>? = null,
 )

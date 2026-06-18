@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetPurchased
+import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.premium
@@ -42,6 +43,7 @@ class AddAccountImpl(
     private val httpClient: HttpClient,
     private val json: Json,
     private val db: VaultDatabaseManager,
+    private val markBackupAsDirty: MarkBackupAsDirty,
 ) : AddAccount {
     companion object {
         private const val TAG = "AddAccount.bitwarden"
@@ -59,6 +61,7 @@ class AddAccountImpl(
         httpClient = directDI.instance(),
         json = directDI.instance(),
         db = directDI.instance(),
+        markBackupAsDirty = directDI.instance(),
     )
 
     override fun invoke(
@@ -126,6 +129,8 @@ class AddAccountImpl(
         .effectTap { finalAccountId ->
             queueSyncById(finalAccountId)
                 .launchIn(windowCoroutineScope)
+            markBackupAsDirty()
+                .bind()
         }
         // Log the time spent adding an account.
         .measure { duration, finalAccountId ->

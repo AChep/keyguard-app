@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.buildAndroidSshAgentCallerIdentity
 import com.artemchep.keyguard.common.service.sshagent.launchSshAgentProxyBridge
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
@@ -82,6 +83,7 @@ class SshAgentService : Service(), DIAware {
     private val getVaultSession: GetVaultSession by instance()
     private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow by instance()
     private val getSshAgentFilter: GetSshAgentFilter by instance()
+    private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository by instance()
 
     private val notificationIdPool = Notifications.sshAgent
     private var notificationId: Int? = null
@@ -124,6 +126,7 @@ class SshAgentService : Service(), DIAware {
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
+            sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
             sessionId = sessionId,
             onApprovalRequest = { caller, keyName, keyFingerprint ->
                 requestSigningApproval(

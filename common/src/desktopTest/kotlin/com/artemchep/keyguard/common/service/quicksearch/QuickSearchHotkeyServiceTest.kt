@@ -96,7 +96,7 @@ class QuickSearchHotkeyServiceTest {
             beforeOpen = {
                 beforeOpenCalls += 1
             },
-            platform = Platform.Desktop.Linux,
+            platform = Platform.Desktop.Linux.native,
         )
 
         service.start()
@@ -134,7 +134,7 @@ class QuickSearchHotkeyServiceTest {
                 isCtrlPressed = true,
                 isShiftPressed = true,
             ),
-            QuickSearchHotkeyService.quickSearchHotKey(Platform.Desktop.Linux),
+            QuickSearchHotkeyService.quickSearchHotKey(Platform.Desktop.Linux.native),
         )
     }
 
@@ -149,7 +149,7 @@ class QuickSearchHotkeyServiceTest {
                     GlobalHotKeyRegistrationFailureReason.UnsupportedPlatform,
                 )
             },
-            platform = Platform.Desktop.Linux,
+            platform = Platform.Desktop.Linux.native,
         )
 
         val stop = service.start()

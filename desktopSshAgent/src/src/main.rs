@@ -13,7 +13,9 @@ mod socket;
 
 use anyhow::{Context, Result};
 use clap::Parser;
+use std::io::Read;
 use std::path::PathBuf;
+use tokio::sync::oneshot;
 use tracing::{error, info};
 use tracing_subscriber::EnvFilter;
 
@@ -62,6 +64,28 @@ fn decode_auth_token_from_stdin_line(line: &str) -> Result<Vec<u8>> {
     Ok(token)
 }
 
+fn spawn_stdin_eof_watcher() -> Result<oneshot::Receiver<()>> {
+    let (sender, receiver) = oneshot::channel();
+    std::thread::Builder::new()
+        .name("keyguard-parent-stdin-watch".to_string())
+        .spawn(move || {
+            let stdin = std::io::stdin();
+            let mut stdin = stdin.lock();
+            let mut buf = [0u8; 1024];
+
+            loop {
+                match stdin.read(&mut buf) {
+                    Ok(0) | Err(_) => break,
+                    Ok(_) => {}
+                }
+            }
+
+            let _ = sender.send(());
+        })
+        .context("Failed to spawn stdin liveness watcher")?;
+    Ok(receiver)
+}
+
 fn zeroize_bytes(buf: &mut [u8]) {
     buf.fill(0);
 }
@@ -89,9 +113,11 @@ async fn main() -> Result<()> {
     info!("keyguard-ssh-agent starting");
 
     // Read the authentication token from stdin. The parent process writes the
-    // hex-encoded token followed by a newline, then closes stdin. This avoids
-    // exposing the token in the process environment, which is readable by other
-    // same-user processes via /proc/<pid>/environ (Linux) or ps eww (macOS).
+    // hex-encoded token followed by a newline, then keeps stdin open for the
+    // lifetime of this process. This avoids exposing the token in the process
+    // environment, which is readable by other same-user processes via
+    // /proc/<pid>/environ (Linux) or ps eww (macOS), and gives us a parent
+    // liveness signal via EOF.
     let mut auth_token = {
         use std::io::BufRead;
         let stdin = std::io::stdin();
@@ -105,11 +131,12 @@ async fn main() -> Result<()> {
         zeroize_string(&mut line);
         decoded?
     };
+    let parent_stdin_closed = spawn_stdin_eof_watcher()?;
 
     // Determine the SSH agent socket path.
     let ssh_socket_path = args
         .ssh_socket
-        .unwrap_or_else(|| config::default_ssh_agent_socket_path());
+        .unwrap_or_else(config::default_ssh_agent_socket_path);
 
     info!(
         ipc_socket = %args.ipc_socket.display(),
@@ -133,10 +160,12 @@ async fn main() -> Result<()> {
         ssh_socket = %ssh_socket_path.display(),
         "Starting SSH agent"
     );
-    socket::serve(agent, &ssh_socket_path).await.map_err(|e| {
-        error!("SSH agent server failed: {}", e);
-        e
-    })?;
+    socket::serve(agent, &ssh_socket_path, parent_stdin_closed)
+        .await
+        .map_err(|e| {
+            error!("SSH agent server failed: {}", e);
+            e
+        })?;
 
     Ok(())
 }

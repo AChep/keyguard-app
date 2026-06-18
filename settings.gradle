@@ -26,7 +26,9 @@ rootProject.name = "keyguard"
 
 include ':common'
 include ':util:messagepack'
+include ':util:planeta'
 include ':util:signalr'
+include ':util:webdav'
 include ':androidApp'
 include ':androidBenchmark'
 include ':androidSshAgent'
@@ -39,5 +41,6 @@ include ':desktopLibJvm'
 include ':desktopLibNative'
 include ':desktopSshAgent'
 include ':integration:wearCredentialProviderApp'
+include ':integration:webdavE2eTest'
 
 project(':integration:wearCredentialProviderApp').projectDir = file('integration/wearCredentialProviderApp')

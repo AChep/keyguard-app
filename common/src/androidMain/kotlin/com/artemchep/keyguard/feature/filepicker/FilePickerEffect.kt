@@ -26,6 +26,42 @@ actual fun FilePickerEffect(
     val context by rememberUpdatedState(LocalContext.current)
     val showMessage: ShowMessage by rememberInstance()
 
+    fun takePersistableUriPermission(
+        intent: FilePickerIntent<*>,
+        uri: android.net.Uri,
+    ) {
+        val persistable = when (intent) {
+            is FilePickerIntent.NewDocument -> intent.persistableUriPermission
+            is FilePickerIntent.OpenDocument -> intent.persistableUriPermission
+            is FilePickerIntent.OpenDirectory -> intent.persistableUriPermission
+        }
+        if (!persistable) {
+            return
+        }
+
+        var flags = 0
+        val readUriPermission = when (intent) {
+            is FilePickerIntent.NewDocument -> intent.readUriPermission
+            is FilePickerIntent.OpenDocument -> intent.readUriPermission
+            is FilePickerIntent.OpenDirectory -> intent.readUriPermission
+        }
+        val writeUriPermission = when (intent) {
+            is FilePickerIntent.NewDocument -> intent.writeUriPermission
+            is FilePickerIntent.OpenDocument -> intent.writeUriPermission
+            is FilePickerIntent.OpenDirectory -> intent.writeUriPermission
+        }
+        if (readUriPermission) flags =
+            flags or Intent.FLAG_GRANT_READ_URI_PERMISSION
+        if (writeUriPermission) flags =
+            flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+        flags.takeIf { f -> f != 0 }
+            ?.also { f ->
+                context.contentResolver
+                    .takePersistableUriPermission(uri, f)
+            }
+    }
+
     //
     // Open document
     //
@@ -46,21 +82,7 @@ actual fun FilePickerEffect(
                 }
 
             val info = uri?.let { uri ->
-                // Take persistable URI permission,
-                // if requested.
-                if (intent.persistableUriPermission) run {
-                    var flags = 0
-                    if (intent.readUriPermission) flags =
-                        flags or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    if (intent.writeUriPermission) flags =
-                        flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-
-                    flags.takeIf { f -> f != 0 }
-                        ?.also { f ->
-                            context.contentResolver
-                                .takePersistableUriPermission(uri, f)
-                        }
-                }
+                takePersistableUriPermission(intent, uri)
                 context.toFilePickerResult(uri)
             }
             intent.onResult(info)
@@ -87,25 +109,38 @@ actual fun FilePickerEffect(
                 }
 
             val info = uri?.let { uri ->
-                // Take persistable URI permission,
-                // if requested.
-                if (intent.persistableUriPermission) run {
-                    var flags = 0
-                    if (intent.readUriPermission) flags =
-                        flags or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    if (intent.writeUriPermission) flags =
-                        flags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-
-                    flags.takeIf { f -> f != 0 }
-                        ?.also { f ->
-                            context.contentResolver
-                                .takePersistableUriPermission(uri, f)
-                        }
-                }
+                takePersistableUriPermission(intent, uri)
                 context.toFilePickerResult(
                     uri = uri,
                     size = null,
                 )
+            }
+            intent.onResult(info)
+        }
+    }
+
+    //
+    // Open directory
+    //
+
+    val openDirectoryLauncher = run {
+        val contract = remember {
+            ActivityResultContracts.OpenDocumentTree()
+        }
+        rememberLauncherForActivityResult(contract = contract) { uri ->
+            val intent = state.value as? FilePickerIntent.OpenDirectory
+                ?: run {
+                    val message = ToastMessage(
+                        title = "Failed to select a folder",
+                        text = "App does not have an active observer to handle the result correctly.",
+                    )
+                    showMessage.copy(message)
+                    return@rememberLauncherForActivityResult
+                }
+
+            val info = uri?.let { uri ->
+                takePersistableUriPermission(intent, uri)
+                context.toDirectoryPickerResult(uri)
             }
             intent.onResult(info)
         }
@@ -132,6 +167,10 @@ actual fun FilePickerEffect(
                     intent.mimeTypes
                 }
                 openDocumentLauncher.launch(mimeTypes)
+            }
+
+            is FilePickerIntent.OpenDirectory -> {
+                openDirectoryLauncher.launch(null)
             }
         }
     }

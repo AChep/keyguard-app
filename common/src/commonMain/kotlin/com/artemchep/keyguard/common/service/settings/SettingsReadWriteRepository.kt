@@ -156,6 +156,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration,
     ): IO<Unit>
 
+    fun setSshAgentDisplayKeyNames(
+        displayKeyNames: Boolean,
+    ): IO<Unit>
+
     fun setSshAgentFilter(
         filter: SshAgentFilter,
     ): IO<Unit>

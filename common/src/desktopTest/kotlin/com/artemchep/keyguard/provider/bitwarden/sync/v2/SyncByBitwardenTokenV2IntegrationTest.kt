@@ -15,6 +15,7 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendOrganizationToken2
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendProfileToken
 import com.artemchep.keyguard.provider.bitwarden.crypto.appendUserToken
+import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.CollectionEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FolderEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.OrganizationEntity
@@ -26,6 +27,8 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
@@ -122,6 +125,66 @@ class SyncByBitwardenTokenV2IntegrationTest {
                 .data_
         assertIs<BitwardenMeta.LastSyncResult.Success>(meta.lastSyncResult)
         assertEquals("rev-all-entities", meta.lastServerRevisionDate)
+    }
+
+    @Test
+    fun `full sync resolves cipher folder references to local folders and converges`() = runTest {
+        val server = UploadTestServer()
+        server.revisionDate = "rev-foldered-ciphers-1"
+        val fixture = createFullSyncFixture(server)
+        server.profile = fixture.profile
+        server.seedFolder(
+            FolderEntity(
+                id = "folder-remote-1",
+                name = fixture.encryptUserString("Remote folder"),
+                revisionDate = T1,
+            ),
+        )
+        server.seedCipher(
+            fixture.encryptedCipherEntity(remoteId = "cipher-remote-1")
+                .copy(folderId = "folder-remote-1"),
+        )
+        server.seedCipher(
+            fixture.encryptedCipherEntity(remoteId = "cipher-remote-2")
+                .copy(folderId = "folder-remote-missing"),
+        )
+
+        fixture.sync.invoke(fixture.user).invoke()
+
+        val localFolder =
+            fixture.database.folderQueries
+                .getByAccountId(ACCOUNT_ID)
+                .executeAsList()
+                .single()
+                .data_
+        assertEquals("folder-remote-1", localFolder.service.remote?.id)
+        assertNotEquals("folder-remote-1", localFolder.folderId)
+        val ciphersByRemoteId =
+            fixture.database.cipherQueries
+                .getByAccountId(ACCOUNT_ID)
+                .executeAsList()
+                .map { it.data_ }
+                .associateBy { it.service.remote?.id }
+        assertEquals(
+            localFolder.folderId,
+            ciphersByRemoteId.getValue("cipher-remote-1").folderId,
+        )
+        assertNull(ciphersByRemoteId.getValue("cipher-remote-2").folderId)
+
+        // A repeated sync with unchanged server content must not plan
+        // any cipher work: an unresolvable server folder reference used
+        // to re-trigger a local refresh on every sync.
+        server.revisionDate = "rev-foldered-ciphers-2"
+        fixture.sync.invoke(fixture.user).invoke()
+
+        val cipherPlans =
+            fixture.logRepository.messages()
+                .filter { it.contains("entity_plan_built entity=ciphers") }
+        assertEquals(2, cipherPlans.size)
+        assertTrue(
+            cipherPlans.last().contains("total_actions=0"),
+            "Expected a no-op cipher plan, got: ${cipherPlans.last()}",
+        )
     }
 
     @Test
@@ -305,6 +368,21 @@ private data class FullSyncFixture(
             value.encodeToByteArray(),
         )
 
+    fun encryptedCipherEntity(remoteId: String): CipherEntity =
+        testCipher(
+            localId = "cipher-local-ignored",
+            remoteId = remoteId,
+            localRevisionDate = T1,
+            remoteRevisionDate = T1,
+            attachments = emptyList(),
+        )
+            // Encrypt with the user key instead of an item key.
+            .copy(keyBase64 = null)
+            .toEncryptedCipherEntity(
+                crypto = crypto,
+                base64Service = base64Service,
+            )
+
     fun encryptOrganizationString(
         organizationId: String,
         value: String,
@@ -375,6 +453,7 @@ private fun createFullSyncFixture(
         dbSyncer = DatabaseSyncer(cryptoGenerator),
         pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
         watchdog = UploadTestWatchdog,
+        markBackupAsDirty = UploadTestMarkBackupAsDirty,
     )
     val crypto =
         BitwardenCrImpl(

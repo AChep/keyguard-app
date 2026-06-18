@@ -1,0 +1,23 @@
+---
+import Icon from './Icon.astro';
+import { FEATURE_VISUALS, DEFAULT_VISUAL } from '../featureVisuals';
+
+interface Props {
+  title: string;
+  slug?: string;
+  href?: string;
+}
+const { title, slug, href } = Astro.props;
+const v = (slug && FEATURE_VISUALS[slug]) || DEFAULT_VISUAL;
+const Tag = href ? 'a' : 'div';
+---
+
+<Tag href={href} class="surface-card flex h-full flex-col rounded-2xl px-5 py-4">
+  <div class:list={['mb-2.5 flex h-10 w-10 items-center justify-center rounded-xl', v.chip, v.ink]}>
+    <Icon name={v.icon} class="h-5 w-5" />
+  </div>
+  <h3 class="mb-1.5 text-base font-semibold text-on-surface">{title}</h3>
+  <p class="text-sm leading-relaxed text-on-surface-variant">
+    <slot />
+  </p>
+</Tag>

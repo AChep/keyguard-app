@@ -86,6 +86,7 @@ class SshAgentIpcServer(
         onGetListRequest: suspend (
             caller: SshAgentMessages.CallerIdentity?,
         ) -> Boolean = { _ -> false },
+        sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
     ) : this(
         logRepository = logRepository,
         authToken = authToken,
@@ -96,6 +97,7 @@ class SshAgentIpcServer(
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
+            sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
             sessionId = sessionId,
             onApprovalRequest = onApprovalRequest,
             onGetListRequest = onGetListRequest,

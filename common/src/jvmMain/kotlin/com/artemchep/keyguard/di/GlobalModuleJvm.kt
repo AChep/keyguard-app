@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.di
 
+import com.artemchep.keyguard.common.service.backup.BackupRepository
+import com.artemchep.keyguard.common.service.backup.BackupRepositoryZipImpl
+import com.artemchep.keyguard.common.service.backup.BackupRunService
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
@@ -11,11 +14,17 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.zip.ZipService
+import com.artemchep.keyguard.common.usecase.CheckWebDavConnection
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAppBuildDate
 import com.artemchep.keyguard.common.usecase.GetAppBuildRef
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.NumberFormatter
+import com.artemchep.keyguard.common.usecase.RunBackupNow
+import com.artemchep.keyguard.common.usecase.TestBackupLocation
+import com.artemchep.keyguard.common.usecase.impl.CheckWebDavConnectionImpl
+import com.artemchep.keyguard.common.usecase.impl.RunBackupNowImpl
+import com.artemchep.keyguard.common.usecase.impl.TestBackupLocationImpl
 import com.artemchep.keyguard.copy.Base32ServiceJvm
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.copy.DateFormatterJvm
@@ -64,6 +73,7 @@ import org.kodein.di.DI
 import org.kodein.di.bindProvider
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
+import kotlin.time.Duration
 
 fun globalModuleJvm() = DI.Module(
     name = "globalModuleJvm",
@@ -139,6 +149,31 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<ExecuteCommand> {
         ExecuteCommandJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<BackupRepository> {
+        BackupRepositoryZipImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<BackupRunService> {
+        BackupRunService(
+            directDI = this,
+        )
+    }
+    bindSingleton<RunBackupNow> {
+        RunBackupNowImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<CheckWebDavConnection> {
+        CheckWebDavConnectionImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<TestBackupLocation> {
+        TestBackupLocationImpl(
             directDI = this,
         )
     }
@@ -229,9 +264,13 @@ fun globalModuleJvm() = DI.Module(
         }
     }
     bindSingleton<OkHttpClient> {
+        val timeouts = with(Duration) { 30.seconds }
         OkHttpClient
             .Builder()
             .installPlatformTrustManager()
+            .connectTimeout(timeouts)
+            .readTimeout(timeouts)
+            .writeTimeout(timeouts)
             .apply {
                 if (!isRelease) {
                     val logRepository: LogRepository = instance()
@@ -244,7 +283,7 @@ fun globalModuleJvm() = DI.Module(
                     val logging = HttpLoggingInterceptor(logger).apply {
                         level = HttpLoggingInterceptor.Level.BODY
                     }
-                    addInterceptor(logging)
+                    //addInterceptor(logging)
                 }
             }
             .build()

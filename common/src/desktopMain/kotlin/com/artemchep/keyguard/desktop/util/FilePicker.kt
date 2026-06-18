@@ -3,6 +3,7 @@ package com.artemchep.keyguard.desktop.util
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.openDirectoryPicker
 import io.github.vinceglb.filekit.dialogs.openFilePicker
 import io.github.vinceglb.filekit.dialogs.openFileSaver
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +21,14 @@ fun showFilePicker(
     FileKit.openFilePicker(type = type)
 }
 
+fun showDirectoryPicker(
+    block: (File) -> Unit,
+) = showFileBlock(
+    block = block,
+) {
+    FileKit.openDirectoryPicker()
+}
+
 fun showFileSaver(
     suggestedName: String,
     extension: String?,
@@ -29,7 +38,7 @@ fun showFileSaver(
 ) {
     FileKit.openFileSaver(
         suggestedName = suggestedName,
-        extension = extension,
+        defaultExtension = extension,
     )
 }
 

@@ -9,7 +9,6 @@ import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
-import com.artemchep.keyguard.common.service.file.toLocalPathFromFileUriOrNull
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
@@ -32,7 +31,6 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAcc
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
@@ -169,15 +167,17 @@ class NotificationsImpl(
     }
 
     override fun launch(scope: CoroutineScope): Job = scope.launch {
-        val subScope = this + SupervisorJob()
+        val subScope = this + SupervisorJob(parent = coroutineContext[Job])
 
         fun launchJob(
             user: BitwardenToken,
         ): Job = subScope.launch {
+            val accountScope = this
+
             fun launchSyncById(latestUser: BitwardenToken) {
                 val accountId = AccountId(latestUser.id)
                 queueSyncById(accountId)
-                    .launchIn(GlobalScope)
+                    .launchIn(accountScope)
             }
 
             val result = runCatching {
@@ -275,18 +275,11 @@ class NotificationsImpl(
         fun launchJob(
             user: KeePassToken,
         ): Job = subScope.launch {
-            val databaseFile = user.databaseLocalPathOrNull()
-            if (databaseFile == null) {
-                // This database URI is not supported, aborting
-                // the watch service.
-                val msg = "Skipping launching file watcher, database URI is not a local file."
-                logRepository.post(TAG, msg)
-                return@launch
-            }
+            val accountScope = this
 
             val reconnectBackoff = ReconnectBackoff()
             reconnectBackoff.withRunForever {
-                val dbChangedFlow = fileWatcherService.fileChangedFlow(databaseFile)
+                val dbChangedFlow = fileWatcherService.uriChangedFlow(user.files.databaseUri)
                     .filter { it.kind != FileWatchEvent.Kind.INITIALIZED }
                     .debounce(1000L)
                 dbChangedFlow
@@ -295,7 +288,7 @@ class NotificationsImpl(
 
                         val accountId = AccountId(user.id)
                         queueSyncById(accountId)
-                            .launchIn(GlobalScope)
+                            .launchIn(accountScope)
                     }
                     .collect()
             }
@@ -335,6 +328,3 @@ class NotificationsImpl(
             .launchIn(this)
     }
 }
-
-internal fun KeePassToken.databaseLocalPathOrNull() =
-    files.databaseUri.toLocalPathFromFileUriOrNull()

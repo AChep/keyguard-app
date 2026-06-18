@@ -7,6 +7,45 @@ pub(crate) fn linux_fallback_ssh_agent_socket_path(uid: libc::uid_t) -> PathBuf 
     PathBuf::from(format!("/tmp/keyguard-{uid}/ssh-agent.sock"))
 }
 
+#[cfg(target_os = "linux")]
+const FLATPAK_APP_ID_FALLBACK: &str = "com.artemchep.keyguard";
+
+/// Returns the socket path to use inside a Flatpak sandbox, or `None`
+/// if the agent is not sandboxed or the path can not be determined.
+///
+/// Inside the sandbox both `$XDG_RUNTIME_DIR` and `/tmp` are private
+/// tmpfs mounts, so a socket bound there is invisible to the host.
+/// `$XDG_RUNTIME_DIR/app/$FLATPAK_ID/` is the only runtime directory
+/// that Flatpak bind-mounts to the host at the same path, no extra
+/// sandbox permissions needed.
+///
+/// Keep in sync with the path shown to the user on the SSH agent
+/// setup screen, see `SSH_AGENT_SETUP_LINUX_FLATPAK_SOCKET` in
+/// `SshAgentSetupScreen.kt`.
+///
+/// Keep in sync with the `actual val CurrentPlatform: Platform` implementation.
+#[cfg(target_os = "linux")]
+pub(crate) fn flatpak_ssh_agent_socket_path(
+    container: Option<&str>,
+    runtime_dir: Option<&str>,
+    flatpak_id: Option<&str>,
+) -> Option<PathBuf> {
+    // The 'container' environment variable is set by 'flatpak run'.
+    if container != Some("flatpak") {
+        return None;
+    }
+    let runtime_dir = runtime_dir.filter(|dir| !dir.trim().is_empty())?;
+    let app_id = flatpak_id
+        .filter(|id| !id.trim().is_empty())
+        .unwrap_or(FLATPAK_APP_ID_FALLBACK);
+    Some(
+        PathBuf::from(runtime_dir)
+            .join("app")
+            .join(app_id)
+            .join("ssh-agent.sock"),
+    )
+}
+
 /// Returns the default path for the SSH agent socket.
 ///
 /// - macOS: `~/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock`
@@ -26,6 +65,16 @@ pub fn default_ssh_agent_socket_path() -> PathBuf {
 
     #[cfg(target_os = "linux")]
     {
+        // When sandboxed, the regular locations below are not visible
+        // to the host, so the Flatpak path takes priority.
+        if let Some(path) = flatpak_ssh_agent_socket_path(
+            std::env::var("container").ok().as_deref(),
+            std::env::var("XDG_RUNTIME_DIR").ok().as_deref(),
+            std::env::var("FLATPAK_ID").ok().as_deref(),
+        ) {
+            return path;
+        }
+
         // Prefer XDG_RUNTIME_DIR (typically /run/user/<uid>/) for ephemeral
         // sockets. Fall back to /tmp with the UID appended for uniqueness.
         if let Some(runtime_dir) = dirs::runtime_dir() {
@@ -104,6 +153,62 @@ mod tests {
             "Linux socket path should end with .sock, got: {}",
             path_str
         );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn flatpak_path_resolves_in_the_shared_runtime_dir() {
+        let path = flatpak_ssh_agent_socket_path(
+            Some("flatpak"),
+            Some("/run/user/1000"),
+            Some("com.artemchep.keyguard"),
+        );
+        assert_eq!(
+            path,
+            Some(PathBuf::from(
+                "/run/user/1000/app/com.artemchep.keyguard/ssh-agent.sock"
+            ))
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn flatpak_path_falls_back_to_the_default_app_id() {
+        let path = flatpak_ssh_agent_socket_path(Some("flatpak"), Some("/run/user/1000"), None);
+        assert_eq!(
+            path,
+            Some(PathBuf::from(
+                "/run/user/1000/app/com.artemchep.keyguard/ssh-agent.sock"
+            ))
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn flatpak_path_is_none_outside_of_a_flatpak() {
+        let path = flatpak_ssh_agent_socket_path(
+            None,
+            Some("/run/user/1000"),
+            Some("com.artemchep.keyguard"),
+        );
+        assert_eq!(path, None);
+
+        let path = flatpak_ssh_agent_socket_path(
+            Some("docker"),
+            Some("/run/user/1000"),
+            Some("com.artemchep.keyguard"),
+        );
+        assert_eq!(path, None);
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn flatpak_path_is_none_without_a_runtime_dir() {
+        let path = flatpak_ssh_agent_socket_path(Some("flatpak"), None, None);
+        assert_eq!(path, None);
+
+        let path = flatpak_ssh_agent_socket_path(Some("flatpak"), Some(" "), None);
+        assert_eq!(path, None);
     }
 
     #[cfg(target_os = "linux")]

@@ -111,7 +111,7 @@ fun EmailRelayListScreen(
                     IconButton(
                         onClick = {
                             val intent = NavigationIntent.NavigateToBrowser(
-                                url = "https://github.com/AChep/keyguard-app/blob/master/wiki/URL_OVERRIDE.md",
+                                url = "https://keyguard.dev/docs/url-overrides/",
                             )
                             navigationController.queue(intent)
                         },

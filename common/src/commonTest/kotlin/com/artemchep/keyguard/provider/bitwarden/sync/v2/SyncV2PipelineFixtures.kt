@@ -65,7 +65,7 @@ internal object TestSyncStrategy : EntitySyncStrategy<TestLocal, TestServer> {
             hasError = entity.hasErrorOverride || entity.service.error != null,
             canRetryError = entity.canRetryError,
             attachmentIds = entity.attachmentIds,
-            folderId = entity.folderId,
+            localFolderId = entity.folderId,
             favorite = entity.favorite,
             collectionIds = entity.collectionIds,
             requiresLocalRefreshWhenDatesMatch = entity.requiresLocalRefreshWhenDatesMatch,
@@ -81,7 +81,7 @@ internal object TestSyncStrategy : EntitySyncStrategy<TestLocal, TestServer> {
             revisionDate = entity.revisionDate,
             deletedDate = entity.deletedDate,
             attachmentIds = entity.attachmentIds,
-            folderId = entity.folderId,
+            localFolderId = entity.folderId,
             favorite = entity.favorite,
             collectionIds = entity.collectionIds,
         )

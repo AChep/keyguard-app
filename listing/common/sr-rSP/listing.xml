@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Подршка за више налога: Истовремено пријављивање на више налога.</string>
     <string name="listing_description_highlight_offline">Управљање ван мреже: Додајте ставке и слања, мењајте и прегледајте сеф ван мреже.</string>
     <string name="listing_description_highlight_export">Извоз података: Извезите појединачне или организационе ставке, укључујући прилоге.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Генератор: Креирајте лозинке, SSH кључеве и прослеђиваче е-поште, са подршком за прилагођене листе речи.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Напредне функције: Подршка за пречице, чуваре места поља, URL замене и паметно решавање конфликата.</string>

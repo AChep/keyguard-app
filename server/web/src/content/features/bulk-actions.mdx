@@ -1,0 +1,22 @@
+---
+title: "Bulk actions"
+summary: "Select many items at once, then move, merge, tag, or export them in one go."
+icon: "☑️"
+group: "Power tools"
+order: 15
+featured: false
+premium: false
+---
+
+import multiselect from '../../assets/screenshots/bulk-actions-multiselect.png';
+import mergeItems from '../../assets/screenshots/bulk-actions-merge.png';
+
+Some cleanups touch one item; most touch twenty. Long-press an item to start a selection, add the rest with a tap, and the actions you choose apply to everything selected at once.
+
+<Screenshot src={multiselect} caption="Two vault items selected, with the bulk-action bar along the bottom." />
+
+The whole toolkit works in bulk: move items to a folder, change their tags or names, set new passwords, mark favorites, require the authentication re-prompt, archive, trash, restore, or export. Selected duplicates can be **merged** into a single item — the natural follow-up when [Watchtower](/features/watchtower/) reports duplicate entries.
+
+<Screenshot src={mergeItems} caption="Merging two duplicate logins into one, choosing which field values to keep." />
+
+See [items, fields & organizing](/docs/items/#organizing) for how selection fits into folders, favorites, and the rest of the organizing tools.

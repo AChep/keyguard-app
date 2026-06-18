@@ -14,6 +14,9 @@
   </branding>
   <metadata_license>FSFAP</metadata_license>
   <project_license>LicenseRef-proprietary=https://github.com/AChep/keyguard-app/blob/master/LICENSE</project_license>
+  <requires>
+    <display_length compare="ge">360</display_length>
+  </requires>
   <supports>
     <control>pointing</control>
     <control>keyboard</control>
@@ -49,7 +52,13 @@
         <keyguard_text_res token="listing_description_highlight_export" />
       </li>
       <li>
+        <keyguard_text_res token="listing_description_highlight_backup" />
+      </li>
+      <li>
         <keyguard_text_res token="listing_description_highlight_generator" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_attachment_preview" />
       </li>
       <li>
         <keyguard_text_res token="listing_description_highlight_ssh_agent" />

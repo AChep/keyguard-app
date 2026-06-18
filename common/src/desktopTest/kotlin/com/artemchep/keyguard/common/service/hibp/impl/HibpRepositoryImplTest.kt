@@ -248,6 +248,62 @@ class HibpRepositoryImplTest {
         )
     }
 
+    @Test
+    fun `pwned password range propagates HTTP errors`() = runTest {
+        val client = recordingClient(
+            requests = mutableListOf(),
+            response = MockResponse(
+                status = HttpStatusCode.TooManyRequests,
+                body = errorBody,
+            ),
+        )
+
+        try {
+            HibpRepositoryImpl(client)
+                .getPwnedPasswordOccurrences("ABCDE1234567890")
+                .bind()
+            fail("Expected pwned password range request to fail.")
+        } catch (e: HttpException) {
+            assertEquals(HttpStatusCode.TooManyRequests, e.statusCode)
+        }
+    }
+
+    @Test
+    fun `pwned password range retries 429 using retry after header`() = runTest {
+        val requests = mutableListOf<RecordedRequest>()
+        val retryDelays = mutableListOf<Long>()
+        val client = recordingClient(
+            requests = requests,
+            responses = listOf(
+                MockResponse(
+                    status = HttpStatusCode.TooManyRequests,
+                    body = errorBody,
+                    headers = mapOf(HttpHeaders.RetryAfter to "2"),
+                ),
+                MockResponse(
+                    status = HttpStatusCode.OK,
+                    body = "1234567890:42",
+                    contentType = ContentType.Text.Plain,
+                ),
+            ),
+            installRetryPolicy = true,
+            retryDelays = retryDelays,
+        )
+
+        val matching = HibpRepositoryImpl(client)
+            .getPwnedPasswordOccurrences("ABCDE1234567890")
+            .bind()
+
+        assertEquals(42, matching)
+        assertEquals(listOf(2_000L), retryDelays)
+        assertEquals(2, requests.size)
+        assertTrue(
+            requests.all { request ->
+                request.route == HibpRepositoryImpl.ROUTE_GET_PWNED_PASSWORD_RANGE
+            },
+        )
+    }
+
     private fun recordingClient(
         requests: MutableList<RecordedRequest>,
         response: MockResponse,

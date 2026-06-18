@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Obsługa wielu kont: Możliwość jednoczesnego logowania na wiele kont.</string>
     <string name="listing_description_highlight_offline">Zarządzanie offline: Dodawaj elementy i wysyłki, modyfikuj i przeglądaj swój sejf offline.</string>
     <string name="listing_description_highlight_export">Eksport danych: Eksportuj pojedyncze lub organizacyjne elementy, w tym załączniki.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Generator: Twórz hasła, klucze SSH i przekierowania e-mail, z obsługą niestandardowych list słów.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Zaawansowane funkcje: Obsługa skrótów, symbol zastępczych pól, nadpisywania URL i inteligentnego rozwiązywania konfliktów.</string>

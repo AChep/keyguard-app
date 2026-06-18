@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetPurchased
+import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.SyncById
 import com.artemchep.keyguard.common.usecase.premium
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
@@ -27,6 +28,7 @@ class ImportCompanionBitwardenAccountImpl(
     private val syncById: SyncById,
     private val logRepository: LogRepository,
     private val db: VaultDatabaseManager,
+    private val markBackupAsDirty: MarkBackupAsDirty,
 ) : ImportCompanionBitwardenAccount {
     companion object {
         private const val TAG = "AddAccount.bitwarden.companion"
@@ -38,6 +40,7 @@ class ImportCompanionBitwardenAccountImpl(
         syncById = directDI.instance(),
         logRepository = directDI.instance(),
         db = directDI.instance(),
+        markBackupAsDirty = directDI.instance(),
     )
 
     override fun invoke(
@@ -70,6 +73,8 @@ class ImportCompanionBitwardenAccountImpl(
                 data = token,
             )
         }.bind()
+        markBackupAsDirty()
+            .bind()
 
         AccountId(token.id)
     }

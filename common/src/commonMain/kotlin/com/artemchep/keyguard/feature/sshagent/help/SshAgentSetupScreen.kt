@@ -1,13 +1,19 @@
 package com.artemchep.keyguard.feature.sshagent.help
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
@@ -27,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
@@ -73,12 +80,21 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.compose.rememberInstance
 
+
+// Arguments to some keywords can be expanded at runtime from environment variables on the client
+// by enclosing them in ${}, for example ${HOME}/.ssh would refer to the user's .ssh directory.
+// If a specified environment variable does not exist then an error will be returned and
+// the setting for that keyword will be ignored.
+//
+// https://github.com/AChep/keyguard-app/issues/1440
 private const val SSH_AGENT_SETUP_MACOS_SOCKET =
-    $$"$HOME/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
+    $$"${HOME}/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET =
-    $$"$XDG_RUNTIME_DIR/keyguard-ssh-agent.sock"
+    $$"${XDG_RUNTIME_DIR}/keyguard-ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET_FALLBACK =
     "/tmp/keyguard-<UID>/ssh-agent.sock"
+private const val SSH_AGENT_SETUP_LINUX_FLATPAK_SOCKET =
+    $$"${XDG_RUNTIME_DIR}/app/com.artemchep.keyguard/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_FILE =
     "~/.ssh/config"
 private const val SSH_AGENT_SETUP_VERIFY_CMD_LIST =
@@ -146,13 +162,15 @@ private fun ColumnScope.SshAgentSetupScreenContent() {
         text = stringResource(Res.string.ssh_agent_setup_intro),
     )
 
-    when (CurrentPlatform) {
+    when (val platform = CurrentPlatform) {
         is Platform.Desktop.MacOS -> SshAgentSetupSupportedPlatformContent(
             isMacOS = true,
+            isFlatpak = false,
         )
 
         is Platform.Desktop.Linux -> SshAgentSetupSupportedPlatformContent(
             isMacOS = false,
+            isFlatpak = platform.isFlatpak,
         )
 
         is Platform.Desktop.Windows -> SshAgentSetupUnsupportedPlatformContent()
@@ -166,11 +184,12 @@ private fun ColumnScope.SshAgentSetupScreenContent() {
 @Composable
 private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
     isMacOS: Boolean,
+    isFlatpak: Boolean,
 ) {
-    val sshAgentSocketPath = if (isMacOS) {
-        SSH_AGENT_SETUP_MACOS_SOCKET
-    } else {
-        SSH_AGENT_SETUP_LINUX_SOCKET
+    val sshAgentSocketPath = when {
+        isMacOS -> SSH_AGENT_SETUP_MACOS_SOCKET
+        isFlatpak -> SSH_AGENT_SETUP_LINUX_FLATPAK_SOCKET
+        else -> SSH_AGENT_SETUP_LINUX_SOCKET
     }
 
     Section(
@@ -188,22 +207,14 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
         text = stringResource(Res.string.ssh_agent_setup_step_2_text),
     )
 
-    if (isMacOS) {
-        Spacer(
-            modifier = Modifier
-                .height(4.dp),
-        )
-        CopyableCodeBlock(
-            text = sshAgentSocketPath,
-        )
-    } else {
-        Spacer(
-            modifier = Modifier
-                .height(4.dp),
-        )
-        CopyableCodeBlock(
-            text = sshAgentSocketPath,
-        )
+    Spacer(
+        modifier = Modifier
+            .height(4.dp),
+    )
+    CopyableCodeBlock(
+        text = sshAgentSocketPath,
+    )
+    if (!isMacOS && !isFlatpak) {
         Spacer(
             modifier = Modifier
                 .height(16.dp),
@@ -475,8 +486,24 @@ private fun CopyableCodeBlock(
 
     val clipboardService by rememberInstance<ClipboardService>()
     val copyDescription = stringResource(Res.string.copy)
-    FlatItemLayoutExpressive(
-        content = {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                vertical = 4.dp,
+                horizontal = Dimens.textHorizontalPadding,
+            )
+            .background(
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                shape = RoundedCornerShape(12.dp),
+            )
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f, fill = true),
+        ) {
             if (file != null) {
                 Text(
                     modifier = Modifier
@@ -540,24 +567,21 @@ private fun CopyableCodeBlock(
                     fontFamily = FontFamily.Monospace,
                 )
             }
-        },
-        trailing = {
-            IconButton(
-                onClick = {
-                    clipboardService.setPrimaryClip(
-                        value = text,
-                        concealed = false,
-                    )
-                },
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.ContentCopy,
-                    contentDescription = copyDescription,
+        }
+        IconButton(
+            onClick = {
+                clipboardService.setPrimaryClip(
+                    value = text,
+                    concealed = false,
                 )
-            }
-        },
-        enabled = true,
-    )
+            },
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.ContentCopy,
+                contentDescription = copyDescription,
+            )
+        }
+    }
 }
 
 @Composable

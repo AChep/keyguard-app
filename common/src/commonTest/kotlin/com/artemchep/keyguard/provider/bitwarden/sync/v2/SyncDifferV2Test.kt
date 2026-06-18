@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.provider.bitwarden.entity.CipherEntity
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.LocalItemMeta
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.ServerItemMeta
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncAction
@@ -315,12 +316,170 @@ class SyncDifferV2Test {
     }
 
     @Test
+    fun `cipher folder drift ignores different local and remote id namespaces`() {
+        val strategy =
+            CipherSyncStrategy(
+                remoteFolderIdToLocalId = mapOf("folder-remote" to "folder-local")::get,
+            )
+
+        val actions =
+            SyncDiffer.diff(
+                localItems = listOf(
+                    strategy.toLocalItemMeta(syncedCipher(folderId = "folder-local")),
+                ),
+                serverItems = listOf(
+                    strategy.toServerItemMeta(cipherEntity(folderId = "folder-remote")),
+                ),
+            )
+
+        assertEquals(emptyList(), actions)
+    }
+
+    @Test
+    fun `cipher folder drift refreshes when server folder differs`() {
+        val strategy =
+            CipherSyncStrategy(
+                remoteFolderIdToLocalId = mapOf(
+                    "folder-remote" to "folder-local",
+                    "folder-remote-new" to "folder-local-new",
+                )::get,
+            )
+
+        val actions =
+            SyncDiffer.diff(
+                localItems = listOf(
+                    strategy.toLocalItemMeta(syncedCipher(folderId = "folder-local")),
+                ),
+                serverItems = listOf(
+                    strategy.toServerItemMeta(cipherEntity(folderId = "folder-remote-new")),
+                ),
+            )
+
+        assertEquals(
+            listOf(
+                SyncAction.UpdateLocally(
+                    localId = "local-1",
+                    serverId = "remote-1",
+                ),
+            ),
+            actions,
+        )
+    }
+
+    @Test
+    fun `cipher folder drift refreshes when server moves cipher into a folder`() {
+        val strategy =
+            CipherSyncStrategy(
+                remoteFolderIdToLocalId = mapOf("folder-remote" to "folder-local")::get,
+            )
+
+        val actions =
+            SyncDiffer.diff(
+                localItems = listOf(
+                    strategy.toLocalItemMeta(syncedCipher()),
+                ),
+                serverItems = listOf(
+                    strategy.toServerItemMeta(cipherEntity(folderId = "folder-remote")),
+                ),
+            )
+
+        assertEquals(
+            listOf(
+                SyncAction.UpdateLocally(
+                    localId = "local-1",
+                    serverId = "remote-1",
+                ),
+            ),
+            actions,
+        )
+    }
+
+    @Test
+    fun `cipher folder drift refreshes when server removes the folder`() {
+        val strategy =
+            CipherSyncStrategy(
+                remoteFolderIdToLocalId = mapOf("folder-remote" to "folder-local")::get,
+            )
+
+        val actions =
+            SyncDiffer.diff(
+                localItems = listOf(
+                    strategy.toLocalItemMeta(syncedCipher(folderId = "folder-local")),
+                ),
+                serverItems = listOf(
+                    strategy.toServerItemMeta(cipherEntity()),
+                ),
+            )
+
+        assertEquals(
+            listOf(
+                SyncAction.UpdateLocally(
+                    localId = "local-1",
+                    serverId = "remote-1",
+                ),
+            ),
+            actions,
+        )
+    }
+
+    @Test
+    fun `cipher folder drift refreshes when server folder cannot be resolved locally`() {
+        val strategy =
+            CipherSyncStrategy(
+                remoteFolderIdToLocalId = emptyMap<String, String>()::get,
+            )
+
+        val actions =
+            SyncDiffer.diff(
+                localItems = listOf(
+                    strategy.toLocalItemMeta(syncedCipher(folderId = "folder-local")),
+                ),
+                serverItems = listOf(
+                    strategy.toServerItemMeta(cipherEntity(folderId = "folder-remote")),
+                ),
+            )
+
+        assertEquals(
+            listOf(
+                SyncAction.UpdateLocally(
+                    localId = "local-1",
+                    serverId = "remote-1",
+                ),
+            ),
+            actions,
+        )
+    }
+
+    @Test
+    fun `cipher folder drift converges once an unresolvable server folder is decoded`() {
+        val strategy =
+            CipherSyncStrategy(
+                remoteFolderIdToLocalId = emptyMap<String, String>()::get,
+            )
+
+        // Decoding a server cipher whose folder has no local mapping
+        // produces a cipher without a folder; the next sync must not
+        // flag the same drift again.
+        val actions =
+            SyncDiffer.diff(
+                localItems = listOf(
+                    strategy.toLocalItemMeta(syncedCipher()),
+                ),
+                serverItems = listOf(
+                    strategy.toServerItemMeta(cipherEntity(folderId = "folder-remote")),
+                ),
+            )
+
+        assertEquals(emptyList(), actions)
+    }
+
+    @Test
     fun `matching dates with decoded drift forces a local refresh`() {
         val actions = diff(
             local = listOf(
                 localMeta(
                     attachmentIds = setOf("attachment-a"),
-                    folderId = "folder-a",
+                    localFolderId = "folder-a",
                     favorite = false,
                     collectionIds = setOf("collection-a"),
                 ),
@@ -328,7 +487,7 @@ class SyncDifferV2Test {
             server = listOf(
                 serverMeta(
                     attachmentIds = setOf("attachment-b"),
-                    folderId = "folder-b",
+                    localFolderId = "folder-b",
                     favorite = true,
                     collectionIds = setOf("collection-b"),
                 ),
@@ -511,13 +670,13 @@ class SyncDifferV2Test {
         val actions = diff(
             local = listOf(
                 localMeta(
-                    folderId = "folder-local",
+                    localFolderId = "folder-local",
                     requiresForcePushWhenDatesMatch = true,
                 ),
             ),
             server = listOf(
                 serverMeta(
-                    folderId = "folder-server",
+                    localFolderId = "folder-server",
                 ),
             ),
         )
@@ -621,14 +780,14 @@ class SyncDifferV2Test {
         val actions = diff(
             local = listOf(
                 localMeta(
-                    folderId = "folder-local",
+                    localFolderId = "folder-local",
                     pendingLocalAttachmentIds = setOf("local-upload"),
                     requiresPushWhenDatesMatch = true,
                 ),
             ),
             server = listOf(
                 serverMeta(
-                    folderId = "folder-server",
+                    localFolderId = "folder-server",
                 ),
             ),
         )
@@ -787,7 +946,11 @@ class SyncDifferV2Test {
             )
         val actions =
             SyncDiffer.diff(
-                localItems = listOf(CipherSyncStrategy().toLocalItemMeta(localCipher)),
+                localItems = listOf(
+                    CipherSyncStrategy(
+                        remoteFolderIdToLocalId = { null },
+                    ).toLocalItemMeta(localCipher),
+                ),
                 serverItems =
                     listOf(
                         serverMeta(
@@ -830,7 +993,7 @@ class SyncDifferV2Test {
         hasError: Boolean = false,
         canRetryError: Boolean = true,
         attachmentIds: Set<String>? = null,
-        folderId: String? = null,
+        localFolderId: String? = null,
         favorite: Boolean? = null,
         collectionIds: Set<String>? = null,
         requiresLocalRefreshWhenDatesMatch: Boolean = false,
@@ -852,7 +1015,7 @@ class SyncDifferV2Test {
             hasError = hasError,
             canRetryError = canRetryError,
             attachmentIds = attachmentIds,
-            folderId = folderId,
+            localFolderId = localFolderId,
             favorite = favorite,
             collectionIds = collectionIds,
             requiresLocalRefreshWhenDatesMatch = requiresLocalRefreshWhenDatesMatch,
@@ -867,7 +1030,7 @@ class SyncDifferV2Test {
         revisionDate: Instant = T0,
         deletedDate: Instant? = null,
         attachmentIds: Set<String>? = null,
-        folderId: String? = null,
+        localFolderId: String? = null,
         favorite: Boolean? = null,
         collectionIds: Set<String>? = null,
     ): ServerItemMeta =
@@ -876,7 +1039,7 @@ class SyncDifferV2Test {
             revisionDate = revisionDate,
             deletedDate = deletedDate,
             attachmentIds = attachmentIds,
-            folderId = folderId,
+            localFolderId = localFolderId,
             favorite = favorite,
             collectionIds = collectionIds,
         )
@@ -901,5 +1064,20 @@ class SyncDifferV2Test {
             reprompt = BitwardenCipher.RepromptType.None,
             type = BitwardenCipher.Type.SecureNote,
             secureNote = BitwardenCipher.SecureNote(),
+        )
+
+    private fun syncedCipher(folderId: String? = null): BitwardenCipher =
+        cipher(
+            service = testService(remoteId = "remote-1"),
+            attachments = emptyList(),
+        )
+            .copy(folderId = folderId)
+            .let { it.copy(remoteEntity = it) }
+
+    private fun cipherEntity(folderId: String? = null): CipherEntity =
+        CipherEntity(
+            id = "remote-1",
+            revisionDate = T0,
+            folderId = folderId,
         )
 }

@@ -1,0 +1,50 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CommandBlock from '../components/CommandBlock.astro';
+import { PLATFORMS, RELEASES_URL, REPO_URL } from '../consts';
+---
+
+<BaseLayout title="Download" description="Get Keyguard for Android, Linux, macOS, and Windows.">
+  <section class="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+    <header class="text-center">
+      <h1 class="text-4xl font-extrabold tracking-tight text-on-surface">Download</h1>
+    </header>
+
+    <div class="mt-16 space-y-14">
+      {
+        PLATFORMS.map((p) => {
+          const links = [
+            ...p.stores,
+            ...(p.direct ? [{ label: p.direct.label, href: p.direct.href }] : []),
+          ];
+          return (
+            <div>
+              <h2 class="text-2xl font-bold tracking-tight text-on-surface">{p.name}</h2>
+
+              <p class="mt-3 text-sm">
+                {links.map((l, i) => (
+                  <Fragment>
+                    {i > 0 && (
+                      <span class="px-2 text-on-surface-variant" aria-hidden="true">·</span>
+                    )}
+                    <a href={l.href} class="font-medium text-primary hover:opacity-80">
+                      {l.label}
+                    </a>
+                  </Fragment>
+                ))}
+              </p>
+
+              {p.commands.length > 0 && (
+                <div class="mt-5 space-y-3">
+                  {p.commands.map((c) => (
+                    <CommandBlock label={c.label} code={c.code} />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })
+      }
+    </div>
+  </section>
+</BaseLayout>

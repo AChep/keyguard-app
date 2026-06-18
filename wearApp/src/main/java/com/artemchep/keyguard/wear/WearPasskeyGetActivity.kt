@@ -29,12 +29,14 @@ import com.artemchep.keyguard.res.error_failed_use_passkey
 import com.artemchep.keyguard.wear.feature.WearCreateVaultScreen
 import com.artemchep.keyguard.wear.feature.WearLoadingScreen
 import com.artemchep.keyguard.wear.feature.WearUnlockVaultScreen
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.getString as getComposeString
 import org.kodein.di.instance
 import kotlin.time.Clock
@@ -134,11 +136,13 @@ class WearPasskeyGetActivity : WearCredentialProviderActivity() {
         onRetry: () -> Unit,
     ) {
         val response = runCatching {
-            com.artemchep.keyguard.android.PasskeyUtils.withProcessingMinTime {
-                processUnlockedVault(
-                    session = session,
-                    userVerified = true,
-                )
+            withContext(Dispatchers.Default) {
+                com.artemchep.keyguard.android.PasskeyUtils.withProcessingMinTime {
+                    processUnlockedVault(
+                        session = session,
+                        userVerified = true,
+                    )
+                }
             }
         }.getOrElse {
             recordException(it)
@@ -152,10 +156,12 @@ class WearPasskeyGetActivity : WearCredentialProviderActivity() {
             return
         }
 
-        passkeyProviderGetFlow.recordUsage(
-            session = session,
-            args = args,
-        )
+        withContext(Dispatchers.Default) {
+            passkeyProviderGetFlow.recordUsage(
+                session = session,
+                args = args,
+            )
+        }
 
         val intent = Intent().apply {
             PendingIntentHandler.setGetCredentialResponse(

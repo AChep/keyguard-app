@@ -964,6 +964,7 @@ class SyncV2SendUploadIntegrationTest {
                 dbSyncer = DatabaseSyncer(cryptoGenerator),
                 pendingUploadCoordinator = coordinator,
                 watchdog = UploadTestWatchdog,
+                markBackupAsDirty = UploadTestMarkBackupAsDirty,
             )
 
             sync.invoke(user).invoke()

@@ -1,0 +1,17 @@
+# pnpm settings for the Keyguard website package.
+# In pnpm 11 these settings live here instead of the "pnpm" field in
+# package.json (https://pnpm.io/settings).
+
+# Pin vite to the 7.x line that Astro 6 expects (astro@6 depends on vite ^7.3.2).
+# Keeps a single resolved vite across astro and @tailwindcss/vite.
+overrides:
+  vite: ^7.3.2
+  esbuild: ^0.28.1
+  yaml: ^2.8.3
+
+# Dependencies whose install/build scripts are allowed to run.
+# - sharp powers Astro's build-time image optimization
+# - esbuild fetches its platform-specific binary
+allowBuilds:
+  esbuild: true
+  sharp: true

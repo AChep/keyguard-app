@@ -89,6 +89,7 @@ class SshAgentRequestProcessingTest {
             keyName: String,
             keyFingerprint: String,
         ) -> Boolean = { _, _, _ -> true },
+        sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
         onGetListRequest: suspend (caller: SshAgentMessages.CallerIdentity?) -> Boolean = { _ -> false },
     ) = SshAgentIpcServer(
         logRepository = logRepository,
@@ -97,6 +98,7 @@ class SshAgentRequestProcessingTest {
             override fun invoke(): Flow<Duration> = approvalWindowFlow
         },
         getSshAgentFilter = sshAgentFilter,
+        sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
         authToken = authToken,
         scope = CoroutineScope(Dispatchers.Unconfined),
         sessionId = sessionId,
@@ -236,7 +238,7 @@ class SshAgentRequestProcessingTest {
     // ================================================================
 
     @Test
-    fun `handleListKeys returns vault locked when vault is locked`() = runTest {
+    fun `handleListKeys returns empty success without prompt when locked cache is empty`() = runTest {
         var getListPromptCount = 0
         val server = createServer(
             onGetListRequest = {
@@ -251,10 +253,47 @@ class SshAgentRequestProcessingTest {
         )
 
         assertEquals(20L, response.id)
-        assertNotNull(response.error)
-        assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error!!.code)
-        assertNull(response.listKeys)
-        assertEquals(1, getListPromptCount)
+        assertNull(response.error)
+        assertEquals(emptyList(), response.listKeys?.keys)
+        assertEquals(0, getListPromptCount)
+    }
+
+    @Test
+    fun `handleListKeys returns exposed cached keys without unlock prompt when vault is locked`() = runTest {
+        var getListPromptCount = 0
+        val publicKey = buildOpenSshPublicKey("ssh-ed25519")
+        val server = createServer(
+            sshAgentPublicKeyRepository = FakeSshAgentPublicKeyRepository(
+                listOf(
+                    SshAgentPublicKeyRow(
+                        publicKeyBlobSha256 = "cached-hash",
+                        publicKey = publicKey,
+                        keyType = "ssh-ed25519",
+                        fingerprint = "SHA256:cached",
+                        name = "Cached key",
+                    ),
+                ),
+            ),
+            onGetListRequest = {
+                getListPromptCount++
+                false
+            },
+        )
+
+        val response = server.handleListKeys(
+            requestId = 25L,
+            req = SshAgentMessages.ListKeysRequest(),
+        )
+
+        val payload = requireNotNull(response.listKeys)
+        val key = payload.keys.single()
+        assertEquals(25L, response.id)
+        assertNull(response.error)
+        assertEquals("Cached key", key.name)
+        assertEquals(publicKey, key.publicKey)
+        assertEquals("ssh-ed25519", key.keyType)
+        assertEquals("SHA256:cached", key.fingerprint)
+        assertEquals(0, getListPromptCount)
     }
 
     @Test
@@ -287,6 +326,43 @@ class SshAgentRequestProcessingTest {
         assertEquals(1, payload.keys.size)
         assertEquals("Primary key", payload.keys.single().name)
         assertEquals(0, getListPromptCount)
+    }
+
+    @Test
+    fun `handleListKeys prefers unlocked vault keys over exposed cache`() = runTest {
+        val cachedPublicKey = buildOpenSshPublicKey("ssh-ed25519")
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSession(
+                    createSshSecret(
+                        name = "Vault key",
+                        publicKey = "ssh-ed25519 AAAA... vault@example",
+                        fingerprint = "SHA256:vault",
+                    ),
+                ),
+            ),
+            sshAgentPublicKeyRepository = FakeSshAgentPublicKeyRepository(
+                listOf(
+                    SshAgentPublicKeyRow(
+                        publicKeyBlobSha256 = "cached-hash",
+                        publicKey = cachedPublicKey,
+                        keyType = "ssh-ed25519",
+                        fingerprint = "SHA256:cached",
+                        name = "Cached key",
+                    ),
+                ),
+            ),
+        )
+
+        val response = server.handleListKeys(
+            requestId = 26L,
+            req = SshAgentMessages.ListKeysRequest(),
+        )
+
+        val payload = requireNotNull(response.listKeys)
+        assertEquals(26L, response.id)
+        assertNull(response.error)
+        assertEquals(listOf("Vault key"), payload.keys.map { it.name })
     }
 
     @Test
@@ -462,6 +538,84 @@ class SshAgentRequestProcessingTest {
         assertNull(response.signData)
         assertEquals(1, approvalPromptCount)
         assertEquals(0, unlockPromptCount)
+    }
+
+    @Test
+    fun `handleSignData uses cached key label while locked but still requires vault`() = runTest {
+        var approvalPromptCount = 0
+        var approvalKeyName: String? = null
+        var approvalKeyFingerprint: String? = null
+        val publicKey = buildOpenSshPublicKey("ssh-ed25519")
+        val server = createServer(
+            sshAgentPublicKeyRepository = FakeSshAgentPublicKeyRepository(
+                listOf(
+                    SshAgentPublicKeyRow(
+                        publicKeyBlobSha256 = "cached-hash",
+                        publicKey = publicKey,
+                        keyType = "ssh-ed25519",
+                        fingerprint = "SHA256:cached",
+                        name = "Cached key",
+                    ),
+                ),
+            ),
+            onApprovalRequest = { _, keyName, keyFingerprint ->
+                approvalPromptCount++
+                approvalKeyName = keyName
+                approvalKeyFingerprint = keyFingerprint
+                true
+            },
+        )
+
+        val response = server.handleSignData(
+            requestId = 47L,
+            req = SshAgentMessages.SignDataRequest(
+                publicKey = "$publicKey requester-comment",
+                data = byteArrayOf(1, 2, 3),
+                flags = 0,
+            ),
+        )
+
+        assertEquals(47L, response.id)
+        assertNotNull(response.error)
+        assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error!!.code)
+        assertEquals(1, approvalPromptCount)
+        assertEquals("Cached key", approvalKeyName)
+        assertEquals("SHA256:cached", approvalKeyFingerprint)
+    }
+
+    @Test
+    fun `handleSignData uses fingerprint fallback when cached key name is absent`() = runTest {
+        var approvalKeyName: String? = null
+        val publicKey = buildOpenSshPublicKey("ssh-ed25519")
+        val server = createServer(
+            sshAgentPublicKeyRepository = FakeSshAgentPublicKeyRepository(
+                listOf(
+                    SshAgentPublicKeyRow(
+                        publicKeyBlobSha256 = "cached-hash",
+                        publicKey = publicKey,
+                        keyType = "ssh-ed25519",
+                        fingerprint = "SHA256:fallback",
+                        name = null,
+                    ),
+                ),
+            ),
+            onApprovalRequest = { _, keyName, _ ->
+                approvalKeyName = keyName
+                true
+            },
+        )
+
+        val response = server.handleSignData(
+            requestId = 48L,
+            req = SshAgentMessages.SignDataRequest(
+                publicKey = publicKey,
+                data = byteArrayOf(1, 2, 3),
+                flags = 0,
+            ),
+        )
+
+        assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error?.code)
+        assertEquals("SHA256:fallback", approvalKeyName)
     }
 
     @Test
@@ -1012,6 +1166,44 @@ class SshAgentRequestProcessingTest {
             }
 
         override fun invoke(): Flow<MasterSession> = state.filterNotNull()
+    }
+
+    private class FakeSshAgentPublicKeyRepository(
+        initialKeys: List<SshAgentPublicKeyRow> = emptyList(),
+    ) : SshAgentPublicKeyRepository {
+        private var keys = initialKeys
+
+        override fun get(): IO<List<SshAgentPublicKeyRow>> = {
+            keys
+        }
+
+        override fun getByPublicKeyBlobSha256(
+            publicKeyBlobSha256: String,
+        ): IO<SshAgentPublicKeyRow?> = {
+            keys.firstOrNull { it.publicKeyBlobSha256 == publicKeyBlobSha256 }
+        }
+
+        override fun getByPublicKey(
+            publicKey: String,
+        ): IO<SshAgentPublicKeyRow?> = {
+            keys.firstOrNull { key ->
+                SshAgentRequestProcessorJvm.publicKeysMatch(key.publicKey, publicKey)
+            }
+        }
+
+        override fun replaceAll(
+            keys: List<SshAgentPublicKeyRow>,
+        ): IO<Unit> = {
+            this.keys = keys
+        }
+
+        override fun clear(): IO<Unit> = {
+            keys = emptyList()
+        }
+
+        override fun clearNames(): IO<Unit> = {
+            keys = keys.map { it.copy(name = null) }
+        }
     }
 
     private fun createUnlockedSession(

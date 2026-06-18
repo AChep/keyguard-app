@@ -1,0 +1,30 @@
+{
+  "name": "keyguard-web",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Static marketing and docs website for Keyguard",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^6.0.3",
+    "@astrojs/sitemap": "^3.7.3",
+    "@tailwindcss/vite": "^4.1.0",
+    "astro": "^6.4.6",
+    "sharp": "^0.35.1",
+    "tailwindcss": "^4.1.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.9",
+    "typescript": "^5.8.0"
+  },
+  "packageManager": "pnpm@11.5.2",
+  "engines": {
+    "node": ">=24.16.0",
+    "pnpm": ">=11"
+  }
+}

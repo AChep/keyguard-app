@@ -5,13 +5,18 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::{Path, PathBuf};
 use tokio::net::UnixListener;
+use tokio::sync::oneshot;
 use tracing::{info, warn};
 
 /// Serves the SSH agent protocol over a Unix domain socket.
 ///
 /// The socket file is created with restrictive permissions (0600) to prevent
 /// other users from connecting. If a stale socket file exists, it is removed.
-pub async fn serve<K: KeyProvider>(agent: KeyguardAgentFactory<K>, socket_path: &Path) -> Result<()> {
+pub async fn serve<K: KeyProvider>(
+    agent: KeyguardAgentFactory<K>,
+    socket_path: &Path,
+    parent_stdin_closed: oneshot::Receiver<()>,
+) -> Result<()> {
     ensure_socket_parent_dir(socket_path)?;
 
     // Remove stale socket file if it exists.
@@ -60,8 +65,8 @@ pub async fn serve<K: KeyProvider>(agent: KeyguardAgentFactory<K>, socket_path: 
         result = ssh_agent_lib::agent::listen(listener, agent) => {
             result.map_err(|e| anyhow::anyhow!("SSH agent server error: {}", e))?;
         }
-        _ = wait_for_shutdown_signal() => {
-            info!("Received shutdown signal, stopping SSH agent listener");
+        reason = wait_for_shutdown_request(parent_stdin_closed) => {
+            info!(reason, "Stopping SSH agent listener");
         }
     }
 
@@ -207,6 +212,13 @@ async fn wait_for_shutdown_signal() {
             _ = tokio::signal::ctrl_c() => {}
             _ = terminate.recv() => {}
         }
+    }
+}
+
+async fn wait_for_shutdown_request(parent_stdin_closed: oneshot::Receiver<()>) -> &'static str {
+    tokio::select! {
+        _ = wait_for_shutdown_signal() => "signal",
+        _ = parent_stdin_closed => "parent_stdin_closed",
     }
 }
 

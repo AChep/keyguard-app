@@ -1,0 +1,238 @@
+@import "tailwindcss";
+
+/* Class-based dark mode: `dark:` utilities apply when <html> has the `dark` class
+   (toggled by the theme script), instead of following prefers-color-scheme directly. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design language: a neutral, Material 3-inspired tonal palette (surface / on-surface /
+   outline / primary), layered with translucent "liquid glass" materials. Colors are kept
+   neutral on purpose; the cyan primary is a restrained accent only. */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+}
+
+:root {
+  /* Neutral tonal surfaces (light) */
+  --surface: #fafafa;
+  --surface-container: #efedea;
+  --surface-container-high: #e7e4e0;
+  --on-surface: #1b1b19;
+  --on-surface-variant: #5b5a54;
+  --outline: #8c8a83;
+  --outline-variant: #dbd8d2;
+
+  /* Restrained accent (light) */
+  --primary: #0fadf1;
+  --on-primary: #ffffff;
+  --primary-container: #c7eaf6;
+  --on-primary-container: #06384a;
+
+  /* Display font for headings & section titles. The DM Sans family (with an
+     optimized fallback) is provided by Astro's Fonts API via --font-dm-sans;
+     see the <Font> component in BaseLayout and the `fonts` config. */
+  --font-display: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* Liquid-glass materials (light) */
+  --glass-bg: rgba(250, 249, 247, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.65);
+  --glass-highlight: rgba(255, 255, 255, 0.7);
+  --glass-shadow: 0 10px 30px -16px rgba(0, 0, 0, 0.3);
+}
+
+.dark {
+  /* Neutral tonal surfaces (dark) */
+  --surface: #000000;
+  --surface-container: #1d1d1d;
+  --surface-container-high: #272726;
+  --on-surface: #e7e5e1;
+  --on-surface-variant: #a8a59e;
+  --outline: #6d6b64;
+  --outline-variant: #34332f;
+
+  /* Restrained accent (dark) */
+  --primary: #77d6ff;
+  --on-primary: #00344a;
+  --primary-container: #0a4a61;
+  --on-primary-container: #c7eaf6;
+
+  /* Liquid-glass materials (dark) */
+  --glass-bg: rgba(0, 0, 0, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+  --glass-shadow: 0 10px 30px -16px rgba(0, 0, 0, 0.6);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Headers & section titles use the DM Sans display font. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+  }
+}
+
+/* --- Liquid-glass surfaces --------------------------------------------------- */
+.glass {
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight), var(--glass-shadow);
+}
+
+/* A full-width translucent bar (nav) — only a hairline at the bottom edge. */
+.glass-bar {
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: blur(8px) saturate(180%);
+  backdrop-filter: blur(8px) saturate(180%);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Elevation shadow for the hero device mockups (floats them above the surface). */
+.device-shadow {
+  box-shadow:
+    0 8px 18px -6px rgba(0, 0, 0, 0.22),
+    0 28px 52px -16px rgba(0, 0, 0, 0.38);
+}
+
+/* Solid card surface with a subtle top highlight (no border, no drop shadow). */
+.surface-card {
+  background-color: var(--surface-container);
+  transition: background-color 0.2s ease;
+}
+a.surface-card:hover {
+  background-color: var(--surface-container-high);
+}
+
+/* Hide scrollbars while keeping the element scrollable (used by the carousel). */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Interactive lift for glass cards. */
+.glass-hover {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.glass-hover:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--glass-border));
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight),
+    0 16px 40px -18px rgba(0, 0, 0, 0.42);
+}
+
+/* --- Theme toggle ------------------------------------------------------------ */
+.theme-icon {
+  display: none;
+}
+html[data-theme-setting="system"] .theme-icon-system,
+html[data-theme-setting="light"] .theme-icon-light,
+html[data-theme-setting="dark"] .theme-icon-dark {
+  display: block;
+}
+
+/* --- Rendered Markdown (docs & feature pages) -------------------------------- */
+.prose-doc {
+  line-height: 1.7;
+  color: var(--on-surface);
+}
+.prose-doc h2 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--on-surface);
+}
+.prose-doc h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--on-surface);
+}
+.prose-doc p {
+  margin-bottom: 1rem;
+}
+.prose-doc ul {
+  margin-bottom: 1rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.prose-doc ol {
+  margin-bottom: 1rem;
+  padding-left: 1.25rem;
+  list-style: decimal;
+}
+.prose-doc li {
+  margin-bottom: 0.35rem;
+}
+.prose-doc a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.prose-doc code {
+  background: var(--surface-container-high);
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}
+.prose-doc pre {
+  background: #1b1b1c;
+  color: #e6e6e3;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+.prose-doc pre code {
+  background: transparent;
+  padding: 0;
+}
+.prose-doc blockquote {
+  border-left: 3px solid var(--outline);
+  padding-left: 1rem;
+  color: var(--on-surface-variant);
+  margin-bottom: 1rem;
+}
+.prose-doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+}
+.prose-doc th,
+.prose-doc td {
+  border: 1px solid var(--outline-variant);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+.prose-doc thead th {
+  background: var(--surface-container);
+  font-weight: 600;
+}
+.prose-doc tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface-container) 45%, transparent);
+}

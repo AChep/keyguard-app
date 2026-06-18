@@ -3,14 +3,14 @@ package com.artemchep.keyguard.common.service.sshagent
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.CompletableDeferred
 import java.util.logging.Logger
-import kotlin.time.Duration
+import kotlin.time.Instant
 
 sealed interface SshAgentRequest {
     val caller: SshAgentMessages.CallerIdentity?
 
     val notificationTag: String?
 
-    val timeout: Duration
+    val expiresAt: Instant
 
     val deferred: CompletableDeferred<Boolean>
 }
@@ -20,11 +20,11 @@ sealed interface SshAgentRequest {
  *
  * The IPC server creates one of these when it receives a sign request
  * and suspends on [deferred] until the user approves or denies via the
- * Compose UI. The [timeout] duration auto-denies if the user doesn't respond.
+ * Compose UI. The request auto-denies at [expiresAt] if the user doesn't respond.
  *
  * @param keyName The display name of the SSH key being used.
  * @param keyFingerprint The fingerprint of the SSH key (e.g. SHA256:...).
- * @param timeout The duration after which the request is automatically denied.
+ * @param expiresAt The instant at which the request is automatically denied.
  * @param deferred Completed with `true` if the user approves, `false` if denied.
  */
 data class SshAgentApprovalRequest(
@@ -32,7 +32,7 @@ data class SshAgentApprovalRequest(
     val keyFingerprint: String,
     override val caller: SshAgentMessages.CallerIdentity?,
     override val notificationTag: String? = null,
-    override val timeout: Duration,
+    override val expiresAt: Instant,
     override val deferred: CompletableDeferred<Boolean>,
 ) : SshAgentRequest
 
@@ -46,14 +46,14 @@ data class SshAgentApprovalRequest(
  * Multiple concurrent list-key requests that need the vault unlocked
  * share a single [SshAgentGetListRequest] (coalesced in [SshAgentManager]).
  *
- * @param timeout The duration after which the request is automatically denied.
+ * @param expiresAt The instant at which the request is automatically denied.
  * @param deferred Completed with `true` if the vault was unlocked, `false` if
- *   the user dismissed or the timeout expired.
+ *   the user dismissed or the request expired.
  */
 data class SshAgentGetListRequest(
     override val caller: SshAgentMessages.CallerIdentity?,
     override val notificationTag: String? = null,
-    override val timeout: Duration,
+    override val expiresAt: Instant,
     override val deferred: CompletableDeferred<Boolean>,
 ) : SshAgentRequest
 

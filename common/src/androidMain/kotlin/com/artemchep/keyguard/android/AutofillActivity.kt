@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.lifecycleScope
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.android.autofill.AutofillStructure2
@@ -42,9 +43,11 @@ import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.theme.Dimens
-import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
+import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.DIAware
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -80,12 +83,12 @@ class AutofillActivity : BaseActivity(), DIAware {
             )
     }
 
-    private fun tryBuildDataset(
+    private suspend fun tryBuildDataset(
         context: Context,
         secret: DSecret,
         forceAddUri: Boolean,
         struct: AutofillStructure2,
-    ): Dataset? {
+    ): Dataset? = withContext(Dispatchers.Default) {
         val views = RemoteViews(context.packageName, R.layout.item_autofill_entry).apply {
             setTextViewText(R.id.autofill_entry_name, secret.name)
             val username = kotlin.run {
@@ -102,13 +105,11 @@ class AutofillActivity : BaseActivity(), DIAware {
                 setViewVisibility(R.id.autofill_entry_username, View.GONE)
             }
         }
-        val fields = runBlocking {
-            DatasetBuilder.fieldsStructData(
-                cipher = secret,
-                structItems = struct.items,
-                getTotpCode = getTotpCode,
-            )
-        }
+        val fields = DatasetBuilder.fieldsStructData(
+            cipher = secret,
+            structItems = struct.items,
+            getTotpCode = getTotpCode,
+        )
 
         fun createDatasetBuilder(): Dataset.Builder {
             val builder = DatasetBuilder.create(
@@ -128,7 +129,7 @@ class AutofillActivity : BaseActivity(), DIAware {
         try {
             val dataset = createDatasetBuilder().build()
             val intent = AutofillFakeAuthActivity.getIntent(
-                this,
+                this@AutofillActivity,
                 dataset = dataset,
                 cipher = secret,
                 forceAddUri = forceAddUri,
@@ -136,7 +137,7 @@ class AutofillActivity : BaseActivity(), DIAware {
             )
             val code = PendingIntents.autofill.obtainId()
             val pi = PendingIntent.getActivity(
-                this,
+                this@AutofillActivity,
                 code,
                 intent,
                 PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT,
@@ -147,7 +148,7 @@ class AutofillActivity : BaseActivity(), DIAware {
             // Ignored
         }
 
-        return try {
+        try {
             builder.build()
         } catch (e: Exception) {
             null // not a single value set
@@ -160,20 +161,22 @@ class AutofillActivity : BaseActivity(), DIAware {
     ) {
         val struct = args.autofillStructure2
             ?: return
-        val dataset = tryBuildDataset(
-            context = this,
-            secret = secret,
-            forceAddUri = forceAddUri,
-            struct = struct,
-        )
-        if (dataset != null) {
-            val intent = Intent().apply {
-                putExtra(AutofillManager.EXTRA_AUTHENTICATION_RESULT, dataset)
+        lifecycleScope.launch {
+            val dataset = tryBuildDataset(
+                context = this@AutofillActivity,
+                secret = secret,
+                forceAddUri = forceAddUri,
+                struct = struct,
+            )
+            if (dataset != null) {
+                val intent = Intent().apply {
+                    putExtra(AutofillManager.EXTRA_AUTHENTICATION_RESULT, dataset)
+                }
+                setResult(RESULT_OK, intent)
+                finish()
+            } else {
+                // TODO: Show a message or something
             }
-            setResult(RESULT_OK, intent)
-            finish()
-        } else {
-            // TODO: Show a message or something
         }
     }
 

@@ -68,10 +68,15 @@ private suspend fun FragmentActivity.launchPrompt(
 
             override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                 super.onAuthenticationSucceeded(result)
-                val platformCipher = result.cryptoObject?.cipher
-                    ?: return
-                val cipher = LeBiometricCipherJvm(platformCipher)
-                event.onComplete(cipher.right())
+                val authResult = result.cryptoObject?.cipher
+                    ?.let(::LeBiometricCipherJvm)
+                    ?.right()
+                    // should never happen
+                    ?: BiometricAuthException(
+                        code = BiometricAuthException.ERROR_UNKNOWN,
+                        message = "Biometric authentication succeeded without a crypto object.",
+                    ).left()
+                event.onComplete(authResult)
             }
         },
     )

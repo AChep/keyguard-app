@@ -1,0 +1,31 @@
+---
+title: "Generator"
+summary: "Generate strong passwords, SSH keys, and email aliases, with custom wordlists and more."
+icon: "🎲"
+group: "Essentials"
+order: 2
+featured: true
+premium: false
+---
+
+import genPassphrase from '../../assets/screenshots/generator-passphrase.png';
+import genCatchEmail from '../../assets/screenshots/generator-catch-email.png';
+
+Generate credentials with ease, from a single random password to a memorable passphrase tuned to your taste. The generator gives you fine control over length, character sets, and structure, so each result fits the site or service you are working with.
+
+What you can generate:
+
+- Strong passwords and passphrases
+- SSH keys
+- Email aliases through [supported email forwarder services](/docs/email-relays/)
+
+<Screenshot src={genPassphrase} caption="Generating a passphrase from the EFF long wordlist, with word count and separator controls." />
+
+Passphrases generator supports uploading custom wordlists, letting you build phrases from your own vocabulary instead of a fixed dictionary. Email aliases come from supported forwarder services or as catch-all addresses on a domain you own, so you can hand out a unique address per signup and keep your real inbox private.
+
+<Screenshot src={genCatchEmail} caption="Generating a catch-all email address on a domain you own." />
+
+### Custom wordlists
+
+See the [generator guide](/docs/generator/#custom-wordlists) for the file format details and
+recommended wordlists.

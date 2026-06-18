@@ -11,6 +11,8 @@
     <string name="listing_description_highlight_multiple_accounts">Suport multi-cont: Aveți mai multe conturi conectate simultan.</string>
     <string name="listing_description_highlight_offline">Gestionare offline: Adăugați elemente și trimiteri, modificați și vizualizați seiful offline.</string>
     <string name="listing_description_highlight_export">Export de date: Exportați elemente individuale sau de organizație, inclusiv atașamentele.</string>
+    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
     <string name="listing_description_highlight_generator">Generator: Creați parole, chei SSH și redirectoare de e-mail, cu suport pentru liste de cuvinte personalizate.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Funcții avansate: Suport pentru comenzi rapide, substituitori de câmpuri, suprascrieri URL și rezolvare inteligentă a conflictelor.</string>

@@ -42,6 +42,7 @@ import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterNotNull
@@ -49,6 +50,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString as getComposeString
@@ -193,12 +195,14 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
         onRetry: () -> Unit,
     ) {
         val (response, local) = runCatching {
-            PasskeyUtils.withProcessingMinTime {
-                processUnlockedVault(
-                    session = session,
-                    preparedRequest = preparedRequest,
-                    userVerified = true,
-                )
+            withContext(Dispatchers.Default) {
+                PasskeyUtils.withProcessingMinTime {
+                    processUnlockedVault(
+                        session = session,
+                        preparedRequest = preparedRequest,
+                        userVerified = true,
+                    )
+                }
             }
         }.getOrElse {
             recordException(it)
@@ -213,7 +217,7 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
         }
 
         // Add the credential
-        val result = kotlin.run {
+        val result = withContext(Dispatchers.Default) {
             val request = AddCredentialCipherRequest(
                 cipherId = cipher.id,
                 data = local,
@@ -400,7 +404,9 @@ class PasskeyCreateActivity : BaseActivity(), DIAware {
             uiStateSink.value = UiState.Loading
 
             val preparedRequest = runCatching {
-                prepareUnlockedVault(session)
+                withContext(Dispatchers.Default) {
+                    prepareUnlockedVault(session)
+                }
             }.getOrElse {
                 it.throwIfFatalOrCancellation()
                 recordException(it)

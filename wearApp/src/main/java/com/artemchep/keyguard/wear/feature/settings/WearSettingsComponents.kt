@@ -5,11 +5,17 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.movableContentOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.FilledTonalButton
@@ -30,8 +36,10 @@ class WearSettingsComponents : SettingPaneComponents {
     override fun KgAction(
         icon: ImageVector?,
         subIcon: ImageVector?,
+        badge: String?,
         title: @Composable RowScope.() -> Unit,
         text: (@Composable RowScope.() -> Unit)?,
+        contentColor: Color,
         trailing: (@Composable RowScope.() -> Unit)?,
         footer: (@Composable ColumnScope.() -> Unit)?,
         onClick: (() -> Unit)?,
@@ -59,12 +67,32 @@ class WearSettingsComponents : SettingPaneComponents {
             icon = if (icon != null) {
                 // composable
                 {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(ButtonDefaults.IconSize),
-                    )
+                    val content = remember(icon, subIcon) {
+                        movableContentOf {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(ButtonDefaults.IconSize),
+                            )
+                        }
+                    }
+
+                    if (badge != null) {
+                        BadgedBox(
+                            badge = {
+                                Badge {
+                                    Text(
+                                        text = badge,
+                                    )
+                                }
+                            },
+                        ) {
+                            content()
+                        }
+                    } else {
+                        content()
+                    }
                 }
             } else {
                 null

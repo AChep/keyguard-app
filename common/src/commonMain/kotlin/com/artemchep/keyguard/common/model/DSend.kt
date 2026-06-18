@@ -7,7 +7,6 @@ import kotlin.jvm.JvmName
 import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.Color
 import arrow.optics.optics
-import com.artemchep.keyguard.common.util.flowOfTime
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -15,11 +14,10 @@ import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardNote
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.generateAccentColors
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -100,14 +98,22 @@ data class DSend(
     override fun accountId(): String = accountId
 }
 
-val DSend.expiredFlow: StateFlow<Boolean>
-    get() = flowOfTime()
-        .map { expired }
-        .stateIn(
-            scope = GlobalScope,
-            started = SharingStarted.WhileSubscribed(1000L),
-            initialValue = expired,
-        )
+val DSend.expiredFlow: Flow<Boolean>
+    get() {
+        val expirationDate = expirationDate
+            ?: return flowOf(false)
+        return flow {
+            val now = Clock.System.now()
+            if (expirationDate <= now) {
+                emit(true)
+                return@flow
+            }
+
+            emit(false)
+            delay(expirationDate - now)
+            emit(true)
+        }
+    }
 
 val DSend.expired: Boolean
     get() = expirationDate != null &&

@@ -1,0 +1,25 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  doc: CollectionEntry<'docs'>;
+  /** id of the currently rendered doc; undefined on the docs index */
+  currentId?: string;
+}
+
+const { doc, currentId } = Astro.props;
+const active = doc.id === currentId;
+---
+
+<a
+  href={`/docs/${doc.id}/`}
+  aria-current={active ? 'page' : undefined}
+  class:list={[
+    'rounded-xl px-3 py-2 transition',
+    active
+      ? 'bg-primary-container font-semibold text-on-primary-container'
+      : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface',
+  ]}
+>
+  {doc.data.title}
+</a>

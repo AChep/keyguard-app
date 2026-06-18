@@ -6,7 +6,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
-import kotlinx.coroutines.coroutineScope
+import java.io.File
 import org.kodein.di.DirectDI
 
 class ExecuteCommandJvm(
@@ -83,25 +83,16 @@ private class ExecuteCommandSh : ExecuteCommand {
     }
 }
 
-/**
- * Executes the given command, handling the exit
- * code and throwing an exception if the program
- * had failed.
- */
-private suspend fun executeCommand(array: Array<String>) {
-    val process = run {
-        Runtime.getRuntime().exec(array)
-    }
-    coroutineScope {
-        val errorText = runCatching {
-            process.errorStream.reader().use {
-                it.readText()
-            }.trim()
-        }.getOrNull()
+private fun executeCommand(array: Array<String>) {
+    val nullDevice = getNullDevice()
+    ProcessBuilder(*array)
+        .redirectInput(ProcessBuilder.Redirect.from(nullDevice))
+        .redirectOutput(ProcessBuilder.Redirect.to(nullDevice))
+        .redirectError(ProcessBuilder.Redirect.to(nullDevice))
+        .start()
+}
 
-        val exitCode = process.waitFor()
-        if (exitCode != 0) {
-            throw RuntimeException(errorText)
-        }
-    }
+private fun getNullDevice(): File = when (CurrentPlatform) {
+    is Platform.Desktop.Windows -> File("NUL")
+    else -> File("/dev/null")
 }

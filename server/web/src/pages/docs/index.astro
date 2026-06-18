@@ -1,0 +1,39 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+import { getDocGroups } from '../../lib/docs';
+
+const groups = await getDocGroups();
+---
+
+<DocsLayout title="Documentation" description="Guides and answers for using Keyguard.">
+  <p>Browse the guides below to get the most out of Keyguard.</p>
+  {
+    groups.map((group) => (
+      <section>
+        <h2>{group.label}</h2>
+        <ul>
+          {group.entries.map((entry) =>
+            entry.kind === 'doc' ? (
+              <li>
+                <a href={`/docs/${entry.doc.id}/`}>{entry.doc.data.title}</a>
+                {entry.doc.data.description && <> — {entry.doc.data.description}</>}
+              </li>
+            ) : (
+              <li>
+                {entry.subsection.label}
+                <ul>
+                  {entry.subsection.docs.map((doc) => (
+                    <li>
+                      <a href={`/docs/${doc.id}/`}>{doc.data.title}</a>
+                      {doc.data.description && <> — {doc.data.description}</>}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ),
+          )}
+        </ul>
+      </section>
+    ))
+  }
+</DocsLayout>

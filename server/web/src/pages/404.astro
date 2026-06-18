@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Page not found"
+  description="The page you were looking for doesn't exist or has moved."
+>
+  <section class="mx-auto flex max-w-3xl flex-col items-center px-6 py-24 text-center sm:py-32">
+    <p class="text-7xl font-extrabold tracking-tight text-primary sm:text-8xl">404</p>
+    <h1 class="mt-6 text-balance text-3xl font-extrabold tracking-tight text-on-surface sm:text-4xl">
+      This page took a wrong turn
+    </h1>
+    <p class="mx-auto mt-4 max-w-xl text-lg text-on-surface-variant">
+      The page you were looking for doesn't exist or has moved. Check the URL, or
+      head back and try one of the links below.
+    </p>
+    <div class="mt-9 flex flex-wrap items-center justify-center gap-4">
+      <a
+        href="/"
+        class="rounded-full bg-primary px-7 py-3 text-base font-semibold text-on-primary shadow-sm transition hover:opacity-90"
+      >
+        Go home
+      </a>
+      <a
+        href="/docs/"
+        class="glass glass-hover inline-flex items-center gap-2 rounded-full px-7 py-3 text-base font-semibold text-on-surface"
+      >
+        Browse docs
+      </a>
+    </div>
+  </section>
+</BaseLayout>

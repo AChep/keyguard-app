@@ -12,21 +12,16 @@ import com.artemchep.keyguard.common.service.download.DownloadWriter
 import com.artemchep.keyguard.common.service.download.writeBytes
 import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.platform.toJavaFile
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.withContext
 import kotlinx.io.asOutputStream
 import okhttp3.OkHttpClient
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.File
-import java.io.OutputStream
 
 open class DownloadTaskJvm(
     private val cacheDirProvider: CacheDirProvider,
@@ -57,7 +52,7 @@ open class DownloadTaskJvm(
         writer: DownloadWriter,
     ): Flow<DownloadProgress> = flow {
         // If we do not have to do any decryption, then we do not need
-        // to create a temporarily file for the download.
+        // to create a temporary file for the download.
         if (key == null) {
             emit(DownloadProgress.Loading())
             // 1. Save the data into the writer.
@@ -161,47 +156,22 @@ open class DownloadTaskJvm(
     private suspend fun File.decryptAndMove(
         key: ByteArray?,
         writer: DownloadWriter.LocalPathWriter,
-    ) = withContext(Dispatchers.IO) {
-        val dst = writer.path.toJavaFile()
-        dst.parentFile?.mkdirs()
-        dst.delete()
-
-        dst.outputStream().use { stream ->
-            decryptAndMove(
-                key = key,
-                stream = stream,
-            )
-        }
-    }
+    ) = copyDecryptedToLocalFileAfterVerification(
+        dst = writer.path.toJavaFile(),
+        key = key,
+        fileEncryptor = fileEncryptor,
+    )
 
     private suspend fun File.decryptAndMove(
         key: ByteArray?,
         writer: DownloadWriter.SinkWriter,
-    ) = withContext(Dispatchers.IO) {
+    ) {
         val stream = writer.sink.asOutputStream()
-        decryptAndMove(
+        copyDecryptedToSinkAfterVerification(
             key = key,
-            stream = stream,
+            fileEncryptor = fileEncryptor,
+            output = stream,
         )
         writer.sink.flush()
-    }
-
-    private suspend fun File.decryptAndMove(
-        key: ByteArray?,
-        stream: OutputStream,
-    ) = withContext(Dispatchers.IO) {
-        inputStream()
-            .use { fis ->
-                if (key != null) {
-                    fileEncryptor
-                        .decode(
-                            input = fis,
-                            key = key,
-                        )
-                        .use { i -> i.copyTo(stream) }
-                } else {
-                    fis.copyTo(stream)
-                }
-            }
     }
 }

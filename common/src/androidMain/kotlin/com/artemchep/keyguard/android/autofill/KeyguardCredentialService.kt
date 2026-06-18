@@ -30,6 +30,8 @@ import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.combineIo
+import com.artemchep.keyguard.common.io.dispatchOn
+import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
@@ -93,17 +95,20 @@ open class KeyguardCredentialService : CredentialProviderService(), DIAware {
                 throw e
             }
 
-            val response = ioEffect { processCreateCredentialsRequest(request) }
+            ioEffect { processCreateCredentialsRequest(request) }
                 .crashlyticsTap { e ->
                     e.takeIf { it !is CreateCredentialException }
                 }
                 .bind()
-            if (cancellationSignal.isCanceled) {
-                return@ioEffect
-            }
-
-            callback.onResult(response)
         }
+            .dispatchOn(Dispatchers.Default)
+            .effectTap(Dispatchers.Main) { response ->
+                if (cancellationSignal.isCanceled) {
+                    return@effectTap
+                }
+
+                callback.onResult(response)
+            }
             // Something went wrong, report back the
             // status to the credentials manager.
             .handleErrorTap {
@@ -168,19 +173,22 @@ open class KeyguardCredentialService : CredentialProviderService(), DIAware {
                 throw e
             }
 
-            val response = ioEffect {
+            ioEffect {
                 credentialProviderGetRequestHandler.process(request)
             }
                 .crashlyticsTap { e ->
                     e.takeIf { it !is GetCredentialException }
                 }
                 .bind()
-            if (cancellationSignal.isCanceled) {
-                return@ioEffect
-            }
-
-            callback.onResult(response)
         }
+            .dispatchOn(Dispatchers.Default)
+            .effectTap(Dispatchers.Main) { response ->
+                if (cancellationSignal.isCanceled) {
+                    return@effectTap
+                }
+
+                callback.onResult(response)
+            }
             // Something went wrong, report back the
             // status to the credentials manager.
             .handleErrorTap {

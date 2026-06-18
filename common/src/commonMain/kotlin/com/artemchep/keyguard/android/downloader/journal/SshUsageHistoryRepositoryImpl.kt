@@ -102,6 +102,7 @@ class SshUsageHistoryRepositoryImpl(
 }
 
 private fun SshUsageHistory.toDomain(): DSshUsageHistory = DSshUsageHistory(
+    id = id.toString(),
     cipherId = cipherId,
     sessionId = sessionId,
     caller = caller,

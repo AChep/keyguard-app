@@ -212,6 +212,10 @@ class TotpServiceImpl(
         counter: Long,
         algorithm: CryptoHashAlgorithm,
     ): Int {
+        require(algorithm != CryptoHashAlgorithm.MD5) {
+            "MD5 is not supported for HOTP/TOTP."
+        }
+
         // The counter value is the input parameter 'message' to the HMAC algorithm.
         // It must be represented by a byte array with the length of a long (8 bytes).
         val messageSize = 8
@@ -225,6 +229,13 @@ class TotpServiceImpl(
             data = message,
             algorithm = algorithm,
         )
+        // RFC 4226 dynamic truncation is defined over a 20-byte HMAC-SHA-1
+        // result. The offset can be 0..15 and selects four consecutive bytes,
+        // so shorter outputs can point past the digest instead of producing a
+        // valid HOTP value.
+        require(hash.size >= 20) {
+            "HOTP hash output is too short for dynamic truncation."
+        }
 
         // The value of the offset is the lower 4 bits of the last byte of the hash
         // (0x0F = 0000 1111).
@@ -279,12 +290,7 @@ class TotpServiceImpl(
         offset: Int,
     ): TotpCode {
         val period = token.period
-        // As per the spec, the mOTP code should be generated each 10 seconds and
-        // valid for the next 3 minutes. This sucks for the users tho, as he does not know
-        // the latter.
-        val actualPeriod = 10L
-        val multiplier = period / actualPeriod // must be recoverable
-        val time = (roundToPeriodInSeconds(timestamp, period) + offset) * multiplier
+        val time = roundToPeriodInSeconds(timestamp, period) + offset
 
         // Generate a hash from the data.
         val data = buildString {
@@ -306,7 +312,7 @@ class TotpServiceImpl(
                 expiration = kotlin.run {
                     // Get the beginning of the next period as an
                     // expiration date.
-                    val exp = (time / multiplier + 1L) * period
+                    val exp = (time + 1L) * period
                     Instant.fromEpochSeconds(exp)
                 },
                 duration = with(Duration) { period.seconds },

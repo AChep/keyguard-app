@@ -36,6 +36,9 @@ private fun wearVaultViewItemRenderers(
     switch = { modifier, item -> WearVaultViewSwitchItem(modifier, item, transformation = transformation) },
     uri = { modifier, item -> WearVaultViewUriItem(modifier, item, transformation = transformation) },
     button = { modifier, item -> WearVaultViewButtonItem(modifier, item, transformation = transformation) },
+    planeta = { modifier, item ->
+        // do nothing for now
+    },
     label = { modifier, item -> WearVaultViewLabelItem(modifier, item, transformation = transformation) },
     spacer = { modifier, item -> WearVaultViewSpacerItem(modifier, item, transformation = transformation) },
     note = { modifier, item -> WearVaultViewNoteItem(modifier, item, transformation = transformation) },

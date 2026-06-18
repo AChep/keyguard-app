@@ -1,0 +1,48 @@
+---
+interface Props {
+  label: string;
+  code: string;
+}
+const { label, code } = Astro.props;
+---
+
+<div class="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-high">
+  <div class="flex items-center justify-between gap-3 border-b border-outline-variant px-4 py-2">
+    <span class="text-xs font-medium text-on-surface-variant">{label}</span>
+    <button
+      type="button"
+      class="copy-btn inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-on-surface-variant transition hover:text-primary"
+      data-code={code}
+      aria-label={`Copy ${label} command`}
+    >
+      <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </svg>
+      <span class="copy-label">Copy</span>
+    </button>
+  </div>
+  <pre class="overflow-x-auto px-4 py-3 text-sm leading-relaxed"><code class="font-mono text-on-surface">{code}</code></pre>
+</div>
+
+<script>
+  for (const btn of document.querySelectorAll<HTMLButtonElement>('.copy-btn')) {
+    btn.addEventListener('click', async () => {
+      const code = btn.dataset.code ?? '';
+      try {
+        await navigator.clipboard.writeText(code);
+      } catch {
+        return;
+      }
+      const label = btn.querySelector('.copy-label');
+      if (!label) return;
+      const original = label.textContent;
+      label.textContent = 'Copied';
+      btn.classList.add('text-primary');
+      setTimeout(() => {
+        label.textContent = original;
+        btn.classList.remove('text-primary');
+      }, 1500);
+    });
+  }
+</script>

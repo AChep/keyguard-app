@@ -10,14 +10,13 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import org.jetbrains.skiko.currentSystemTheme
+import com.artemchep.dbus.portal.PortalColorScheme
+import com.artemchep.dbus.portal.observePortalColorSchemeDbus
 import com.artemchep.keyguard.platform.Platform
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.withContext
 import org.jetbrains.skiko.SystemTheme
-import java.util.concurrent.TimeUnit
+import org.jetbrains.skiko.currentSystemTheme
 
 @Composable
 actual fun Platform.hasDarkThemeEnabled(): Boolean = when (this) {
@@ -35,34 +34,20 @@ private fun isDesktopInDarkTheme(): Boolean = rememberIsDarkThemeWithAutoUpdate(
 }
 
 @Composable
-private fun isLinuxPortalInDarkTheme(): Boolean = rememberIsDarkThemeWithAutoUpdate(
-    initialValue = isSystemInDarkTheme(),
-) {
-    readLinuxPortalInDarkTheme()
-}
-
-private suspend fun readLinuxPortalInDarkTheme() = withContext(Dispatchers.IO) {
-    val command = listOf(
-        "gdbus",
-        "call",
-        "--session",
-        "--dest=org.freedesktop.portal.Desktop",
-        "--object-path=/org/freedesktop/portal/desktop",
-        "--method=org.freedesktop.portal.Settings.Read",
-        "org.freedesktop.appearance",
-        "color-scheme",
-    )
-    val pb = ProcessBuilder(command)
-        .redirectError(ProcessBuilder.Redirect.INHERIT)
-    val process = pb.start().apply {
-        waitFor(60, TimeUnit.MINUTES)
+private fun isLinuxPortalInDarkTheme(): Boolean {
+    val fallback = isSystemInDarkTheme()
+    var portalColorScheme by remember {
+        mutableStateOf<PortalColorScheme?>(null)
     }
 
-    val result = process.inputStream.reader().readText()
-    // 0: No preference
-    // 1: Prefer dark appearance
-    // 2: Prefer light appearance
-    result[10] == '1'
+    LaunchedEffect(Unit) {
+        observePortalColorSchemeDbus()
+            .collect {
+                portalColorScheme = it
+            }
+    }
+
+    return portalColorScheme.resolve(fallback)
 }
 
 @Composable
@@ -96,3 +81,11 @@ private fun rememberIsDarkThemeWithAutoUpdate(
 
     return currentTheme
 }
+
+private fun PortalColorScheme?.resolve(fallback: Boolean): Boolean =
+    when (this) {
+        PortalColorScheme.NO_PREFERENCE -> fallback
+        PortalColorScheme.PREFER_DARK -> true
+        PortalColorScheme.PREFER_LIGHT -> false
+        null -> fallback
+    }

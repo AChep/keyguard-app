@@ -20,9 +20,11 @@ import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.wear.feature.WearCreateVaultScreen
 import com.artemchep.keyguard.wear.feature.WearLoadingScreen
 import com.artemchep.keyguard.wear.feature.WearUnlockVaultScreen
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import org.kodein.di.instance
 
@@ -50,10 +52,12 @@ class WearPasskeyGetUnlockActivity : WearCredentialProviderActivity() {
             val userVerified = session.createdAt > startedAt &&
                     session.origin is MasterSession.Key.Authenticated
             val response = runCatching {
-                processUnlockedVault(
-                    session = session,
-                    userVerified = userVerified,
-                )
+                withContext(Dispatchers.Default) {
+                    processUnlockedVault(
+                        session = session,
+                        userVerified = userVerified,
+                    )
+                }
             }.getOrElse {
                 recordException(it)
 

@@ -1,0 +1,39 @@
+---
+title: "Watchtower"
+summary: "Continuously audits your vault for leaked, reused, and weak passwords and other risks."
+icon: "🛡️"
+group: "Security"
+order: 5
+featured: true
+premium: false
+---
+
+import watchtowerOverview from '../../assets/screenshots/watchtower-overview.png';
+import reusedPasswords from '../../assets/screenshots/watchtower-reused-passwords.png';
+import mergeDuplicates from '../../assets/screenshots/watchtower-merge-duplicates.png';
+
+Watchtower scans every item in your vault and surfaces the security risks and maintance issues that quietly accumulate over time, so you can fix them before they become a problem. The audit runs continuously and groups its findings, letting you focus on the issues that matter most and resolve them one by one.
+
+<Screenshot src={watchtowerOverview} caption="The Watchtower overview — a password-strength summary and security issues grouped by category with counts." />
+
+## What it checks
+
+- Pwned (leaked) passwords
+- Reused passwords
+- Vulnerable or weak passwords
+- Inactive two-factor authentication
+- Inactive passkeys
+- Unsecured websites (http://)
+- Duplicate items
+- Incomplete items
+- Expiring items
+
+Selecting any category opens the affected items, where you can update a password, switch a site to https, or clean up duplicates directly. The [Watchtower guide](/docs/watchtower/) documents every check and how each one respects your privacy.
+
+<Screenshot src={reusedPasswords} caption="The reused-passwords list, grouping the accounts that share the same credential." />
+
+## Clean up duplicates
+
+When Watchtower flags duplicate items, you can resolve them on the spot: pick the copies and choose **Merge into…**, and Keyguard reconciles them into a single entry — see [bulk actions](/features/bulk-actions/) for the merge editor.
+
+<Screenshot src={mergeDuplicates} caption="Duplicate logins flagged by Watchtower, with the Merge into… action ready." />

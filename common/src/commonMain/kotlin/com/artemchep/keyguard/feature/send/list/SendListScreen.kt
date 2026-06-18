@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.LocalAppMode
 import com.artemchep.keyguard.common.model.DSend
+import com.artemchep.keyguard.common.model.expired
 import com.artemchep.keyguard.common.model.expiredFlow
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.EmptySearchView
@@ -546,9 +547,9 @@ fun VaultSendItemText(
     shapeState: Int,
 ) {
     val localState by item.localStateFlow.collectAsState()
-    val expiredState = remember(item.source) {
+    val expiredState = remember(item.source.expirationDate) {
         item.source.expiredFlow
-    }.collectAsState()
+    }.collectAsState(initial = item.source.expired)
 
     val onClick = localState.selectableItemState.onClick
     // fallback to default

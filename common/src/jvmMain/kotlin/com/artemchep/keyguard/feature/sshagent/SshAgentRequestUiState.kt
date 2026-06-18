@@ -48,8 +48,8 @@ fun rememberSshAgentRequestUiState(
         val currentRequest = (request as? Loadable.Ok)?.value
         if (currentRequest != null) return
 
-        val nextRequest = if (queue.isEmpty()) null else queue.removeFirst()
-        if (nextRequest == null) return
+        val nextRequest = queue.removeFirstUnresolvedRequestOrNull()
+            ?: return
         request = Loadable.Ok(nextRequest)
     }
 
@@ -68,11 +68,8 @@ fun rememberSshAgentRequestUiState(
                 transitionJob = scope.launch {
                     request = Loadable.Loading
                     delay(transitionDelay)
-                    request = if (queue.isEmpty()) {
-                        null
-                    } else {
-                        Loadable.Ok(queue.removeFirst())
-                    }
+                    request = queue.removeFirstUnresolvedRequestOrNull()
+                        ?.let { Loadable.Ok(it) }
                 }
             }
         }
@@ -86,4 +83,14 @@ fun rememberSshAgentRequestUiState(
             )
         }
     }
+}
+
+internal fun ArrayDeque<SshAgentRequest>.removeFirstUnresolvedRequestOrNull(): SshAgentRequest? {
+    while (isNotEmpty()) {
+        val request = removeFirst()
+        if (!request.deferred.isCompleted) {
+            return request
+        }
+    }
+    return null
 }

@@ -12,7 +12,6 @@ import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.platform.toJavaFile
 import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -24,7 +23,6 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -36,7 +34,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -245,33 +242,19 @@ abstract class DownloadClientJvm(
                     )
                 }
 
-                kotlin.runCatching {
-                    cacheFile.decryptAndMove(
-                        dst = file,
-                        key = fileKey,
-                    )
-                }.fold(
-                    onFailure = { e ->
-                        e.printStackTrace()
-                        DownloadProgress.Complete(e.left())
-                    },
-                    onSuccess = {
-                        DownloadProgress.Complete(file.toURI().toString().right())
-                    },
+                cacheFile.decryptAndMove(
+                    dst = file,
+                    key = fileKey,
                 )
+                DownloadProgress.Complete(file.toURI().toString().right())
             } catch (e: Exception) {
-                // Delete cache file in case of
-                // an error.
+                e.throwIfFatalOrCancellation()
+                e.printStackTrace()
+                DownloadProgress.Complete(e.left())
+            } finally {
                 runCatching {
                     cacheFile.delete()
                 }
-
-                e.throwIfFatalOrCancellation()
-
-                val result = e.left()
-                DownloadProgress.Complete(
-                    result = result,
-                )
             }
             send(result)
         }
@@ -282,38 +265,12 @@ abstract class DownloadClientJvm(
             emit(initialState)
         }
 
-    // TODO: What if SRC file is DST file??
     private suspend fun File.decryptAndMove(
         dst: File,
         key: ByteArray? = null,
-    ) = withContext(Dispatchers.IO) {
-        // If there's nothing to decrypt and the file
-        // matches destination then we are done here.
-        val sameFile = this@decryptAndMove == dst
-        if (sameFile && key == null) {
-            return@withContext
-        }
-
-        dst.parentFile?.mkdirs()
-
-        if (key != null) {
-            dst.delete()
-            inputStream()
-                .use { fis ->
-                    val ctis = fileEncryptor.decode(
-                        input = fis,
-                        key = key,
-                    )
-                    ctis.use { i ->
-                        dst.outputStream().use { o ->
-                            i.copyTo(o)
-                        }
-                    }
-                }
-        } else {
-            copyTo(dst, overwrite = true)
-        }
-
-        if (!sameFile) this@decryptAndMove.delete()
-    }
+    ) = copyDecryptedToLocalFileAfterVerification(
+        dst = dst,
+        key = key,
+        fileEncryptor = fileEncryptor,
+    )
 }

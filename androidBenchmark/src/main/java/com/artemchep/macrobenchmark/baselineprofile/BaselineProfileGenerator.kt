@@ -8,12 +8,12 @@ import com.artemchep.macrobenchmark.PACKAGE_NAME
 import com.artemchep.test.feature.coreFeature
 import com.artemchep.test.feature.ensureGeneratorScreen
 import com.artemchep.test.feature.ensureMainScreen
-import com.artemchep.test.feature.ensureSendsScreen
 import com.artemchep.test.feature.ensureSettingsScreen
 import com.artemchep.test.feature.ensureWatchtowerScreen
 import com.artemchep.test.feature.generatorFeature
 import com.artemchep.test.feature.sendsFeature
 import com.artemchep.test.feature.settingsFeature
+import com.artemchep.test.feature.trySendsScreen
 import com.artemchep.test.feature.watchtowerFeature
 import com.artemchep.test.util.ScreenRecorderTestWatcher
 import com.artemchep.test.util.wait
@@ -53,7 +53,7 @@ class BaselineProfileGenerator {
     }
 
     private fun MacrobenchmarkScope.walkThroughSends() {
-        device.sendsFeature.ensureSendsScreen()
+        device.sendsFeature.trySendsScreen()
         device.wait(2_000L)
     }
 

@@ -50,6 +50,9 @@ import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageD
 import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageRepositoryImpl
 import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.SqlDelightVaultSettingsKeyValueStore
+import com.artemchep.keyguard.common.service.licensekey.LicenseManager
+import com.artemchep.keyguard.common.service.licensekey.impl.LicenseManagerImpl
+import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.settings.VaultSettingsReadRepository
 import com.artemchep.keyguard.common.service.settings.VaultSettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.settings.impl.VaultSettingsRepositoryImpl
@@ -128,6 +131,9 @@ import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.GetHibpApiToken
+import com.artemchep.keyguard.common.usecase.GetClaimedLicenseEntitlement
+import com.artemchep.keyguard.common.usecase.GetLicenseEntitlement
+import com.artemchep.keyguard.common.usecase.GetLicensePremium
 import com.artemchep.keyguard.common.usecase.GetMetas
 import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
 import com.artemchep.keyguard.common.usecase.GetOrganizations
@@ -160,7 +166,9 @@ import com.artemchep.keyguard.common.usecase.PutAccountNameById
 import com.artemchep.keyguard.common.usecase.PutBarcodeUsageHistory
 import com.artemchep.keyguard.common.usecase.PutHibpApiToken
 import com.artemchep.keyguard.common.usecase.PutProfileHidden
+import com.artemchep.keyguard.common.usecase.RedeemLicenseKey
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
+import com.artemchep.keyguard.common.usecase.RefreshLicense
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.RemoveAccounts
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
@@ -174,6 +182,7 @@ import com.artemchep.keyguard.common.usecase.RemoveSendById
 import com.artemchep.keyguard.common.usecase.RemoveSshUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveUrlBlockById
 import com.artemchep.keyguard.common.usecase.RemoveUrlOverrideById
+import com.artemchep.keyguard.common.usecase.RemoveLicense
 import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.common.usecase.ResetAllWatchtowerAlert
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
@@ -184,6 +193,7 @@ import com.artemchep.keyguard.common.usecase.SendToolboxImpl
 import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.SyncAll
 import com.artemchep.keyguard.common.usecase.SyncById
+import com.artemchep.keyguard.common.usecase.SyncLicense
 import com.artemchep.keyguard.common.usecase.TrashCipherByFolderId
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
@@ -207,6 +217,9 @@ import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
 import com.artemchep.keyguard.common.usecase.impl.GetEnvSendUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.GetHibpApiTokenImpl
+import com.artemchep.keyguard.common.usecase.impl.GetClaimedLicenseEntitlementImpl
+import com.artemchep.keyguard.common.usecase.impl.GetLicenseEntitlementImpl
+import com.artemchep.keyguard.common.usecase.impl.GetLicensePremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.GetShouldRequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchIndexImpl
@@ -216,6 +229,10 @@ import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryByIdImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.PutBarcodeUsageHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.PutHibpApiTokenImpl
+import com.artemchep.keyguard.common.usecase.impl.RedeemLicenseKeyImpl
+import com.artemchep.keyguard.common.usecase.impl.RefreshLicenseImpl
+import com.artemchep.keyguard.common.usecase.impl.RemoveLicenseImpl
+import com.artemchep.keyguard.common.usecase.impl.SyncLicenseImpl
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerBroadUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerDuplicateUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerExpiring
@@ -411,6 +428,33 @@ fun DI.Builder.createSubDi2(
     }
     bindProvider<VaultSettingsReadWriteRepository> {
         instance<VaultSettingsRepositoryImpl>()
+    }
+    bindSingleton<LicenseManager> {
+        LicenseManagerImpl(this)
+    }
+    bindSingleton<LicenseSyncer>() {
+        LicenseSyncer(this)
+    }
+    bindSingleton<GetLicenseEntitlement> {
+        GetLicenseEntitlementImpl(this)
+    }
+    bindSingleton<GetLicensePremium>(overrides = true) {
+        GetLicensePremiumImpl(this)
+    }
+    bindSingleton<GetClaimedLicenseEntitlement> {
+        GetClaimedLicenseEntitlementImpl(this)
+    }
+    bindSingleton<RedeemLicenseKey> {
+        RedeemLicenseKeyImpl(this)
+    }
+    bindSingleton<RefreshLicense> {
+        RefreshLicenseImpl(this)
+    }
+    bindSingleton<SyncLicense> {
+        SyncLicenseImpl(this)
+    }
+    bindSingleton<RemoveLicense> {
+        RemoveLicenseImpl(this)
     }
     bindSingleton<HibpRepository> {
         HibpRepositoryImpl(this)

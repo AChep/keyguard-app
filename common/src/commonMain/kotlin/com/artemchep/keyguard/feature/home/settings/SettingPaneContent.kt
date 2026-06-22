@@ -1,17 +1,14 @@
 package com.artemchep.keyguard.feature.home.settings
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
@@ -90,6 +87,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingPermissionP
 import com.artemchep.keyguard.feature.home.settings.component.settingPermissionWriteExternalStorageProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingPrivacyPolicyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingRateAppProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingRedeemLicenseProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingRequireMasterPasswordProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingResetWatchtowerAlerts
 import com.artemchep.keyguard.feature.home.settings.component.settingRotateDeviceId
@@ -107,6 +105,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSet
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsDebug
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsPlayStoreProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingLicenseClaimProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeExpressiveProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeUseAmoledDarkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutLandscapeProvider
@@ -127,8 +126,6 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
-import com.artemchep.keyguard.ui.theme.GlobalExpressive
-import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import kotlinx.collections.immutable.toImmutableList
@@ -239,6 +236,8 @@ object Setting {
     const val SUBSCRIPTIONS = "subscriptions"
     const val SUBSCRIPTIONS_IN_STORE = "subscriptions_in_store"
     const val SUBSCRIPTIONS_DEBUG = "subscriptions_debug"
+    const val LICENSE_CLAIM = "license_claim"
+    const val LICENSE_REDEEM = "license_redeem"
     const val SCREEN_DELAY = "screen_delay"
     const val KEEP_SCREEN_ON = "keep_screen_on"
 }
@@ -351,6 +350,8 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.SUBSCRIPTIONS to ::settingSubscriptionsProvider,
     Setting.SUBSCRIPTIONS_IN_STORE to ::settingSubscriptionsPlayStoreProvider,
     Setting.SUBSCRIPTIONS_DEBUG to ::settingSubscriptionsDebug,
+    Setting.LICENSE_CLAIM to ::settingLicenseClaimProvider,
+    Setting.LICENSE_REDEEM to ::settingRedeemLicenseProvider,
     Setting.SCREEN_DELAY to ::settingScreenDelay,
     Setting.KEEP_SCREEN_ON to ::settingKeepScreenOnProvider,
 )

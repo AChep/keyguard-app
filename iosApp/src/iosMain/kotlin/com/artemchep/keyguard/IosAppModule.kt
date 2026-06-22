@@ -1,29 +1,23 @@
 package com.artemchep.keyguard
 
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.input.key.KeyEvent
 import arrow.core.Either
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioUnit
-import com.artemchep.keyguard.common.io.toSource
 import com.artemchep.keyguard.common.model.BarcodeImageRequest
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.DNotification
-import com.artemchep.keyguard.common.model.DNotificationChannel
 import com.artemchep.keyguard.common.model.DNotificationKey
-import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyParameterRawZero
-import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.Product
 import com.artemchep.keyguard.common.model.RichResult
 import com.artemchep.keyguard.common.model.Screen
 import com.artemchep.keyguard.common.model.Subscription
-import com.artemchep.keyguard.common.model.WithBiometric
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
@@ -42,7 +36,6 @@ import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadProgress
-import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.download.DownloadWriter
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
@@ -51,17 +44,15 @@ import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.file.PureFileService
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppListEntity
-import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoOp
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.FileJsonKeyValueStoreStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
-import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributor
-import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributorsService
+import com.artemchep.keyguard.common.service.licensekey.LicenseEntitlementProofSignatureVerifier
+import com.artemchep.keyguard.common.service.licensekey.EcdsaP256Kg2LicenseSignatureVerifier
+import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.logging.kotlin.LogRepositoryKotlin
-import com.artemchep.keyguard.common.service.logging.LogLevel
-import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.permission.Permission
 import com.artemchep.keyguard.common.service.permission.PermissionService
@@ -83,26 +74,13 @@ import com.artemchep.keyguard.common.usecase.*
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.common.usecase.DateFormatter
-import com.artemchep.keyguard.common.usecase.DisableBiometric
-import com.artemchep.keyguard.common.usecase.DismissNotificationsByChannel
-import com.artemchep.keyguard.common.usecase.GetBiometricRemainingDuration
-import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetPurchased
-import com.artemchep.keyguard.common.usecase.GetScreenState
-import com.artemchep.keyguard.common.usecase.KeyPairExport
-import com.artemchep.keyguard.common.usecase.KeyPrivateExport
-import com.artemchep.keyguard.common.usecase.KeyPublicExport
-import com.artemchep.keyguard.common.usecase.MessageHub
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.usecase.PutLocale
-import com.artemchep.keyguard.common.usecase.PutScreenState
-import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
-import com.artemchep.keyguard.common.usecase.impl.*
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
-import com.artemchep.keyguard.common.usecase.impl.MessageHubImpl
 import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
 import com.artemchep.keyguard.copy.ClipboardServiceIos
 import com.artemchep.keyguard.copy.NumberFormatterIos
@@ -123,10 +101,8 @@ import com.artemchep.keyguard.platform.iosKeyguardDataDirectory
 import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadService
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.HttpRequestRetry
@@ -143,7 +119,6 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.io.Sink
-import kotlinx.io.Source
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
@@ -152,9 +127,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import com.artemchep.keyguard.res.Res
-import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlin.coroutines.CoroutineContext
 import platform.Foundation.NSFileManager
@@ -289,6 +261,12 @@ internal fun DI.Builder.installIosAppModule(
     }
     bindSingleton<CryptoGenerator> {
         CryptoGeneratorIos()
+    }
+    bindSingleton<Kg2LicenseSignatureVerifier> {
+        EcdsaP256Kg2LicenseSignatureVerifier()
+    }
+    bindSingleton<LicenseEntitlementProofSignatureVerifier> {
+        EcdsaP256Kg2LicenseSignatureVerifier()
     }
     bindSingleton<KeyPairGenerator> {
         IosUnsupportedKeyPairGenerator

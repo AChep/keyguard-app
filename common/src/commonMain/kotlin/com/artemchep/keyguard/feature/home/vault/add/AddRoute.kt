@@ -33,6 +33,7 @@ interface AddRoute {
         val name: String? = null,
         val username: String? = null,
         val password: String? = null,
+        val note: String? = null,
         val keyPair: KeyPair? = null,
         val autofill: Autofill? = null,
     ) {

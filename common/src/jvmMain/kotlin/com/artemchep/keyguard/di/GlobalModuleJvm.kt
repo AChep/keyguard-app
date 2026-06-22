@@ -10,6 +10,9 @@ import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandJvm
+import com.artemchep.keyguard.common.service.licensekey.LicenseEntitlementProofSignatureVerifier
+import com.artemchep.keyguard.common.service.licensekey.EcdsaP256Kg2LicenseSignatureVerifier
+import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
@@ -82,6 +85,12 @@ fun globalModuleJvm() = DI.Module(
 
     bindProvider<CoroutineDispatcher>(tag = DatabaseDispatcher) {
         Dispatchers.IO
+    }
+    bindSingleton<Kg2LicenseSignatureVerifier> {
+        EcdsaP256Kg2LicenseSignatureVerifier()
+    }
+    bindSingleton<LicenseEntitlementProofSignatureVerifier> {
+        EcdsaP256Kg2LicenseSignatureVerifier()
     }
     bindSingleton<Base64Service> {
         Base64ServiceJvm(

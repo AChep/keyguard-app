@@ -35,6 +35,7 @@ import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoOp
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
+import com.artemchep.keyguard.common.service.licensekey.LicenseClaimSource
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.power.PowerService
@@ -287,10 +288,16 @@ fun diFingerprintRepositoryModule() = DI.Module(
             directDI = this,
         )
     }
-    bindSingleton<SubscriptionService> {
+    bindSingleton<SubscriptionServiceAndroid> {
         SubscriptionServiceAndroid(
             directDI = this,
         )
+    }
+    bindProvider<SubscriptionService> {
+        instance<SubscriptionServiceAndroid>()
+    }
+    bindProvider<LicenseClaimSource> {
+        instance<SubscriptionServiceAndroid>()
     }
     bindSingleton<ClearData> {
         ClearDataAndroid(

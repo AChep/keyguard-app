@@ -33,8 +33,13 @@ import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceImpl
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
+import com.artemchep.keyguard.common.service.licensekey.LicenseEntitlementProofVerifier
+import com.artemchep.keyguard.common.service.licensekey.LicenseRepository
+import com.artemchep.keyguard.common.service.licensekey.LicenseServerConfig
 import com.artemchep.keyguard.common.service.license.LicenseService
+import com.artemchep.keyguard.common.service.licensekey.impl.LicenseRepositoryImpl
 import com.artemchep.keyguard.common.service.license.impl.LicenseServiceImpl
+import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseKeyDecoder
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributorsService
 import com.artemchep.keyguard.common.service.localizationcontributors.impl.LocalizationContributorsServiceImpl
 import com.artemchep.keyguard.common.service.logging.inmemory.InMemoryLogRepository
@@ -395,6 +400,7 @@ import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
 import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.GetCacheHiddenSend
+import com.artemchep.keyguard.common.usecase.GetLicensePremium
 import com.artemchep.keyguard.common.usecase.GetNavForceHiddenSend
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
@@ -424,6 +430,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetTotpCodeWithOffsetImpl
+import com.artemchep.keyguard.common.usecase.impl.GetVaultSessionLicensePremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasswordsEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCacheHiddenSendImpl
@@ -449,6 +456,30 @@ import org.kodein.di.instance
 fun globalModuleCommon() = DI.Module(
     name = "globalModuleCommon",
 ) {
+    bindSingleton<LicenseServerConfig> {
+        LicenseServerConfig.Default
+    }
+    bindSingleton<Kg2LicenseKeyDecoder> {
+        Kg2LicenseKeyDecoder(
+            signatureVerifier = instance(),
+        )
+    }
+    bindSingleton<LicenseEntitlementProofVerifier> {
+        LicenseEntitlementProofVerifier(
+            signatureVerifier = instance(),
+            json = instance(),
+        )
+    }
+    bindSingleton<LicenseRepository> {
+        LicenseRepositoryImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GetLicensePremium> {
+        GetVaultSessionLicensePremiumImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<DownloadService> {
         DownloadServiceImpl(
             directDI = this,

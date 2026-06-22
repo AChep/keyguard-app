@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
@@ -41,6 +42,7 @@ class AppWorkerIm(
             .onState(LeLifecycleState.STARTED) {
                 launchSyncManagerWhenAvailable(this)
                 launchSyncSshAgentWhenAvailable(this)
+                launchSyncLicenseWhenAvailable(this)
             }
             .launchIn(this)
         // The app should keep a log of last installed versions,
@@ -89,6 +91,25 @@ class AppWorkerIm(
             // sync manager changes.
             coroutineScope {
                 syncManager.launch(this)
+            }
+        }
+        .launchIn(scope)
+
+    private fun launchSyncLicenseWhenAvailable(
+        scope: CoroutineScope,
+    ) = getVaultSession()
+        .map { session ->
+            val key = session as? MasterSession.Key
+            key?.di?.direct?.instance<LicenseSyncer>()
+        }
+        .distinctUntilChanged { old, new -> old === new }
+        .mapLatest { worker ->
+            if (worker == null) {
+                return@mapLatest
+            }
+
+            coroutineScope {
+                worker.launch(this)
             }
         }
         .launchIn(scope)

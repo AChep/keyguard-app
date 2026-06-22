@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.common.usecase.GetCachePremium
 import com.artemchep.keyguard.common.usecase.GetDebugPremium
+import com.artemchep.keyguard.common.usecase.GetLicensePremium
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.PutCachePremium
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
@@ -36,6 +37,7 @@ class GetPurchasedImpl(
     private val context: Context,
     private val config: FlavorConfig,
     private val subscriptionService: SubscriptionService,
+    private val getLicensePremium: GetLicensePremium,
     private val getDebugPremium: GetDebugPremium,
     private val getCachePremium: GetCachePremium,
     private val putCachePremium: PutCachePremium,
@@ -45,6 +47,7 @@ class GetPurchasedImpl(
         context = directDI.instance(),
         config = directDI.instance(),
         subscriptionService = directDI.instance(),
+        getLicensePremium = directDI.instance(),
         getDebugPremium = directDI.instance(),
         getCachePremium = directDI.instance(),
         putCachePremium = directDI.instance(),
@@ -92,7 +95,7 @@ class GetPurchasedImpl(
             return@run flowOf(true)
         }
 
-        val isPurchased = subscriptionService
+        val isPurchasedFlow = subscriptionService
             .purchased()
             .mapNotNull { result ->
                 result.fold(
@@ -113,16 +116,20 @@ class GetPurchasedImpl(
             }
         if (!isRelease) {
             combine(
-                isPurchased
+                isPurchasedFlow
                     // We want to emit something here, so
                     // we can use the test flow.
                     .onStart {
                         emit(false)
                     },
+                getLicensePremium(),
                 getDebugPremium(),
-            ) { a, b -> a || b }
+            ) { a, b, c -> a || b || c }
         } else {
-            isPurchased
+            combine(
+                isPurchasedFlow,
+                getLicensePremium(),
+            ) { a, b -> a || b }
         }
     }.map { isPremium ->
         PremiumStatus(

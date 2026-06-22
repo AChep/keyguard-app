@@ -3435,7 +3435,8 @@ private suspend fun RememberStateFlowScope.produceNoteState(
     val note = kotlin.run {
         val id = "$prefix.note"
 
-        val initialValue = args.initialValue?.notes
+        val initialValue = args.note
+            ?: args.initialValue?.notes
 
         val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
         val state = mutableComposeState(sink)

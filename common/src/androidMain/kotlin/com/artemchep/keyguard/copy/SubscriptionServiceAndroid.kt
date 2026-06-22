@@ -23,50 +23,56 @@ import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.model.combine
 import com.artemchep.keyguard.common.model.map
 import com.artemchep.keyguard.common.model.orNull
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.licensekey.LicenseClaimSource
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseClaim
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseClaimCandidate
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseSource
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
+import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.format
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import kotlin.collections.filter
+import kotlin.collections.map
+import kotlin.collections.mapNotNull
 
 class SubscriptionServiceAndroid(
     private val context: LeContext,
     private val billingManager: BillingManager,
-) : SubscriptionService {
-    companion object {
-        private val SkuListSubscription = setOf(
-            "premium",
-            "premium_3m",
-        )
-
-        private val SkuListProduct = setOf(
-            "premium_lifetime",
-        )
-    }
-
+    private val cryptoGenerator: CryptoGenerator,
+) : SubscriptionService, LicenseClaimSource {
     constructor(
         directDI: DirectDI,
     ) : this(
         context = directDI.instance(),
         billingManager = directDI.instance(),
+        cryptoGenerator = directDI.instance(),
     )
 
     override fun purchased(): Flow<RichResult<Boolean>> = getReceiptFlow()
         .map { receiptsResult ->
             receiptsResult.map { receipts ->
                 receipts.any {
-                    val isSubscription = it.products.intersect(SkuListSubscription).isNotEmpty()
-                    val isProduct = it.products.intersect(SkuListProduct).isNotEmpty()
+                    val isSubscription = it.products
+                        .intersect(GooglePlayBillingCatalog.subscriptionProductIds)
+                        .isNotEmpty()
+                    val isProduct = it.products
+                        .intersect(GooglePlayBillingCatalog.lifetimeProductIds)
+                        .isNotEmpty()
                     isSubscription || isProduct
                 }
             }
@@ -138,13 +144,13 @@ class SubscriptionServiceAndroid(
                         BillingFlowParams.ProductDetailsParams.newBuilder()
                             .setProductDetails(it)
                             .setOfferToken(offerToken)
-                            .build()
+                            .build(),
                     )
                     val params = BillingFlowParams.newBuilder()
                         .run {
                             val existingPurchase = receipts
                                 ?.firstOrNull {
-                                    it.products.intersect(SkuListSubscription)
+                                    it.products.intersect(GooglePlayBillingCatalog.subscriptionProductIds)
                                         .isNotEmpty()
                                 }
                             if (existingPurchase != null && it.productId !in existingPurchase.products) {
@@ -198,7 +204,7 @@ class SubscriptionServiceAndroid(
                     val list = listOf(
                         BillingFlowParams.ProductDetailsParams.newBuilder()
                             .setProductDetails(it)
-                            .build()
+                            .build(),
                     )
                     val params = BillingFlowParams.newBuilder()
                         .setProductDetailsParamsList(list)
@@ -211,6 +217,40 @@ class SubscriptionServiceAndroid(
             )
         }
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun claims(): Flow<RichResult<List<LicenseClaimCandidate>>> = getReceiptFlow()
+        .map { productsResult ->
+            productsResult
+                .map { purchases ->
+                    purchases
+                        .toClaims()
+                }
+        }
+        .flowOn(Dispatchers.Default)
+
+    private fun List<Purchase>.toClaims() = this
+        .filter { purchase ->
+            purchase.purchaseState == Purchase.PurchaseState.PURCHASED
+        }
+        .flatMap { purchase ->
+            purchase
+                .products
+                .mapNotNull { productId ->
+                    val productType = when (productId) {
+                        in GooglePlayBillingCatalog.subscriptionProductIds -> ProductType.SUBS
+                        in GooglePlayBillingCatalog.lifetimeProductIds -> ProductType.INAPP
+                        else -> null
+                    }
+                        ?: return@mapNotNull null
+                    GooglePlayLicensePurchase(
+                        purchaseToken = purchase.purchaseToken,
+                        productId = productId,
+                        productType = productType,
+                    )
+                }
+                .flatMap(::toClaims)
+        }
 
     private fun purchase(
         activity: Activity,
@@ -236,18 +276,10 @@ class SubscriptionServiceAndroid(
         .billingConnectionFlow
         .flatMapLatest { connection ->
             val subscriptionsFlow = connection
-                .purchasesFlow(
-                    QueryPurchasesParams.newBuilder()
-                        .setProductType(ProductType.SUBS)
-                        .build(),
-                )
+                .purchaseFlow(ProductType.SUBS)
                 .onEachAcknowledge(connection)
             val productsFlow = connection
-                .purchasesFlow(
-                    QueryPurchasesParams.newBuilder()
-                        .setProductType(ProductType.INAPP)
-                        .build(),
-                )
+                .purchaseFlow(ProductType.INAPP)
                 .onEachAcknowledge(connection)
             combine(
                 subscriptionsFlow,
@@ -256,6 +288,14 @@ class SubscriptionServiceAndroid(
                 subscriptions.combine(products)
             }
         }
+
+    private fun BillingConnection.purchaseFlow(
+        @ProductType productType: String,
+    ): Flow<RichResult<List<Purchase>>> = purchasesFlow(
+        QueryPurchasesParams.newBuilder()
+            .setProductType(productType)
+            .build(),
+    )
 
     private fun Flow<RichResult<List<Purchase>>>.onEachAcknowledge(
         connection: BillingConnection,
@@ -277,12 +317,46 @@ class SubscriptionServiceAndroid(
             connection.acknowledgePurchase(acknowledgePurchaseParams)
         }
 
+    private fun toClaims(
+        purchase: GooglePlayLicensePurchase,
+    ): List<LicenseClaimCandidate> = listOf(
+        LicenseClaimCandidate(
+            claim = LicenseClaim.Google(
+                purchaseToken = purchase.purchaseToken,
+                productId = purchase.productId,
+                productType = purchase.productType,
+            ),
+            source = LicenseSource(
+                provider = LicenseSource.PROVIDER_GOOGLE_PLAY,
+                productId = purchase.productId,
+                productType = purchase.productType,
+                purchaseTokenHash = purchase.sourceTokenHash(),
+            ),
+            priority = GooglePlayBillingCatalog.licenseClaimPriority(
+                productId = purchase.productId,
+                productType = purchase.productType,
+            ),
+        ),
+    )
+
+    private fun GooglePlayLicensePurchase.sourceTokenHash(): String {
+        val input = listOf(
+            LicenseSource.PROVIDER_GOOGLE_PLAY,
+            productType,
+            productId,
+            purchaseToken,
+        ).joinToString(separator = ":")
+        return cryptoGenerator
+            .hashMd5(input.encodeToByteArray())
+            .toHex()
+    }
+
     private fun getProductDetailsFlow(@ProductType productType: String) = billingManager
         .billingConnectionFlow
         .flatMapLatest { connection ->
             val productIdList = when (productType) {
-                ProductType.SUBS -> SkuListSubscription
-                ProductType.INAPP -> SkuListProduct
+                ProductType.SUBS -> GooglePlayBillingCatalog.subscriptionProductIds
+                ProductType.INAPP -> GooglePlayBillingCatalog.lifetimeProductIds
                 else -> error("Unknown SKU type!")
             }
             val productList = productIdList
@@ -297,4 +371,10 @@ class SubscriptionServiceAndroid(
                 .build()
             connection.productDetailsFlow(skuDetailsParams)
         }
+
+    private data class GooglePlayLicensePurchase(
+        val purchaseToken: String,
+        val productId: String,
+        @param:ProductType val productType: String,
+    )
 }

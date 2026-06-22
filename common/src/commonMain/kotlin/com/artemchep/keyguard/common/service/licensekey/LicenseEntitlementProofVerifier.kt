@@ -17,7 +17,7 @@ private const val CLOCK_SKEW_SECONDS = 300L
 private const val MAX_PROOF_TTL_SECONDS = 300L
 
 class LicenseEntitlementProofVerifier(
-    private val signatureVerifier: LicenseEntitlementProofSignatureVerifier,
+    private val signatureVerifier: LicenseSignatureVerifier,
     private val json: Json,
     private val publicKeysById: Map<String, String> = KeyguardLicenseStatusProofPublicKeys.values,
     private val now: () -> Instant = { Clock.System.now() },
@@ -82,14 +82,6 @@ data class LicenseEntitlementProofExpectation(
     val requestKind: String,
     val requestHash: String,
 )
-
-fun interface LicenseEntitlementProofSignatureVerifier {
-    fun verify(
-        publicKeyPem: String,
-        signingInput: ByteArray,
-        signature: ByteArray,
-    ): Boolean
-}
 
 object LicenseEntitlementRequestKind {
     const val CLAIM_APPLE: String = "claim_apple"

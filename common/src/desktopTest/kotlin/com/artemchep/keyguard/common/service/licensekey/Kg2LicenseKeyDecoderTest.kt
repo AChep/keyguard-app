@@ -3,7 +3,7 @@ package com.artemchep.keyguard.common.service.licensekey
 import com.artemchep.keyguard.common.service.licensekey.decoder.KeyguardKg2LicensePublicKeys
 import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseKeyDecoder
 import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseProductKind
-import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseSignatureVerifier
+import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
 import java.util.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -14,11 +14,11 @@ import kotlin.test.assertTrue
 
 class Kg2LicenseKeyDecoderTest {
     private val decoder = Kg2LicenseKeyDecoder(
-        signatureVerifier = EcdsaP256Kg2LicenseSignatureVerifier(),
+        signatureVerifier = EcdsaP256LicenseSignatureVerifier(),
         publicKeysById = testPublicKeysById,
     )
     private val parserOnlyDecoder = Kg2LicenseKeyDecoder(
-        signatureVerifier = Kg2LicenseSignatureVerifier { _, _, _ -> true },
+        signatureVerifier = LicenseSignatureVerifier { _, _, _ -> true },
         publicKeysById = testPublicKeysById,
     )
 
@@ -139,7 +139,7 @@ class Kg2LicenseKeyDecoderTest {
     @Test
     fun rejectsWhenPublicKeyIsMissing() {
         val decoderWithoutKeys = Kg2LicenseKeyDecoder(
-            signatureVerifier = Kg2LicenseSignatureVerifier { _, _, _ -> true },
+            signatureVerifier = LicenseSignatureVerifier { _, _, _ -> true },
             publicKeysById = emptyMap(),
         )
 
@@ -149,7 +149,7 @@ class Kg2LicenseKeyDecoderTest {
     @Test
     fun rejectsWhenSignatureVerifierFails() {
         val rejectingDecoder = Kg2LicenseKeyDecoder(
-            signatureVerifier = Kg2LicenseSignatureVerifier { _, _, _ -> false },
+            signatureVerifier = LicenseSignatureVerifier { _, _, _ -> false },
         )
 
         assertNull(rejectingDecoder.decodeOrNull(tokenWithPayload(payloadFromToken(subscriptionToken))))

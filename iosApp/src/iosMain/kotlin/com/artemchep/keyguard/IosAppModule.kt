@@ -49,9 +49,8 @@ import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoO
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.FileJsonKeyValueStoreStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
-import com.artemchep.keyguard.common.service.licensekey.LicenseEntitlementProofSignatureVerifier
-import com.artemchep.keyguard.common.service.licensekey.EcdsaP256Kg2LicenseSignatureVerifier
-import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseSignatureVerifier
+import com.artemchep.keyguard.common.service.licensekey.EcdsaP256LicenseSignatureVerifier
+import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.logging.kotlin.LogRepositoryKotlin
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.permission.Permission
@@ -262,11 +261,8 @@ internal fun DI.Builder.installIosAppModule(
     bindSingleton<CryptoGenerator> {
         CryptoGeneratorIos()
     }
-    bindSingleton<Kg2LicenseSignatureVerifier> {
-        EcdsaP256Kg2LicenseSignatureVerifier()
-    }
-    bindSingleton<LicenseEntitlementProofSignatureVerifier> {
-        EcdsaP256Kg2LicenseSignatureVerifier()
+    bindSingleton<LicenseSignatureVerifier> {
+        EcdsaP256LicenseSignatureVerifier()
     }
     bindSingleton<KeyPairGenerator> {
         IosUnsupportedKeyPairGenerator

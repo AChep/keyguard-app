@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.licensekey.decoder
 
+import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
 import kotlin.io.encoding.Base64
 
 private const val ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -44,16 +45,8 @@ enum class Kg2LicenseProductKind(
     Lifetime("lifetime");
 }
 
-fun interface Kg2LicenseSignatureVerifier {
-    fun verify(
-        publicKeyPem: String,
-        signingInput: ByteArray,
-        signature: ByteArray,
-    ): Boolean
-}
-
 class Kg2LicenseKeyDecoder(
-    private val signatureVerifier: Kg2LicenseSignatureVerifier,
+    private val signatureVerifier: LicenseSignatureVerifier,
     private val publicKeysById: Map<String, String> = KeyguardKg2LicensePublicKeys.values,
 ) {
     fun decodeOrNull(licenseKey: String): Kg2LicenseKeyMetadata? =

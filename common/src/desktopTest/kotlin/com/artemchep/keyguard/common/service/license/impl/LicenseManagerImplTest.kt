@@ -16,7 +16,7 @@ import com.artemchep.keyguard.common.service.licensekey.model.LicenseStatus
 import com.artemchep.keyguard.common.service.licensekey.decoder.KeyguardKg2LicensePublicKeys
 import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseKeyDecoder
 import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseProductKind
-import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseSignatureVerifier
+import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseManagerImpl
 import com.artemchep.keyguard.common.service.settings.entity.LocalClaimedLicenseStateEntity
 import com.artemchep.keyguard.common.service.settings.entity.LocalRedeemedLicenseStateEntity
@@ -350,7 +350,7 @@ class LicenseManagerImplTest {
         val manager = LicenseManagerImpl(
             licenseRepository = repository,
             decoder = Kg2LicenseKeyDecoder(
-                signatureVerifier = Kg2LicenseSignatureVerifier { _, _, _ -> true },
+                signatureVerifier = LicenseSignatureVerifier { _, _, _ -> true },
                 publicKeysById = KeyguardKg2LicensePublicKeys.values,
             ),
             vaultSettingsReadWriteRepository = settings,

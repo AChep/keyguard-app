@@ -32,11 +32,11 @@ import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.fold
+import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.licensekey.LicenseClaimSource
 import com.artemchep.keyguard.common.service.licensekey.model.LicenseEntitlement
 import com.artemchep.keyguard.common.service.licensekey.model.LicenseStatus
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
-import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetClaimedLicenseEntitlement
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.SyncLicense
@@ -143,6 +143,7 @@ private fun SettingLicenseClaim(
     val title = stringResource(Res.string.pref_item_license_sync_title)
     val text = stringResource(Res.string.pref_item_license_sync_text)
 
+    val requestedMessage = stringResource(Res.string.pref_item_license_sync_requested)
     val syncedMessage = stringResource(Res.string.pref_item_license_sync_success)
     val alreadyMessage = stringResource(Res.string.pref_item_license_sync_already)
     val noPurchasesMessage = stringResource(Res.string.pref_item_license_sync_no_purchases)
@@ -152,6 +153,12 @@ private fun SettingLicenseClaim(
         title = title,
         text = text,
         onClick = {
+            val preSyncMessage = ToastMessage(
+                title = requestedMessage,
+                type = ToastMessage.Type.INFO,
+            )
+            updatedShowMessage.copy(preSyncMessage)
+
             updatedSyncLicense()
                 .effectTap(Dispatchers.Main) { result ->
                     val message = result.toToastMessage(
@@ -193,7 +200,7 @@ fun LicenseEntitlementFooter(
         VisibilityState(isVisible = false)
     }
 
-    val copy by rememberInstance<CopyText>()
+    val clipboardService by rememberInstance<ClipboardService>()
     Column(
         modifier = Modifier
             .padding(
@@ -257,9 +264,9 @@ fun LicenseEntitlementFooter(
 
             IconButton(
                 onClick = {
-                    copy.copy(
-                        text = entitlement.licenseKey,
-                        hidden = true,
+                    clipboardService.setPrimaryClip(
+                        value = entitlement.licenseKey,
+                        concealed = true,
                     )
                 },
             ) {

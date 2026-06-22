@@ -1514,8 +1514,9 @@
     <string name="pref_item_license_key_status_revoked">Revoked</string>
     <string name="pref_item_license_key_status_expired">Expired</string>
     <string name="pref_item_license_key_status_available">Available</string>
-    <string name="pref_item_license_sync_title">Entitlement token</string>
+    <string name="pref_item_license_sync_title">Obtain entitlement token</string>
     <string name="pref_item_license_sync_text">Verifies your active store purchase and generates an entitlement token bound to the purchase. Use the token to transfer the purchase to your other devices.</string>
+    <string name="pref_item_license_sync_requested">Entitlement token was requested</string>
     <string name="pref_item_license_sync_success">Entitlement token synced successfully</string>
     <string name="pref_item_license_sync_already">Current entitlement token is already active</string>
     <string name="pref_item_license_sync_no_purchases">No eligible purchase found</string>

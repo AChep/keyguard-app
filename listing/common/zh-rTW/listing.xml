@@ -16,12 +16,12 @@
     <string name="listing_description_highlight_generator">生成器：建立密碼、SSH 金鑰和電子郵件轉發器，支援自訂詞條。</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">進階功能：支援快捷方式、欄位提示文字、網址覆寫和智慧衝突解決。</string>
-    <!-- A content description shown below the Home screenshort, made with the default settings -->
+    <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">首頁</string>
-    <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
+    <!-- A content description shown below the Home screenshot, made with the dark theme settings -->
     <string name="listing_screenshot_home_dark">首頁，暗色主題</string>
-    <!-- A content description shown below the Generator screenshort, made with the default settings -->
+    <!-- A content description shown below the Generator screenshot, made with the default settings -->
     <string name="listing_screenshot_generator_default">生成器畫面</string>
-    <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
+    <!-- A content description shown below the Watchtower screenshot, made with the default settings -->
     <string name="listing_screenshot_watchtower_default">瞭望塔畫面</string>
 </resources>

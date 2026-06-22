@@ -16,12 +16,12 @@
     <string name="listing_description_highlight_generator">Generátor: Jelszavak, SSH-kulcsok és e-mail továbbítók létrehozása, egyéni szójegyzékek támogatásával.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Fejlett funkciók: Parancsikonok, mező-helyőrzők (placeholderek), URL-felülbírálások és intelligens ütközésfeloldás támogatása.</string>
-    <!-- A content description shown below the Home screenshort, made with the default settings -->
+    <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Kezdőképernyő</string>
-    <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
+    <!-- A content description shown below the Home screenshot, made with the dark theme settings -->
     <string name="listing_screenshot_home_dark">Kezdőképernyő, sötét téma</string>
-    <!-- A content description shown below the Generator screenshort, made with the default settings -->
+    <!-- A content description shown below the Generator screenshot, made with the default settings -->
     <string name="listing_screenshot_generator_default">Generátor képernyő</string>
-    <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
+    <!-- A content description shown below the Watchtower screenshot, made with the default settings -->
     <string name="listing_screenshot_watchtower_default">Őrtorony képernyő</string>
 </resources>

@@ -16,12 +16,12 @@
     <string name="listing_description_highlight_generator">জেনারেটর: কাস্টম শব্দতালিকার সুবিধাসহ পাসওয়ার্ড, SSH কী, এবং ইমেইল ফরোয়ার্ড তৈরি করুন।</string>
     <string name="listing_description_highlight_ssh_agent">SSH এজেন্ট: সার্ভারে যাচাই করা, গিট কমিট সাক্ষর করা, SSH-ভিত্তিক পরিষেবাগুলোর সাথে কাজ করা।</string>
     <string name="listing_description_highlight_other">উন্নত বৈশিষ্ট্যগুলো: শর্টকাটের সুবিধা, ফিল্ডের প্লেসহোল্ডার, URL পরিবর্তন করা, এবং স্মার্ট সমস্যার সমাধান।</string>
-    <!-- A content description shown below the Home screenshort, made with the default settings -->
+    <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">হোম স্ক্রিন</string>
-    <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
+    <!-- A content description shown below the Home screenshot, made with the dark theme settings -->
     <string name="listing_screenshot_home_dark">হোম স্কিন, ডার্ক থিম</string>
-    <!-- A content description shown below the Generator screenshort, made with the default settings -->
+    <!-- A content description shown below the Generator screenshot, made with the default settings -->
     <string name="listing_screenshot_generator_default">জেনেরেটর স্ক্রিন</string>
-    <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
+    <!-- A content description shown below the Watchtower screenshot, made with the default settings -->
     <string name="listing_screenshot_watchtower_default">ওয়াচটাওয়ার স্ক্রিন</string>
 </resources>

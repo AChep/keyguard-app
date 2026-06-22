@@ -47,4 +47,4 @@ Use `qualifier:value` to search in a specific field.
 | `github -personal`                  | Finds items related to `github`, excluding ones that match `personal`.         |
 | `title:github username:alice`       | Searches for `github` in titles and `alice` in usernames.                      |
 | `title:github note:"shared access"` | Searches for `github` in titles and `shared access` in notes.                  |
-| `domain:example -tag:archive`       | Searches for `example` in domains, exlcuding results that match `archive` tag. |
+| `domain:example -tag:archive`       | Searches for `example` in domains, excluding results that match `archive` tag. |

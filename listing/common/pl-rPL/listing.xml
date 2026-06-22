@@ -16,12 +16,12 @@
     <string name="listing_description_highlight_generator">Generator: Twórz hasła, klucze SSH i przekierowania e-mail, z obsługą niestandardowych list słów.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Zaawansowane funkcje: Obsługa skrótów, symbol zastępczych pól, nadpisywania URL i inteligentnego rozwiązywania konfliktów.</string>
-    <!-- A content description shown below the Home screenshort, made with the default settings -->
+    <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Ekran główny</string>
-    <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
+    <!-- A content description shown below the Home screenshot, made with the dark theme settings -->
     <string name="listing_screenshot_home_dark">Ekran główny, ciemny motyw</string>
-    <!-- A content description shown below the Generator screenshort, made with the default settings -->
+    <!-- A content description shown below the Generator screenshot, made with the default settings -->
     <string name="listing_screenshot_generator_default">Ekran generatora</string>
-    <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
+    <!-- A content description shown below the Watchtower screenshot, made with the default settings -->
     <string name="listing_screenshot_watchtower_default">Ekran Watchtower</string>
 </resources>

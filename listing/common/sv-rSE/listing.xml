@@ -16,12 +16,12 @@
     <string name="listing_description_highlight_generator">Generator: Skapa lösenord, SSH-nycklar och e-postvidarebefordrare, med stöd för anpassade ordlistor.</string>
     <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
     <string name="listing_description_highlight_other">Avancerade funktioner: Stöd för genvägar, fältplatshållare, URL-åsidosättningar och smart konfliktlösning.</string>
-    <!-- A content description shown below the Home screenshort, made with the default settings -->
+    <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Hemskärm</string>
-    <!-- A content description shown below the Home screenshort, made with the dark theme settings -->
+    <!-- A content description shown below the Home screenshot, made with the dark theme settings -->
     <string name="listing_screenshot_home_dark">Hemskärm, mörkt tema</string>
-    <!-- A content description shown below the Generator screenshort, made with the default settings -->
+    <!-- A content description shown below the Generator screenshot, made with the default settings -->
     <string name="listing_screenshot_generator_default">Generator-skärm</string>
-    <!-- A content description shown below the Watchtower screenshort, made with the default settings -->
+    <!-- A content description shown below the Watchtower screenshot, made with the default settings -->
     <string name="listing_screenshot_watchtower_default">Watchtower-skärm</string>
 </resources>

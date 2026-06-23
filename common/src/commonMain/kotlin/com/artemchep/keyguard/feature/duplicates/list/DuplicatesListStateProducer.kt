@@ -408,12 +408,15 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     collectionsFlow,
     canWriteFlow,
 ) { ciphers, selectedCipherIds, collections, canWrite ->
-    if (selectedCipherIds.isEmpty()) {
+    val selectedCiphers = ciphers
+        .filter { it.id in selectedCipherIds }
+    // Hide the selection bar based on the ciphers that actually still exist,
+    // not the raw id set. After a delete/merge the removed ids linger in the
+    // selection handle; keying off the filtered list lets the bar close itself.
+    if (selectedCiphers.isEmpty()) {
         return@combine null
     }
 
-    val selectedCiphers = ciphers
-        .filter { it.id in selectedCipherIds }
     val selectedCiphersByAccount = selectedCiphers
         .groupBy { it.accountId }
 

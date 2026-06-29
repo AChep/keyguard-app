@@ -2,7 +2,7 @@ package com.artemchep.keyguard.android.downloader.journal.room
 
 import androidx.room.Embedded
 import androidx.room.Entity
-import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity as DomainDownloadInfoEntity
 import com.artemchep.keyguard.common.util.canRetry
 import kotlin.time.Instant
 
@@ -50,7 +50,7 @@ data class DownloadInfoEntity(
     }
 }
 
-fun DownloadInfoEntity.toEntity() = DownloadInfoEntity(
+fun DomainDownloadInfoEntity.toEntity() = DownloadInfoEntity(
     id = id,
     localCipherId = localCipherId,
     remoteCipherId = remoteCipherId,
@@ -64,13 +64,13 @@ fun DownloadInfoEntity.toEntity() = DownloadInfoEntity(
     error = error?.toEntity(),
 )
 
-fun DownloadInfoEntity.Error.toEntity() = DownloadInfoEntity.Error(
+fun DomainDownloadInfoEntity.Error.toEntity() = DownloadInfoEntity.Error(
     code = code,
     attempt = attempt,
     message = message,
 )
 
-fun DownloadInfoEntity.toDomain() = DownloadInfoEntity(
+fun DownloadInfoEntity.toDomain() = DomainDownloadInfoEntity(
     id = id,
     localCipherId = localCipherId,
     remoteCipherId = remoteCipherId,
@@ -84,7 +84,7 @@ fun DownloadInfoEntity.toDomain() = DownloadInfoEntity(
     error = error?.toDomain(),
 )
 
-fun DownloadInfoEntity.Error.toDomain() = DownloadInfoEntity.Error(
+fun DownloadInfoEntity.Error.toDomain() = DomainDownloadInfoEntity.Error(
     code = code,
     attempt = attempt,
     message = message,

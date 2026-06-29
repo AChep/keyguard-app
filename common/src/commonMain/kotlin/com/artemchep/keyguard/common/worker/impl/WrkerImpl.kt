@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.worker.impl
 
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
+import com.artemchep.keyguard.common.service.download.DownloadRepository
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession

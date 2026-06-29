@@ -14,6 +14,8 @@ import kotlinx.collections.immutable.ImmutableList
  */
 @Immutable
 data class FoldersState(
+    val title: String? = null,
+    val text: String? = null,
     val selection: Selection? = null,
     val content: Loadable<Content> = Loadable.Loading,
     val onAdd: (() -> Unit)? = null,
@@ -40,10 +42,12 @@ data class FoldersState(
                 val shapeState: Int = ShapeState.ALL,
                 val text: String? = null,
                 val ciphers: Int,
+                val folders: Int,
                 val selecting: Boolean,
                 val selected: Boolean,
                 val synced: Boolean,
                 val failed: Boolean,
+                val hasChildren: Boolean = false,
                 val icon: ImageVector? = null,
                 val onViewItemsClick: (() -> Unit)? = null,
                 val actions: ImmutableList<ContextItem>,

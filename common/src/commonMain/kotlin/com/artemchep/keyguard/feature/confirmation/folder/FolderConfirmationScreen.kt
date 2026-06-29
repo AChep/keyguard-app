@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -31,7 +30,7 @@ import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
-import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposable
+import com.artemchep.keyguard.feature.search.filter.component.FilterChipItemComposable
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -176,7 +175,7 @@ private fun FolderConfirmationItem(
     modifier: Modifier = Modifier,
     item: FolderConfirmationState.Content.Item,
 ) {
-    FilterItemComposable(
+    FilterChipItemComposable(
         modifier = modifier,
         checked = item.selected,
         leading =

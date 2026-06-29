@@ -1,0 +1,7 @@
+<root xmlns="http://someurl.org" xmlns:t="http://t.org">
+	<t:element>
+		Test
+	</t:element>
+	<p xmlns="http://t.co"/>
+	<d:p xmlns:d="http://b.co"/>
+</root>

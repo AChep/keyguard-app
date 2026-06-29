@@ -9,7 +9,7 @@ import androidx.work.Operation
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
+import com.artemchep.keyguard.common.service.download.DownloadRepository
 import kotlinx.coroutines.flow.first
 import org.kodein.di.DIAware
 import org.kodein.di.android.closestDI

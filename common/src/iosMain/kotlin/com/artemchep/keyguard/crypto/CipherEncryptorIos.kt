@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.provider.bitwarden.crypto.AsymmetricCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.DecodeResult
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
+import com.artemchep.keyguard.util.foundation.constantTimeEquals
 import kotlinx.cinterop.ByteVar
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -453,19 +454,6 @@ private inline fun <T> ByteArray.useCFData(
     } finally {
         CFRelease(data)
     }
-}
-
-private fun ByteArray.constantTimeEquals(
-    other: ByteArray,
-): Boolean {
-    if (size != other.size) {
-        return false
-    }
-    var diff = 0
-    for (i in indices) {
-        diff = diff or (this[i].toInt() xor other[i].toInt())
-    }
-    return diff == 0
 }
 
 private fun unwrapPkcs8PrivateKey(

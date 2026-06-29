@@ -9,7 +9,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Email
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -17,7 +16,6 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.usecase.AddEmailRelay
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
@@ -32,13 +30,11 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
-import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
@@ -48,7 +44,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
-import com.artemchep.keyguard.ui.icons.IconBox2
+import com.artemchep.keyguard.ui.icons.IconBoxContainer
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
@@ -132,10 +128,10 @@ fun produceEmailRelayListState(
         val route = confirmationRouteFactory.registerRouteResultReceiver(
             args = ConfirmationRoute.Args(
                 icon = {
-                    IconBox2(
+                    IconBoxContainer(
                         main = {
                             val resource = model.iconRes
-                                ?: return@IconBox2
+                                ?: return@IconBoxContainer
                             Image(
                                 modifier = Modifier
                                     .size(24.dp),

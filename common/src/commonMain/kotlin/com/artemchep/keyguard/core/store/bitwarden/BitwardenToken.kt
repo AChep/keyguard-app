@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.core.store.bitwarden
 
 import arrow.optics.optics
+import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlin.time.Instant
@@ -136,12 +138,16 @@ data class BitwardenToken(
  * Represents the authentication details
  * for a Keepass database.
  */
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 @SerialName("keepass")
 data class KeePassToken(
     override val id: String = Uuid.random().toString(),
     val key: Key,
-    val files: Files,
+    val files: Files? = null, // legacy
+    @EncodeDefault
+    val database: Database = files?.toDatabase()
+        ?: throwMissingKeePassDatabaseException(),
 ) : ServiceToken {
 
     @optics
@@ -154,6 +160,14 @@ data class KeePassToken(
     }
 
     @Serializable
+    data class Database(
+        val fileName: String,
+        val location: FileLocation,
+    )
+
+    // Legacy
+
+    @Serializable
     data class Files(
         val databaseUri: String,
         val databaseFileName: String = kotlin.run {
@@ -162,9 +176,38 @@ data class KeePassToken(
             result?.groupValues?.getOrNull(1)
                 ?: databaseUri
         },
+        val databaseAccessToken: String? = null,
         val managedByApp: Boolean = false,
-    )
+        val webDav: WebDav? = null,
+    ) {
+        @Serializable
+        data class WebDav(
+            val username: String? = null,
+            val password: Password? = null,
+        )
+    }
 }
+
+private fun KeePassToken.Files.toDatabase(): KeePassToken.Database =
+    KeePassToken.Database(
+        fileName = databaseFileName,
+        location = webDav?.let { webDav ->
+            FileLocation.WebDav(
+                url = databaseUri,
+                username = webDav.username,
+                password = webDav.password,
+                displayName = databaseFileName,
+            )
+        } ?: FileLocation.Local(
+            uri = databaseUri,
+            accessToken = databaseAccessToken,
+            managedByApp = managedByApp,
+            displayName = databaseFileName,
+        ),
+    )
+
+private fun throwMissingKeePassDatabaseException(): Nothing =
+    throw IllegalArgumentException("KeePass token is missing database location.")
 
 fun BitwardenToken.Companion.generated(): BitwardenToken {
     val accountIds = listOf(

@@ -19,12 +19,14 @@ interface WebDavClient {
         path: String,
         mode: WebDavWriteMode = WebDavWriteMode.CreateOrReplace,
         bytes: ByteArray,
+        precondition: WebDavWritePrecondition? = null,
     ): WebDavResource
 
     suspend fun write(
         path: String,
         mode: WebDavWriteMode = WebDavWriteMode.CreateOrReplace,
         contentLength: Long? = null,
+        precondition: WebDavWritePrecondition? = null,
         write: suspend (Sink) -> Unit,
     ): WebDavResource
 

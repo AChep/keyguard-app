@@ -23,7 +23,6 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
-import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
@@ -736,7 +735,7 @@ object SendUtil {
                     accountsFlow,
                     profilesFlow,
                 ) { accounts, profiles ->
-                    accounts.any { it.type == AccountType.BITWARDEN } &&
+                    accounts.any { it.type.capabilities.supportsSends } &&
                             profiles.any { true }
                 }
             }

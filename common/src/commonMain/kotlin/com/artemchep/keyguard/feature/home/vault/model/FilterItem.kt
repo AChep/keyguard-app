@@ -16,6 +16,7 @@ sealed interface FilterItem : FilterItemModel {
         override val text: String,
         override val expandable: Boolean = true,
         override val expanded: Boolean = true,
+        override val layout: FilterItemModel.Section.Layout = FilterItemModel.Section.Layout.Flow,
         override val onClick: (() -> Unit)?,
     ) : FilterItem, FilterItemModel.Section {
         companion object;
@@ -23,28 +24,19 @@ sealed interface FilterItem : FilterItemModel {
         override val id: String = sectionId
     }
 
-    data class Item(
-        override val sectionId: String,
-        val filterSectionId: String,
-        val filter: Filter,
+    sealed interface Item : FilterItem {
+        val filterSectionId: String
+        val filter: Filter?
+
         /**
          * Unique identifier of the set of
          * filters.
          */
-        val filterId: String = filter.id,
-        override val checked: Boolean,
-        override val fill: Boolean,
-        override val indent: Int = 0,
-        override val leading: (@Composable () -> Unit)?,
-        override val title: String,
-        override val text: String?,
-        override val textMaxLines: Int? = null,
-        override val onClick: (() -> Unit)?,
-        override val enabled: Boolean = onClick != null,
-    ) : FilterItem, FilterItemModel.Item {
-        companion object;
+        val filterId: String get() = filter?.id.orEmpty()
 
-        override val id: String = "$sectionId|$filterSectionId|$filterId"
+        val checked: Boolean
+
+        val enabled: Boolean
 
         sealed interface Filter {
             val id: String
@@ -60,5 +52,53 @@ sealed interface FilterItem : FilterItemModel {
                 override val id: String,
             ) : Filter
         }
+    }
+
+    data class ChipItem(
+        override val sectionId: String,
+        override val filterSectionId: String,
+        override val filter: Item.Filter,
+        /**
+         * Unique identifier of the set of
+         * filters.
+         */
+        override val filterId: String = filter.id,
+        override val checked: Boolean,
+        override val leading: (@Composable () -> Unit)?,
+        override val title: String,
+        override val text: String?,
+        override val textMaxLines: Int? = null,
+        override val onClick: (() -> Unit)?,
+        override val enabled: Boolean = onClick != null,
+    ) : FilterItem, FilterItemModel.ChipItem, Item {
+        companion object;
+
+        override val id: String = "$sectionId|$filterSectionId|$filterId"
+    }
+
+    data class ListItem(
+        override val sectionId: String,
+        override val filterSectionId: String,
+        override val filter: Item.Filter?,
+        /**
+         * Unique identifier of the set of
+         * filters.
+         */
+        override val filterId: String = filter?.id.orEmpty(),
+        override val nodeId: String,
+        override val parentNodeId: String?,
+        override val checked: Boolean,
+        override val depth: Int,
+        override val expandable: Boolean,
+        override val leading: (@Composable () -> Unit)?,
+        override val title: String,
+        override val text: String?,
+        override val textMaxLines: Int? = null,
+        override val onClick: (() -> Unit)?,
+        override val enabled: Boolean = onClick != null,
+    ) : FilterItem, FilterItemModel.ListItem, Item {
+        companion object;
+
+        override val id: String = "$sectionId|$filterSectionId|$filterId|$nodeId"
     }
 }

@@ -175,7 +175,7 @@ class CipherMergeImpl() : CipherMerge {
             list: List<List<DSecret.Uri>>,
         ): List<DSecret.Uri> = list
             .flatten()
-            .distinct()
+            .mergeUriSignatures()
     }
 
     private class PickFieldStrategy : PickStrategy<List<DSecret.Field>> {
@@ -276,3 +276,32 @@ class CipherMergeImpl() : CipherMerge {
         }
     }
 }
+
+private data class UriIdentity(
+    val uri: String,
+    val match: DSecret.Uri.MatchType?,
+)
+
+private fun List<DSecret.Uri>.mergeUriSignatures(): List<DSecret.Uri> {
+    val out = mutableListOf<DSecret.Uri>()
+    forEach { uri ->
+        val index = out.indexOfFirst { existing ->
+            existing.identity == uri.identity
+        }
+        if (index < 0) {
+            out += uri
+        } else {
+            out[index] = out[index].copy(
+                signatures = (out[index].signatures + uri.signatures)
+                    .distinctBy { signature -> signature.certFingerprintSha256 },
+            )
+        }
+    }
+    return out
+}
+
+private val DSecret.Uri.identity: UriIdentity
+    get() = UriIdentity(
+        uri = uri,
+        match = match,
+    )

@@ -6,6 +6,7 @@ data class WebDavClientConfig(
     val baseUrl: String,
     val authorization: WebDavAuthorization? = null,
     val userAgent: String? = null,
+    val noCache: Boolean = false,
 )
 
 sealed interface WebDavAuthorization {
@@ -45,6 +46,16 @@ data class WebDavByteRange(
 enum class WebDavWriteMode {
     Create,
     CreateOrReplace,
+}
+
+data class WebDavWritePrecondition(
+    val destinationEtag: String,
+) {
+    init {
+        require(destinationEtag.isNotBlank()) {
+            "WebDAV destination ETag precondition must not be blank."
+        }
+    }
 }
 
 data class WebDavResource(
@@ -101,6 +112,20 @@ sealed class WebDavException(
         statusCode = statusCode,
         retryable = false,
         message = webDavMessage(operation, path, statusCode, "resource already exists"),
+        cause = cause,
+    )
+
+    class PreconditionFailed(
+        operation: WebDavOperation,
+        path: String?,
+        statusCode: Int? = null,
+        cause: Throwable? = null,
+    ) : WebDavException(
+        operation = operation,
+        path = path,
+        statusCode = statusCode,
+        retryable = false,
+        message = webDavMessage(operation, path, statusCode, "resource precondition failed"),
         cause = cause,
     )
 

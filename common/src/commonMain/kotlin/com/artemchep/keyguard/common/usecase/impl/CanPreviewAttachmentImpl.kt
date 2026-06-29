@@ -14,9 +14,6 @@ class CanPreviewAttachmentImpl(
         fileName: String,
         encryptedSize: Long?,
     ): AttachmentPreviewPolicy {
-        if (!platform.supportsAttachmentPreview()) {
-            return AttachmentPreviewPolicy.UnsupportedPlatform
-        }
         if (!isAttachmentPreviewSupported(fileName)) {
             return AttachmentPreviewPolicy.UnsupportedType
         }
@@ -33,10 +30,4 @@ class CanPreviewAttachmentImpl(
 
         return AttachmentPreviewPolicy.Previewable
     }
-}
-
-private fun Platform.supportsAttachmentPreview(): Boolean = when (this) {
-    is Platform.Desktop -> true
-    is Platform.Mobile.Android -> true
-    is Platform.Mobile.Ios -> false
 }

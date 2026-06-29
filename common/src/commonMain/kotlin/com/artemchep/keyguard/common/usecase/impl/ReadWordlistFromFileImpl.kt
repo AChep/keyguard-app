@@ -2,7 +2,7 @@ package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.useLines
+import com.artemchep.keyguard.util.foundation.io.useLines
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.usecase.ReadWordlistFromFile
 import org.kodein.di.DirectDI

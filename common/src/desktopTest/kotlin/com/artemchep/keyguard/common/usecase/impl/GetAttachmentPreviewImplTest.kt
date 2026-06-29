@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.service.file.FileService
-import com.artemchep.keyguard.common.service.file.PureFileService
+import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptorJvm
@@ -43,7 +43,7 @@ class GetAttachmentPreviewImplTest {
                         error("Remote metadata should not be resolved for a local preview.")
                 },
                 fileEncryptor = fileEncryptor,
-                fileService = PureFileService(),
+                fileService = FileServiceImpl(),
                 httpClient = HttpClient(
                     MockEngine {
                         error("Unexpected network request.")
@@ -202,7 +202,7 @@ class GetAttachmentPreviewImplTest {
 
     private fun useCase(
         metadata: DownloadAttachmentRequestData,
-        fileService: FileService = PureFileService(),
+        fileService: FileService = FileServiceImpl(),
         httpClient: HttpClient = HttpClient(
             MockEngine {
                 error("Unexpected network request.")

@@ -1,0 +1,98 @@
+name: "✔️ Check WebDAV E2E"
+
+on:
+  workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: 'Cache write only'
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/actions/setup_gradle/**'
+      - '.github/workflows/check_webdav_e2e.yaml'
+      - 'build.gradle.kts'
+      - 'buildPlugins/**'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'integration/webdavE2eTest/**'
+      - 'settings.gradle'
+      - 'util/webdav/**'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/actions/setup_gradle/**'
+      - '.github/workflows/check_webdav_e2e.yaml'
+      - 'build.gradle.kts'
+      - 'buildPlugins/**'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'integration/webdavE2eTest/**'
+      - 'settings.gradle'
+      - 'util/webdav/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-webdav-e2e:
+    name: Check WebDAV E2E
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Install hacdias/webdav"
+        shell: bash
+        env:
+          WEBDAV_VERSION: "5.11.11"
+          WEBDAV_SHA256: "ea5dc5559ecfe819b68892ee46a8268eb20d36e037cab887fe06e50fdf654b18"
+        run: |
+          set -euo pipefail
+
+          install_dir="${RUNNER_TEMP}/webdav"
+          archive="${RUNNER_TEMP}/linux-amd64-webdav.tar.gz"
+          mkdir -p "${install_dir}"
+
+          curl -sSLf \
+            "https://github.com/hacdias/webdav/releases/download/v${WEBDAV_VERSION}/linux-amd64-webdav.tar.gz" \
+            -o "${archive}"
+          echo "${WEBDAV_SHA256}  ${archive}" | sha256sum --check --status
+
+          tar -xzf "${archive}" -C "${install_dir}"
+          webdav_bin="$(find "${install_dir}" -type f -name webdav -print -quit)"
+          test -n "${webdav_bin}"
+          chmod +x "${webdav_bin}"
+          if [ "${webdav_bin}" != "${install_dir}/webdav" ]; then
+            ln -sf "${webdav_bin}" "${install_dir}/webdav"
+          fi
+
+          echo "${install_dir}" >> "${GITHUB_PATH}"
+          "${install_dir}/webdav" version
+      - name: "Run WebDAV E2E tests"
+        run: ./gradlew --continue :integration:webdavE2eTest:webdavE2eTest
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: webdav-e2e-test-reports
+          path: |
+            integration/webdavE2eTest/build/test-results/**
+            integration/webdavE2eTest/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21

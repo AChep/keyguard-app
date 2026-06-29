@@ -11,6 +11,13 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.api.builder.sanitize
 import com.artemchep.keyguard.provider.bitwarden.api.builder.tryGetErrorMessageBitwardenApi
 import com.artemchep.keyguard.provider.bitwarden.api.builder.tryGetErrorMessageCloudflareApi
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.UntrustedProfileException
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.fetchServerRevisionDateOrNull
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.hasPendingLocalWork
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.requireTrustedProfileId
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.requireTrustedProfileSecurityStamp
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.requiresAuthenticationForSyncFailure
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.shouldSkipFullSyncForRevision
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.ActionFailure
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncAction

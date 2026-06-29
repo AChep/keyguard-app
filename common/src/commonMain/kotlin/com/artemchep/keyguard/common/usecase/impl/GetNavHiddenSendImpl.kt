@@ -9,8 +9,6 @@ import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.PutCacheHiddenSend
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
-import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -128,7 +126,7 @@ class GetNavHiddenSendImpl(
 
             accounts
                 .any { account ->
-                    account.type == AccountType.BITWARDEN
+                    account.type.capabilities.supportsSends
                 }
         }
         .debounce(2000L) // for slow loading accounts

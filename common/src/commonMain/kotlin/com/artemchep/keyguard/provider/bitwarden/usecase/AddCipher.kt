@@ -6,7 +6,6 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.flatMap
 import com.artemchep.keyguard.common.io.flatTap
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DSecret
@@ -17,11 +16,13 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
+import com.artemchep.keyguard.common.usecase.AddFolderRequest
 import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.core.store.bitwarden.CipherSourceDataReconciler
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
@@ -78,8 +79,11 @@ class AddCipherImpl(
                     is FolderInfo.None -> null
                     is FolderInfo.New -> {
                         val accountId = AccountId(value.accountId!!)
-                        val rq = mapOf(
-                            accountId to folder.name,
+                        val rq = listOf(
+                            AddFolderRequest(
+                                accountId = accountId,
+                                name = folder.name,
+                            ),
                         )
                         val rs = addFolder(rq)
                             .bind()
@@ -670,7 +674,8 @@ private suspend fun BitwardenCipher.Companion.of(
     val createdDate = old?.createdDate ?: request.now
     val deletedDate = old?.deletedDate
     val archivedDate = old?.archivedDate
-    return BitwardenCipher(
+    val customIcon = old?.customIcon
+    val cipher = BitwardenCipher(
         accountId = accountId,
         cipherId = cipherId,
         folderId = folderId,
@@ -691,6 +696,7 @@ private suspend fun BitwardenCipher.Companion.of(
         // common
         name = request.title,
         notes = request.note?.takeIf { it.isNotEmpty() },
+        customIcon = customIcon,
         favorite = favourite,
         fields = fields,
         tags = tags,
@@ -705,6 +711,12 @@ private suspend fun BitwardenCipher.Companion.of(
         sshKey = sshKey,
         // other
         passwordHistory = passwordHistory,
+    )
+    return cipher.copy(
+        sourceData = CipherSourceDataReconciler.onEdit(
+            old = old,
+            new = cipher,
+        ),
     )
 }
 
@@ -839,6 +851,11 @@ internal suspend fun BitwardenCipher.Login.Companion.of(
                 uri = uri.uri,
                 uriChecksumBase64 = uriChecksumBase64,
                 match = match,
+                signatures = uri.signatures.map { signature ->
+                    BitwardenCipher.Login.Uri.Signature(
+                        certFingerprintSha256 = signature.certFingerprintSha256,
+                    )
+                },
             )
         }
     val fido2Credentials = _fido2Credentials

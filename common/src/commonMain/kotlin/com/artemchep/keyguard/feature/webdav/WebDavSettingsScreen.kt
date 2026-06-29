@@ -55,20 +55,27 @@ fun WebDavSettingsScreen(
         route = route,
         transmitter = transmitter,
     )
-    WebDavSettingsContent(state)
+    WebDavSettingsContent(
+        state = state,
+        purpose = route.args.purpose,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun WebDavSettingsContent(
     state: WebDavSettingsState,
+    purpose: WebDavSettingsRoute.Purpose,
 ) {
     val urlRequiredError =
         stringResource(Res.string.error_webdav_url_required)
+    val fileUrlRequiredError =
+        stringResource(Res.string.error_webdav_file_url_required)
     val passwordRequiresUsernameError =
         stringResource(Res.string.webdav_settings_password_requires_username_error)
     val urlError = when (state.error) {
         WebDavSettingsState.Error.UrlRequired -> urlRequiredError
+        WebDavSettingsState.Error.FileUrlRequired -> fileUrlRequiredError
         else -> null
     }
     val passwordError = when (state.error) {
@@ -76,6 +83,13 @@ private fun WebDavSettingsContent(
             passwordRequiresUsernameError
 
         else -> null
+    }
+
+    val probeText = when (purpose) {
+        WebDavSettingsRoute.Purpose.Collection ->
+            stringResource(Res.string.webdav_settings_test_text)
+        WebDavSettingsRoute.Purpose.KeePassDatabase ->
+            stringResource(Res.string.webdav_settings_test_text_read_only)
     }
 
     val scrollBehavior = ToolbarBehavior.behavior()
@@ -125,7 +139,10 @@ private fun WebDavSettingsContent(
                 state = state.url,
                 text = state.url.value,
                 error = urlError,
-                hint = stringResource(Res.string.webdav_settings_url_hint),
+                hint = when (purpose) {
+                    WebDavSettingsRoute.Purpose.Collection -> "https://example.com/keyguard-backups/"
+                    WebDavSettingsRoute.Purpose.KeePassDatabase -> "https://example.com/keyguard.kdbx"
+                },
                 onChange = state.url::value::set,
             )
             UrlFlatTextField(
@@ -234,7 +251,7 @@ private fun WebDavSettingsContent(
                         horizontal = Dimens.textHorizontalPadding,
                         vertical = Dimens.verticalPaddingHalf,
                     ),
-                text = stringResource(Res.string.webdav_settings_test_text),
+                text = probeText,
                 color = LocalContentColor.current
                     .combineAlpha(MediumEmphasisAlpha),
                 style = MaterialTheme.typography.bodySmall,

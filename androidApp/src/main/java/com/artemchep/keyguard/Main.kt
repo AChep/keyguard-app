@@ -14,7 +14,6 @@ import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.PhoneCredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.coil3.AppIconFetcher
 import com.artemchep.keyguard.android.coil3.AppIconKeyer
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.worker.AttachmentDownloadAllWorker
 import com.artemchep.keyguard.android.worker.BackupWorker
 import com.artemchep.keyguard.android.passkeysModule
@@ -30,6 +29,7 @@ import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.Screen
 import com.artemchep.keyguard.common.service.backup.AutomaticBackupPolicy
 import com.artemchep.keyguard.common.service.backup.automaticBackupScheduleStateFlow
+import com.artemchep.keyguard.common.service.download.DownloadRepository
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.usecase.*

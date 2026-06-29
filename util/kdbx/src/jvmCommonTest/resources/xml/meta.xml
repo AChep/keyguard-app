@@ -1,0 +1,34 @@
+<Meta>
+    <Generator>None</Generator>
+    <SettingsChanged>2025-07-06T17:15:52Z</SettingsChanged>
+    <DatabaseName>New</DatabaseName>
+    <DatabaseNameChanged>2025-07-06T17:15:52Z</DatabaseNameChanged>
+    <DatabaseDescription/>
+    <DatabaseDescriptionChanged>2025-07-06T17:15:52Z</DatabaseDescriptionChanged>
+    <DefaultUserName/>
+    <DefaultUserNameChanged>2025-07-06T17:15:52Z</DefaultUserNameChanged>
+    <MaintenanceHistoryDays>365</MaintenanceHistoryDays>
+    <Color/>
+    <MasterKeyChanged/>
+    <MasterKeyChangeRec>-1</MasterKeyChangeRec>
+    <MasterKeyChangeForce>-1</MasterKeyChangeForce>
+    <RecycleBinEnabled>True</RecycleBinEnabled>
+    <RecycleBinUUID>coknIADsfE72Kq5+bqC36Q==</RecycleBinUUID>
+    <RecycleBinChanged>2025-07-06T17:15:52Z</RecycleBinChanged>
+    <EntryTemplatesGroup>AAAAAAAAAAAAAAAAAAAAAA==</EntryTemplatesGroup>
+    <EntryTemplatesGroupChanged>2025-07-06T17:15:52Z</EntryTemplatesGroupChanged>
+    <HistoryMaxItems>10</HistoryMaxItems>
+    <HistoryMaxSize>6291456</HistoryMaxSize>
+    <LastSelectedGroup>phYLNIUFo/V2V48KpPHPPw==</LastSelectedGroup>
+    <LastTopVisibleGroup>phYLNIUFo/V2V48KpPHPPw==</LastTopVisibleGroup>
+    <MemoryProtection>
+        <ProtectTitle>False</ProtectTitle>
+        <ProtectUserName>False</ProtectUserName>
+        <ProtectPassword>True</ProtectPassword>
+        <ProtectURL>False</ProtectURL>
+        <ProtectNotes>False</ProtectNotes>
+    </MemoryProtection>
+    <CustomIcons/>
+    <CustomData/>
+    <Binaries/>
+</Meta>

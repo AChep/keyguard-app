@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.core
 
+import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import kotlin.time.Instant
 
 /**
@@ -56,6 +57,8 @@ data class LocalItemMeta(
     val canRetryError: Boolean = true,
     val attachmentIds: Set<String>? = null,
     val localFolderId: String? = null,
+    val parentFolderId: String? = null,
+    val folderHierarchyMode: FolderHierarchyMode? = null,
     val favorite: Boolean? = null,
     val collectionIds: Set<String>? = null,
     val requiresLocalRefreshWhenDatesMatch: Boolean = false,
@@ -84,6 +87,8 @@ data class ServerItemMeta(
     val deletedDate: Instant? = null,
     val attachmentIds: Set<String>? = null,
     val localFolderId: String? = null,
+    val parentFolderId: String? = null,
+    val folderHierarchyMode: FolderHierarchyMode? = null,
     val favorite: Boolean? = null,
     val collectionIds: Set<String>? = null,
 )

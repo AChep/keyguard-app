@@ -72,17 +72,48 @@ class WebDavSettingsStateProducerTest {
             result,
         )
     }
+
+    @Test
+    fun `keepass purpose accepts full database file url`() {
+        val result = buildSuccess(
+            url = "https://example.com/dav/vault.kdbx",
+            username = "",
+            password = "",
+            purpose = WebDavSettingsRoute.Purpose.KeePassDatabase,
+        )
+
+        assertEquals("https://example.com/dav/vault.kdbx", result.url)
+    }
+
+    @Test
+    fun `keepass purpose rejects collection url`() {
+        val result = buildWebDavSettingsResult(
+            url = "https://example.com/dav/",
+            username = "",
+            password = "",
+            purpose = WebDavSettingsRoute.Purpose.KeePassDatabase,
+        )
+
+        assertEquals(
+            WebDavSettingsBuildResult.Failure(
+                WebDavSettingsState.Error.FileUrlRequired,
+            ),
+            result,
+        )
+    }
 }
 
 private fun buildSuccess(
     url: String,
     username: String,
     password: String,
+    purpose: WebDavSettingsRoute.Purpose = WebDavSettingsRoute.Purpose.Collection,
 ): WebDavSettingsResult {
     val result = buildWebDavSettingsResult(
         url = url,
         username = username,
         password = password,
+        purpose = purpose,
     )
     if (result !is WebDavSettingsBuildResult.Success) {
         error("Expected successful WebDAV settings build, got $result.")

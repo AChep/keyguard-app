@@ -1,8 +1,9 @@
 package com.artemchep.keyguard.common.service.backup
 
-import com.artemchep.keyguard.common.io.readByteArrayAndClose
-import com.artemchep.keyguard.common.io.toSource
+import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
+import com.artemchep.keyguard.util.foundation.io.toSource
 import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.common.service.webdav.webDavAuthorizationOf
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
 import com.artemchep.keyguard.util.webdav.WebDavByteRange
 import com.artemchep.keyguard.util.webdav.WebDavClient
@@ -11,6 +12,7 @@ import com.artemchep.keyguard.util.webdav.WebDavOpenResult
 import com.artemchep.keyguard.util.webdav.WebDavOperation
 import com.artemchep.keyguard.util.webdav.WebDavResource
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
+import com.artemchep.keyguard.util.webdav.WebDavWritePrecondition
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -119,7 +121,10 @@ class WebDavBackupObjectStoreTest {
                 username = "alice",
                 password = "secret",
             ),
-            store.toWebDavAuthorization(),
+            webDavAuthorizationOf(
+                username = store.username,
+                password = store.password,
+            ),
         )
     }
 
@@ -131,7 +136,13 @@ class WebDavBackupObjectStoreTest {
             password = Password("secret"),
         )
 
-        assertEquals(null, store.toWebDavAuthorization())
+        assertEquals(
+            null,
+            webDavAuthorizationOf(
+                username = store.username,
+                password = store.password,
+            ),
+        )
     }
 
     @Test
@@ -249,6 +260,7 @@ private class FakeWebDavClient(
         path: String,
         mode: WebDavWriteMode,
         bytes: ByteArray,
+        precondition: WebDavWritePrecondition?,
     ): WebDavResource {
         writtenContentLength = bytes.size.toLong()
         return writeBytes(
@@ -262,6 +274,7 @@ private class FakeWebDavClient(
         path: String,
         mode: WebDavWriteMode,
         contentLength: Long?,
+        precondition: WebDavWritePrecondition?,
         write: suspend (Sink) -> Unit,
     ): WebDavResource {
         val buffer = Buffer()

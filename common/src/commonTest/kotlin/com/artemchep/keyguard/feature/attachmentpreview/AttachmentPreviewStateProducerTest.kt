@@ -2,14 +2,17 @@ package com.artemchep.keyguard.feature.attachmentpreview
 
 import arrow.core.left
 import arrow.core.right
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.AttachmentPreviewPayload
+import com.artemchep.keyguard.common.model.AttachmentPreviewPolicy
 import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadProgress
+import com.artemchep.keyguard.common.service.download.DownloadQueueRequest
+import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
 import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
@@ -121,7 +124,7 @@ class AttachmentPreviewStateProducerTest {
                     fileName = "notes.txt",
                     encryptedSize = AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES + 1,
                 ),
-                Platform.Desktop.MacOS,
+                CanPreviewAttachmentImpl(platform = Platform.Desktop.MacOS),
                 AttachmentPreviewError.TooLarge,
             ),
             Triple(
@@ -129,7 +132,7 @@ class AttachmentPreviewStateProducerTest {
                     fileName = "archive.zip",
                     encryptedSize = 1L,
                 ),
-                Platform.Desktop.MacOS,
+                CanPreviewAttachmentImpl(platform = Platform.Desktop.MacOS),
                 AttachmentPreviewError.UnsupportedFileType,
             ),
             Triple(
@@ -137,18 +140,18 @@ class AttachmentPreviewStateProducerTest {
                     fileName = "notes.txt",
                     encryptedSize = 1L,
                 ),
-                Platform.Mobile.Ios,
+                StaticCanPreviewAttachment(AttachmentPreviewPolicy.UnsupportedPlatform),
                 AttachmentPreviewError.UnsupportedPlatform,
             ),
         )
 
-        cases.forEach { (args, platform, expectedError) ->
+        cases.forEach { (args, canPreviewAttachment, expectedError) ->
             val downloadManager = FakeDownloadManager(status = DownloadProgress.None)
             val getAttachmentPreview = CountingGetAttachmentPreview()
 
             val state = createAttachmentPreviewState(
                 args = args,
-                canPreviewAttachment = CanPreviewAttachmentImpl(platform = platform),
+                canPreviewAttachment = canPreviewAttachment,
                 getAttachmentPreview = getAttachmentPreview,
                 downloadManager = downloadManager,
                 copyText = createCopyText(),
@@ -208,6 +211,15 @@ class AttachmentPreviewStateProducerTest {
     )
 }
 
+private class StaticCanPreviewAttachment(
+    private val policy: AttachmentPreviewPolicy,
+) : CanPreviewAttachment {
+    override fun invoke(
+        fileName: String,
+        encryptedSize: Long?,
+    ): AttachmentPreviewPolicy = policy
+}
+
 private class FakeDownloadManager(
     private val status: DownloadProgress,
 ) : DownloadManager {
@@ -219,25 +231,18 @@ private class FakeDownloadManager(
         private set
 
     override fun statusByTag(
-        tag: DownloadInfoEntity2.AttachmentDownloadTag,
+        tag: DownloadInfoEntity.AttachmentDownloadTag,
     ): Flow<DownloadProgress> {
         statusByTagCalls++
         return flowOf(status)
     }
 
     override suspend fun queue(
-        downloadInfo: DownloadInfoEntity2,
+        downloadInfo: DownloadInfoEntity,
     ): DownloadManager.QueueResult = error("Unexpected queue.")
 
     override suspend fun queue(
-        tag: DownloadInfoEntity2.AttachmentDownloadTag,
-        url: String,
-        urlIsOneTime: Boolean,
-        name: String,
-        data: ByteArray?,
-        key: ByteArray?,
-        attempt: Int,
-        worker: Boolean,
+        request: DownloadQueueRequest,
     ): DownloadManager.QueueResult = error("Unexpected queue.")
 
     override suspend fun removeByDownloadId(
@@ -245,7 +250,7 @@ private class FakeDownloadManager(
     ) = error("Unexpected remove.")
 
     override suspend fun removeByTag(
-        tag: DownloadInfoEntity2.AttachmentDownloadTag,
+        tag: DownloadInfoEntity.AttachmentDownloadTag,
     ) = error("Unexpected remove.")
 }
 

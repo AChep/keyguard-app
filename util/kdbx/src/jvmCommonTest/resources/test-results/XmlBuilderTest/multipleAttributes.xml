@@ -1,0 +1,4 @@
+<root>
+	<test key="value" otherAttr="hello world"/>
+	<attributes test="value" key="pair"/>
+</root>

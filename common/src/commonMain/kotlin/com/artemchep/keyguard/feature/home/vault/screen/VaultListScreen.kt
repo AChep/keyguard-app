@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.ExperimentalMaterialApi
@@ -20,14 +19,10 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButtonMenu
-import androidx.compose.material3.FloatingActionButtonMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,7 +52,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.search.filter.FilterButton
 import com.artemchep.keyguard.feature.search.filter.FilterScreen
-import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposable
+import com.artemchep.keyguard.feature.search.filter.component.FilterChipItemComposable
 import com.artemchep.keyguard.feature.search.sort.SortButton
 import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
 import com.artemchep.keyguard.res.Res
@@ -69,8 +64,6 @@ import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
-import com.artemchep.keyguard.ui.DropdownMinWidth
-import com.artemchep.keyguard.ui.DropdownScopeImpl
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
@@ -79,13 +72,9 @@ import com.artemchep.keyguard.ui.RequestLazyListScrollOnRevision
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.SmallFab
 import com.artemchep.keyguard.ui.focus.FocusRequester2
-import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.IconBox
-import com.artemchep.keyguard.ui.icons.Stub
-import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.skeleton.SkeletonFilter
-import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.skeleton.SkeletonItemAvatar
 import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -559,8 +548,8 @@ fun VaultHomeScreenListPane(
                             val arg2 = LocalAppMode.current
                             val llll = remember(state.filters) {
                                 state.filters
-                                    .filter { it.sectionId == "custom" && it is FilterItem.Item }
-                                    .map { it as FilterItem.Item }
+                                    .filter { it.sectionId == "custom" && it is FilterItem.ChipItem }
+                                    .map { it as FilterItem.ChipItem }
                             }
                             if (llll.isNotEmpty() && fab && arg2 is AppMode.Main && state.query.state.value == "") Column(
                                 modifier = Modifier,
@@ -573,7 +562,7 @@ fun VaultHomeScreenListPane(
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
                                     llll.forEach { item ->
-                                        FilterItemComposable(
+                                        FilterChipItemComposable(
                                             leading = item.leading,
                                             title = item.title,
                                             text = null,

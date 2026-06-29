@@ -4,7 +4,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.handleErrorTap
 import com.artemchep.keyguard.common.io.sharedSoftRef
-import com.artemchep.keyguard.common.io.useLines
+import com.artemchep.keyguard.util.foundation.io.useLines
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.wordlist.WordlistService

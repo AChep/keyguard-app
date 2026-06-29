@@ -6,7 +6,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Tag
 import androidx.compose.runtime.Composable
-import arrow.core.partially1
 import arrow.core.right
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.Loadable
@@ -40,7 +39,6 @@ import com.artemchep.keyguard.ui.icons.iconSmall
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -157,8 +155,8 @@ fun produceCipherFilterViewState(
                     leading: (@Composable () -> Unit)?,
                     title: String,
                     text: String? = null,
-                ): FilterItem.Item {
-                    return FilterItem.Item(
+                ): FilterItem.ChipItem {
+                    return FilterItem.ChipItem(
                         sectionId = filterSection.id,
                         filterSectionId = filterSection.id,
                         filter = FilterItem.Item.Filter.Toggle(
@@ -166,7 +164,6 @@ fun produceCipherFilterViewState(
                         ),
                         checked = false,
                         enabled = true,
-                        fill = false,
                         leading = leading,
                         title = title,
                         text = text,

@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
-import com.artemchep.keyguard.common.service.file.PureFileService
+import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.crypto.util.createAesCbc
 import com.artemchep.keyguard.crypto.util.encode
 import com.artemchep.keyguard.platform.toLocalPath
@@ -21,7 +21,7 @@ class FileEncryptorJvmTest {
         cryptoGenerator = CryptoGeneratorJvm(),
     )
     private val cryptoGenerator = CryptoGeneratorJvm()
-    private val fileService = PureFileService()
+    private val fileService = FileServiceImpl()
 
     @Test
     fun `byte array encode writes framed ciphertext that decodes back to the source`() {
@@ -198,6 +198,20 @@ class FileEncryptorJvmTest {
         )
 
         assertContentEquals(data, encryptor.decode(encryptedBytes, key))
+    }
+
+    @Test
+    fun `key helpers reject non exact aes key sizes`() {
+        listOf(31, 33).forEach { size ->
+            assertFailsWith<IllegalStateException> {
+                FileEncryptionFormat.requireAesCbc128HmacSha256Keys(ByteArray(size))
+            }
+        }
+        listOf(63, 65).forEach { size ->
+            assertFailsWith<IllegalStateException> {
+                FileEncryptionFormat.requireAesCbc256HmacSha256Keys(ByteArray(size))
+            }
+        }
     }
 
     @Test

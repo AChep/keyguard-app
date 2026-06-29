@@ -208,8 +208,10 @@ import com.artemchep.keyguard.common.usecase.impl.BackupSettingsImpl
 import com.artemchep.keyguard.common.usecase.impl.CheckHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
+import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentMetadataImpl2
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAttachmentPreviewImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBarcodeUsageHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBreachesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBreachesLatestDateImpl
@@ -355,13 +357,16 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountColorByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountMasterPasswordHintByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountNameByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutBitwardenAccountColorByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutBitwardenAccountMasterPasswordHintByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutBitwardenAccountNameByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountColorById
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountColorByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountMasterPasswordHintById
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountMasterPasswordHintByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountNameById
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountNameByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutProfileHiddenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RePromptCipherByIdImpl
-import com.artemchep.keyguard.provider.bitwarden.usecase.createPutKeePassAccountColorById
-import com.artemchep.keyguard.provider.bitwarden.usecase.createPutKeePassAccountNameById
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveAccountByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveAccountsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveCipherByIdImpl
@@ -385,13 +390,15 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.UnarchiveCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountUseCase
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.SyncByBitwardenTokenV2Impl
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.SyncByBitwardenTokenV2Impl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassToken
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassTokenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByTokenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
@@ -478,10 +485,10 @@ fun DI.Builder.createSubDi2(
         DownloadAttachmentImpl2(this)
     }
     bindSingleton<DownloadAttachmentMetadata> {
-        createDownloadAttachmentMetadata(this)
+        DownloadAttachmentMetadataImpl2(this)
     }
     bindSingleton<GetAttachmentPreview> {
-        createGetAttachmentPreview(this)
+        GetAttachmentPreviewImpl(this)
     }
     bindSingleton<CanPreviewAttachment> {
         CanPreviewAttachmentImpl()
@@ -681,7 +688,7 @@ fun DI.Builder.createSubDi2(
         AddAccountImpl(this)
     }
     bindSingleton<AddKeePassAccount> {
-        createAddKeePassAccount(this)
+        AddKeePassAccountImpl(this)
     }
     bindSingleton<ImportCompanionBitwardenAccount> {
         ImportCompanionBitwardenAccountImpl(this)
@@ -867,10 +874,16 @@ fun DI.Builder.createSubDi2(
         PutBitwardenAccountColorByIdImpl(this)
     }
     bindSingleton<PutKeePassAccountColorById> {
-        createPutKeePassAccountColorById(this)
+        PutKeePassAccountColorByIdImpl(this)
     }
     bindSingleton<PutAccountColorById> {
         PutAccountColorByIdImpl(this)
+    }
+    bindSingleton<PutBitwardenAccountMasterPasswordHintByIdImpl> {
+        PutBitwardenAccountMasterPasswordHintByIdImpl(this)
+    }
+    bindSingleton<PutKeePassAccountMasterPasswordHintById> {
+        PutKeePassAccountMasterPasswordHintByIdImpl()
     }
     bindSingleton<PutAccountMasterPasswordHintById> {
         PutAccountMasterPasswordHintByIdImpl(this)
@@ -879,7 +892,7 @@ fun DI.Builder.createSubDi2(
         PutBitwardenAccountNameByIdImpl(this)
     }
     bindSingleton<PutKeePassAccountNameById> {
-        createPutKeePassAccountNameById(this)
+        PutKeePassAccountNameByIdImpl(this)
     }
     bindSingleton<PutAccountNameById> {
         PutAccountNameByIdImpl(this)
@@ -1072,7 +1085,7 @@ fun DI.Builder.createSubDi2(
         SyncByBitwardenTokenV2Impl(this)
     }
     bindSingleton<SyncByKeePassToken> {
-        createSyncByKeePassToken(this)
+        SyncByKeePassTokenImpl(this)
     }
     bindSingleton<WatchdogImpl> {
         WatchdogImpl(this)

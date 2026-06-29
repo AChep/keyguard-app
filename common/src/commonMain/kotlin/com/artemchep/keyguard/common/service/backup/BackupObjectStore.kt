@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.backup
 
-import com.artemchep.keyguard.common.io.readByteArrayAndClose
+import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
+import kotlin.jvm.JvmInline
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Instant

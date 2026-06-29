@@ -3,10 +3,6 @@ package com.artemchep.keyguard.core.session
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
-import com.artemchep.keyguard.android.downloader.DownloadClientAndroid
-import com.artemchep.keyguard.android.downloader.DownloadManagerImpl
-import com.artemchep.keyguard.android.downloader.DownloadTaskAndroid
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
@@ -30,7 +26,14 @@ import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.service.download.DownloadRepository
 import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.download.DownloadTaskAndroid
+import com.artemchep.keyguard.common.service.download.DownloadManagerImpl
+import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundScheduler
+import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundSchedulerAndroid
+import com.artemchep.keyguard.common.service.download.store.DownloadFileStore
+import com.artemchep.keyguard.common.service.download.store.DownloadFileStoreAndroid
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoOp
@@ -263,8 +266,13 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindProvider<PackageManager> {
         instance<Application>().packageManager
     }
-    bindSingleton<DownloadClientAndroid> {
-        DownloadClientAndroid(
+    bindSingleton<DownloadFileStore> {
+        DownloadFileStoreAndroid(
+            directDI = this,
+        )
+    }
+    bindSingleton<DownloadBackgroundScheduler> {
+        DownloadBackgroundSchedulerAndroid(
             directDI = this,
         )
     }

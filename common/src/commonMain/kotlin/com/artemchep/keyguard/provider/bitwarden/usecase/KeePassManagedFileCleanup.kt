@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.service.file.FileService
+import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.platform.recordException
@@ -11,11 +12,12 @@ internal fun cleanupManagedKeePassFiles(
 ) {
     tokens.asSequence()
         .filterIsInstance<KeePassToken>()
-        .filter { it.files.managedByApp }
-        .forEach { token ->
+        .mapNotNull { token -> token.database.location as? FileLocation.Local }
+        .filter { it.managedByApp }
+        .forEach { location ->
             deleteManagedKeePassFile(
                 fileService = fileService,
-                databaseUri = token.files.databaseUri,
+                databaseUri = location.uri,
             )
         }
 }

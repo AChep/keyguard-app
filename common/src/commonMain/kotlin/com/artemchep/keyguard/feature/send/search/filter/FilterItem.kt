@@ -23,20 +23,18 @@ sealed interface SendFilterItem : FilterItemModel {
         override val id: String = sectionId
     }
 
-    data class Item(
+    data class ChipItem(
         override val sectionId: String,
         val filterSectionId: String,
         val filters: Set<DSendFilter.Primitive>,
         override val checked: Boolean,
-        override val fill: Boolean,
-        override val indent: Int,
         override val leading: (@Composable () -> Unit)?,
         override val title: String,
         override val text: String?,
         override val textMaxLines: Int? = null,
         override val onClick: (() -> Unit)?,
         override val enabled: Boolean = onClick != null,
-    ) : SendFilterItem, FilterItemModel.Item {
+    ) : SendFilterItem, FilterItemModel.ChipItem {
         companion object;
 
         override val id: String =

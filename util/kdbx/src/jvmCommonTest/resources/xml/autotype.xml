@@ -1,0 +1,13 @@
+<AutoType>
+    <Enabled>True</Enabled>
+    <DataTransferObfuscation>1</DataTransferObfuscation>
+    <DefaultSequence>{USERNAME}{TAB}{PASSWORD}{ENTER}</DefaultSequence>
+    <Association>
+        <Window>Target Window 1</Window>
+        <KeystrokeSequence>{Title}{UserName}</KeystrokeSequence>
+    </Association>
+    <Association>
+        <Window>Target Window 2</Window>
+        <KeystrokeSequence>{Title}{UserName}</KeystrokeSequence>
+    </Association>
+</AutoType>

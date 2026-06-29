@@ -7,7 +7,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.AttachmentPreviewException
@@ -156,7 +156,7 @@ internal suspend fun cachedAttachmentPreviewLocalUrl(
     args: AttachmentPreviewRoute.Args,
     downloadManager: DownloadManager,
 ): String? {
-    val tag = DownloadInfoEntity2.AttachmentDownloadTag(
+    val tag = DownloadInfoEntity.AttachmentDownloadTag(
         localCipherId = args.localCipherId,
         remoteCipherId = args.remoteCipherId,
         attachmentId = args.attachmentId,

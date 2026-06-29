@@ -22,6 +22,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.OrganizationEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.OrganizationUserStatusTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.OrganizationUserTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileEntity
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.SyncByBitwardenTokenV2Impl
 import io.ktor.http.HttpMethod
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test

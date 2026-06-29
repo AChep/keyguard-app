@@ -3,36 +3,83 @@ package com.artemchep.keyguard.provider.bitwarden.crypto
 import kotlin.jvm.JvmName
 
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
 
 fun BitwardenCipher.transform(
     itemCrypto: BitwardenCrCta,
     globalCrypto: BitwardenCrCta,
-): BitwardenCipher = copy(
-    // common
-    keyBase64 = keyBase64?.let(globalCrypto::transformBase64),
-    name = itemCrypto.transformString(name),
-    notes = itemCrypto.transformString(notes),
-    tags = tags.transform(itemCrypto),
-    fields = fields.transform(itemCrypto),
-    attachments = attachments.transform(itemCrypto),
-    passwordHistory = passwordHistory.transform(itemCrypto),
-    remoteEntity = remoteEntity
-        ?.transform(
-            itemCrypto = itemCrypto,
-            globalCrypto = globalCrypto,
-        ),
-    // types
-    login = login?.transform(itemCrypto),
-    secureNote = secureNote?.transform(itemCrypto),
-    card = card?.transform(itemCrypto),
-    identity = identity?.transform(itemCrypto),
-    sshKey = sshKey?.transform(itemCrypto),
-).let { transformedCipher ->
-    if (globalCrypto.mode == BitwardenCrCta.Mode.DECRYPT) {
-        return@let decodeEntity(transformedCipher)
+): BitwardenCipher {
+    val sourceCipher = encodeKeePassIconCustomField(
+        mode = itemCrypto.mode,
+    )
+    return sourceCipher.copy(
+        // common
+        keyBase64 = sourceCipher.keyBase64?.let(globalCrypto::transformBase64),
+        name = itemCrypto.transformString(sourceCipher.name),
+        notes = itemCrypto.transformString(sourceCipher.notes),
+        tags = sourceCipher.tags.transform(itemCrypto),
+        fields = sourceCipher.fields.transform(itemCrypto),
+        attachments = sourceCipher.attachments.transform(itemCrypto),
+        passwordHistory = sourceCipher.passwordHistory.transform(itemCrypto),
+        remoteEntity = sourceCipher.remoteEntity
+            ?.transform(
+                itemCrypto = itemCrypto,
+                globalCrypto = globalCrypto,
+            ),
+        // types
+        login = sourceCipher.login?.transform(itemCrypto),
+        secureNote = sourceCipher.secureNote?.transform(itemCrypto),
+        card = sourceCipher.card?.transform(itemCrypto),
+        identity = sourceCipher.identity?.transform(itemCrypto),
+        sshKey = sourceCipher.sshKey?.transform(itemCrypto),
+    ).let { transformedCipher ->
+        if (globalCrypto.mode == BitwardenCrCta.Mode.DECRYPT) {
+            return@let decodeEntity(transformedCipher)
+        }
+
+        transformedCipher
+    }
+}
+
+private const val KEEPASS_ICON_FIELD_NAME = "Custom Icon Name"
+
+private fun BitwardenCipher.encodeKeePassIconCustomField(
+    mode: BitwardenCrCta.Mode,
+): BitwardenCipher {
+    if (mode != BitwardenCrCta.Mode.ENCRYPT) return this
+    val icon = customIcon
+        ?.takeUnless { it == KeePassIcon.Key }
+        ?: return this
+
+    val reservedNames = fields
+        .asSequence()
+        .mapNotNull { it.name }
+        .filter { it != KEEPASS_ICON_FIELD_NAME }
+        .toMutableSet()
+    reservedNames += KEEPASS_ICON_FIELD_NAME
+
+    fun nextAvailableIconFieldName(): String {
+        var index = 1
+        while (true) {
+            val name = "$KEEPASS_ICON_FIELD_NAME #$index"
+            if (reservedNames.add(name)) return name
+            index++
+        }
     }
 
-    transformedCipher
+    val iconField = BitwardenCipher.Field(
+        name = KEEPASS_ICON_FIELD_NAME,
+        value = icon.name,
+        type = BitwardenCipher.Field.Type.Text,
+    )
+    val renamedFields = fields.map { field ->
+        if (field.name == KEEPASS_ICON_FIELD_NAME) {
+            field.copy(name = nextAvailableIconFieldName())
+        } else {
+            field
+        }
+    }
+    return copy(fields = listOf(iconField) + renamedFields)
 }
 
 private fun decodeEntity(
@@ -43,7 +90,7 @@ private fun decodeEntity(
                 field.name == "Tag"
     }
 
-    val fields = cipher.fields
+    val fieldsWithoutTags = cipher.fields
         .filter { !isTag(it) }
     val tags = cipher.fields
         .filter { isTag(it) }
@@ -52,10 +99,51 @@ private fun decodeEntity(
                 ?: return@mapNotNull null
             BitwardenCipher.Tag(name)
         }
+    val decodedIcon = fieldsWithoutTags.decodeKeePassIconCustomField()
     return cipher.copy(
-        fields = fields,
+        fields = decodedIcon.fields,
         tags = tags,
+        customIcon = if (decodedIcon.consumed) {
+            decodedIcon.keepassIcon
+        } else {
+            cipher.customIcon
+        },
     )
+}
+
+private data class DecodedKeePassIconCustomField(
+    val fields: List<BitwardenCipher.Field>,
+    val keepassIcon: KeePassIcon?,
+    val consumed: Boolean,
+)
+
+private fun List<BitwardenCipher.Field>.decodeKeePassIconCustomField(): DecodedKeePassIconCustomField {
+    var consumed = false
+    var keepassIcon: KeePassIcon? = null
+    val remainingFields = buildList {
+        this@decodeKeePassIconCustomField.forEach { field ->
+            val decodedIcon = field.decodeKeePassIconOrNull()
+            if (!consumed && decodedIcon != null) {
+                consumed = true
+                keepassIcon = decodedIcon.takeUnless { it == KeePassIcon.Key }
+            } else {
+                add(field)
+            }
+        }
+    }
+    return DecodedKeePassIconCustomField(
+        fields = remainingFields,
+        keepassIcon = keepassIcon,
+        consumed = consumed,
+    )
+}
+
+private fun BitwardenCipher.Field.decodeKeePassIconOrNull(): KeePassIcon? {
+    if (name != KEEPASS_ICON_FIELD_NAME) return null
+    if (type != BitwardenCipher.Field.Type.Text) return null
+    if (linkedId != null) return null
+    val rawValue = value ?: return null
+    return KeePassIcon.entries.firstOrNull { icon -> icon.name == rawValue }
 }
 
 @JvmName("encryptListOfBitwardenCipherAttachment")
@@ -135,6 +223,15 @@ fun BitwardenCipher.Login.Uri.transform(
 ) = copy(
     uri = crypto.transformString(uri.orEmpty()),
     uriChecksumBase64 = uriChecksumBase64?.let(crypto::transformString),
+    signatures = signatures.map { signature ->
+        signature.transform(crypto)
+    },
+)
+
+fun BitwardenCipher.Login.Uri.Signature.transform(
+    crypto: BitwardenCrCta,
+) = copy(
+    certFingerprintSha256 = crypto.transformString(certFingerprintSha256),
 )
 
 @JvmName("encryptListOfBitwardenCipherLoginFido2Credentials")

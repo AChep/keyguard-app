@@ -1231,9 +1231,10 @@ class AddStateItemUriFactory(
             state = LocalStateItem(
                 flow = stateFlow,
                 populator = { state ->
-                    val field = DSecret.Uri(
+                    val field = createUriWithPreservedSignatures(
                         uri = state.text.text,
                         match = state.matchType,
+                        initial = initial,
                     )
                     val newUris = uris.add(field)
                     copy(uris = newUris)
@@ -1241,6 +1242,23 @@ class AddStateItemUriFactory(
             ),
         )
     }
+}
+
+internal fun createUriWithPreservedSignatures(
+    uri: String,
+    match: DSecret.Uri.MatchType?,
+    initial: DSecret.Uri?,
+): DSecret.Uri {
+    val signatures = initial
+        ?.signatures
+        .orEmpty()
+        .takeIf { initial?.uri == uri }
+        .orEmpty()
+    return DSecret.Uri(
+        uri = uri,
+        match = match,
+        signatures = signatures,
+    )
 }
 
 class AddStateItemPasskeyFactory(

@@ -2,17 +2,12 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.combineIo
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.map
-import com.artemchep.keyguard.common.io.measure
-import com.artemchep.keyguard.common.io.parallel
-import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.AccountId
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.PutAccountMasterPasswordHintById
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -24,7 +19,6 @@ import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepo
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
 import io.ktor.client.HttpClient
-import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -32,22 +26,60 @@ import org.kodein.di.instance
 /**
  * @author Artem Chepurnyi
  */
-class PutAccountMasterPasswordHintByIdImpl(
-    private val logRepository: LogRepository,
-    private val tokenRepository: ServiceTokenRepository,
-    private val profileRepository: BitwardenProfileRepository,
-    private val base64Service: Base64Service,
-    private val json: Json,
-    private val httpClient: HttpClient,
-    private val db: VaultDatabaseManager,
+class PutAccountMasterPasswordHintByIdImpl internal constructor(
+    logRepository: LogRepository,
+    tokenRepository: ServiceTokenRepository,
+    profileRepository: BitwardenProfileRepository,
+    putBitwardenAccountMasterPasswordHintById: PutBitwardenAccountMasterPasswordHintByIdImpl,
+    putKeePassAccountMasterPasswordHintById: PutKeePassAccountMasterPasswordHintById,
 ) : PutAccountMasterPasswordHintById {
     companion object {
         private const val TAG = "PutAccountMasterPasswordHintById"
     }
 
+    private val putAccountMasterPasswordHintById = PutAccountSettingById<String?>(
+        logRepository = logRepository,
+        tokenRepository = tokenRepository,
+        profileRepository = profileRepository,
+        tag = TAG,
+        changeLogSubject = "account master password hint",
+        putBitwarden = { passwordHint, token, profile ->
+            putBitwardenAccountMasterPasswordHintById(
+                passwordHint = passwordHint,
+                token = token,
+                profile = profile,
+            )
+        },
+        putKeePass = { passwordHint, token, profile ->
+            putKeePassAccountMasterPasswordHintById(
+                passwordHint = passwordHint,
+                token = token,
+                profile = profile,
+            )
+        },
+    )
+
     constructor(directDI: DirectDI) : this(
         logRepository = directDI.instance(),
         tokenRepository = directDI.instance(),
+        profileRepository = directDI.instance(),
+        putBitwardenAccountMasterPasswordHintById = directDI.instance(),
+        putKeePassAccountMasterPasswordHintById = directDI.instance(),
+    )
+
+    override fun invoke(
+        request: Map<AccountId, String?>,
+    ): IO<Unit> = putAccountMasterPasswordHintById(request)
+}
+
+internal class PutBitwardenAccountMasterPasswordHintByIdImpl(
+    private val profileRepository: BitwardenProfileRepository,
+    private val base64Service: Base64Service,
+    private val json: Json,
+    private val httpClient: HttpClient,
+    private val db: VaultDatabaseManager,
+) {
+    constructor(directDI: DirectDI) : this(
         profileRepository = directDI.instance(),
         base64Service = directDI.instance(),
         json = directDI.instance(),
@@ -55,59 +87,7 @@ class PutAccountMasterPasswordHintByIdImpl(
         db = directDI.instance(),
     )
 
-    override fun invoke(
-        request: Map<AccountId, String?>,
-    ): IO<Unit> = request
-        .entries
-        .map { entry ->
-            putAccountPasswordHintIo(
-                accountId = entry.key,
-                passwordHint = entry.value,
-            )
-        }
-        .parallel(Dispatchers.Default)
-        .map {
-            // Do not return the result.
-        }
-
-    private fun putAccountPasswordHintIo(
-        accountId: AccountId,
-        passwordHint: String?,
-    ) = combineIo(
-        tokenRepository
-            .getById(accountId),
-        profileRepository
-            .getById(accountId)
-            .toIO(),
-    ) { token, profile ->
-        requireNotNull(token) { "Failed to find the account tokens!" }
-        requireNotNull(profile) { "Failed to find the account profile!" }
-
-        when (token) {
-            is BitwardenToken -> submitChangeIo(
-                passwordHint = passwordHint,
-                token = token,
-                profile = profile,
-            )
-
-            is KeePassToken -> submitChangeIo(
-                passwordHint = passwordHint,
-                token = token,
-                profile = profile,
-            )
-        }
-            .measure { duration, _ ->
-                val msg =
-                    "Submitted the account master password hint change to remote in $duration."
-                logRepository.post(
-                    tag = TAG,
-                    message = msg,
-                )
-            }
-            .bind()
-    }
-
-    private fun submitChangeIo(
+    operator fun invoke(
         passwordHint: String?,
         token: BitwardenToken,
         profile: BitwardenProfile,
@@ -140,8 +120,19 @@ class PutAccountMasterPasswordHintByIdImpl(
         profileRepository.put(newProfile)
             .bind()
     }
+}
 
-    private fun submitChangeIo(
+internal interface PutKeePassAccountMasterPasswordHintById {
+    operator fun invoke(
+        passwordHint: String?,
+        token: KeePassToken,
+        profile: BitwardenProfile,
+    ): IO<Unit>
+}
+
+internal class PutKeePassAccountMasterPasswordHintByIdImpl :
+    PutKeePassAccountMasterPasswordHintById {
+    override operator fun invoke(
         passwordHint: String?,
         token: KeePassToken,
         profile: BitwardenProfile,

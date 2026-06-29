@@ -2,7 +2,7 @@ package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.FileResource
-import com.artemchep.keyguard.common.service.file.PureFileService
+import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.service.text.TextService
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Source
@@ -12,7 +12,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ReadWordlistFromFileImplTest {
-    private val fileService = PureFileService()
+    private val fileService = FileServiceImpl()
     private val textService = object : TextService {
         override suspend fun readFromResources(
             fileResource: FileResource,

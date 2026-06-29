@@ -10,7 +10,22 @@ data class FoldersRoute(
     data class Args(
         val filter: DFilter? = null,
         val empty: Boolean = false,
-    )
+        val parent: Parent? = null,
+    ) {
+        sealed interface Parent {
+            val accountId: String
+
+            data class Path(
+                override val accountId: String,
+                val path: String,
+            ) : Parent
+
+            data class Id(
+                override val accountId: String,
+                val folderId: String,
+            ) : Parent
+        }
+    }
 
     @Composable
     override fun Content() {

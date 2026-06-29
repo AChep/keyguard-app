@@ -1,12 +1,14 @@
 package com.artemchep.keyguard.common.service.backup
 
+import com.artemchep.keyguard.common.service.webdav.isFileResource
+import com.artemchep.keyguard.common.service.webdav.takeFileResourceOrNull
+import com.artemchep.keyguard.common.service.webdav.webDavAuthorizationOf
 import com.artemchep.keyguard.util.webdav.KtorWebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
 import com.artemchep.keyguard.util.webdav.WebDavByteRange
 import com.artemchep.keyguard.util.webdav.WebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavClientConfig
 import com.artemchep.keyguard.util.webdav.WebDavException
-import com.artemchep.keyguard.util.webdav.WebDavOperation
 import com.artemchep.keyguard.util.webdav.WebDavResource
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
 import io.ktor.client.HttpClient
@@ -34,7 +36,7 @@ class WebDavBackupObjectStore(
         key = key,
     ) {
         client.stat(key.value)
-            ?.takeUnless { resource -> resource.isCollection }
+            ?.takeFileResourceOrNull()
             ?.toBackupObjectInfo(key)
     }
 
@@ -82,7 +84,7 @@ class WebDavBackupObjectStore(
         BackupObjectListPage(
             items = client
                 .list(prefix.value)
-                .filterNot { resource -> resource.isCollection }
+                .filter { resource -> resource.isFileResource }
                 .map { resource ->
                     resource.toBackupObjectInfo(
                         key = BackupObjectKey(resource.path),
@@ -247,7 +249,10 @@ class WebDavBackupObjectStoreFactory(
             httpClient = httpClient,
             config = WebDavClientConfig(
                 baseUrl = repositoryPath,
-                authorization = authorization ?: webDavStore.toWebDavAuthorization(),
+                authorization = authorization ?: webDavAuthorizationOf(
+                    username = webDavStore.username,
+                    password = webDavStore.password,
+                ),
                 userAgent = userAgent,
             ),
         )
@@ -264,24 +269,15 @@ class WebDavBackupObjectStoreFactory(
             operation = BackupObjectStoreOperation.Open,
             cause = this,
         )
+
         is WebDavException.Transient -> BackupObjectStoreException.Transient(
             operation = BackupObjectStoreOperation.Open,
             cause = this,
         )
+
         else -> BackupObjectStoreException.PermissionDenied(
             operation = BackupObjectStoreOperation.Open,
             cause = this,
         )
     }
-}
-
-internal fun BackupStoreConfig.WebDav.toWebDavAuthorization(): WebDavAuthorization? {
-    val username = username
-        ?.trim()
-        ?.takeIf { it.isNotEmpty() }
-        ?: return null
-    return WebDavAuthorization.Basic(
-        username = username,
-        password = password?.value.orEmpty(),
-    )
 }

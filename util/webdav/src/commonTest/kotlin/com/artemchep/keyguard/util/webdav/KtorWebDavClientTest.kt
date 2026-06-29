@@ -73,6 +73,7 @@ class KtorWebDavClientTest {
                 }
                 "MOVE" to request.url.encodedPath -> {
                     assertEquals("F", request.headers["Overwrite"])
+                    assertEquals(null, request.headers["If"])
                     assertEquals(
                         "https://example.com/dav/root/blobs/ab/object.zip",
                         request.headers["Destination"],
@@ -110,6 +111,89 @@ class KtorWebDavClientTest {
             listOf("PROPFIND", "MKCOL", "PROPFIND", "MKCOL", "PUT", "MOVE", "PROPFIND"),
             engine.requestHistory.map { request -> request.method.value },
         )
+    }
+
+    @Test
+    fun `write sends destination ETag precondition on MOVE`() = runTest {
+        val payload = "payload".encodeToByteArray()
+        val engine = MockEngine { request ->
+            when (request.method.value to request.url.encodedPath) {
+                "PUT" to request.url.encodedPath -> {
+                    assertTrue(request.url.encodedPath.startsWith("/dav/root/object.zip."))
+                    assertTrue(request.url.encodedPath.endsWith(".tmp"))
+                    assertContentEquals(payload, request.body.asBytes())
+                    respond("", status = HttpStatusCode.Created)
+                }
+                "MOVE" to request.url.encodedPath -> {
+                    assertEquals("T", request.headers["Overwrite"])
+                    assertEquals(
+                        "https://example.com/dav/root/object.zip",
+                        request.headers["Destination"],
+                    )
+                    assertEquals(
+                        """<https://example.com/dav/root/object.zip> (["v1"])""",
+                        request.headers["If"],
+                    )
+                    respond("", status = HttpStatusCode.Created)
+                }
+                "PROPFIND" to "/dav/root/object.zip" -> respond(
+                    content = singleMultistatus(
+                        href = "/dav/root/object.zip",
+                        properties = """
+                            <D:resourcetype/>
+                            <D:getcontentlength>${payload.size}</D:getcontentlength>
+                            <D:getetag>&quot;v2&quot;</D:getetag>
+                        """.trimIndent(),
+                    ),
+                    status = MULTI_STATUS,
+                )
+                else -> error("Unexpected request: ${request.method.value} ${request.url}")
+            }
+        }
+        val client = testClient(engine)
+
+        val resource = client.write(
+            path = "object.zip",
+            bytes = payload,
+            precondition = WebDavWritePrecondition("\"v1\""),
+        )
+
+        assertEquals("\"v2\"", resource.etag)
+        assertEquals(
+            listOf("PUT", "MOVE", "PROPFIND"),
+            engine.requestHistory.map { request -> request.method.value },
+        )
+    }
+
+    @Test
+    fun `conditional write maps failed MOVE precondition`() = runTest {
+        val payload = "payload".encodeToByteArray()
+        val engine = MockEngine { request ->
+            when (request.method.value) {
+                "PUT" -> respond("", status = HttpStatusCode.Created)
+                "MOVE" -> {
+                    assertEquals(
+                        """<https://example.com/dav/root/object.zip> (["stale"])""",
+                        request.headers["If"],
+                    )
+                    respond("", status = HttpStatusCode.PreconditionFailed)
+                }
+                "PROPFIND" -> {
+                    assertTrue(request.url.encodedPath.endsWith(".tmp"))
+                    respond("", status = HttpStatusCode.NotFound)
+                }
+                else -> error("Unexpected request: ${request.method.value} ${request.url}")
+            }
+        }
+        val client = testClient(engine)
+
+        assertFailsWith<WebDavException.PreconditionFailed> {
+            client.write(
+                path = "object.zip",
+                bytes = payload,
+                precondition = WebDavWritePrecondition("\"stale\""),
+            )
+        }
     }
 
     @Test

@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline
 
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.BitwardenSyncV2Diagnostics
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.SyncDiagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncExecutionResult
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
@@ -15,7 +15,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
  * so that one entity type's failure does not abort the others.
  */
 class SyncCoordinator(
-    private val diagnostics: BitwardenSyncV2Diagnostics = BitwardenSyncV2Diagnostics.NoOp,
+    private val diagnostics: SyncDiagnostics = SyncDiagnostics.NoOp,
 ) {
     /**
      * Runs the sync pipeline for a single entity type.

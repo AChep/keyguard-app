@@ -74,11 +74,12 @@ fun IconBox(
 }
 
 @Composable
-fun IconBox2(
+fun IconBoxContainer(
     main: @Composable () -> Unit,
     secondary: (@Composable () -> Unit)? = null,
     secondaryBackground: @Composable () -> Color = { MaterialTheme.colorScheme.surfaceVariant },
     secondaryTint: @Composable () -> Color = { MaterialTheme.colorScheme.onSurfaceVariant },
+    compact: Boolean = false,
 ) {
     Box {
         main()
@@ -88,6 +89,17 @@ fun IconBox2(
             Box(
                 Modifier
                     .align(Alignment.BottomEnd)
+                    .then(
+                        if (compact) {
+                            Modifier
+                                .graphicsLayer {
+                                    translationX = density * 4f
+                                    translationY = density * 4f
+                                }
+                        } else {
+                            Modifier
+                        },
+                    )
                     .background(backgroundColor, CircleShape),
             ) {
                 CompositionLocalProvider(
@@ -135,29 +147,24 @@ fun IconSmallBox(
     secondaryBackground: @Composable () -> Color = { MaterialTheme.colorScheme.surfaceVariant },
     secondaryTint: @Composable () -> Color = { MaterialTheme.colorScheme.onSurfaceVariant },
 ) {
-    Box {
-        Icon(main, null)
-        if (secondary != null) {
-            val backgroundColor = secondaryBackground()
-                .copy(alpha = HighEmphasisAlpha)
-            Box(
-                Modifier
-                    .align(Alignment.BottomEnd)
-                    .graphicsLayer {
-                        translationX = density * 4f
-                        translationY = density * 4f
-                    }
-                    .background(backgroundColor, CircleShape),
-            ) {
+    IconBoxContainer(
+        main = {
+            Icon(main, null)
+        },
+        secondary = if (secondary != null) {
+            // composable
+            {
                 Icon(
                     secondary,
                     null,
-                    Modifier
-                        .padding(1.dp)
-                        .size(12.dp),
                     tint = secondaryTint(),
                 )
             }
-        }
-    }
+        } else {
+            null
+        },
+        secondaryBackground = secondaryBackground,
+        secondaryTint = secondaryTint,
+        compact = true,
+    )
 }

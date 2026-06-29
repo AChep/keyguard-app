@@ -7,14 +7,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.CloudOff
-import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOff
-import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.NotificationsOff
-import androidx.compose.material.icons.outlined.Tag
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -30,14 +25,16 @@ import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DTag
+import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.service.filter.model.AddCipherFilterRequest
-import com.artemchep.keyguard.common.usecase.GetFolderTree
+import com.artemchep.keyguard.common.util.FolderHierarchyKey
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
+import com.artemchep.keyguard.common.util.createFolderHierarchyIndex
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
@@ -48,17 +45,16 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.translate
+import com.artemchep.keyguard.feature.search.filter.model.FilterItemModel
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.AccentColors
 import com.artemchep.keyguard.ui.icons.IconBox
-import com.artemchep.keyguard.ui.icons.KeyguardAttachment
 import com.artemchep.keyguard.ui.icons.KeyguardAuthReprompt
 import com.artemchep.keyguard.ui.icons.KeyguardCipherFilter
 import com.artemchep.keyguard.ui.icons.KeyguardFailedItems
 import com.artemchep.keyguard.ui.icons.KeyguardIgnoredAlerts
 import com.artemchep.keyguard.ui.icons.KeyguardPendingSyncItems
-import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
 import kotlinx.coroutines.Dispatchers
@@ -72,7 +68,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.serialization.encodeToString
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -246,6 +241,171 @@ data class FilterParams(
     )
 }
 
+internal data class FolderFilterTreeItem(
+    val path: List<String>,
+    val title: String,
+    val depth: Int,
+    val folderId: String,
+)
+
+internal data class FolderFilterTreeNode(
+    val path: List<String>,
+    val title: String,
+    val depth: Int,
+    val folderIds: Set<String>,
+    /**
+     * True when any folder merged into this display path contains ciphers and
+     * the node can be used as a folder filter target.
+     */
+    val selectable: Boolean,
+    val expandable: Boolean,
+) {
+    val nodeId: String = folderFilterNodeId(path)
+
+    val parentNodeId: String? = path
+        .dropLast(1)
+        .takeUnless { it.isEmpty() }
+        ?.let(::folderFilterNodeId)
+}
+
+internal fun folderFilterNodeId(
+    path: List<String>,
+) = path.joinToString(separator = "|") { part ->
+    "${part.length}:$part"
+}
+
+internal data class FolderFilterTree(
+    val nodes: List<FolderFilterTreeNode>,
+    val useNestedUi: Boolean,
+)
+
+/**
+ * Builds the folder filter tree from a flat list of [folders].
+ *
+ * Folder hierarchy is resolved per account, but nodes that resolve to the same
+ * display name-path are then merged ACROSS accounts into a single filter node
+ * (so "Personal" in two accounts is one entry). A node is [selectable] when any
+ * of its merged folders holds ciphers ([folderIdsWithCiphers]); a node is kept
+ * when it is selectable or has a selectable descendant.
+ */
+internal fun buildFolderFilterTree(
+    folders: List<DFolder>,
+    folderIdsWithCiphers: Set<String?>,
+): FolderFilterTree {
+    // One per-account hierarchy index for the whole folder set.
+    val index = createFolderHierarchyIndex(
+        folders = folders,
+        accountId = { it.accountId },
+        lens = { it.name },
+        id = { it.id },
+        parentId = { it.parentId },
+        hierarchyMode = { it.hierarchyMode },
+    )
+
+    // The display name-path (root..leaf) of a folder, read off the index by
+    // walking its parent chain. The chain is acyclic (the index re-roots
+    // cycles), so the visited guard is only a safety net.
+    fun pathOf(folder: DFolder): List<String> {
+        val key = when (folder.hierarchyMode) {
+            FolderHierarchyMode.Path -> FolderHierarchyKey.Path(
+                accountId = folder.accountId,
+                path = folder.name,
+            )
+
+            FolderHierarchyMode.ParentId -> FolderHierarchyKey.Id(
+                accountId = folder.accountId,
+                folderId = folder.id,
+            )
+        }
+        val names = ArrayDeque<String>()
+        val visited = mutableSetOf<FolderHierarchyKey>()
+        var current = index.node(key)
+        while (current != null && visited.add(current.key)) {
+            names.addFirst(current.name)
+            val parentKey = current.parentKey
+                ?: break
+            current = index.node(parentKey)
+        }
+        return names
+            .toList()
+            .takeUnless { it.isEmpty() }
+            ?: listOf(folder.name)
+    }
+
+    val folderItems = folders
+        .asSequence()
+        .map { folder ->
+            val path = pathOf(folder)
+            FolderFilterTreeItem(
+                path = path,
+                title = path.last(),
+                depth = (path.size - 1).coerceAtLeast(0),
+                folderId = folder.id,
+            )
+        }
+        .groupBy { it.path }
+        .asSequence()
+        .sortedWith(
+            StringComparatorIgnoreCase { entry ->
+                entry.key.joinToString(separator = "/")
+            },
+        )
+        .map { entry ->
+            val firstItem = entry.value.first()
+            val folderIds = entry.value
+                .asSequence()
+                .map { it.folderId }
+                .toSet()
+            val selectable = folderIds.any { folderId ->
+                folderId in folderIdsWithCiphers
+            }
+            firstItem.path to FolderFilterTreeNode(
+                path = firstItem.path,
+                title = firstItem.title,
+                depth = firstItem.depth,
+                folderIds = folderIds,
+                selectable = selectable,
+                expandable = false,
+            )
+        }
+        .toList()
+    val selectablePaths = folderItems
+        .asSequence()
+        .filter { (_, node) ->
+            node.selectable
+        }
+        .map { (path, _) ->
+            path
+        }
+        .toList()
+
+    fun List<String>.hasSelectableDescendant(): Boolean = selectablePaths
+        .any { selectablePath ->
+            selectablePath.size > size &&
+                    selectablePath.take(size) == this
+        }
+
+    val folderNodes = folderItems
+        .asSequence()
+        .map { (path, node) ->
+            node.copy(
+                expandable = path.hasSelectableDescendant(),
+            )
+        }
+        .filter { node ->
+            node.selectable || node.expandable
+        }
+        .toList()
+    val useNestedUi = folderNodes
+        .any { node ->
+            node.selectable && node.depth > 0
+        }
+    return FolderFilterTree(
+        nodes = folderNodes,
+        useNestedUi = useNestedUi,
+    )
+}
+
 suspend fun <
         Output : Any,
         Account,
@@ -340,10 +500,63 @@ suspend fun <
         flowOf(emptyList())
     }
 
+    fun getFilterSectionId(item: FilterItem): String? = when (item) {
+        is FilterItem.ChipItem -> item.filterSectionId
+        is FilterItem.ListItem -> item.filterSectionId
+        is FilterItem.Section -> null
+    }
+
+    fun getFilter(item: FilterItem): FilterItem.Item.Filter? = when (item) {
+        is FilterItem.ChipItem -> item.filter
+        is FilterItem.ListItem -> item.filter
+        is FilterItem.Section -> null
+    }
+
+    fun getChecked(item: FilterItem): Boolean = when (item) {
+        is FilterItem.ChipItem -> item.checked
+        is FilterItem.ListItem -> item.checked
+        is FilterItem.Section -> false
+    }
+
+    fun FilterItem.Item.withChecked(checked: Boolean): FilterItem.Item = when (this) {
+        is FilterItem.ChipItem -> copy(checked = checked)
+        is FilterItem.ListItem -> copy(checked = checked)
+    }
+
+    fun FilterItem.withEnabled(enabled: Boolean): FilterItem = when (this) {
+        is FilterItem.ChipItem -> if (enabled) {
+            this
+        } else {
+            copy(
+                onClick = null,
+                enabled = false,
+            )
+        }
+
+        is FilterItem.ListItem -> if (enabled) {
+            this
+        } else if (expandable) {
+            copy(
+                onClick = null,
+                enabled = true,
+            )
+        } else {
+            copy(
+                onClick = null,
+                enabled = false,
+            )
+        }
+
+        is FilterItem.Section -> this
+    }
+
     fun Flow<List<FilterItem.Item>>.aaa(
         sectionId: String,
         sectionTitle: String,
         collapse: Boolean = true,
+        layout: (List<FilterItem.Item>) -> FilterItemModel.Section.Layout = {
+            FilterItemModel.Section.Layout.Flow
+        },
         checked: (FilterItem.Item, FilterHolder) -> Boolean,
     ) = this
         .combine(input.filterFlow) { items, filterHolder ->
@@ -354,7 +567,7 @@ suspend fun <
                         return@map item
                     }
 
-                    item.copy(checked = shouldBeChecked)
+                    item.withChecked(shouldBeChecked)
                 }
         }
         .distinctUntilChanged()
@@ -371,6 +584,7 @@ suspend fun <
                     val sectionItem = FilterItem.Section(
                         sectionId = sectionId,
                         text = sectionTitle,
+                        layout = layout(items),
                         onClick = {
                             toggleSection(sectionId)
                         },
@@ -383,15 +597,23 @@ suspend fun <
         sectionId: String,
         sectionTitle: String,
         collapse: Boolean = true,
+        layout: (List<FilterItem.Item>) -> FilterItemModel.Section.Layout = {
+            FilterItemModel.Section.Layout.Flow
+        },
     ) = aaa(
         sectionId = sectionId,
         sectionTitle = sectionTitle,
         collapse = collapse,
+        layout = layout,
         checked = { item, filterHolder ->
-            when (item.filter) {
+            val filter = item.filter
+                ?: return@aaa false
+
+            val filterSectionId = item.filterSectionId
+            when (filter) {
                 is FilterItem.Item.Filter.Toggle -> {
-                    val activeFilters = filterHolder.state[item.filterSectionId].orEmpty()
-                    item.filter.filters
+                    val activeFilters = filterHolder.state[filterSectionId].orEmpty()
+                    filter.filters
                         .all { itemFilter ->
                             itemFilter in activeFilters
                         }
@@ -401,11 +623,11 @@ suspend fun <
                     // If the size of the current state and the item
                     // state is different then there's no way it's currently
                     // selected.
-                    if (filterHolder.state.size != item.filter.filters.size) {
+                    if (filterHolder.state.size != filter.filters.size) {
                         return@run false
                     }
 
-                    item.filter.filters
+                    filter.filters
                         .all { (filterSectionId, filterSet) ->
                             val activeFilters = filterHolder.state[filterSectionId].orEmpty()
                             activeFilters == filterSet
@@ -414,6 +636,18 @@ suspend fun <
             }
         },
     )
+
+    fun createFolderFilter(
+        folderIds: Set<String?>,
+    ) = folderIds
+        .asSequence()
+        .map { folderId ->
+            DFilter.ById(
+                id = folderId,
+                what = DFilter.ById.What.FOLDER,
+            )
+        }
+        .toSet()
 
     val setOfNull = setOf(null)
 
@@ -426,15 +660,8 @@ suspend fun <
         textMaxLines: Int? = null,
         tint: AccentColors? = null,
         icon: ImageVector? = null,
-        fill: Boolean = false,
-        indent: Int = 0,
-    ) = FilterItem.Item(
-        sectionId = sectionId,
-        filterSectionId = filterSectionId,
-        filter = FilterItem.Item.Filter.Toggle(
-            filters = filter,
-        ),
-        leading = when {
+    ) = kotlin.run {
+        val leading: (@Composable () -> Unit)? = when {
             icon != null -> {
                 // composable
                 {
@@ -464,17 +691,89 @@ suspend fun <
             }
 
             else -> null
-        },
-        title = title,
-        text = text,
-        textMaxLines = textMaxLines,
-        onClick = input.onToggle
+        }
+
+        val onClick = input.onToggle
             .partially1(filterSectionId)
-            .partially1(filter),
-        fill = fill,
-        indent = indent,
-        checked = false,
-    )
+            .partially1(filter)
+        FilterItem.ChipItem(
+            sectionId = sectionId,
+            filterSectionId = filterSectionId,
+            filter = FilterItem.Item.Filter.Toggle(
+                filters = filter,
+            ),
+            leading = leading,
+            title = title,
+            text = text,
+            textMaxLines = textMaxLines,
+            onClick = onClick,
+            checked = false,
+        )
+    }
+
+    fun createListFilterAction(
+        sectionId: String,
+        filter: Set<DFilter.Primitive>,
+        filterSectionId: String = sectionId,
+        title: String,
+        text: String? = null,
+        textMaxLines: Int? = null,
+        tint: AccentColors? = null,
+        icon: ImageVector? = null,
+    ): FilterItem.ListItem {
+        val leading: (@Composable () -> Unit)? = when {
+            icon != null -> {
+                // composable
+                {
+                    IconBox(main = icon)
+                }
+            }
+
+            tint != null -> {
+                // composable
+                {
+                    Box(
+                        modifier = Modifier
+                            .padding(2.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        val color = rememberSecretAccentColor(
+                            accentLight = tint.light,
+                            accentDark = tint.dark,
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(color, CircleShape),
+                        )
+                    }
+                }
+            }
+
+            else -> null
+        }
+
+        val onClick = input.onToggle
+            .partially1(filterSectionId)
+            .partially1(filter)
+        return FilterItem.ListItem(
+            sectionId = sectionId,
+            filterSectionId = filterSectionId,
+            filter = FilterItem.Item.Filter.Toggle(
+                filters = filter,
+            ),
+            leading = leading,
+            title = title,
+            text = text,
+            textMaxLines = textMaxLines,
+            onClick = onClick,
+            checked = false,
+            depth = 0,
+            nodeId = "",
+            parentNodeId = null,
+            expandable = false,
+        )
+    }
 
     fun createAccountFilterAction(
         accountIds: Set<String?>,
@@ -517,24 +816,52 @@ suspend fun <
         folderIds: Set<String?>,
         title: String,
         icon: ImageVector? = null,
-        fill: Boolean,
-        indent: Int,
     ) = createFilterAction(
         sectionId = FilterSection.FOLDER.id,
-        filter = folderIds
-            .asSequence()
-            .map { folderId ->
-                DFilter.ById(
-                    id = folderId,
-                    what = DFilter.ById.What.FOLDER,
-                )
-            }
-            .toSet(),
+        filter = createFolderFilter(folderIds),
         title = title,
         icon = icon,
-        fill = fill,
-        indent = indent,
     )
+
+    fun createListFilterAction(
+        folderIds: Set<String>,
+        title: String,
+        nodeId: String,
+        parentNodeId: String?,
+        expandable: Boolean,
+        depth: Int,
+        selectable: Boolean,
+    ): FilterItem.ListItem {
+        val filter = if (selectable) {
+            FilterItem.Item.Filter.Toggle(
+                filters = createFolderFilter(folderIds),
+            )
+        } else {
+            null
+        }
+
+        return FilterItem.ListItem(
+            sectionId = FilterSection.FOLDER.id,
+            filterSectionId = FilterSection.FOLDER.id,
+            filter = filter,
+            nodeId = nodeId,
+            parentNodeId = parentNodeId,
+            leading = icon(Icons.Outlined.Folder),
+            title = title,
+            text = null,
+            onClick = filter
+                ?.filters
+                ?.let { filters ->
+                    input.onToggle
+                        .partially1(FilterSection.FOLDER.id)
+                        .partially1(filters)
+                },
+            expandable = expandable,
+            enabled = selectable || expandable,
+            depth = depth,
+            checked = false,
+        )
+    }
 
     fun createTagFilterAction(
         tags: Set<String?>,
@@ -655,76 +982,89 @@ suspend fun <
         )
         .filterSection(params.section.type)
 
-    val folderTree: GetFolderTree = directDI.instance()
     val filterFolderListFlow = folderFlow
-        .map { folders ->
-            val q = folders
-                .filter { folder ->
-                    val model = folderGetter(folder)
-                    !model.deleted
-                }
-                .groupBy { folder ->
-                    val model = folderGetter(folder)
-                    model.name
-                }
-            val w = q
-                .map {
-                    folderTree.invoke(
-                        lens = { it.key },
-                        allFolders = q.entries,
-                        folder = it,
-                    )
-                }
-            val p = w
+        .combine(filterFoldersWithCiphers) { folders, folderIdsWithCiphers ->
+            val folderModels = folders
                 .asSequence()
-                .flatMap {
-                    it.hierarchy
-                        .dropLast(1)
-                }
-                .map { it.folder.key }
-                .toSet()
+                .map(folderGetter)
+                .filterNot { it.deleted }
+                .toList()
+            val folderFilterTree = buildFolderFilterTree(
+                folders = folderModels,
+                folderIdsWithCiphers = folderIdsWithCiphers,
+            )
+            val folderNodes = folderFilterTree.nodes
+            val useNestedUi = folderFilterTree.useNestedUi
 
-            w
-                .asSequence()
-                .sortedBy { it.folder.key }
-                .map { entry ->
-                    val name = entry.folder.key // entry.hierarchy.last().name
-                    val folders = entry.folder.value
-                    createFolderFilterAction(
-                        folderIds = folders
-                            .asSequence()
-                            .map(folderGetter)
-                            .map { it.id }
-                            .toSet(),
-                        title = name,
-                        fill = false,// entry.folder.key in p || entry.hierarchy.size > 1,
-                        indent = 0, // entry.hierarchy.lastIndex,
-                    )
-                }
-                .toList() +
-                    createFolderFilterAction(
-                        folderIds = setOfNull,
-                        title = translate(Res.string.folder_none),
-                        icon = Icons.Outlined.FolderOff,
-                        fill = false,
-                        indent = 0,
-                    )
-        }
-        .combine(filterFoldersWithCiphers) { items, folderIds ->
-            items
-                .filter { filterItem ->
-                    val filterItemFilter = filterItem.filter as FilterItem.Item.Filter.Toggle
-                    filterItemFilter.filters
-                        .any { filter ->
-                            val filterFixed = filter as DFilter.ById
-                            require(filterFixed.what == DFilter.ById.What.FOLDER)
-                            filterFixed.id in folderIds
+            val folderFilterItems = if (useNestedUi) {
+                folderNodes
+                    .map { node ->
+                        createListFilterAction(
+                            folderIds = node.folderIds,
+                            title = node.title,
+                            nodeId = node.nodeId,
+                            parentNodeId = node.parentNodeId,
+                            expandable = node.expandable,
+                            depth = node.depth,
+                            selectable = node.selectable,
+                        )
+                    }
+            } else {
+                folderNodes
+                    .asSequence()
+                    .filter { node -> node.selectable }
+                    .map { node ->
+                        createFolderFilterAction(
+                            folderIds = node.folderIds,
+                            title = node.title,
+                        )
+                    }
+                    .toList()
+            }
+            val folderItem = if (useNestedUi) {
+                val sectionId = FilterSection.FOLDER.id
+                val filter = createFolderFilter(setOfNull)
+                createListFilterAction(
+                    sectionId = sectionId,
+                    filter = filter,
+                    filterSectionId = sectionId,
+                    title = translate(Res.string.folder_none),
+                    icon = Icons.Outlined.FolderOff,
+                )
+            } else {
+                createFolderFilterAction(
+                    folderIds = setOfNull,
+                    title = translate(Res.string.folder_none),
+                    icon = Icons.Outlined.FolderOff,
+                )
+            }
+
+            (folderFilterItems + folderItem)
+                .let { items ->
+                    items
+                        .filter { filterItem ->
+                            val filterItemFilter =
+                                getFilter(filterItem) as? FilterItem.Item.Filter.Toggle
+                                    ?: return@filter true
+                            filterItemFilter.filters
+                                .any { filter ->
+                                    val filterFixed = filter as DFilter.ById
+                                    require(filterFixed.what == DFilter.ById.What.FOLDER)
+                                    filterFixed.id in folderIdsWithCiphers
+                                }
                         }
                 }
         }
         .aaa(
             sectionId = FilterSection.FOLDER.id,
             sectionTitle = translate(FilterSection.FOLDER.title),
+            layout = { items ->
+                val hasListItems = items
+                    .any { it is FilterItem.ListItem }
+                if (hasListItems) {
+                    FilterItemModel.Section.Layout.List
+                } else FilterItemModel.Section.Layout.Flow
+            },
         )
         .filterSection(params.section.folder)
 
@@ -858,7 +1198,7 @@ suspend fun <
         .filterSection(params.section.organization)
 
     val filterMiscAll = listOf(
-        createFilterAction(
+        createListFilterAction(
             sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByOtp,
@@ -867,7 +1207,7 @@ suspend fun <
             title = translate(DFilter.ByOtp.content.title),
             icon = DFilter.ByOtp.content.icon,
         ),
-        createFilterAction(
+        createListFilterAction(
             sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByAttachments,
@@ -876,7 +1216,7 @@ suspend fun <
             title = translate(DFilter.ByAttachments.content.title),
             icon = DFilter.ByAttachments.content.icon,
         ),
-        createFilterAction(
+        createListFilterAction(
             sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByPasskeys,
@@ -885,7 +1225,7 @@ suspend fun <
             title = translate(DFilter.ByPasskeys.content.title),
             icon = DFilter.ByPasskeys.content.icon,
         ),
-        createFilterAction(
+        createListFilterAction(
             sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByReprompt(reprompt = true),
@@ -894,7 +1234,7 @@ suspend fun <
             title = translate(Res.string.filter_auth_reprompt_items),
             icon = Icons.Outlined.KeyguardAuthReprompt,
         ),
-        createFilterAction(
+        createListFilterAction(
             sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.BySync(synced = false),
@@ -903,7 +1243,7 @@ suspend fun <
             title = translate(Res.string.filter_pending_items),
             icon = Icons.Outlined.KeyguardPendingSyncItems,
         ),
-        createFilterAction(
+        createListFilterAction(
             sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByError(error = true),
@@ -912,7 +1252,7 @@ suspend fun <
             title = translate(Res.string.filter_failed_items),
             icon = Icons.Outlined.KeyguardFailedItems,
         ),
-        createFilterAction(
+        createListFilterAction(
             sectionId = FilterSection.MISC.id,
             filter = setOf(
                 DFilter.ByIgnoredAlerts,
@@ -931,29 +1271,31 @@ suspend fun <
             sectionId = FilterSection.MISC.id,
             sectionTitle = translate(FilterSection.MISC.title),
             collapse = false,
+            layout = {
+                FilterItemModel.Section.Layout.List
+            },
         )
         .filterSection(params.section.misc)
 
-    if (params.deeplinkCustomFilterFlow != null) {
-        params.deeplinkCustomFilterFlow
-            .onEach { customFilterId ->
-                val customFilter = kotlin.run {
-                    val customFilters = getCipherFilters()
-                        .first()
-                    customFilters.firstOrNull { it.id == customFilterId }
-                }
-                if (customFilter != null) {
-                    input.onApply(customFilter.filter)
-                }
+    // Auto-apply deep link filters
+    params.deeplinkCustomFilterFlow
+        ?.onEach { customFilterId ->
+            val customFilter = kotlin.run {
+                val customFilters = getCipherFilters()
+                    .first()
+                customFilters.firstOrNull { it.id == customFilterId }
             }
-            .launchIn(screenScope)
-    }
+            if (customFilter != null) {
+                input.onApply(customFilter.filter)
+            }
+        }
+        ?.launchIn(screenScope)
 
     val filterCustomListFlow = getCipherFilters()
         .map { filters ->
             filters
                 .map { filter ->
-                    FilterItem.Item(
+                    FilterItem.ChipItem(
                         sectionId = FilterSection.CUSTOM.id,
                         filterSectionId = FilterSection.CUSTOM.id,
                         filter = FilterItem.Item.Filter.Apply(
@@ -968,8 +1310,6 @@ suspend fun <
                         text = null,
                         onClick = input.onApply
                             .partially1(filter.filter),
-                        fill = false,
-                        indent = 0,
                         checked = false,
                     )
                 }
@@ -1016,11 +1356,12 @@ suspend fun <
         .combine(outputCipherFlow) { items, outputCiphers ->
             val checkedSectionIds = items
                 .asSequence()
-                .mapNotNull {
-                    when (it) {
-                        is FilterItem.Section -> null
-                        is FilterItem.Item -> it.takeIf { it.checked }
-                            ?.filterSectionId
+                .mapNotNull { item ->
+                    val checked = getChecked(item)
+                    if (checked) {
+                        getFilterSectionId(item)
+                    } else {
+                        null
                     }
                 }
                 .toSet()
@@ -1029,13 +1370,14 @@ suspend fun <
             items.forEach { item ->
                 when (item) {
                     is FilterItem.Section -> out += item
-                    is FilterItem.Item -> {
-                        val fastEnabled = item.checked ||
+                    else -> {
+                        val filterSectionId = getFilterSectionId(item)
+                        val fastEnabled = getChecked(item) ||
                                 // If one of the items in a section is enabled, then
                                 // enable the whole section.
-                                item.filterSectionId in checkedSectionIds
+                                filterSectionId in checkedSectionIds
                         val enabled = fastEnabled || kotlin.run {
-                            val filterItemFilter = item.filter as? FilterItem.Item.Filter.Toggle
+                            val filterItemFilter = getFilter(item) as? FilterItem.Item.Filter.Toggle
                                 ?: return@run true
                             filterItemFilter.filters
                                 .any { filter ->
@@ -1044,15 +1386,7 @@ suspend fun <
                                 }
                         }
 
-                        if (enabled) {
-                            out += item
-                            return@forEach
-                        }
-
-                        out += item.copy(
-                            onClick = null,
-                            enabled = false,
-                        )
+                        out += item.withEnabled(enabled)
                     }
                 }
             }

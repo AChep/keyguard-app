@@ -1,0 +1,23 @@
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+	<sitemap>
+		<loc>
+			http://blog.redundent.org/sitemap1.xml
+		</loc>
+		<lastmod>
+			2017-10-24
+		</lastmod>
+	</sitemap>
+	<sitemap>
+		<loc>
+			http://blog.redundent.org/sitemap2.xml
+		</loc>
+		<lastmod>
+			2016-01-01
+		</lastmod>
+	</sitemap>
+	<sitemap>
+		<loc>
+			http://blog.redundent.org/sitemap3.xml
+		</loc>
+	</sitemap>
+</sitemapindex>

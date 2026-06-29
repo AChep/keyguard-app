@@ -16,6 +16,48 @@ import kotlinx.coroutines.test.runTest
 
 class CipherMappingTest {
     @Test
+    fun `login uri signatures map to domain model`() = runTest {
+        val fingerprint = "00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF"
+        val cipher = BitwardenCipher(
+            accountId = "account-1",
+            cipherId = "cipher-1",
+            revisionDate = TEST_INSTANT,
+            createdDate = TEST_INSTANT,
+            service = BitwardenService(
+                remote = BitwardenService.Remote(
+                    id = "remote-cipher-1",
+                    revisionDate = TEST_INSTANT,
+                    deletedDate = null,
+                ),
+            ),
+            keyBase64 = "cipher-key",
+            name = "Android Login",
+            notes = "",
+            favorite = false,
+            reprompt = BitwardenCipher.RepromptType.None,
+            type = BitwardenCipher.Type.Login,
+            login = BitwardenCipher.Login(
+                uris = listOf(
+                    BitwardenCipher.Login.Uri(
+                        uri = "androidapp://com.example.app",
+                        signatures = listOf(
+                            BitwardenCipher.Login.Uri.Signature(
+                                certFingerprintSha256 = fingerprint,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val domain = cipher.toDomain(
+            getPasswordStrength = fakeGetPasswordStrength,
+        )
+
+        assertEquals(fingerprint, domain.uris.single().signatures.single().certFingerprintSha256)
+    }
+
+    @Test
     fun `pending local attachment makes cipher unsynced without exposing staged upload metadata`() = runTest {
         val pendingUpload = PendingUploadFile(
             path = "/tmp/cipher-1.attachment-1.bin",

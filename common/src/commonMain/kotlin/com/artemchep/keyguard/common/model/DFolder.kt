@@ -12,6 +12,8 @@ data class DFolder(
     val deleted: Boolean,
     val synced: Boolean,
     val name: String,
+    val parentId: String? = null,
+    val hierarchyMode: FolderHierarchyMode = FolderHierarchyMode.Path,
 ) : HasAccountId {
     companion object;
 

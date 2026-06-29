@@ -4,8 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.model.WebDavCredentials
+import com.artemchep.keyguard.common.model.WebDavLocation
+import com.artemchep.keyguard.common.service.webdav.isWebDavKeePassFileUrl
 import com.artemchep.keyguard.common.usecase.CheckWebDavConnection
-import com.artemchep.keyguard.common.usecase.CheckWebDavConnectionRequest
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -56,37 +58,37 @@ fun produceWebDavSettingsState(
     val usernameState = mutableStateOf(route.args.username)
     val passwordState = mutableStateOf(route.args.password)
 
+    fun buildWebDavSettingsResult() = buildWebDavSettingsResult(
+        url = urlState.value,
+        username = usernameState.value,
+        password = passwordState.value,
+        purpose = route.args.purpose,
+    )
+
     fun onSave() {
-        when (val buildResult = buildWebDavSettingsResult(
-            url = urlState.value,
-            username = usernameState.value,
-            password = passwordState.value,
-        )) {
+        val result = buildWebDavSettingsResult()
+        when (result) {
             is WebDavSettingsBuildResult.Failure -> {
-                errorSink.value = buildResult.error
+                errorSink.value = result.error
             }
 
             is WebDavSettingsBuildResult.Success -> {
-                transmitter(buildResult.result)
+                transmitter(result.result)
                 navigatePopSelf()
             }
         }
     }
 
     fun onTestConnection() {
-        when (val buildResult = buildWebDavSettingsResult(
-            url = urlState.value,
-            username = usernameState.value,
-            password = passwordState.value,
-        )) {
+        val result = buildWebDavSettingsResult()
+        when (result) {
             is WebDavSettingsBuildResult.Failure -> {
-                errorSink.value = buildResult.error
+                errorSink.value = result.error
             }
 
             is WebDavSettingsBuildResult.Success -> {
                 errorSink.value = null
-                val request = buildResult.result.toCheckWebDavConnectionRequest()
-                val io = checkWebDavConnection(request).effectTap {
+                val io = checkWebDavConnection(result.result.location).effectTap {
                     message(
                         ToastMessage(
                             title = translate(
@@ -117,13 +119,6 @@ fun produceWebDavSettingsState(
     }
 }
 
-private fun WebDavSettingsResult.toCheckWebDavConnectionRequest(): CheckWebDavConnectionRequest =
-    CheckWebDavConnectionRequest(
-        url = url,
-        username = username,
-        password = password,
-    )
-
 internal sealed class WebDavSettingsBuildResult {
     data class Success(
         val result: WebDavSettingsResult,
@@ -138,6 +133,7 @@ internal fun buildWebDavSettingsResult(
     url: String,
     username: String,
     password: String,
+    purpose: WebDavSettingsRoute.Purpose = WebDavSettingsRoute.Purpose.Collection,
 ): WebDavSettingsBuildResult {
     val trimmedUrl = url.trim()
     val trimmedUsername = username.trim()
@@ -151,11 +147,31 @@ internal fun buildWebDavSettingsResult(
                 WebDavSettingsState.Error.PasswordRequiresUsername,
             )
 
+        purpose == WebDavSettingsRoute.Purpose.KeePassDatabase &&
+                !trimmedUrl.isWebDavKeePassFileUrl() ->
+            WebDavSettingsBuildResult.Failure(
+                WebDavSettingsState.Error.FileUrlRequired,
+            )
+
         else -> WebDavSettingsBuildResult.Success(
             WebDavSettingsResult(
-                url = trimmedUrl,
-                username = trimmedUsername.takeIf { it.isNotEmpty() },
-                password = password.takeIf { it.isNotEmpty() },
+                location = when (purpose) {
+                    WebDavSettingsRoute.Purpose.Collection -> WebDavLocation.Collection(
+                        url = trimmedUrl,
+                        credentials = WebDavCredentials.of(
+                            username = trimmedUsername,
+                            password = password,
+                        ),
+                    )
+
+                    WebDavSettingsRoute.Purpose.KeePassDatabase -> WebDavLocation.File(
+                        url = trimmedUrl,
+                        credentials = WebDavCredentials.of(
+                            username = trimmedUsername,
+                            password = password,
+                        ),
+                    )
+                },
             ),
         )
     }

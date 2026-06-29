@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.tld.impl
 
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.toSource
+import com.artemchep.keyguard.util.foundation.io.toSource
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository

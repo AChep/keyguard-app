@@ -4,9 +4,7 @@ import com.artemchep.keyguard.common.service.crypto.FileEncryptor
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.toLocalPath
-import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.InputStream
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.exists
 import kotlin.io.path.writeBytes
@@ -154,11 +152,6 @@ private class CopyingFileEncryptor : FileEncryptor {
         input: ByteArray,
         key: ByteArray,
     ): ByteArray = input
-
-    override fun decode(
-        input: InputStream,
-        key: ByteArray,
-    ): InputStream = ByteArrayInputStream(input.readBytes())
 
     override fun encode(
         data: ByteArray,

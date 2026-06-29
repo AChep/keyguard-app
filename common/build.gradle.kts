@@ -111,6 +111,8 @@ kotlin {
                 api(libs.ktor.ktor.client.content.negotiation)
                 api(libs.ktor.ktor.client.websockets)
                 api(libs.ktor.ktor.serialization.kotlinx)
+                api(project(":util:foundation"))
+                api(project(":util:kdbx"))
                 api(project(":util:signalr"))
                 api(project(":util:webdav"))
                 api(project(":util:planeta"))
@@ -143,7 +145,6 @@ kotlin {
         val iosMain by creating {
             dependsOn(commonMain)
             dependencies {
-                implementation(libs.diglol.crypto.kdf)
                 api(libs.cash.sqldelight.native.driver)
                 api(libs.ktor.ktor.client.darwin)
             }
@@ -159,6 +160,9 @@ kotlin {
 
         val iosTest by creating {
             dependsOn(commonTest)
+            dependencies {
+                implementation(libs.ktor.ktor.client.mock)
+            }
         }
 
         val iosArm64Test by getting {
@@ -201,7 +205,6 @@ kotlin {
                 implementation(libs.commons.codec)
                 implementation(libs.bouncycastle.bcpkix)
                 implementation(libs.bouncycastle.bcprov)
-                implementation(libs.keemobile.kotpass)
                 implementation(libs.halilibo.richtext.ui.material3)
                 implementation(libs.halilibo.richtext.commonmark)
                 implementation(libs.halilibo.richtext.markdown)

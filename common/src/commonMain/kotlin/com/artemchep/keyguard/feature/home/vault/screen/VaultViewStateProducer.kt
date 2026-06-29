@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import arrow.core.getOrElse
 import com.artemchep.keyguard.AppMode
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -235,7 +235,7 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
-import com.artemchep.keyguard.ui.icons.IconBox2
+import com.artemchep.keyguard.ui.icons.IconBoxContainer
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.selection.SelectionHandle
@@ -272,7 +272,6 @@ import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringResource
 import com.artemchep.keyguard.platform.leAllInstances
 import com.artemchep.keyguard.ui.FingerprintPlaneta
-import com.artemchep.keyguard.util.planeta.Planeta
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -2590,7 +2589,7 @@ private fun RememberStateFlowScope.oh(
                     }
 
                     val actualItem = createAttachmentItem(
-                        tag = DownloadInfoEntity2.AttachmentDownloadTag(
+                        tag = DownloadInfoEntity.AttachmentDownloadTag(
                             localCipherId = cipher.id,
                             remoteCipherId = cipher.service.remote?.id,
                             attachmentId = attachment.id,
@@ -3107,7 +3106,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                     if (canLuanch != null && canLuanch.apps.size == 1) {
                         val icon = canLuanch.apps.first().icon
                         if (icon != null) {
-                            IconBox2(
+                            IconBoxContainer(
                                 main = {
                                     Image(
                                         modifier = Modifier

@@ -40,6 +40,7 @@ suspend fun BitwardenCipher.toDomain(
         service = service,
         // common
         keyBase64 = keyBase64,
+        customIcon = customIcon,
         name = name.orEmpty(),
         notes = notes.orEmpty(),
         favorite = favorite,
@@ -78,6 +79,11 @@ suspend fun BitwardenCipher.toDomain(
 fun BitwardenCipher.Login.Uri.toDomain() = DSecret.Uri(
     uri = uri.orEmpty(),
     match = match?.toDomain(),
+    signatures = signatures.map(BitwardenCipher.Login.Uri.Signature::toDomain),
+)
+
+fun BitwardenCipher.Login.Uri.Signature.toDomain() = DSecret.Uri.Signature(
+    certFingerprintSha256 = certFingerprintSha256,
 )
 
 fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {

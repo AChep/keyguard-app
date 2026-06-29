@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.service.sshagent
 
-import com.artemchep.keyguard.crypto.util.hkdfSha256
+import com.artemchep.keyguard.util.foundation.crypto.hkdfSha256
 import com.artemchep.keyguard.util.readNBytesCompat
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream

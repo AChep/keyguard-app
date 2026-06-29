@@ -1,0 +1,63 @@
+<Group>
+    <UUID>33VJ46XA5B7M4ouOP4rwBg==</UUID>
+    <Name>Group 1</Name>
+    <Notes/>
+    <IconID>48</IconID>
+    <Times>
+        <CreationTime>2025-07-10T10:50:49Z</CreationTime>
+        <LastAccessTime>2025-07-10T10:50:58Z</LastAccessTime>
+        <LastModificationTime>2025-07-10T10:50:58Z</LastModificationTime>
+        <LocationChanged>2025-07-10T10:50:49Z</LocationChanged>
+        <ExpiryTime>2025-07-10T10:50:49Z</ExpiryTime>
+        <Expires>False</Expires>
+        <UsageCount>0</UsageCount>
+    </Times>
+    <IsExpanded>True</IsExpanded>
+    <DefaultAutoTypeSequence/>
+    <EnableAutoType>Null</EnableAutoType>
+    <EnableSearching>Null</EnableSearching>
+    <LastTopVisibleEntry>AAAAAAAAAAAAAAAAAAAAAA==</LastTopVisibleEntry>
+    <Tags/>
+    <Group>
+        <UUID>G08rKzKmnCieGqZy22g1Aw==</UUID>
+        <Name>Group 2</Name>
+        <Notes/>
+        <IconID>48</IconID>
+        <Times>
+            <CreationTime>2025-07-10T11:14:09Z</CreationTime>
+            <LastAccessTime>2025-07-10T11:14:12Z</LastAccessTime>
+            <LastModificationTime>2025-07-10T11:14:12Z</LastModificationTime>
+            <LocationChanged>2025-07-10T11:14:09Z</LocationChanged>
+            <ExpiryTime>2025-07-10T11:14:09Z</ExpiryTime>
+            <Expires>False</Expires>
+            <UsageCount>0</UsageCount>
+        </Times>
+        <IsExpanded>True</IsExpanded>
+        <DefaultAutoTypeSequence/>
+        <EnableAutoType>Null</EnableAutoType>
+        <EnableSearching>Null</EnableSearching>
+        <LastTopVisibleEntry>AAAAAAAAAAAAAAAAAAAAAA==</LastTopVisibleEntry>
+        <Tags/>
+        <Group>
+            <UUID>+YzvP4XcDnUacL84Z4uZNw==</UUID>
+            <Name>Group 3</Name>
+            <Notes/>
+            <IconID>48</IconID>
+            <Times>
+                <CreationTime>2025-07-10T11:14:17Z</CreationTime>
+                <LastAccessTime>2025-07-10T11:14:20Z</LastAccessTime>
+                <LastModificationTime>2025-07-10T11:14:20Z</LastModificationTime>
+                <LocationChanged>2025-07-10T11:14:17Z</LocationChanged>
+                <ExpiryTime>2025-07-10T11:14:17Z</ExpiryTime>
+                <Expires>False</Expires>
+                <UsageCount>0</UsageCount>
+            </Times>
+            <IsExpanded>True</IsExpanded>
+            <DefaultAutoTypeSequence/>
+            <EnableAutoType>Null</EnableAutoType>
+            <EnableSearching>Null</EnableSearching>
+            <LastTopVisibleEntry>AAAAAAAAAAAAAAAAAAAAAA==</LastTopVisibleEntry>
+            <Tags/>
+        </Group>
+    </Group>
+</Group>

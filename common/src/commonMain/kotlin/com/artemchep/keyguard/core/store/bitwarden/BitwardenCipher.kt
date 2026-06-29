@@ -4,7 +4,6 @@ import arrow.optics.Getter
 import arrow.optics.Lens
 import arrow.optics.optics
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.service.patch.ModelDiffUtil
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.Companion.isSameDiffValueAs
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffApplierByListValue
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffFinder
@@ -57,7 +56,12 @@ data class BitwardenCipher(
     val tags: List<Tag> = emptyList(),
     val fields: List<Field> = emptyList(),
     val attachments: List<Attachment> = emptyList(),
-    val mapping: Map<String, String> = emptyMap(),
+    val sourceData: CipherSourceData? = null,
+    /**
+     * The KeePass predefined icon preserved from a KeePass entry. `null` means the
+     * default icon and falls through to the regular icon-resolution behavior.
+     */
+    val customIcon: KeePassIcon? = null,
     val reprompt: RepromptType,
     // types
     val type: Type,
@@ -72,48 +76,6 @@ data class BitwardenCipher(
     companion object;
 
     override fun withService(service: BitwardenService) = copy(service = service)
-
-    enum class Mapping(
-        val key: String,
-    ) {
-        LOGIN_USERNAME("login_username"),
-        LOGIN_PASSWORD("login_password"),
-        LOGIN_PASSWORD_REV_DATE("login_password_rev_date"),
-        LOGIN_OTP("login_otp"),
-
-        // Card
-        CARD_CARDHOLDER_NAME(key = "card_cardholder_name"),
-        CARD_BRAND(key = "card_brand"),
-        CARD_NUMBER(key = "card_number"),
-        CARD_EXP_MONTH(key = "card_exp_month"),
-        CARD_EXP_YEAR(key = "card_exp_year"),
-        CARD_CODE(key = "card_code"),
-
-        // Identity
-        IDENTITY_TITLE(key = "identity_title"),
-        IDENTITY_USERNAME(key = "identity_username"),
-        IDENTITY_FIRST_NAME(key = "identity_first_name"),
-        IDENTITY_MIDDLE_NAME(key = "identity_middle_name"),
-        IDENTITY_LAST_NAME(key = "identity_last_name"),
-        IDENTITY_ADDRESS1(key = "identity_address1"),
-        IDENTITY_ADDRESS2(key = "identity_address2"),
-        IDENTITY_ADDRESS3(key = "identity_address3"),
-        IDENTITY_CITY(key = "identity_city"),
-        IDENTITY_STATE(key = "identity_state"),
-        IDENTITY_POSTAL_CODE(key = "identity_postal_code"),
-        IDENTITY_COUNTRY(key = "identity_country"),
-        IDENTITY_COMPANY(key = "identity_company"),
-        IDENTITY_EMAIL(key = "identity_email"),
-        IDENTITY_PHONE(key = "identity_phone"),
-        IDENTITY_SSN(key = "identity_ssn"),
-        IDENTITY_PASSPORT_NUMBER(key = "identity_passport_number"),
-        IDENTITY_LICENSE_NUMBER(key = "identity_license_number"),
-
-        // SSH Key
-        SSH_PRIVATE_KEY(key = "ssh_private_key"),
-        SSH_PUBLIC_KEY(key = "ssh_public_key"),
-        SSH_FINGERPRINT(key = "ssh_fingerprint"),
-    }
 
     @Serializable
     enum class Type(
@@ -301,8 +263,14 @@ data class BitwardenCipher(
             val uri: String? = null,
             val uriChecksumBase64: String? = null,
             val match: MatchType? = null,
+            val signatures: List<Signature> = emptyList(),
         ) {
             companion object;
+
+            @Serializable
+            data class Signature(
+                val certFingerprintSha256: String,
+            )
 
             @Serializable
             enum class MatchType(
@@ -437,7 +405,7 @@ fun BitwardenCipher.Companion.getMergeRules() = kotlin.run {
                     ),
                     DiffFinderNode.Leaf(
                         lens = BitwardenCipher.Login.uris,
-                        finder = DiffApplierByListValue(),
+                        finder = DiffApplierByLoginUriList,
                     ),
                     DiffFinderNode.Leaf(
                         lens = BitwardenCipher.Login.fido2Credentials,
@@ -490,6 +458,48 @@ fun BitwardenCipher.Companion.getMergeRules() = kotlin.run {
             DiffFinderNode.Leaf(BitwardenCipher.sshKey),
         ),
     )
+}
+
+private object DiffApplierByLoginUriList : DiffFinder<List<BitwardenCipher.Login.Uri>> {
+    private val listApplier = DiffApplierByListValue<BitwardenCipher.Login.Uri>()
+
+    override fun compare(
+        base: List<BitwardenCipher.Login.Uri>,
+        a: List<BitwardenCipher.Login.Uri>,
+        b: List<BitwardenCipher.Login.Uri>,
+    ): List<BitwardenCipher.Login.Uri> = listApplier
+        .compare(base, a, b)
+        .mergeUriSignatures()
+
+    private fun List<BitwardenCipher.Login.Uri>.mergeUriSignatures(): List<BitwardenCipher.Login.Uri> {
+        val out = mutableListOf<BitwardenCipher.Login.Uri>()
+        forEach { uri ->
+            val index = out.indexOfFirst { existing ->
+                existing.identity == uri.identity
+            }
+            if (index < 0) {
+                out += uri
+            } else {
+                out[index] = out[index].copy(
+                    uriChecksumBase64 = out[index].uriChecksumBase64 ?: uri.uriChecksumBase64,
+                    signatures = (out[index].signatures + uri.signatures)
+                        .distinctBy { signature -> signature.certFingerprintSha256 },
+                )
+            }
+        }
+        return out
+    }
+
+    private data class UriIdentity(
+        val uri: String?,
+        val match: BitwardenCipher.Login.Uri.MatchType?,
+    )
+
+    private val BitwardenCipher.Login.Uri.identity: UriIdentity
+        get() = UriIdentity(
+            uri = uri,
+            match = match,
+        )
 }
 
 private data class LoginPasswordRevision(

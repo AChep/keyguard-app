@@ -5,19 +5,17 @@ package com.artemchep.keyguard.common.model
 import kotlin.jvm.JvmName
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CreditCard
-import androidx.compose.material.icons.outlined.Password
-import androidx.compose.material.icons.outlined.PermIdentity
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.getOrElse
 import arrow.optics.optics
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.flatten
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
 import com.artemchep.keyguard.core.store.bitwarden.exists
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_PHONE_NUMBER
@@ -31,7 +29,6 @@ import com.artemchep.keyguard.ui.icons.KeyguardSshKey
 import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlin.time.Instant
 
 @optics(
@@ -53,6 +50,7 @@ data class DSecret(
     val service: BitwardenService,
     // common
     val keyBase64: String? = null,
+    val customIcon: KeePassIcon? = null,
     val name: String,
     val notes: String,
     val favorite: Boolean,
@@ -289,8 +287,13 @@ data class DSecret(
     data class Uri(
         val uri: String,
         val match: MatchType? = null,
+        val signatures: List<Signature> = emptyList(),
     ) : LinkInfo {
         companion object;
+
+        data class Signature(
+            val certFingerprintSha256: String,
+        )
 
         enum class MatchType {
             Domain,
@@ -431,6 +434,53 @@ fun DSecret.Type.iconImageVector() = when (this) {
     DSecret.Type.SecureNote -> Icons.Outlined.KeyguardNote
     DSecret.Type.SshKey -> Icons.Outlined.KeyguardSshKey
     DSecret.Type.None -> Icons.Stub
+}
+
+/**
+ * Maps a KeePass predefined icon to a Material icon. Returns `null` for the default `Key`
+ * icon and for icons without a sensible match, so the caller can fall through to its regular
+ * icon-resolution behavior.
+ */
+fun KeePassIcon.iconImageVector(): ImageVector? = when (this) {
+    KeePassIcon.World -> Icons.Outlined.Language
+    KeePassIcon.Warning -> Icons.Outlined.Warning
+    KeePassIcon.NetworkServer -> Icons.Outlined.Dns
+    KeePassIcon.Notepad -> Icons.Outlined.Description
+    KeePassIcon.Identity -> Icons.Outlined.Badge
+    KeePassIcon.Digicam -> Icons.Outlined.PhotoCamera
+    KeePassIcon.Energy -> Icons.Outlined.Bolt
+    KeePassIcon.Scanner -> Icons.Outlined.Scanner
+    KeePassIcon.Monitor -> Icons.Outlined.Monitor
+    KeePassIcon.Email -> Icons.Outlined.Email
+    KeePassIcon.Configuration -> Icons.Outlined.Settings
+    KeePassIcon.EmailBox -> Icons.Outlined.Email
+    KeePassIcon.Console -> Icons.Outlined.Terminal
+    KeePassIcon.Printer -> Icons.Outlined.Print
+    KeePassIcon.Settings -> Icons.Outlined.Settings
+    KeePassIcon.Archive -> Icons.Outlined.Archive
+    KeePassIcon.HomeBanking -> Icons.Outlined.AccountBalance
+    KeePassIcon.Clock -> Icons.Outlined.Schedule
+    KeePassIcon.EmailSearch -> Icons.Outlined.Email
+    KeePassIcon.Memory -> Icons.Outlined.Memory
+    KeePassIcon.TrashBin -> Icons.Outlined.Delete
+    KeePassIcon.Note -> Icons.Outlined.Description
+    KeePassIcon.Info -> Icons.Outlined.Info
+    KeePassIcon.Package -> Icons.Outlined.Inventory2
+    KeePassIcon.Folder -> Icons.Outlined.Folder
+    KeePassIcon.FolderOpen -> Icons.Outlined.FolderOpen
+    KeePassIcon.FolderPackage -> Icons.Outlined.Folder
+    KeePassIcon.LockOpen -> Icons.Outlined.LockOpen
+    KeePassIcon.Checked -> Icons.Outlined.CheckCircle
+    KeePassIcon.Pen -> Icons.Outlined.Edit
+    KeePassIcon.Thumbnail -> Icons.Outlined.Image
+    KeePassIcon.Book -> Icons.Outlined.Book
+    KeePassIcon.List -> Icons.Outlined.List
+    KeePassIcon.Tool -> Icons.Outlined.Build
+    KeePassIcon.Home -> Icons.Outlined.Home
+    KeePassIcon.Star -> Icons.Outlined.Star
+    KeePassIcon.Money -> Icons.Outlined.Paid
+    KeePassIcon.Certificate -> Icons.Outlined.WorkspacePremium
+    else -> null
 }
 
 fun DSecret.Type.titleH() = when (this) {

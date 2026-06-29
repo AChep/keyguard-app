@@ -9,22 +9,14 @@ import com.artemchep.keyguard.crypto.util.encode
 import com.artemchep.keyguard.provider.bitwarden.crypto.AsymmetricCryptoKey
 import com.artemchep.keyguard.provider.bitwarden.crypto.DecodeResult
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
-import java.security.MessageDigest
+import com.artemchep.keyguard.util.foundation.constantTimeEquals
 import org.bouncycastle.asn1.ASN1Sequence
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo
 import org.bouncycastle.crypto.AsymmetricBlockCipher
-import org.bouncycastle.crypto.BufferedBlockCipher
-import org.bouncycastle.crypto.CipherParameters
 import org.bouncycastle.crypto.digests.SHA1Digest
 import org.bouncycastle.crypto.digests.SHA256Digest
 import org.bouncycastle.crypto.encodings.OAEPEncoding
-import org.bouncycastle.crypto.engines.AESEngine
 import org.bouncycastle.crypto.engines.RSAEngine
-import org.bouncycastle.crypto.modes.CBCBlockCipher
-import org.bouncycastle.crypto.paddings.PKCS7Padding
-import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher
-import org.bouncycastle.crypto.params.KeyParameter
-import org.bouncycastle.crypto.params.ParametersWithIV
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters
 import org.bouncycastle.crypto.util.PrivateKeyFactory
 import org.kodein.di.DirectDI
@@ -215,7 +207,7 @@ class CipherEncryptorImpl(
             val macData = iv + ct
             cryptoGenerator.hmacSha256(macKey, macData)
         }
-        if (!MessageDigest.isEqual(computedMac, mac)) {
+        if (!computedMac.constantTimeEquals(mac)) {
             error("Message authentication codes do not match!")
         }
         return decodeAesCbc256_HmacSha256_B64(

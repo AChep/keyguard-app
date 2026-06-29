@@ -18,8 +18,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  check-desktop-tests:
+  check-kmp-host-tests:
+    name: Check KMP Host Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -28,16 +33,120 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
-      - name: "Run unit tests"
-        run: ./gradlew :common:desktopTest
-  check-android-tests:
+      - name: "Run KMP host tests"
+        run: >-
+          ./gradlew --continue
+          :common:desktopTest
+          :common:testAndroidHostTest
+          :desktopLibJvm:jvmTest
+          :util:foundation:desktopTest
+          :util:foundation:testAndroidHostTest
+          :util:kdbx:desktopTest
+          :util:kdbx:testAndroidHostTest
+          :util:messagepack:desktopTest
+          :util:messagepack:testAndroidHostTest
+          :util:planeta:desktopTest
+          :util:planeta:testAndroidHostTest
+          :util:signalr:desktopTest
+          :util:signalr:testAndroidHostTest
+          :util:webdav:desktopTest
+          :util:webdav:testAndroidHostTest
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: kmp-host-test-reports
+          path: |
+            **/build/test-results/**
+            **/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21
+
+  check-android-unit-tests:
+    name: Check Android Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Prepare env"
+        run: |
+          echo "${VARS_GOOGLE_SERVICES}" | base64 -d | zcat > androidApp/google-services.json
+          echo "${VARS_GOOGLE_SERVICES}" | base64 -d | zcat > wearApp/google-services.json
+        env:
+          VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
+      - name: "Run Android unit tests"
+        run: >-
+          ./gradlew --continue
+          :androidApp:testNoneDebugUnitTest
+          :androidApp:testPlayStoreDebugUnitTest
+          :wearApp:testNoneDebugUnitTest
+          :wearApp:testPlayStoreDebugUnitTest
+          :androidLibAutofill:testDebugUnitTest
+          :integration:wearCredentialProviderApp:testDebugUnitTest
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: android-unit-test-reports
+          path: |
+            **/build/test-results/**
+            **/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21
+
+  check-ios-simulator-tests:
+    name: Check iOS Simulator Tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Run iOS simulator tests"
+        run: >-
+          ./gradlew --continue
+          :common:iosSimulatorArm64Test
+          :iosApp:iosSimulatorArm64Test
+          :util:foundation:iosSimulatorArm64Test
+          :util:kdbx:iosSimulatorArm64Test
+          :util:messagepack:iosSimulatorArm64Test
+          :util:planeta:iosSimulatorArm64Test
+          :util:signalr:iosSimulatorArm64Test
+          :util:webdav:iosSimulatorArm64Test
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: ios-simulator-test-reports
+          path: |
+            **/build/test-results/**
+            **/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21
+
+  check-android-instrumentation:
+    name: Check Android Instrumentation (${{ matrix.variant }}, API ${{ matrix.api-level }})
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         api-level:
-          - 30
           - 26
+          - 30
+        variant:
+          - NoneDebug
+          - PlayStoreDebug
+        include:
+          - variant: NoneDebug
+            build-flavor: None
+          - variant: PlayStoreDebug
+            build-flavor: PlayStore
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
@@ -49,14 +158,13 @@ jobs:
       - uses: ./.github/actions/prepare_disk_space
       - name: "Prepare env"
         run: |
-          echo ${VARS_GOOGLE_SERVICES} | base64 -d | zcat >> androidApp/google-services.json
+          echo "${VARS_GOOGLE_SERVICES}" | base64 -d | zcat > androidApp/google-services.json
         env:
           VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
       - uses: ./.github/actions/build_android_licenses
         with:
-          build-flavor: "PlayStore"
-      - name: "Run integration tests"
-        id: baseline-profiles
+          build-flavor: ${{ matrix.build-flavor }}
+      - name: "Run Android instrumentation tests"
         uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
         with:
           api-level: ${{ matrix.api-level }}
@@ -64,24 +172,27 @@ jobs:
           disable-animations: true
           disk-size: 4G
           script: |
-            adb root
-            ./gradlew :androidApp:connectedPlayStoreDebugAndroidTest ; RESULT=$?
-            mkdir -p artifacts/
+            adb root || true
+            RESULT=0
+            ./gradlew --continue :androidApp:connected${{ matrix.variant }}AndroidTest || RESULT=$?
+            mkdir -p artifactsScreenRecording/
             adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
             exit $RESULT
-      - name: 'Upload screen recordings'
+      - name: "Upload screen recordings"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: android-${{ matrix.api-level }}-screen-recordings
-          path: |
-            artifactsScreenRecording/
+          name: android-${{ matrix.api-level }}-${{ matrix.variant }}-screen-recordings
+          path: artifactsScreenRecording/
+          if-no-files-found: ignore
           retention-days: 7
-      - name: 'Upload logs'
+      - name: "Upload test reports"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: android-${{ matrix.api-level }}-logs
+          name: android-${{ matrix.api-level }}-${{ matrix.variant }}-test-reports
           path: |
-            androidApp/outputs/androidTest-results/
-          retention-days: 7
+            androidApp/build/outputs/androidTest-results/**
+            androidApp/build/reports/androidTests/**
+          if-no-files-found: ignore
+          retention-days: 21

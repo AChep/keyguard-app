@@ -292,7 +292,7 @@ fun sendListScreenState(
             getAccounts()
                 .map { accounts ->
                     accounts
-                        .any { account -> account.type == AccountType.BITWARDEN }
+                        .any { account -> account.type.capabilities.supportsSends }
                 },
             getCanWrite(),
         ) { hasAccounts, canWrite -> hasAccounts && canWrite }

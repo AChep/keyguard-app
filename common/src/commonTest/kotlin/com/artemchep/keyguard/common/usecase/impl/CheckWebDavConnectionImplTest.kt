@@ -1,8 +1,9 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.toSource
-import com.artemchep.keyguard.common.usecase.CheckWebDavConnectionRequest
+import com.artemchep.keyguard.common.model.WebDavCredentials
+import com.artemchep.keyguard.common.model.WebDavLocation
+import com.artemchep.keyguard.util.foundation.io.toSource
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
 import com.artemchep.keyguard.util.webdav.WebDavByteRange
 import com.artemchep.keyguard.util.webdav.WebDavClient
@@ -10,6 +11,7 @@ import com.artemchep.keyguard.util.webdav.WebDavClientConfig
 import com.artemchep.keyguard.util.webdav.WebDavOpenResult
 import com.artemchep.keyguard.util.webdav.WebDavResource
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
+import com.artemchep.keyguard.util.webdav.WebDavWritePrecondition
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -31,10 +33,12 @@ class CheckWebDavConnectionImplTest {
         }
 
         useCase(
-            CheckWebDavConnectionRequest(
+            WebDavLocation.Collection(
                 url = "https://example.com/dav/",
-                username = " alice ",
-                password = "secret",
+                credentials = WebDavCredentials.of(
+                    username = " alice ",
+                    password = "secret",
+                ),
             ),
         ).bind()
 
@@ -70,10 +74,12 @@ class CheckWebDavConnectionImplTest {
         }
 
         useCase(
-            CheckWebDavConnectionRequest(
+            WebDavLocation.Collection(
                 url = "https://example.com/dav/",
-                username = " ",
-                password = "secret",
+                credentials = WebDavCredentials.of(
+                    username = " ",
+                    password = "secret",
+                ),
             ),
         ).bind()
 
@@ -84,6 +90,24 @@ class CheckWebDavConnectionImplTest {
             ),
             capturedConfig,
         )
+    }
+
+    @Test
+    fun `checks keepass database connection with read-only access`() = runTest {
+        val client = FakeWebDavClient()
+        val useCase = CheckWebDavConnectionImpl { client }
+
+        useCase(
+            WebDavLocation.File(
+                url = "https://example.com/dav/vault.kdbx",
+            ),
+        ).bind()
+
+        assertEquals(listOf("open", "stat", "close"), client.events)
+        assertEquals("", client.statPath)
+        assertEquals(null, client.writtenPath)
+        assertEquals(null, client.readPath)
+        assertEquals(null, client.deletedPath)
     }
 
     @Test
@@ -114,10 +138,8 @@ class CheckWebDavConnectionImplTest {
     }
 }
 
-private fun defaultRequest() = CheckWebDavConnectionRequest(
+private fun defaultRequest() = WebDavLocation.Collection(
     url = "https://example.com/dav/",
-    username = null,
-    password = null,
 )
 
 private class FakeWebDavClient(
@@ -128,6 +150,7 @@ private class FakeWebDavClient(
     var writtenPath: String? = null
     var writtenMode: WebDavWriteMode? = null
     var writtenBytes: ByteArray? = null
+    var statPath: String? = null
     var readPath: String? = null
     var deletedPath: String? = null
 
@@ -141,7 +164,17 @@ private class FakeWebDavClient(
 
     override suspend fun stat(
         path: String,
-    ): WebDavResource? = error("Not used by this test.")
+    ): WebDavResource? {
+        events += "stat"
+        statPath = path
+        return WebDavResource(
+            path = path,
+            isCollection = false,
+            size = null,
+            lastModified = null,
+            etag = null,
+        )
+    }
 
     override suspend fun read(
         path: String,
@@ -159,6 +192,7 @@ private class FakeWebDavClient(
         path: String,
         mode: WebDavWriteMode,
         bytes: ByteArray,
+        precondition: WebDavWritePrecondition?,
     ): WebDavResource {
         events += "write"
         writtenPath = path
@@ -177,6 +211,7 @@ private class FakeWebDavClient(
         path: String,
         mode: WebDavWriteMode,
         contentLength: Long?,
+        precondition: WebDavWritePrecondition?,
         write: suspend (Sink) -> Unit,
     ): WebDavResource = error("Not used by this test.")
 

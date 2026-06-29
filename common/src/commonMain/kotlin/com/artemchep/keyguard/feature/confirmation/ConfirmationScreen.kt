@@ -46,7 +46,7 @@ import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
-import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposable
+import com.artemchep.keyguard.feature.search.filter.component.FilterChipItemComposable
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
@@ -439,7 +439,7 @@ private fun ConfirmationEnumItemItem(
     modifier: Modifier = Modifier,
     item: ConfirmationState.Item.EnumItem.Item,
 ) {
-    FilterItemComposable(
+    FilterChipItemComposable(
         modifier = modifier,
         checked = item.selected,
         leading =

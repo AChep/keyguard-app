@@ -11,6 +11,7 @@ import com.artemchep.keyguard.crypto.util.createAesCbc
 import com.artemchep.keyguard.crypto.util.encode
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.toJavaFile
+import com.artemchep.keyguard.util.foundation.crypto.createHmacSha256
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import java.io.InputStream
@@ -50,7 +51,7 @@ class FileEncryptorJvm(
         }
     }
 
-    override fun decode(
+    fun decode(
         input: InputStream,
         key: ByteArray,
     ): InputStream {
@@ -106,7 +107,7 @@ class FileEncryptorJvm(
         val keys = FileEncryptionFormat.requireAesCbc256HmacSha256Keys(key)
         val iv = cryptoGenerator.seed(IV_LENGTH)
         val aes = createAesCbc(iv, keys.encKey, forEncryption = true)
-        val hmac = FileEncryptionFormat.createHmac(keys.macKey).apply {
+        val hmac = createHmacSha256(keys.macKey).apply {
             update(iv)
         }
 

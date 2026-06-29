@@ -13,8 +13,8 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
 import arrow.core.identity
 import arrow.core.partially1
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
+import com.artemchep.keyguard.common.service.download.DownloadRepository
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.launchIn
@@ -172,7 +172,7 @@ fun produceAttachmentsScreenState(
                                 cipher = cipher,
                                 attachment = attachment,
                             )
-                            val tag = DownloadInfoEntity2.AttachmentDownloadTag(
+                            val tag = DownloadInfoEntity.AttachmentDownloadTag(
                                 localCipherId = cipher.id,
                                 remoteCipherId = cipher.service.remote?.id,
                                 attachmentId = attachment.id,
@@ -191,7 +191,7 @@ fun produceAttachmentsScreenState(
             it
                 .asSequence()
                 .map {
-                    DownloadInfoEntity2.AttachmentDownloadTag(
+                    DownloadInfoEntity.AttachmentDownloadTag(
                         localCipherId = it.localCipherId,
                         remoteCipherId = it.remoteCipherId,
                         attachmentId = it.attachmentId,

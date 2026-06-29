@@ -20,6 +20,7 @@ import com.artemchep.keyguard.common.util.canRetry
 import com.artemchep.keyguard.common.util.getHttpCode
 import com.artemchep.keyguard.common.util.withRunForever
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.platform.recordException
@@ -277,9 +278,14 @@ class NotificationsImpl(
         ): Job = subScope.launch {
             val accountScope = this
 
+            // We can only subscribe to the file
+            // URIs, ignore WebDAV.
+            val location = user.database.location as? FileLocation.Local
+                ?: return@launch
+
             val reconnectBackoff = ReconnectBackoff()
             reconnectBackoff.withRunForever {
-                val dbChangedFlow = fileWatcherService.uriChangedFlow(user.files.databaseUri)
+                val dbChangedFlow = fileWatcherService.uriChangedFlow(location.uri)
                     .filter { it.kind != FileWatchEvent.Kind.INITIALIZED }
                     .debounce(1000L)
                 dbChangedFlow

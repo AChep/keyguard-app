@@ -13,12 +13,22 @@ kotlin {
             binaryOption("bundleId", "com.artemchep.keyguard.shared")
             isStatic = true
         }
+        binaries.configureEach {
+            if (name == "debugTest") {
+                linkerOpts("-lsqlite3")
+            }
+        }
     }
     iosSimulatorArm64 {
         binaries.framework {
             baseName = iosFrameworkName
             binaryOption("bundleId", "com.artemchep.keyguard.shared")
             isStatic = true
+        }
+        binaries.configureEach {
+            if (name == "debugTest") {
+                linkerOpts("-lsqlite3")
+            }
         }
     }
 
@@ -35,17 +45,33 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
             }
         }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(libs.kotlinx.coroutines.test)
+                implementation(libs.ktor.ktor.client.mock)
+            }
+        }
 
         val iosMain by creating {
             dependsOn(commonMain)
+        }
+        val iosTest by creating {
+            dependsOn(commonTest)
         }
 
         val iosArm64Main by getting {
             dependsOn(iosMain)
         }
+        val iosArm64Test by getting {
+            dependsOn(iosTest)
+        }
 
         val iosSimulatorArm64Main by getting {
             dependsOn(iosMain)
+        }
+        val iosSimulatorArm64Test by getting {
+            dependsOn(iosTest)
         }
     }
 

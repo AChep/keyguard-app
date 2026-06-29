@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.attachments.util
 
 import arrow.core.partially1
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.fileName
@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.stateIn
 suspend fun RememberStateFlowScope.createAttachmentItem(
     attachment: DSecret.Attachment,
     vaultViewRouteFactory: VaultViewRouteFactory,
-    tag: DownloadInfoEntity2.AttachmentDownloadTag,
+    tag: DownloadInfoEntity.AttachmentDownloadTag,
     selectionHandle: SelectionHandle,
     sharingScope: CoroutineScope,
     launchViewCipherData: LaunchViewCipherData?,

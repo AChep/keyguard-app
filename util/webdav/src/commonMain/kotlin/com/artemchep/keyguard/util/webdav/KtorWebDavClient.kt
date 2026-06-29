@@ -34,7 +34,6 @@ import kotlinx.io.RawSource
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
-import kotlinx.io.write
 
 class KtorWebDavClient(
     private val httpClient: HttpClient,
@@ -44,6 +43,7 @@ class KtorWebDavClient(
     private val baseUrl: Url = normalizeBaseCollectionUrl(config.baseUrl)
     private val authorization: WebDavAuthorization? = config.authorization
     private val userAgent: String? = config.userAgent
+    private val noCache: Boolean = config.noCache
 
     override suspend fun open(): WebDavOpenResult {
         val response = request(
@@ -161,10 +161,12 @@ class KtorWebDavClient(
         path: String,
         mode: WebDavWriteMode,
         bytes: ByteArray,
+        precondition: WebDavWritePrecondition?,
     ): WebDavResource = write(
         path = path,
         mode = mode,
         contentLength = bytes.size.toLong(),
+        precondition = precondition,
     ) { sink ->
         sink.write(bytes)
         sink.flush()
@@ -174,6 +176,7 @@ class KtorWebDavClient(
         path: String,
         mode: WebDavWriteMode,
         contentLength: Long?,
+        precondition: WebDavWritePrecondition?,
         write: suspend (Sink) -> Unit,
     ): WebDavResource {
         val objectPath = validateObjectPath(path)
@@ -190,6 +193,7 @@ class KtorWebDavClient(
                 sourcePath = tempPath,
                 destinationPath = objectPath,
                 overwrite = mode == WebDavWriteMode.CreateOrReplace,
+                precondition = precondition,
             )
             return propfindResource(
                 path = objectPath,
@@ -380,7 +384,9 @@ class KtorWebDavClient(
         sourcePath: String,
         destinationPath: String,
         overwrite: Boolean,
+        precondition: WebDavWritePrecondition?,
     ) {
+        val destinationUrl = resolveWebDavUrl(baseUrl, destinationPath)
         val response = request(
             operation = WebDavOperation.Move,
             path = sourcePath,
@@ -390,11 +396,21 @@ class KtorWebDavClient(
             retry {
                 noRetry()
             }
-            header(HEADER_DESTINATION, resolveWebDavUrl(baseUrl, destinationPath))
+            header(HEADER_DESTINATION, destinationUrl)
             header(HEADER_OVERWRITE, if (overwrite) "T" else "F")
+            if (precondition != null) {
+                header(HEADER_IF, "<$destinationUrl> ([${precondition.destinationEtag}])")
+            }
         }
         if (!overwrite && response.status.value == STATUS_PRECONDITION_FAILED) {
             throw WebDavException.AlreadyExists(
+                operation = WebDavOperation.Write,
+                path = destinationPath,
+                statusCode = response.status.value,
+            )
+        }
+        if (precondition != null && response.status.value == STATUS_PRECONDITION_FAILED) {
+            throw WebDavException.PreconditionFailed(
                 operation = WebDavOperation.Write,
                 path = destinationPath,
                 statusCode = response.status.value,
@@ -558,6 +574,9 @@ class KtorWebDavClient(
     }
 
     private fun HttpRequestBuilder.applyCommonHeaders() {
+        if (noCache) {
+            header(HttpHeaders.CacheControl, "no-cache, no-store")
+        }
         userAgent?.let { value ->
             header(HttpHeaders.UserAgent, value)
         }
@@ -736,6 +755,7 @@ class KtorWebDavClient(
         private const val HEADER_DEPTH = "Depth"
         private const val HEADER_DESTINATION = "Destination"
         private const val HEADER_OVERWRITE = "Overwrite"
+        private const val HEADER_IF = "If"
         private const val HEADER_ACCEPT_ENCODING = "Accept-Encoding"
         private const val XML_CONTENT_TYPE = "application/xml; charset=utf-8"
 

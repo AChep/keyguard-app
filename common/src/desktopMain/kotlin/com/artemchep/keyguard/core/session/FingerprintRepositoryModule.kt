@@ -4,7 +4,6 @@ import arrow.core.partially1
 import arrow.core.partially2
 import arrow.optics.Getter
 import com.artemchep.autotype.biometricsIsSupported
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.bindBlocking
@@ -40,9 +39,17 @@ import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseMan
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.service.download.DownloadRepository
 import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.download.DownloadTaskDesktop
+import com.artemchep.keyguard.common.service.download.DownloadRepositoryInMemory
+import com.artemchep.keyguard.common.service.download.DownloadManagerImpl
+import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundScheduler
+import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundSchedulerNoOp
+import com.artemchep.keyguard.common.service.download.store.DownloadFileStore
+import com.artemchep.keyguard.common.service.download.store.DownloadFileStoreDesktop
 import com.artemchep.keyguard.common.service.file.FileService
-import com.artemchep.keyguard.common.service.file.PureFileService
+import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.service.keychain.KeychainIds
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -73,10 +80,6 @@ import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.copy.ClipboardServiceJvm
 import com.artemchep.keyguard.copy.ConnectivityServiceJvm
 import com.artemchep.keyguard.copy.DataDirectory
-import com.artemchep.keyguard.copy.DownloadClientDesktop
-import com.artemchep.keyguard.copy.DownloadManagerDesktop
-import com.artemchep.keyguard.copy.DownloadRepositoryDesktop
-import com.artemchep.keyguard.copy.DownloadTaskDesktop
 import com.artemchep.keyguard.copy.FileWatcherServiceJvm
 import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.PermissionServiceJvm
@@ -392,7 +395,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
         )
     }
     bindSingleton<FileService> {
-        PureFileService()
+        FileServiceImpl()
     }
     bindSingleton<SshAgentStatusService> {
         SshAgentStatusServiceImpl()
@@ -405,10 +408,13 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindSingleton<Wrker> {
         BackupSchedulerWorker(this)
     }
-    bindSingleton<DownloadClientDesktop> {
-        DownloadClientDesktop(
+    bindSingleton<DownloadFileStore> {
+        DownloadFileStoreDesktop(
             directDI = this,
         )
+    }
+    bindSingleton<DownloadBackgroundScheduler> {
+        DownloadBackgroundSchedulerNoOp
     }
     bindSingleton<DownloadTask> {
         DownloadTaskDesktop(
@@ -416,12 +422,12 @@ fun diFingerprintRepositoryModule() = DI.Module(
         )
     }
     bindSingleton<DownloadManager> {
-        DownloadManagerDesktop(
+        DownloadManagerImpl(
             directDI = this,
         )
     }
     bindSingleton<DownloadRepository> {
-        DownloadRepositoryDesktop(this)
+        DownloadRepositoryInMemory()
     }
     bindSingleton<AutofillService> {
         AutofillServiceAndroid()

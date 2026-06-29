@@ -177,27 +177,39 @@ fun DSecret.toVaultItemIcon(
     appIcons: Boolean,
     websiteIcons: Boolean,
 ): VaultItemIcon = kotlin.run {
-    val vectorIconSrc = type.iconImageVector()
-    val cardIcon = run {
-        val cardIcon = card
-            ?.creditCardType
-            ?.icon
-        if (cardIcon != null) {
-            VaultItemIcon.ImageIcon(
-                imageRes = cardIcon,
-            )
-        } else {
-            null
+    val fallbackIcon = kotlin.run fallbackIcon@{
+        // 1. Top priority is a custom card specific icon,
+        // aka Visa/Mastercard/etc.
+        run {
+            val cardIcon = card
+                ?.creditCardType
+                ?.icon
+            if (cardIcon != null) {
+                return@fallbackIcon VaultItemIcon.ImageIcon(
+                    imageRes = cardIcon,
+                )
+            }
         }
+        // 2. Custom icon if set
+        run {
+            val customIcon = customIcon
+                ?.iconImageVector()
+            if (customIcon != null) {
+                return@fallbackIcon VaultItemIcon.VectorIcon(
+                    imageVector = customIcon,
+                )
+            }
+        }
+        // 3. Name-based icon
+        if (name.isNotBlank()) {
+            return@fallbackIcon VaultItemIcon.TextIcon.short(name)
+        }
+
+        VaultItemIcon.VectorIcon(
+            imageVector = type.iconImageVector(),
+        )
     }
-    val textIcon = if (name.isNotBlank()) {
-        VaultItemIcon.TextIcon.short(name)
-    } else {
-        null
-    }
-    val vectorIcon = VaultItemIcon.VectorIcon(
-        imageVector = vectorIconSrc,
-    )
+
     val appIcon = if (appIcons) {
         uris
             .firstOrNull { uri -> uri.uri.startsWith(PROTOCOL_ANDROID_APP) }
@@ -205,7 +217,7 @@ fun DSecret.toVaultItemIcon(
                 val packageName = uri.uri.substringAfter(PROTOCOL_ANDROID_APP)
                 VaultItemIcon.AppIcon(
                     data = AppIconUrl(packageName),
-                    fallback = vectorIcon,
+                    fallback = fallbackIcon,
                 )
             }
     } else {
@@ -216,13 +228,13 @@ fun DSecret.toVaultItemIcon(
             ?.let { url ->
                 VaultItemIcon.WebsiteIcon(
                     data = url,
-                    fallback = appIcon ?: vectorIcon,
+                    fallback = appIcon ?: fallbackIcon,
                 )
             }
     } else {
         null
     }
-    websiteIcon ?: appIcon ?: cardIcon ?: textIcon ?: vectorIcon
+    websiteIcon ?: appIcon ?: fallbackIcon
 }
 
 private data class TypeSpecific(

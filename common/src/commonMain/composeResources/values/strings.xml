@@ -281,6 +281,9 @@
     <string name="select_key_file">Select a key file</string>
     <string name="select_database_file">Select a database file</string>
     <string name="replace_database_file">Replace a database file</string>
+    <string name="database_location_title">Database location</string>
+    <string name="database_location_local">Local file</string>
+    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">Open a database</string>
     <string name="create_database">Create a database</string>
     <string name="addaccount_method_header_title">Add account</string>
@@ -628,6 +631,7 @@
     <string name="error_invalid_key">Invalid key</string>
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_webdav_url_required">WebDAV URL is required</string>
+    <string name="error_webdav_file_url_required">Enter the full WebDAV URL to a file resource</string>
     <string name="error_incorrect_password">Incorrect password</string>
     <string name="error_not_found">Not found</string>
     <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
@@ -1658,10 +1662,10 @@
 
     <string name="webdav_settings_header_title">WebDAV server configuration</string>
     <string name="webdav_settings_url_title">WebDAV URL</string>
-    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
     <string name="webdav_settings_auth_note">If your WebDAV server requires authentication, enter your server credentials here. Do not enter your master password.</string>
     <string name="webdav_settings_test_title">Test connection</string>
     <string name="webdav_settings_test_text">Writes and removes a small probe file to verify server access.</string>
+    <string name="webdav_settings_test_text_read_only">Reads the resource to verify server access.</string>
     <string name="webdav_settings_test_success">WebDAV connection verified.</string>
     <string name="webdav_settings_password_requires_username_error">Enter a username before setting a WebDAV password.</string>
 

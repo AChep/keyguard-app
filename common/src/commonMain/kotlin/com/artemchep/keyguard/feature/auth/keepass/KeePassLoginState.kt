@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
 data class KeePassLoginState(
     val dbFileState: StateFlow<FileItem>,
     val keyFileState: StateFlow<FileItem>,
+    val databaseLocationState: StateFlow<DatabaseLocation>,
     val password: StateFlow<TextFieldModel2>,
     val actionState: StateFlow<Action?>,
     val tabsState: StateFlow<Tabs>,
@@ -39,6 +40,33 @@ data class KeePassLoginState(
     )
 
     @Immutable
+    data class DatabaseLocation(
+        val type: Type,
+        val items: ImmutableList<Item>,
+    ) {
+        enum class Type {
+            Local,
+            WebDav,
+        }
+
+        @Immutable
+        data class Item(
+            val type: Type,
+            val title: TextHolder,
+            val checked: Boolean,
+            val onClick: (() -> Unit)?,
+        )
+    }
+
+    @LeParcelize
+    @Serializable
+    data class WebDav(
+        val url: String,
+        val username: String?,
+        val password: String?,
+    ) : LeParcelable
+
+    @Immutable
     data class FileItem(
         val onClick: () -> Unit,
         val onClear: (() -> Unit)? = null,
@@ -50,6 +78,7 @@ data class KeePassLoginState(
             val uri: String,
             val name: String?,
             val size: Long?,
+            val accessToken: String? = null,
         ) : LeParcelable
     }
 

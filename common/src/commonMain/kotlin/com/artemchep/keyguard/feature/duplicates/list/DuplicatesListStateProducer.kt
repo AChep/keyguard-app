@@ -80,6 +80,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -402,12 +404,29 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     confirmationRouteFactory: ConfirmationRouteFactory,
     //
     toolbox: CipherToolbox,
-) = combine(
-    ciphersFlow,
-    selectionHandle.idsFlow,
-    collectionsFlow,
-    canWriteFlow,
-) { ciphers, selectedCipherIds, collections, canWrite ->
+): Flow<Selection?> {
+    // Automatically remove selection from ciphers
+    // that do not exist anymore.
+    ciphersFlow
+        .onEach { ciphers ->
+            val selectedItemIds = selectionHandle.idsFlow.value
+            val filteredSelectedItemIds = selectedItemIds
+                .filter { itemId ->
+                    ciphers.any { it.id == itemId }
+                }
+                .toSet()
+            if (filteredSelectedItemIds.size < selectedItemIds.size) {
+                selectionHandle.setSelection(filteredSelectedItemIds)
+            }
+        }
+        .launchIn(this)
+
+    return combine(
+        ciphersFlow,
+        selectionHandle.idsFlow,
+        collectionsFlow,
+        canWriteFlow,
+    ) { ciphers, selectedCipherIds, collections, canWrite ->
     val selectedCiphers = ciphers
         .filter { it.id in selectedCipherIds }
     // Hide the selection bar based on the ciphers that actually still exist,
@@ -643,4 +662,5 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
         actions = actions.toPersistentList(),
         onClear = selectionHandle::clearSelection,
     )
+}
 }

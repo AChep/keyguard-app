@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 
 val DropdownMinWidth = 256.dp
 
@@ -27,6 +29,10 @@ fun KeyguardDropdownMenu(
             parent = this,
             onDismissRequest = onDismissRequest,
         )
-        content(scope)
+        CompositionLocalProvider(
+            LocalSurfaceColor provides MaterialTheme.colorScheme.surfaceContainer,
+        ) {
+            content(scope)
+        }
     }
 }

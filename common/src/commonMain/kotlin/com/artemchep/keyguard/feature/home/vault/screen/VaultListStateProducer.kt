@@ -484,7 +484,19 @@ internal fun vaultListScreenState(
             val selectedItemIds = selectionHandle.idsFlow.value
             val filteredSelectedItemIds = selectedItemIds
                 .filter { itemId ->
-                    ciphers.any { it.id == itemId }
+                    val cipher = ciphers.firstOrNull { it.id == itemId }
+                    if (cipher == null) return@filter false
+                    val passesTrashFilter = when (args.trash) {
+                        true -> cipher.deletedDate != null
+                        false -> cipher.deletedDate == null
+                        null -> true
+                    }
+                    val passesArchiveFilter = when (args.archive) {
+                        true -> cipher.archivedDate != null
+                        false -> cipher.archivedDate == null
+                        null -> true
+                    }
+                    passesTrashFilter && passesArchiveFilter
                 }
                 .toSet()
             if (filteredSelectedItemIds.size < selectedItemIds.size) {

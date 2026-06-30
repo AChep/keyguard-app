@@ -7,7 +7,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
@@ -25,7 +24,9 @@ internal suspend fun runSshAgentProxyBridge(
     connectRetryDelayMs: Long = DEFAULT_CONNECT_RETRY_DELAY_MS,
     socketFactory: () -> Socket = ::Socket,
     monotonicTimeMs: () -> Long = { System.nanoTime() / 1_000_000L },
-    delayMs: suspend (Long) -> Unit = { delay(it) },
+    // Null default (not `= { delay(it) }`) to avoid a Kotlin 2.4.0 JVM-backend crash;
+    // see withAndroidSshAgentProxySocket. Forwarded as-is to the connector.
+    delayMs: (suspend (Long) -> Unit)? = null,
 ) {
     val rpcHandler = SshAgentRpcHandler(
         requestProcessor = requestProcessor,
@@ -84,7 +85,9 @@ internal fun CoroutineScope.launchSshAgentProxyBridge(
     connectRetryDelayMs: Long = DEFAULT_CONNECT_RETRY_DELAY_MS,
     socketFactory: () -> Socket = ::Socket,
     monotonicTimeMs: () -> Long = { System.nanoTime() / 1_000_000L },
-    delayMs: suspend (Long) -> Unit = { delay(it) },
+    // Null default (not `= { delay(it) }`) to avoid a Kotlin 2.4.0 JVM-backend crash;
+    // see withAndroidSshAgentProxySocket. Forwarded as-is.
+    delayMs: (suspend (Long) -> Unit)? = null,
     context: CoroutineContext = EmptyCoroutineContext,
     start: CoroutineStart = CoroutineStart.DEFAULT,
 ): Job = launch(

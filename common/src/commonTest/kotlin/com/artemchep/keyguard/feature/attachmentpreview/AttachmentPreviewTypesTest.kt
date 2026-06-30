@@ -10,7 +10,6 @@ import com.artemchep.keyguard.common.model.isAttachmentPreviewSupported
 import com.artemchep.keyguard.common.model.isMarkdownAttachmentPreview
 import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.feature.navigation.Route
-import com.artemchep.keyguard.platform.Platform
 import dev.snipme.highlights.model.SyntaxLanguage
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -168,13 +167,7 @@ class AttachmentPreviewTypesTest {
                     localCipherId = "local-cipher",
                     remoteCipherId = "remote-cipher",
                     attachment = attachment,
-                    canPreviewAttachment = CanPreviewAttachmentImpl(
-                        platform = Platform.Mobile.Android(
-                            isChromebook = false,
-                            isWatch = false,
-                            sdk = 35,
-                        ),
-                    ),
+                    canPreviewAttachment = CanPreviewAttachmentImpl(),
                     attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
                 ),
             ),
@@ -187,13 +180,7 @@ class AttachmentPreviewTypesTest {
                     localCipherId = "local-cipher",
                     remoteCipherId = "remote-cipher",
                     attachment = attachment,
-                    canPreviewAttachment = CanPreviewAttachmentImpl(
-                        platform = Platform.Mobile.Android(
-                            isChromebook = false,
-                            isWatch = true,
-                            sdk = 35,
-                        ),
-                    ),
+                    canPreviewAttachment = CanPreviewAttachmentImpl(),
                     attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
                 ),
             ),
@@ -206,9 +193,7 @@ class AttachmentPreviewTypesTest {
                     localCipherId = "local-cipher",
                     remoteCipherId = "remote-cipher",
                     attachment = attachment,
-                    canPreviewAttachment = CanPreviewAttachmentImpl(
-                        platform = Platform.Mobile.Ios,
-                    ),
+                    canPreviewAttachment = CanPreviewAttachmentImpl(),
                     attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
                 ),
             ),
@@ -221,9 +206,7 @@ class AttachmentPreviewTypesTest {
                     localCipherId = "local-cipher",
                     remoteCipherId = "remote-cipher",
                     attachment = attachment,
-                    canPreviewAttachment = CanPreviewAttachmentImpl(
-                        platform = Platform.Desktop.MacOS,
-                    ),
+                    canPreviewAttachment = CanPreviewAttachmentImpl(),
                     attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
                 ),
             ),
@@ -241,9 +224,7 @@ class AttachmentPreviewTypesTest {
                 localCipherId = "local-cipher",
                 remoteCipherId = "remote-cipher",
                 attachment = attachment,
-                canPreviewAttachment = CanPreviewAttachmentImpl(
-                    platform = Platform.Desktop.MacOS,
-                ),
+                canPreviewAttachment = CanPreviewAttachmentImpl(),
                 attachmentPreviewRouteFactory = factory,
             ),
         )
@@ -264,9 +245,7 @@ class AttachmentPreviewTypesTest {
                     url = "file:///tmp/file.txt",
                     fileName = "file.txt",
                 ),
-                canPreviewAttachment = CanPreviewAttachmentImpl(
-                    platform = Platform.Desktop.MacOS,
-                ),
+                canPreviewAttachment = CanPreviewAttachmentImpl(),
                 attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
         )
@@ -275,9 +254,7 @@ class AttachmentPreviewTypesTest {
                 localCipherId = "local-cipher",
                 remoteCipherId = "remote-cipher",
                 attachment = remoteAttachment(fileName = "archive.zip"),
-                canPreviewAttachment = CanPreviewAttachmentImpl(
-                    platform = Platform.Desktop.MacOS,
-                ),
+                canPreviewAttachment = CanPreviewAttachmentImpl(),
                 attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
         )
@@ -289,9 +266,7 @@ class AttachmentPreviewTypesTest {
                     fileName = "notes.txt",
                     size = AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES + 1,
                 ),
-                canPreviewAttachment = CanPreviewAttachmentImpl(
-                    platform = Platform.Desktop.MacOS,
-                ),
+                canPreviewAttachment = CanPreviewAttachmentImpl(),
                 attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
         )
@@ -299,15 +274,9 @@ class AttachmentPreviewTypesTest {
 
     @Test
     fun `policy classifies preview availability`() {
-        val desktopPolicy = CanPreviewAttachmentImpl(platform = Platform.Desktop.MacOS)
-        val androidPolicy = CanPreviewAttachmentImpl(
-            platform = Platform.Mobile.Android(
-                isChromebook = false,
-                isWatch = false,
-                sdk = 35,
-            ),
-        )
-        val iosPolicy = CanPreviewAttachmentImpl(platform = Platform.Mobile.Ios)
+        val desktopPolicy = CanPreviewAttachmentImpl()
+        val androidPolicy = CanPreviewAttachmentImpl()
+        val iosPolicy = CanPreviewAttachmentImpl()
 
         assertEquals(
             AttachmentPreviewPolicy.Previewable,

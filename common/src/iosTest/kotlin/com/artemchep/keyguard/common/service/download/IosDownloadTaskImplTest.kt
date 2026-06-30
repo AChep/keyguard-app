@@ -5,8 +5,8 @@ import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
 import com.artemchep.keyguard.common.service.file.toFileUriString
-import com.artemchep.keyguard.crypto.CryptoGeneratorIos
-import com.artemchep.keyguard.crypto.FileEncryptorIos
+import com.artemchep.keyguard.crypto.CryptoGeneratorApple
+import com.artemchep.keyguard.crypto.FileEncryptorApple
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.platform.toKotlinxIoPath
@@ -69,7 +69,7 @@ class IosDownloadTaskImplTest {
         val key = ByteArray(64) { index ->
             index.toByte()
         }
-        val fileEncryptor = FileEncryptorIos(CryptoGeneratorIos())
+        val fileEncryptor = FileEncryptorApple(CryptoGeneratorApple())
         val encrypted = fileEncryptor.encode(
             data = plain,
             key = key,
@@ -132,7 +132,7 @@ class IosDownloadTaskImplTest {
         val key = ByteArray(64) { index ->
             index.toByte()
         }
-        val fileEncryptor = FileEncryptorIos(CryptoGeneratorIos())
+        val fileEncryptor = FileEncryptorApple(CryptoGeneratorApple())
         val encrypted = fileEncryptor.encode(
             data = plain,
             key = key,
@@ -170,7 +170,7 @@ class IosDownloadTaskImplTest {
         val wrongKey = ByteArray(64) { index ->
             (index + 1).toByte()
         }
-        val fileEncryptor = FileEncryptorIos(CryptoGeneratorIos())
+        val fileEncryptor = FileEncryptorApple(CryptoGeneratorApple())
         val encrypted = fileEncryptor.encode(
             data = "plain payload".encodeToByteArray(),
             key = key,
@@ -226,7 +226,7 @@ class IosDownloadTaskImplTest {
         cacheRoot: LocalPath,
         responseBody: ByteArray,
         responseStatus: HttpStatusCode = HttpStatusCode.OK,
-        fileEncryptor: FileEncryptor = FileEncryptorIos(CryptoGeneratorIos()),
+        fileEncryptor: FileEncryptor = FileEncryptorApple(CryptoGeneratorApple()),
     ) = DownloadTaskIos(
         cacheDirProvider = StaticCacheDirProvider(cacheRoot),
         cryptoGenerator = TestCryptoGenerator(),
@@ -260,7 +260,7 @@ private data class StaticCacheDirProvider(
 }
 
 private class TestCryptoGenerator(
-    private val delegate: CryptoGenerator = CryptoGeneratorIos(),
+    private val delegate: CryptoGenerator = CryptoGeneratorApple(),
 ) : CryptoGenerator by delegate {
     private var counter = 0
 

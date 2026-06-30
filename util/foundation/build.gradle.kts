@@ -14,6 +14,7 @@ kotlin {
     jvm("desktop")
     iosArm64()
     iosSimulatorArm64()
+    macosArm64()
 
     sourceSets {
         val commonMain by getting {
@@ -40,18 +41,27 @@ kotlin {
             dependsOn(jvmCommonMain)
         }
 
-        val iosMain by creating {
+        val appleMain by creating {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.diglol.crypto.kdf)
                 implementation(libs.kotlinx.coroutines.core)
             }
         }
+        val iosMain by creating {
+            dependsOn(appleMain)
+        }
         val iosArm64Main by getting {
             dependsOn(iosMain)
         }
         val iosSimulatorArm64Main by getting {
             dependsOn(iosMain)
+        }
+        val macosMain by creating {
+            dependsOn(appleMain)
+        }
+        val macosArm64Main by getting {
+            dependsOn(macosMain)
         }
 
         all {

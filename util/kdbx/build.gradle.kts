@@ -14,6 +14,7 @@ kotlin {
     jvm("desktop")
     iosArm64()
     iosSimulatorArm64()
+    macosArm64()
 
     sourceSets {
         val commonMain by getting {
@@ -57,6 +58,12 @@ kotlin {
         }
         val iosSimulatorArm64Main by getting {
             dependsOn(iosMain)
+        }
+        val macosMain by creating {
+            dependsOn(commonMain)
+        }
+        val macosArm64Main by getting {
+            dependsOn(macosMain)
         }
 
         all {

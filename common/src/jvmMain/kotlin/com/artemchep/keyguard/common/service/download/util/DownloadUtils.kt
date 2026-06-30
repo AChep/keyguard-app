@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.download.util
 
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
-import com.artemchep.keyguard.crypto.FileEncryptorJvm
+import com.artemchep.keyguard.common.service.crypto.decode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -77,10 +77,6 @@ private fun File.copyDecryptedTo(
     inputStream()
         .use { input ->
             if (key != null) {
-                require(fileEncryptor is FileEncryptorJvm) {
-                    "File encryptor must use a JVM implementation on " +
-                            "the JVM platforms!"
-                }
                 fileEncryptor
                     .decode(
                         input = input,

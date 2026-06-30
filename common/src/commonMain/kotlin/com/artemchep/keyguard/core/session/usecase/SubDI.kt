@@ -103,6 +103,7 @@ import com.artemchep.keyguard.common.usecase.CipherToolboxImpl
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlAutoFix
 import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
+import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.ExportLogs
@@ -206,7 +207,6 @@ import com.artemchep.keyguard.common.usecase.impl.AddUrlBlockImpl
 import com.artemchep.keyguard.common.usecase.impl.AddUrlOverrideImpl
 import com.artemchep.keyguard.common.usecase.impl.BackupSettingsImpl
 import com.artemchep.keyguard.common.usecase.impl.CheckHibpApiTokenImpl
-import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentMetadataImpl2
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl

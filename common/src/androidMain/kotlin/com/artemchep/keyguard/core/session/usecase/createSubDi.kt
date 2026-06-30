@@ -33,6 +33,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.NotificationsImpl
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import org.kodein.di.DI
+import org.kodein.di.allInstances
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 
@@ -74,7 +75,10 @@ actual fun DI.Builder.createSubDi(
     }
     bindSingleton<GetSuggestions<Any?>> {
         GetSuggestionsImpl(
-            directDI = this,
+            androidExtractors = allInstances(),
+            getAutofillDefaultMatchDetection = instance(),
+            getUrlBlocks = instance(),
+            cipherUrlCheck = instance(),
         )
     }
 }

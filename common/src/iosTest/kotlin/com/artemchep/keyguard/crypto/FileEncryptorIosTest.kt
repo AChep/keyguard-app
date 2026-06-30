@@ -16,8 +16,8 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertFails
 
 class FileEncryptorIosTest {
-    private val cryptoGenerator = CryptoGeneratorIos()
-    private val encryptor = FileEncryptorIos(
+    private val cryptoGenerator = CryptoGeneratorApple()
+    private val encryptor = FileEncryptorApple(
         cryptoGenerator = cryptoGenerator,
     )
 

@@ -3,6 +3,7 @@ package com.artemchep.keyguard.crypto
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
+import com.artemchep.keyguard.common.service.crypto.StreamingFileDecryptor
 import com.artemchep.keyguard.crypto.FileEncryptionFormat.BUFFER_SIZE
 import com.artemchep.keyguard.crypto.FileEncryptionFormat.IV_LENGTH
 import com.artemchep.keyguard.crypto.FileEncryptionFormat.MAC_LENGTH
@@ -21,7 +22,7 @@ import kotlinx.io.Source
 
 class FileEncryptorJvm(
     private val cryptoGenerator: CryptoGenerator,
-) : FileEncryptor {
+) : FileEncryptor, StreamingFileDecryptor {
     constructor(
         directDI: DirectDI,
     ) : this(
@@ -51,7 +52,7 @@ class FileEncryptorJvm(
         }
     }
 
-    fun decode(
+    override fun decode(
         input: InputStream,
         key: ByteArray,
     ): InputStream {

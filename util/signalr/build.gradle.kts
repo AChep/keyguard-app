@@ -15,6 +15,7 @@ kotlin {
     jvm("desktop")
     iosArm64()
     iosSimulatorArm64()
+    macosArm64()
 
     sourceSets {
         val commonMain by getting {
@@ -32,9 +33,6 @@ kotlin {
                 implementation(libs.ktor.ktor.client.mock)
                 implementation(libs.kotlinx.coroutines.test)
             }
-        }
-        all {
-            languageSettings.enableLanguageFeature("ContextParameters")
         }
     }
 }

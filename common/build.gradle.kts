@@ -64,6 +64,7 @@ kotlin {
     jvm("desktop")
     iosArm64()
     iosSimulatorArm64()
+    macosArm64()
 
     sourceSets {
         all {
@@ -102,7 +103,7 @@ kotlin {
                 api(libs.arrow.arrow.functions)
                 api(libs.arrow.arrow.optics)
                 api(libs.kodein.kodein.di)
-                api(libs.kodein.kodein.di.framework.compose)
+                api(libs.kodein.kodein.di.framework.compose.runtime)
                 api(libs.androidx.lifecycle.common)
                 api(libs.androidx.lifecycle.runtime)
                 api(libs.androidx.lifecycle.runtime.compose)
@@ -120,7 +121,6 @@ kotlin {
                 api(libs.coil3.coil.network.ktor3)
                 api(libs.cash.sqldelight.coroutines.extensions)
                 api(libs.devsrsouza.feather)
-                api(libs.html.text)
                 api(libs.haze.core)
                 api(libs.haze.blur)
                 api(libs.haze.materials)
@@ -129,6 +129,9 @@ kotlin {
                 api(libs.kdroidfilter.platformtools.darkmodedetector)
             }
         }
+        // html-text-material3 does not publish macOS klibs; the HtmlText
+        // composable is provided via expect/actual instead (macOS gets a
+        // plain-text fallback in macosMain).
         val commonTest by getting {
             kotlin.setSrcDirs(emptyList<String>())
             dependencies {
@@ -142,11 +145,19 @@ kotlin {
             kotlin.srcDir("src/commonTest/kotlin")
         }
 
-        val iosMain by creating {
+        val appleMain by creating {
             dependsOn(commonMain)
             dependencies {
+                api(libs.ionspin.bignum)
                 api(libs.cash.sqldelight.native.driver)
                 api(libs.ktor.ktor.client.darwin)
+            }
+        }
+
+        val iosMain by creating {
+            dependsOn(appleMain)
+            dependencies {
+                api(libs.html.text)
             }
         }
 
@@ -156,6 +167,14 @@ kotlin {
 
         val iosSimulatorArm64Main by getting {
             dependsOn(iosMain)
+        }
+
+        val macosMain by creating {
+            dependsOn(appleMain)
+        }
+
+        val macosArm64Main by getting {
+            dependsOn(macosMain)
         }
 
         val iosTest by creating {
@@ -171,6 +190,10 @@ kotlin {
 
         val iosSimulatorArm64Test by getting {
             dependsOn(iosTest)
+        }
+
+        val macosArm64Test by getting {
+            dependsOn(commonTest)
         }
 
         val androidHostTest by getting {
@@ -198,6 +221,7 @@ kotlin {
         val jvmMain by creating {
             dependsOn(commonMain)
             dependencies {
+                api(libs.html.text)
                 implementation(libs.lingala.zip4j)
                 implementation(libs.kdrag0n.colorkt)
                 implementation(libs.kyant0.m3color)
@@ -326,9 +350,6 @@ tasks.configureEach {
     if (compileKotlinRegex.matches(name) || kspKotlinRegex.matches(name)) {
         dependsOn(kspCommonTaskName)
     }
-}
-kotlin.compilerOptions {
-    freeCompilerArgs.add("-Xcontext-parameters")
 }
 kotlin.compilerOptions.freeCompilerArgs.addAll(
     "-P",

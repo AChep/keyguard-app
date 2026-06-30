@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.download
 import arrow.core.Either
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
+import com.artemchep.keyguard.common.service.crypto.StreamingFileDecryptor
 import com.artemchep.keyguard.common.service.file.toFileUriString
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.platform.LocalPath
@@ -19,6 +20,7 @@ import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.readBytes
@@ -236,11 +238,16 @@ private data class StaticCacheDirProvider(
     override fun getBlocking(): LocalPath = path
 }
 
-private class CopyingFileEncryptor : FileEncryptor {
+private class CopyingFileEncryptor : FileEncryptor, StreamingFileDecryptor {
     override fun decode(
         input: ByteArray,
         key: ByteArray,
     ): ByteArray = input
+
+    override fun decode(
+        input: InputStream,
+        key: ByteArray,
+    ): InputStream = input
 
     override fun encode(
         data: ByteArray,
@@ -288,11 +295,16 @@ private class ByteArrayDecodingFileEncryptor(
     }
 }
 
-private class FailingFileEncryptor : FileEncryptor {
+private class FailingFileEncryptor : FileEncryptor, StreamingFileDecryptor {
     override fun decode(
         input: ByteArray,
         key: ByteArray,
     ): ByteArray = throw IOException("Message authentication codes do not match!")
+
+    override fun decode(
+        input: InputStream,
+        key: ByteArray,
+    ): InputStream = FailingDecryptInputStream(input)
 
     override fun encode(
         data: ByteArray,
@@ -310,5 +322,25 @@ private class FailingFileEncryptor : FileEncryptor {
             plainSize = data.size.toLong(),
             encryptedSize = data.size.toLong(),
         )
+    }
+}
+
+private class FailingDecryptInputStream(
+    private val delegate: InputStream,
+) : InputStream() {
+    override fun read(): Int {
+        throw IOException("Message authentication codes do not match!")
+    }
+
+    override fun read(
+        b: ByteArray,
+        off: Int,
+        len: Int,
+    ): Int {
+        throw IOException("Message authentication codes do not match!")
+    }
+
+    override fun close() {
+        delegate.close()
     }
 }

@@ -15,7 +15,6 @@ import androidx.credentials.exceptions.domerrors.InvalidStateError
 import androidx.credentials.exceptions.domerrors.NotSupportedError
 import androidx.credentials.exceptions.publickeycredential.CreatePublicKeyCredentialDomException
 import androidx.credentials.provider.ProviderCreateCredentialRequest
-import androidx.credentials.webauthn.Cbor
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasswordData
@@ -27,11 +26,12 @@ import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
 import com.artemchep.keyguard.common.service.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.common.service.webauthn.WebAuthnEncodingException
 import com.artemchep.keyguard.common.service.webauthn.WebAuthnInvalidStateException
+import com.artemchep.keyguard.common.service.webauthn.coseKeyEs256
 import com.artemchep.keyguard.common.service.webauthn.decodeExcludedCredentialIds as decodeWebAuthnExcludedCredentialIds
 import com.artemchep.keyguard.common.service.webauthn.findExcludedPasskeyCredentialOrNull as findWebAuthnExcludedPasskeyCredentialOrNull
 import com.artemchep.keyguard.common.service.webauthn.pubKeyCredParamsOrDefaults
 import com.artemchep.keyguard.common.service.webauthn.requireNoExcludedPasskeyCredential as requireNoWebAuthnExcludedPasskeyCredential
-import com.artemchep.keyguard.common.util.hexToByteArray
+import com.artemchep.keyguard.common.service.webauthn.webAuthnNoneAttestationObject
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObjectBuilder
 import kotlinx.serialization.json.add
@@ -289,18 +289,11 @@ class PasskeyCreateRequest(
     private fun defaultAttestationObject(
         authData: ByteArray,
     ): ByteArray {
-        val ao = mutableMapOf<String, Any>()
-        // WebAuthn L3 Section 8.7 None Attestation Statement Format: `fmt` is
-        // "none" and `attStmt` is an empty map. The create() conveyance
-        // handling uses this to "replace any authenticator-provided
-        // attestation statement" when the RP does not request attestation.
-        // Spec:
+        // WebAuthn L3 §8.7 None Attestation: `fmt` is "none" and `attStmt` is an empty map.
+        // Shared encoder (no androidx Cbor dependency) so Android, iOS, and macOS emit
+        // identical attestation objects.
         // - https://www.w3.org/TR/webauthn-3/#sctn-none-attestation
-        // - https://www.w3.org/TR/webauthn-3/#sctn-createCredential
-        ao["fmt"] = "none"
-        ao["attStmt"] = emptyMap<Any, Any>()
-        ao["authData"] = authData
-        return Cbor().encode(ao)
+        return webAuthnNoneAttestationObject(authData)
     }
 
     private fun getPublicKeyFromEcKeyPair(keyPair: KeyPair): ByteArray {
@@ -315,11 +308,9 @@ class PasskeyCreateRequest(
         val byteX = bigIntToByteArray32(ecPoint.affineX)
         val byteY = bigIntToByteArray32(ecPoint.affineY)
 
-        // refer to RFC9052 Section 7 for details
-        return "A5010203262001215820".hexToByteArray() +
-                byteX +
-                "225820".hexToByteArray() +
-                byteY
+        // Shared COSE_Key encoder (RFC 9052 §7) so Android, iOS, and macOS emit identical
+        // public-key bytes.
+        return coseKeyEs256(byteX, byteY)
     }
 
     private fun bigIntToByteArray32(bigInteger: BigInteger): ByteArray {

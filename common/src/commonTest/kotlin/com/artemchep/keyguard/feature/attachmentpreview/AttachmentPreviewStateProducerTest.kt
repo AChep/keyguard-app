@@ -17,7 +17,6 @@ import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
 import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
-import com.artemchep.keyguard.platform.Platform
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -124,7 +123,7 @@ class AttachmentPreviewStateProducerTest {
                     fileName = "notes.txt",
                     encryptedSize = AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES + 1,
                 ),
-                CanPreviewAttachmentImpl(platform = Platform.Desktop.MacOS),
+                CanPreviewAttachmentImpl(),
                 AttachmentPreviewError.TooLarge,
             ),
             Triple(
@@ -132,7 +131,7 @@ class AttachmentPreviewStateProducerTest {
                     fileName = "archive.zip",
                     encryptedSize = 1L,
                 ),
-                CanPreviewAttachmentImpl(platform = Platform.Desktop.MacOS),
+                CanPreviewAttachmentImpl(),
                 AttachmentPreviewError.UnsupportedFileType,
             ),
             Triple(
@@ -171,7 +170,7 @@ class AttachmentPreviewStateProducerTest {
 
         val state = createAttachmentPreviewState(
             args = args.copy(encryptedSize = 123L),
-            canPreviewAttachment = CanPreviewAttachmentImpl(platform = Platform.Desktop.MacOS),
+            canPreviewAttachment = CanPreviewAttachmentImpl(),
             getAttachmentPreview = getAttachmentPreview,
             downloadManager = downloadManager,
             copyText = createCopyText(),

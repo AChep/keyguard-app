@@ -4,12 +4,8 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.AttachmentPreviewPolicy
 import com.artemchep.keyguard.common.model.isAttachmentPreviewSupported
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
-import com.artemchep.keyguard.platform.CurrentPlatform
-import com.artemchep.keyguard.platform.Platform
 
-class CanPreviewAttachmentImpl(
-    private val platform: Platform = CurrentPlatform,
-) : CanPreviewAttachment {
+class CanPreviewAttachmentImpl : CanPreviewAttachment {
     override fun invoke(
         fileName: String,
         encryptedSize: Long?,

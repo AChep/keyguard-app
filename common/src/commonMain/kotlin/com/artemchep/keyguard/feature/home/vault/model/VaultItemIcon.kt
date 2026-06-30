@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.common.util.nextSymbol
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
+import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import org.jetbrains.compose.resources.DrawableResource
 
@@ -38,6 +39,10 @@ sealed interface VaultItemIcon {
         companion object
     }
 }
+
+fun VaultItemIcon?.resolveWebsiteIconUrl(): String? =
+    (this as? VaultItemIcon.WebsiteIcon)
+        ?.let { Favicon.getServerOrNull(it.data.serverId)?.transform(it.data.url) }
 
 fun VaultItemIcon.TextIcon.Companion.short(text: String): VaultItemIcon.TextIcon {
     val abbr = kotlin.run {

@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.folders
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 
 data class FoldersRoute(
     val args: Args,
@@ -26,6 +27,8 @@ data class FoldersRoute(
             ) : Parent
         }
     }
+
+    override val descriptor get() = RouteDescriptor.Folders(args.filter, args.empty)
 
     @Composable
     override fun Content() {

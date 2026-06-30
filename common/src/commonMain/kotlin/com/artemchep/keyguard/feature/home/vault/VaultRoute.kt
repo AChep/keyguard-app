@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 
 data class VaultRoute(
     val args: Args = Args(),
@@ -42,6 +43,20 @@ data class VaultRoute(
             val subtitle: TextHolder? = null,
         )
     }
+
+    override val descriptor
+        get() = RouteDescriptor.VaultList(
+            title = args.appBar?.title,
+            filter = args.filter,
+            sortId = args.sort?.id,
+            main = args.main,
+            searchBy = args.searchBy.name,
+            trash = args.trash,
+            archive = args.archive,
+            preselect = args.preselect,
+            canAddSecrets = args.canAddSecrets,
+            stacked = false,
+        )
 
     @Composable
     override fun Content() {

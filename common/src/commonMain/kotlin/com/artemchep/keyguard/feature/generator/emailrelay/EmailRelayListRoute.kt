@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -37,6 +38,8 @@ object EmailRelayListRoute : Route {
             navigate(intent)
         },
     )
+
+    override val descriptor get() = RouteDescriptor.EmailRelayList
 
     @Composable
     override fun Content() {

@@ -13,6 +13,15 @@ import androidx.compose.runtime.Stable
 interface Route {
     @Composable
     fun Content()
+
+    /**
+     * Data-only identity for this destination,
+     * decoupled from its `@Composable` rendering.
+     *
+     * Defaults to [RouteDescriptor.Unmapped].
+     */
+    val descriptor: RouteDescriptor
+        get() = RouteDescriptor.Unmapped(this::class.simpleName ?: "Route")
 }
 
 /**

@@ -6,7 +6,6 @@ import app.keemobile.kotpass.models.EntryValue
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.common.util.REGEX_ANDROID_APP
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
-import java.util.Locale
 
 /**
  * Parser contract for KeePass URL and Android app-origin fields.
@@ -359,7 +358,7 @@ internal class KeePassUrlCodec {
         val hex = fingerprint
             .trim()
             .replace(":", "")
-            .uppercase(Locale.US)
+            .uppercase()
         if (hex.length != 64) {
             return null
         }

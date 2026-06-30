@@ -27,7 +27,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.flatMap
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.ErrorView
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -60,7 +60,7 @@ internal fun <State, Filter, Content, Item, ContentItem> ServiceDirectoryListSca
     filter: (State) -> StateFlow<Filter>,
     content: (State) -> Loadable<Either<Throwable, Content>>,
     filterRevision: (Filter) -> Int,
-    filterQuery: (Filter) -> TextFieldModel2,
+    filterQuery: (Filter) -> TextFieldModel,
     contentRevision: (Content) -> Int,
     contentItems: (Content) -> List<Item>,
     itemKey: (Item) -> String,
@@ -145,7 +145,7 @@ internal fun <State, Filter, Content, Item, ContentItem> ServiceDirectoryListSca
                     )
 
                     val query = filterState.value?.let(filterQuery)
-                    val queryText = query?.state?.value.orEmpty()
+                    val queryText = query?.text.orEmpty()
 
                     val count = loadableState
                         .getOrNull()
@@ -157,6 +157,7 @@ internal fun <State, Filter, Content, Item, ContentItem> ServiceDirectoryListSca
                     SearchTextField(
                         modifier = Modifier,
                         text = queryText,
+                        textRevision = query?.textRevision,
                         placeholder = searchPlaceholder,
                         searchIcon = false,
                         focusRequester = focusRequester,

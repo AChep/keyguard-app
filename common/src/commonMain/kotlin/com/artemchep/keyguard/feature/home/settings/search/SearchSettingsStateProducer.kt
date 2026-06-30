@@ -6,7 +6,9 @@ import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.util.flow.combineToList
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListState
 import com.artemchep.keyguard.feature.home.settings.hub
 import com.artemchep.keyguard.feature.home.vault.search.findAlike
@@ -45,10 +47,11 @@ fun produceSearchSettingsState(
         getCollections,
     ),
 ) {
-    val querySink = mutablePersistedFlow("query") { "" }
-    val queryState = mutableComposeState(querySink)
+    val queryHandle = textFieldHandle("query")
+    val querySink = queryHandle.sink
 
     val queryFlow = querySink
+        .map { it.text }
         .debounceSearch(::identity)
         .map { query ->
             query
@@ -101,12 +104,13 @@ fun produceSearchSettingsState(
     combine(
         e,
         querySink,
-    ) { a, b ->
+    ) { a, cell ->
         a.copy(
-            query = TextFieldModel2(
-                state = queryState,
-                text = b,
-                onChange = queryState::value::set,
+            query = TextFieldModel(
+                text = cell.text,
+                textRevision = cell.revision,
+                onChange = queryHandle::onChange,
+                onSetText = queryHandle::setText,
             ),
         )
     }

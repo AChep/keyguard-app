@@ -15,11 +15,13 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.platform.crashlyticsIsEnabled
@@ -27,6 +29,7 @@ import com.artemchep.keyguard.platform.crashlyticsSetEnabled
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -51,6 +54,16 @@ fun setupScreenState(
         createVaultWithMasterPasswordAndBiometric,
     ),
 ) {
+    setupStateProducer(
+        createVaultWithMasterPassword = createVaultWithMasterPassword,
+        createVaultWithMasterPasswordAndBiometric = createVaultWithMasterPasswordAndBiometric,
+    )
+}
+
+suspend fun RememberStateFlowScope.setupStateProducer(
+    createVaultWithMasterPassword: VaultState.Create.WithPassword,
+    createVaultWithMasterPasswordAndBiometric: VaultState.Create.WithBiometric?,
+): Flow<Loadable<SetupState>> {
     val executor = screenExecutor()
 
     val biometricPromptSink = EventFlow<BiometricAuthPrompt>()
@@ -61,17 +74,16 @@ fun setupScreenState(
             ?: DEFAULT_CRASHLYTICS
     }
 
-    val passwordSink = mutablePersistedFlow("password") { DEFAULT_PASSWORD }
-    val passwordState = mutableComposeState(passwordSink)
+    val passwordHandle = textFieldHandle("password", initial = DEFAULT_PASSWORD)
 
     // Clear the password field when the screen
-    // moves into background.
+    // moves into background. Goes through the command path so the UI
+    // edit buffer adopts the cleared text unconditionally.
     launchUi {
         try {
             awaitCancellation()
         } finally {
-            passwordState.value = DEFAULT_PASSWORD
-            passwordSink.value = DEFAULT_PASSWORD
+            passwordHandle.setText(DEFAULT_PASSWORD)
         }
     }
 
@@ -90,18 +102,20 @@ fun setupScreenState(
         // biometric authentication.
         hasBiometric = createVaultWithMasterPasswordAndBiometric != null,
     )
-    combine(
-        passwordSink.validatedPassword(this),
+    return combine(
+        passwordHandle.sink
+            .map { cell -> cell to validatedPassword(cell.text) },
         crashlyticsSink,
         biometricStateFlow,
         executor.isExecutingFlow,
-    ) { validatedPassword, crashlytics, biometric, taskIsExecuting ->
+    ) { (passwordCell, validatedPassword), crashlytics, biometric, taskIsExecuting ->
         val validationError = (validatedPassword as? Validated.Failure)?.error
         val canCreateVault = validationError == null && !taskIsExecuting
         val state = SetupState(
             biometric = biometric,
-            password = TextFieldModel2.of(
-                state = passwordState,
+            password = TextFieldModel.of(
+                cell = passwordCell,
+                handle = passwordHandle,
                 validated = validatedPassword,
             ),
             crashlytics = SwitchFieldModel(

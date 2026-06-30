@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.search.engine
 
+import com.artemchep.keyguard.feature.auth.common.TextCell
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierCatalog
 import com.artemchep.keyguard.feature.home.vault.search.query.defaultVaultSearchQualifierCatalog
@@ -62,7 +63,7 @@ class VaultSearchQueryHandleFlowsTest {
 
     @Test
     fun `blank query emits null immediately`() = runTest {
-        val result = flowOf("" to "")
+        val result = flowOf(TextCell("") to "")
             .vaultSearchDebouncedQueryFlow()
             .first()
 
@@ -71,7 +72,7 @@ class VaultSearchQueryHandleFlowsTest {
 
     @Test
     fun `short query uses long debounce`() = runTest {
-        val queryFlow = MutableSharedFlow<Pair<String, String>>(extraBufferCapacity = 1)
+        val queryFlow = MutableSharedFlow<Pair<TextCell, String>>(extraBufferCapacity = 1)
         val values = mutableListOf<String?>()
         val job = launch {
             queryFlow
@@ -80,7 +81,7 @@ class VaultSearchQueryHandleFlowsTest {
         }
 
         runCurrent()
-        assertTrue(queryFlow.tryEmit("ab" to "ab"))
+        assertTrue(queryFlow.tryEmit(TextCell("ab") to "ab"))
         runCurrent()
         advanceTimeBy(SEARCH_DEBOUNCE_LONG - 1)
         assertEquals(emptyList(), values)
@@ -93,7 +94,7 @@ class VaultSearchQueryHandleFlowsTest {
 
     @Test
     fun `long query uses short debounce`() = runTest {
-        val queryFlow = MutableSharedFlow<Pair<String, String>>(extraBufferCapacity = 1)
+        val queryFlow = MutableSharedFlow<Pair<TextCell, String>>(extraBufferCapacity = 1)
         val values = mutableListOf<String?>()
         val job = launch {
             queryFlow
@@ -102,7 +103,7 @@ class VaultSearchQueryHandleFlowsTest {
         }
 
         runCurrent()
-        assertTrue(queryFlow.tryEmit("abcd" to "abcd"))
+        assertTrue(queryFlow.tryEmit(TextCell("abcd") to "abcd"))
         runCurrent()
         advanceTimeBy(SEARCH_DEBOUNCE - 1)
         assertEquals(emptyList(), values)

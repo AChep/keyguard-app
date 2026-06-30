@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.search.filter.component.FilterChipItemComposable
@@ -128,7 +128,7 @@ fun FolderConfirmationScreen(
 
 @Composable
 fun CreateNewFolder(
-    field: TextFieldModel2?,
+    field: TextFieldModel?,
     modifier: Modifier = Modifier,
 ) {
     ExpandedIfNotEmpty(

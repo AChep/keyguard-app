@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.UsernameVariation
 import com.artemchep.keyguard.common.model.icon
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
@@ -135,8 +135,7 @@ private fun WebDavSettingsContent(
         },
     ) {
         item("url") {
-            val url = TextFieldModel2(
-                state = state.url,
+            val url = TextFieldModel(
                 text = state.url.value,
                 error = urlError,
                 hint = when (purpose) {
@@ -167,8 +166,7 @@ private fun WebDavSettingsContent(
             )
         }
         item("auth.username") {
-            val username = TextFieldModel2(
-                state = state.username,
+            val username = TextFieldModel(
                 text = state.username.value,
                 onChange = state.username::value::set,
             )
@@ -194,8 +192,7 @@ private fun WebDavSettingsContent(
             )
         }
         item("auth.password") {
-            val password = TextFieldModel2(
-                state = state.password,
+            val password = TextFieldModel(
                 text = state.password.value,
                 error = passwordError,
                 onChange = state.password::value::set,

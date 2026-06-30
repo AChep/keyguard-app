@@ -41,7 +41,7 @@ import com.artemchep.keyguard.common.usecase.GetClaimedLicenseEntitlement
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.SyncLicense
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.settings.KgAction
@@ -313,16 +313,16 @@ private fun LicenseStatusBadge(
     state: LicenseStatus,
 ) {
     val type = when (state) {
-        LicenseStatus.ACTIVE -> TextFieldModel2.Vl.Type.SUCCESS
+        LicenseStatus.ACTIVE -> TextFieldModel.Vl.Type.SUCCESS
         LicenseStatus.GRACE,
         LicenseStatus.EXPIRED,
         LicenseStatus.REVOKED,
         LicenseStatus.REFUNDED,
         LicenseStatus.PENDING
-            -> TextFieldModel2.Vl.Type.INFO
+            -> TextFieldModel.Vl.Type.INFO
         LicenseStatus.INVALID,
         LicenseStatus.UNKNOWN,
-            -> TextFieldModel2.Vl.Type.ERROR
+            -> TextFieldModel.Vl.Type.ERROR
     }
     val text = rememberLicenseStatusText(state)
 
@@ -383,4 +383,3 @@ private fun rememberLicenseStatusText(status: LicenseStatus): String {
     val text = status.name
     return text
 }
-

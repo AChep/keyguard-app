@@ -151,7 +151,7 @@ fun CipherFiltersListScreen(
                     )
 
                     val query = filterState.value?.query
-                    val queryText = query?.state?.value.orEmpty()
+                    val queryText = query?.text.orEmpty()
 
                     val count = loadableState
                         .getOrNull()
@@ -163,6 +163,7 @@ fun CipherFiltersListScreen(
                     SearchTextField(
                         modifier = Modifier,
                         text = queryText,
+                        textRevision = query?.textRevision,
                         placeholder = stringResource(Res.string.customfilters_search_placeholder),
                         searchIcon = false,
                         focusRequester = focusRequester,

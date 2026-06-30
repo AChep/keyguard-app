@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.input.key.Key
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.CopyText
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierApplyResult
@@ -14,7 +14,7 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 
 @Immutable
 internal data class QuickSearchState(
-    val query: TextFieldModel2 = TextFieldModel2(mutableStateOf("")),
+    val query: TextFieldModel = TextFieldModel(text = ""),
     val queryHighlighting: QueryHighlighting = QueryHighlighting.Empty,
     val queryQualifierSuggestion: String? = null,
     val onQueryQualifierSuggestion: ((String) -> VaultSearchQualifierApplyResult?)? = null,

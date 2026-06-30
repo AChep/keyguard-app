@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.VisualTransformation
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierApplyResult
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -15,7 +15,7 @@ import com.artemchep.keyguard.ui.focus.FocusRequester2
 fun CustomSearchbarContent(
     modifier: Modifier = Modifier,
     searchFieldModifier: Modifier = Modifier,
-    searchFieldModel: TextFieldModel2,
+    searchFieldModel: TextFieldModel,
     searchFieldPlaceholder: String,
     focusRequester: FocusRequester2,
     searchFieldVisualTransformation: VisualTransformation = VisualTransformation.None,
@@ -42,7 +42,8 @@ fun CustomSearchbarContent(
         }
         SearchTextField(
             modifier = searchFieldModifier,
-            text = searchFieldModel.state.value,
+            text = searchFieldModel.text,
+            textRevision = searchFieldModel.textRevision,
             placeholder = searchFieldPlaceholder,
             searchIcon = !hasTopBar,
             focusRequester = focusRequester,

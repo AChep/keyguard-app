@@ -53,6 +53,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -78,6 +80,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -88,7 +91,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.common.model.ShapeState
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.home.vault.component.surfaceShape
@@ -135,7 +138,7 @@ fun UrlFlatTextField(
     testTag: String? = null,
     label: String? = null,
     placeholder: String? = null,
-    value: TextFieldModel2,
+    value: TextFieldModel,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -183,7 +186,7 @@ fun TagFlatTextField(
     testTag: String? = null,
     label: String? = null,
     placeholder: String? = null,
-    value: TextFieldModel2,
+    value: TextFieldModel,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -233,7 +236,7 @@ fun EmailFlatTextField(
     testTag: String? = null,
     label: String? = null,
     placeholder: String? = PLACEHOLDER_EMAIL,
-    value: TextFieldModel2,
+    value: TextFieldModel,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -285,7 +288,7 @@ fun PasswordFlatTextField(
     testTag: String? = null,
     label: String? = null,
     placeholder: String? = null,
-    value: TextFieldModel2,
+    value: TextFieldModel,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -339,7 +342,7 @@ fun ConcealedFlatTextField(
     testTag: String? = null,
     label: String? = null,
     placeholder: String? = null,
-    value: TextFieldModel2,
+    value: TextFieldModel,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -593,6 +596,39 @@ fun FakeFlatTextField(
     }
 }
 
+/**
+ * Owns the local edit buffer of a text field. Typing binds synchronously
+ * to the returned state; the buffer adopts [text] only when
+ * [textRevision] changes (a programmatic write — clear, prefill,
+ * generated value), placing the caret at the end. Echoes of the user's
+ * own keystrokes keep the revision and never touch the buffer.
+ */
+@Composable
+fun rememberFieldBuffer(
+    text: String,
+    textRevision: Int,
+): MutableState<TextFieldValue> {
+    val buffer = remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = text,
+                selection = TextRange(text.length),
+            ),
+        )
+    }
+    LaunchedEffect(textRevision) {
+        // No-op on the initial run (the buffer seeds from the model);
+        // adopts on every revision bump afterwards.
+        if (text != buffer.value.text) {
+            buffer.value = TextFieldValue(
+                text = text,
+                selection = TextRange(text.length),
+            )
+        }
+    }
+    return buffer
+}
+
 @Composable
 fun FlatTextField(
     modifier: Modifier = Modifier,
@@ -602,7 +638,7 @@ fun FlatTextField(
     testTag: String? = null,
     label: String? = null,
     placeholder: String? = null,
-    value: TextFieldModel2,
+    value: TextFieldModel,
     textStyle: TextStyle = LocalTextStyle.current,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     shapeState: Int = ShapeState.ALL,
@@ -618,6 +654,16 @@ fun FlatTextField(
     content: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val enabled = value.onChange != null
+    val fieldBuffer = rememberFieldBuffer(
+        text = value.text,
+        textRevision = value.textRevision,
+    )
+    val updatedOnChange by rememberUpdatedState(value.onChange)
+
+    fun updateFieldValue(next: TextFieldValue) {
+        fieldBuffer.value = next
+        updatedOnChange?.invoke(next.text)
+    }
 
     val isError = value.error != null
     var hasFocus by remember {
@@ -671,7 +717,7 @@ fun FlatTextField(
                     modifier = Modifier
                         .weight(1f),
                 ) {
-                    val focused = hasFocus || value.text.isNotEmpty()
+                    val focused = hasFocus || fieldBuffer.value.text.isNotEmpty()
                     TextFieldLabelLayout(
                         modifier = Modifier
                             .heightIn(min = 50.dp),
@@ -720,14 +766,12 @@ fun FlatTextField(
                             keyboardActions = keyboardActions,
                             singleLine = singleLine,
                             maxLines = maxLines,
-                            value = value.state.value,
+                            value = fieldBuffer.value,
                             testTag = testTag,
                             enabled = enabled,
                             isError = value.error != null,
                             interactionSource = interactionSource,
-                            onValueChange = {
-                                value.onChange?.invoke(it)
-                            },
+                            onValueChange = ::updateFieldValue,
                         )
                     }
                     Column(
@@ -740,7 +784,7 @@ fun FlatTextField(
                             valueOrNull = value.error ?: value.vl,
                         ) {
                             val error = it as? String
-                            val badge = it as? TextFieldModel2.Vl
+                            val badge = it as? TextFieldModel.Vl
                             FlatTextFieldBadgeLegacy(
                                 error = error,
                                 badge = badge,
@@ -766,7 +810,7 @@ fun FlatTextField(
                         trailing()
                     }
                 }
-                val isNotEmpty = value.state.value.isNotEmpty()
+                val isNotEmpty = fieldBuffer.value.text.isNotEmpty()
                 ExpandedIfNotEmptyForRow(
                     valueOrNull = Unit.takeIf { isNotEmpty && hasFocus && clearButton },
                 ) {
@@ -788,7 +832,7 @@ fun FlatTextField(
                         IconButton(
                             enabled = value.onChange != null,
                             onClick = {
-                                value.onChange?.invoke("")
+                                updateFieldValue(TextFieldValue(""))
                                 // After clearing the text field we want to focus
                                 // it, so the focus doesn't get reset to start of
                                 // the page.
@@ -804,7 +848,7 @@ fun FlatTextField(
                 }
             }
 
-            val optionsText = rememberUpdatedState(value.text)
+            val optionsText = rememberUpdatedState(fieldBuffer.value.text)
             val optionsList = rememberUpdatedState(value.autocompleteOptions)
             if (optionsList.value.isEmpty()) {
                 return@Column
@@ -889,7 +933,12 @@ fun FlatTextField(
                                 .clip(MaterialTheme.shapes.small)
                                 .border(Dp.Hairline, DividerColor, MaterialTheme.shapes.small)
                                 .clickable {
-                                    value.onChange?.invoke(text)
+                                    updateFieldValue(
+                                        TextFieldValue(
+                                            text = text,
+                                            selection = TextRange(text.length),
+                                        ),
+                                    )
                                 }
                                 .padding(
                                     horizontal = 8.dp,
@@ -1074,6 +1123,7 @@ fun PlainTextField(
     onValueChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
     boxModifier: Modifier = Modifier,
+    testTag: String? = null,
     enabled: Boolean = true,
     readOnly: Boolean = false,
     textStyle: TextStyle = LocalTextStyle.current,
@@ -1099,6 +1149,13 @@ fun PlainTextField(
     BasicTextField(
         value = value,
         modifier = modifier
+            .then(
+                if (testTag != null) {
+                    Modifier.testTag(testTag)
+                } else {
+                    Modifier
+                },
+            )
             .defaultMinSize(
                 minWidth = TextFieldDefaults.MinWidth,
             )
@@ -1256,8 +1313,8 @@ val BiFlatValueHeightMin = 32.dp
 @Composable
 fun BiFlatTextField(
     modifier: Modifier = Modifier,
-    label: TextFieldModel2,
-    value: TextFieldModel2,
+    label: TextFieldModel,
+    value: TextFieldModel,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     valueVisualTransformation: VisualTransformation = VisualTransformation.None,
@@ -1265,6 +1322,15 @@ fun BiFlatTextField(
 ) {
     val labelInteractionSource = remember { MutableInteractionSource() }
     val valueInteractionSource = remember { MutableInteractionSource() }
+
+    val labelBuffer = rememberFieldBuffer(
+        text = label.text,
+        textRevision = label.textRevision,
+    )
+    val valueBuffer = rememberFieldBuffer(
+        text = value.text,
+        textRevision = value.textRevision,
+    )
 
     val isError = kotlin.run {
         val error = value.error != null || label.error != null
@@ -1275,11 +1341,11 @@ fun BiFlatTextField(
     }
 
     val isEmpty = remember(
-        value.state,
-        label.state,
+        valueBuffer,
+        labelBuffer,
     ) {
         derivedStateOf {
-            value.state.value.isBlank() || label.state.value.isBlank()
+            valueBuffer.value.text.isBlank() || labelBuffer.value.text.isBlank()
         }
     }
 
@@ -1296,12 +1362,14 @@ fun BiFlatTextField(
         label = {
             BiFlatTextFieldLabel(
                 label = label,
+                buffer = labelBuffer,
                 interactionSource = labelInteractionSource,
             )
         },
         content = {
             BiFlatTextFieldValue(
                 value = value,
+                buffer = valueBuffer,
                 interactionSource = valueInteractionSource,
                 visualTransformation = valueVisualTransformation,
             )
@@ -1312,33 +1380,37 @@ fun BiFlatTextField(
 
 @Composable
 fun ColumnScope.BiFlatTextFieldLabel(
-    label: TextFieldModel2,
+    label: TextFieldModel,
+    buffer: MutableState<TextFieldValue> = rememberFieldBuffer(
+        text = label.text,
+        textRevision = label.textRevision,
+    ),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
+    val updatedOnChange by rememberUpdatedState(label.onChange)
     ProvideTextStyle(value = MaterialTheme.typography.bodySmall) {
         PlainTextField(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 24.dp)
                 .alpha(HighEmphasisAlpha),
-            placeholder = if (label.hint != null) {
+            placeholder = label.hint?.let { hintText ->
                 // composable
                 {
                     Text(
-                        text = label.hint,
+                        text = hintText,
                         style = MaterialTheme.typography.bodySmall,
                         maxLines = 1,
                     )
                 }
-            } else {
-                null
             },
-            value = label.state.value,
+            value = buffer.value,
             enabled = label.onChange != null,
             isError = label.error != null,
             interactionSource = interactionSource,
-            onValueChange = {
-                label.onChange?.invoke(it)
+            onValueChange = { next ->
+                buffer.value = next
+                updatedOnChange?.invoke(next.text)
             },
         )
     }
@@ -1353,32 +1425,36 @@ fun ColumnScope.BiFlatTextFieldLabel(
 
 @Composable
 fun ColumnScope.BiFlatTextFieldValue(
-    value: TextFieldModel2,
+    value: TextFieldModel,
+    buffer: MutableState<TextFieldValue> = rememberFieldBuffer(
+        text = value.text,
+        textRevision = value.textRevision,
+    ),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
+    val updatedOnChange by rememberUpdatedState(value.onChange)
     PlainTextField(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = BiFlatValueHeightMin),
-        placeholder = if (value.hint != null) {
+        placeholder = value.hint?.let { hintText ->
             // composable
             {
                 Text(
-                    text = value.hint,
+                    text = hintText,
                     maxLines = 1,
                 )
             }
-        } else {
-            null
         },
         visualTransformation = visualTransformation,
-        value = value.state.value,
+        value = buffer.value,
         enabled = value.onChange != null,
         isError = value.error != null,
         interactionSource = interactionSource,
-        onValueChange = {
-            value.onChange?.invoke(it)
+        onValueChange = { next ->
+            buffer.value = next
+            updatedOnChange?.invoke(next.text)
         },
     )
     ExpandedIfNotEmpty(
@@ -1511,13 +1587,13 @@ private fun FlatTextFieldSurface(
 @Composable
 fun FlatTextFieldBadgeLegacy(
     modifier: Modifier = Modifier,
-    badge: TextFieldModel2.Vl? = null,
+    badge: TextFieldModel.Vl? = null,
     error: String? = null,
 ) {
     val type = when {
-        error != null -> TextFieldModel2.Vl.Type.ERROR
+        error != null -> TextFieldModel.Vl.Type.ERROR
         badge != null -> badge.type
-        else -> TextFieldModel2.Vl.Type.ERROR
+        else -> TextFieldModel.Vl.Type.ERROR
     }
     FlatTextFieldBadge(
         modifier = modifier,
@@ -1529,15 +1605,15 @@ fun FlatTextFieldBadgeLegacy(
 @Composable
 fun FlatTextFieldBadge(
     modifier: Modifier = Modifier,
-    type: TextFieldModel2.Vl.Type,
+    type: TextFieldModel.Vl.Type,
     text: String,
 ) {
     val icon = null
     val color = when (type) {
-        TextFieldModel2.Vl.Type.SUCCESS -> MaterialTheme.colorScheme.okContainer
-        TextFieldModel2.Vl.Type.INFO -> MaterialTheme.colorScheme.infoContainer
-        TextFieldModel2.Vl.Type.WARNING -> MaterialTheme.colorScheme.warningContainer
-        TextFieldModel2.Vl.Type.ERROR -> MaterialTheme.colorScheme.errorContainer
+        TextFieldModel.Vl.Type.SUCCESS -> MaterialTheme.colorScheme.okContainer
+        TextFieldModel.Vl.Type.INFO -> MaterialTheme.colorScheme.infoContainer
+        TextFieldModel.Vl.Type.WARNING -> MaterialTheme.colorScheme.warningContainer
+        TextFieldModel.Vl.Type.ERROR -> MaterialTheme.colorScheme.errorContainer
     }
     FlatTextFieldBadge(
         modifier = modifier

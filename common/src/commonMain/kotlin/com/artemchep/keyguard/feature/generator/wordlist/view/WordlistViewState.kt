@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.model.DGeneratorWordlist
 import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ShapeState
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.StateFlow
@@ -27,7 +27,7 @@ data class WordlistViewState(
     @Immutable
     data class Filter(
         val revision: Int,
-        val query: TextFieldModel2,
+        val query: TextFieldModel,
     )
 
     @Immutable

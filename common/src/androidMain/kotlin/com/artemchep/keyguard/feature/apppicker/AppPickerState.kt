@@ -8,7 +8,7 @@ import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.feature.apppicker.model.AppPickerSortItem
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
 import com.artemchep.keyguard.feature.home.vault.model.SortItem
 import kotlinx.collections.immutable.ImmutableList
@@ -22,7 +22,7 @@ data class AppPickerState(
     @Immutable
     data class Filter(
         val revision: Int,
-        val query: TextFieldModel2,
+        val query: TextFieldModel,
     ) {
         companion object
     }

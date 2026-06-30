@@ -5,7 +5,8 @@ import arrow.core.andThen
 import arrow.core.partially1
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.combineToList
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -61,18 +62,19 @@ fun tagsConfirmationState(
     fun createItemFlow(
         id: String,
     ) = kotlin.run {
-        val sink = mutablePersistedFlow(itemKey(id)) {
-            initialTagsById[id].orEmpty()
-        }
-        val state = mutableComposeState(sink)
-        sink.map { text ->
+        val handle = textFieldHandle(
+            key = itemKey(id),
+            initial = initialTagsById[id].orEmpty(),
+        )
+        handle.sink.map { cell ->
             TagsConfirmationState.Item(
                 key = id,
-                field = TextFieldModel2(
-                    state = state,
-                    text = text,
+                field = TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
                     hint = tagHint,
-                    onChange = state::value::set,
+                    onChange = handle::onChange,
+                    onSetText = handle::setText,
                 ),
                 onRemove = ::removeItem
                     .partially1(id),
@@ -91,9 +93,12 @@ fun tagsConfirmationState(
         .flatMapLatest { ids ->
             ids
                 .map { id ->
-                    mutablePersistedFlow(itemKey(id)) {
-                        initialTagsById[id].orEmpty()
-                    }
+                    // Re-attaches to the same persisted cell as the
+                    // field handle above (registry is keyed by the key).
+                    textFieldHandle(
+                        key = itemKey(id),
+                        initial = initialTagsById[id].orEmpty(),
+                    ).sink.map { it.text }
                 }
                 .combineToList()
         }

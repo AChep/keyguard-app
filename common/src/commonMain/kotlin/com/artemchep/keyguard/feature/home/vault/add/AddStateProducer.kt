@@ -115,7 +115,8 @@ import com.artemchep.keyguard.feature.add.ownershipHandle
 import com.artemchep.keyguard.feature.apppicker.AppPickerResult
 import com.artemchep.keyguard.feature.apppicker.AppPickerRoute
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
 import com.artemchep.keyguard.feature.auth.common.util.format
 import com.artemchep.keyguard.feature.auth.common.util.validateUri
@@ -263,6 +264,52 @@ fun produceAddScreenState(
         getTotpCode,
     ),
 ) {
+    addCipherStateProducer(
+        args = args,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getFolders = getFolders,
+        getCiphers = getCiphers,
+        getTotpCode = getTotpCode,
+        getGravatarUrl = getGravatarUrl,
+        getMarkdown = getMarkdown,
+        textService = textService,
+        sshKeyImportService = sshKeyImportService,
+        logRepository = logRepository,
+        clipboardService = clipboardService,
+        otpMigrationService = otpMigrationService,
+        getAutofillDefaultMatchDetection = getAutofillDefaultMatchDetection,
+        cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
+        showMessage = showMessage,
+        addCipher = addCipher,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.addCipherStateProducer(
+    args: AddRoute.Args,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getFolders: GetFolders,
+    getCiphers: GetCiphers,
+    getTotpCode: GetTotpCode,
+    getGravatarUrl: GetGravatarUrl,
+    getMarkdown: GetMarkdown,
+    textService: TextService,
+    sshKeyImportService: SshKeyImportService,
+    logRepository: LogRepository,
+    clipboardService: ClipboardService,
+    otpMigrationService: OtpMigrationService,
+    getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
+    cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
+    showMessage: ShowMessage,
+    addCipher: AddCipher,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<AddState>> {
     val copyText = copier()
     val markdown = getMarkdown().first()
     val filePickerEvents = EventFlow<FilePickerIntent<*>>()
@@ -423,7 +470,7 @@ fun produceAddScreenState(
         },
         extra = {
             typeBasedAddItem(
-                translator = this@produceScreenState,
+                translator = this@addCipherStateProducer,
                 scope = "uri",
                 typesFlow = flowOf(
                     listOf(
@@ -583,7 +630,7 @@ fun produceAddScreenState(
         selectedFlow = noteItem.state.flow.map { it.text },
         concealed = false,
         onClick = {
-            noteItem.state.flow.value.onChange?.invoke(it)
+            noteItem.state.flow.value.onSetText?.invoke(it)
         },
     )
     val miscItems = listOfNotNull(
@@ -715,7 +762,7 @@ fun produceAddScreenState(
         },
         extra = {
             typeBasedAddItem(
-                translator = this@produceScreenState,
+                translator = this@addCipherStateProducer,
                 scope = "field",
                 typesFlow = typeFlow
                     .map { type ->
@@ -782,7 +829,7 @@ fun produceAddScreenState(
         },
         extra = {
             typeBasedAddItem(
-                translator = this@produceScreenState,
+                translator = this@addCipherStateProducer,
                 scope = "tag",
                 typesFlow = flowOf(
                     listOf(
@@ -801,29 +848,29 @@ fun produceAddScreenState(
         state = LocalStateItem(
             flow = kotlin.run {
                 val key = "title"
-                val sink = mutablePersistedFlow(key) {
-                    args.name
+                val handle = textFieldHandle(
+                    key = key,
+                    initial = args.name
                         ?: args.initialValue?.name
                         ?: args.autofill?.webDomain
-                        ?: ""
-                }
-                val state = asComposeState<String>(key)
+                        ?: "",
+                )
                 combine(
-                    sink
-                        .validatedTitle(this),
+                    handle.sink
+                        .map { cell -> cell to validatedTitle(cell.text) },
                     typeFlow,
-                ) { validatedTitle, type ->
-                    TextFieldModel2.of(
-                        state = state,
+                ) { (cell, validatedTitle), type ->
+                    TextFieldModel.of(
+                        cell = cell,
+                        handle = handle,
                         hint = translate(type.titleH()),
                         validated = validatedTitle,
-                        onChange = state::value::set,
                     )
                 }
                     .persistingStateIn(
                         scope = screenScope,
                         started = SharingStarted.WhileSubscribed(1000L),
-                        initialValue = TextFieldModel2.empty,
+                        initialValue = TextFieldModel.empty,
                     )
             },
             populator = { field ->
@@ -841,7 +888,7 @@ fun produceAddScreenState(
         selectedFlow = titleItem.state.flow.map { it.text },
         concealed = false,
         onClick = {
-            titleItem.state.flow.value.onChange?.invoke(it)
+            titleItem.state.flow.value.onSetText?.invoke(it)
         },
     )
     val items1 = listOfNotNull(
@@ -1008,7 +1055,7 @@ fun produceAddScreenState(
             )
         }
     }
-    f
+    return f
 }
 
 class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment<*>, DSecret.Attachment> {
@@ -1023,17 +1070,18 @@ class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment<*>, DS
         initial: DSecret.Attachment?,
     ): AddStateItem.Attachment<CreateRequest> {
         val nameKey = "$key.name"
-        val nameSink = mutablePersistedFlow(nameKey) {
-            initial?.fileName().orEmpty()
-        }
-        val nameMutableState = asComposeState<String>(nameKey)
+        val nameHandle = textFieldHandle(
+            key = nameKey,
+            initial = initial?.fileName().orEmpty(),
+        )
 
-        val textFlow = nameSink
-            .map { uri ->
-                TextFieldModel2(
-                    text = uri,
-                    state = nameMutableState,
-                    onChange = nameMutableState::value::set,
+        val textFlow = nameHandle.sink
+            .map { cell ->
+                TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
+                    onChange = nameHandle::onChange,
+                    onSetText = nameHandle::setText,
                 )
             }
         val stateFlow = textFlow
@@ -1050,7 +1098,7 @@ class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment<*>, DS
                 started = SharingStarted.WhileSubscribed(),
                 initialValue = AddStateItem.Attachment.State(
                     id = "id",
-                    name = TextFieldModel2.empty,
+                    name = TextFieldModel.empty,
                     size = null,
                     synced = initial != null,
                 ),
@@ -1084,10 +1132,10 @@ class AddStateItemUriFactory(
         initial: DSecret.Uri?,
     ): AddStateItem.Url<CreateRequest> {
         val uriKey = "$key.uri"
-        val uriSink = mutablePersistedFlow(uriKey) {
-            initial?.uri.orEmpty()
-        }
-        val uriMutableState = asComposeState<String>(uriKey)
+        val uriHandle = textFieldHandle(
+            key = uriKey,
+            initial = initial?.uri.orEmpty(),
+        )
 
         val matchDetectionSink = mutablePersistedFlow("$key.match_detection") {
             MatchDetection.valueOf(initial?.match)
@@ -1102,7 +1150,7 @@ class AddStateItemUriFactory(
             onClick = {
                 val route = registerRouteResultReceiver(AppPickerRoute) { result ->
                     if (result is AppPickerResult.Confirm) {
-                        uriMutableState.value = result.uri
+                        uriHandle.setText(result.uri)
                         matchDetectionSink.value = MatchDetection.Default
                     }
                 }
@@ -1156,12 +1204,13 @@ class AddStateItemUriFactory(
             }
 
         val defaultMatchDetection = getAutofillDefaultMatchDetection()
-        val textFlow = uriSink
-            .map { uri ->
-                TextFieldModel2(
-                    text = uri,
-                    state = uriMutableState,
-                    onChange = uriMutableState::value::set,
+        val textFlow = uriHandle.sink
+            .map { cell ->
+                TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
+                    onChange = uriHandle::onChange,
+                    onSetText = uriHandle::setText,
                 )
             }
         val stateFlow = combine(
@@ -1185,8 +1234,8 @@ class AddStateItemUriFactory(
                     if (validationUri == ValidationUri.OK) {
                         val isUnsecure = cipherUnsecureUrlCheck(text.text)
                         if (isUnsecure) {
-                            TextFieldModel2.Vl(
-                                type = TextFieldModel2.Vl.Type.WARNING,
+                            TextFieldModel.Vl(
+                                type = TextFieldModel.Vl.Type.WARNING,
                                 text = translate(Res.string.uri_unsecure),
                             )
                         } else {
@@ -1195,8 +1244,8 @@ class AddStateItemUriFactory(
                     } else {
                         validationUri.format(this)
                             ?.let { error ->
-                                TextFieldModel2.Vl(
-                                    type = TextFieldModel2.Vl.Type.WARNING,
+                                TextFieldModel.Vl(
+                                    type = TextFieldModel.Vl.Type.WARNING,
                                     text = error,
                                 )
                             }
@@ -1209,7 +1258,7 @@ class AddStateItemUriFactory(
             }
             AddStateItem.Url.State(
                 options = actions,
-                text = text.copy(vl = badge),
+                text = text.copy(state = text.state.copy(vl = badge)),
                 matchType = matchType,
                 matchTypeTitle = matchType
                     ?.let {
@@ -1222,7 +1271,7 @@ class AddStateItemUriFactory(
                 scope = screenScope,
                 started = SharingStarted.WhileSubscribed(),
                 initialValue = AddStateItem.Url.State(
-                    text = TextFieldModel2.empty,
+                    text = TextFieldModel.empty,
                     matchType = null,
                 ),
             )
@@ -1407,22 +1456,23 @@ class AddStateItemTagTextFactory(
         key: String,
         initial: String?,
     ): AddStateItem.Tag<CreateRequest> {
-        val textSink = mutablePersistedFlow("$key.text") {
-            initial.orEmpty()
-        }
-        val textMutableState = mutableComposeState(textSink)
+        val textHandle = textFieldHandle(
+            key = "$key.text",
+            initial = initial.orEmpty(),
+        )
         val textHintFlow = ioEffect {
             translate(Res.string.tag_value)
         }.asFlow()
         val textFlow = combine(
-            textSink,
+            textHandle.sink,
             textHintFlow,
-        ) { textValue, textHint ->
-            TextFieldModel2(
-                text = textValue,
+        ) { textCell, textHint ->
+            TextFieldModel(
+                text = textCell.text,
+                textRevision = textCell.revision,
                 hint = textHint,
-                state = textMutableState,
-                onChange = textMutableState::value::set,
+                onChange = textHandle::onChange,
+                onSetText = textHandle::setText,
             )
         }
 
@@ -1436,7 +1486,7 @@ class AddStateItemTagTextFactory(
                 scope = screenScope,
                 started = SharingStarted.WhileSubscribed(1000L),
                 initialValue = AddStateItem.Tag.State.Text(
-                    text = TextFieldModel2.empty,
+                    text = TextFieldModel.empty,
                 ),
             )
         return foo(
@@ -1515,41 +1565,43 @@ class AddStateItemFieldTextFactory(
         key: String,
         initial: DSecret.Field?,
     ): AddStateItem.Field<CreateRequest> {
-        val labelSink = mutablePersistedFlow("$key.label") {
-            initial?.name.orEmpty()
-        }
-        val labelMutableState = mutableComposeState(labelSink)
+        val labelHandle = textFieldHandle(
+            key = "$key.label",
+            initial = initial?.name.orEmpty(),
+        )
         val labelHintFlow = ioEffect {
             translate(Res.string.field_label)
         }.asFlow()
         val labelFlow = combine(
-            labelSink,
+            labelHandle.sink,
             labelHintFlow,
-        ) { labelValue, labelHint ->
-            TextFieldModel2(
-                text = labelValue,
+        ) { labelCell, labelHint ->
+            TextFieldModel(
+                text = labelCell.text,
+                textRevision = labelCell.revision,
                 hint = labelHint,
-                state = labelMutableState,
-                onChange = labelMutableState::value::set,
+                onChange = labelHandle::onChange,
+                onSetText = labelHandle::setText,
             )
         }
 
-        val textSink = mutablePersistedFlow("$key.text") {
-            initial?.value.orEmpty()
-        }
-        val textMutableState = mutableComposeState(textSink)
+        val textHandle = textFieldHandle(
+            key = "$key.text",
+            initial = initial?.value.orEmpty(),
+        )
         val textHintFlow = ioEffect {
             translate(Res.string.field_value)
         }.asFlow()
         val textFlow = combine(
-            textSink,
+            textHandle.sink,
             textHintFlow,
-        ) { textValue, textHint ->
-            TextFieldModel2(
-                text = textValue,
+        ) { textCell, textHint ->
+            TextFieldModel(
+                text = textCell.text,
+                textRevision = textCell.revision,
                 hint = textHint,
-                state = textMutableState,
-                onChange = textMutableState::value::set,
+                onChange = textHandle::onChange,
+                onSetText = textHandle::setText,
             )
         }
 
@@ -1609,8 +1661,8 @@ class AddStateItemFieldTextFactory(
                 scope = screenScope,
                 started = SharingStarted.WhileSubscribed(1000L),
                 initialValue = AddStateItem.Field.State.Text(
-                    label = TextFieldModel2.empty,
-                    text = TextFieldModel2.empty,
+                    label = TextFieldModel.empty,
+                    text = TextFieldModel.empty,
                 ),
             )
         return foo(
@@ -1632,16 +1684,17 @@ class AddStateItemFieldBooleanFactory : AddStateItemFieldFactory() {
         key: String,
         initial: DSecret.Field?,
     ): AddStateItem.Field<CreateRequest> {
-        val labelSink = mutablePersistedFlow("$key.label") {
-            initial?.name.orEmpty()
-        }
-        val labelMutableState = mutableComposeState(labelSink)
-        val labelFlow = labelSink.map { label ->
-            TextFieldModel2(
-                text = label,
+        val labelHandle = textFieldHandle(
+            key = "$key.label",
+            initial = initial?.name.orEmpty(),
+        )
+        val labelFlow = labelHandle.sink.map { labelCell ->
+            TextFieldModel(
+                text = labelCell.text,
+                textRevision = labelCell.revision,
                 hint = "Label",
-                state = labelMutableState,
-                onChange = labelMutableState::value::set,
+                onChange = labelHandle::onChange,
+                onSetText = labelHandle::setText,
             )
         }
 
@@ -1663,7 +1716,7 @@ class AddStateItemFieldBooleanFactory : AddStateItemFieldFactory() {
                 scope = screenScope,
                 started = SharingStarted.WhileSubscribed(1000L),
                 initialValue = AddStateItem.Field.State.Switch(
-                    label = TextFieldModel2.empty,
+                    label = TextFieldModel.empty,
                 ),
             )
         return foo(
@@ -1687,16 +1740,17 @@ class AddStateItemFieldLinkedIdFactory(
         key: String,
         initial: DSecret.Field?,
     ): AddStateItem.Field<CreateRequest> {
-        val labelSink = mutablePersistedFlow("$key.label") {
-            initial?.name.orEmpty()
-        }
-        val labelMutableState = mutableComposeState(labelSink)
-        val labelFlow = labelSink.map { label ->
-            TextFieldModel2(
-                text = label,
+        val labelHandle = textFieldHandle(
+            key = "$key.label",
+            initial = initial?.name.orEmpty(),
+        )
+        val labelFlow = labelHandle.sink.map { labelCell ->
+            TextFieldModel(
+                text = labelCell.text,
+                textRevision = labelCell.revision,
                 hint = "Label",
-                state = labelMutableState,
-                onChange = labelMutableState::value::set,
+                onChange = labelHandle::onChange,
+                onSetText = labelHandle::setText,
             )
         }
 
@@ -1756,7 +1810,7 @@ class AddStateItemFieldLinkedIdFactory(
                 scope = screenScope,
                 started = SharingStarted.WhileSubscribed(1000L),
                 initialValue = AddStateItem.Field.State.LinkedId(
-                    label = TextFieldModel2.empty,
+                    label = TextFieldModel.empty,
                     value = null,
                     actions = persistentListOf(),
                 ),
@@ -2417,8 +2471,10 @@ private suspend fun RememberStateFlowScope.produceLoginState(
     ) = kotlin.run {
         val id = "$prefix.$key"
 
-        val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-        val state = mutableComposeState(sink)
+        val handle = textFieldHandle(
+            key = id,
+            initial = initialValue.orEmpty(),
+        )
         factory(
             id,
             LocalStateItem(
@@ -2428,16 +2484,17 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                             ?: return@map persistentListOf<String>()
                         persistentListOf(email)
                     }
-                    .combine(sink) { autocompleteOptions, value ->
-                        val model = TextFieldModel2(
-                            state = state,
-                            text = value,
+                    .combine(handle.sink) { autocompleteOptions, cell ->
+                        val model = TextFieldModel(
+                            text = cell.text,
+                            textRevision = cell.revision,
                             autocompleteOptions = autocompleteOptions,
-                            onChange = state::value::set,
+                            onChange = handle::onChange,
+                            onSetText = handle::setText,
                         )
                         AddStateItem.Username.State(
                             value = model,
-                            type = UsernameVariation2.of(getGravatarUrl, value),
+                            type = UsernameVariation2.of(getGravatarUrl, cell.text),
                         )
                     }
                     .persistingStateIn(
@@ -2445,7 +2502,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                         started = SharingStarted.WhileSubscribed(),
                         initialValue =
                         AddStateItem.Username.State(
-                            value = TextFieldModel2.empty,
+                            value = TextFieldModel.empty,
                             type = UsernameVariation2.default,
                         ),
                     ),
@@ -2457,28 +2514,31 @@ private suspend fun RememberStateFlowScope.produceLoginState(
     suspend fun <Item> createItem(
         key: String,
         initialValue: String? = null,
-        populator: CreateRequest.(TextFieldModel2) -> CreateRequest,
-        factory: (String, LocalStateItem<TextFieldModel2, CreateRequest>) -> Item,
+        populator: CreateRequest.(TextFieldModel) -> CreateRequest,
+        factory: (String, LocalStateItem<TextFieldModel, CreateRequest>) -> Item,
     ) = kotlin.run {
         val id = "$prefix.$key"
 
-        val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-        val state = mutableComposeState(sink)
+        val handle = textFieldHandle(
+            key = id,
+            initial = initialValue.orEmpty(),
+        )
         factory(
             id,
             LocalStateItem(
-                flow = sink
-                    .map { value ->
-                        TextFieldModel2(
-                            state = state,
-                            text = value,
-                            onChange = state::value::set,
+                flow = handle.sink
+                    .map { cell ->
+                        TextFieldModel(
+                            text = cell.text,
+                            textRevision = cell.revision,
+                            onChange = handle::onChange,
+                            onSetText = handle::setText,
                         )
                     }
                     .persistingStateIn(
                         scope = screenScope,
                         started = SharingStarted.WhileSubscribed(),
-                        initialValue = TextFieldModel2.empty,
+                        initialValue = TextFieldModel.empty,
                     ),
                 populator = populator,
             ),
@@ -2510,7 +2570,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
         getSuggestion = { it.login?.username },
         selectedFlow = username.state.flow.map { it.value.text },
         onClick = {
-            username.state.flow.value.value.onChange?.invoke(it)
+            username.state.flow.value.value.onSetText?.invoke(it)
         },
     )
     val password = createItem(
@@ -2537,16 +2597,17 @@ private suspend fun RememberStateFlowScope.produceLoginState(
         selectedFlow = password.state.flow.map { it.text },
         concealed = true,
         onClick = {
-            password.state.flow.value.onChange?.invoke(it)
+            password.state.flow.value.onSetText?.invoke(it)
         },
     )
 
     val totpState = kotlin.run {
-        val sink = mutablePersistedFlow("totp") {
-            args.initialValue?.login?.totp?.raw.orEmpty()
-        }
-        val state = mutableComposeState(sink)
-        val totpFlow = sink
+        val handle = textFieldHandle(
+            key = "totp",
+            initial = args.initialValue?.login?.totp?.raw.orEmpty(),
+        )
+        val totpFlow = handle.sink
+            .map { it.text }
             .debounce(80L)
             .map { raw ->
                 val token = if (raw.isBlank()) {
@@ -2561,12 +2622,13 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                 emit(initialState)
             }
         val flow = combine(
-            sink
-                .map { raw ->
-                    TextFieldModel2(
-                        state = state,
-                        text = raw,
-                        onChange = state::value::set,
+            handle.sink
+                .map { cell ->
+                    TextFieldModel(
+                        text = cell.text,
+                        textRevision = cell.revision,
+                        onChange = handle::onChange,
+                        onSetText = handle::setText,
                     )
                 },
             totpFlow,
@@ -2579,7 +2641,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                         ?.convert(uri)
                         ?.getOrNull()
                         ?: uri
-                    state.value = convertedUri
+                    handle.setText(convertedUri)
                 },
                 totpToken = totp,
             )
@@ -2590,7 +2652,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                     scope = screenScope,
                     started = SharingStarted.WhileSubscribed(),
                     initialValue = AddStateItem.Totp.State(
-                        value = TextFieldModel2.empty,
+                        value = TextFieldModel.empty,
                         copyText = copyText,
                         totpToken = null,
                     ),
@@ -2616,7 +2678,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
         selectedFlow = totp.state.flow.map { it.value.text },
         concealed = true,
         onClick = {
-            totp.state.flow.value.value.onChange?.invoke(it)
+            totp.state.flow.value.value.onSetText?.invoke(it)
         },
     )
 
@@ -2651,26 +2713,32 @@ private suspend fun RememberStateFlowScope.produceCardState(
     ): Item {
         val id = "$prefix.$key"
 
-        val monthSink = mutablePersistedFlow("$id.month") { initialMonth.orEmpty() }
-        val monthState = mutableComposeState(monthSink)
-        val monthFlow = monthSink
-            .map { value ->
-                val model = TextFieldModel2(
-                    state = monthState,
-                    text = value,
-                    onChange = monthState::value::set,
+        val monthHandle = textFieldHandle(
+            key = "$id.month",
+            initial = initialMonth.orEmpty(),
+        )
+        val monthFlow = monthHandle.sink
+            .map { cell ->
+                val model = TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
+                    onChange = monthHandle::onChange,
+                    onSetText = monthHandle::setText,
                 )
                 model
             }
 
-        val yearSink = mutablePersistedFlow("$id.year") { initialYear.orEmpty() }
-        val yearState = mutableComposeState(yearSink)
-        val yearFlow = yearSink
-            .map { value ->
-                val model = TextFieldModel2(
-                    state = yearState,
-                    text = value,
-                    onChange = yearState::value::set,
+        val yearHandle = textFieldHandle(
+            key = "$id.year",
+            initial = initialYear.orEmpty(),
+        )
+        val yearFlow = yearHandle.sink
+            .map { cell ->
+                val model = TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
+                    onChange = yearHandle::onChange,
+                    onSetText = yearHandle::setText,
                 )
                 model
             }
@@ -2696,8 +2764,8 @@ private suspend fun RememberStateFlowScope.produceCardState(
                             ) { result ->
                                 if (result is DatePickerResult.Confirm) {
                                     val (monthValue, yearValue) = result.toMonthAndYearStrings()
-                                    monthState.value = monthValue
-                                    yearState.value = yearValue
+                                    monthHandle.setText(monthValue)
+                                    yearHandle.setText(yearValue)
                                 }
                             }
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -2709,8 +2777,8 @@ private suspend fun RememberStateFlowScope.produceCardState(
                         scope = screenScope,
                         started = SharingStarted.WhileSubscribed(),
                         initialValue = AddStateItem.DateMonthYear.State(
-                            month = TextFieldModel2.empty,
-                            year = TextFieldModel2.empty,
+                            month = TextFieldModel.empty,
+                            year = TextFieldModel.empty,
                             onClick = {
                                 val route = registerRouteResultReceiver(
                                     DatePickerRoute(
@@ -2787,13 +2855,15 @@ private suspend fun RememberStateFlowScope.produceCardState(
     ) = kotlin.run {
         val id = "$prefix.$key"
 
-        val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-        val state = mutableComposeState(sink)
+        val handle = textFieldHandle(
+            key = id,
+            initial = initialValue.orEmpty(),
+        )
         val state2 = LocalStateItem<AddStateItem.Text.State, CreateRequest>(
-            flow = sink
-                .map { value ->
+            flow = handle.sink
+                .map { cell ->
                     val isValid = kotlin.run {
-                        val n = value.replace(ff2, "")
+                        val n = cell.text.replace(ff2, "")
                         if (n.isBlank()) {
                             return@run true
                         }
@@ -2824,21 +2894,22 @@ private suspend fun RememberStateFlowScope.produceCardState(
                         t != null
                     }
                     val badge = if (!isValid) {
-                        TextFieldModel2.Vl(
-                            type = TextFieldModel2.Vl.Type.WARNING,
+                        TextFieldModel.Vl(
+                            type = TextFieldModel.Vl.Type.WARNING,
                             text = translate(Res.string.error_invalid_card_number),
                         )
                     } else {
                         null
                     }
 
-                    val model = TextFieldModel2(
-                        state = state,
-                        text = value,
+                    val model = TextFieldModel(
+                        text = cell.text,
+                        textRevision = cell.revision,
                         hint = "4111 1111 1111 1111",
                         vl = badge,
                         autocompleteOptions = autocompleteOptions,
-                        onChange = state::value::set,
+                        onChange = handle::onChange,
+                        onSetText = handle::setText,
                     )
                     AddStateItem.Text.State(
                         value = model,
@@ -2852,7 +2923,7 @@ private suspend fun RememberStateFlowScope.produceCardState(
                     scope = screenScope,
                     started = SharingStarted.WhileSubscribed(),
                     initialValue = AddStateItem.Text.State(
-                        value = TextFieldModel2.empty,
+                        value = TextFieldModel.empty,
                         label = label,
                     ),
                 ),
@@ -3456,23 +3527,26 @@ private suspend fun RememberStateFlowScope.produceNoteState(
         val initialValue = args.note
             ?: args.initialValue?.notes
 
-        val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-        val state = mutableComposeState(sink)
-        val stateItem = LocalStateItem<TextFieldModel2, CreateRequest>(
-            flow = sink
-                .map { value ->
-                    val model = TextFieldModel2(
-                        state = state,
-                        text = value,
+        val handle = textFieldHandle(
+            key = id,
+            initial = initialValue.orEmpty(),
+        )
+        val stateItem = LocalStateItem<TextFieldModel, CreateRequest>(
+            flow = handle.sink
+                .map { cell ->
+                    val model = TextFieldModel(
+                        text = cell.text,
+                        textRevision = cell.revision,
                         hint = translate(Res.string.additem_note_placeholder),
-                        onChange = state::value::set,
+                        onChange = handle::onChange,
+                        onSetText = handle::setText,
                     )
                     model
                 }
                 .persistingStateIn(
                     scope = screenScope,
                     started = SharingStarted.WhileSubscribed(),
-                    initialValue = TextFieldModel2.empty,
+                    initialValue = TextFieldModel.empty,
                 ),
             populator = { state ->
                 CreateRequest.note.set(this, state.text)
@@ -3491,7 +3565,7 @@ private suspend fun RememberStateFlowScope.produceNoteState(
         getSuggestion = { it.notes },
         selectedFlow = note.state.flow.map { it.text },
         onClick = {
-            note.state.flow.value.onChange?.invoke(it)
+            note.state.flow.value.onSetText?.invoke(it)
         },
     )
     return TmpNote(
@@ -3868,19 +3942,22 @@ suspend fun <Item, Request> RememberStateFlowScope.createItem(
 ): Item {
     val id = "$prefix.$key"
 
-    val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-    val state = mutableComposeState(sink)
+    val handle = textFieldHandle(
+        key = id,
+        initial = initialValue.orEmpty(),
+    )
     return factory(
         id,
         LocalStateItem(
-            flow = sink
-                .map { value ->
-                    val model = TextFieldModel2(
-                        state = state,
-                        text = value,
+            flow = handle.sink
+                .map { cell ->
+                    val model = TextFieldModel(
+                        text = cell.text,
+                        textRevision = cell.revision,
                         hint = hint,
                         autocompleteOptions = autocompleteOptions,
-                        onChange = state::value::set,
+                        onChange = handle::onChange,
+                        onSetText = handle::setText,
                     )
                     AddStateItem.Text.State(
                         value = model,
@@ -3894,7 +3971,7 @@ suspend fun <Item, Request> RememberStateFlowScope.createItem(
                     scope = screenScope,
                     started = SharingStarted.WhileSubscribed(),
                     initialValue = AddStateItem.Text.State(
-                        value = TextFieldModel2.empty,
+                        value = TextFieldModel.empty,
                         label = label,
                     ),
                 ),
@@ -3918,7 +3995,7 @@ private suspend fun RememberStateFlowScope.createItem2Txt(
     selectedFlow = field.state.flow.map { it.value.text },
     concealed = concealed,
     onClick = {
-        field.state.flow.value.value.onChange?.invoke(it)
+        field.state.flow.value.value.onSetText?.invoke(it)
     },
 )
 

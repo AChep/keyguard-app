@@ -25,7 +25,8 @@ import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.YubiKeyAuthPrompt
 import com.artemchep.keyguard.common.usecase.ClearData
 import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.loading.LoadingTask
@@ -42,8 +43,10 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
@@ -70,6 +73,22 @@ fun unlockScreenState(
         unlockVaultByYubiKey,
     ),
 ) {
+    unlockStateProducer(
+        clearData = clearData,
+        unlockVaultByMasterPassword = unlockVaultByMasterPassword,
+        unlockVaultByBiometric = unlockVaultByBiometric,
+        unlockVaultByYubiKey = unlockVaultByYubiKey,
+        lockInfo = lockInfo,
+    )
+}
+
+suspend fun RememberStateFlowScope.unlockStateProducer(
+    clearData: ClearData,
+    unlockVaultByMasterPassword: VaultState.Unlock.WithPassword,
+    unlockVaultByBiometric: VaultState.Unlock.WithBiometric?,
+    unlockVaultByYubiKey: VaultState.Unlock.WithYubiKey?,
+    lockInfo: VaultState.Unlock.LockInfo? = null,
+): Flow<Loadable<UnlockState>> {
     val executor = screenExecutor()
 
     val unlockVaultByMasterPasswordFn = UnlockVaultWithPassword(
@@ -126,17 +145,16 @@ fun unlockScreenState(
     val yubiKeyPromptFlow = yubiKeyPromptSink
         .shareIn(screenScope, SharingStarted.WhileSubscribed(5000L))
 
-    val passwordSink = mutablePersistedFlow("password") { DEFAULT_PASSWORD }
-    val passwordState = mutableComposeState(passwordSink)
+    val passwordHandle = textFieldHandle("password", initial = DEFAULT_PASSWORD)
 
     // Clear the password field when the screen
-    // moves into background.
+    // moves into background. Goes through the command path so the UI
+    // edit buffer adopts the cleared text unconditionally.
     launchUi {
         try {
             awaitCancellation()
         } finally {
-            passwordState.value = DEFAULT_PASSWORD
-            passwordSink.value = DEFAULT_PASSWORD
+            passwordHandle.setText(DEFAULT_PASSWORD)
         }
     }
 
@@ -197,17 +215,18 @@ fun unlockScreenState(
     } else {
         null
     }
-    combine(
-        passwordSink
-            .validatedTitle(this),
+    return combine(
+        passwordHandle.sink
+            .map { cell -> cell to validatedTitle(cell.text) },
         executor.isExecutingFlow,
-    ) { validatedPassword, taskExecuting ->
+    ) { (passwordCell, validatedPassword), taskExecuting ->
         val error = (validatedPassword as? Validated.Failure)?.error
         val canCreateVault = error == null && !taskExecuting
         val state = UnlockState(
             lockReason = lockInfo?.reason,
-            password = TextFieldModel2.of(
-                state = passwordState,
+            password = TextFieldModel.of(
+                cell = passwordCell,
+                handle = passwordHandle,
                 validated = validatedPassword,
             ),
             biometric = if (taskExecuting) {

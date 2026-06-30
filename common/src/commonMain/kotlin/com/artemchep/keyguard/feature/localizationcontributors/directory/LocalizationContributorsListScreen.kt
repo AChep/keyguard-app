@@ -135,7 +135,7 @@ fun LocalizationContributorsListScreen(
                     )
 
                     val query = filterState.value?.query
-                    val queryText = query?.state?.value.orEmpty()
+                    val queryText = query?.text.orEmpty()
 
                     val count = loadableState
                         .getOrNull()
@@ -147,6 +147,7 @@ fun LocalizationContributorsListScreen(
                     SearchTextField(
                         modifier = Modifier,
                         text = queryText,
+                        textRevision = query?.textRevision,
                         placeholder = stringResource(Res.string.localization_contributors_search_placeholder),
                         searchIcon = false,
                         focusRequester = focusRequester,

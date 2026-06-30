@@ -7,7 +7,8 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.WebDavCredentials
 import com.artemchep.keyguard.common.model.WebDavLocation
 import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginEvent
@@ -81,7 +82,7 @@ internal fun createKeePassLoginState(
     dbFileState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.FileItem>,
     keyFileState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.FileItem>,
     databaseLocationState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.DatabaseLocation>,
-    password: kotlinx.coroutines.flow.StateFlow<TextFieldModel2>,
+    password: kotlinx.coroutines.flow.StateFlow<TextFieldModel>,
     actionState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.Action?>,
     tabsState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.Tabs>,
     isLoading: Boolean,
@@ -151,20 +152,25 @@ fun produceKeePassLoginScreenState(
         null
     }
 
-    val passwordSink = mutablePersistedFlow("password") {
-        defaultPassword
-    }
-    val passwordState = mutableComposeState(passwordSink)
-    val passwordValidatedFlow = passwordSink
-        .validatedPassword(this, minLength = 1)
+    val passwordHandle = textFieldHandle("password", initial = defaultPassword)
+    val passwordPairFlow = passwordHandle.sink
+        .map { cell ->
+            cell to validatedPassword(
+                password = cell.text,
+                minLength = 1,
+            )
+        }
         .shareInScreenScope()
-    val passwordFlow = passwordValidatedFlow
-        .map { passwordValidated ->
-            TextFieldModel2(
-                state = passwordState,
-                text = passwordValidated.model,
+    val passwordValidatedFlow = passwordPairFlow
+        .map { it.second }
+    val passwordFlow = passwordPairFlow
+        .map { (cell, passwordValidated) ->
+            TextFieldModel(
+                text = cell.text,
+                textRevision = cell.revision,
                 error = (passwordValidated as? Validated.Failure)?.error,
-                onChange = passwordState::value::set,
+                onChange = passwordHandle::onChange,
+                onSetText = passwordHandle::setText,
             )
         }
         .stateIn(screenScope)
@@ -292,7 +298,7 @@ fun produceKeePassLoginScreenState(
     fun onSelectMode(mode: String) {
         if (databaseLocationSink.value == LOCATION_WEBDAV) {
             tabSink.value = mode
-            passwordSink.value = ""
+            passwordHandle.setText("")
             keyFileSink.value = null
             if (webDavSink.value == null) {
                 onSelectWebDavLocation()
@@ -310,7 +316,9 @@ fun produceKeePassLoginScreenState(
                 // Also change the
                 // current mode and reset password.
                 tabSink.value = mode
-                passwordSink.value = ""
+                // Command path: bumps the revision so the field's edit
+                // buffer adopts the cleared text.
+                passwordHandle.setText("")
                 keyFileSink.value = null
             }
         }

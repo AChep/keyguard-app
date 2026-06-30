@@ -321,7 +321,9 @@ private fun ConfirmationStringItem(
                         key = key,
                         username = generator == ConfirmationState.Item.StringItem.Generator.Username,
                         password = generator == ConfirmationState.Item.StringItem.Generator.Password,
-                        onValueChange = item.state.onChange,
+                        // A programmatic insert: the command path bumps the
+                        // text revision so the field's edit buffer adopts it.
+                        onValueChange = item.state.onSetText,
                     )
                 }
             },

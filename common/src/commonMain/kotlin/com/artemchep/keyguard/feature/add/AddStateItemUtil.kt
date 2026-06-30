@@ -2,7 +2,7 @@ package com.artemchep.keyguard.feature.add
 
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.datedaypicker.DateDayPickerResult
 import com.artemchep.keyguard.feature.datedaypicker.DateDayPickerRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -50,7 +50,7 @@ suspend fun <Request> AddStateItem.DateTime.Companion.produceItemFlow(
     initialValue: LocalDateTime?,
     selectableDates: ClosedRange<LocalDate>? = null,
     dateFormatter: DateFormatter,
-    badge: ((LocalDateTime) -> TextFieldModel2.Vl?)? = null,
+    badge: ((LocalDateTime) -> TextFieldModel.Vl?)? = null,
     populator: Request.(AddStateItem.DateTime.State) -> Request,
     factory: (String, LocalStateItem<AddStateItem.DateTime.State, Request>) -> AddStateItem.DateTime<Request>,
 ): AddStateItem.DateTime<Request> = with(stateScope) {

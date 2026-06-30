@@ -9,7 +9,6 @@ import androidx.compose.material.icons.outlined.AutoDelete
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.text.input.KeyboardType
 import arrow.core.flatten
 import arrow.core.partially1
@@ -65,8 +64,11 @@ import com.artemchep.keyguard.feature.add.accountFlow
 import com.artemchep.keyguard.feature.add.ownershipHandle
 import com.artemchep.keyguard.feature.add.produceItemFlow
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.Validated
+import com.artemchep.keyguard.feature.auth.common.modelFlow
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.validatedInteger
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
@@ -183,8 +185,7 @@ internal fun decodeDurationFromPersistedState(
 internal fun applySelectedSendFile(
     result: FilePickerResult,
     uriSink: MutableStateFlow<String?>,
-    nameSink: MutableStateFlow<String>,
-    nameState: MutableState<String>? = null,
+    nameHandle: TextFieldHandle,
     sizeSink: MutableStateFlow<Long?>,
 ): Boolean {
     if (!isBitwardenUploadFileSizeAllowed(result.size)) {
@@ -193,8 +194,7 @@ internal fun applySelectedSendFile(
 
     val metadata = result.toAttachmentFileMetadata()
     uriSink.value = metadata.uriString
-    nameSink.value = metadata.name
-    nameState?.value = metadata.name
+    nameHandle.setText(metadata.name)
     sizeSink.value = metadata.size
     return true
 }
@@ -273,6 +273,42 @@ fun produceSendAddScreenState(
         getTotpCode,
     ),
 ) {
+    sendAddStateProducer(
+        args = args,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getFolders = getFolders,
+        getCiphers = getCiphers,
+        getSends = getSends,
+        getTotpCode = getTotpCode,
+        getGravatarUrl = getGravatarUrl,
+        getMarkdown = getMarkdown,
+        clipboardService = clipboardService,
+        dateFormatter = dateFormatter,
+        addSend = addSend,
+        sendViewRouteFactory = sendViewRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.sendAddStateProducer(
+    args: SendAddRoute.Args,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getFolders: GetFolders,
+    getCiphers: GetCiphers,
+    getSends: GetSends,
+    getTotpCode: GetTotpCode,
+    getGravatarUrl: GetGravatarUrl,
+    getMarkdown: GetMarkdown,
+    clipboardService: ClipboardService,
+    dateFormatter: DateFormatter,
+    addSend: AddSend,
+    sendViewRouteFactory: SendViewRouteFactory,
+): Flow<Loadable<SendAddState>> {
     val markdown = getMarkdown().first()
     val filePickerEvents = EventFlow<FilePickerIntent<*>>()
 
@@ -339,28 +375,28 @@ fun produceSendAddScreenState(
         state = LocalStateItem(
             flow = kotlin.run {
                 val key = "title"
-                val sink = mutablePersistedFlow(key) {
-                    args.initialValue?.name
+                val handle = textFieldHandle(
+                    key = key,
+                    initial = args.initialValue?.name
                         ?: args.name
-                        ?: ""
-                }
-                val state = asComposeState<String>(key)
+                        ?: "",
+                )
                 combine(
-                    sink
-                        .validatedTitle(this),
+                    handle.sink
+                        .map { cell -> cell to validatedTitle(cell.text) },
                     typeFlow,
-                ) { validatedTitle, type ->
-                    TextFieldModel2.of(
-                        state = state,
+                ) { (cell, validatedTitle), type ->
+                    TextFieldModel.of(
+                        cell = cell,
+                        handle = handle,
                         hint = translate(type.titleH()),
                         validated = validatedTitle,
-                        onChange = state::value::set,
                     )
                 }
                     .persistingStateIn(
                         scope = screenScope,
                         started = SharingStarted.WhileSubscribed(1000L),
-                        initialValue = TextFieldModel2.empty,
+                        initialValue = TextFieldModel.empty,
                     )
             },
             populator = { field ->
@@ -495,7 +531,7 @@ fun produceSendAddScreenState(
         }
         .distinctUntilChanged()
 
-    combine(
+    return combine(
         actionsFlow,
         ownershipFlow,
         outputFlow,
@@ -764,10 +800,10 @@ private suspend fun RememberStateFlowScope.produceFileState(
         selectedFile.uri
     }
 
-    val nameSink = mutablePersistedFlow("$prefix.name") {
-        selectedFile.name.orEmpty()
-    }
-    val nameState = mutableComposeState(nameSink)
+    val nameHandle = textFieldHandle(
+        key = "$prefix.name",
+        initial = selectedFile.name.orEmpty(),
+    )
     val sizeSink = mutablePersistedFlow<Long?>("$prefix.size") {
         selectedFile.size
     }
@@ -775,8 +811,7 @@ private suspend fun RememberStateFlowScope.produceFileState(
 
     fun clearFile() {
         uriSink.value = null
-        nameSink.value = ""
-        nameState.value = ""
+        nameHandle.setText("")
         sizeSink.value = null
     }
 
@@ -786,8 +821,7 @@ private suspend fun RememberStateFlowScope.produceFileState(
         val applied = applySelectedSendFile(
             result = result,
             uriSink = uriSink,
-            nameSink = nameSink,
-            nameState = nameState,
+            nameHandle = nameHandle,
             sizeSink = sizeSink,
         )
         if (!applied) {
@@ -820,7 +854,7 @@ private suspend fun RememberStateFlowScope.produceFileState(
     val state = createAttachmentStateItem<CreateSendRequest>(
         key = attachmentKey,
         initialName = selectedFile.name.orEmpty(),
-        nameSink = nameSink,
+        nameHandle = nameHandle,
         initialConfig = initialConfig,
         configFlow = combine(
             uriSink,
@@ -888,30 +922,30 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
         val id = "$prefix.max_access_count"
         val state = LocalStateItem<AddStateItem.Text.State, CreateSendRequest>(
             flow = kotlin.run {
-                val sink = mutablePersistedFlow(id) {
-                    ""
+                val handle = textFieldHandle(id)
+                combine(
+                    handle.sink,
+                    handle.sink
+                        .map { it.text }
+                        .validatedInteger(this),
+                ) { cell, validatedNumber ->
+                    val textField = TextFieldModel.of(
+                        cell = cell,
+                        handle = handle,
+                        validated = validatedNumber,
+                    )
+                    AddStateItem.Text.State(
+                        label = translate(Res.string.max_access_count),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                        ),
+                        value = textField,
+                    )
                 }
-                val state = asComposeState<String>(id)
-                sink
-                    .validatedInteger(this)
-                    .map { validatedNumber ->
-                        val textField = TextFieldModel2.of(
-                            state = state,
-                            validated = validatedNumber,
-                            onChange = state::value::set,
-                        )
-                        AddStateItem.Text.State(
-                            label = translate(Res.string.max_access_count),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number,
-                            ),
-                            value = textField,
-                        )
-                    }
                     .persistingStateIn(
                         scope = screenScope,
                         started = SharingStarted.WhileSubscribed(1000L),
-                        initialValue = AddStateItem.Text.State(TextFieldModel2.empty),
+                        initialValue = AddStateItem.Text.State(TextFieldModel.empty),
                     )
             },
             populator = { state ->
@@ -999,25 +1033,19 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
                 translate(Res.string.new_password)
             } else null
         }
-        val state = LocalStateItem<TextFieldModel2, CreateSendRequest>(
+        val state = LocalStateItem<TextFieldModel, CreateSendRequest>(
             flow = kotlin.run {
-                val sink = mutablePersistedFlow(id) {
-                    ""
-                }
-                val state = asComposeState<String>(id)
-                sink
-                    .validatedTitle(this)
-                    .map { validatedTitle ->
-                        TextFieldModel2.of(
-                            state = state,
-                            validated = validatedTitle,
-                            onChange = state::value::set,
-                        )
-                    }
+                val handle = textFieldHandle(id)
+                handle
+                    .modelFlow(
+                        validatedFlow = handle.sink
+                            .map { it.text }
+                            .validatedTitle(this),
+                    )
                     .persistingStateIn(
                         scope = screenScope,
                         started = SharingStarted.WhileSubscribed(1000L),
-                        initialValue = TextFieldModel2.empty,
+                        initialValue = TextFieldModel.empty,
                     )
             },
             populator = { state ->
@@ -1038,23 +1066,20 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
 
         val state = LocalStateItem<AddStateItem.Text.State, CreateSendRequest>(
             flow = kotlin.run {
-                val sink = mutablePersistedFlow(id) {
-                    args.initialValue?.emails?.joinToString()
-                        .orEmpty()
-                }
-                val state = asComposeState<String>(id)
-                sink
-                    .map { text ->
-                        Validated.Success(
-                            model = text,
-                        )
-                    }
-                    .map { validatedText ->
-                        val textField = TextFieldModel2.of(
-                            state = state,
+                val handle = textFieldHandle(
+                    key = id,
+                    initial = args.initialValue?.emails?.joinToString()
+                        .orEmpty(),
+                )
+                handle.sink
+                    .map { cell ->
+                        val textField = TextFieldModel.of(
+                            cell = cell,
+                            handle = handle,
                             hint = placeholder,
-                            validated = validatedText,
-                            onChange = state::value::set,
+                            validated = Validated.Success(
+                                model = cell.text,
+                            ),
                         )
                         AddStateItem.Text.State(
                             label = label,
@@ -1068,7 +1093,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
                     .persistingStateIn(
                         scope = screenScope,
                         started = SharingStarted.WhileSubscribed(1000L),
-                        initialValue = AddStateItem.Text.State(TextFieldModel2.empty),
+                        initialValue = AddStateItem.Text.State(TextFieldModel.empty),
                     )
             },
             populator = { state ->
@@ -1150,8 +1175,8 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             time = now.time,
         )
         val deletionDateWarning = run {
-            TextFieldModel2.Vl(
-                type = TextFieldModel2.Vl.Type.ERROR,
+            TextFieldModel.Vl(
+                type = TextFieldModel.Vl.Type.ERROR,
                 text = translate(
                     res = Res.string.error_must_be_less_than_days,
                     deletionDateUpperLimitDays,
@@ -1287,23 +1312,26 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
 
         val initialValue = args.initialValue?.notes
 
-        val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-        val state = mutableComposeState(sink)
-        val stateItem = LocalStateItem<TextFieldModel2, CreateSendRequest>(
-            flow = sink
-                .map { value ->
-                    val model = TextFieldModel2(
-                        state = state,
-                        text = value,
+        val handle = textFieldHandle(
+            key = id,
+            initial = initialValue.orEmpty(),
+        )
+        val stateItem = LocalStateItem<TextFieldModel, CreateSendRequest>(
+            flow = handle.sink
+                .map { cell ->
+                    val model = TextFieldModel(
+                        text = cell.text,
+                        textRevision = cell.revision,
                         hint = translate(Res.string.additem_note_placeholder),
-                        onChange = state::value::set,
+                        onChange = handle::onChange,
+                        onSetText = handle::setText,
                     )
                     model
                 }
                 .persistingStateIn(
                     scope = screenScope,
                     started = SharingStarted.WhileSubscribed(),
-                    initialValue = TextFieldModel2.empty,
+                    initialValue = TextFieldModel.empty,
                 ),
             populator = { state ->
                 CreateSendRequest.note.set(this, state.text)

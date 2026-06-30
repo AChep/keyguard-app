@@ -10,7 +10,8 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -98,6 +99,30 @@ fun produceLoginTwofaScreenState(
         transmitter,
     ),
 ) {
+    bitwardenLoginTwofaStateProducer(
+        cryptoGenerator = cryptoGenerator,
+        base64Service = base64Service,
+        deeplinkService = deeplinkService,
+        json = json,
+        addAccount = addAccount,
+        requestEmailTfa = requestEmailTfa,
+        args = args,
+        transmitter = transmitter,
+        defaultRememberMe = defaultRememberMe,
+    )
+}
+
+suspend fun RememberStateFlowScope.bitwardenLoginTwofaStateProducer(
+    cryptoGenerator: CryptoGenerator,
+    base64Service: Base64Service,
+    deeplinkService: DeeplinkService,
+    json: Json,
+    addAccount: AddAccount,
+    requestEmailTfa: RequestEmailTfa,
+    args: BitwardenLoginTwofaRoute.Args,
+    transmitter: RouteResultTransmitter<Unit>,
+    defaultRememberMe: Boolean = false,
+): Flow<TwoFactorState> {
     val actionExecutor = screenExecutor()
 
     val providersComparator = compareBy<TwoFactorProvider>(
@@ -238,7 +263,7 @@ fun produceLoginTwofaScreenState(
             }
             stateFlow
         }
-    combine(
+    return combine(
         providerItemsFlow,
         providerStateFlow,
     ) { providerItems, providerState ->
@@ -288,29 +313,15 @@ private fun RememberStateFlowScope.createStateFlowForAuthenticator(
     transmitter: RouteResultTransmitter<Unit>,
     defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> {
-    val codeSink = mutablePersistedFlow("authenticator.code") { "" }
-    val codeState = mutableComposeState(codeSink)
+    val codeHandle = textFieldHandle("authenticator.code")
 
-    val codeValidatedFlow = codeSink
-        .map { rawCode ->
-            val code = rawCode
-                .trim()
-            if (code.isEmpty()) {
-                Validated.Failure(
-                    model = code,
-                    error = translate(Res.string.error_must_not_be_blank),
-                )
-            } else {
-                Validated.Success(
-                    model = code,
-                )
-            }
-        }
+    val codePairFlow = codeHandle.sink
+        .map { cell -> cell to validateTwofaCode(cell.text) }
 
     val rememberMeSink = mutablePersistedFlow("remember_me") { defaultRememberMe }
 
     return combine(
-        codeValidatedFlow,
+        codePairFlow,
         actionExecutor.isExecutingFlow,
         rememberMeSink
             .map { checked ->
@@ -319,7 +330,7 @@ private fun RememberStateFlowScope.createStateFlowForAuthenticator(
                     onChange = rememberMeSink::value::set,
                 )
             },
-    ) { codeValidated, isLoading, rememberMe ->
+    ) { (codeCell, codeValidated), isLoading, rememberMe ->
         val canLogin = codeValidated is Validated.Success &&
                 !isLoading
         val primaryAction = BitwardenLoginTwofaState.PrimaryAction(
@@ -353,8 +364,9 @@ private fun RememberStateFlowScope.createStateFlowForAuthenticator(
             },
         )
         BitwardenLoginTwofaState.Authenticator(
-            code = TextFieldModel2.of(
-                state = codeState,
+            code = TextFieldModel.of(
+                cell = codeCell,
+                handle = codeHandle,
                 validated = codeValidated,
             ),
             rememberMe = rememberMe,
@@ -441,24 +453,10 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
     transmitter: RouteResultTransmitter<Unit>,
     defaultRememberMe: Boolean,
 ): Flow<BitwardenLoginTwofaState> {
-    val codeSink = mutablePersistedFlow("email.code") { "" }
-    val codeState = mutableComposeState(codeSink)
+    val codeHandle = textFieldHandle("email.code")
 
-    val codeValidatedFlow = codeSink
-        .map { rawCode ->
-            val code = rawCode
-                .trim()
-            if (code.isEmpty()) {
-                Validated.Failure(
-                    model = code,
-                    error = translate(Res.string.error_must_not_be_blank),
-                )
-            } else {
-                Validated.Success(
-                    model = code,
-                )
-            }
-        }
+    val codePairFlow = codeHandle.sink
+        .map { cell -> cell to validateTwofaCode(cell.text) }
 
     val rememberMeSink = mutablePersistedFlow("remember_me") { defaultRememberMe }
 
@@ -478,7 +476,7 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
     )
 
     return combine(
-        codeValidatedFlow,
+        codePairFlow,
         actionExecutor.isExecutingFlow,
         rememberMeSink
             .map { checked ->
@@ -488,7 +486,7 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
                 )
             },
         onResendFlow,
-    ) { codeValidated, isLoading, rememberMe, onResend ->
+    ) { (codeCell, codeValidated), isLoading, rememberMe, onResend ->
         val canLogin = codeValidated is Validated.Success &&
                 !isLoading
         val primaryAction = BitwardenLoginTwofaState.PrimaryAction(
@@ -524,8 +522,9 @@ private fun RememberStateFlowScope.createStateFlowForEmail(
         BitwardenLoginTwofaState.Email(
             email = provider.email,
             emailResend = onResend,
-            code = TextFieldModel2.of(
-                state = codeState,
+            code = TextFieldModel.of(
+                cell = codeCell,
+                handle = codeHandle,
                 validated = codeValidated,
             ),
             rememberMe = rememberMe,
@@ -543,24 +542,10 @@ private fun RememberStateFlowScope.createStateFlowForEmailNewDevice(
     provider: TwoFactorProviderArgument.EmailNewDevice,
     transmitter: RouteResultTransmitter<Unit>,
 ): Flow<BitwardenLoginTwofaState> {
-    val codeSink = mutablePersistedFlow("email_new_device.code") { "" }
-    val codeState = mutableComposeState(codeSink)
+    val codeHandle = textFieldHandle("email_new_device.code")
 
-    val codeValidatedFlow = codeSink
-        .map { rawCode ->
-            val code = rawCode
-                .trim()
-            if (code.isEmpty()) {
-                Validated.Failure(
-                    model = code,
-                    error = translate(Res.string.error_must_not_be_blank),
-                )
-            } else {
-                Validated.Success(
-                    model = code,
-                )
-            }
-        }
+    val codePairFlow = codeHandle.sink
+        .map { cell -> cell to validateTwofaCode(cell.text) }
 
     val onResendFlow = createResendFlow(
         cryptoGenerator = cryptoGenerator,
@@ -578,10 +563,10 @@ private fun RememberStateFlowScope.createStateFlowForEmailNewDevice(
     )
 
     return combine(
-        codeValidatedFlow,
+        codePairFlow,
         actionExecutor.isExecutingFlow,
         onResendFlow,
-    ) { codeValidated, isLoading, onResend ->
+    ) { (codeCell, codeValidated), isLoading, onResend ->
         val canLogin = codeValidated is Validated.Success &&
                 !isLoading
         val primaryAction = BitwardenLoginTwofaState.PrimaryAction(
@@ -617,8 +602,9 @@ private fun RememberStateFlowScope.createStateFlowForEmailNewDevice(
         BitwardenLoginTwofaState.EmailNewDevice(
             email = args.email,
             emailResend = null, // TODO: Add a support for resending the email
-            code = TextFieldModel2.of(
-                state = codeState,
+            code = TextFieldModel.of(
+                cell = codeCell,
+                handle = codeHandle,
                 validated = codeValidated,
             ),
             primaryAction = primaryAction,
@@ -916,4 +902,19 @@ private fun RememberStateFlowScope.createResendFlow(
         .map { canResend ->
             resend.takeIf { canResend }
         }
+}
+
+private suspend fun RememberStateFlowScope.validateTwofaCode(rawCode: String): Validated<String> {
+    val code = rawCode
+        .trim()
+    return if (code.isEmpty()) {
+        Validated.Failure(
+            model = code,
+            error = translate(Res.string.error_must_not_be_blank),
+        )
+    } else {
+        Validated.Success(
+            model = code,
+        )
+    }
 }

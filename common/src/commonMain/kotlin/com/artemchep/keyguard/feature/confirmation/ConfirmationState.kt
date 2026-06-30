@@ -5,7 +5,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -38,7 +38,7 @@ data class ConfirmationState(
             override val key: String,
             override val value: String,
             override val enabled: Boolean,
-            val state: TextFieldModel2,
+            val state: TextFieldModel,
             val title: String,
             val description: String?,
             val sensitive: Boolean,

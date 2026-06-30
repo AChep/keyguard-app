@@ -166,7 +166,7 @@ fun WordlistViewScreen(
                     )
 
                     val query = filterState.value?.query
-                    val queryText = query?.state?.value.orEmpty()
+                    val queryText = query?.text.orEmpty()
 
                     // TODO: I should somehow sync it with the toolbar instead
                     //  of assuming the placement of the composable.
@@ -184,6 +184,7 @@ fun WordlistViewScreen(
                     SearchTextField(
                         modifier = Modifier,
                         text = queryText,
+                        textRevision = query?.textRevision,
                         placeholder = stringResource(Res.string.wordlist_word_search_placeholder),
                         searchIcon = searchIcon,
                         focusRequester = focusRequester,

@@ -25,7 +25,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.service.autotype.AutotypeService
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
@@ -97,14 +97,17 @@ private fun SettingAutotypeTest(
         FocusRequester2()
     }
 
-    val inputModel = TextFieldModel2(
-        state = inputState,
+    val outputRevisionState = remember {
+        mutableStateOf(0)
+    }
+
+    val inputModel = TextFieldModel(
         text = inputState.value,
         onChange = inputState::value::set,
     )
-    val outputModel = TextFieldModel2(
-        state = outputState,
+    val outputModel = TextFieldModel(
         text = outputState.value,
+        textRevision = outputRevisionState.value,
         onChange = outputState::value::set,
     )
 
@@ -146,7 +149,10 @@ private fun SettingAutotypeTest(
                     onClick = {
                         val payload = inputState.value
                         inProgress = true
+                        // Command path: bump the revision so the field's
+                        // edit buffer adopts the cleared text.
                         outputState.value = ""
+                        outputRevisionState.value += 1
                         outputFocusRequester.requestFocus()
                         windowCoroutineScope.launch {
                             try {

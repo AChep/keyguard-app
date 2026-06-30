@@ -73,7 +73,8 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.feature.auth.common.IntFieldModel
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
+import com.artemchep.keyguard.feature.auth.common.toModel
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_DOMAIN
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
@@ -277,6 +278,51 @@ fun produceGeneratorState(
         clipboardService,
     ),
 ) {
+    generatorStateProducer(
+        mode = mode,
+        args = args,
+        key = key,
+        addGeneratorHistory = addGeneratorHistory,
+        getPassword = getPassword,
+        getPasswordStrength = getPasswordStrength,
+        getProfiles = getProfiles,
+        getEmailRelays = getEmailRelays,
+        getWordlists = getWordlists,
+        getWordlistPrimitive = getWordlistPrimitive,
+        cryptoGenerator = cryptoGenerator,
+        keyPairExport = keyPairExport,
+        publicKeyExport = publicKeyExport,
+        privateKeyExport = privateKeyExport,
+        numberFormatter = numberFormatter,
+        getCanWrite = getCanWrite,
+        tldService = tldService,
+        clipboardService = clipboardService,
+        emailRelays = emailRelays,
+    )
+}
+
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
+suspend fun RememberStateFlowScope.generatorStateProducer(
+    mode: AppMode,
+    args: GeneratorRoute.Args,
+    key: String? = null,
+    addGeneratorHistory: AddGeneratorHistory?,
+    getPassword: GetPassword,
+    getPasswordStrength: GetPasswordStrength,
+    getProfiles: GetProfiles?,
+    getEmailRelays: GetEmailRelays?,
+    getWordlists: GetWordlists?,
+    getWordlistPrimitive: GetWordlistPrimitive?,
+    cryptoGenerator: CryptoGenerator,
+    keyPairExport: KeyPairExport,
+    publicKeyExport: KeyPublicExport,
+    privateKeyExport: KeyPrivateExport,
+    numberFormatter: NumberFormatter,
+    getCanWrite: GetCanWrite,
+    tldService: TldService,
+    clipboardService: ClipboardService,
+    emailRelays: List<EmailRelay>,
+): Flow<Loadable<GeneratorState>> {
     val generatorContext = mode.generatorTarget
     val copyItemFactory = copier()
 
@@ -583,11 +629,11 @@ fun produceGeneratorState(
         key = "$PREFIX_PASSPHRASE.length",
         storage = storage,
     ) { PASSPHRASE_LENGTH_DEFAULT }
-    val passphraseDelimiterSink = mutablePersistedFlow(
+    val passphraseDelimiterHandle = textFieldHandle(
         key = "$PREFIX_PASSPHRASE.delimiter",
+        initial = PASSPHRASE_DELIMITER_DEFAULT,
         storage = storage,
-    ) { PASSPHRASE_DELIMITER_DEFAULT }
-    val passphraseDelimiterState = mutableComposeState(passphraseDelimiterSink)
+    )
     val passphraseCapitalizeSink = mutablePersistedFlow(
         key = "$PREFIX_PASSPHRASE.capitalize",
         storage = storage,
@@ -611,11 +657,11 @@ fun produceGeneratorState(
         key = "$PREFIX_USERNAME.length",
         storage = storage,
     ) { USERNAME_LENGTH_DEFAULT }
-    val usernameDelimiterSink = mutablePersistedFlow(
+    val usernameDelimiterHandle = textFieldHandle(
         key = "$PREFIX_USERNAME.delimiter",
+        initial = USERNAME_DELIMITER_DEFAULT,
         storage = storage,
-    ) { USERNAME_DELIMITER_DEFAULT }
-    val usernameDelimiterState = mutableComposeState(usernameDelimiterSink)
+    )
     val usernameCapitalizeSink = mutablePersistedFlow(
         key = "$PREFIX_USERNAME.capitalize",
         storage = storage,
@@ -624,11 +670,11 @@ fun produceGeneratorState(
         key = "$PREFIX_USERNAME.include_number",
         storage = storage,
     ) { USERNAME_NUMBER_DEFAULT }
-    val usernameCustomWordSink = mutablePersistedFlow(
+    val usernameCustomWordHandle = textFieldHandle(
         key = "$PREFIX_USERNAME.custom_word",
+        initial = USERNAME_CUSTOM_WORD_DEFAULT,
         storage = storage,
-    ) { USERNAME_CUSTOM_WORD_DEFAULT }
-    val usernameCustomWordState = mutableComposeState(usernameCustomWordSink)
+    )
     val usernameWordlistIdSink = mutablePersistedFlow(
         key = "$PREFIX_USERNAME.wordlist_id",
         storage = storage,
@@ -639,46 +685,46 @@ fun produceGeneratorState(
         key = "$PREFIX_EMAIL_CATCH_ALL.length",
         storage = storage,
     ) { EMAIL_CATCH_ALL_LENGTH_DEFAULT }
-    val emailCatchAllDomainSink = mutablePersistedFlow(
+    val emailCatchAllDomainHandle = textFieldHandle(
         key = "$PREFIX_EMAIL_CATCH_ALL.domain",
         storage = storage,
-    ) { "" }
-    val emailCatchAllDomainState = mutableComposeState(emailCatchAllDomainSink)
-    if (emailCatchAllDomainState.value.isEmpty()) {
-        emailCatchAllDomainState.value =
-            getUserDomainDefaultIo.attempt().bind().getOrNull().orEmpty()
+    )
+    if (emailCatchAllDomainHandle.sink.value.text.isEmpty()) {
+        emailCatchAllDomainHandle.setText(
+            getUserDomainDefaultIo.attempt().bind().getOrNull().orEmpty(),
+        )
     }
     // email plus addressing
     val emailPlusAddressingLengthSink = mutablePersistedFlow(
         key = "$PREFIX_EMAIL_PLUS_ADDRESSING.length",
         storage = storage,
     ) { EMAIL_PLUS_ADDRESSING_LENGTH_DEFAULT }
-    val emailPlusAddressingEmailSink = mutablePersistedFlow(
+    val emailPlusAddressingEmailHandle = textFieldHandle(
         key = "$PREFIX_EMAIL_PLUS_ADDRESSING.email",
         storage = storage,
-    ) { "" }
-    val emailPlusAddressingEmailState = mutableComposeState(emailPlusAddressingEmailSink)
-    if (emailPlusAddressingEmailState.value.isEmpty()) {
-        emailPlusAddressingEmailState.value =
-            getUserEmailDefaultIo.attempt().bind().getOrNull().orEmpty()
+    )
+    if (emailPlusAddressingEmailHandle.sink.value.text.isEmpty()) {
+        emailPlusAddressingEmailHandle.setText(
+            getUserEmailDefaultIo.attempt().bind().getOrNull().orEmpty(),
+        )
     }
     // email subdomain addressing
     val emailSubdomainAddressingLengthSink = mutablePersistedFlow(
         key = "$PREFIX_EMAIL_SUBDOMAIN_ADDRESSING.length",
         storage = storage,
     ) { EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_DEFAULT }
-    val emailSubdomainAddressingEmailSink = mutablePersistedFlow(
+    val emailSubdomainAddressingEmailHandle = textFieldHandle(
         key = "$PREFIX_EMAIL_SUBDOMAIN_ADDRESSING.email",
         storage = storage,
-    ) { "" }
-    val emailSubdomainAddressingEmailState = mutableComposeState(emailSubdomainAddressingEmailSink)
-    if (emailSubdomainAddressingEmailState.value.isEmpty()) {
-        emailSubdomainAddressingEmailState.value =
+    )
+    if (emailSubdomainAddressingEmailHandle.sink.value.text.isEmpty()) {
+        emailSubdomainAddressingEmailHandle.setText(
             getUserEmailDefaultIo.attempt().bind().getOrNull().orEmpty()
                 .takeIf { email ->
                     email.substringAfterLast('@', "") !in Emails
                 }
-                .orEmpty()
+                .orEmpty(),
+        )
     }
     // key pair
     val keyPairTypeSink = mutablePersistedFlow(
@@ -801,11 +847,7 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_PASSPHRASE.delimiter",
                 title = translate(Res.string.generator_passphrase_delimiter_title),
-                model = TextFieldModel2(
-                    state = passphraseDelimiterState,
-                    text = config.delimiter,
-                    onChange = passphraseDelimiterState::value::set,
-                ),
+                model = passphraseDelimiterHandle.toModel(),
             ),
         )
         return GeneratorState.Filter(
@@ -886,20 +928,12 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_USERNAME.custom_word",
                 title = translate(Res.string.generator_username_custom_word_title),
-                model = TextFieldModel2(
-                    state = usernameCustomWordState,
-                    text = config.customWord,
-                    onChange = usernameCustomWordState::value::set,
-                ),
+                model = usernameCustomWordHandle.toModel(),
             ),
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_USERNAME.delimiter",
                 title = translate(Res.string.generator_username_delimiter_title),
-                model = TextFieldModel2(
-                    state = usernameDelimiterState,
-                    text = config.delimiter,
-                    onChange = usernameDelimiterState::value::set,
-                ),
+                model = usernameDelimiterHandle.toModel(),
             ),
         )
         return GeneratorState.Filter(
@@ -1043,9 +1077,7 @@ fun produceGeneratorState(
                 key = "$PREFIX_EMAIL_CATCH_ALL.domain",
                 title = translate(Res.string.generator_email_catch_all_domain_title),
                 icon = Icons.Outlined.Domain,
-                model = TextFieldModel2(
-                    state = emailCatchAllDomainState,
-                    text = config.domain,
+                model = emailCatchAllDomainHandle.toModel(
                     hint = "example.com",
                     error = when {
                         config.domain.isEmpty() ->
@@ -1059,7 +1091,6 @@ fun produceGeneratorState(
 
                         else -> null
                     },
-                    onChange = emailCatchAllDomainState::value::set,
                 ),
             ),
         )
@@ -1098,9 +1129,7 @@ fun produceGeneratorState(
                 key = "$PREFIX_EMAIL_PLUS_ADDRESSING.email",
                 title = translate(Res.string.generator_email_plus_addressing_email_title),
                 icon = Icons.Outlined.Email,
-                model = TextFieldModel2(
-                    state = emailPlusAddressingEmailState,
-                    text = config.email,
+                model = emailPlusAddressingEmailHandle.toModel(
                     hint = PLACEHOLDER_EMAIL,
                     error = when {
                         config.email.isEmpty() ->
@@ -1111,7 +1140,6 @@ fun produceGeneratorState(
 
                         else -> null
                     },
-                    onChange = emailPlusAddressingEmailState::value::set,
                 ),
             ),
         )
@@ -1150,9 +1178,7 @@ fun produceGeneratorState(
                 key = "$PREFIX_EMAIL_SUBDOMAIN_ADDRESSING.email",
                 title = translate(Res.string.generator_email_subdomain_addressing_email_title),
                 icon = Icons.Outlined.Email,
-                model = TextFieldModel2(
-                    state = emailSubdomainAddressingEmailState,
-                    text = config.email,
+                model = emailSubdomainAddressingEmailHandle.toModel(
                     hint = PLACEHOLDER_EMAIL,
                     error = when {
                         config.email.isEmpty() ->
@@ -1166,7 +1192,6 @@ fun produceGeneratorState(
 
                         else -> null
                     },
-                    onChange = emailSubdomainAddressingEmailState::value::set,
                 ),
             ),
         )
@@ -1369,7 +1394,7 @@ fun produceGeneratorState(
 
                 is GeneratorType2.Passphrase -> combine(
                     passphraseLengthSink,
-                    passphraseDelimiterSink,
+                    passphraseDelimiterHandle.sink.map { it.text },
                     passphraseCapitalizeSink,
                     passphraseIncludeNumberSink,
                     passphraseWordlistFlow,
@@ -1404,10 +1429,10 @@ fun produceGeneratorState(
 
                 is GeneratorType2.Username -> combine(
                     usernameLengthSink,
-                    usernameDelimiterSink,
+                    usernameDelimiterHandle.sink.map { it.text },
                     usernameCapitalizeSink,
                     usernameIncludeNumberSink,
-                    usernameCustomWordSink,
+                    usernameCustomWordHandle.sink.map { it.text },
                     usernameWordlistFlow,
                     customWordlistsFlow,
                 ) { array ->
@@ -1432,7 +1457,7 @@ fun produceGeneratorState(
 
                 is GeneratorType2.EmailCatchAll -> combine(
                     emailCatchAllLengthSink,
-                    emailCatchAllDomainSink,
+                    emailCatchAllDomainHandle.sink.map { it.text },
                 ) { length, domain ->
                     PasswordGeneratorConfigBuilder2.EmailCatchAll(
                         payload = PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated(
@@ -1444,7 +1469,7 @@ fun produceGeneratorState(
 
                 is GeneratorType2.EmailPlusAddressing -> combine(
                     emailPlusAddressingLengthSink,
-                    emailPlusAddressingEmailSink,
+                    emailPlusAddressingEmailHandle.sink.map { it.text },
                 ) { length, email ->
                     PasswordGeneratorConfigBuilder2.EmailPlusAddressing(
                         payload = PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated(
@@ -1456,7 +1481,7 @@ fun produceGeneratorState(
 
                 is GeneratorType2.EmailSubdomainAddressing -> combine(
                     emailSubdomainAddressingLengthSink,
-                    emailSubdomainAddressingEmailSink,
+                    emailSubdomainAddressingEmailHandle.sink.map { it.text },
                 ) { length, email ->
                     PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing(
                         payload = PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated(
@@ -1739,13 +1764,13 @@ fun produceGeneratorState(
     val optionsStatic = buildContextItems {
         if (getEmailRelays != null) {
             this += EmailRelayListRoute.actionOrNull(
-                translator = this@produceScreenState,
+                translator = this@generatorStateProducer,
                 navigate = ::navigate,
             )
         }
         if (getWordlists != null) {
             this += WordlistsRoute.actionOrNull(
-                translator = this@produceScreenState,
+                translator = this@generatorStateProducer,
                 navigate = ::navigate,
             )
         }
@@ -1898,7 +1923,7 @@ fun produceGeneratorState(
         ).attempt().bind().getOrNull()
 
         return combine(
-            emailCatchAllDomainSink,
+            emailCatchAllDomainHandle.sink.map { it.text },
             webUriContextWordsFlow,
         ) { domain, hosts ->
             hosts
@@ -1928,7 +1953,7 @@ fun produceGeneratorState(
         ).attempt().bind().getOrNull()
 
         return combine(
-            emailPlusAddressingEmailSink,
+            emailPlusAddressingEmailHandle.sink.map { it.text },
             webUriContextWordsFlow,
         ) { email, hosts ->
             hosts
@@ -1958,7 +1983,7 @@ fun produceGeneratorState(
         ).attempt().bind().getOrNull()
 
         return combine(
-            emailSubdomainAddressingEmailSink,
+            emailSubdomainAddressingEmailHandle.sink.map { it.text },
             webUriContextWordsFlow,
         ) { email, hosts ->
             hosts
@@ -2049,7 +2074,7 @@ fun produceGeneratorState(
         ) to flowOf(refreshValue::invoke),
     )
 
-    optionsFlow
+    return optionsFlow
         .map { options ->
             val state = GeneratorState(
                 onOpenHistory = ::onOpenHistory

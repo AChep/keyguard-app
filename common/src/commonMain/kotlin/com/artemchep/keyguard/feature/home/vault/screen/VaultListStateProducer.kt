@@ -75,7 +75,8 @@ import com.artemchep.keyguard.feature.attachments.AttachmentsRoute
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
@@ -125,6 +126,7 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
@@ -305,6 +307,131 @@ internal fun vaultListScreenState(
         clipboardService,
     ),
 ) {
+    vaultListScreenStateProducer(
+        directDI = directDI,
+        args = args,
+        highlightBackgroundColor = highlightBackgroundColor,
+        highlightContentColor = highlightContentColor,
+        mode = mode,
+        deeplinkService = deeplinkService,
+        equivalentDomainsBuilderFactory = equivalentDomainsBuilderFactory,
+        getSuggestions = getSuggestions,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getCanWrite = getCanWrite,
+        getCiphers = getCiphers,
+        getFolders = getFolders,
+        getTags = getTags,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+        getVaultSearchIndex = getVaultSearchIndex,
+        getVaultSearchQualifierCatalog = getVaultSearchQualifierCatalog,
+        searchTraceSink = searchTraceSink,
+        queryHighlighter = queryHighlighter,
+        getTotpCode = getTotpCode,
+        getConcealFields = getConcealFields,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        getPasswordStrength = getPasswordStrength,
+        getCipherOpenedHistory = getCipherOpenedHistory,
+        passkeyTargetCheck = passkeyTargetCheck,
+        renameFolderById = renameFolderById,
+        clearVaultSession = clearVaultSession,
+        toolbox = toolbox,
+        queueSyncAll = queueSyncAll,
+        syncSupervisor = syncSupervisor,
+        dateFormatter = dateFormatter,
+        clipboardService = clipboardService,
+        bitwardenLoginRouteFactory = bitwardenLoginRouteFactory,
+        passkeysCredentialViewRouteFactory = passkeysCredentialViewRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
+    directDI: DirectDI,
+    args: VaultRoute.Args,
+    highlightBackgroundColor: Color,
+    highlightContentColor: Color,
+    mode: AppMode,
+): Flow<VaultListState> = with(directDI) {
+    vaultListScreenStateProducer(
+        directDI = directDI,
+        args = args,
+        highlightBackgroundColor = highlightBackgroundColor,
+        highlightContentColor = highlightContentColor,
+        mode = mode,
+        deeplinkService = instance(),
+        clearVaultSession = instance(),
+        equivalentDomainsBuilderFactory = instance(),
+        getSuggestions = instance(),
+        getAccounts = instance(),
+        getProfiles = instance(),
+        getCanWrite = instance(),
+        getCiphers = instance(),
+        getFolders = instance(),
+        getTags = instance(),
+        getCollections = instance(),
+        getOrganizations = instance(),
+        getVaultSearchIndex = instance(),
+        getVaultSearchQualifierCatalog = instance(),
+        searchTraceSink = instance(),
+        queryHighlighter = instance(),
+        getTotpCode = instance(),
+        getConcealFields = instance(),
+        getAppIcons = instance(),
+        getWebsiteIcons = instance(),
+        getPasswordStrength = instance(),
+        getCipherOpenedHistory = instance(),
+        passkeyTargetCheck = instance(),
+        renameFolderById = instance(),
+        toolbox = instance(),
+        queueSyncAll = instance(),
+        syncSupervisor = instance(),
+        dateFormatter = instance(),
+        clipboardService = instance(),
+        bitwardenLoginRouteFactory = instance(),
+        passkeysCredentialViewRouteFactory = instance(),
+    )
+}
+
+internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
+    directDI: DirectDI,
+    args: VaultRoute.Args,
+    highlightBackgroundColor: Color,
+    highlightContentColor: Color,
+    mode: AppMode,
+    deeplinkService: DeeplinkService,
+    equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
+    getSuggestions: GetSuggestions<Any?>,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getCanWrite: GetCanWrite,
+    getCiphers: GetCiphers,
+    getFolders: GetFolders,
+    getTags: GetTags,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+    getVaultSearchIndex: GetVaultSearchIndex,
+    getVaultSearchQualifierCatalog: GetVaultSearchQualifierCatalog,
+    searchTraceSink: VaultSearchTraceSink,
+    queryHighlighter: VaultSearchQueryHighlighter,
+    getTotpCode: GetTotpCode,
+    getConcealFields: GetConcealFields,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    getPasswordStrength: GetPasswordStrength,
+    getCipherOpenedHistory: GetCipherOpenedHistory,
+    passkeyTargetCheck: PasskeyTargetCheck,
+    renameFolderById: RenameFolderById,
+    clearVaultSession: ClearVaultSession,
+    toolbox: CipherToolbox,
+    queueSyncAll: QueueSyncAll,
+    syncSupervisor: SupervisorRead,
+    dateFormatter: DateFormatter,
+    clipboardService: ClipboardService,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
+    passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
+): Flow<VaultListState> {
     val confirmationRouteFactory: ConfirmationRouteFactory = directDI.instance()
     val storage = kotlin.run {
         val disk = loadDiskHandle("vault.list")
@@ -387,7 +514,7 @@ internal fun vaultListScreenState(
     )
 
     fun clearField() {
-        queryHandle.queryState.value = ""
+        queryHandle.setText("")
     }
 
     fun focusField() {
@@ -398,7 +525,7 @@ internal fun vaultListScreenState(
     // search query is not empty.
     interceptBackPress(
         interceptorFlow = queryHandle.querySink
-            .map { it.isNotEmpty() }
+            .map { it.text.isNotEmpty() }
             .distinctUntilChanged()
             .map { enabled ->
                 if (enabled) {
@@ -642,6 +769,12 @@ internal fun vaultListScreenState(
         val actionAlwaysShowKeyboardFlow = showKeyboardSink
             .map { showKeyboard ->
                 FlatItemAction(
+                    // The id is non-visual (it is not rendered and not used as a
+                    // Compose key); it carries the toggle's current on/off state so
+                    // the native iOS/macOS bridge can project a Switch/checkmark into
+                    // its overflow menu without re-running the producer. The Compose
+                    // UI ignores it and renders the [trailing] Switch as before.
+                    id = "vault.action.always_show_keyboard.$showKeyboard",
                     leading = {
                         Icon(
                             Icons.Outlined.Keyboard,
@@ -661,6 +794,9 @@ internal fun vaultListScreenState(
         val actionRememberSortingFlow = rememberSortSink
             .map { rememberSorting ->
                 FlatItemAction(
+                    // See the id note above: non-visual, carries the toggle state for
+                    // the native bridge only.
+                    id = "vault.action.remember_sorting.$rememberSorting",
                     leading = {
                         Icon(
                             Icons.Outlined.SortByAlpha,
@@ -909,7 +1045,7 @@ internal fun vaultListScreenState(
                     }.persistingStateIn(this, sharing)
                     val item = secret.toVaultListItem(
                         copy = copy,
-                        translator = this@produceScreenState,
+                        translator = this@vaultListScreenStateProducer,
                         getTotpCode = getTotpCode,
                         concealFields = cfg.concealFields,
                         appIcons = cfg.appIcons,
@@ -1572,7 +1708,7 @@ internal fun vaultListScreenState(
             queryQualifierSuggestion = queryQualifierSuggestion,
         )
     }
-    combine(
+    return combine(
         itemsNullableFlow,
         filterListFlow,
         comparatorsListFlow
@@ -1587,7 +1723,8 @@ internal fun vaultListScreenState(
         val queryRevision = queryStateData.queryRevision
         val queryHighlighting = queryStateData.queryHighlighting
         val queryQualifierSuggestion = queryStateData.queryQualifierSuggestion
-        val (query, queryTrimmed) = queryPair
+        val (queryCell, queryTrimmed) = queryPair
+        val query = queryCell.text
         val revision = filters.rev xor queryRevision xor sort.hashCode()
         val content = if (hasAccounts) {
             itemsContent
@@ -1610,15 +1747,17 @@ internal fun vaultListScreenState(
         val queryField = if (content !is VaultListState.Content.AddAccount) {
             // We want to let the user search while the items
             // are still loading.
-            TextFieldModel2(
-                state = queryHandle.queryState,
+            TextFieldModel(
                 text = query,
+                textRevision = queryCell.revision,
+                id = "query",
+                onChange = queryHandle::onChange,
+                onSetText = queryHandle::setText,
                 focusFlow = queryHandle.queryFocusSink,
-                onChange = queryHandle.queryState::value::set,
             )
         } else {
-            TextFieldModel2(
-                mutableStateOf(""),
+            TextFieldModel(
+                text = "",
             )
         }
 
@@ -1774,7 +1913,7 @@ internal fun vaultListScreenState(
 }
 
 private data class QueryStateData(
-    val queryPair: Pair<String, String>,
+    val queryPair: Pair<TextCell, String>,
     val queryRevision: Int,
     val queryHighlighting: QueryHighlighting,
     val queryQualifierSuggestion: VaultSearchQualifierSuggestion?,

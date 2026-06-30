@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.home.vault.search.engine
 
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.graphics.Color
 import com.artemchep.keyguard.common.usecase.GetVaultSearchIndex
 import com.artemchep.keyguard.common.usecase.GetVaultSearchQualifierCatalog
@@ -14,6 +13,9 @@ import com.artemchep.keyguard.feature.home.vault.search.query.highlight.QueryHig
 import com.artemchep.keyguard.feature.home.vault.search.query.highlight.VaultSearchQueryHighlighter
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.CompiledQueryPlan
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.search.search.debounceSearch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,16 +28,28 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.shareIn
 
 internal class VaultSearchQueryHandle(
-    val querySink: MutableStateFlow<String>,
-    val queryState: MutableState<String>,
+    /** Owns the canonical query cell; shared field semantics. */
+    val queryField: TextFieldHandle,
     val queryFocusSink: EventFlow<Unit>,
-    val queryPairFlow: Flow<Pair<String, String>>,
+    val queryPairFlow: Flow<Pair<TextCell, String>>,
     val debouncedQueryFlow: Flow<String?>,
     val queryHighlightingFlow: Flow<QueryHighlighting>,
     val queryQualifierSuggestionFlow: Flow<VaultSearchQualifierSuggestion?>,
     val searchContextFlow: Flow<VaultSearchContext?>,
     val queryRevisionFlow: Flow<Int>,
-)
+) {
+    val querySink: MutableStateFlow<TextCell>
+        get() = queryField.sink
+
+    /** Reflects a user edit; keeps the text revision. */
+    fun onChange(text: String) = queryField.onChange(text)
+
+    /**
+     * Writes the text as a command (clear, suggestion, restore); bumps the
+     * revision so UI edge buffers adopt the new text unconditionally.
+     */
+    fun setText(text: String) = queryField.setText(text)
+}
 
 internal data class VaultSearchContext(
     val searchIndex: VaultSearchIndex,
@@ -51,31 +65,30 @@ internal fun RememberStateFlowScope.vaultSearchQueryHandle(
     queryHighlighter: VaultSearchQueryHighlighter,
     sharingStarted: SharingStarted,
 ): VaultSearchQueryHandle {
-    val querySink = mutablePersistedFlow(key) { "" }
-    val queryState = mutableComposeState(querySink)
+    val queryField = textFieldHandle(key)
     val queryFocusSink = EventFlow<Unit>()
-    val queryPairFlow = querySink
-        .map { it to it.trim() }
+    val queryPairFlow = queryField.sink
+        .map { it to it.text.trim() }
         .shareIn(this, sharingStarted, replay = 1)
     val qualifierCatalogFlow = getVaultSearchQualifierCatalog()
         .shareIn(this, sharingStarted, replay = 1)
     val queryHighlightingFlow = combine(
-        querySink,
+        queryField.sink,
         qualifierCatalogFlow,
-    ) { query, qualifierCatalog ->
+    ) { cell, qualifierCatalog ->
         vaultSearchQueryHighlighting(
-            query = query,
+            query = cell.text,
             searchBy = searchBy,
             queryHighlighter = queryHighlighter,
             qualifierCatalog = qualifierCatalog,
         )
     }.shareIn(this, sharingStarted, replay = 1)
     val queryQualifierSuggestionFlow = combine(
-        querySink,
+        queryField.sink,
         qualifierCatalogFlow,
-    ) { query, qualifierCatalog ->
+    ) { cell, qualifierCatalog ->
         bestVaultSearchQualifierSuggestion(
-            query = query,
+            query = cell.text,
             catalog = qualifierCatalog,
         )
     }.shareIn(this, sharingStarted, replay = 1)
@@ -95,8 +108,7 @@ internal fun RememberStateFlowScope.vaultSearchQueryHandle(
         .map { it?.queryPlan?.id ?: 0 }
         .shareIn(this, sharingStarted, replay = 1)
     return VaultSearchQueryHandle(
-        querySink = querySink,
-        queryState = queryState,
+        queryField = queryField,
         queryFocusSink = queryFocusSink,
         queryPairFlow = queryPairFlow,
         debouncedQueryFlow = debouncedQueryFlow,
@@ -131,7 +143,7 @@ internal fun Flow<String>.mapVaultSearchQueryHighlighting(
     )
 }
 
-internal fun Flow<Pair<String, String>>.vaultSearchDebouncedQueryFlow(): Flow<String?> = this
+internal fun Flow<Pair<TextCell, String>>.vaultSearchDebouncedQueryFlow(): Flow<String?> = this
     .debounceSearch { (_, queryTrimmed) -> queryTrimmed }
     .map { (_, queryTrimmed) ->
         queryTrimmed.takeIf(String::isNotEmpty)

@@ -2,7 +2,7 @@ package com.artemchep.keyguard.feature.confirmation.organization
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 
 data class OrganizationConfirmationState(
     val content: Loadable<Content> = Loadable.Loading,
@@ -14,7 +14,7 @@ data class OrganizationConfirmationState(
         val organizations: Section?,
         val collections: Section?,
         val folders: Section?,
-        val folderNew: TextFieldModel2?,
+        val folderNew: TextFieldModel?,
     ) {
         data class Section(
             val items: List<Item>,

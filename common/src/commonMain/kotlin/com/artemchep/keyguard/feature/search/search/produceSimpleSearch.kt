@@ -1,9 +1,11 @@
 package com.artemchep.keyguard.feature.search.search
 
-import androidx.compose.runtime.MutableState
 import arrow.core.identity
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.ui.theme.searchHighlightBackgroundColor
@@ -23,22 +25,33 @@ const val SEARCH_DEBOUNCE_LONG = 200L
 
 class SearchQueryHandle(
     val scope: RememberStateFlowScope,
-    val querySink: MutableStateFlow<String>,
-    val queryState: MutableState<String>,
+    /** Owns the canonical query cell; shared field semantics. */
+    val queryField: TextFieldHandle,
     val queryIndexed: Flow<IndexedText?>,
     val focusSink: EventFlow<Unit>,
     val revisionFlow: Flow<Int>,
 ) {
+    val querySink: MutableStateFlow<TextCell>
+        get() = queryField.sink
+
+    /** Reflects a user edit; keeps the text revision. */
+    fun onChange(text: String) = queryField.onChange(text)
+
+    /**
+     * Writes the text as a command (clear, suggestion, restore); bumps the
+     * revision so UI edge buffers adopt the new text unconditionally.
+     */
+    fun setText(text: String) = queryField.setText(text)
 }
 
 fun RememberStateFlowScope.searchQueryHandle(
     key: String,
     revisionFlow: Flow<Int> = flowOf(0),
 ): SearchQueryHandle {
-    val querySink = mutablePersistedFlow(key) { "" }
-    val queryState = mutableComposeState(querySink)
+    val queryField = textFieldHandle(key)
 
-    val queryIndexedFlow = querySink
+    val queryIndexedFlow = queryField.sink
+        .map { it.text }
         .debounceSearch(::identity)
         .map { query ->
             val queryTrimmed = query.trim()
@@ -51,8 +64,7 @@ fun RememberStateFlowScope.searchQueryHandle(
     val focusSink = EventFlow<Unit>()
     return SearchQueryHandle(
         scope = this,
-        querySink = querySink,
-        queryState = queryState,
+        queryField = queryField,
         queryIndexed = queryIndexedFlow,
         focusSink = focusSink,
         revisionFlow = revisionFlow,
@@ -61,17 +73,18 @@ fun RememberStateFlowScope.searchQueryHandle(
 
 suspend fun <T> RememberStateFlowScope.searchFilter(
     handle: SearchQueryHandle,
-    transform: (TextFieldModel2, Int) -> T,
+    transform: (TextFieldModel, Int) -> T,
 ) = combine(
     handle.querySink,
     handle.revisionFlow,
-) { query, rev ->
-    val revision = rev xor query.trim().hashCode()
-    val model = TextFieldModel2(
-        state = handle.queryState,
-        text = query,
+) { cell, rev ->
+    val revision = rev xor cell.text.trim().hashCode()
+    val model = TextFieldModel(
+        text = cell.text,
+        textRevision = cell.revision,
+        onChange = handle::onChange,
+        onSetText = handle::setText,
         focusFlow = handle.focusSink,
-        onChange = handle.queryState::value::set,
     )
     transform(
         model,

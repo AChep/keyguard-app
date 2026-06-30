@@ -2,7 +2,7 @@ package com.artemchep.keyguard.feature.auth.keepass
 
 import androidx.compose.runtime.Immutable
 import arrow.optics.optics
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginEvent
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -20,7 +20,7 @@ data class KeePassLoginState(
     val dbFileState: StateFlow<FileItem>,
     val keyFileState: StateFlow<FileItem>,
     val databaseLocationState: StateFlow<DatabaseLocation>,
-    val password: StateFlow<TextFieldModel2>,
+    val password: StateFlow<TextFieldModel>,
     val actionState: StateFlow<Action?>,
     val tabsState: StateFlow<Tabs>,
     val sideEffects: SideEffect = SideEffect(),

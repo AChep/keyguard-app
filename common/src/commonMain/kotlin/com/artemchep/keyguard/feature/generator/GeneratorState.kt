@@ -11,7 +11,7 @@ import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.feature.auth.common.IntFieldModel
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.collections.immutable.ImmutableList
@@ -89,7 +89,7 @@ data class GeneratorState(
                 override val key: String,
                 val title: String,
                 val icon: ImageVector? = null,
-                val model: TextFieldModel2,
+                val model: TextFieldModel,
             ) : Item, GroupableShapeItem<Text> {
                 override fun withShape(shape: Int) = this
             }

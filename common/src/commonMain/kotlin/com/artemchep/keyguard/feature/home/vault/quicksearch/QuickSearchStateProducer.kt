@@ -24,7 +24,8 @@ import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
@@ -59,6 +60,7 @@ import com.artemchep.keyguard.res.copy_username
 import com.artemchep.keyguard.res.copy_value
 import com.artemchep.keyguard.res.uri_action_launch_browser_title
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -123,6 +125,44 @@ internal fun quickSearchScreenState(
         clipboardService,
     ),
 ) {
+    quickSearchScreenStateProducer(
+        highlightBackgroundColor = highlightBackgroundColor,
+        highlightContentColor = highlightContentColor,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getCiphers = getCiphers,
+        getOrganizations = getOrganizations,
+        getVaultSearchIndex = getVaultSearchIndex,
+        getVaultSearchQualifierCatalog = getVaultSearchQualifierCatalog,
+        searchTraceSink = searchTraceSink,
+        queryHighlighter = queryHighlighter,
+        getTotpCode = getTotpCode,
+        getConcealFields = getConcealFields,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        clipboardService = clipboardService,
+        bitwardenLoginRouteFactory = bitwardenLoginRouteFactory,
+    )
+}
+
+internal suspend fun RememberStateFlowScope.quickSearchScreenStateProducer(
+    highlightBackgroundColor: Color,
+    highlightContentColor: Color,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getCiphers: GetCiphers,
+    getOrganizations: GetOrganizations,
+    getVaultSearchIndex: GetVaultSearchIndex,
+    getVaultSearchQualifierCatalog: GetVaultSearchQualifierCatalog,
+    searchTraceSink: VaultSearchTraceSink,
+    queryHighlighter: VaultSearchQueryHighlighter,
+    getTotpCode: GetTotpCode,
+    getConcealFields: GetConcealFields,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    clipboardService: ClipboardService,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
+): Flow<QuickSearchState> {
     val copy = copier()
     val queryHandle = vaultSearchQueryHandle(
         key = "query",
@@ -137,7 +177,7 @@ internal fun quickSearchScreenState(
     val selectedActionIndexSink = mutablePersistedFlow<Int?>("selected_action_index") { null }
 
     fun clearField() {
-        queryHandle.queryState.value = ""
+        queryHandle.setText("")
     }
 
     fun focusField() {
@@ -146,7 +186,7 @@ internal fun quickSearchScreenState(
 
     interceptBackPress(
         interceptorFlow = queryHandle.querySink
-            .map { it.isNotEmpty() }
+            .map { it.text.isNotEmpty() }
             .distinctUntilChanged()
             .map { enabled ->
                 if (enabled) {
@@ -222,7 +262,7 @@ internal fun quickSearchScreenState(
                 .map { secret ->
                     val item = secret.toVaultListItem(
                         copy = copy,
-                        translator = this@produceScreenState,
+                        translator = this@quickSearchScreenStateProducer,
                         getTotpCode = getTotpCode,
                         appIcons = config.appIcons,
                         websiteIcons = config.websiteIcons,
@@ -305,12 +345,12 @@ internal fun quickSearchScreenState(
     ) { selectedItemId, selectedActionIndex ->
         selectedItemId to selectedActionIndex
     }
-    combine(
+    return combine(
         contentInputFlow,
         selectionFlow,
     ) { input, selection ->
         val (selectedItemId, selectedActionIndex) = selection
-        val (query, _) = input.queryPair
+        val (queryCell, _) = input.queryPair
         val content = quickSearchContent(
             results = input.items,
             hasAccounts = input.hasAccounts,
@@ -320,15 +360,17 @@ internal fun quickSearchScreenState(
             ),
         )
         val queryField = if (input.hasAccounts) {
-            TextFieldModel2(
-                state = queryHandle.queryState,
-                text = query,
+            TextFieldModel(
+                text = queryCell.text,
+                textRevision = queryCell.revision,
+                id = "query",
+                onChange = queryHandle::onChange,
+                onSetText = queryHandle::setText,
                 focusFlow = queryHandle.queryFocusSink,
-                onChange = queryHandle.queryState::value::set,
             )
         } else {
-            TextFieldModel2(
-                mutableStateOf(""),
+            TextFieldModel(
+                text = "",
             )
         }
         val reconciledSelectedItemId = reconcileSelectedResultId(
@@ -411,7 +453,7 @@ private data class QuickSearchConfig(
 
 private data class QuickSearchContentInput(
     val items: List<VaultItem2.Item>?,
-    val queryPair: Pair<String, String>,
+    val queryPair: Pair<TextCell, String>,
     val queryHighlighting: QueryHighlighting,
     val queryQualifierSuggestion: com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierSuggestion?,
     val hasAccounts: Boolean,

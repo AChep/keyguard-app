@@ -3,7 +3,7 @@ package com.artemchep.keyguard.feature.auth.bitwarden.twofactor
 import androidx.compose.runtime.Immutable
 import arrow.core.Either
 import arrow.optics.optics
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.yubikey.OnYubiKeyListener
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderType
 
@@ -47,7 +47,7 @@ sealed class BitwardenLoginTwofaState {
     @Immutable
     @optics
     data class Authenticator(
-        val code: TextFieldModel2,
+        val code: TextFieldModel,
         val rememberMe: RememberMe = RememberMe(),
         override val primaryAction: PrimaryAction? = null,
     ) : BitwardenLoginTwofaState(), HasPrimaryAction {
@@ -85,7 +85,7 @@ sealed class BitwardenLoginTwofaState {
     data class Email(
         val email: String? = null,
         val emailResend: (() -> Unit)? = null,
-        val code: TextFieldModel2,
+        val code: TextFieldModel,
         val rememberMe: RememberMe = RememberMe(),
         override val primaryAction: PrimaryAction? = null,
     ) : BitwardenLoginTwofaState(), HasPrimaryAction {
@@ -106,7 +106,7 @@ sealed class BitwardenLoginTwofaState {
     data class EmailNewDevice(
         val email: String? = null,
         val emailResend: (() -> Unit)? = null,
-        val code: TextFieldModel2,
+        val code: TextFieldModel,
         override val primaryAction: PrimaryAction? = null,
     ) : BitwardenLoginTwofaState(), HasPrimaryAction {
         companion object

@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.auth.keepass
 
 import androidx.compose.runtime.mutableStateOf
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.Validated
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -127,9 +127,8 @@ class KeePassLoginStateProducerTest {
                 ),
             ),
             password = MutableStateFlow(
-                TextFieldModel2(
+                TextFieldModel(
                     text = "",
-                    state = mutableStateOf(""),
                     onChange = { _ -> },
                 ),
             ),

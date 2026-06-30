@@ -42,7 +42,9 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
@@ -63,6 +65,7 @@ import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.SEARCH_DEBOUNCE
 import com.artemchep.keyguard.feature.search.search.debounceSearch
@@ -105,6 +108,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
 import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
@@ -203,6 +207,80 @@ fun sendListScreenState(
         clipboardService,
     ),
 ) {
+    sendListScreenStateProducer(
+        directDI = directDI,
+        args = args,
+        highlightBackgroundColor = highlightBackgroundColor,
+        highlightContentColor = highlightContentColor,
+        mode = mode,
+        clearVaultSession = clearVaultSession,
+        getAccounts = getAccounts,
+        getCanWrite = getCanWrite,
+        getSends = getSends,
+        getProfiles = getProfiles,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        toolbox = toolbox,
+        queueSyncAll = queueSyncAll,
+        syncSupervisor = syncSupervisor,
+        dateFormatter = dateFormatter,
+        clipboardService = clipboardService,
+        bitwardenLoginRouteFactory = bitwardenLoginRouteFactory,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.sendListScreenStateProducer(
+    directDI: DirectDI,
+    args: SendRoute.Args,
+    highlightBackgroundColor: Color,
+    highlightContentColor: Color,
+    mode: AppMode,
+): Flow<SendListState> = with(directDI) {
+    sendListScreenStateProducer(
+        directDI = directDI,
+        args = args,
+        highlightBackgroundColor = highlightBackgroundColor,
+        highlightContentColor = highlightContentColor,
+        mode = mode,
+        clearVaultSession = instance(),
+        getAccounts = instance(),
+        getCanWrite = instance(),
+        getSends = instance(),
+        getProfiles = instance(),
+        getAppIcons = instance(),
+        getWebsiteIcons = instance(),
+        toolbox = instance(),
+        queueSyncAll = instance(),
+        syncSupervisor = instance(),
+        dateFormatter = instance(),
+        clipboardService = instance(),
+        bitwardenLoginRouteFactory = instance(),
+        confirmationRouteFactory = instance(),
+    )
+}
+
+suspend fun RememberStateFlowScope.sendListScreenStateProducer(
+    directDI: DirectDI,
+    args: SendRoute.Args,
+    highlightBackgroundColor: Color,
+    highlightContentColor: Color,
+    mode: AppMode,
+    clearVaultSession: ClearVaultSession,
+    getAccounts: GetAccounts,
+    getCanWrite: GetCanWrite,
+    getSends: GetSends,
+    getProfiles: GetProfiles,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    toolbox: SendToolbox,
+    queueSyncAll: QueueSyncAll,
+    syncSupervisor: SupervisorRead,
+    dateFormatter: DateFormatter,
+    clipboardService: ClipboardService,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<SendListState> {
     val storage = kotlin.run {
         val disk = loadDiskHandle("vault.list")
         PersistedStorage.InDisk(disk)
@@ -215,12 +293,12 @@ fun sendListScreenState(
         filter = args.filter,
     )
 
-    val querySink = mutablePersistedFlow("query") { "" }
-    val queryState = mutableComposeState(querySink)
+    val queryHandle = textFieldHandle("query")
+    val querySink = queryHandle.sink
     val queryFocusSink = EventFlow<Unit>()
 
     fun clearField() {
-        queryState.value = ""
+        queryHandle.setText("")
     }
 
     fun focusField() {
@@ -253,7 +331,7 @@ fun sendListScreenState(
     // search query is not empty.
     interceptBackPress(
         interceptorFlow = querySink
-            .map { it.isNotEmpty() }
+            .map { it.text.isNotEmpty() }
             .distinctUntilChanged()
             .map { enabled ->
                 if (enabled) {
@@ -731,7 +809,7 @@ fun sendListScreenState(
             out
         }
 
-    val queryTrimmedFlow = querySink.map { it to it.trim() }
+    val queryTrimmedFlow = querySink.map { it to it.text.trim() }
 
     val queryIndexedFlow = queryTrimmedFlow
         .debounceSearch { (_, queryTrimmed) -> queryTrimmed }
@@ -933,7 +1011,7 @@ fun sendListScreenState(
         // initial state as fast as we can.
         .nullable()
         .persistingStateIn(this, SharingStarted.WhileSubscribed(), null)
-    combine(
+    return combine(
         itemsNullableFlow,
         filterListFlow,
         comparatorsListFlow
@@ -942,7 +1020,8 @@ fun sendListScreenState(
         getAccounts()
             .map { it.isNotEmpty() }
             .distinctUntilChanged(),
-    ) { itemsContent, filters, (comparators, sort), (query, queryTrimmed), hasAccounts ->
+    ) { itemsContent, filters, (comparators, sort), (queryCell, queryTrimmed), hasAccounts ->
+        val query = queryCell.text
         val revision = filters.rev xor queryTrimmed.hashCode() xor sort.hashCode()
         val content = if (hasAccounts) {
             itemsContent
@@ -965,15 +1044,17 @@ fun sendListScreenState(
         val queryField = if (content !is SendListState.Content.AddAccount) {
             // We want to let the user search while the items
             // are still loading.
-            TextFieldModel2(
-                state = queryState,
+            TextFieldModel(
                 text = query,
+                textRevision = queryCell.revision,
+                id = "query",
+                onChange = queryHandle::onChange,
+                onSetText = queryHandle::setText,
                 focusFlow = queryFocusSink,
-                onChange = queryState::value::set,
             )
         } else {
-            TextFieldModel2(
-                mutableStateOf(""),
+            TextFieldModel(
+                text = "",
             )
         }
 

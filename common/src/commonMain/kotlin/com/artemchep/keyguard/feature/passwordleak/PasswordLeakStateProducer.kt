@@ -7,9 +7,12 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.CheckPasswordLeakRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -35,6 +38,16 @@ fun producePasswordLeakState(
         checkPasswordLeak,
     ),
 ) {
+    passwordLeakStateProducer(
+        args = args,
+        checkPasswordLeak = checkPasswordLeak,
+    ).map { state -> Loadable.Ok(state) }
+}
+
+suspend fun RememberStateFlowScope.passwordLeakStateProducer(
+    args: PasswordLeakRoute.Args,
+    checkPasswordLeak: CheckPasswordLeak,
+): Flow<PasswordLeakState> {
     val request = CheckPasswordLeakRequest(
         password = args.password,
     )
@@ -53,5 +66,5 @@ fun producePasswordLeakState(
             navigatePopSelf()
         },
     )
-    flowOf(Loadable.Ok(state))
+    return flowOf(state)
 }

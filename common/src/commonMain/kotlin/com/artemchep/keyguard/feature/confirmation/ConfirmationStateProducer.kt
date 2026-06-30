@@ -6,18 +6,22 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.add.AddState
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -52,6 +56,16 @@ fun confirmationState(
         windowCoroutineScope,
     ),
 ) {
+    confirmationStateProducer(
+        args = args,
+        transmitter = transmitter,
+    )
+}
+
+suspend fun RememberStateFlowScope.confirmationStateProducer(
+    args: ConfirmationRoute.Args,
+    transmitter: RouteResultTransmitter<ConfirmationResult>,
+): Flow<ConfirmationState> {
     fun createItemKey(key: String) = "item.$key"
 
     val filePickerIntentSink = EventFlow<FilePickerIntent<*>>()
@@ -62,16 +76,21 @@ fun confirmationState(
 
     val itemsFlow = args.items
         .map { item ->
+            if (item is ConfirmationRoute.Args.Item.StringItem) {
+                val handle = textFieldHandle(
+                    key = createItemKey(item.key),
+                    initial = item.value,
+                )
+                return@map handle.sink.map { cell ->
+                    confirmationStringItem(
+                        item = item,
+                        cell = cell,
+                        handle = handle,
+                    )
+                }
+            }
             val sink = mutablePersistedFlow(createItemKey(item.key)) {
                 item.value
-            }
-            val state = when (item) {
-                is ConfirmationRoute.Args.Item.BooleanItem -> null
-                is ConfirmationRoute.Args.Item.StringItem ->
-                    mutableComposeState<String>(sink as MutableStateFlow<String>)
-
-                is ConfirmationRoute.Args.Item.EnumItem -> null
-                is ConfirmationRoute.Args.Item.FileItem -> null
             }
             sink
                 .map { value ->
@@ -85,54 +104,8 @@ fun confirmationState(
                             onChange = sink::value::set,
                         )
 
-                        is ConfirmationRoute.Args.Item.StringItem -> {
-                            val fixed = value as String
-                            val error = if (item.canBeEmpty || fixed.isNotBlank()) {
-                                null
-                            } else {
-                                translate(Res.string.error_must_not_be_blank)
-                            }
-                            val sensitive =
-                                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||
-                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token
-                            val monospace =
-                                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||
-                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token ||
-                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Regex ||
-                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Command
-                            val password =
-                                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password
-                            val generator = when (item.type) {
-                                ConfirmationRoute.Args.Item.StringItem.Type.Username -> ConfirmationState.Item.StringItem.Generator.Username
-                                ConfirmationRoute.Args.Item.StringItem.Type.Password -> ConfirmationState.Item.StringItem.Generator.Password
-                                ConfirmationRoute.Args.Item.StringItem.Type.Token,
-                                ConfirmationRoute.Args.Item.StringItem.Type.Text,
-                                ConfirmationRoute.Args.Item.StringItem.Type.URI,
-                                ConfirmationRoute.Args.Item.StringItem.Type.Regex,
-                                ConfirmationRoute.Args.Item.StringItem.Type.Command,
-                                -> null
-                            }
-                            requireNotNull(state)
-                            val model = TextFieldModel2(
-                                state = state,
-                                text = fixed,
-                                hint = item.hint,
-                                error = error,
-                                onChange = state::value::set,
-                            )
-                            ConfirmationState.Item.StringItem(
-                                key = item.key,
-                                title = item.title,
-                                description = item.description,
-                                sensitive = sensitive,
-                                monospace = monospace,
-                                password = password,
-                                generator = generator,
-                                value = fixed,
-                                enabled = item.enabled,
-                                state = model,
-                            )
-                        }
+                        is ConfirmationRoute.Args.Item.StringItem ->
+                            error("Unreachable: string items are handled separately.")
 
                         is ConfirmationRoute.Args.Item.EnumItem -> {
                             val fixed = value as String
@@ -212,7 +185,7 @@ fun confirmationState(
                 }
         }
         .combineToList()
-    itemsFlow
+    return itemsFlow
         .map { items ->
             val valid = items.all { it.valid }
             ConfirmationState(
@@ -237,4 +210,57 @@ fun confirmationState(
                 },
             )
         }
+}
+
+
+private suspend fun RememberStateFlowScope.confirmationStringItem(
+    item: ConfirmationRoute.Args.Item.StringItem,
+    cell: TextCell,
+    handle: TextFieldHandle,
+): ConfirmationState.Item.StringItem {
+    val error = if (item.canBeEmpty || cell.text.isNotBlank()) {
+        null
+    } else {
+        translate(Res.string.error_must_not_be_blank)
+    }
+    val sensitive =
+        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||
+                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token
+    val monospace =
+        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||
+                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token ||
+                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Regex ||
+                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Command
+    val password =
+        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password
+    val generator = when (item.type) {
+        ConfirmationRoute.Args.Item.StringItem.Type.Username -> ConfirmationState.Item.StringItem.Generator.Username
+        ConfirmationRoute.Args.Item.StringItem.Type.Password -> ConfirmationState.Item.StringItem.Generator.Password
+        ConfirmationRoute.Args.Item.StringItem.Type.Token,
+        ConfirmationRoute.Args.Item.StringItem.Type.Text,
+        ConfirmationRoute.Args.Item.StringItem.Type.URI,
+        ConfirmationRoute.Args.Item.StringItem.Type.Regex,
+        ConfirmationRoute.Args.Item.StringItem.Type.Command,
+        -> null
+    }
+    val model = TextFieldModel(
+        text = cell.text,
+        textRevision = cell.revision,
+        hint = item.hint,
+        error = error,
+        onChange = handle::onChange,
+        onSetText = handle::setText,
+    )
+    return ConfirmationState.Item.StringItem(
+        key = item.key,
+        title = item.title,
+        description = item.description,
+        sensitive = sensitive,
+        monospace = monospace,
+        password = password,
+        generator = generator,
+        value = cell.text,
+        enabled = item.enabled,
+        state = model,
+    )
 }

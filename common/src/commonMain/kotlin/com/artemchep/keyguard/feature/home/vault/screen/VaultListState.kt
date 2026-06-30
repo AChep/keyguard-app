@@ -1,10 +1,9 @@
 package com.artemchep.keyguard.feature.home.vault.screen
 
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.mutableStateOf
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.model.SortItem
@@ -21,7 +20,7 @@ import kotlinx.coroutines.flow.emptyFlow
 @optics
 data class VaultListState(
     val revision: Int = 0,
-    val query: TextFieldModel2 = TextFieldModel2(mutableStateOf("")),
+    val query: TextFieldModel = TextFieldModel(text = ""),
     val queryHighlighting: QueryHighlighting = QueryHighlighting.Empty,
     val queryQualifierSuggestion: String? = null,
     val onQueryQualifierSuggestion: ((String) -> VaultSearchQualifierApplyResult?)? = null,

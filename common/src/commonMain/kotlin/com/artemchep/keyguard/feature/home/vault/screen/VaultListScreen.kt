@@ -551,7 +551,7 @@ fun VaultHomeScreenListPane(
                                     .filter { it.sectionId == "custom" && it is FilterItem.ChipItem }
                                     .map { it as FilterItem.ChipItem }
                             }
-                            if (llll.isNotEmpty() && fab && arg2 is AppMode.Main && state.query.state.value == "") Column(
+                            if (llll.isNotEmpty() && fab && arg2 is AppMode.Main && state.query.text == "") Column(
                                 modifier = Modifier,
                             ) {
                                 FlowRow(

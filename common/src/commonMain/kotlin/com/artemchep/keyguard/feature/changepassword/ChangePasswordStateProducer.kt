@@ -13,7 +13,8 @@ import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.modelFlow
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
@@ -21,6 +22,7 @@ import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -58,13 +60,22 @@ fun changePasswordState(
         unlockUseCase,
     ),
 ) {
+    changePasswordStateProducer(
+        unlockUseCase = unlockUseCase,
+        getBiometricRequireConfirmation = getBiometricRequireConfirmation,
+        windowCoroutineScope = windowCoroutineScope,
+    )
+}
+
+suspend fun RememberStateFlowScope.changePasswordStateProducer(
+    unlockUseCase: UnlockUseCase,
+    getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
+    windowCoroutineScope: WindowCoroutineScope,
+): Flow<Loadable<ChangePasswordState>> {
     val biometricPromptSink = EventFlow<BiometricAuthPrompt>()
 
-    val passwordOldSink = mutablePersistedFlow(KEY_PASSWORD_OLD) { "" }
-    val passwordOldState = mutableComposeState(passwordOldSink)
-
-    val passwordNewSink = mutablePersistedFlow(KEY_PASSWORD_NEW) { "" }
-    val passwordNewState = mutableComposeState(passwordNewSink)
+    val passwordOldHandle = textFieldHandle(KEY_PASSWORD_OLD)
+    val passwordNewHandle = textFieldHandle(KEY_PASSWORD_NEW)
 
     val fn = unlockUseCase()
         .map { vaultState ->
@@ -92,27 +103,20 @@ fun changePasswordState(
         biometricWasEnabled
     }
 
-    val validatedPasswordFlow = passwordOldSink
-        .validatedPassword(this)
-    val validatedPasswordNewFlow = passwordNewSink
-        .validatedPassword(this)
+    val currentFieldFlow = passwordOldHandle.modelFlow { password ->
+        validatedPassword(password)
+    }
+    val newFieldFlow = passwordNewHandle.modelFlow { password ->
+        validatedPassword(password)
+    }
 
     val passwordFlow = combine(
-        validatedPasswordFlow,
-        validatedPasswordNewFlow,
-    ) {
-            validatedPassword,
-            validatedPasswordNew,
-        ->
+        currentFieldFlow,
+        newFieldFlow,
+    ) { current, new ->
         ChangePasswordState.Password(
-            current = TextFieldModel2.of(
-                state = passwordOldState,
-                validated = validatedPassword,
-            ),
-            new = TextFieldModel2.of(
-                state = passwordNewState,
-                validated = validatedPasswordNew,
-            ),
+            current = current,
+            new = new,
         )
     }
 
@@ -131,7 +135,7 @@ fun changePasswordState(
             }
         }
 
-    combine(
+    return combine(
         passwordFlow,
         biometricFlow,
         fn,

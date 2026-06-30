@@ -23,7 +23,8 @@ import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
@@ -35,11 +36,13 @@ import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -94,14 +97,41 @@ fun produceExportScreenState(
     key = "export",
     initial = Loadable.Loading,
 ) {
+    exportScreenStateProducer(
+        directDI = directDI,
+        args = args,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getCiphers = getCiphers,
+        getFolders = getFolders,
+        getTags = getTags,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+        permissionService = permissionService,
+        exportManager = exportManager,
+        vaultRouteFactory = vaultRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.exportScreenStateProducer(
+    directDI: DirectDI,
+    args: ExportRoute.Args,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getCiphers: GetCiphers,
+    getFolders: GetFolders,
+    getTags: GetTags,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+    permissionService: PermissionService,
+    exportManager: ExportManager,
+    vaultRouteFactory: VaultRouteFactory,
+): Flow<Loadable<ExportState>> {
     val attachmentsSink = mutablePersistedFlow(
         key = "attachments",
     ) { false }
 
-    val passwordSink = mutablePersistedFlow(
-        key = "password",
-    ) { "" }
-    val passwordState = mutableComposeState(passwordSink)
+    val passwordHandle = textFieldHandle(key = "password")
 
     fun onExport(
         password: String,
@@ -298,17 +328,22 @@ fun produceExportScreenState(
             )
         }
         .stateIn(screenScope)
-    val passwordRawFlow = passwordSink
-        .validatedPassword(
-            scope = this,
-            minLength = 1,
-        )
+    val passwordPairFlow = passwordHandle.sink
+        .map { cell ->
+            cell to validatedPassword(
+                password = cell.text,
+                minLength = 1,
+            )
+        }
         .stateIn(screenScope)
-    val passwordFlow = passwordRawFlow
-        .map { passwordValidated ->
-            val model = TextFieldModel2.of(
-                passwordState,
-                passwordValidated,
+    val passwordRawFlow = passwordPairFlow
+        .map { it.second }
+    val passwordFlow = passwordPairFlow
+        .map { (cell, passwordValidated) ->
+            val model = TextFieldModel.of(
+                cell = cell,
+                handle = passwordHandle,
+                validated = passwordValidated,
             )
             ExportState.Password(
                 model = model,
@@ -358,5 +393,5 @@ fun produceExportScreenState(
         passwordFlow = passwordFlow,
         contentFlow = contentFlow,
     )
-    flowOf(Loadable.Ok(state))
+    return flowOf(Loadable.Ok(state))
 }

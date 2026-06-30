@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.feature.add.attachment
 
-import androidx.compose.runtime.mutableStateOf
 import com.artemchep.keyguard.feature.add.AddStateItem
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -13,25 +15,30 @@ import kotlin.test.assertTrue
 class AttachmentItemUtilTest {
     @Test
     fun `editable attachment state exposes writable name field`() {
-        val backingState = mutableStateOf("invoice.pdf")
+        val handle = TextFieldHandle(
+            sink = MutableStateFlow(TextCell("invoice.pdf")),
+        )
         val name = attachmentNameTextField(
-            name = "invoice.pdf",
+            cell = handle.sink.value,
             editable = true,
-            state = backingState,
+            handle = handle,
         )
 
         assertEquals("invoice.pdf", name.text)
+        assertEquals(0, name.textRevision)
         val onChange = requireNotNull(name.onChange)
         assertNotNull(onChange)
         onChange("report.pdf")
 
-        assertEquals("report.pdf", backingState.value)
+        // A user edit moves the text and keeps the revision.
+        assertEquals("report.pdf", handle.sink.value.text)
+        assertEquals(0, handle.sink.value.revision)
 
         val state = attachmentState(
             name = attachmentNameTextField(
-                name = backingState.value,
+                cell = handle.sink.value,
                 editable = true,
-                state = backingState,
+                handle = handle,
             ),
             config = AttachmentItemStateConfig(
                 id = "local-1",
@@ -44,16 +51,24 @@ class AttachmentItemUtilTest {
         assertEquals("report.pdf", state.name.text)
         assertEquals("2 KB", state.size)
         assertFalse(state.synced)
+
+        // A programmatic write moves the text and bumps the revision.
+        val onSetText = requireNotNull(state.name.onSetText)
+        onSetText("renamed.pdf")
+        assertEquals("renamed.pdf", handle.sink.value.text)
+        assertEquals(1, handle.sink.value.revision)
     }
 
     @Test
     fun `read only attachment state exposes immutable synced field`() {
-        val backingState = mutableStateOf("ignored.pdf")
+        val handle = TextFieldHandle(
+            sink = MutableStateFlow(TextCell("invoice.pdf", revision = 3)),
+        )
         val state = attachmentState(
             name = attachmentNameTextField(
-                name = "invoice.pdf",
+                cell = handle.sink.value,
                 editable = false,
-                state = backingState,
+                handle = handle,
             ),
             config = AttachmentItemStateConfig(
                 id = "remote-1",
@@ -65,10 +80,10 @@ class AttachmentItemUtilTest {
 
         assertEquals("remote-1", state.id)
         assertEquals("invoice.pdf", state.name.text)
+        assertEquals(3, state.name.textRevision)
         assertEquals("12 KB", state.size)
         assertTrue(state.synced)
         assertNull(state.name.onChange)
-        assertFalse(state.name.state === backingState)
     }
 
     @Test
@@ -89,8 +104,8 @@ class AttachmentItemUtilTest {
         val output = Request().populator(
             AddStateItem.Attachment.State(
                 id = "ui-id",
-                name = TextFieldModel2(
-                    state = mutableStateOf("renamed.pdf"),
+                name = TextFieldModel(
+                    text = "renamed.pdf",
                     onChange = null,
                 ),
                 synced = false,

@@ -18,7 +18,9 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.common.util.newChildScope
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_US_ASCII
 import com.artemchep.keyguard.feature.auth.common.util.ValidationUrl
@@ -110,6 +112,9 @@ private data class IdentityCredentials(
     val email: Validated<String>,
     val password: Validated<String>,
     val clientSecret: Validated<String>?,
+    val emailCell: TextCell,
+    val passwordCell: TextCell,
+    val clientSecretCell: TextCell?,
 )
 
 internal enum class BitwardenLoginBlockedBy {
@@ -171,6 +176,21 @@ fun produceBitwardenLoginScreenState(
         screenKey,
     ),
 ) {
+    bitwardenLoginStateProducer(
+        addAccount = addAccount,
+        cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
+        confirmationRouteFactory = confirmationRouteFactory,
+        args = args,
+    )
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
+    addAccount: AddAccount,
+    cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    args: BitwardenLoginRoute.Args,
+): Flow<Loadable<LoginState>> {
     val onSuccessFlow = EventFlow<Unit>()
     val onErrorFlow = EventFlow<BitwardenLoginEvent.Error>()
 
@@ -178,35 +198,27 @@ fun produceBitwardenLoginScreenState(
 
     // email
 
-    val emailSink = mutablePersistedFlow(KEY_EMAIL) {
-        args.email // fallback to default email
-            ?: defaultEmail
-    }
-    val emailState = mutableComposeState(emailSink)
-
-    // A flow of a email + email validation error, if any.
-    val validatedEmailFlow = emailSink.filterNotNull()
-        .validatedEmail(this)
+    val emailHandle = textFieldHandle(
+        key = KEY_EMAIL,
+        initial = args.email // fallback to default email
+            ?: defaultEmail,
+    )
 
     // password
 
-    val passwordSink = mutablePersistedFlow(KEY_PASSWORD) {
-        args.password // fallback to default password
-            ?: defaultPassword
-    }
-    val passwordState = mutableComposeState(passwordSink)
-
-    // A flow of a password + password validation error, if any.
-    val validatedPasswordFlow = passwordSink.filterNotNull()
-        .validatedPassword(this)
+    val passwordHandle = textFieldHandle(
+        key = KEY_PASSWORD,
+        initial = args.password // fallback to default password
+            ?: defaultPassword,
+    )
 
     // client secret
 
-    val clientSecretSink = mutablePersistedFlow(KEY_CLIENT_SECRET) {
-        args.clientSecret // fallback to default client secret
-            ?: ""
-    }
-    val clientSecretState = mutableComposeState(clientSecretSink)
+    val clientSecretHandle = textFieldHandle(
+        key = KEY_CLIENT_SECRET,
+        initial = args.clientSecret // fallback to default client secret
+            ?: "",
+    )
 
     val failedIdentityRequestFingerprintSink =
         mutablePersistedFlow<IdentityRequestFingerprint?>(KEY_FAILED_IDENTITY_REQUEST_FINGERPRINT) {
@@ -279,12 +291,13 @@ fun produceBitwardenLoginScreenState(
         initialValue: () -> String,
         populator: CreateRequest.(String) -> CreateRequest,
     ) = run {
-        val textSink = mutablePersistedFlow("$key.text") {
-            initialValue()
-        }
-        val textMutableState = mutableComposeState(textSink)
-        val textFlow = textSink
-            .map { text ->
+        val textHandle = textFieldHandle(
+            key = "$key.text",
+            initial = initialValue(),
+        )
+        val textFlow = textHandle.sink
+            .map { cell ->
+                val text = cell.text
                 val validationUrl = validateUrl(
                     url = text,
                     allowBlank = true,
@@ -293,8 +306,8 @@ fun produceBitwardenLoginScreenState(
                     val isUnsecure =
                         validationUrl == ValidationUrl.OK && cipherUnsecureUrlCheck(text)
                     if (isUnsecure) {
-                        return@run TextFieldModel2.Vl(
-                            type = TextFieldModel2.Vl.Type.WARNING,
+                        return@run TextFieldModel.Vl(
+                            type = TextFieldModel.Vl.Type.WARNING,
                             text = translate(Res.string.uri_unsecure),
                         )
                     }
@@ -302,12 +315,14 @@ fun produceBitwardenLoginScreenState(
                     null
                 }
 
-                TextFieldModel2(
+                TextFieldModel(
                     text = text,
+                    textRevision = cell.revision,
                     error = validationUrl.format(this),
-                    state = textMutableState,
                     vl = badge,
-                    onChange = textMutableState::value::set,
+                    id = textHandle.id,
+                    onChange = textHandle::onChange,
+                    onSetText = textHandle::setText,
                 )
             }
             .readOnly(envReadOnlyFlow)
@@ -420,8 +435,8 @@ fun produceBitwardenLoginScreenState(
                 )
             }
             combine(
-                emailSink,
-                passwordSink,
+                emailHandle.sink.map { it.text },
+                passwordHandle.sink.map { it.text },
                 dataFlow,
             ) { email, password, data ->
                 identityOrNull.email == email &&
@@ -431,29 +446,23 @@ fun produceBitwardenLoginScreenState(
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val validatedClientSecretFlow = combine(
-        clientSecretSink,
-        clientSecretRequiredFlow,
-    ) { clientSecret, clientSecretRequired ->
-        val error = translate(Res.string.error_must_not_be_blank)
-            .takeIf { clientSecretRequired && clientSecret.isBlank() }
-        if (error != null) {
-            Validated.Failure(clientSecret, error)
-        } else {
-            Validated.Success(clientSecret)
-        }
-    }
-
     val clientCredentialFlow = combine(
-        validatedEmailFlow,
-        validatedPasswordFlow,
+        emailHandle.sink.map { cell -> cell to validatedEmail(cell.text) },
+        passwordHandle.sink.map { cell -> cell to validatedPassword(cell.text) },
         // Hide client secret field if it is
         // not required.
         combine(
-            validatedClientSecretFlow,
+            clientSecretHandle.sink,
             clientSecretRequiredFlow,
-        ) { clientSecret, required ->
-            clientSecret.takeIf { required }
+        ) { cell, required ->
+            val error = translate(Res.string.error_must_not_be_blank)
+                .takeIf { required && cell.text.isBlank() }
+            val clientSecret = if (error != null) {
+                Validated.Failure(cell.text, error)
+            } else {
+                Validated.Success(cell.text)
+            }
+            (cell to clientSecret).takeIf { required }
         },
     ) {
             email,
@@ -461,9 +470,12 @@ fun produceBitwardenLoginScreenState(
             clientSecret,
         ->
         IdentityCredentials(
-            email,
-            password,
-            clientSecret,
+            email = email.second,
+            password = password.second,
+            clientSecret = clientSecret?.second,
+            emailCell = email.first,
+            passwordCell = password.first,
+            clientSecretCell = clientSecret?.first,
         )
     }.shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
@@ -584,7 +596,7 @@ fun produceBitwardenLoginScreenState(
         }
         .distinctUntilChanged()
 
-    combine(
+    return combine(
         clientCredentialFlow,
         regionFlow.map { it is BitwardenLoginRegion.Custom }.distinctUntilChanged(),
         outputFlow,
@@ -593,7 +605,8 @@ fun produceBitwardenLoginScreenState(
             regionItemsFlow,
         ) { a, b -> a to b },
         actionExecutor.isExecutingFlow,
-    ) { (validatedEmail, validatedPassword, clientSecret), showCustomEnv, output, (items, regionItems), taskIsExecuting ->
+    ) { credentials, showCustomEnv, output, (items, regionItems), taskIsExecuting ->
+        val (validatedEmail, validatedPassword, clientSecret) = credentials
         val blockedBy = getBitwardenLoginBlockedBy(
             validatedEmail = validatedEmail,
             validatedPassword = validatedPassword,
@@ -622,23 +635,27 @@ fun produceBitwardenLoginScreenState(
             }
         }
 
-        val emailField = TextFieldModel2.of(
-            state = emailState,
+        val emailField = TextFieldModel.of(
+            cell = credentials.emailCell,
+            handle = emailHandle,
             validated = validatedEmail,
-            onChange = emailState::value::set
+            onChange = emailHandle::onChange
                 .takeUnless { !args.emailEditable || taskIsExecuting },
         )
-        val passwordField = TextFieldModel2.of(
-            state = passwordState,
+        val passwordField = TextFieldModel.of(
+            cell = credentials.passwordCell,
+            handle = passwordHandle,
             validated = validatedPassword,
-            onChange = passwordState::value::set
+            onChange = passwordHandle::onChange
                 .takeUnless { !args.passwordEditable || taskIsExecuting },
         )
         val clientSecretField = clientSecret?.let {
-            TextFieldModel2.of(
-                state = clientSecretState,
+            TextFieldModel.of(
+                cell = credentials.clientSecretCell
+                    ?: TextCell(text = it.model),
+                handle = clientSecretHandle,
                 validated = it,
-                onChange = clientSecretState::value::set
+                onChange = clientSecretHandle::onChange
                     .takeUnless { !args.clientSecretEditable || taskIsExecuting },
             )
         }
@@ -729,7 +746,7 @@ fun produceBitwardenLoginScreenState(
                                     // TODO: Do we ned to reset the password on error?
                                     //  Everyone does that, but i'm not sure if
                                     //  that is very helpful.
-                                    passwordState.value = ""
+                                    passwordHandle.setText("")
                                 }
                             }
                         }
@@ -760,44 +777,50 @@ class AddStateItemFieldFactory(
         key: String,
         initial: ServerHeader?,
     ): LoginStateItem.HttpHeader {
-        val labelSink = mutablePersistedFlow("$key.label") {
-            initial?.key.orEmpty()
-        }
-        val labelMutableState = mutableComposeState(labelSink)
-        val labelFlow = labelSink
-            .map { label ->
+        val labelHandle = textFieldHandle(
+            key = "$key.label",
+            initial = initial?.key.orEmpty(),
+        )
+        val labelFlow = labelHandle.sink
+            .map { cell ->
+                val label = cell.text
                 val error = if (label.isBlank()) {
                     translate(Res.string.error_must_not_be_blank)
                 } else {
                     null
                 }
-                TextFieldModel2(
+                TextFieldModel(
                     text = label,
+                    textRevision = cell.revision,
                     hint = translate(Res.string.addaccount_http_header_key_label),
                     error = error,
-                    state = labelMutableState,
-                    onChange = labelMutableState::value::set,
+                    id = labelHandle.id,
+                    onChange = labelHandle::onChange,
+                    onSetText = labelHandle::setText,
                 )
             }
             .readOnly(readOnlyFlow)
 
-        val textSink = mutablePersistedFlow("$key.text") {
-            initial?.value.orEmpty()
-        }
-        val textMutableState = mutableComposeState(textSink)
-        val textFlow = textSink
-            .map { text ->
+        val textHandle = textFieldHandle(
+            key = "$key.text",
+            initial = initial?.value.orEmpty(),
+        )
+        val textFlow = textHandle.sink
+            .map { cell ->
+                val text = cell.text
                 val error = if (!REGEX_US_ASCII.matches(text)) {
                     translate(Res.string.error_must_contain_only_us_ascii_chars)
                 } else {
                     null
                 }
-                TextFieldModel2(
+                TextFieldModel(
                     text = text,
+                    textRevision = cell.revision,
                     hint = translate(Res.string.addaccount_http_header_value_label),
                     error = error,
-                    state = textMutableState,
-                    onChange = textMutableState::value::set,
+                    id = textHandle.id,
+                    onChange = textHandle::onChange,
+                    onSetText = textHandle::setText,
                 )
             }
             .readOnly(readOnlyFlow)
@@ -1152,7 +1175,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
         .shareIn(screenScope, SharingStarted.WhileSubscribed(5000L), replay = 1)
 }
 
-private fun Flow<TextFieldModel2>.readOnly(flow: Flow<Boolean>) = this
+private fun Flow<TextFieldModel>.readOnly(flow: Flow<Boolean>) = this
     .combine(flow) { textField, readOnly ->
         if (readOnly) {
             textField.copy(onChange = null)

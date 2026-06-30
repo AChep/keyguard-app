@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.navigation.state
 
-import androidx.compose.runtime.MutableState
 import com.artemchep.keyguard.platform.LeBundle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
@@ -30,15 +29,7 @@ interface RememberStateFlowScopeSub {
         initialValue: () -> T,
     ): MutableStateFlow<T>
 
-    fun <T> asComposeState(
-        key: String,
-    ): MutableState<T>
-
     fun clearPersistedFlow(key: String)
-
-    fun <T> mutableComposeState(
-        sink: MutableStateFlow<T>,
-    ): MutableState<T>
 
     fun persistedState(): LeBundle
 }

@@ -145,6 +145,42 @@ fun produceDuplicatesListState(
         cipherDuplicatesCheck,
     ),
 ) {
+    duplicatesListStateProducer(
+        directDI = directDI,
+        args = args,
+        clipboardService = clipboardService,
+        getTotpCode = getTotpCode,
+        getConcealFields = getConcealFields,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getCiphers = getCiphers,
+        getProfiles = getProfiles,
+        getCanWrite = getCanWrite,
+        cipherToolbox = cipherToolbox,
+        cipherDuplicatesCheck = cipherDuplicatesCheck,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.duplicatesListStateProducer(
+    directDI: DirectDI,
+    args: DuplicatesRoute.Args,
+    clipboardService: ClipboardService,
+    getTotpCode: GetTotpCode,
+    getConcealFields: GetConcealFields,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getCiphers: GetCiphers,
+    getProfiles: GetProfiles,
+    getCanWrite: GetCanWrite,
+    cipherToolbox: CipherToolbox,
+    cipherDuplicatesCheck: CipherDuplicatesCheck,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<DuplicatesListState>> {
     val copy = copier()
     val sensitivitySink = mutablePersistedFlow("sensitivity") {
         CipherDuplicatesCheck.Sensitivity.NORMAL
@@ -302,7 +338,7 @@ fun produceDuplicatesListState(
                             val item = cipher.toVaultListItem(
                                 groupId = group.id,
                                 copy = copy,
-                                translator = this@produceScreenState,
+                                translator = this@duplicatesListStateProducer,
                                 getTotpCode = getTotpCode,
                                 concealFields = cfg.concealFields,
                                 appIcons = cfg.appIcons,
@@ -370,7 +406,7 @@ fun produceDuplicatesListState(
     )
         .persistingStateIn(this, SharingStarted.WhileSubscribed())
 
-    itemsFlow
+    return itemsFlow
         .combine(sensitivitySink) { items, sensitivity ->
             val state = DuplicatesListState(
                 onSelected = { key ->

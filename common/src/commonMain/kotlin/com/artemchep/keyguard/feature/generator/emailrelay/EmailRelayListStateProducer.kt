@@ -35,6 +35,7 @@ import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
@@ -50,6 +51,7 @@ import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -94,6 +96,22 @@ fun produceEmailRelayListState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    emailRelayListStateProducer(
+        emailRelays = emailRelays,
+        confirmationRouteFactory = confirmationRouteFactory,
+        addEmailRelay = addEmailRelay,
+        removeEmailRelayById = removeEmailRelayById,
+        getEmailRelays = getEmailRelays,
+    )
+}
+
+suspend fun RememberStateFlowScope.emailRelayListStateProducer(
+    emailRelays: List<EmailRelay>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    addEmailRelay: AddEmailRelay,
+    removeEmailRelayById: RemoveEmailRelayById,
+    getEmailRelays: GetEmailRelays,
+): Flow<Loadable<EmailRelayListState>> {
     val selectionHandle = selectionHandle("selection")
 
     suspend fun onEdit(model: EmailRelay, entity: DGeneratorEmailRelay?) {
@@ -408,7 +426,7 @@ fun produceEmailRelayListState(
             }
         Loadable.Ok(contentOrException)
     }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = EmailRelayListState(
                 content = content,

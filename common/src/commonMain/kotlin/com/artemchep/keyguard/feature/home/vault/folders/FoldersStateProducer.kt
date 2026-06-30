@@ -33,6 +33,7 @@ import com.artemchep.keyguard.feature.home.vault.by
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -48,6 +49,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -104,6 +106,34 @@ fun foldersScreenState(
         renameFolderById,
     ),
 ) {
+    foldersScreenStateProducer(
+        args = args,
+        directDI = directDI,
+        getFolders = getFolders,
+        getCiphers = getCiphers,
+        getCanWrite = getCanWrite,
+        addFolder = addFolder,
+        mergeFolderById = mergeFolderById,
+        removeFolderById = removeFolderById,
+        renameFolderById = renameFolderById,
+        foldersRouteFactory = foldersRouteFactory,
+        vaultRouteFactory = vaultRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.foldersScreenStateProducer(
+    args: FoldersRoute.Args,
+    directDI: DirectDI,
+    getFolders: GetFolders,
+    getCiphers: GetCiphers,
+    getCanWrite: GetCanWrite,
+    addFolder: AddFolder,
+    mergeFolderById: MergeFolderById,
+    removeFolderById: RemoveFolderById,
+    renameFolderById: RenameFolderById,
+    foldersRouteFactory: FoldersRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+): Flow<FoldersState> {
     val confirmationRouteFactory: ConfirmationRouteFactory = directDI.instance()
 
     data class NodeWithCiphers(
@@ -607,7 +637,7 @@ fun foldersScreenState(
         )
             .let { tree to it }
     }
-    combine(
+    return combine(
         selectionFlow,
         contentFlow,
     ) { selection, (tree, content) ->

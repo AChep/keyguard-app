@@ -11,9 +11,11 @@ import com.artemchep.keyguard.common.usecase.GetBarcodeUsageHistory
 import com.artemchep.keyguard.common.usecase.PutBarcodeUsageHistory
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.FlatItemAction
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOf
@@ -45,6 +47,18 @@ fun produceBarcodeTypeScreenState(
     ),
     initial = Loadable.Loading,
 ) {
+    barcodeTypeStateProducer(
+        args = args,
+        getBarcodeUsageHistory = getBarcodeUsageHistory,
+        putBarcodeUsageHistory = putBarcodeUsageHistory,
+    )
+}
+
+suspend fun RememberStateFlowScope.barcodeTypeStateProducer(
+    args: BarcodeTypeRoute.Args,
+    getBarcodeUsageHistory: GetBarcodeUsageHistory?,
+    putBarcodeUsageHistory: PutBarcodeUsageHistory?,
+): Flow<Loadable<BarcodeTypeState>> {
     fun onClose() {
         navigatePopSelf()
     }
@@ -127,7 +141,7 @@ fun produceBarcodeTypeScreenState(
                     .partially1(format),
             )
         }
-    formatFlow
+    return formatFlow
         .map { format ->
             val request = BarcodeImageRequest(
                 format = format,

@@ -52,6 +52,7 @@ import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSi
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -73,6 +74,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -152,6 +154,43 @@ fun produceAttachmentsScreenState(
     ),
     initial = Loadable.Loading,
 ) {
+    attachmentsScreenStateProducer(
+        directDI = directDI,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getCiphers = getCiphers,
+        getFolders = getFolders,
+        getTags = getTags,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+        downloadRepository = downloadRepository,
+        downloadManager = downloadManager,
+        downloadAttachment = downloadAttachment,
+        removeAttachment = removeAttachment,
+        canPreviewAttachment = canPreviewAttachment,
+        attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
+        vaultViewRouteFactory = vaultViewRouteFactory,
+    )
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
+    directDI: DirectDI,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getCiphers: GetCiphers,
+    getFolders: GetFolders,
+    getTags: GetTags,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+    downloadRepository: DownloadRepository,
+    downloadManager: DownloadManager,
+    downloadAttachment: DownloadAttachment,
+    removeAttachment: RemoveAttachment,
+    canPreviewAttachment: CanPreviewAttachment,
+    attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
+    vaultViewRouteFactory: VaultViewRouteFactory,
+): Flow<Loadable<AttachmentsState>> {
     val selectionHandle = selectionHandle("selection")
 
     val filterResult = createFilter(directDI)
@@ -536,7 +575,7 @@ fun produceAttachmentsScreenState(
         )
         Loadable.Ok(state)
     }
-    state
+    return state
 }
 
 private fun itemKeyForAttachment(key: String) = "attachment.$key"

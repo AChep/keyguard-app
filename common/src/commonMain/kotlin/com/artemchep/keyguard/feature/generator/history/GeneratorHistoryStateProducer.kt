@@ -31,6 +31,7 @@ import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
@@ -111,6 +112,30 @@ fun produceGeneratorHistoryState(
         clipboardService,
     ),
 ) {
+    generatorHistoryStateProducer(
+        getGeneratorHistory = getGeneratorHistory,
+        removeGeneratorHistory = removeGeneratorHistory,
+        removeGeneratorHistoryById = removeGeneratorHistoryById,
+        keyPairExport = keyPairExport,
+        publicKeyExport = publicKeyExport,
+        privateKeyExport = privateKeyExport,
+        dateFormatter = dateFormatter,
+        clipboardService = clipboardService,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
+    getGeneratorHistory: GetGeneratorHistory,
+    removeGeneratorHistory: RemoveGeneratorHistory,
+    removeGeneratorHistoryById: RemoveGeneratorHistoryById,
+    keyPairExport: KeyPairExport,
+    publicKeyExport: KeyPublicExport,
+    privateKeyExport: KeyPrivateExport,
+    dateFormatter: DateFormatter,
+    clipboardService: ClipboardService,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<GeneratorHistoryState>> {
     val selectionHandle = selectionHandle("selection")
     val copyFactory = copier()
 
@@ -267,13 +292,13 @@ fun produceGeneratorHistoryState(
                             }
                             section {
                                 this += LargeTypeRoute.showInLargeTypeActionOrNull(
-                                    translator = this@produceScreenState,
+                                    translator = this@generatorHistoryStateProducer,
                                     text = content,
                                     colorize = item.isPassword,
                                     navigate = ::navigate,
                                 )
                                 this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
-                                    translator = this@produceScreenState,
+                                    translator = this@generatorHistoryStateProducer,
                                     text = content,
                                     colorize = item.isPassword,
                                     navigate = ::navigate,
@@ -284,7 +309,7 @@ fun produceGeneratorHistoryState(
                                 // check it in the breaches.
                                 if (type == GeneratorHistoryItem.Value.Type.PASSWORD) {
                                     this += PasswordLeakRoute.checkBreachesPasswordAction(
-                                        translator = this@produceScreenState,
+                                        translator = this@generatorHistoryStateProducer,
                                         password = content,
                                         navigate = ::navigate,
                                     )
@@ -408,7 +433,7 @@ fun produceGeneratorHistoryState(
                 persistentListOf(action)
             }
         }
-    combine(
+    return combine(
         optionsFlow,
         selectionFlow,
         itemsFlow,

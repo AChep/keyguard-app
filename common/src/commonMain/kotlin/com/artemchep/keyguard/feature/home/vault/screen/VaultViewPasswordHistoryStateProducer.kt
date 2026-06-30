@@ -21,6 +21,7 @@ import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
@@ -36,6 +37,7 @@ import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -88,6 +90,30 @@ fun vaultViewPasswordHistoryScreenState(
         itemId,
     ),
 ) {
+    vaultViewPasswordHistoryScreenStateProducer(
+        getCanWrite = getCanWrite,
+        getAccounts = getAccounts,
+        getCiphers = getCiphers,
+        cipherRemovePasswordHistory = cipherRemovePasswordHistory,
+        cipherRemovePasswordHistoryById = cipherRemovePasswordHistoryById,
+        clipboardService = clipboardService,
+        dateFormatter = dateFormatter,
+        confirmationRouteFactory = confirmationRouteFactory,
+        itemId = itemId,
+    )
+}
+
+suspend fun RememberStateFlowScope.vaultViewPasswordHistoryScreenStateProducer(
+    getCanWrite: GetCanWrite,
+    getAccounts: GetAccounts,
+    getCiphers: GetCiphers,
+    cipherRemovePasswordHistory: CipherRemovePasswordHistory,
+    cipherRemovePasswordHistoryById: CipherRemovePasswordHistoryById,
+    clipboardService: ClipboardService,
+    dateFormatter: DateFormatter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    itemId: String,
+): Flow<VaultViewPasswordHistoryState> {
     val selectionHandle = selectionHandle("selection")
     val copyFactory = copier()
 
@@ -235,13 +261,13 @@ fun vaultViewPasswordHistoryScreenState(
                             }
                             section {
                                 this += LargeTypeRoute.showInLargeTypeActionOrNull(
-                                    translator = this@produceScreenState,
+                                    translator = this@vaultViewPasswordHistoryScreenStateProducer,
                                     text = password.password,
                                     colorize = true,
                                     navigate = ::navigate,
                                 )
                                 this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
-                                    translator = this@produceScreenState,
+                                    translator = this@vaultViewPasswordHistoryScreenStateProducer,
                                     text = password.password,
                                     colorize = true,
                                     navigate = ::navigate,
@@ -249,7 +275,7 @@ fun vaultViewPasswordHistoryScreenState(
                             }
                             section {
                                 this += PasswordLeakRoute.checkBreachesPasswordAction(
-                                    translator = this@produceScreenState,
+                                    translator = this@vaultViewPasswordHistoryScreenStateProducer,
                                     password = password.password,
                                     navigate = ::navigate,
                                 )
@@ -298,7 +324,7 @@ fun vaultViewPasswordHistoryScreenState(
         ),
     )
 
-    combine(
+    return combine(
         secretFlow,
         itemsFlow,
         actionsFlow,

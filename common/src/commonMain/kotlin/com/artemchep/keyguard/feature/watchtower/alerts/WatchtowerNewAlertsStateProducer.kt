@@ -38,6 +38,7 @@ import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.feature.watchtower.DISMISS_NOTIFICATIONS_DELAY_MS
@@ -47,6 +48,7 @@ import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashSet
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -120,6 +122,40 @@ fun produceGeneratorHistoryState(
         clipboardService,
     ),
 ) {
+    watchtowerNewAlertsStateProducer(
+        directDI = directDI,
+        args = args,
+        markAllWatchtowerAlertAsRead = markAllWatchtowerAlertAsRead,
+        getProfiles = getProfiles,
+        getOrganizations = getOrganizations,
+        getCiphers = getCiphers,
+        getWatchtowerAlerts = getWatchtowerAlerts,
+        getTotpCode = getTotpCode,
+        getConcealFields = getConcealFields,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        dateFormatter = dateFormatter,
+        clipboardService = clipboardService,
+        dismissNotificationsByChannel = dismissNotificationsByChannel,
+    )
+}
+
+suspend fun RememberStateFlowScope.watchtowerNewAlertsStateProducer(
+    directDI: DirectDI,
+    args: WatchtowerAlertsRoute.Args,
+    markAllWatchtowerAlertAsRead: MarkAllWatchtowerAlertAsRead,
+    getProfiles: GetProfiles,
+    getOrganizations: GetOrganizations,
+    getCiphers: GetCiphers,
+    getWatchtowerAlerts: GetWatchtowerAlerts,
+    getTotpCode: GetTotpCode,
+    getConcealFields: GetConcealFields,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    dateFormatter: DateFormatter,
+    clipboardService: ClipboardService,
+    dismissNotificationsByChannel: DismissNotificationsByChannel,
+): Flow<Loadable<WatchtowerNewAlertsState>> {
     // Dismiss all the notifications related to
     // the watchtower. You're on the watchtower
     // screen, so you must have seen all the alerts.
@@ -315,7 +351,7 @@ fun produceGeneratorHistoryState(
                     val id = alert.alertId
                     val item = cipher.toVaultListItem(
                         copy = copy,
-                        translator = this@produceScreenState,
+                        translator = this@watchtowerNewAlertsStateProducer,
                         getTotpCode = getTotpCode,
                         concealFields = data.config.concealFields,
                         appIcons = data.config.appIcons,
@@ -383,7 +419,7 @@ fun produceGeneratorHistoryState(
             itemsReShaped
         }
 
-    itemsFlow
+    return itemsFlow
         .map { items ->
             val state = WatchtowerNewAlertsState(
                 selection = null,

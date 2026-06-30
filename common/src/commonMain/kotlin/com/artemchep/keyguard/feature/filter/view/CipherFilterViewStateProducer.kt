@@ -26,6 +26,7 @@ import com.artemchep.keyguard.feature.filter.util.addShortcutActionOrNull
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.screen.FilterSection
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -87,6 +88,36 @@ fun produceCipherFilterViewState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    cipherFilterViewStateProducer(
+        args = args,
+        getCipherFilters = getCipherFilters,
+        removeCipherFilterById = removeCipherFilterById,
+        renameCipherFilter = renameCipherFilter,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getTags = getTags,
+        getFolders = getFolders,
+        getCiphers = getCiphers,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.cipherFilterViewStateProducer(
+    args: CipherFilterViewDialogRoute.Args,
+    getCipherFilters: GetCipherFilters,
+    removeCipherFilterById: RemoveCipherFilterById,
+    renameCipherFilter: RenameCipherFilter,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getTags: GetTags,
+    getFolders: GetFolders,
+    getCiphers: GetCiphers,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<CipherFilterViewState>> {
     val filterFlow = getCipherFilters()
         .map { filters ->
             filters
@@ -335,7 +366,7 @@ fun produceCipherFilterViewState(
         }
         .stateIn(screenScope)
 
-    filterFlow
+    return filterFlow
         .map { model ->
             val content = CipherFilterViewState.Content(
                 model = model,

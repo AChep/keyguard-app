@@ -24,6 +24,7 @@ import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogInten
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.webdav.WebDavSettingsRoute
@@ -32,6 +33,7 @@ import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.icon
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -70,6 +72,20 @@ fun produceAutomaticBackupsSettingsScreenState(
         confirmationRouteFactory,
     ),
 ) {
+    automaticBackupsSettingsStateProducer(
+        backupConfigRepository = backupConfigRepository,
+        runBackupNow = runBackupNow,
+        testBackupLocation = testBackupLocation,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
+    backupConfigRepository: BackupConfigRepository,
+    runBackupNow: RunBackupNow,
+    testBackupLocation: TestBackupLocation,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<AutomaticBackupsSettingsState>> {
     val setupExecutor = screenExecutor()
     val setupErrorSink = MutableStateFlow<String?>(null)
     val filePickerIntentSink = EventFlow<FilePickerIntent<*>>()
@@ -217,7 +233,7 @@ fun produceAutomaticBackupsSettingsScreenState(
         navigate(NavigationIntent.NavigateToRoute(route))
     }
 
-    combine(
+    return combine(
         backupConfigRepository.getConfig(),
         backupConfigRepository.getStatus(),
         setupErrorSink,

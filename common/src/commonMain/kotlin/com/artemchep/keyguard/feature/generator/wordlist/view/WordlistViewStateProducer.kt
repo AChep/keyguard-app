@@ -16,6 +16,7 @@ import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
@@ -29,6 +30,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.kodein.di.compose.localDI
@@ -69,6 +71,24 @@ fun produceWordlistViewState(
         args,
     ),
 ) {
+    wordlistViewStateProducer(
+        args = args,
+        editWordlist = editWordlist,
+        removeWordlistById = removeWordlistById,
+        getWordlists = getWordlists,
+        getWordlistPrimitive = getWordlistPrimitive,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.wordlistViewStateProducer(
+    args: WordlistViewRoute.Args,
+    editWordlist: EditWordlist,
+    removeWordlistById: RemoveWordlistById,
+    getWordlists: GetWordlists,
+    getWordlistPrimitive: GetWordlistPrimitive,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<WordlistViewState>> {
     val queryHandle = searchQueryHandle("query")
     searchQueryShortcuts(queryHandle)
     val queryFlow = searchFilter(queryHandle) { model, revision ->
@@ -184,7 +204,7 @@ fun produceWordlistViewState(
                 }
             Loadable.Ok(contentOrException)
         }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = WordlistViewState(
                 wordlist = wordlistFlow,

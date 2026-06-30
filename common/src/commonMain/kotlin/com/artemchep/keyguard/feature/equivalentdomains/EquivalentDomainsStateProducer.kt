@@ -6,9 +6,11 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListState
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -41,6 +43,16 @@ fun produceEquivalentDomainsScreenState(
         getEquivalentDomains,
     ),
 ) {
+    equivalentDomainsScreenStateProducer(
+        args = args,
+        getEquivalentDomains = getEquivalentDomains,
+    )
+}
+
+suspend fun RememberStateFlowScope.equivalentDomainsScreenStateProducer(
+    args: EquivalentDomainsRoute.Args,
+    getEquivalentDomains: GetEquivalentDomains,
+): Flow<EquivalentDomainsState> {
     val equivalentDomainsComparator = Comparator { a: DEquivalentDomains, b: DEquivalentDomains ->
         a.id.compareTo(b.id, ignoreCase = true)
     }
@@ -73,7 +85,7 @@ fun produceEquivalentDomainsScreenState(
                 items = itemsReShaped,
             )
         }
-    contentFlow
+    return contentFlow
         .map { content ->
             EquivalentDomainsState(
                 content = Loadable.Ok(content),

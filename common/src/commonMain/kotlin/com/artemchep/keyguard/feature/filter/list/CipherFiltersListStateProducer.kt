@@ -26,6 +26,7 @@ import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
@@ -42,6 +43,7 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -81,6 +83,20 @@ fun produceCipherFiltersListState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    cipherFiltersListStateProducer(
+        getCipherFilters = getCipherFilters,
+        removeCipherFilterById = removeCipherFilterById,
+        renameCipherFilter = renameCipherFilter,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.cipherFiltersListStateProducer(
+    getCipherFilters: GetCipherFilters,
+    removeCipherFilterById: RemoveCipherFilterById,
+    renameCipherFilter: RenameCipherFilter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<CipherFiltersListState>> {
     val selectionHandle = selectionHandle("selection")
     val queryHandle = searchQueryHandle("query")
     searchQueryShortcuts(queryHandle)
@@ -150,9 +166,9 @@ fun produceCipherFiltersListState(
                 val selectableStateFlow =
                     if (this.size >= 100) {
                         val sharing = SharingStarted.WhileSubscribed(1000L)
-                        selectableFlow.persistingStateIn(this@produceScreenState, sharing)
+                        selectableFlow.persistingStateIn(this@cipherFiltersListStateProducer, sharing)
                     } else {
-                        selectableFlow.stateIn(this@produceScreenState)
+                        selectableFlow.stateIn(this@cipherFiltersListStateProducer)
                     }
                 CipherFiltersListState.Item(
                     key = id,
@@ -290,7 +306,7 @@ fun produceCipherFiltersListState(
                 }
             Loadable.Ok(contentOrException)
         }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = CipherFiltersListState(
                 filter = queryFlow,

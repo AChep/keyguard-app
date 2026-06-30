@@ -78,6 +78,7 @@ import com.artemchep.keyguard.ui.text.annotate
 import com.artemchep.keyguard.ui.markdown.MarkdownParser
 import io.ktor.http.Url
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -86,6 +87,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import com.artemchep.keyguard.platform.leAllInstances
+import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -184,6 +186,104 @@ fun sendViewScreenState(
         accountId,
     ),
 ) {
+    sendViewScreenStateProducer(
+        contentColor = contentColor,
+        disabledContentColor = disabledContentColor,
+        getAccounts = getAccounts,
+        getCanWrite = getCanWrite,
+        getSends = getSends,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+        getFolders = getFolders,
+        getConcealFields = getConcealFields,
+        getMarkdown = getMarkdown,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        getPasswordStrength = getPasswordStrength,
+        retryCipher = retryCipher,
+        toolbox = toolbox,
+        downloadManager = downloadManager,
+        downloadAttachment = downloadAttachment,
+        tfaService = tfaService,
+        clipboardService = clipboardService,
+        getGravatarUrl = getGravatarUrl,
+        getEnvSendUrl = getEnvSendUrl,
+        dateFormatter = dateFormatter,
+        windowCoroutineScope = windowCoroutineScope,
+        linkInfoExtractors = linkInfoExtractors,
+        confirmationRouteFactory = confirmationRouteFactory,
+        sendId = sendId,
+        accountId = accountId,
+    )
+}
+
+suspend fun RememberStateFlowScope.sendViewScreenStateProducer(
+    directDI: DirectDI,
+    contentColor: Color,
+    disabledContentColor: Color,
+    sendId: String,
+    accountId: String,
+): Flow<SendViewState> = with(directDI) {
+    sendViewScreenStateProducer(
+        contentColor = contentColor,
+        disabledContentColor = disabledContentColor,
+        getAccounts = instance(),
+        getCanWrite = instance(),
+        getSends = instance(),
+        getCollections = instance(),
+        getOrganizations = instance(),
+        getFolders = instance(),
+        getConcealFields = instance(),
+        getMarkdown = instance(),
+        getAppIcons = instance(),
+        getWebsiteIcons = instance(),
+        getPasswordStrength = instance(),
+        retryCipher = instance(),
+        toolbox = instance(),
+        downloadManager = instance(),
+        downloadAttachment = instance(),
+        tfaService = instance(),
+        clipboardService = instance(),
+        getGravatarUrl = instance(),
+        getEnvSendUrl = instance(),
+        dateFormatter = instance(),
+        windowCoroutineScope = instance(),
+        linkInfoExtractors = leAllInstances(),
+        confirmationRouteFactory = instance(),
+        sendId = sendId,
+        accountId = accountId,
+    )
+}
+
+suspend fun RememberStateFlowScope.sendViewScreenStateProducer(
+    contentColor: Color,
+    disabledContentColor: Color,
+    getAccounts: GetAccounts,
+    getCanWrite: GetCanWrite,
+    getSends: GetSends,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+    getFolders: GetFolders,
+    getConcealFields: GetConcealFields,
+    getMarkdown: GetMarkdown,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    getPasswordStrength: GetPasswordStrength,
+    retryCipher: RetryCipher,
+    toolbox: SendToolbox,
+    downloadManager: DownloadManager,
+    downloadAttachment: DownloadAttachment,
+    tfaService: TwoFaService,
+    clipboardService: ClipboardService,
+    getGravatarUrl: GetGravatarUrl,
+    getEnvSendUrl: GetEnvSendUrl,
+    dateFormatter: DateFormatter,
+    windowCoroutineScope: WindowCoroutineScope,
+    linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    sendId: String,
+    accountId: String,
+): Flow<SendViewState> {
     val copy = copier()
 
     val markdown = getMarkdown().first()
@@ -335,7 +435,7 @@ fun sendViewScreenState(
             },
     )
 
-    combine(
+    return combine(
         accountFlow,
         secretFlow,
         getConcealFields(),

@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.theme.isDark
 import dev.snipme.highlights.Highlights
@@ -30,6 +31,7 @@ import dev.snipme.highlights.model.BoldHighlight
 import dev.snipme.highlights.model.ColorHighlight
 import dev.snipme.highlights.model.SyntaxLanguage
 import dev.snipme.highlights.model.SyntaxThemes
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -66,6 +68,20 @@ fun produceAttachmentPreviewState(
         downloadManager,
     ),
 ) {
+    attachmentPreviewStateProducer(
+        args = args,
+        canPreviewAttachment = canPreviewAttachment,
+        getAttachmentPreview = getAttachmentPreview,
+        downloadManager = downloadManager,
+    )
+}
+
+suspend fun RememberStateFlowScope.attachmentPreviewStateProducer(
+    args: AttachmentPreviewRoute.Args,
+    canPreviewAttachment: CanPreviewAttachment,
+    getAttachmentPreview: GetAttachmentPreview,
+    downloadManager: DownloadManager,
+): Flow<Loadable<AttachmentPreviewState>> {
     val producerScope = this
     val copyText = copier()
     val state = createAttachmentPreviewState(
@@ -76,7 +92,7 @@ fun produceAttachmentPreviewState(
         copyText = copyText,
     )
     val content = state.content as? AttachmentPreviewContent.TextLike
-    if (content?.code?.canSyntaxHighlight() != true) {
+    return if (content?.code?.canSyntaxHighlight() != true) {
         flowOf(Loadable.Ok(state))
     } else {
         flow {

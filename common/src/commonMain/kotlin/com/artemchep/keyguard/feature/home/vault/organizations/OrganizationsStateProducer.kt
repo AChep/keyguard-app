@@ -24,6 +24,7 @@ import com.artemchep.keyguard.feature.home.vault.organization.OrganizationRoute
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -37,6 +38,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.KeyguardCollection
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -81,6 +83,26 @@ fun organizationsScreenState(
         getCanWrite,
     ),
 ) {
+    organizationsScreenStateProducer(
+        args = args,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getCiphers = getCiphers,
+        getCanWrite = getCanWrite,
+        vaultRouteFactory = vaultRouteFactory,
+        collectionsRouteFactory = collectionsRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.organizationsScreenStateProducer(
+    args: OrganizationsRoute.Args,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getCiphers: GetCiphers,
+    getCanWrite: GetCanWrite,
+    vaultRouteFactory: VaultRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
+): Flow<OrganizationsState> {
     data class OrganizationWithCiphers(
         val organization: DOrganization,
         val collections: List<DCollection>,
@@ -279,7 +301,7 @@ fun organizationsScreenState(
             items = itemsReShaped,
         )
     }
-    combine(
+    return combine(
         selectionFlow,
         contentFlow,
     ) { selection, content ->

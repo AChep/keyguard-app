@@ -46,6 +46,7 @@ import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeService
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataServicesRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServicesRoute
@@ -147,6 +148,50 @@ fun produceWatchtowerState(
         getCiphers,
     ),
 ) {
+    watchtowerStateProducer(
+        directDI = directDI,
+        args = args,
+        getCiphers = getCiphers,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getFolders = getFolders,
+        getTags = getTags,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+        getCheckPwnedPasswords = getCheckPwnedPasswords,
+        getCheckPwnedServices = getCheckPwnedServices,
+        getCheckTwoFA = getCheckTwoFA,
+        getCheckPasskeys = getCheckPasskeys,
+        getWatchtowerAlerts = getWatchtowerAlerts,
+        getWatchtowerUnreadAlerts = getWatchtowerUnreadAlerts,
+        cipherDuplicatesCheck = cipherDuplicatesCheck,
+        dismissNotificationsByChannel = dismissNotificationsByChannel,
+        foldersRouteFactory = foldersRouteFactory,
+        vaultRouteFactory = vaultRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.watchtowerStateProducer(
+    directDI: DirectDI,
+    args: WatchtowerRoute.Args,
+    getCiphers: GetCiphers,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getFolders: GetFolders,
+    getTags: GetTags,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+    getCheckPwnedPasswords: GetCheckPwnedPasswords,
+    getCheckPwnedServices: GetCheckPwnedServices,
+    getCheckTwoFA: GetCheckTwoFA,
+    getCheckPasskeys: GetCheckPasskeys,
+    getWatchtowerAlerts: GetWatchtowerAlerts,
+    getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
+    cipherDuplicatesCheck: CipherDuplicatesCheck,
+    dismissNotificationsByChannel: DismissNotificationsByChannel,
+    foldersRouteFactory: FoldersRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+): Flow<WatchtowerState> {
     // Dismiss all the notifications related to
     // the watchtower. You're on the watchtower
     // screen, so you must have seen all the alerts.
@@ -336,9 +381,18 @@ fun produceWatchtowerState(
         onFlow: CreateAlertScope.() -> Flow<T?>,
         onCreate: (R?, Int, Int) -> T,
     ): StateFlow<Loadable<T?>> {
-        val cachedCounterSink = mutablePersistedFlow(key, storage) {
-            -1
-        }
+        // The disk persistence round-trips through JSON, which has no Int/Long
+        // distinction, so a restored whole number always comes back as a Long.
+        // Type the persisted form as Number and coerce via toInt(); otherwise
+        // reading the Int-typed value forces a Long -> Int downcast that crashes
+        // (notably on Kotlin/Native, where the cast is checked).
+        val cachedCounterSink = mutablePersistedFlow(
+            key = key,
+            storage = storage,
+            serialize = { _, value -> value },
+            deserialize = { _, value: Number -> value.toInt() },
+            initialValue = { -1 },
+        )
         // Start with displaying cached counter, and then load
         // the actual value.
         val initialValue = kotlin.run {
@@ -1313,29 +1367,29 @@ fun produceWatchtowerState(
             section {
                 if (checkTwoFa) {
                     this += TwoFaServicesRoute.actionOrNull(
-                        translator = this@produceScreenState,
+                        translator = this@watchtowerStateProducer,
                         navigate = ::navigate,
                     )
                 }
                 if (checkPasskeys) {
                     this += PasskeysServicesRoute.actionOrNull(
-                        translator = this@produceScreenState,
+                        translator = this@watchtowerStateProducer,
                         navigate = ::navigate,
                     )
                 }
                 this += JustGetMyDataServicesRoute.actionOrNull(
-                    translator = this@produceScreenState,
+                    translator = this@watchtowerStateProducer,
                     navigate = ::navigate,
                 )
                 this += JustDeleteMeServicesRoute.actionOrNull(
-                    translator = this@produceScreenState,
+                    translator = this@watchtowerStateProducer,
                     navigate = ::navigate,
                 )
             }
         }
         actions
     }
-    filterFlow
+    return filterFlow
         .combine(actionsFlow) { filterState, actions ->
             WatchtowerState(
                 revision = filterState.rev,

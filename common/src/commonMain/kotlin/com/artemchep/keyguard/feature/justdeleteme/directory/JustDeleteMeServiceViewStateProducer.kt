@@ -5,9 +5,11 @@ import arrow.core.right
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.CheckUsernameLeak
 import com.artemchep.keyguard.common.usecase.DateFormatter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -34,6 +36,14 @@ fun produceJustDeleteMeServiceViewState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    justDeleteMeServiceViewStateProducer(
+        args = args,
+    )
+}
+
+suspend fun RememberStateFlowScope.justDeleteMeServiceViewStateProducer(
+    args: JustDeleteMeServiceViewDialogRoute.Args,
+): Flow<Loadable<JustDeleteMeServiceViewState>> {
     val content =
         JustDeleteMeServiceViewState.Content(
             breaches = persistentListOf(),
@@ -44,5 +54,5 @@ fun produceJustDeleteMeServiceViewState(
             navigatePopSelf()
         },
     )
-    flowOf(Loadable.Ok(state))
+    return flowOf(Loadable.Ok(state))
 }

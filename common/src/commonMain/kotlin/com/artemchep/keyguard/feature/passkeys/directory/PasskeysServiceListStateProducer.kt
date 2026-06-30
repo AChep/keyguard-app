@@ -6,11 +6,13 @@ import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.feature.servicedirectory.serviceDirectoryItemsFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -37,6 +39,14 @@ fun producePasskeysListState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    passkeysServiceListStateProducer(
+        getPasskeys = getPasskeys,
+    )
+}
+
+suspend fun RememberStateFlowScope.passkeysServiceListStateProducer(
+    getPasskeys: GetPasskeys,
+): Flow<Loadable<PasskeysServiceListState>> {
     val queryHandle = searchQueryHandle("query")
     searchQueryShortcuts(queryHandle)
     val queryFlow = searchFilter(queryHandle) { model, revision ->
@@ -109,7 +119,7 @@ fun producePasskeysListState(
                 }
             Loadable.Ok(contentOrException)
         }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = PasskeysServiceListState(
                 filter = queryFlow,

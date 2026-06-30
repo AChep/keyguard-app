@@ -32,6 +32,7 @@ import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -43,6 +44,7 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -85,6 +87,22 @@ fun produceUrlOverrideListState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    urlOverrideListStateProducer(
+        confirmationRouteFactory = confirmationRouteFactory,
+        addUrlOverride = addUrlOverride,
+        removeUrlOverrideById = removeUrlOverrideById,
+        getUrlOverrides = getUrlOverrides,
+        executeCommand = executeCommand,
+    )
+}
+
+suspend fun RememberStateFlowScope.urlOverrideListStateProducer(
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    addUrlOverride: AddUrlOverride,
+    removeUrlOverrideById: RemoveUrlOverrideById,
+    getUrlOverrides: GetUrlOverrides,
+    executeCommand: ExecuteCommand,
+): Flow<Loadable<UrlOverrideListState>> {
     val selectionHandle = selectionHandle("selection")
 
     suspend fun onEdit(entity: DGlobalUrlOverride?) {
@@ -388,7 +406,7 @@ fun produceUrlOverrideListState(
             }
         Loadable.Ok(contentOrException)
     }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = UrlOverrideListState(
                 content = content,

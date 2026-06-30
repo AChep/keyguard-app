@@ -6,11 +6,13 @@ import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeService
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeServiceInfo
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.feature.servicedirectory.serviceDirectoryItemsFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -37,6 +39,14 @@ fun produceJustDeleteMeServiceListState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    justDeleteMeServiceListStateProducer(
+        justDeleteMeService = justDeleteMeService,
+    )
+}
+
+suspend fun RememberStateFlowScope.justDeleteMeServiceListStateProducer(
+    justDeleteMeService: JustDeleteMeService,
+): Flow<Loadable<JustDeleteMeServiceListState>> {
     val queryHandle = searchQueryHandle("query")
     searchQueryShortcuts(queryHandle)
     val queryFlow = searchFilter(queryHandle) { model, revision ->
@@ -108,7 +118,7 @@ fun produceJustDeleteMeServiceListState(
                 }
             Loadable.Ok(contentOrException)
         }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = JustDeleteMeServiceListState(
                 filter = queryFlow,

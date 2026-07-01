@@ -116,7 +116,7 @@ sealed interface DFilter {
             target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): Either<Unit, T?> = when (filter) {
-            is Or<*> -> {
+            is Or -> {
                 when (filter.filters.size) {
                     0 -> Either.Right(null)
                     1 -> {
@@ -145,7 +145,7 @@ sealed interface DFilter {
                 }
             }
 
-            is And<*> -> {
+            is And -> {
                 val results = filter
                     .filters
                     .map { f ->
@@ -205,13 +205,13 @@ sealed interface DFilter {
             target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): T? = when (filter) {
-            is Or<*> -> filter
+            is Or -> filter
                 .filters
                 .firstNotNullOfOrNull { f ->
                     _findAny(f, target, predicate)
                 }
 
-            is And<*> -> filter
+            is And -> filter
                 .filters
                 .firstNotNullOfOrNull { f ->
                     _findAny(f, target, predicate)
@@ -260,8 +260,8 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("or")
-    data class Or<out T : DFilter>(
-        val filters: Collection<T>,
+    data class Or(
+        val filters: Collection<DFilter>,
     ) : DFilter {
         override suspend fun prepare(
             directDI: DirectDI,
@@ -288,8 +288,8 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("and")
-    data class And<out T : DFilter>(
-        val filters: Collection<T>,
+    data class And(
+        val filters: Collection<DFilter>,
     ) : DFilter {
         override suspend fun prepare(
             directDI: DirectDI,

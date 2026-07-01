@@ -279,6 +279,9 @@
     <string name="select_key_file">选择密钥文件</string>
     <string name="select_database_file">选择数据库文件</string>
     <string name="replace_database_file">替换数据库文件</string>
+    <string name="database_location_title">Database location</string>
+    <string name="database_location_local">Local file</string>
+    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">打开数据库</string>
     <string name="create_database">创建数据库</string>
     <string name="addaccount_method_header_title">添加账户</string>
@@ -600,6 +603,7 @@
     <string name="error_invalid_key">无效的密钥</string>
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_webdav_url_required">需要填写 WebDAV 地址</string>
+    <string name="error_webdav_file_url_required">Enter the full WebDAV URL to a file resource</string>
     <string name="error_incorrect_password">密码错误</string>
     <string name="error_not_found">未找到</string>
     <string name="error_file_must_be_500_mb_or_smaller">文件大小必须小于等于 500 MB</string>
@@ -1399,10 +1403,10 @@
     <string name="pref_item_ssh_agent_status_ready">准备就绪</string>
     <string name="pref_item_ssh_agent_status_failed">失败</string>
     <string name="pref_item_ssh_agent_approval_window_title">记住密钥授权</string>
-    <string name="pref_item_ssh_agent_local_storage_title">Local storage</string>
-    <string name="pref_item_ssh_agent_local_storage_text">When the SSH agent is on, Keyguard keeps unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
-    <string name="pref_item_ssh_agent_display_key_names_title">Display key names before vault is unlocked</string>
-    <string name="pref_item_ssh_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
+    <string name="pref_item_ssh_agent_local_storage_title">本地存储</string>
+    <string name="pref_item_ssh_agent_local_storage_text">当 SSH 代理开启时，Keyguard 会在磁盘上保留公钥的未加密副本，以便客户端在密码库锁定时也能列出密钥。私钥绝不会泄露；只有在您开启相应选项后，系统才会存储密钥名称。</string>
+    <string name="pref_item_ssh_agent_display_key_names_title">在保管库解锁前显示密钥名称</string>
+    <string name="pref_item_ssh_agent_display_key_names_note">项目标题的未加密副本将存储在本地</string>
     <string name="pref_item_ssh_agent_approval_window_always_ask">每次询问</string>
     <string name="pref_item_ssh_agent_approval_window_until_lock">直至密码库锁定</string>
     <string name="pref_item_ssh_agent_setup_title">SSH 客户端设置</string>
@@ -1411,6 +1415,22 @@
     <string name="pref_item_ssh_agent_filters_summary_all">所有密钥均可访问</string>
     <string name="pref_item_ssh_agent_filters_summary_active">过滤器已启用</string>
     <string name="pref_item_ssh_agent_history_title">SSH 代理历史记录</string>
+    <string name="pref_item_license_key_title">关联现有授权令牌</string>
+    <string name="pref_item_license_key_field_label">授权令牌</string>
+    <string name="pref_item_license_key_message_redeemed">授权令牌关联成功</string>
+    <string name="pref_item_license_key_message_invalid">无效或过期的密钥</string>
+    <string name="pref_item_license_key_status_active">活动</string>
+    <string name="pref_item_license_key_status_invalid">无效</string>
+    <string name="pref_item_license_key_status_revoked">已吊销</string>
+    <string name="pref_item_license_key_status_expired">已过期</string>
+    <string name="pref_item_license_key_status_available">可用</string>
+    <string name="pref_item_license_sync_title">获取授权令牌</string>
+    <string name="pref_item_license_sync_text">验证您有效的商店购买记录，并生成一个与该购买绑定的授权令牌。使用此令牌可将购买状态转移到您的其他设备。</string>
+    <string name="pref_item_license_sync_requested">已请求授权令牌</string>
+    <string name="pref_item_license_sync_success">授权令牌同步成功</string>
+    <string name="pref_item_license_sync_already">当前的授权令牌已处于激活状态</string>
+    <string name="pref_item_license_sync_no_purchases">未找到符合条件的购买记录</string>
+    <string name="pref_item_license_sync_failed">无法获取授权令牌</string>
     <string name="pref_item_biometric_unlock_title">生物识别解锁</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">需要确认</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">需要在成功的生物识别认证后点击额外的确认按钮</string>
@@ -1542,10 +1562,10 @@
     <string name="datasafety_remote_text">远程数据以零知识加密方式存储在 Bitwarden 服务器上。</string>
     <string name="webdav_settings_header_title">WebDAV 服务器配置</string>
     <string name="webdav_settings_url_title">WebDAV URL</string>
-    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
     <string name="webdav_settings_auth_note">若您的 WebDAV 服务器需要身份验证，请在此处输入服务器凭据，勿输入主密码。</string>
     <string name="webdav_settings_test_title">测试连接</string>
     <string name="webdav_settings_test_text">写入并删除一个小型探测文件以验证服务器访问权限。</string>
+    <string name="webdav_settings_test_text_read_only">Reads the resource to verify server access.</string>
     <string name="webdav_settings_test_success">WebDAV 连接验证成功。</string>
     <string name="webdav_settings_password_requires_username_error">设置 WebDAV 密码前请先输入用户名。</string>
     <!-- Title of the 'Localization contributors' screen -->

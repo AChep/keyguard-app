@@ -279,6 +279,9 @@
     <string name="select_key_file">Selecionar um arquivo chave</string>
     <string name="select_database_file">Selecionar o arquivo de banco de dados</string>
     <string name="replace_database_file">Substituir o arquivo de banco de dados</string>
+    <string name="database_location_title">Database location</string>
+    <string name="database_location_local">Local file</string>
+    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">Abrir um banco de dados</string>
     <string name="create_database">Criar um banco de dados</string>
     <string name="addaccount_method_header_title">Adicionar conta</string>
@@ -600,6 +603,7 @@
     <string name="error_invalid_key">Chave inválida</string>
     <string name="error_invalid_card_number">Número de cartão inválido</string>
     <string name="error_webdav_url_required">A URL do WebDAV é obrigatória</string>
+    <string name="error_webdav_file_url_required">Enter the full WebDAV URL to a file resource</string>
     <string name="error_incorrect_password">Senha incorreta</string>
     <string name="error_not_found">Não encontrado</string>
     <string name="error_file_must_be_500_mb_or_smaller">Arquivo deve ter 500 MB ou menos</string>
@@ -1409,6 +1413,22 @@
     <string name="pref_item_ssh_agent_filters_summary_all">Todas as chaves acessíveis</string>
     <string name="pref_item_ssh_agent_filters_summary_active">Filtros ativos</string>
     <string name="pref_item_ssh_agent_history_title">Histórico do agente SSH</string>
+    <string name="pref_item_license_key_title">Vincular token de titularidade existente</string>
+    <string name="pref_item_license_key_field_label">Token de titularidade</string>
+    <string name="pref_item_license_key_message_redeemed">Token de titularidade vinculado com sucesso</string>
+    <string name="pref_item_license_key_message_invalid">Chave inválida ou expirada</string>
+    <string name="pref_item_license_key_status_active">Ativo</string>
+    <string name="pref_item_license_key_status_invalid">Inválido</string>
+    <string name="pref_item_license_key_status_revoked">Revogado</string>
+    <string name="pref_item_license_key_status_expired">Expirado</string>
+    <string name="pref_item_license_key_status_available">Disponível</string>
+    <string name="pref_item_license_sync_title">Obter token de titularidade</string>
+    <string name="pref_item_license_sync_text">Verifica sua compra ativa na loja e gera um token de titularidade vinculado à compra. Use o token para transferir a compra para seus outros dispositivos.</string>
+    <string name="pref_item_license_sync_requested">O token de titularidade foi solicitado</string>
+    <string name="pref_item_license_sync_success">Token de titularidade sincronizado com sucesso</string>
+    <string name="pref_item_license_sync_already">O token de titularidade atual já está ativo</string>
+    <string name="pref_item_license_sync_no_purchases">Nenhuma compra elegível encontrada</string>
+    <string name="pref_item_license_sync_failed">Não foi possível obter o token de titularidade</string>
     <string name="pref_item_biometric_unlock_title">Desbloqueio biométrico</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Exigir confirmação</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Exigir uma confirmação adicional via um toque de botão depois de uma autenticação biométrica</string>
@@ -1540,10 +1560,10 @@
     <string name="datasafety_remote_text">Os dados remotos são armazenados nos servidores do Bitwarden com criptografia de conhecimento zero.</string>
     <string name="webdav_settings_header_title">Configuração do servidor WebDAV</string>
     <string name="webdav_settings_url_title">URL do WebDAV</string>
-    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
     <string name="webdav_settings_auth_note">Se o seu servidor WebDAV exigir autenticação, insira as credenciais do servidor aqui. Não insira sua senha mestra.</string>
     <string name="webdav_settings_test_title">Testar conexão</string>
     <string name="webdav_settings_test_text">Grava e remove um pequeno arquivo de teste para verificar o acesso ao servidor.</string>
+    <string name="webdav_settings_test_text_read_only">Reads the resource to verify server access.</string>
     <string name="webdav_settings_test_success">Conexão WebDAV verificada.</string>
     <string name="webdav_settings_password_requires_username_error">Insira um nome de usuário antes de definir uma senha do WebDAV.</string>
     <!-- Title of the 'Localization contributors' screen -->

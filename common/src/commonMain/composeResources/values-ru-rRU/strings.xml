@@ -279,6 +279,9 @@
     <string name="select_key_file">Выберите файл ключа</string>
     <string name="select_database_file">Выберите файл базы данных</string>
     <string name="replace_database_file">Замените файл базы данных </string>
+    <string name="database_location_title">Database location</string>
+    <string name="database_location_local">Local file</string>
+    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">Открыть базу данных</string>
     <string name="create_database">Создать базу данных</string>
     <string name="addaccount_method_header_title">Add account</string>
@@ -600,6 +603,7 @@
     <string name="error_invalid_key">Invalid key</string>
     <string name="error_invalid_card_number">Недействительный номер карты</string>
     <string name="error_webdav_url_required">Необходимо указать URL-адрес WebDAV</string>
+    <string name="error_webdav_file_url_required">Enter the full WebDAV URL to a file resource</string>
     <string name="error_incorrect_password">Неверный пароль</string>
     <string name="error_not_found">Не найдено</string>
     <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
@@ -1409,6 +1413,22 @@
     <string name="pref_item_ssh_agent_filters_summary_all">Доступ ко всем ключам</string>
     <string name="pref_item_ssh_agent_filters_summary_active">Фильтры активны</string>
     <string name="pref_item_ssh_agent_history_title">Журнал запросов</string>
+    <string name="pref_item_license_key_title">Link existing entitlement token</string>
+    <string name="pref_item_license_key_field_label">Entitlement token</string>
+    <string name="pref_item_license_key_message_redeemed">Entitlement token linked successfully</string>
+    <string name="pref_item_license_key_message_invalid">Invalid or expired key</string>
+    <string name="pref_item_license_key_status_active">Active</string>
+    <string name="pref_item_license_key_status_invalid">Invalid</string>
+    <string name="pref_item_license_key_status_revoked">Revoked</string>
+    <string name="pref_item_license_key_status_expired">Expired</string>
+    <string name="pref_item_license_key_status_available">Available</string>
+    <string name="pref_item_license_sync_title">Obtain entitlement token</string>
+    <string name="pref_item_license_sync_text">Verifies your active store purchase and generates an entitlement token bound to the purchase. Use the token to transfer the purchase to your other devices.</string>
+    <string name="pref_item_license_sync_requested">Entitlement token was requested</string>
+    <string name="pref_item_license_sync_success">Entitlement token synced successfully</string>
+    <string name="pref_item_license_sync_already">Current entitlement token is already active</string>
+    <string name="pref_item_license_sync_no_purchases">No eligible purchase found</string>
+    <string name="pref_item_license_sync_failed">Could not obtain entitlement token</string>
     <string name="pref_item_biometric_unlock_title">Биометрическая разблокировка</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Требовать подтверждение</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Запрашивать дополнительное подтверждение после успешного входа по биометрии</string>
@@ -1540,10 +1560,10 @@
     <string name="datasafety_remote_text">Облачные данные хранятся на серверах Bitwarden с шифрованием с нулевым знанием.</string>
     <string name="webdav_settings_header_title">Настройка сервера WebDAV</string>
     <string name="webdav_settings_url_title">URL-адрес WebDAV</string>
-    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
     <string name="webdav_settings_auth_note">Если ваш сервер WebDAV требует аутентификации, введите здесь учётные данные сервера. Не вводите свой мастер-пароль.</string>
     <string name="webdav_settings_test_title">Проверить подключение</string>
     <string name="webdav_settings_test_text">Записывает и удаляет небольшой пробный файл, чтобы проверить доступ к серверу.</string>
+    <string name="webdav_settings_test_text_read_only">Reads the resource to verify server access.</string>
     <string name="webdav_settings_test_success">Подключение к WebDAV проверено.</string>
     <string name="webdav_settings_password_requires_username_error">Введите имя пользователя, прежде чем задавать пароль WebDAV.</string>
     <!-- Title of the 'Localization contributors' screen -->

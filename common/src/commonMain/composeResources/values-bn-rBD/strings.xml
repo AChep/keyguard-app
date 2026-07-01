@@ -22,11 +22,11 @@
     <string name="new_password">নতুন পাসওয়ার্ড</string>
     <string name="no_password">পাসওয়ার্ড ছাড়া</string>
     <string name="advanced_options">উন্নত</string>
-    <string name="file">File</string>
-    <string name="file_name_placeholder">File name</string>
-    <string name="file_status_pending_upload">Pending upload</string>
-    <string name="file_status_auto_resume">Auto-resumes</string>
-    <string name="file_status_downloading_failed">Downloading failed</string>
+    <string name="file">ফাইল</string>
+    <string name="file_name_placeholder">ফাইলের নাম</string>
+    <string name="file_status_pending_upload">পেন্ডিং আপলোড</string>
+    <string name="file_status_auto_resume">স্বয়ংক্রিয়ভাবে পুনরায় চালু</string>
+    <string name="file_status_downloading_failed">ডাউনলোড ব্যর্থ</string>
     <string name="email">ইমেইল</string>
     <string name="email_verified">যাচাইকৃত</string>
     <string name="email_not_verified">যাচাই করা হয় নি</string>
@@ -38,12 +38,12 @@
     <string name="field_value">ফিল্ডের মান</string>
     <string name="tag_value">ট্যাগের মান</string>
     <!-- Access count increases every time someone opens a send and looks at the page -->
-    <string name="access_count">Access count</string>
+    <string name="access_count">অ্যাক্সেস সংখ্যা</string>
     <!--
         Access count increases every time someone opens a send and looks at the page. Maximum
         access count limits the amount a send can be opened.
         -->
-    <string name="max_access_count">Max access count</string>
+    <string name="max_access_count">সর্বোচ্চ অ্যাক্সেস সংখ্যা</string>
     <string name="ready_status_beta">বেটা</string>
     <string name="ready_status_alpha">আলফা</string>
     <string name="learn_more">আরো জানুন</string>
@@ -63,7 +63,7 @@
     <string name="expiry_date">মেয়াদোত্তীর্ণ তারিখ</string>
     <string name="company">কোম্পানি</string>
     <string name="sync">সিঙ্ক</string>
-    <string name="sync_requested">Sync was requested</string>
+    <string name="sync_requested">সিঙ্ক এর অনুরোধ করা হয়েছে</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">গোপন</string>
     <!-- Opposite of 'hidden' -->
@@ -95,7 +95,7 @@
     <string name="expired">মেয়াদোত্তীর্ণ</string>
     <string name="expiring_soon">মেয়াদ শেষ হতে চলেছে</string>
     <string name="item_incomplete_title">অসম্পূর্ণ তথ্য</string>
-    <string name="item_incomplete_text">This item is missing some of the important information.</string>
+    <string name="item_incomplete_text">এই ভল্ট আইটেমটিতে কিছু গুরুত্বপূর্ণ তথ্য অনুপস্থিত।</string>
     <string name="item">আইটেম</string>
     <string name="items">আইটেমগুলো</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> আইটেম</string>
@@ -119,14 +119,14 @@
     <string name="organization">সংগঠন</string>
     <string name="organizations">সংগঠনসমূহ</string>
     <string name="organizations_empty_label">সংগঠন ছাড়া</string>
-    <string name="equivalent_domains">Equivalent domains</string>
+    <string name="equivalent_domains">কাছাকাছি ডোমেইনগুলো</string>
     <string name="equivalent_domains_empty_label">No equivalent domains</string>
-    <string name="retry">Retry</string>
+    <string name="retry">পুনরায় চেষ্টা</string>
     <string name="misc">বিবিধ</string>
     <string name="category">ক্যাটেগরি</string>
     <string name="command">কমান্ড</string>
     <string name="execute_command">চালু</string>
-    <string name="context_based_suggestions">Context-based suggestions</string>
+    <string name="context_based_suggestions">প্রসঙ্গ-ভিত্তিক সাজেশন</string>
     <!-- Add (something) -->
     <string name="add">যুক্ত করুন</string>
     <string name="add_integration">Add integration</string>
@@ -159,8 +159,8 @@
     <string name="expiration_date_never">কক্ষনো না</string>
     <string name="select_linked_type">একটি ধরন নির্বাচন করুন</string>
     <string name="select_file">একটি ফাইল নির্বাচন করুন</string>
-    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
-    <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
+    <string name="additem_attachments_drop_here">সংযুক্তি হিসেবে যুক্ত করতে এখানে একটি ফাইল ড্রপ করুন</string>
+    <string name="addsend_drop_file_to_replace">সিলেক্টেড ফাইলটি প্রতিস্থাপন করতে একটি ফাইল ড্রপ করুন</string>
     <string name="autofill">অটোফিল</string>
     <string name="autofill_and_save_uri">অটোফিল ও অ্যাপ কিংবা ওয়েবসাইটের তথ্য সংরক্ষণ করুন</string>
     <string name="backup_disclaimer_title">আপনার তথ্য আপনার দায়িত্বে।</string>
@@ -189,10 +189,10 @@
     <string name="passkey_discoverable">খুঁজে পাওয়া সম্ভব</string>
     <string name="passkey_user_username">ইউজারনেম</string>
     <string name="passkey_user_display_name">প্রদর্শিত নাম</string>
-    <string name="ignored_alerts">Ignored alerts</string>
+    <string name="ignored_alerts">উপেক্ষা করা সতর্কতাগুলো</string>
     <string name="api_key">API চাবি</string>
-    <string name="api_token">API token</string>
-    <string name="zone_id">Zone ID</string>
+    <string name="api_token">API টোকেন</string>
+    <string name="zone_id">জোন ID</string>
     <string name="destination_email">Destination email</string>
     <string name="domain">ডোমেইন</string>
     <string name="add_to_home_screen">হোমস্ক্রিনে যুক্ত করুন</string>
@@ -279,6 +279,9 @@
     <string name="select_key_file">একটি চাবি ফাইল নির্বাচন করুন</string>
     <string name="select_database_file">একটি ডাটাবেজ ফাইল নির্বাচন করুন</string>
     <string name="replace_database_file">একটি ডাটাবেজ ফাইল প্রতিস্থাপন করুন</string>
+    <string name="database_location_title">Database location</string>
+    <string name="database_location_local">Local file</string>
+    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">একটি ডাটাবেজ খুলুন</string>
     <string name="create_database">একটি ডাটাবেজ তৈরি করুন</string>
     <string name="addaccount_method_header_title">Add account</string>
@@ -299,18 +302,18 @@
     <string name="pro_tip">গুরুত্বপূর্ণ উপদেশ: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">Generate unique emails for better privacy.</string>
     <string name="account_last_synced_at">Last synced at <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
-    <string name="account_action_change_name_title">Change name</string>
-    <string name="account_action_change_color_title">Change color</string>
-    <string name="account_action_change_master_password_hint_title">Change master password hint</string>
-    <string name="account_action_sign_out_title">Sign out</string>
-    <string name="account_action_sign_in_title">Sign in</string>
-    <string name="account_action_export_vault_title">Export vault</string>
-    <string name="account_action_export_individual_vault_title">Export individual vault</string>
-    <string name="account_action_hide_title">Hide items</string>
-    <string name="account_action_hide_text">Hide the items from the main screens of the app</string>
-    <string name="account_action_hide_success_on_title">Items were hidden</string>
-    <string name="account_action_hide_success_off_title">Items were revealed</string>
-    <string name="account_action_email_verify_instructions_title">Visit Web vault to verify your email address</string>
+    <string name="account_action_change_name_title">নাম পরিবর্তন করুন</string>
+    <string name="account_action_change_color_title">রং পরিবর্তন করুন</string>
+    <string name="account_action_change_master_password_hint_title">মাস্টার পাসওয়ার্ডের হিন্ট পরিবর্তন করুন</string>
+    <string name="account_action_sign_out_title">সাইন আউট</string>
+    <string name="account_action_sign_in_title">সাইন ইন</string>
+    <string name="account_action_export_vault_title">ভল্ট এক্সপোর্ট করুন</string>
+    <string name="account_action_export_individual_vault_title">একক ভল্ট এক্সপোর্ট করুন</string>
+    <string name="account_action_hide_title">আইটেমগুলো লুকান</string>
+    <string name="account_action_hide_text">অ্যাপের মুল স্ক্রিন থেকে আইটেমগুলো লুকান</string>
+    <string name="account_action_hide_success_on_title">আইটেমগুলো লুকানো হয়েছে</string>
+    <string name="account_action_hide_success_off_title">আইটেমগুলো প্রকাশ করা হয়েছে</string>
+    <string name="account_action_email_verify_instructions_title">ইমেইল এড্রেস যাচাই করতে ওয়েব ভল্টে যান</string>
     <string name="account_action_premium_purchase_instructions_title">Upgrade your account to a premium membership and unlock some great additional features</string>
     <string name="account_action_tfa_title">Two-factor authentication</string>
     <string name="account_action_tfa_text">Require login verification with another device such as a security key, authenticator app, SMS or email</string>
@@ -323,42 +326,42 @@
     <string name="folder_action_change_names_title">Change names</string>
     <string name="folder_action_merge_title">Merge into…</string>
     <string name="folder_action_merge_confirmation_title">Are you sure you want to merge these folders?</string>
-    <string name="folder_action_create_title">Create a folder</string>
-    <string name="folder_delete_one_confirmation_title">Delete the folder?</string>
-    <string name="folder_delete_many_confirmation_title">Delete the folders?</string>
+    <string name="folder_action_create_title">ফোল্ডার তৈরি করুন</string>
+    <string name="folder_delete_one_confirmation_title">ফোল্ডার ডিলেট করবেন?</string>
+    <string name="folder_delete_many_confirmation_title">ফোল্ডারগুলো ডিলেট করবেন?</string>
     <string name="folder_delete_confirmation_text">This item(s) will be deleted immediately. You cannot undo this action.</string>
-    <string name="ciphers_recently_opened">Recently opened</string>
-    <string name="ciphers_often_opened">Often opened</string>
+    <string name="ciphers_recently_opened">সম্প্রতি খোলা হয়েছে</string>
+    <string name="ciphers_often_opened">প্রায়ই খোলা হয়</string>
     <string name="ciphers_history_empty">No history yet</string>
     <string name="ciphers_view_details">View details</string>
     <string name="ciphers_save_to">Save to</string>
-    <string name="ciphers_save_to_adds_credentials_passkey">Adds a passkey</string>
+    <string name="ciphers_save_to_adds_credentials_passkey">একটি পাসকী যোগ করুন</string>
     <string name="ciphers_save_to_replaces_credentials_username_password">Replaces the username &amp; password</string>
-    <string name="ciphers_action_add_to_favorites_title">Add to favorites</string>
-    <string name="ciphers_action_remove_from_favorites_title">Remove from favorites</string>
+    <string name="ciphers_action_add_to_favorites_title">পছন্দের তালিকায় যোগ করুন</string>
+    <string name="ciphers_action_remove_from_favorites_title">পছন্দের তালিকা থেকে সরান</string>
     <string name="ciphers_action_enable_auth_reprompt_title">Enable auth re-prompt</string>
     <string name="ciphers_action_disable_auth_reprompt_title">Disable auth re-prompt</string>
-    <string name="ciphers_action_edit_title">Edit</string>
+    <string name="ciphers_action_edit_title">সম্পাদন</string>
     <string name="ciphers_action_merge_title">Merge into…</string>
-    <string name="ciphers_action_copy_title">Copy to…</string>
-    <string name="ciphers_action_export_title">Export…</string>
-    <string name="ciphers_action_change_folder_title">Move to folder</string>
-    <string name="ciphers_action_change_name_title">Change name</string>
-    <string name="ciphers_action_change_names_title">Change names</string>
-    <string name="ciphers_action_change_tags_title">Change tags</string>
-    <string name="ciphers_action_add_password_title">Add password</string>
-    <string name="ciphers_action_add_passwords_title">Add passwords</string>
-    <string name="ciphers_action_change_password_title">Change password</string>
-    <string name="ciphers_action_change_passwords_title">Change passwords</string>
-    <string name="ciphers_action_view_password_history_title">View password history</string>
-    <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
-    <string name="ciphers_action_archive_title">Archive</string>
-    <string name="ciphers_action_archive_confirmation_title">Move to archive?</string>
-    <string name="ciphers_action_unarchive_title">Restore from archive</string>
-    <string name="ciphers_action_unarchive_confirmation_title">Restore from archive?</string>
-    <string name="ciphers_action_trash_title">Trash</string>
-    <string name="ciphers_action_trash_confirmation_title">Move to trash?</string>
-    <string name="ciphers_action_trash_confirmation_text">Items that have been in Trash for more than 30 days will be automatically deleted.</string>
+    <string name="ciphers_action_copy_title">এতে কপি করা হচ্ছে…</string>
+    <string name="ciphers_action_export_title">এতে এক্সপোর্ট করা হচ্ছে…</string>
+    <string name="ciphers_action_change_folder_title">ফোল্ডারে সরান</string>
+    <string name="ciphers_action_change_name_title">নাম পরিবর্তন করুন</string>
+    <string name="ciphers_action_change_names_title">নাম পরিবর্তন করুন</string>
+    <string name="ciphers_action_change_tags_title">ট্যাগগুলো পরিবর্তন করুন</string>
+    <string name="ciphers_action_add_password_title">পাসওয়ার্ড যুক্ত করুন</string>
+    <string name="ciphers_action_add_passwords_title">পাসওয়ার্ডগুলো যুক্ত করুন</string>
+    <string name="ciphers_action_change_password_title">পাসওয়ার্ড পরিবর্তন করুন</string>
+    <string name="ciphers_action_change_passwords_title">পাসওয়ার্ডগুলো পরিবর্তন করুন</string>
+    <string name="ciphers_action_view_password_history_title">পাসওয়ার্ড এর ইতিহাস দেখুন</string>
+    <string name="ciphers_action_view_ssh_agent_history_title">SSH এজেন্ট এর ইতিহাস</string>
+    <string name="ciphers_action_archive_title">আর্কাইভ</string>
+    <string name="ciphers_action_archive_confirmation_title">আর্কাইভে সরাবেন?</string>
+    <string name="ciphers_action_unarchive_title">আর্কাইভ থেকে বের করা</string>
+    <string name="ciphers_action_unarchive_confirmation_title">আর্কাইভ থেকে বের করবেন?</string>
+    <string name="ciphers_action_trash_title">ময়লার ঝুড়ি</string>
+    <string name="ciphers_action_trash_confirmation_title">ময়লার ঝুড়িতে নিবেন?</string>
+    <string name="ciphers_action_trash_confirmation_text">যেসব আইটেম ময়লার ঝুড়িতে ৩০ দিনের বেশি সময় ধরে আছে সেগুলো স্বয়ংক্রিয়ভাবে ডিলেট হয়ে যাবে।</string>
     <string name="ciphers_action_restore_title">Restore from trash</string>
     <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
     <string name="ciphers_action_delete_title">Delete forever</string>
@@ -600,6 +603,7 @@
     <string name="error_invalid_key">Invalid key</string>
     <string name="error_invalid_card_number">Invalid card number</string>
     <string name="error_webdav_url_required">WebDAV URL is required</string>
+    <string name="error_webdav_file_url_required">Enter the full WebDAV URL to a file resource</string>
     <string name="error_incorrect_password">Incorrect password</string>
     <string name="error_not_found">Not found</string>
     <string name="error_file_must_be_500_mb_or_smaller">File must be 500 MB or smaller</string>
@@ -1409,6 +1413,22 @@
     <string name="pref_item_ssh_agent_filters_summary_all">All keys accessible</string>
     <string name="pref_item_ssh_agent_filters_summary_active">Filters active</string>
     <string name="pref_item_ssh_agent_history_title">Request log</string>
+    <string name="pref_item_license_key_title">Link existing entitlement token</string>
+    <string name="pref_item_license_key_field_label">Entitlement token</string>
+    <string name="pref_item_license_key_message_redeemed">Entitlement token linked successfully</string>
+    <string name="pref_item_license_key_message_invalid">Invalid or expired key</string>
+    <string name="pref_item_license_key_status_active">Active</string>
+    <string name="pref_item_license_key_status_invalid">Invalid</string>
+    <string name="pref_item_license_key_status_revoked">Revoked</string>
+    <string name="pref_item_license_key_status_expired">Expired</string>
+    <string name="pref_item_license_key_status_available">Available</string>
+    <string name="pref_item_license_sync_title">Obtain entitlement token</string>
+    <string name="pref_item_license_sync_text">Verifies your active store purchase and generates an entitlement token bound to the purchase. Use the token to transfer the purchase to your other devices.</string>
+    <string name="pref_item_license_sync_requested">Entitlement token was requested</string>
+    <string name="pref_item_license_sync_success">Entitlement token synced successfully</string>
+    <string name="pref_item_license_sync_already">Current entitlement token is already active</string>
+    <string name="pref_item_license_sync_no_purchases">No eligible purchase found</string>
+    <string name="pref_item_license_sync_failed">Could not obtain entitlement token</string>
     <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Require an additional confirmation button tap after a successful biometric authentication</string>
@@ -1540,10 +1560,10 @@
     <string name="datasafety_remote_text">Remote data is stored on Bitwarden servers with zero-knowledge encryption.</string>
     <string name="webdav_settings_header_title">WebDAV server configuration</string>
     <string name="webdav_settings_url_title">WebDAV URL</string>
-    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
     <string name="webdav_settings_auth_note">If your WebDAV server requires authentication, enter your server credentials here. Do not enter your master password.</string>
     <string name="webdav_settings_test_title">Test connection</string>
     <string name="webdav_settings_test_text">Writes and removes a small probe file to verify server access.</string>
+    <string name="webdav_settings_test_text_read_only">Reads the resource to verify server access.</string>
     <string name="webdav_settings_test_success">WebDAV connection verified.</string>
     <string name="webdav_settings_password_requires_username_error">Enter a username before setting a WebDAV password.</string>
     <!-- Title of the 'Localization contributors' screen -->

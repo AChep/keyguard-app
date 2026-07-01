@@ -160,6 +160,7 @@ suspend fun RememberStateFlowScope.unlockStateProducer(
 
     val actions = persistentListOf(
         FlatItemAction(
+            id = "unlock.eraseData",
             icon = Icons.Outlined.Delete,
             title = Res.string.pref_item_erase_data_title.wrap(),
             text = Res.string.pref_item_erase_data_text.wrap(),

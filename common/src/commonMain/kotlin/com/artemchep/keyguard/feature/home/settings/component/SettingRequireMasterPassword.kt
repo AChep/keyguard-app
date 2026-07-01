@@ -101,6 +101,7 @@ private suspend fun ah(
             val actionSelected = duration == timeout
             val actionTitle = getRequirePasswordDurationTitle(duration, context)
             FlatItemAction(
+                id = "settings.requireMasterPassword.${duration.inWholeSeconds}",
                 title = TextHolder.Value(actionTitle),
                 selected = actionSelected,
                 onClick = {

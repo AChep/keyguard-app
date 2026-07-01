@@ -163,6 +163,7 @@ private fun automaticBackupsRetentionAction(
     maxSnapshots: Int,
     onRetentionChange: (Int) -> Unit,
 ) = FlatItemAction(
+    id = "settings.automaticBackups.retention.$option",
     title = TextHolder.Value(title),
     selected = option == maxSnapshots,
     onClick = {

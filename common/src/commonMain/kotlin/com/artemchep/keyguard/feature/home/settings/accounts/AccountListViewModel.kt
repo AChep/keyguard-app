@@ -237,6 +237,7 @@ suspend fun RememberStateFlowScope.accountListScreenStateProducer(
                 // An option to view all the items that belong
                 // to these folders.
                 this += FlatItemAction(
+                    id = "accounts.selection.viewItems",
                     leading = icon(Icons.Outlined.KeyguardCipher),
                     title = Res.string.items.wrap(),
                     onClick = onClick {
@@ -249,6 +250,7 @@ suspend fun RememberStateFlowScope.accountListScreenStateProducer(
             }
             section {
                 this += FlatItemAction(
+                    id = "accounts.selection.logOut",
                     icon = Icons.AutoMirrored.Outlined.Logout,
                     title = Res.string.account_action_log_out_title.wrap(),
                     onClick = onClick {
@@ -373,6 +375,7 @@ suspend fun RememberStateFlowScope.accountListScreenStateProducer(
             val addNewAccountOptions = if (canAddAccount && selection == null) {
                 buildContextItems {
                     this += FlatItemAction(
+                        id = "accounts.add.${AccountType.BITWARDEN.name}",
                         leading = icon(Icons.Outlined.Cloud),
                         title = TextHolder.Value(AccountType.BITWARDEN.fullName),
                         text = TextHolder.Res(Res.string.addaccount_description_short_bitwarden_text),
@@ -386,6 +389,7 @@ suspend fun RememberStateFlowScope.accountListScreenStateProducer(
                             .partially1(AccountType.BITWARDEN),
                     )
                     this += FlatItemAction(
+                        id = "accounts.add.${AccountType.KEEPASS.name}",
                         leading = icon(Icons.Outlined.FilePresent),
                         title = TextHolder.Value(AccountType.KEEPASS.fullName),
                         text = TextHolder.Res(Res.string.addaccount_description_short_keepass_text),

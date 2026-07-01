@@ -59,6 +59,7 @@ fun settingSshAgentApprovalWindowProvider(
             val actionSelected = duration == approvalWindow
             val actionTitle = getSshAgentApprovalWindowTitle(duration, context)
             FlatItemAction(
+                id = "settings.sshAgentApprovalWindow.${duration.inWholeSeconds}",
                 title = TextHolder.Value(actionTitle),
                 selected = actionSelected,
                 onClick = {

@@ -30,6 +30,7 @@ object PasskeysServicesRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
+        id = "watchtower.passkeysServices",
         leading = iconSmall(Icons.Outlined.Folder, Icons.Outlined.Key),
         title = Res.string.passkeys_directory_title.wrap(),
         text = Res.string.passkeys_directory_text.wrap(),

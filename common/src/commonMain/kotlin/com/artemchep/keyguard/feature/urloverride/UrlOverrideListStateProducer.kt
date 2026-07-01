@@ -264,6 +264,7 @@ suspend fun RememberStateFlowScope.urlOverrideListStateProducer(
             val actions = buildContextItems {
                 section {
                     this += FlatItemAction(
+                        id = "urlOverride.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
                         onClick = onClick {
@@ -297,6 +298,7 @@ suspend fun RememberStateFlowScope.urlOverrideListStateProducer(
                     val dropdown = buildContextItems {
                         section {
                             this += FlatItemAction(
+                                id = "urlOverride.item.${it.id}.edit",
                                 icon = Icons.Outlined.Edit,
                                 title = Res.string.edit.wrap(),
                                 onClick = onClick {
@@ -306,6 +308,7 @@ suspend fun RememberStateFlowScope.urlOverrideListStateProducer(
                                 },
                             )
                             this += FlatItemAction(
+                                id = "urlOverride.item.${it.id}.duplicate",
                                 icon = Icons.Outlined.CopyAll,
                                 title = Res.string.duplicate.wrap(),
                                 onClick = onClick {
@@ -315,6 +318,7 @@ suspend fun RememberStateFlowScope.urlOverrideListStateProducer(
                                 },
                             )
                             this += FlatItemAction(
+                                id = "urlOverride.item.${it.id}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
                                 onClick = onClick {

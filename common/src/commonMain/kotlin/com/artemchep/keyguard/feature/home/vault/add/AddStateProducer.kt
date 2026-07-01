@@ -579,6 +579,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                     },
                 )
                 val action = FlatItemAction(
+                    id = "addItem.attachment.add",
                     title = TextHolder.Value("Attachment"),
                     onClick = {
                         val intent = FilePickerIntent.OpenDocument { info ->
@@ -1142,6 +1143,7 @@ class AddStateItemUriFactory(
         }
 
         val actionsAppPickerItem = FlatItemAction(
+            id = "addItem.uri.matchApp",
             leading = icon(Icons.Outlined.Apps),
             title = Res.string.uri_match_app_title.wrap(),
             trailing = {
@@ -1165,6 +1167,7 @@ class AddStateItemUriFactory(
         val actionsMatchTypeItemFlow = matchDetectionSink
             .map { selectedMatchType ->
                 FlatItemAction(
+                    id = "addItem.uri.matchDetection",
                     leading = icon(Icons.Stub),
                     title = Res.string.uri_match_detection_title.wrap(),
                     text = selectedMatchType.matchType.titleH().wrap(),
@@ -1613,6 +1616,7 @@ class AddStateItemFieldTextFactory(
         val actionsConcealItemFlow = concealSink
             .map { conceal ->
                 FlatItemAction(
+                    id = "addItem.field.concealValue",
                     leading = {
                         val imageVector = if (conceal) {
                             Icons.Outlined.VisibilityOff
@@ -1954,6 +1958,7 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
         val actions = buildContextItems {
             types.forEach { type ->
                 this += FlatItemAction(
+                    id = "addItem.$scope.add.${type.type}",
                     title = TextHolder.Value(type.name),
                     onClick = ::add
                         .partially1(type.type)
@@ -2105,6 +2110,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
                 val options = buildContextItems(item.options) {
                     if (index > 0) {
                         this += FlatItemAction(
+                            id = "addItem.entry.${entry.key}.moveUp",
                             icon = Icons.Outlined.ArrowUpward,
                             title = Res.string.list_move_up.wrap(),
                             onClick = ::moveUp.partially1(entry.key),
@@ -2112,12 +2118,14 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
                     }
                     if (index < state.size - 1) {
                         this += FlatItemAction(
+                            id = "addItem.entry.${entry.key}.moveDown",
                             icon = Icons.Outlined.ArrowDownward,
                             title = Res.string.list_move_down.wrap(),
                             onClick = ::moveDown.partially1(entry.key),
                         )
                     }
                     this += FlatItemAction(
+                        id = "addItem.entry.${entry.key}.remove",
                         icon = Icons.Outlined.DeleteForever,
                         title = Res.string.list_remove.wrap(),
                         onClick = onClick {

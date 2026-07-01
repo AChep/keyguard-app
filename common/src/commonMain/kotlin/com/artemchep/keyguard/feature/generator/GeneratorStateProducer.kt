@@ -512,6 +512,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                 )
                 val selected = wordlistId == null || wordlistId <= 0L
                 this += FlatItemAction(
+                    id = "generator.wordlist.default",
                     title = TextHolder.Value(defaultWordlistName),
                     text = TextHolder.Value(text),
                     selected = selected,
@@ -529,6 +530,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                         numberFormatter.formatNumber(quantity),
                     )
                     this += FlatItemAction(
+                        id = "generator.wordlist.${wordlist.idRaw}",
                         title = TextHolder.Value(wordlist.name),
                         leading = {
                             val backgroundColor = if (MaterialTheme.colorScheme.isDark) {
@@ -746,6 +748,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                     val selected = keyType == type.key
                     val title = TextHolder.Value(type.title)
                     this += FlatItemAction(
+                        id = "generator.keyPairType.${type.key}",
                         title = title,
                         text = type.shortDescription,
                         selected = selected,
@@ -772,6 +775,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                     val selected = length == keyType
                     val title = translate(Res.string.generator_key_length_item, length)
                     this += FlatItemAction(
+                        id = "generator.keyPairRsaLength.$length",
                         title = TextHolder.Value(title),
                         selected = selected,
                         onClick = onSelect
@@ -1678,6 +1682,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                         val password = passwordw.value
                         val dropdown = buildContextItems {
                             this += copyItemFactory.FlatItemAction(
+                                id = "generator.value.copyPassword",
                                 title = Res.string.copy.wrap(),
                                 value = password,
                                 type = CopyText.Type.PASSWORD,
@@ -1685,6 +1690,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                             section {
                                 if (canWrite && hasAccounts && type.username) {
                                     this += FlatItemAction(
+                                        id = "generator.value.createItemWithUsername",
                                         leading = icon(Icons.Outlined.Add),
                                         title = Res.string.generator_create_item_with_username_title.wrap(),
                                         onClick = ::createLoginWithUsername.partially1(password),
@@ -1692,6 +1698,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                                 }
                                 if (canWrite && hasAccounts && type.password) {
                                     this += FlatItemAction(
+                                        id = "generator.value.createItemWithPassword",
                                         leading = icon(Icons.Outlined.Add),
                                         title = Res.string.generator_create_item_with_password_title.wrap(),
                                         onClick = ::createLoginWithPassword.partially1(password),
@@ -1738,6 +1745,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                             section {
                                 if (canWrite && hasAccounts && type.sshKey) {
                                     this += FlatItemAction(
+                                        id = "generator.value.createItemWithSshKey",
                                         leading = icon(Icons.Outlined.Add),
                                         title = Res.string.generator_create_item_with_ssh_key_title.wrap(),
                                         onClick = ::createSshKeyWithKeyPair.partially1(keyPair),
@@ -1778,6 +1786,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
     val optionsFlow = tipVisibleSink
         .map { tipVisible ->
             FlatItemAction(
+                id = "generator.showTips",
                 title = Res.string.generator_show_tips_title.wrap(),
                 icon = Icons.Outlined.Info,
                 trailing = {
@@ -2101,6 +2110,7 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
         onClick: () -> Unit,
     ): FlatItemAction {
         return FlatItemAction(
+            id = "generator.type.emailRelay.${emailRelay.id ?: emailRelay.name}",
             leading = {
                 val backgroundColor = if (MaterialTheme.colorScheme.isDark) {
                     emailRelay.accentColor.dark
@@ -2136,6 +2146,7 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
             else -> null
         }
         return FlatItemAction(
+            id = "generator.type.${type.key}",
             title = type.title,
             leading = iconSmall(primaryIcon, secondaryIcon),
             selected = selected,

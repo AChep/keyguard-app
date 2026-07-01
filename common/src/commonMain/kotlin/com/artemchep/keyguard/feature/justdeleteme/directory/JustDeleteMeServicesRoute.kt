@@ -30,6 +30,7 @@ object JustDeleteMeServicesRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
+        id = "watchtower.justDeleteMe",
         leading = iconSmall(Icons.Outlined.AccountBox, Icons.Outlined.Delete),
         title = Res.string.uri_action_how_to_delete_account_title.wrap(),
         trailing = {

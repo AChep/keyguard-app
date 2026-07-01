@@ -289,6 +289,7 @@ suspend fun RememberStateFlowScope.emailRelayListStateProducer(
             val actions = buildContextItems {
                 section {
                     this += FlatItemAction(
+                        id = "emailRelay.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
                         onClick = onClick {
@@ -323,6 +324,7 @@ suspend fun RememberStateFlowScope.emailRelayListStateProducer(
                         section {
                             if (relay != null) {
                                 this += FlatItemAction(
+                                    id = "emailRelay.item.${it.id}.edit",
                                     icon = Icons.Outlined.Edit,
                                     title = Res.string.edit.wrap(),
                                     onClick = onClick {
@@ -334,6 +336,7 @@ suspend fun RememberStateFlowScope.emailRelayListStateProducer(
                                 )
                             }
                             this += FlatItemAction(
+                                id = "emailRelay.item.${it.id}.duplicate",
                                 icon = Icons.Outlined.CopyAll,
                                 title = Res.string.duplicate.wrap(),
                                 onClick = onClick {
@@ -341,6 +344,7 @@ suspend fun RememberStateFlowScope.emailRelayListStateProducer(
                                 },
                             )
                             this += FlatItemAction(
+                                id = "emailRelay.item.${it.id}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
                                 onClick = onClick {

@@ -293,6 +293,7 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
             val actions = buildContextItems {
                 section {
                     this += FlatItemAction(
+                        id = "urlBlock.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
                         onClick = onClick {
@@ -326,6 +327,7 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                     val dropdown = buildContextItems {
                         section {
                             this += FlatItemAction(
+                                id = "urlBlock.item.${it.id}.edit",
                                 icon = Icons.Outlined.Edit,
                                 title = Res.string.edit.wrap(),
                                 onClick = onClick {
@@ -335,6 +337,7 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                                 },
                             )
                             this += FlatItemAction(
+                                id = "urlBlock.item.${it.id}.duplicate",
                                 icon = Icons.Outlined.CopyAll,
                                 title = Res.string.duplicate.wrap(),
                                 onClick = onClick {
@@ -344,6 +347,7 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                                 },
                             )
                             this += FlatItemAction(
+                                id = "urlBlock.item.${it.id}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
                                 onClick = onClick {

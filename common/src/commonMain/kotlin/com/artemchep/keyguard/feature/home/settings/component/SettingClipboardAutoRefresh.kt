@@ -74,6 +74,7 @@ fun settingClipboardAutoRefreshProvider(
             val actionSelected = timeout == duration
             val actionTitle = getAutoRefreshDurationTitle(duration, context)
             FlatItemAction(
+                id = "settings.clipboardAutoRefresh.${duration.inWholeSeconds}",
                 title = TextHolder.Value(actionTitle),
                 selected = actionSelected,
                 onClick = {

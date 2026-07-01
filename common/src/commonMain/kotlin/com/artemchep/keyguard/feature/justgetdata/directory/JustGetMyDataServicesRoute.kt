@@ -30,6 +30,7 @@ object JustGetMyDataServicesRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
+        id = "watchtower.justGetMyData",
         leading = iconSmall(Icons.Outlined.AccountBox, Icons.Outlined.Dataset),
         title = Res.string.uri_action_get_my_data_account_title.wrap(),
         trailing = {

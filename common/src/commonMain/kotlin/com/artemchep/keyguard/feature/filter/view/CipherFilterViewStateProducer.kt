@@ -330,6 +330,7 @@ suspend fun RememberStateFlowScope.cipherFilterViewStateProducer(
                     }
                     section {
                         this += FlatItemAction(
+                            id = "cipherFilter.edit",
                             icon = Icons.Outlined.Edit,
                             title = Res.string.edit.wrap(),
                             onClick = onClick {
@@ -346,6 +347,7 @@ suspend fun RememberStateFlowScope.cipherFilterViewStateProducer(
                             filter,
                         )
                         this += FlatItemAction(
+                            id = "cipherFilter.delete",
                             icon = Icons.Outlined.Delete,
                             title = Res.string.delete.wrap(),
                             onClick = onClick {

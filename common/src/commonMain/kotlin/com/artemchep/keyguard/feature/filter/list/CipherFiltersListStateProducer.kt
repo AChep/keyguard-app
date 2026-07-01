@@ -245,6 +245,7 @@ suspend fun RememberStateFlowScope.cipherFiltersListStateProducer(
                     }
                     section {
                         this += FlatItemAction(
+                            id = "cipherFilters.selection.edit",
                             icon = Icons.Outlined.Edit,
                             title = Res.string.edit.wrap(),
                             onClick = onClick {
@@ -259,6 +260,7 @@ suspend fun RememberStateFlowScope.cipherFiltersListStateProducer(
                 }
                 section {
                     this += FlatItemAction(
+                        id = "cipherFilters.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
                         onClick = onClick {

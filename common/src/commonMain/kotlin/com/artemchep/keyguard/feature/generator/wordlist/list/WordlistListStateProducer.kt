@@ -156,6 +156,7 @@ suspend fun RememberStateFlowScope.wordlistListStateProducer(
                     section {
                         val selectedItem = selectedItems.first()
                         this += FlatItemAction(
+                            id = "wordlist.selection.edit",
                             icon = Icons.Outlined.Edit,
                             title = Res.string.edit.wrap(),
                             onClick = onClick {
@@ -170,6 +171,7 @@ suspend fun RememberStateFlowScope.wordlistListStateProducer(
                 }
                 section {
                     this += FlatItemAction(
+                        id = "wordlist.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
                         onClick = onClick {
@@ -275,6 +277,7 @@ suspend fun RememberStateFlowScope.wordlistListStateProducer(
     val primaryActions = buildContextItems {
         section {
             this += FlatItemAction(
+                id = "wordlist.addFromFile",
                 leading = icon(Icons.Outlined.AttachFile),
                 title = Res.string.wordlist_add_wordlist_via_file_title.wrap(),
                 onClick = onClick {
@@ -283,8 +286,9 @@ suspend fun RememberStateFlowScope.wordlistListStateProducer(
                         addWordlist = addWordlist,
                     )
                 },
-            )
+                )
                 this += FlatItemAction(
+                    id = "wordlist.addFromUrl",
                     leading = icon(Icons.Outlined.KeyguardWebsite),
                     title = Res.string.wordlist_add_wordlist_via_url_title.wrap(),
                     onClick = onClick {

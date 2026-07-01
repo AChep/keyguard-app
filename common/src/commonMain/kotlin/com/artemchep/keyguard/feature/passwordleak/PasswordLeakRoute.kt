@@ -31,6 +31,7 @@ data class PasswordLeakRoute(
             password: String,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
+            id = "watchtower.checkPasswordLeak",
             leading = icon(Icons.AutoMirrored.Outlined.FactCheck),
             title = Res.string.password_action_check_data_breach_title.wrap(),
             onClick = {

@@ -389,6 +389,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
             val actions = mutableListOf<FlatItemAction>()
             if (selectedItemsAllCancelable) {
                 actions += FlatItemAction(
+                    id = "attachments.selection.cancel",
                     leading = icon(Icons.Outlined.Cancel),
                     title = Res.string.cancel.wrap(),
                     onClick = {
@@ -398,6 +399,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
             }
             if (selectedItemsAllDownloadable) {
                 actions += FlatItemAction(
+                    id = "attachments.selection.download",
                     leading = icon(Icons.Outlined.Download),
                     title = Res.string.download.wrap(),
                     onClick = {
@@ -412,6 +414,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
                     Res.string.file_action_delete_local_title.wrap()
                 }
                 actions += FlatItemAction(
+                    id = "attachments.selection.deleteLocal",
                     leading = icon(Icons.Outlined.Delete),
                     title = title,
                     onClick = {
@@ -639,6 +642,7 @@ fun foo(
         section {
             if (previewRoute != null) {
                 this += FlatItemAction(
+                    id = "attachment.preview",
                     leading = icon(Icons.Outlined.Visibility),
                     trailing = {
                         ChevronIcon()
@@ -657,6 +661,7 @@ fun foo(
             when (status) {
                 is FooStatus.None -> {
                     this += FlatItemAction(
+                        id = "attachment.download",
                         icon = Icons.Outlined.Download,
                         title = Res.string.download.wrap(),
                         onClick = ::performDownload,
@@ -666,6 +671,7 @@ fun foo(
 
                 is FooStatus.Loading -> {
                     this += FlatItemAction(
+                        id = "attachment.cancelDownload",
                         leading = icon(Icons.Outlined.Cancel),
                         title = Res.string.cancel.wrap(),
                         onClick = ::performRemove,
@@ -674,11 +680,13 @@ fun foo(
 
                 is FooStatus.Failed -> {
                     this += FlatItemAction(
+                        id = "attachment.cancelFailedDownload",
                         leading = icon(Icons.Outlined.Cancel),
                         title = Res.string.cancel.wrap(),
                         onClick = ::performRemove,
                     )
                     this += FlatItemAction(
+                        id = "attachment.retryDownload",
                         leading = icon(Icons.Outlined.Refresh),
                         title = Res.string.download.wrap(),
                         onClick = ::performDownload,
@@ -693,6 +701,7 @@ fun foo(
                 is FooStatus.Downloaded -> {
                     val fileUrl = status.localUrl
                     this += FlatItemAction(
+                        id = "attachment.openWith",
                         leading = icon(Icons.Outlined.FileOpen),
                         trailing = {
                             ChevronIcon()
@@ -709,6 +718,7 @@ fun foo(
                     )
                     if (CurrentPlatform is Platform.Desktop) {
                         this += FlatItemAction(
+                            id = "attachment.openInFileManager",
                             leading = iconSmall(Icons.Outlined.FileOpen, Icons.Outlined.FolderOpen),
                             trailing = {
                                 ChevronIcon()
@@ -725,6 +735,7 @@ fun foo(
                     }
                     if (CurrentPlatform is Platform.Mobile) {
                         this += FlatItemAction(
+                            id = "attachment.sendWith",
                             leading = icon(Icons.AutoMirrored.Outlined.Send),
                             trailing = {
                                 ChevronIcon()
@@ -740,6 +751,7 @@ fun foo(
                         )
                     }
                     this += FlatItemAction(
+                        id = "attachment.deleteLocal",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.file_action_delete_local_title.wrap(),
                         onClick = ::performRemove,
@@ -750,6 +762,7 @@ fun foo(
         if (launchViewCipherData != null) {
             section {
                 this += FlatItemAction(
+                    id = "attachment.viewCipher",
                     leading = icon(Icons.AutoMirrored.Outlined.OpenInNew),
                     trailing = {
                         ChevronIcon()

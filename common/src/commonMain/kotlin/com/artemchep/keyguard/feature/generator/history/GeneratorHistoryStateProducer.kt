@@ -213,6 +213,7 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
             val actions = buildContextItems {
                 section {
                     this += FlatItemAction(
+                        id = "passwordHistory.generator.selection.remove",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.remove_from_history.wrap(),
                         onClick = onClick {
@@ -284,6 +285,7 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
                                     null -> translate(Res.string.copy_value) to CopyText.Type.VALUE
                                 }
                                 this += copyFactory.FlatItemAction(
+                                    id = "passwordHistory.generator.item.${item.id}.copy",
                                     title = TextHolder.Value(copyTitle),
                                     value = content,
                                     hidden = item.isPassword,
@@ -333,6 +335,7 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
                             item,
                         )
                         this += FlatItemAction(
+                            id = "passwordHistory.generator.item.${item.id}.remove",
                             leading = icon(Icons.Outlined.Delete),
                             title = Res.string.remove_from_history.wrap(),
                             onClick = onClick {
@@ -424,6 +427,7 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
                 persistentListOf()
             } else {
                 val action = FlatItemAction(
+                    id = "passwordHistory.generator.clearHistory",
                     leading = icon(Icons.Outlined.Delete),
                     title = Res.string.generatorhistory_clear_history_title.wrap(),
                     onClick = onClick {

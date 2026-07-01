@@ -81,6 +81,7 @@ fun settingColorAccentProvider(
             val actionSelected = colorsVariant == colors
             val actionTitle = getAppColorsTitle(colorsVariant, context)
             FlatItemAction(
+                id = "settings.colorAccent.${colorsVariant?.key ?: "default"}",
                 title = TextHolder.Value(actionTitle),
                 selected = actionSelected,
                 onClick = {

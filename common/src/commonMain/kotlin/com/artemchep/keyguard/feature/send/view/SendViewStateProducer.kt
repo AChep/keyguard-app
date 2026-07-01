@@ -792,6 +792,7 @@ suspend fun RememberStateFlowScope.create(
         buildContextItems {
             section {
                 this += copy.FlatItemAction(
+                    id = "send.value.copy",
                     title = Res.string.copy.wrap(),
                     value = value,
                     hidden = private,
@@ -866,12 +867,14 @@ private suspend fun RememberStateFlowScope.aaaa(
     val dropdown = buildContextItems {
         section {
             this += copy.FlatItemAction(
+                id = "send.url.copy",
                 title = Res.string.copy_url.wrap(),
                 value = url,
             )
         }
         section {
             this += FlatItemAction(
+                id = "send.url.launchBrowser",
                 icon = Icons.AutoMirrored.Outlined.Launch,
                 title = Res.string.uri_action_launch_browser_title.wrap(),
                 text = TextHolder.Value(url),

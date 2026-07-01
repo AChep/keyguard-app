@@ -211,6 +211,7 @@ suspend fun RememberStateFlowScope.organizationsScreenStateProducer(
                         // to this cipher.
                         if (ciphers.isNotEmpty()) {
                             this += FlatItemAction(
+                                id = "organization.${organization.id}.viewItems",
                                 icon = Icons.Outlined.KeyguardCipher,
                                 title = Res.string.items.wrap(),
                                 trailing = {
@@ -229,6 +230,7 @@ suspend fun RememberStateFlowScope.organizationsScreenStateProducer(
                         // to this cipher.
                         if (collections.isNotEmpty()) {
                             this += FlatItemAction(
+                                id = "organization.${organization.id}.viewCollections",
                                 icon = Icons.Outlined.KeyguardCollection,
                                 title = Res.string.collections.wrap(),
                                 trailing = {
@@ -249,6 +251,7 @@ suspend fun RememberStateFlowScope.organizationsScreenStateProducer(
                     }
                     section {
                         this += FlatItemAction(
+                            id = "organization.${organization.id}.info",
                             icon = Icons.Outlined.Info,
                             title = Res.string.info.wrap(),
                             onClick = {

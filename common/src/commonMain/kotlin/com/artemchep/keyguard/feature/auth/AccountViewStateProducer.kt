@@ -507,6 +507,7 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                 }
 
                 this += FlatItemAction(
+                    id = "account.sync",
                     leading = {
                         SyncIcon(rotating = syncing)
                     },
@@ -529,6 +530,7 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                 val onCheckedChange = ::doHideProfileById
                     .partially1(profileOrNull.profileId)
                 this += FlatItemAction(
+                    id = "account.hideProfile",
                     leading = {
                         Icon(
                             Icons.Outlined.VisibilityOff,
@@ -552,6 +554,7 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                 }
 
                 this += FlatItemAction(
+                    id = "account.signOut",
                     icon = Icons.AutoMirrored.Outlined.Logout,
                     title = Res.string.account_action_sign_out_title.wrap(),
                     onClick = if (busy) {
@@ -1052,6 +1055,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
 
     val id = "name"
     val nameEditActionItem = FlatItemAction(
+        id = "account.name.edit",
         icon = Icons.Outlined.Edit,
         title = Res.string.account_action_change_name_title.wrap(),
         onClick = scope.onClick {
@@ -1059,6 +1063,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
         },
     )
     val colorEditActionItem = FlatItemAction(
+        id = "account.name.editColor",
         leading = iconSmall(Icons.Outlined.Edit, Icons.Outlined.ColorLens),
         trailing = {
             val accentColor = if (MaterialTheme.colorScheme.isDark) {
@@ -1111,6 +1116,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
             dropdown = buildContextItems {
                 section {
                     this += copyText.FlatItemAction(
+                        id = "account.name.copy",
                         title = Res.string.copy.wrap(),
                         value = name,
                     )
@@ -1203,6 +1209,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
             dropdown = buildContextItems {
                 section {
                     this += copyText.FlatItemAction(
+                        id = "account.email.copy",
                         title = Res.string.copy.wrap(),
                         value = email,
                         type = CopyText.Type.EMAIL,
@@ -1223,6 +1230,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
                 if (profile.emailVerified == false) {
                     section {
                         this += FlatItemAction(
+                            id = "account.email.verifyInstructions",
                             leading = icon(Icons.Outlined.VerifiedUser),
                             title = Res.string.account_action_email_verify_instructions_title.wrap(),
                             onClick = null,
@@ -1333,6 +1341,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
 
     val id = "master_password_hint"
     val hintEditActionItem = FlatItemAction(
+        id = "account.masterPasswordHint.edit",
         icon = Icons.Outlined.Edit,
         title = Res.string.account_action_change_master_password_hint_title.wrap(),
         onClick = scope.onClick {
@@ -1354,6 +1363,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
                 if (!hint.isNullOrBlank()) {
                     section {
                         this += copyText.FlatItemAction(
+                            id = "account.masterPasswordHint.copy",
                             title = Res.string.copy.wrap(),
                             value = hint,
                         )
@@ -1397,6 +1407,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitFingerprint(
             dropdown = buildContextItems {
                 section {
                     this += copyText.FlatItemAction(
+                        id = "account.fingerprint.copy",
                         title = Res.string.copy.wrap(),
                         value = fingerprint,
                     )
@@ -1417,6 +1428,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitFingerprint(
                 }
                 section {
                     this += FlatItemAction(
+                        id = "account.fingerprint.help",
                         icon = Icons.AutoMirrored.Outlined.HelpOutline,
                         title = Res.string.fingerprint_phrase_help_title.wrap(),
                         trailing = {

@@ -127,6 +127,7 @@ suspend fun RememberStateFlowScope.sshAgentHistoryStateProducer(
             } else {
                 persistentListOf(
                     FlatItemAction(
+                        id = "sshAgentHistory.clearHistory",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.ssh_agent_history_clear_history_title.wrap(),
                         onClick = onClick {

@@ -28,6 +28,7 @@ object WordlistsRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
+        id = "wordlist.list",
         leading = iconSmall(Icons.Outlined.KeyguardWordlist),
         title = Res.string.wordlist_list_header_title.wrap(),
         trailing = {

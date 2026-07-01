@@ -42,6 +42,7 @@ fun settingAutofillDefaultMatchDetectionProvider(
             val actionSelected = entry == matchDetection
             val actionTitleRes = entry.titleH()
             FlatItemAction(
+                id = "settings.autofillDefaultMatchDetection.${entry.name}",
                 title = TextHolder.Res(actionTitleRes),
                 selected = actionSelected,
                 onClick = {

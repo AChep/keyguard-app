@@ -461,6 +461,7 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
         val actionAlwaysShowKeyboardFlow = showKeyboardSink
             .map { showKeyboard ->
                 FlatItemAction(
+                    id = "sendList.alwaysShowKeyboard",
                     leading = {
                         Icon(
                             Icons.Outlined.Keyboard,
@@ -480,6 +481,7 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
         val actionSyncAccountsFlow = syncFlow
             .map { syncing ->
                 FlatItemAction(
+                    id = "sendList.sync",
                     leading = {
                         SyncIcon(
                             rotating = syncing,
@@ -498,6 +500,7 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
                 )
             }
         val actionLockVaultItem = FlatItemAction(
+            id = "sendList.lock",
             leading = {
                 Icon(Icons.Outlined.Lock, null)
             },
@@ -868,6 +871,7 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
     suspend fun createTypeAction(
         type: DSend.Type,
     ) = FlatItemAction(
+        id = "sendList.create.${type.name}",
         leading = icon(type.iconImageVector()),
         title = type.titleH().wrap(),
         onClick = {

@@ -418,6 +418,7 @@ suspend fun RememberStateFlowScope.duplicatesListStateProducer(
                     .entries
                     .map { s ->
                         FlatItemAction(
+                            id = "duplicates.sensitivity.${s.name}",
                             title = s.title.wrap(),
                             onClick = {
                                 sensitivitySink.value = s
@@ -497,6 +498,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     // show an action to do it!
     if (canEdit && selectedCiphers.any { !it.favorite }) {
         actions += FlatItemAction(
+            id = "duplicates.selection.addToFavorites",
             icon = Icons.Outlined.KeyguardFavourite,
             title = Res.string.ciphers_action_add_to_favorites_title.wrap(),
             onClick = {
@@ -518,6 +520,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     // show an action to do it!
     if (canEdit && selectedCiphers.any { it.favorite }) {
         actions += FlatItemAction(
+            id = "duplicates.selection.removeFromFavorites",
             icon = Icons.Outlined.KeyguardFavouriteOutline,
             title = Res.string.ciphers_action_remove_from_favorites_title.wrap(),
             onClick = {

@@ -684,6 +684,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     val filterResult = createFilter(directDI)
     val actionsFlow = kotlin.run {
         val actionArchiveItem = FlatItemAction(
+            id = "vaultList.archive",
             leading = {
                 Icon(Icons.Outlined.Archive, null)
             },
@@ -709,6 +710,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         )
         val actionArchiveFlow = flowOf(actionArchiveItem)
         val actionTrashItem = FlatItemAction(
+            id = "vaultList.trash",
             leading = {
                 Icon(Icons.Outlined.Delete, null)
             },
@@ -734,6 +736,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         )
         val actionTrashFlow = flowOf(actionTrashItem)
         val actionDownloadsItem = FlatItemAction(
+            id = "vaultList.downloads",
             leading = {
                 Icon(Icons.Outlined.Download, null)
             },
@@ -826,6 +829,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         val actionSyncAccountsFlow = syncFlow
             .map { syncing ->
                 FlatItemAction(
+                    id = "vaultList.sync",
                     leading = {
                         SyncIcon(
                             rotating = syncing,
@@ -844,6 +848,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                 )
             }
         val actionLockVaultItem = FlatItemAction(
+            id = "vaultList.lock",
             leading = {
                 Icon(Icons.Outlined.Lock, null)
             },
@@ -870,6 +875,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                 val folder = folders.firstOrNull { it.id == fffFolderId }
                 if (folder != null) {
                     FlatItemAction(
+                        id = "vaultList.renameFolder",
                         leading = {
                             Icon(Icons.Outlined.Edit, null)
                         },
@@ -1061,6 +1067,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                                 }
                                 section {
                                     this += FlatItemAction(
+                                        id = "vaultList.save.viewDetails",
                                         icon = Icons.Outlined.Info,
                                         title = Res.string.ciphers_view_details.wrap(),
                                         trailing = {
@@ -1077,6 +1084,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                                 is AppMode.Pick -> buildContextItems {
                                     section {
                                         this += FlatItemAction(
+                                            id = "vaultList.pick.autofill",
                                             icon = Icons.Outlined.AutoAwesome,
                                             title = Res.string.autofill.wrap(),
                                             onClick = {
@@ -1086,6 +1094,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                                         )
                                         if (cfg.canWrite) {
                                             this += FlatItemAction(
+                                                id = "vaultList.pick.autofillAndSave",
                                                 leading = iconSmall(
                                                     Icons.Outlined.AutoAwesome,
                                                     Icons.Outlined.Save,
@@ -1107,6 +1116,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                                     }
                                     section {
                                         this += FlatItemAction(
+                                            id = "vaultList.pick.viewDetails",
                                             icon = Icons.Outlined.Info,
                                             title = Res.string.ciphers_view_details.wrap(),
                                             trailing = {
@@ -1121,6 +1131,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
 
                                 is AppMode.Save -> buildContextItemsForSaveAction {
                                     this += FlatItemAction(
+                                        id = "vaultList.save.saveTo",
                                         icon = Icons.Outlined.Save,
                                         title = Res.string.ciphers_save_to.wrap(),
                                         onClick = {
@@ -1144,6 +1155,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
 
                                 is AppMode.SavePasskey -> buildContextItemsForSaveAction {
                                     this += FlatItemAction(
+                                        id = "vaultList.savePasskey.saveTo",
                                         icon = Icons.Outlined.Save,
                                         title = Res.string.ciphers_save_to.wrap(),
                                         text = Res.string.ciphers_save_to_adds_credentials_passkey.wrap(),
@@ -1155,6 +1167,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
 
                                 is AppMode.SavePassword -> buildContextItemsForSaveAction {
                                     this += FlatItemAction(
+                                        id = "vaultList.savePassword.saveTo",
                                         icon = Icons.Outlined.Save,
                                         title = Res.string.ciphers_save_to.wrap(),
                                         text = Res.string.ciphers_save_to_replaces_credentials_username_password.wrap(),
@@ -1764,6 +1777,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         fun createTypeAction(
             type: DSecret.Type,
         ) = FlatItemAction(
+            id = "vaultList.create.${type.name}",
             leading = icon(type.iconImageVector()),
             title = type.titleH().wrap(),
             onClick = {
@@ -1887,6 +1901,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         if (!canWrite && state.primaryActions.isNotEmpty()) {
             val primaryActions = listOf(
                 FlatItemAction(
+                    id = "vaultList.subscriptions",
                     title = TextHolder.Res(Res.string.settings_subscriptions_header_title),
                     onClick = {
                         val intent = NavigationIntent.NavigateToRoute(SubscriptionsSettingsRoute)

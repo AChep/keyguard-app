@@ -27,6 +27,7 @@ object EmailRelayListRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
+        id = "emailRelay.list",
         leading = iconSmall(Icons.AutoMirrored.Outlined.ForwardToInbox),
         title = Res.string.emailrelay_list_header_title.wrap(),
         trailing = {

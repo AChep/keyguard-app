@@ -878,10 +878,12 @@ private suspend fun RememberStateFlowScope.produceFileState(
         options = buildContextItems {
             section {
                 this += FlatItemAction(
+                    id = "sendAdd.attachment.selectFile",
                     title = TextHolder.Res(Res.string.select_file),
                     onClick = ::selectFile,
                 )
                 this += FlatItemAction(
+                    id = "sendAdd.attachment.clearFile",
                     title = TextHolder.Res(Res.string.clear_file),
                     onClick = ::clearFile,
                 )
@@ -982,6 +984,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
                 .map { entry ->
                     val titleRes = entry.titleH()
                     FlatItemAction(
+                        id = "sendAdd.authType.${entry.name}",
                         title = TextHolder.Res(titleRes),
                         onClick = sink::value::set
                             .partially1(entry.name),
@@ -1126,6 +1129,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             val durationItems = opts.map { duration ->
                 val durationFormatted = duration.format(context)
                 FlatItemAction(
+                    id = "sendAdd.deletionDate.duration.${duration.inWholeSeconds}",
                     title = TextHolder.Value(durationFormatted),
                     onClick = sink::value::set.partially1(duration),
                 )
@@ -1135,6 +1139,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             }
             section {
                 this += FlatItemAction(
+                    id = "sendAdd.deletionDate.custom",
                     title = Res.string.deletion_date_custom.wrap(),
                     onClick = sink::value::set.partially1(null),
                 )
@@ -1224,6 +1229,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             val durationItems = opts.map { duration ->
                 val durationFormatted = duration.format(context)
                 FlatItemAction(
+                    id = "sendAdd.expirationDate.duration.${duration.inWholeSeconds}",
                     title = TextHolder.Value(durationFormatted),
                     onClick = sink::value::set.partially1(duration),
                 )
@@ -1231,6 +1237,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             val durationInfinite = run {
                 val duration = with(Duration) { INFINITE }
                 FlatItemAction(
+                    id = "sendAdd.expirationDate.infinite",
                     title = TextHolder.Value(duration.format(context)),
                     onClick = sink::value::set.partially1(duration),
                 )
@@ -1241,6 +1248,7 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
             }
             section {
                 this += FlatItemAction(
+                    id = "sendAdd.expirationDate.custom",
                     title = Res.string.expiration_date_custom.wrap(),
                     onClick = sink::value::set.partially1(null),
                 )

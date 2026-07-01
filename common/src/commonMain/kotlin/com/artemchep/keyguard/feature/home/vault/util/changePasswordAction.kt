@@ -90,6 +90,7 @@ fun RememberStateFlowScope.cipherEnableConfirmAccessAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     FlatItemAction(
+        id = "cipher.enableConfirmAccess",
         icon = Icons.Filled.Lock,
         title = Res.string.ciphers_action_enable_auth_reprompt_title.wrap(),
         onClick = {
@@ -116,6 +117,7 @@ fun RememberStateFlowScope.cipherDisableConfirmAccessAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     FlatItemAction(
+        id = "cipher.disableConfirmAccess",
         icon = Icons.Outlined.LockOpen,
         title = Res.string.ciphers_action_disable_auth_reprompt_title.wrap(),
         onClick = {
@@ -152,6 +154,7 @@ fun RememberStateFlowScope.cipherEditAction(
     val icon = icon(Icons.Outlined.Edit)
     val title = Res.string.ciphers_action_edit_title.wrap()
     FlatItemAction(
+        id = "cipher.edit",
         leading = icon,
         title = title,
         onClick = {
@@ -180,6 +183,7 @@ fun RememberStateFlowScope.cipherMergeIntoAction(
     val icon = icon(Icons.Outlined.Merge)
     val title = Res.string.ciphers_action_merge_title.wrap()
     FlatItemAction(
+        id = "cipher.mergeInto",
         leading = icon,
         title = title,
         onClick = {
@@ -224,6 +228,7 @@ fun RememberStateFlowScope.cipherExportAction(
     val iconImageVector = Icons.Outlined.SaveAlt
     val title = Res.string.ciphers_action_export_title.wrap()
     FlatItemAction(
+        id = "cipher.export",
         icon = iconImageVector,
         title = title,
         onClick = {
@@ -451,6 +456,7 @@ fun RememberStateFlowScope.cipherSendAction(
     val sendTitle = ciphers
         .joinToString { cipher -> cipher.name }
     FlatItemAction(
+        id = "cipher.send",
         leading = iconSmall(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),
         title = Res.string.text_action_send_title.wrap(),
         onClick = onClick {
@@ -538,6 +544,7 @@ fun RememberStateFlowScope.cipherCopyToAction(
     val iconImageVector = Icons.Outlined.FileCopy
     val title = Res.string.ciphers_action_copy_title.wrap()
     FlatItemAction(
+        id = "cipher.copyTo",
         icon = iconImageVector,
         title = title,
         onClick = onClick {
@@ -601,6 +608,7 @@ fun RememberStateFlowScope.cipherMoveToFolderAction(
     val icon = icon(Icons.Outlined.Folder)
     val title = Res.string.ciphers_action_change_folder_title.wrap()
     FlatItemAction(
+        id = "cipher.moveToFolder",
         leading = icon,
         title = title,
         onClick = {
@@ -683,6 +691,7 @@ fun RememberStateFlowScope.cipherChangeNameAction(
         Res.string.ciphers_action_change_name_title
     }.wrap()
     FlatItemAction(
+        id = "cipher.changeName",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -732,6 +741,7 @@ fun RememberStateFlowScope.cipherChangeTagsAction(
     val icon = icon(Icons.AutoMirrored.Outlined.Label)
     val title = Res.string.ciphers_action_change_tags_title.wrap()
     FlatItemAction(
+        id = "cipher.changeTags",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -797,6 +807,7 @@ fun RememberStateFlowScope.cipherChangePasswordAction(
         }.wrap()
     }
     FlatItemAction(
+        id = "cipher.changePassword",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -846,6 +857,7 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
 ) = kotlin.run {
     val title = Res.string.ciphers_action_view_password_history_title.wrap()
     FlatItemAction(
+        id = "cipher.viewPasswordHistory",
         leading = {
             BadgedBox(
                 badge = {
@@ -880,6 +892,7 @@ fun RememberStateFlowScope.cipherViewSshAgentHistoryAction(
     cipher: DSecret,
 ) = kotlin.run {
     FlatItemAction(
+        id = "cipher.viewSshAgentHistory",
         leading = icon(Icons.Outlined.History),
         title = Res.string.ciphers_action_view_ssh_agent_history_title.wrap(),
         trailing = {
@@ -906,6 +919,7 @@ fun RememberStateFlowScope.cipherArchiveAction(
     val icon = icon(Icons.Outlined.Archive)
     val title = Res.string.ciphers_action_archive_title.wrap()
     FlatItemAction(
+        id = "cipher.archive",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -944,6 +958,7 @@ fun RememberStateFlowScope.cipherUnarchiveAction(
     val icon = icon(Icons.Outlined.Unarchive)
     val title = Res.string.ciphers_action_unarchive_title.wrap()
     FlatItemAction(
+        id = "cipher.unarchive",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -982,6 +997,7 @@ fun RememberStateFlowScope.cipherTrashAction(
     val icon = icon(Icons.Outlined.Delete)
     val title = Res.string.ciphers_action_trash_title.wrap()
     FlatItemAction(
+        id = "cipher.trash",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -1021,6 +1037,7 @@ fun RememberStateFlowScope.cipherRestoreAction(
     val icon = icon(Icons.Outlined.RestoreFromTrash)
     val title = Res.string.ciphers_action_restore_title.wrap()
     FlatItemAction(
+        id = "cipher.restore",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -1059,6 +1076,7 @@ fun RememberStateFlowScope.cipherDeleteAction(
     val icon = icon(Icons.Outlined.DeleteForever)
     val title = Res.string.ciphers_action_delete_title.wrap()
     FlatItemAction(
+        id = "cipher.delete",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -1101,6 +1119,7 @@ fun RememberStateFlowScope.cipherWatchtowerAlerts(
         .count()
     val title = Res.string.ciphers_action_configure_watchtower_alerts_title.wrap()
     FlatItemAction(
+        id = "cipher.watchtowerAlerts",
         leading = {
             BadgedBox(
                 badge = {

@@ -433,6 +433,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                     .count()
                 if (ciphersCount > 0) {
                     this += FlatItemAction(
+                        id = "folders.selection.viewItems",
                         icon = Icons.Outlined.KeyguardCipher,
                         title = Res.string.items.wrap(),
                         trailing = {
@@ -452,6 +453,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
             section {
                 if (canEdit) {
                     this += FlatItemAction(
+                        id = "folders.selection.rename",
                         icon = Icons.Outlined.Edit,
                         title = Res.string.rename.wrap(),
                         onClick = onClick {
@@ -476,6 +478,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                             val selectedFolderIds = directFolders
                                 .mapTo(mutableSetOf()) { it.id }
                             this += FlatItemAction(
+                                id = "folders.selection.merge",
                                 icon = Icons.Outlined.Merge,
                                 title = Res.string.folder_action_merge_title.wrap(),
                                 onClick = onClick {
@@ -491,6 +494,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                         .toSet()
                     val hasCiphers = selectedNodes.any { it.value.subtreeCiphers.isNotEmpty() }
                     this += FlatItemAction(
+                        id = "folders.selection.delete",
                         icon = Icons.Outlined.Delete,
                         title = Res.string.delete.wrap(),
                         onClick = onClick {
@@ -535,6 +539,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                             nodeWithCiphers.directCiphers.isNotEmpty()
                         ) {
                             this += FlatItemAction(
+                                id = "folder.${node.key}.viewItems",
                                 icon = Icons.Outlined.KeyguardCipher,
                                 title = Res.string.items.wrap(),
                                 trailing = {
@@ -553,6 +558,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                     section {
                         if (!node.deleted && canEdit) {
                             this += FlatItemAction(
+                                id = "folder.${node.key}.rename",
                                 icon = Icons.Outlined.Edit,
                                 title = Res.string.rename.wrap(),
                                 onClick = onClick {
@@ -564,6 +570,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                         }
                         if (!node.deleted && canDelete) {
                             this += FlatItemAction(
+                                id = "folder.${node.key}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
                                 onClick = onClick {

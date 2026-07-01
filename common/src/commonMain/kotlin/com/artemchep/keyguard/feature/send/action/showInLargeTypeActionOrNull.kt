@@ -36,6 +36,7 @@ suspend fun createSendAction(
     text: String,
     navigate: (NavigationIntent) -> Unit,
 ) = FlatItemAction(
+    id = "largeType.send",
     leading = iconSmall(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),
     title = Res.string.text_action_send_title.wrap(),
     onClick = {
@@ -56,6 +57,7 @@ suspend fun createShareAction(
     navigate: (NavigationIntent) -> Unit,
 ): FlatItemAction? = if (CurrentPlatform.hasShareFeature()) {
     FlatItemAction(
+        id = "largeType.share",
         leading = icon(Icons.Outlined.Share),
         trailing = {
             ChevronIcon()

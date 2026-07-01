@@ -1251,6 +1251,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                     is AppMode.QuickSearch -> null
                     is AppMode.Pick -> {
                         FlatItemAction(
+                            id = "cipher.primary.autofill",
                             title = Res.string.autofill.wrap(),
                             leading = icon(Icons.Outlined.AutoAwesome),
                             onClick = {
@@ -1264,6 +1265,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                     is AppMode.Save -> null
                     is AppMode.SavePasskey -> {
                         FlatItemAction(
+                            id = "cipher.primary.savePasskey",
                             title = Res.string.passkey_save.wrap(),
                             leading = icon(Icons.Outlined.Save),
                             onClick = {
@@ -1274,6 +1276,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                     }
                     is AppMode.SavePassword -> {
                         FlatItemAction(
+                            id = "cipher.primary.savePassword",
                             title = Res.string.password_save.wrap(),
                             leading = icon(Icons.Outlined.Save),
                             onClick = {
@@ -2039,10 +2042,12 @@ private fun RememberStateFlowScope.oh(
                             val dropdown = buildContextItems {
                                 section {
                                     this += copy.FlatItemAction(
+                                        id = "cipher.totp.copyCode",
                                         title = Res.string.copy_otp_code.wrap(),
                                         value = code.code,
                                     )
                                     this += copy.FlatItemAction(
+                                        id = "cipher.totp.copySecret",
                                         leading = iconSmall(Icons.Outlined.ContentCopy, Icons.Outlined.Key),
                                         title = Res.string.copy_otp_secret_code.wrap(),
                                         value = cipherLoginTotp.token.raw,
@@ -2230,6 +2235,7 @@ private fun RememberStateFlowScope.oh(
             val actions = mutableListOf<FlatItemAction>()
             if (cipherIdentity.phone != null) {
                 actions += FlatItemAction(
+                    id = "cipher.identity.callPhone",
                     icon = Icons.Outlined.Call,
                     title = Res.string.vault_view_call_phone_action.wrap(),
                     onClick = {
@@ -2240,6 +2246,7 @@ private fun RememberStateFlowScope.oh(
                     },
                 )
                 actions += FlatItemAction(
+                    id = "cipher.identity.textPhone",
                     icon = Icons.Outlined.Textsms,
                     title = Res.string.vault_view_text_phone_action.wrap(),
                     onClick = {
@@ -2252,6 +2259,7 @@ private fun RememberStateFlowScope.oh(
             }
             if (cipherIdentity.email != null) {
                 actions += FlatItemAction(
+                    id = "cipher.identity.email",
                     icon = Icons.Outlined.Email,
                     title = Res.string.vault_view_email_action.wrap(),
                     onClick = {
@@ -2272,6 +2280,7 @@ private fun RememberStateFlowScope.oh(
                 cipherIdentity.country != null
             ) {
                 actions += FlatItemAction(
+                    id = "cipher.identity.navigate",
                     icon = Icons.Outlined.Directions,
                     title = Res.string.vault_view_navigate_action.wrap(),
                     onClick = {
@@ -2585,6 +2594,7 @@ private fun RememberStateFlowScope.oh(
                 fun createAction(
                     value: Boolean,
                 ) = FlatItemAction(
+                    id = "cipher.field.$index.toggleBoolean",
                     title = TextHolder.Res(Res.string.custom_field_toggle_boolean_value),
                     trailing = {
                         Switch(
@@ -3363,12 +3373,14 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     val dropdown = buildContextItems {
                         section {
                             this += copy.FlatItemAction(
+                                id = "cipher.uri.android.copyPackageName",
                                 title = Res.string.copy_package_name.wrap(),
                                 value = platformMarker.packageName,
                             )
                         }
                         section {
                             this += FlatItemAction(
+                                id = "cipher.uri.android.launchApp",
                                 leading = {
                                     Image(
                                         modifier = Modifier
@@ -3415,6 +3427,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     val dropdown = buildContextItems {
                         section {
                             this += copy.FlatItemAction(
+                                id = "cipher.uri.android.copyPackageName",
                                 title = Res.string.copy_package_name.wrap(),
                                 value = platformMarker.packageName,
                             )
@@ -3449,6 +3462,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
+                        id = "cipher.uri.ios.copyBundleId",
                         title = Res.string.copy_bundle_id.wrap(),
                         value = platformMarker.bundleId,
                     )
@@ -3479,12 +3493,14 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
+                        id = "cipher.uri.web.copyUrl",
                         title = Res.string.copy_url.wrap(),
                         value = url,
                     )
                 }
                 section {
                     this += FlatItemAction(
+                        id = "cipher.uri.web.launchBrowser",
                         icon = Icons.AutoMirrored.Outlined.Launch,
                         title = Res.string.uri_action_launch_browser_title.wrap(),
                         text = TextHolder.Value(url),
@@ -3502,6 +3518,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     ) {
                         val launchUrl = platformMarker.frontPageUrl.toString()
                         this += FlatItemAction(
+                            id = "cipher.uri.web.launchBrowserMainPage",
                             icon = Icons.AutoMirrored.Outlined.Launch,
                             title = Res.string.uri_action_launch_browser_main_page_title.wrap(),
                             text = TextHolder.Value(launchUrl),
@@ -3518,6 +3535,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                 if (isUnsecure && canEdit) {
                     section {
                         this += FlatItemAction(
+                            id = "cipher.uri.web.autofixUnsecure",
                             icon = Icons.Outlined.AutoAwesome,
                             title = Res.string.uri_action_autofix_unsecure_title.wrap(),
                             text = Res.string.uri_action_autofix_unsecure_text.wrap(),
@@ -3577,6 +3595,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
+                        id = "cipher.uri.other.copy",
                         title = Res.string.copy.wrap(),
                         value = uri,
                     )
@@ -3584,6 +3603,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                 section {
                     if (canExecute != null) {
                         this += FlatItemAction(
+                            id = "cipher.uri.other.execute",
                             icon = Icons.Outlined.Terminal,
                             title = Res.string.execute_command.wrap(),
                             trailing = {
@@ -3598,6 +3618,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     if (canLuanch != null) {
                         if (canLuanch.apps.size > 1) {
                             this += FlatItemAction(
+                                id = "cipher.uri.other.launchInChooser",
                                 icon = Icons.AutoMirrored.Outlined.Launch,
                                 title = Res.string.uri_action_launch_in_smth_title.wrap(),
                                 trailing = {
@@ -3611,6 +3632,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                         } else {
                             val icon = canLuanch.apps.first().icon
                             this += FlatItemAction(
+                                id = "cipher.uri.other.launchInApp",
                                 leading = {
                                     if (icon != null) {
                                         Image(
@@ -3771,6 +3793,7 @@ suspend fun RememberStateFlowScope.create(
         buildContextItems {
             section {
                 this += copy.FlatItemAction(
+                    id = "cipher.value.$id.copy",
                     title = Res.string.copy.wrap(),
                     value = value,
                     shortcut = shortcut,
@@ -3885,15 +3908,18 @@ suspend fun RememberStateFlowScope.createExpDate(
     val dropdown = buildContextItems {
         section {
             this += copy.FlatItemAction(
+                id = "cipher.expDate.$id.copyRaw",
                 title = Res.string.copy.wrap(),
                 value = valueRaw,
             )
             this += copy.FlatItemAction(
+                id = "cipher.expDate.$id.copyMonth",
                 title = Res.string.copy_expiration_month.wrap(),
                 value = month,
                 type = CopyText.Type.CARD_EXP_MONTH,
             )
             this += copy.FlatItemAction(
+                id = "cipher.expDate.$id.copyYear",
                 title = Res.string.copy_expiration_year.wrap(),
                 value = year,
                 type = CopyText.Type.CARD_EXP_YEAR,
@@ -3928,6 +3954,7 @@ private suspend fun RememberStateFlowScope.create(
     val dropdown = buildContextItems {
         section {
             this += copy.FlatItemAction(
+                id = "cipher.card.$id.copyNumber",
                 title = Res.string.copy_card_number.wrap(),
                 value = data.number,
                 shortcut = copyShortcut,
@@ -3935,6 +3962,7 @@ private suspend fun RememberStateFlowScope.create(
                 type = CopyText.Type.CARD_NUMBER,
             )?.verify(verify)
             this += copy.FlatItemAction(
+                id = "cipher.card.$id.copyCardholderName",
                 title = Res.string.copy_cardholder_name.wrap(),
                 value = data.cardholderName,
                 type = CopyText.Type.CARD_CARDHOLDER_NAME,

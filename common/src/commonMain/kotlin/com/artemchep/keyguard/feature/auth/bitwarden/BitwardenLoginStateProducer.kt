@@ -959,6 +959,7 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
         val actions = types
             .map { type ->
                 FlatItemAction(
+                    id = "login.add.${type.type}",
                     title = TextHolder.Value(type.name),
                     onClick = {
                         add(type.type, null)
@@ -1130,6 +1131,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
                 val options = item.options.toMutableList()
                 if (index > 0) {
                     options += FlatItemAction(
+                        id = "login.entry.${entry.perst.key}.moveUp",
                         icon = Icons.Outlined.ArrowUpward,
                         title = Res.string.list_move_up.wrap(),
                         onClick = ::moveUp.partially1(entry.perst.key),
@@ -1137,12 +1139,14 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
                 }
                 if (index < state.size - 1) {
                     options += FlatItemAction(
+                        id = "login.entry.${entry.perst.key}.moveDown",
                         icon = Icons.Outlined.ArrowDownward,
                         title = Res.string.list_move_down.wrap(),
                         onClick = ::moveDown.partially1(entry.perst.key),
                     )
                 }
                 options += FlatItemAction(
+                    id = "login.entry.${entry.perst.key}.remove",
                     icon = Icons.Outlined.DeleteForever,
                     title = Res.string.list_remove.wrap(),
                     onClick = onClick {

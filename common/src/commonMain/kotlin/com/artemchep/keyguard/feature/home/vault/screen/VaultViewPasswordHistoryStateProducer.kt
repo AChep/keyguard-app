@@ -206,6 +206,7 @@ suspend fun RememberStateFlowScope.vaultViewPasswordHistoryScreenStateProducer(
             val actions = buildContextItems {
                 section {
                     this += FlatItemAction(
+                        id = "passwordHistory.selection.remove",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.remove_from_history.wrap(),
                         onClick = onClick {
@@ -244,6 +245,7 @@ suspend fun RememberStateFlowScope.vaultViewPasswordHistoryScreenStateProducer(
                         actions = buildContextItems {
                             section {
                                 this += copyFactory.FlatItemAction(
+                                    id = "passwordHistory.item.${password.id}.copy",
                                     title = Res.string.copy_password.wrap(),
                                     value = password.password,
                                     type = CopyText.Type.PASSWORD,
@@ -252,6 +254,7 @@ suspend fun RememberStateFlowScope.vaultViewPasswordHistoryScreenStateProducer(
                                     password,
                                 )
                                 this += FlatItemAction(
+                                    id = "passwordHistory.item.${password.id}.remove",
                                     leading = icon(Icons.Outlined.Delete),
                                     title = Res.string.remove_from_history.wrap(),
                                     onClick = onClick {
@@ -315,6 +318,7 @@ suspend fun RememberStateFlowScope.vaultViewPasswordHistoryScreenStateProducer(
     val actionsFlow = flowOf(
         persistentListOf(
             FlatItemAction(
+                id = "passwordHistory.clearHistory",
                 icon = Icons.Outlined.Delete,
                 title = Res.string.passwordhistory_clear_history_title.wrap(),
                 onClick = onClick {

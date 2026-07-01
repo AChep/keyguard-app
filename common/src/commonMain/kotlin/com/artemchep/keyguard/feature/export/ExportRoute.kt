@@ -52,6 +52,9 @@ data class ExportRoute(
                 translator.translate(res)
             }
             return FlatItemAction(
+                id = if (individual) {
+                    "export.individualVault.${accountId.id}"
+                } else "export.vault.${accountId.id}",
                 icon = if (individual) {
                     Icons.Outlined.SaveAlt
                 } else {

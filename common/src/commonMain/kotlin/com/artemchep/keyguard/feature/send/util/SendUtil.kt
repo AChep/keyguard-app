@@ -67,6 +67,7 @@ object SendUtil {
             Res.string.sends_action_change_name_title.wrap()
         }
         FlatItemAction(
+            id = "send.rename",
             leading = icon,
             title = title,
             onClick = onClick {
@@ -138,6 +139,7 @@ object SendUtil {
             Res.string.sends_action_change_filename_title
         }.wrap()
         FlatItemAction(
+            id = "send.renameFile",
             leading = icon,
             title = title,
             onClick = onClick {
@@ -211,6 +213,7 @@ object SendUtil {
             }
         }.wrap()
         FlatItemAction(
+            id = "send.changePassword",
             leading = icon,
             title = title,
             onClick = onClick {
@@ -285,6 +288,7 @@ object SendUtil {
             Res.string.sends_action_remove_password_title
         }.wrap()
         FlatItemAction(
+            id = "send.removePassword",
             leading = icon,
             title = title,
             onClick = onClick {
@@ -353,6 +357,7 @@ object SendUtil {
         val icon = iconSmall(Icons.Outlined.Email, Icons.Outlined.Visibility)
         val title = Res.string.sends_action_show_email_title.wrap()
         FlatItemAction(
+            id = "send.showEmail",
             leading = icon,
             title = title,
             onClick = {
@@ -402,6 +407,7 @@ object SendUtil {
         val icon = iconSmall(Icons.Outlined.Email, Icons.Outlined.VisibilityOff)
         val title = Res.string.sends_action_hide_email_title.wrap()
         FlatItemAction(
+            id = "send.hideEmail",
             leading = icon,
             title = title,
             onClick = {
@@ -455,6 +461,7 @@ object SendUtil {
         val title = Res.string.sends_action_enable_title.wrap()
         val text = Res.string.sends_action_enable_text.wrap()
         FlatItemAction(
+            id = "send.enable",
             leading = icon,
             title = title,
             text = text,
@@ -522,6 +529,7 @@ object SendUtil {
         val title = Res.string.sends_action_disable_title.wrap()
         val text = Res.string.sends_action_disable_text.wrap()
         FlatItemAction(
+            id = "send.disable",
             leading = icon,
             title = title,
             text = text,
@@ -584,6 +592,7 @@ object SendUtil {
         val icon = icon(Icons.Outlined.DeleteForever)
         val title = Res.string.sends_action_delete_title.wrap()
         FlatItemAction(
+            id = "send.delete",
             leading = icon,
             title = title,
             onClick = onClick {

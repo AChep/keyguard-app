@@ -230,6 +230,7 @@ suspend fun RememberStateFlowScope.collectionsScreenStateProducer(
             .count()
         if (ciphersCount > 0) {
             actions += FlatItemAction(
+                id = "collections.selection.viewItems",
                 icon = Icons.Outlined.KeyguardCipher,
                 title = Res.string.items.wrap(),
                 trailing = {
@@ -283,6 +284,7 @@ suspend fun RememberStateFlowScope.collectionsScreenStateProducer(
                         // to this cipher.
                         if (ciphers.isNotEmpty()) {
                             this += FlatItemAction(
+                                id = "collection.${collection.id}.viewItems",
                                 icon = Icons.Outlined.KeyguardCipher,
                                 title = Res.string.items.wrap(),
                                 onClick = onClick {
@@ -297,6 +299,7 @@ suspend fun RememberStateFlowScope.collectionsScreenStateProducer(
                     }
                     section {
                         this += FlatItemAction(
+                            id = "collection.${collection.id}.info",
                             icon = Icons.Outlined.Info,
                             title = Res.string.info.wrap(),
                             onClick = {

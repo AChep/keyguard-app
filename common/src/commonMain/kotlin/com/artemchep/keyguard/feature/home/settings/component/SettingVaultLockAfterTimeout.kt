@@ -58,6 +58,7 @@ fun settingVaultLockAfterTimeoutProvider(
             val actionSelected = duration == timeout
             val actionTitle = getLockAfterDurationTitle(duration, context)
             FlatItemAction(
+                id = "settings.vaultLockAfterTimeout.${duration.inWholeSeconds}",
                 title = TextHolder.Value(actionTitle),
                 selected = actionSelected,
                 onClick = {

@@ -136,6 +136,7 @@ suspend fun RememberStateFlowScope.barcodeTypeStateProducer(
     val formatActions = formatList
         .map { format ->
             FlatItemAction(
+                id = "barcode.format.${format.name}",
                 title = TextHolder.Value(format.formatTitle()),
                 onClick = onFormatSet
                     .partially1(format),

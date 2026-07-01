@@ -31,6 +31,7 @@ object CipherFiltersRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
+        id = "cipherFilters.action",
         leading = iconSmall(Icons.Outlined.KeyguardCipherFilter),
         title = Res.string.customfilters_header_title.wrap(),
         trailing = {

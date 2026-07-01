@@ -30,6 +30,7 @@ object TwoFaServicesRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
+        id = "watchtower.twoFaServices",
         leading = iconSmall(Icons.Outlined.Folder, Icons.Outlined.KeyguardTwoFa),
         title = Res.string.tfa_directory_title.wrap(),
         text = Res.string.tfa_directory_text.wrap(),

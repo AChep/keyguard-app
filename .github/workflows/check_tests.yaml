@@ -24,8 +24,43 @@ concurrency:
 
 jobs:
   check-kmp-host-tests:
-    name: Check KMP Host Tests
+    name: Check KMP Host Tests (${{ matrix.name }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - id: common-desktop
+            name: Common Desktop
+            max_workers: 2
+            tasks: >-
+              :common:desktopTest
+          - id: common-android-host
+            name: Common Android Host
+            max_workers: 2
+            tasks: >-
+              :common:testAndroidHostTest
+          - id: util-desktop
+            name: Util Desktop
+            max_workers: 2
+            tasks: >-
+              :desktopLibJvm:jvmTest
+              :util:foundation:desktopTest
+              :util:kdbx:desktopTest
+              :util:messagepack:desktopTest
+              :util:planeta:desktopTest
+              :util:signalr:desktopTest
+              :util:webdav:desktopTest
+          - id: util-android-host
+            name: Util Android Host
+            max_workers: 2
+            tasks: >-
+              :util:foundation:testAndroidHostTest
+              :util:kdbx:testAndroidHostTest
+              :util:messagepack:testAndroidHostTest
+              :util:planeta:testAndroidHostTest
+              :util:signalr:testAndroidHostTest
+              :util:webdav:testAndroidHostTest
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
@@ -35,27 +70,13 @@ jobs:
           cache-write-only: ${{ inputs.cache-write-only || false }}
       - name: "Run KMP host tests"
         run: >-
-          ./gradlew --continue
-          :common:desktopTest
-          :common:testAndroidHostTest
-          :desktopLibJvm:jvmTest
-          :util:foundation:desktopTest
-          :util:foundation:testAndroidHostTest
-          :util:kdbx:desktopTest
-          :util:kdbx:testAndroidHostTest
-          :util:messagepack:desktopTest
-          :util:messagepack:testAndroidHostTest
-          :util:planeta:desktopTest
-          :util:planeta:testAndroidHostTest
-          :util:signalr:desktopTest
-          :util:signalr:testAndroidHostTest
-          :util:webdav:desktopTest
-          :util:webdav:testAndroidHostTest
+          ./gradlew --continue --max-workers=${{ matrix.max_workers }}
+          ${{ matrix.tasks }}
       - name: "Upload test reports"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: kmp-host-test-reports
+          name: kmp-host-test-reports-${{ matrix.id }}
           path: |
             **/build/test-results/**
             **/build/reports/tests/**

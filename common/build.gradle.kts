@@ -362,6 +362,12 @@ kotlin.sourceSets.commonMain {
 val desktopTestTask = tasks.named<Test>("desktopTest")
 val desktopTestClassesTask = tasks.named("desktopTestClasses")
 
+desktopTestTask.configure {
+    filter {
+        excludeTestsMatching("com.artemchep.keyguard.feature.home.vault.search.benchmark.*")
+    }
+}
+
 tasks.register<Test>("vaultSearchBenchmark") {
     group = "verification"
     description = "Runs the vault search JVM benchmark suite from desktopTest."

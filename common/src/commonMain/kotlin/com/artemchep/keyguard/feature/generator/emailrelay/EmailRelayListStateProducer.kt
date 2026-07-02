@@ -292,6 +292,7 @@ suspend fun RememberStateFlowScope.emailRelayListStateProducer(
                         id = "emailRelay.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteByItems(selectedItems)
                         },
@@ -347,6 +348,7 @@ suspend fun RememberStateFlowScope.emailRelayListStateProducer(
                                 id = "emailRelay.item.${it.id}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
+                                danger = true,
                                 onClick = onClick {
                                     onDeleteByItems(listOf(it))
                                 },

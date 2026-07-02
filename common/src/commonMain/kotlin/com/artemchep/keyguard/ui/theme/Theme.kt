@@ -1,10 +1,12 @@
 package com.artemchep.keyguard.ui.theme
 
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.darkColors
 import androidx.compose.material.lightColors
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -32,6 +34,8 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.theme.hasDarkThemeEnabled
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
+import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.m3.dynamicColorScheme
 import kotlinx.coroutines.flow.combine
 import org.jetbrains.compose.resources.Font
@@ -73,6 +77,12 @@ inline val ColorScheme.searchHighlightContentColor get() = onTertiaryContainer
 private val ColorScheme._error: Color
     @Composable
     get() = buildContentColor(HUE_ERROR)
+
+val ColorScheme.danger: Color
+    @Composable
+    get() {
+        return MaterialTheme.colorScheme.error
+    }
 
 val ColorScheme.warning: Color
     @Composable

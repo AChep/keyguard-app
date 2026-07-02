@@ -253,6 +253,7 @@ suspend fun RememberStateFlowScope.accountListScreenStateProducer(
                     id = "accounts.selection.logOut",
                     icon = Icons.AutoMirrored.Outlined.Logout,
                     title = Res.string.account_action_log_out_title.wrap(),
+                    danger = true,
                     onClick = onClick {
                         onDelete(f)
                     },

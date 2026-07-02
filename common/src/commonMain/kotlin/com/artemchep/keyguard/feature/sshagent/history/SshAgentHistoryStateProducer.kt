@@ -130,6 +130,7 @@ suspend fun RememberStateFlowScope.sshAgentHistoryStateProducer(
                         id = "sshAgentHistory.clearHistory",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.ssh_agent_history_clear_history_title.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteAll()
                         },

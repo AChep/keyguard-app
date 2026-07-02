@@ -115,6 +115,7 @@ data class FlatItemAction(
     val type: Type? = null,
     val shortcut: KeyShortcut? = null,
     val selected: Boolean = false,
+    val danger: Boolean = false,
     val onClick: (() -> Unit)? = {},
 ) : ContextItem {
     companion object;

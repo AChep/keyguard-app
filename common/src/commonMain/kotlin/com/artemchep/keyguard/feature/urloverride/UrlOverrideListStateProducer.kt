@@ -267,6 +267,7 @@ suspend fun RememberStateFlowScope.urlOverrideListStateProducer(
                         id = "urlOverride.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteByItems(
                                 items = selectedItems,
@@ -321,6 +322,7 @@ suspend fun RememberStateFlowScope.urlOverrideListStateProducer(
                                 id = "urlOverride.item.${it.id}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
+                                danger = true,
                                 onClick = onClick {
                                     onDeleteByItems(
                                         items = listOf(it),

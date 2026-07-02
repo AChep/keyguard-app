@@ -291,6 +291,7 @@ object SendUtil {
             id = "send.removePassword",
             leading = icon,
             title = title,
+            danger = true,
             onClick = onClick {
                 before?.invoke()
 
@@ -595,6 +596,7 @@ object SendUtil {
             id = "send.delete",
             leading = icon,
             title = title,
+            danger = true,
             onClick = onClick {
                 before?.invoke()
 

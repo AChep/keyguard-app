@@ -497,6 +497,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                         id = "folders.selection.delete",
                         icon = Icons.Outlined.Delete,
                         title = Res.string.delete.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDelete(selectedFolderIds, hasCiphers)
                         },
@@ -573,6 +574,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                                 id = "folder.${node.key}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
+                                danger = true,
                                 onClick = onClick {
                                     onDelete(
                                         folderIds = node.descendantFolderIds,

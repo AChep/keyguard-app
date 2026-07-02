@@ -1229,6 +1229,7 @@ fun RememberStateFlowScope.cipherTrashAction(
         id = "cipher.trash",
         leading = icon,
         title = title,
+        danger = true,
         onClick = onClick {
             before?.invoke()
 
@@ -1308,6 +1309,7 @@ fun RememberStateFlowScope.cipherDeleteAction(
         id = "cipher.delete",
         leading = icon,
         title = title,
+        danger = true,
         onClick = onClick {
             before?.invoke()
 

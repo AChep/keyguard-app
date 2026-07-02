@@ -124,6 +124,7 @@ suspend fun RememberStateFlowScope.wordlistViewStateProducer(
                             id = "wordlist.delete",
                             icon = Icons.Outlined.Delete,
                             title = Res.string.delete.wrap(),
+                            danger = true,
                             onClick = onClick {
                                 WordlistUtil.onDeleteByItems(
                                     confirmationRouteFactory = confirmationRouteFactory,

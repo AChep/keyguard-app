@@ -417,6 +417,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
                     id = "attachments.selection.deleteLocal",
                     leading = icon(Icons.Outlined.Delete),
                     title = title,
+                    danger = true,
                     onClick = {
                         removeIo.launchIn(appScope)
                     },
@@ -754,6 +755,7 @@ fun foo(
                         id = "attachment.deleteLocal",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.file_action_delete_local_title.wrap(),
+                        danger = true,
                         onClick = ::performRemove,
                     )
                 }

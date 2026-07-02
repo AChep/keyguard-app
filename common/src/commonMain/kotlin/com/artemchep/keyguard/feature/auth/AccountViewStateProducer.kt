@@ -557,6 +557,7 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                     id = "account.signOut",
                     icon = Icons.AutoMirrored.Outlined.Logout,
                     title = Res.string.account_action_sign_out_title.wrap(),
+                    danger = true,
                     onClick = if (busy) {
                         null
                     } else {

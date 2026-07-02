@@ -209,6 +209,7 @@ suspend fun RememberStateFlowScope.vaultViewPasswordHistoryScreenStateProducer(
                         id = "passwordHistory.selection.remove",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.remove_from_history.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteByItems(selectedItems)
                         },
@@ -257,6 +258,7 @@ suspend fun RememberStateFlowScope.vaultViewPasswordHistoryScreenStateProducer(
                                     id = "passwordHistory.item.${password.id}.remove",
                                     leading = icon(Icons.Outlined.Delete),
                                     title = Res.string.remove_from_history.wrap(),
+                                    danger = true,
                                     onClick = onClick {
                                         onDeleteByItems(items)
                                     },
@@ -321,6 +323,7 @@ suspend fun RememberStateFlowScope.vaultViewPasswordHistoryScreenStateProducer(
                 id = "passwordHistory.clearHistory",
                 icon = Icons.Outlined.Delete,
                 title = Res.string.passwordhistory_clear_history_title.wrap(),
+                danger = true,
                 onClick = onClick {
                     onDeleteAll()
                 },

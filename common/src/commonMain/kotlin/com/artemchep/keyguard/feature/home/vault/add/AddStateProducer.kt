@@ -2158,6 +2158,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
                         id = "addItem.entry.${entry.key}.remove",
                         icon = Icons.Outlined.DeleteForever,
                         title = Res.string.list_remove.wrap(),
+                        danger = true,
                         onClick = onClick {
                             val intent = createConfirmationDialogIntent(
                                 confirmationRouteFactory = confirmationRouteFactory,

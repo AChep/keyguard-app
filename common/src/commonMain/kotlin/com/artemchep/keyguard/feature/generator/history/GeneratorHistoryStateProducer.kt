@@ -232,6 +232,7 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
                         id = "passwordHistory.generator.selection.remove",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.remove_from_history.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteByItems(selectedItems)
                         },
@@ -369,6 +370,7 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
                             id = "passwordHistory.generator.item.${item.id}.remove",
                             leading = icon(Icons.Outlined.Delete),
                             title = Res.string.remove_from_history.wrap(),
+                            danger = true,
                             onClick = onClick {
                                 onDeleteByItems(items)
                             },
@@ -461,6 +463,7 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
                     id = "passwordHistory.generator.clearHistory",
                     leading = icon(Icons.Outlined.Delete),
                     title = Res.string.generatorhistory_clear_history_title.wrap(),
+                    danger = true,
                     onClick = onClick {
                         onDeleteAll()
                     },

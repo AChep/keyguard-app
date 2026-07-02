@@ -350,6 +350,7 @@ suspend fun RememberStateFlowScope.cipherFilterViewStateProducer(
                             id = "cipherFilter.delete",
                             icon = Icons.Outlined.Delete,
                             title = Res.string.delete.wrap(),
+                            danger = true,
                             onClick = onClick {
                                 CipherFilterUtil.onDeleteByItems(
                                     confirmationRouteFactory = confirmationRouteFactory,

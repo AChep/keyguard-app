@@ -164,6 +164,7 @@ suspend fun RememberStateFlowScope.unlockStateProducer(
             icon = Icons.Outlined.Delete,
             title = Res.string.pref_item_erase_data_title.wrap(),
             text = Res.string.pref_item_erase_data_text.wrap(),
+            danger = true,
             onClick = {
                 clearData()
                     .effectTap {

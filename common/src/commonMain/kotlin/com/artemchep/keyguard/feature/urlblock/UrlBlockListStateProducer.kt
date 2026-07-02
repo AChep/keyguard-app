@@ -296,6 +296,7 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                         id = "urlBlock.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteByItems(
                                 items = selectedItems,
@@ -350,6 +351,7 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                                 id = "urlBlock.item.${it.id}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
+                                danger = true,
                                 onClick = onClick {
                                     onDeleteByItems(
                                         items = listOf(it),

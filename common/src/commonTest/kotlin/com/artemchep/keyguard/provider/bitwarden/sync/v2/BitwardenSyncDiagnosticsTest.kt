@@ -28,7 +28,7 @@ class BitwardenSyncDiagnosticsTest {
         )
 
         assertEquals(LogLevel.DEBUG, logRepository.entries.single().level)
-        assertEquals("SyncV2Diagnostics.bitwarden", logRepository.entries.single().tag)
+        assertEquals("SyncDiagnostics.bitwarden", logRepository.entries.single().tag)
         assertTrue(logRepository.entries.single().message.contains("revision_precheck"))
         assertTrue(logRepository.entries.single().message.contains("account_id=account-1"))
     }

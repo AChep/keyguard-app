@@ -361,52 +361,42 @@ fun ConcealedFlatTextField(
     val passwordVisualTransformation = remember {
         PasswordVisualTransformation()
     }
-    PlatformIncognitoInput {
-        FlatTextField(
-            modifier = modifier,
-            fieldModifier = fieldModifier,
-            boxModifier = boxModifier,
-            testTag = testTag,
-            label = label,
-            placeholder = placeholder,
-            value = value,
-            textStyle = LocalTextStyle.current.copy(
-                fontFamily = monoFontFamily,
-            ),
-            visualTransformation = if (visibilityState.isVisible) {
-                VisualTransformation.None
-            } else {
-                passwordVisualTransformation
-            },
-            shapeState = shapeState,
-            expressive = expressive,
-            keyboardOptions = keyboardOptions,
-            keyboardActions = keyboardActions,
-            singleLine = singleLine,
-            maxLines = maxLines,
-            interactionSource = interactionSource,
-            clearButton = clearButton,
-            leading = leading,
-            trailing = {
-                VisibilityToggle(
-                    visibilityState = visibilityState,
-                )
-                if (trailing != null) {
-                    trailing()
-                }
-            },
-            content = content,
-        )
-    }
-}
-
-@Composable
-private fun PlatformIncognitoInput(
-    content: @Composable () -> Unit,
-) {
-    IncognitoInput {
-        content()
-    }
+    FlatTextField(
+        modifier = modifier,
+        fieldModifier = fieldModifier,
+        boxModifier = boxModifier,
+        testTag = testTag,
+        label = label,
+        placeholder = placeholder,
+        value = value,
+        textStyle = LocalTextStyle.current.copy(
+            fontFamily = monoFontFamily,
+        ),
+        visualTransformation = if (visibilityState.isVisible) {
+            VisualTransformation.None
+        } else {
+            passwordVisualTransformation
+        },
+        shapeState = shapeState,
+        expressive = expressive,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        singleLine = singleLine,
+        maxLines = maxLines,
+        interactionSource = interactionSource,
+        clearButton = clearButton,
+        leading = leading,
+        trailing = {
+            VisibilityToggle(
+                visibilityState = visibilityState,
+            )
+            if (trailing != null) {
+                trailing()
+            }
+        },
+        content = content,
+        incognito = true,
+    )
 }
 
 @Composable
@@ -647,6 +637,7 @@ fun FlatTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     singleLine: Boolean = false,
     maxLines: Int = Int.MAX_VALUE,
+    incognito: Boolean = false,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     clearButton: Boolean = defaultClearButton(),
     leading: (@Composable RowScope.() -> Unit)? = null,
@@ -771,6 +762,7 @@ fun FlatTextField(
                             enabled = enabled,
                             isError = value.error != null,
                             interactionSource = interactionSource,
+                            incognito = incognito,
                             onValueChange = ::updateFieldValue,
                         )
                     }
@@ -1062,6 +1054,7 @@ fun PlainTextField(
     textStyle: TextStyle = LocalTextStyle.current,
     placeholder: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
+    incognito: Boolean = false,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
@@ -1079,42 +1072,46 @@ fun PlainTextField(
     val cursorBrushColor =
         if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
 
-    BasicTextField(
-        value = value,
-        modifier = modifier
-            .then(
-                if (testTag != null) {
-                    Modifier.testTag(testTag)
-                } else {
-                    Modifier
-                },
-            )
-            .defaultMinSize(
-                minWidth = TextFieldDefaults.MinWidth,
-            )
-            .bringIntoView(),
-        onValueChange = onValueChange,
-        enabled = enabled,
-        readOnly = readOnly,
-        textStyle = mergedTextStyle,
-        cursorBrush = SolidColor(cursorBrushColor),
-        visualTransformation = visualTransformation,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        interactionSource = interactionSource,
-        singleLine = singleLine,
-        maxLines = maxLines,
-        decorationBox = @Composable { innerTextField ->
-            PlainTextFieldDecorationBox(
-                modifier = boxModifier,
-                value = value,
-                innerTextField = innerTextField,
-                placeholder = placeholder,
-                visualTransformation = visualTransformation,
-                interactionSource = interactionSource,
-            )
-        },
-    )
+    IncognitoInputIf(
+        enabled = incognito || keyboardOptions.isPasswordInput(),
+    ) {
+        BasicTextField(
+            value = value,
+            modifier = modifier
+                .then(
+                    if (testTag != null) {
+                        Modifier.testTag(testTag)
+                    } else {
+                        Modifier
+                    },
+                )
+                .defaultMinSize(
+                    minWidth = TextFieldDefaults.MinWidth,
+                )
+                .bringIntoView(),
+            onValueChange = onValueChange,
+            enabled = enabled,
+            readOnly = readOnly,
+            textStyle = mergedTextStyle,
+            cursorBrush = SolidColor(cursorBrushColor),
+            visualTransformation = visualTransformation,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            interactionSource = interactionSource,
+            singleLine = singleLine,
+            maxLines = maxLines,
+            decorationBox = @Composable { innerTextField ->
+                PlainTextFieldDecorationBox(
+                    modifier = boxModifier,
+                    value = value,
+                    innerTextField = innerTextField,
+                    placeholder = placeholder,
+                    visualTransformation = visualTransformation,
+                    interactionSource = interactionSource,
+                )
+            },
+        )
+    }
 }
 
 @Composable
@@ -1129,6 +1126,7 @@ fun PlainTextField(
     textStyle: TextStyle = LocalTextStyle.current,
     placeholder: @Composable (() -> Unit)? = null,
     isError: Boolean = false,
+    incognito: Boolean = false,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
@@ -1146,43 +1144,63 @@ fun PlainTextField(
     val cursorBrushColor =
         if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
 
-    BasicTextField(
-        value = value,
-        modifier = modifier
-            .then(
-                if (testTag != null) {
-                    Modifier.testTag(testTag)
-                } else {
-                    Modifier
-                },
-            )
-            .defaultMinSize(
-                minWidth = TextFieldDefaults.MinWidth,
-            )
-            .bringIntoView(),
-        onValueChange = onValueChange,
-        enabled = enabled,
-        readOnly = readOnly,
-        textStyle = mergedTextStyle,
-        cursorBrush = SolidColor(cursorBrushColor),
-        visualTransformation = visualTransformation,
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        interactionSource = interactionSource,
-        singleLine = singleLine,
-        maxLines = maxLines,
-        decorationBox = @Composable { innerTextField ->
-            PlainTextFieldDecorationBox(
-                modifier = boxModifier,
-                value = value.text,
-                innerTextField = innerTextField,
-                placeholder = placeholder,
-                visualTransformation = visualTransformation,
-                interactionSource = interactionSource,
-            )
-        },
-    )
+    IncognitoInputIf(
+        enabled = incognito || keyboardOptions.isPasswordInput(),
+    ) {
+        BasicTextField(
+            value = value,
+            modifier = modifier
+                .then(
+                    if (testTag != null) {
+                        Modifier.testTag(testTag)
+                    } else {
+                        Modifier
+                    },
+                )
+                .defaultMinSize(
+                    minWidth = TextFieldDefaults.MinWidth,
+                )
+                .bringIntoView(),
+            onValueChange = onValueChange,
+            enabled = enabled,
+            readOnly = readOnly,
+            textStyle = mergedTextStyle,
+            cursorBrush = SolidColor(cursorBrushColor),
+            visualTransformation = visualTransformation,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = keyboardActions,
+            interactionSource = interactionSource,
+            singleLine = singleLine,
+            maxLines = maxLines,
+            decorationBox = @Composable { innerTextField ->
+                PlainTextFieldDecorationBox(
+                    modifier = boxModifier,
+                    value = value.text,
+                    innerTextField = innerTextField,
+                    placeholder = placeholder,
+                    visualTransformation = visualTransformation,
+                    interactionSource = interactionSource,
+                )
+            },
+        )
+    }
 }
+
+@Composable
+private fun IncognitoInputIf(
+    enabled: Boolean,
+    content: @Composable () -> Unit,
+) {
+    if (enabled) {
+        IncognitoInput(content)
+    } else {
+        content()
+    }
+}
+
+private fun KeyboardOptions.isPasswordInput(): Boolean =
+    keyboardType == KeyboardType.Password ||
+        keyboardType == KeyboardType.NumberPassword
 
 @Composable
 private fun PlainTextFieldDecorationBox(
@@ -1318,6 +1336,7 @@ fun BiFlatTextField(
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
     valueVisualTransformation: VisualTransformation = VisualTransformation.None,
+    valueIncognito: Boolean = false,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val labelInteractionSource = remember { MutableInteractionSource() }
@@ -1372,6 +1391,7 @@ fun BiFlatTextField(
                 buffer = valueBuffer,
                 interactionSource = valueInteractionSource,
                 visualTransformation = valueVisualTransformation,
+                incognito = valueIncognito,
             )
         },
         trailing = trailing,
@@ -1432,6 +1452,7 @@ fun ColumnScope.BiFlatTextFieldValue(
     ),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    incognito: Boolean = false,
 ) {
     val updatedOnChange by rememberUpdatedState(value.onChange)
     PlainTextField(
@@ -1452,6 +1473,7 @@ fun ColumnScope.BiFlatTextFieldValue(
         enabled = value.onChange != null,
         isError = value.error != null,
         interactionSource = interactionSource,
+        incognito = incognito,
         onValueChange = { next ->
             buffer.value = next
             updatedOnChange?.invoke(next.text)

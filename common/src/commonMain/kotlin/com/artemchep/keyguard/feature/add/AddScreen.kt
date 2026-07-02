@@ -1238,6 +1238,7 @@ private fun FieldTextField(
         } else {
             PasswordVisualTransformation()
         },
+        valueIncognito = state.hidden,
         trailing = {
             ExpandedIfNotEmptyForRow(
                 valueOrNull = Unit.takeIf { state.hidden },

@@ -300,6 +300,7 @@ private fun ConfirmationStringItem(
 
                 else -> KeyboardOptions.Default
             },
+            incognito = item.sensitive || item.password,
             singleLine = true,
             maxLines = 1,
             trailing = {

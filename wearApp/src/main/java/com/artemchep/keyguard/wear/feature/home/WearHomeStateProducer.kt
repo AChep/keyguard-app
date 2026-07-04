@@ -13,10 +13,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.NavItemRef
+import com.artemchep.keyguard.common.model.NavItemsConfig
+import com.artemchep.keyguard.common.model.NavItemsConfigDefaults
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetFolders
-import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
+import com.artemchep.keyguard.common.usecase.GetNavItemsConfig
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
@@ -41,7 +44,7 @@ import com.artemchep.keyguard.res.home_vault_label
 import com.artemchep.keyguard.wear.feature.generator.WearGeneratorRoute
 import com.artemchep.keyguard.wear.feature.settings.WearSettingsRoute
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
@@ -81,9 +84,12 @@ internal sealed interface Destination {
 
 @Composable
 internal fun wearHomeScreenState(): WearHomeState = with(localDI().direct) {
-    val getNavHiddenSend: GetNavHiddenSend = instance()
-    val navHiddenSendFlow = remember(getNavHiddenSend) {
-        getNavHiddenSend()
+    val getNavItemsConfig: GetNavItemsConfig = instance()
+    val navHiddenSendFlow = remember(getNavItemsConfig) {
+        getNavItemsConfig()
+            .map { config ->
+                config.isSendHidden()
+            }
     }
     wearHomeScreenState(
         navHiddenSendFlow = navHiddenSendFlow,
@@ -97,7 +103,7 @@ internal fun wearHomeScreenState(): WearHomeState = with(localDI().direct) {
 
 @Composable
 internal fun wearHomeScreenState(
-    navHiddenSendFlow: StateFlow<Boolean>,
+    navHiddenSendFlow: Flow<Boolean>,
     getProfiles: GetProfiles,
     getCiphers: GetCiphers,
     getFolders: GetFolders,
@@ -166,6 +172,14 @@ internal fun wearHomeScreenState(
             }.toPersistentList(),
         )
     }
+}
+
+private fun NavItemsConfig.isSendHidden(): Boolean {
+    val sendsRef = NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_SENDS)
+    val sendsVisible = items.any { item ->
+        item.ref == sendsRef && item.visible
+    }
+    return !sendsVisible
 }
 
 private suspend fun RememberStateFlowScope.toStateAction(

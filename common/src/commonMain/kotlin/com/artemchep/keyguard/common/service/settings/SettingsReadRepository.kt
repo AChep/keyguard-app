@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
@@ -88,7 +89,7 @@ interface SettingsReadRepository {
 
     fun getCachePremium(): Flow<Boolean>
 
-    fun getCacheHiddenSend(): Flow<Boolean>
+    fun getCacheNavItemsConfig(): Flow<NavItemsConfig?>
 
     fun getAppIcons(): Flow<Boolean>
 
@@ -110,7 +111,7 @@ interface SettingsReadRepository {
 
     fun getNavLabel(): Flow<Boolean>
 
-    fun getNavHiddenSend(): Flow<Boolean>
+    fun getNavItemsConfig(): Flow<NavItemsConfig?>
 
     fun getFont(): Flow<AppFont?>
 

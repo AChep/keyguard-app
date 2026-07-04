@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
@@ -76,7 +77,7 @@ class SettingsRepositoryImpl(
         private const val KEY_DEBUG_PREMIUM = "debug_premium"
         private const val KEY_DEBUG_SCREEN_DELAY = "debug_screen_delay"
         private const val KEY_CACHE_PREMIUM = "cache_premium"
-        private const val KEY_CACHE_HIDDEN_SEND = "cache_hidden_send"
+        private const val KEY_CACHE_NAV_ITEMS_CONFIG = "cache_nav_items_config"
         private const val KEY_APP_ICONS = "app_icons"
         private const val KEY_WEBSITE_ICONS = "website_icons"
         private const val KEY_MARKDOWN = "markdown"
@@ -87,7 +88,7 @@ class SettingsRepositoryImpl(
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
         private const val KEY_NAV_LABEL = "nav_label"
-        private const val KEY_NAV_HIDDEN_SEND = "nav_hidden_send"
+        private const val KEY_NAV_ITEMS_CONFIG = "nav_items_config"
         private const val KEY_TWO_PANEL_LAYOUT_LANDSCAPE = "two_panel_layout_landscape"
         private const val KEY_TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
         private const val KEY_USE_EXTERNAL_BROWSER = "use_external_browser"
@@ -192,9 +193,6 @@ class SettingsRepositoryImpl(
     private val cachePremiumPref =
         store.getBoolean(KEY_CACHE_PREMIUM, false)
 
-    private val cacheHiddenSendPref =
-        store.getBoolean(KEY_CACHE_HIDDEN_SEND, true)
-
     private val appIconsPref =
         store.getBoolean(KEY_APP_ICONS, true)
 
@@ -240,8 +238,19 @@ class SettingsRepositoryImpl(
     private val navLabelPref =
         store.getBoolean(KEY_NAV_LABEL, true)
 
-    private val navHiddenSendPref =
-        store.getBoolean(KEY_NAV_HIDDEN_SEND, false)
+    private val navItemsConfigPref =
+        store.getSerializable<NavItemsConfig?>(
+            json,
+            KEY_NAV_ITEMS_CONFIG,
+            defaultValue = null,
+        )
+
+    private val cacheNavItemsConfigPref =
+        store.getSerializable<NavItemsConfig?>(
+            json,
+            KEY_CACHE_NAV_ITEMS_CONFIG,
+            defaultValue = null,
+        )
 
     private val allowTwoPanelLayoutInLandscapePref =
         store.getBoolean(KEY_TWO_PANEL_LAYOUT_LANDSCAPE, true)
@@ -315,7 +324,7 @@ class SettingsRepositoryImpl(
         KEY_DEBUG_PREMIUM,
         KEY_DEBUG_SCREEN_DELAY,
         KEY_CACHE_PREMIUM,
-        KEY_CACHE_HIDDEN_SEND,
+        KEY_CACHE_NAV_ITEMS_CONFIG,
         KEY_ONBOARDING_LAST_VISIT,
         KEY_VERSION_LOG,
         KEY_DATABASE_EXPOSED_KEY,
@@ -358,7 +367,8 @@ class SettingsRepositoryImpl(
             keepScreenOnPref,
             gravatarPref,
             navLabelPref,
-            navHiddenSendPref,
+            navItemsConfigPref,
+            cacheNavItemsConfigPref,
             allowTwoPanelLayoutInLandscapePref,
             allowTwoPanelLayoutInPortraitPref,
             useExternalBrowserPref,
@@ -576,10 +586,10 @@ class SettingsRepositoryImpl(
 
     override fun getCachePremium() = cachePremiumPref
 
-    override fun setCacheHiddenSend(hiddenSend: Boolean) = cacheHiddenSendPref
-        .setAndCommit(hiddenSend)
+    override fun setCacheNavItemsConfig(config: NavItemsConfig?) = cacheNavItemsConfigPref
+        .setAndCommit(config)
 
-    override fun getCacheHiddenSend() = cacheHiddenSendPref
+    override fun getCacheNavItemsConfig() = cacheNavItemsConfigPref
 
     override fun setAppIcons(appIcons: Boolean) = appIconsPref
         .setAndCommit(appIcons)
@@ -648,10 +658,10 @@ class SettingsRepositoryImpl(
 
     override fun getNavLabel() = navLabelPref
 
-    override fun setNavHiddenSend(hidden: Boolean) = navHiddenSendPref
-        .setAndCommit(hidden)
+    override fun setNavItemsConfig(config: NavItemsConfig?) = navItemsConfigPref
+        .setAndCommit(config)
 
-    override fun getNavHiddenSend() = navHiddenSendPref
+    override fun getNavItemsConfig() = navItemsConfigPref
 
     override fun setFont(font: AppFont?) = fontPref
         .setAndCommit(font)

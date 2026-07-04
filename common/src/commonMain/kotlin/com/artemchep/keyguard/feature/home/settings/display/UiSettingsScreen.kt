@@ -41,7 +41,12 @@ fun rememberSettingsUiItems(
                     SettingPaneItem.Item(Setting.FONT),
                     SettingPaneItem.Item(Setting.MARKDOWN),
                     SettingPaneItem.Item(Setting.NAV_ANIMATION),
-                    SettingPaneItem.Item(Setting.NAV_HIDDEN_SEND),
+                ),
+            ),
+            SettingPaneItem.Group(
+                key = "nav",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.NAV_ITEMS),
                     SettingPaneItem.Item(Setting.NAV_LABEL),
                 ),
             ),

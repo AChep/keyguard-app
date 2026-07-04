@@ -1478,18 +1478,19 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
 
     val ciphersFilteredFlow = ciphersFilteredStateFlow
         .map {
-            val keepOtp = it.filterConfig?.filter
-                ?.let {
-                    DFilter.findAny<DFilter.ByOtp>(it)
-                } != null
-            val keepAttachment = it.filterConfig?.filter
-                ?.let {
-                    DFilter.findAny<DFilter.ByAttachments>(it)
-                } != null
-            val keepPasskey = it.filterConfig?.filter
-                ?.let {
-                    DFilter.findAny<DFilter.ByPasskeys>(it)
-                } != null ||
+            val userObservedFilterConfig = DFilter.And(
+                listOfNotNull(
+                    args.filter,
+                    it.filterConfig?.filter,
+                ),
+            )
+
+            val keepOtp = DFilter
+                .findAny<DFilter.ByOtp>(userObservedFilterConfig) != null
+            val keepAttachment = DFilter
+                .findAny<DFilter.ByAttachments>(userObservedFilterConfig) != null
+            val keepPasskey = DFilter
+                .findAny<DFilter.ByPasskeys>(userObservedFilterConfig) != null ||
                     // If a user is in the pick a passkey mode,
                     // then we want to always show it in the items.
                     mode is AppMode.PickPasskey ||

@@ -1,18 +1,19 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
-import com.artemchep.keyguard.common.usecase.PutNavForceHiddenSend
+import com.artemchep.keyguard.common.usecase.PutNavItemsConfig
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
-class PutNavForceForceHiddenSendImpl(
+class PutNavItemsConfigImpl(
     private val settingsReadWriteRepository: SettingsReadWriteRepository,
-) : PutNavForceHiddenSend {
+) : PutNavItemsConfig {
     constructor(directDI: DirectDI) : this(
         settingsReadWriteRepository = directDI.instance(),
     )
 
-    override fun invoke(visible: Boolean): IO<Unit> = settingsReadWriteRepository
-        .setNavHiddenSend(visible)
+    override fun invoke(config: NavItemsConfig?): IO<Unit> = settingsReadWriteRepository
+        .setNavItemsConfig(config)
 }

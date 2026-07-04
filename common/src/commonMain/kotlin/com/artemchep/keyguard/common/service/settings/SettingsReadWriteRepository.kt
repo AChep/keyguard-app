@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
 import kotlin.time.Instant
@@ -132,8 +133,8 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         premium: Boolean,
     ): IO<Unit>
 
-    fun setCacheHiddenSend(
-        hiddenSend: Boolean,
+    fun setCacheNavItemsConfig(
+        config: NavItemsConfig?,
     ): IO<Unit>
 
     fun setAppIcons(
@@ -180,8 +181,8 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         visible: Boolean,
     ): IO<Unit>
 
-    fun setNavHiddenSend(
-        hidden: Boolean,
+    fun setNavItemsConfig(
+        config: NavItemsConfig?,
     ): IO<Unit>
 
     fun setFont(

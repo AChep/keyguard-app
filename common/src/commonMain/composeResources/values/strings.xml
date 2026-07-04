@@ -1295,6 +1295,7 @@
     <string name="settings_developer_header_title">Developer</string>
     <string name="settings_watchtower_header_title">Watchtower</string>
     <string name="settings_automatic_backups_header_title">Backups</string>
+    <string name="settings_navigation_items_header_title">Navigation items</string>
     <string name="settings_open_source_licenses_header_title">Open-source licenses</string>
 
     <string name="pref_section_premium_title">Premium</string>
@@ -1396,8 +1397,16 @@
     <string name="pref_item_automatic_backups_retention_value">%1$d snapshots</string>
     <string name="pref_item_automatic_backups_disable_title">Turn off automatic backups</string>
     <string name="pref_item_automatic_backups_disable_message">This only turns off future automatic backups. It clears the local folder, password, and attachment choice from Keyguard. The existing backup repository and files in that folder are not deleted.</string>
+    <string name="pref_item_nav_items_title">Navigation items</string>
     <string name="pref_item_nav_label_title">Show labels on navigation buttons</string>
-    <string name="pref_item_nav_hidden_send_title">Hide Send tab</string>
+    <string name="navigation_items_add_item_title">Add item</string>
+    <string name="navigation_items_reset_confirmation_title">Reset navigation items?</string>
+    <string name="navigation_items_reset_confirmation_text">This will restore the default navigation order and visibility. Custom filters are not deleted, but their navigation items will be removed.</string>
+    <string name="navigation_items_built_in_text">Built-in destination</string>
+    <string name="navigation_items_custom_filter_text">Custom filter</string>
+    <string name="navigation_items_missing_filter_title">Custom filter</string>
+    <string name="navigation_items_missing_filter_text">Filter not found</string>
+    <string name="navigation_items_predefined_route_text">Predefined route</string>
     <string name="pref_item_app_version_title">App version</string>
     <string name="pref_item_app_build_date_title">App build date</string>
     <!--

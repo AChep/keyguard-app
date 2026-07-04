@@ -160,6 +160,7 @@ import com.artemchep.keyguard.common.usecase.GetMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.GetNavAnimation
 import com.artemchep.keyguard.common.usecase.GetNavAnimationVariants
 import com.artemchep.keyguard.common.usecase.GetNavLabel
+import com.artemchep.keyguard.common.usecase.GetPersistedNavItemsConfig
 import com.artemchep.keyguard.common.usecase.GetOnboardingLastVisitInstant
 import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetPassphrase
@@ -218,6 +219,7 @@ import com.artemchep.keyguard.common.usecase.PutKeepScreenOn
 import com.artemchep.keyguard.common.usecase.PutMarkdown
 import com.artemchep.keyguard.common.usecase.PutMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.PutNavAnimation
+import com.artemchep.keyguard.common.usecase.PutNavItemsConfig
 import com.artemchep.keyguard.common.usecase.PutNavLabel
 import com.artemchep.keyguard.common.usecase.PutOnboardingLastVisitInstant
 import com.artemchep.keyguard.common.usecase.PutScreenState
@@ -307,6 +309,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetMinimizeOnCopyImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavAnimationImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavAnimationVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavLabelImpl
+import com.artemchep.keyguard.common.usecase.impl.GetPersistedNavItemsConfigImpl
 import com.artemchep.keyguard.common.usecase.impl.GetOnboardingLastVisitInstantImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.GetPasswordImpl
@@ -367,6 +370,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutKeepScreenOnImpl
 import com.artemchep.keyguard.common.usecase.impl.PutMarkdownImpl
 import com.artemchep.keyguard.common.usecase.impl.PutMinimizeOnCopyImpl
 import com.artemchep.keyguard.common.usecase.impl.PutNavAnimationImpl
+import com.artemchep.keyguard.common.usecase.impl.PutNavItemsConfigImpl
 import com.artemchep.keyguard.common.usecase.impl.PutNavLabelImpl
 import com.artemchep.keyguard.common.usecase.impl.PutOnboardingLastVisitInstantImpl
 import com.artemchep.keyguard.common.usecase.impl.PutScreenStateImpl
@@ -399,9 +403,7 @@ import com.artemchep.keyguard.common.usecase.GetAllowScreenshotsVariants
 import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
 import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
-import com.artemchep.keyguard.common.usecase.GetCacheHiddenSend
 import com.artemchep.keyguard.common.usecase.GetLicensePremium
-import com.artemchep.keyguard.common.usecase.GetNavForceHiddenSend
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
@@ -411,8 +413,6 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.PutAutofillPasswordsEnabled
-import com.artemchep.keyguard.common.usecase.PutCacheHiddenSend
-import com.artemchep.keyguard.common.usecase.PutNavForceHiddenSend
 import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutSshAgentDisplayKeyNames
@@ -421,8 +421,6 @@ import com.artemchep.keyguard.common.usecase.impl.GetAllowScreenshotsVariantsImp
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasswordsEnabledImpl
-import com.artemchep.keyguard.common.usecase.impl.GetCacheHiddenSendImpl
-import com.artemchep.keyguard.common.usecase.impl.GetNavForceHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentDisplayKeyNamesImpl
@@ -433,8 +431,6 @@ import com.artemchep.keyguard.common.usecase.impl.GetTotpCodeWithOffsetImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSessionLicensePremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasswordsEnabledImpl
-import com.artemchep.keyguard.common.usecase.impl.PutCacheHiddenSendImpl
-import com.artemchep.keyguard.common.usecase.impl.PutNavForceForceHiddenSendImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
@@ -771,8 +767,8 @@ fun globalModuleCommon() = DI.Module(
             directDI = this,
         )
     }
-    bindSingleton<PutNavForceHiddenSend> {
-        PutNavForceForceHiddenSendImpl(
+    bindSingleton<PutNavItemsConfig> {
+        PutNavItemsConfigImpl(
             directDI = this,
         )
     }
@@ -979,8 +975,8 @@ fun globalModuleCommon() = DI.Module(
             directDI = this,
         )
     }
-    bindSingleton<GetNavForceHiddenSend> {
-        GetNavForceHiddenSendImpl(
+    bindSingleton<GetPersistedNavItemsConfig> {
+        GetPersistedNavItemsConfigImpl(
             directDI = this,
         )
     }
@@ -1061,18 +1057,8 @@ fun globalModuleCommon() = DI.Module(
             directDI = this,
         )
     }
-    bindSingleton<GetCacheHiddenSend> {
-        GetCacheHiddenSendImpl(
-            directDI = this,
-        )
-    }
     bindSingleton<PutCachePremium> {
         PutCachePremiumImpl(
-            directDI = this,
-        )
-    }
-    bindSingleton<PutCacheHiddenSend> {
-        PutCacheHiddenSendImpl(
             directDI = this,
         )
     }

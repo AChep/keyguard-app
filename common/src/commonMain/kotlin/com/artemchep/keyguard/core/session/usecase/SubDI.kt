@@ -136,7 +136,7 @@ import com.artemchep.keyguard.common.usecase.GetClaimedLicenseEntitlement
 import com.artemchep.keyguard.common.usecase.GetLicenseEntitlement
 import com.artemchep.keyguard.common.usecase.GetLicensePremium
 import com.artemchep.keyguard.common.usecase.GetMetas
-import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
+import com.artemchep.keyguard.common.usecase.GetNavItemsConfig
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetProfiles
@@ -222,7 +222,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClaimedLicenseEntitlementImpl
 import com.artemchep.keyguard.common.usecase.impl.GetLicenseEntitlementImpl
 import com.artemchep.keyguard.common.usecase.impl.GetLicensePremiumImpl
-import com.artemchep.keyguard.common.usecase.impl.GetNavHiddenSendImpl
+import com.artemchep.keyguard.common.usecase.impl.GetNavItemsConfigImpl
 import com.artemchep.keyguard.common.usecase.impl.GetShouldRequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchIndexImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchQualifierCatalogImpl
@@ -501,8 +501,8 @@ fun DI.Builder.createSubDi2(
             directDI = this,
         )
     }
-    bindSingleton<GetNavHiddenSend> {
-        GetNavHiddenSendImpl(
+    bindSingleton<GetNavItemsConfig> {
+        GetNavItemsConfigImpl(
             directDI = this,
         )
     }

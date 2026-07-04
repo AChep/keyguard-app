@@ -1,15 +1,14 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.service.settings.SettingsReadRepository
-import com.artemchep.keyguard.common.usecase.GetCacheHiddenSend
+import com.artemchep.keyguard.common.usecase.GetPersistedNavItemsConfig
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
-class GetCacheHiddenSendImpl(
+class GetPersistedNavItemsConfigImpl(
     settingsReadRepository: SettingsReadRepository,
-) : GetCacheHiddenSend {
-    private val sharedFlow = settingsReadRepository
-        .getCacheHiddenSend()
+) : GetPersistedNavItemsConfig {
+    private val sharedFlow = settingsReadRepository.getNavItemsConfig()
 
     constructor(directDI: DirectDI) : this(
         settingsReadRepository = directDI.instance(),

@@ -51,6 +51,11 @@ Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and large
 - [Windows](#windows);
 - [macOS](#macos).
 
+#### Website
+Check official website of the project: 
+
+[https://keyguard.dev](https://keyguard.dev)
+
 #### Accounts
 Keyguard is focusing to provide a full support of the Bitwarden® platform, while the KeePass support is implemented through a prism of Bitwarden's features. 
 Read more about implementation details:

@@ -35,9 +35,10 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - unlock vault with a password, biometrics or a YubiKey;
 - **export individual** or organization items, **including the attachments**; 
 - beautiful **Light**/**Dark theme**;
-- a generator with **SSH keys**, **Email forwarders**, **Custom wordlists** support, and many other features; 
+- a generator with **SSH & GPG keys**, **Email forwarders**, **Custom wordlists** support, and many other features; 
 - a support for [shortcuts](https://keyguard.dev/docs/shortcuts/), [placeholders](https://keyguard.dev/docs/placeholders/) and [URL overrides](https://keyguard.dev/docs/url-overrides/);
 - a support for an SSH agent - interacting with SSH-based services on Android and Desktop platform;
+- a support for an GPG agent - interacting with GPG-based services on Desktop platform;
 - a [smart conflict resolution](https://keyguard.dev/docs/sync-and-conflicts/);
 - and much more!
 

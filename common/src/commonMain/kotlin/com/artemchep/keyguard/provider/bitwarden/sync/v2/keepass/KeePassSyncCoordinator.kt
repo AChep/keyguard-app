@@ -14,6 +14,7 @@ import app.keemobile.kotpass.models.Group
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.exception.KeePassDatabaseModifiedExternallyException
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseMetadata
 import com.artemchep.keyguard.common.service.keepass.getKeePassDatabaseMetadata
@@ -52,6 +53,7 @@ class KeePassSyncCoordinator(
     private val json: Json,
     private val db: VaultDatabaseManager,
     private val webDavClientFactory: WebDavClientFactory? = null,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) {
     companion object {
         private const val TAG = "SyncById.keepass"
@@ -142,6 +144,7 @@ class KeePassSyncCoordinator(
             base64Service = base64Service,
             fileService = fileService,
             getPasswordStrength = getPasswordStrength,
+            gpgKeyMetadataResolver = gpgKeyMetadataResolver,
             json = json,
         )
         val folderCodec = KeePassFolderCodec()

@@ -202,6 +202,7 @@ private fun SshAgentHistoryValueItem(
             val icon = when (item.request) {
                 SshUsageHistoryRequestType.AGENT_LIST_KEYS -> Icons.Stub
                 SshUsageHistoryRequestType.AGENT_SIGN_DATA -> Icons.Outlined.KeyguardSshKey
+                SshUsageHistoryRequestType.UNKNOWN -> Icons.Stub
             }
             Icon(
                 imageVector = icon,
@@ -255,4 +256,6 @@ private fun SshAgentHistoryItem.Value.responseColor() = when (response) {
     SshUsageHistoryResponseType.KEY_NOT_FOUND,
     SshUsageHistoryResponseType.FAILURE,
         -> MaterialTheme.colorScheme.error
+
+    SshUsageHistoryResponseType.UNKNOWN -> MaterialTheme.colorScheme.onSurface
 }

@@ -5,12 +5,17 @@ import com.artemchep.keyguard.common.io.bindBlocking
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.GeneratorContext
+import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GetPasswordResult
+import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyParameterRawZero
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfig
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.usecase.GetPassphrase
 import com.artemchep.keyguard.common.usecase.GetPinCode
 import kotlin.test.Test
@@ -24,6 +29,7 @@ class GetPasswordImplTest {
         val useCase = GetPasswordImpl(
             cryptoGenerator = cryptoGenerator,
             keyPairGenerator = UnusedKeyPairGenerator,
+            gpgKeyGenerator = UnusedGpgKeyGenerator,
             getPassphrase = UnusedGetPassphrase,
             getPinCode = UnusedGetPinCode,
         )
@@ -48,6 +54,45 @@ class GetPasswordImplTest {
         assertEquals(0, cryptoGenerator.randomCalls)
         assertEquals(1, cryptoGenerator.randomRangeCalls.size)
         assertEquals(0..2, cryptoGenerator.randomRangeCalls.single())
+    }
+
+    @Test
+    fun `gpg key generator returns async gpg key`() {
+        val generated = GeneratedGpgKey(
+            privateKeyArmored = "-----BEGIN PGP PRIVATE KEY BLOCK-----",
+            publicKeyArmored = "-----BEGIN PGP PUBLIC KEY BLOCK-----",
+            fingerprint = "0123456789ABCDEF0123456789ABCDEF01234567",
+            metadata = GpgAgentKeyMetadata(
+                keys = listOf(
+                    GpgAgentKeyMetadataKey(
+                        keygrip = "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
+                        fingerprint = "0123456789ABCDEF0123456789ABCDEF01234567",
+                        capabilities = setOf("sign"),
+                    ),
+                ),
+            ),
+            userId = "Keyguard Test <gpg@test.invalid>",
+            typeLabel = "Ed25519 + X25519",
+        )
+        val useCase = GetPasswordImpl(
+            cryptoGenerator = IntMinPasswordCryptoGenerator(),
+            keyPairGenerator = UnusedKeyPairGenerator,
+            gpgKeyGenerator = FakeGpgKeyGenerator(generated),
+            getPassphrase = UnusedGetPassphrase,
+            getPinCode = UnusedGetPinCode,
+        )
+
+        val result = useCase(
+            context = GeneratorContext(host = null),
+            config = PasswordGeneratorConfig.GpgKey(
+                config = GpgKeyConfig.Modern(
+                    userId = generated.userId,
+                ),
+            ),
+        ).bindBlocking()
+
+        val value = assertIs<GetPasswordResult.AsyncGpgKey>(result)
+        assertEquals(generated, value.gpgKey)
     }
 }
 
@@ -130,6 +175,20 @@ private object UnusedKeyPairGenerator : KeyPairGenerator {
     override fun getPrivateKeyLengthOrNull(
         privateKey: String,
     ): Int? = error("unused")
+}
+
+private object UnusedGpgKeyGenerator : GpgKeyGenerator {
+    override fun generate(
+        config: GpgKeyConfig,
+    ): GeneratedGpgKey = error("unused")
+}
+
+private class FakeGpgKeyGenerator(
+    private val generated: GeneratedGpgKey,
+) : GpgKeyGenerator {
+    override fun generate(
+        config: GpgKeyConfig,
+    ): GeneratedGpgKey = generated
 }
 
 private object UnusedGetPassphrase : GetPassphrase {

@@ -329,6 +329,7 @@ kdroidfilter-platformtools-darkmodedetector = { module = "io.github.kdroidfilter
 osipxd-security-crypto-datastore-preferences = { module = "io.github.osipxd:security-crypto-datastore-preferences", version.ref = "osipxdCryptoDatastore" }
 snipme-highlights = { module = "dev.snipme:highlights", version.ref = "highlights" }
 bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-bcpg = { module = "org.bouncycastle:bcpg-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bctls = { module = "org.bouncycastle:bctls-jdk18on", version.ref = "bouncycastle" }
 hierynomus-sshj = { module = "com.hierynomus:sshj", version.ref = "sshj" }

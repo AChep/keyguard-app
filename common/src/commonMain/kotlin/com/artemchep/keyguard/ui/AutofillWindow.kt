@@ -93,6 +93,7 @@ fun AutofillButton(
     username: Boolean = false,
     password: Boolean = false,
     sshKey: Boolean = false,
+    gpgKey: Boolean = false,
     provideUris: () -> ImmutableList<String> = { persistentListOf() },
     onValueChange: ((String) -> Unit)? = null,
     onResultChange: ((GetPasswordResult) -> Unit)? = null,
@@ -143,6 +144,7 @@ fun AutofillButton(
                 username = username,
                 password = password,
                 sshKey = sshKey,
+                gpgKey = gpgKey,
                 uris = uris,
                 onComplete = { result ->
                     if (onValueChange != null && result != null && result is GetPasswordResult.Value) {
@@ -173,10 +175,11 @@ fun ColumnScope.AutofillWindow(
     username: Boolean = false,
     password: Boolean = false,
     sshKey: Boolean = false,
+    gpgKey: Boolean = false,
     uris: Array<String> = emptyArray(),
     onComplete: (GetPasswordResult?) -> Unit,
 ) {
-    val args = remember(username, password, sshKey, uris) {
+    val args = remember(username, password, sshKey, gpgKey, uris) {
         GeneratorRoute.Args(
             context = GeneratorRoute.Args.Context(
                 uris = uris,
@@ -184,6 +187,7 @@ fun ColumnScope.AutofillWindow(
             username = username,
             password = password,
             sshKey = sshKey,
+            gpgKey = gpgKey,
         )
     }
     val loadableState = produceGeneratorState(
@@ -207,6 +211,7 @@ fun ColumnScope.AutofillWindow(
                 username -> stringResource(Res.string.generator_header_username_title)
                 password -> stringResource(Res.string.generator_header_password_title)
                 sshKey -> stringResource(Res.string.generator_header_ssh_key_title)
+                gpgKey -> stringResource(Res.string.generator_header_gpg_key_title)
                 else -> stringResource(Res.string.generator_header_title)
             }
             Text(

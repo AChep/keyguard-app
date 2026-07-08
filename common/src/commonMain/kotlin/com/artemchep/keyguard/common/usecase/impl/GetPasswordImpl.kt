@@ -6,9 +6,12 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.GeneratorContext
 import com.artemchep.keyguard.common.model.GetPasswordResult
+import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.common.model.KeyPairConfig
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfig
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyGeneratorUnsupported
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.crypto.listRandomOrThrow
 import com.artemchep.keyguard.common.service.crypto.listShuffled
@@ -18,17 +21,20 @@ import com.artemchep.keyguard.common.usecase.GetPinCode
 import kotlinx.coroutines.Dispatchers
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
 
 
 class GetPasswordImpl(
     private val cryptoGenerator: CryptoGenerator,
     private val keyPairGenerator: KeyPairGenerator,
+    private val gpgKeyGenerator: GpgKeyGenerator,
     private val getPassphrase: GetPassphrase,
     private val getPinCode: GetPinCode,
 ) : GetPassword {
     constructor(directDI: DirectDI) : this(
         cryptoGenerator = directDI.instance(),
         keyPairGenerator = directDI.instance(),
+        gpgKeyGenerator = directDI.instanceOrNull() ?: GpgKeyGeneratorUnsupported,
         getPassphrase = directDI.instance(),
         getPinCode = directDI.instance(),
     )
@@ -152,6 +158,17 @@ class GetPasswordImpl(
                 .map { GetPasswordResult.AsyncKey(it) }
         }
 
+        is PasswordGeneratorConfig.GpgKey -> {
+            ioEffect(Dispatchers.Default) {
+                when (val cfg = config.config) {
+                    is GpgKeyConfig.Modern,
+                    is GpgKeyConfig.Rsa,
+                        -> gpgKeyGenerator.generate(cfg)
+                }
+            }
+                .map { GetPasswordResult.AsyncGpgKey(it) }
+        }
+
         is PasswordGeneratorConfig.Composite -> invoke(context, config.config)
             .effectMap { raw ->
                 when (raw) {
@@ -162,6 +179,10 @@ class GetPasswordImpl(
                     }
 
                     is GetPasswordResult.AsyncKey -> {
+                        throw IllegalArgumentException()
+                    }
+
+                    is GetPasswordResult.AsyncGpgKey -> {
                         throw IllegalArgumentException()
                     }
                 }

@@ -236,6 +236,7 @@ class DefaultVaultSearchQueryCompiler(
         val profile =
             when (field) {
                 VaultTextField.Ssh,
+                VaultTextField.Gpg,
                 VaultTextField.Password,
                 VaultTextField.CardNumber,
                 -> SearchTokenizerProfile.SENSITIVE

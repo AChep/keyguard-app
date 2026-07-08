@@ -348,6 +348,14 @@ fun AnyField(
         )
     }
 
+    is AddStateItem.GpgKey<*> -> {
+        GpgKeyField(
+            modifier = modifier,
+            item = item,
+            shapeState = shapeState,
+        )
+    }
+
     is AddStateItem.Text<*> -> {
         TextTextField(
             modifier = modifier,
@@ -879,6 +887,74 @@ private fun SshKeyField(
                     Icon(
                         imageVector = Icons.Outlined.FileUpload,
                         contentDescription = stringResource(Res.string.ssh_key_import_title),
+                    )
+                }
+            },
+            enabled = true,
+        )
+    }
+}
+
+context(addScope: AddScreenScope)
+@Composable
+private fun GpgKeyField(
+    modifier: Modifier = Modifier,
+    item: AddStateItem.GpgKey<*>,
+    shapeState: Int,
+) {
+    val state by item.state.flow.collectAsState()
+    FileDropField(
+        modifier = modifier,
+        containerPadding = defaultFlatItemPaddingValues(),
+        fileDrop = item.fileDrop,
+    ) {
+        FlatItemLayoutExpressive(
+            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+            leading = icon<RowScope>(Icons.Outlined.Key),
+            shapeState = shapeState,
+            padding = PaddingValues(0.dp),
+            content = {
+                val fingerprint = state.gpgKey?.fingerprint
+                if (!fingerprint.isNullOrEmpty()) {
+                    FlatItemTextContent(
+                        title = {
+                            Text(
+                                text = fingerprint,
+                            )
+                        },
+                    )
+                } else {
+                    FlatItemTextContent(
+                        title = {
+                            Text(
+                                modifier = Modifier
+                                    .alpha(DisabledEmphasisAlpha),
+                                text = stringResource(Res.string.key_gpg_value_placeholder),
+                            )
+                        },
+                    )
+                }
+            },
+            trailing = {
+                AutofillButton(
+                    key = "gpgKey",
+                    gpgKey = true,
+                    provideUris = {
+                        addScope
+                            .obtainUriContext()
+                    },
+                    onResultChange = {
+                        if (it is GetPasswordResult.AsyncGpgKey) {
+                            state.onChange(it.gpgKey)
+                        }
+                    },
+                )
+                IconButton(
+                    onClick = state.onImport,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.FileUpload,
+                        contentDescription = stringResource(Res.string.gpg_key_import_title),
                     )
                 }
             },

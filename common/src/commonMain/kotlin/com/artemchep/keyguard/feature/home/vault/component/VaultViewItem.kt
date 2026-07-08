@@ -27,6 +27,7 @@ private val commonVaultViewItemRenderers = VaultViewItemRenderers(
     quickBadges = { modifier, item -> VaultViewQuickBadgesItem(modifier, item) },
     action = { modifier, item -> VaultViewActionItem(modifier, item) },
     value = { modifier, item -> VaultViewValueItem(modifier, item) },
+    table = { modifier, item -> VaultViewTableItem(modifier, item) },
     switch = { modifier, item -> VaultViewSwitchItem(modifier, item) },
     uri = { modifier, item -> VaultViewUriItem(modifier, item) },
     button = { modifier, item -> VaultViewButtonItem(modifier, item) },

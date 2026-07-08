@@ -1,0 +1,39 @@
+import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus;
+import kotlin.time.Instant;
+
+CREATE TABLE gpgKeyserverState (
+  fingerprint TEXT NOT NULL PRIMARY KEY,
+  cipherId TEXT,
+  verificationStatus INTEGER AS GpgKeyserverVerificationStatus NOT NULL,
+  lastCheckedAt INTEGER AS Instant,
+  lastRefreshedAt INTEGER AS Instant,
+  sourceKeyserver TEXT,
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_gpgKeyserverState_cipherId ON gpgKeyserverState(cipherId);
+
+insertOrReplace:
+INSERT OR REPLACE INTO gpgKeyserverState(fingerprint, cipherId, verificationStatus, lastCheckedAt, lastRefreshedAt, sourceKeyserver)
+VALUES (?, ?, ?, ?, ?, ?);
+
+getAll:
+SELECT *
+FROM gpgKeyserverState;
+
+getByFingerprint:
+SELECT *
+FROM gpgKeyserverState
+WHERE fingerprint = :fingerprint;
+
+getByCipherId:
+SELECT *
+FROM gpgKeyserverState
+WHERE cipherId = :cipherId;
+
+deleteByFingerprint:
+DELETE FROM gpgKeyserverState
+WHERE fingerprint = :fingerprint;
+
+deleteAll:
+DELETE FROM gpgKeyserverState;

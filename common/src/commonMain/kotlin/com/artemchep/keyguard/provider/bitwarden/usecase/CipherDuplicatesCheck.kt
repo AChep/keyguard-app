@@ -7,6 +7,8 @@ import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgKeygrip
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
@@ -227,6 +229,61 @@ class CipherDuplicatesCheckImpl(
                 value = value,
             )
             yield(event)
+        }
+
+        // GPG key
+        if (
+            a.processed.gpgKey != null &&
+            b.processed.gpgKey != null &&
+            a.processed.type == DSecret.Type.GpgKey
+        ) {
+            val aGpgKey = a.processed.gpgKey
+            val bGpgKey = b.processed.gpgKey
+            when {
+                !aGpgKey.fingerprint.isNullOrBlank() &&
+                        !bGpgKey.fingerprint.isNullOrBlank() -> {
+                    compareGpgKeyStrings(
+                        a = aGpgKey.fingerprint,
+                        b = bGpgKey.fingerprint,
+                        type = "gpg_fingerprint",
+                        weight = 8f,
+                    )?.let { yield(it) }
+                }
+
+                !aGpgKey.publicKeyArmored.isNullOrBlank() &&
+                        !bGpgKey.publicKeyArmored.isNullOrBlank() -> {
+                    compareGpgKeyStrings(
+                        a = aGpgKey.publicKeyArmored,
+                        b = bGpgKey.publicKeyArmored,
+                        type = "gpg_public_key",
+                        weight = 5f,
+                    )?.let { yield(it) }
+                }
+
+                !aGpgKey.privateKeyArmored.isNullOrBlank() &&
+                        !bGpgKey.privateKeyArmored.isNullOrBlank() -> {
+                    compareGpgKeyStrings(
+                        a = aGpgKey.privateKeyArmored,
+                        b = bGpgKey.privateKeyArmored,
+                        type = "gpg_private_key",
+                        weight = 5f,
+                    )?.let { yield(it) }
+                }
+
+                else -> {
+                    val aKeyIdentities = aGpgKey.keyIdentities()
+                    val bKeyIdentities = bGpgKey.keyIdentities()
+                    if (aKeyIdentities.isNotEmpty() && bKeyIdentities.isNotEmpty()) {
+                        val value = if (aKeyIdentities.any { it in bKeyIdentities }) {
+                            5f
+                        } else {
+                            -5f
+                        }
+                        yieldEvent(value, type = "gpg_key_identity")
+                    }
+                }
+            }
+            return@sequence
         }
 
         compareStringsFuzzy(
@@ -580,6 +637,7 @@ class CipherDuplicatesCheckImpl(
             card = cipher.card?.let(::processCard),
             identity = cipher.identity?.let(::processIdentity),
             sshKey = cipher.sshKey?.let(::processSshKey),
+            gpgKey = cipher.gpgKey?.let(::processGpgKey),
         )
         return ProcessedSecret(
             source = cipher,
@@ -627,6 +685,73 @@ class CipherDuplicatesCheckImpl(
     private fun processSshKey(sshKey: DSecret.SshKey): DSecret.SshKey {
         return sshKey
     }
+
+    private fun processGpgKey(gpgKey: DSecret.GpgKey): DSecret.GpgKey {
+        return gpgKey.copy(
+            privateKeyArmored = gpgKey.privateKeyArmored.normalizeGpgArmor(),
+            publicKeyArmored = gpgKey.publicKeyArmored.normalizeGpgArmor(),
+            fingerprint = gpgKey.fingerprint
+                ?.normalizeGpgFingerprint()
+                ?.takeIf(String::isNotEmpty),
+            metadata = gpgKey.metadata?.copy(
+                keys = gpgKey.metadata.keys
+                    .map { key ->
+                        key.copy(
+                            keygrip = key.keygrip.normalizeGpgKeygrip(),
+                            fingerprint = key.fingerprint.normalizeGpgFingerprint(),
+                        )
+                    },
+            ),
+        )
+    }
+
+    private fun compareGpgKeyStrings(
+        a: String?,
+        b: String?,
+        type: String,
+        weight: Float,
+    ): FuzzyComparisonEvent? {
+        if (a.isNullOrBlank() && b.isNullOrBlank()) {
+            return null
+        }
+        val value = compareStringsFuzzy(
+            a = a,
+            b = b,
+            strategy = ComparisonStrategy.Exact,
+            weight = weight,
+            min = -weight,
+        )
+        return FuzzyComparisonEvent(
+            type = type,
+            value = value,
+        )
+    }
+
+    private fun DSecret.GpgKey.keyIdentities(): List<String> =
+        buildList {
+            fingerprint
+                ?.takeIf(String::isNotBlank)
+                ?.let { add("fingerprint:$it") }
+            metadata
+                ?.keys
+                .orEmpty()
+                .flatMap { key ->
+                    listOfNotNull(
+                        key.fingerprint
+                            .takeIf(String::isNotBlank)
+                            ?.let { "fingerprint:$it" },
+                        key.keygrip
+                            .takeIf(String::isNotBlank)
+                            ?.let { "keygrip:$it" },
+                    )
+                }
+                .let(::addAll)
+        }.distinct()
+
+    private fun String?.normalizeGpgArmor(): String? = this
+        ?.trim()
+        ?.replace("\r\n", "\n")
+        ?.takeIf(String::isNotBlank)
 
     private fun processString(str: String) = str
         .lowercase()

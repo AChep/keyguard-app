@@ -37,6 +37,7 @@ data class GeneratorState(
     @Immutable
     data class Type(
         val title: String,
+        val showPicker: Boolean,
         val items: ImmutableList<ContextItem>,
     )
 

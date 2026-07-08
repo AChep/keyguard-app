@@ -25,6 +25,21 @@ enum class DWatchtowerAlertType(
         title = Res.string.watchtower_item_weak_ssh_keys_title,
         level = Level.ERROR,
     ),
+    GPG_KEY_UNUSABLE(
+        value = 14L,
+        title = Res.string.watchtower_item_unusable_gpg_keys_title,
+        level = Level.ERROR,
+    ),
+    WEAK_GPG_KEY(
+        value = 15L,
+        title = Res.string.watchtower_item_weak_gpg_keys_title,
+        level = Level.ERROR,
+    ),
+    GPG_KEY_PUBLISHING(
+        value = 16L,
+        title = Res.string.watchtower_item_gpg_key_publishing_title,
+        level = Level.WARNING,
+    ),
     PWNED_PASSWORD(
         value = 4L,
         title = Res.string.watchtower_item_pwned_passwords_title,

@@ -51,6 +51,12 @@ record_skip() { TESTS_SKIPPED=$((TESTS_SKIPPED + 1)); skip "$1"; }
 
 # ── Socket detection ─────────────────────────────────────────────────────────
 
+AUTO_DETECT_CANDIDATES=()
+
+add_candidate_socket() {
+    AUTO_DETECT_CANDIDATES+=("$1")
+}
+
 detect_socket() {
     # 1. Explicit argument
     if [ -n "${1:-}" ]; then
@@ -61,19 +67,37 @@ detect_socket() {
     # 2. Platform defaults
     case "$(uname -s)" in
         Darwin)
-            echo "$HOME/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
+            add_candidate_socket "/tmp/keyguard-$(id -u)/ssh-agent.sock"
+            add_candidate_socket "$HOME/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
             ;;
         Linux)
-            if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
-                echo "${XDG_RUNTIME_DIR}/keyguard-ssh-agent.sock"
-            else
-                echo "/tmp/keyguard-$(id -u)/ssh-agent.sock"
+            if [ "${container:-}" = "flatpak" ] && [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+                add_candidate_socket "${XDG_RUNTIME_DIR}/app/${FLATPAK_ID:-com.artemchep.keyguard}/ssh-agent.sock"
             fi
+            if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
+                add_candidate_socket "${XDG_RUNTIME_DIR}/keyguard-ssh-agent.sock"
+            fi
+            add_candidate_socket "/tmp/keyguard-$(id -u)/ssh-agent.sock"
             ;;
         *)
             echo ""
+            return
             ;;
     esac
+
+    local candidate
+    for candidate in "${AUTO_DETECT_CANDIDATES[@]}"; do
+        if [ -S "$candidate" ]; then
+            echo "$candidate"
+            return
+        fi
+    done
+
+    if [ "${#AUTO_DETECT_CANDIDATES[@]}" -gt 0 ]; then
+        echo "${AUTO_DETECT_CANDIDATES[0]}"
+    else
+        echo ""
+    fi
 }
 
 SOCKET_PATH="$(detect_socket "${1:-}")"

@@ -1,18 +1,23 @@
 package com.artemchep.keyguard.common.service.sshagent
 
-import com.artemchep.keyguard.platform.util.isRelease
+import com.artemchep.keyguard.common.service.agent.AgentRequest
 import kotlinx.coroutines.CompletableDeferred
-import java.util.logging.Logger
 import kotlin.time.Instant
 
-sealed interface SshAgentRequest {
-    val caller: SshAgentMessages.CallerIdentity?
+sealed interface SshAgentRequest : AgentRequest {
+    override val caller: SshAgentMessages.CallerIdentity?
 
-    val notificationTag: String?
+    override val notificationTag: String?
 
-    val expiresAt: Instant
+    override val expiresAt: Instant
 
-    val deferred: CompletableDeferred<Boolean>
+    override val deferred: CompletableDeferred<Boolean>
+
+    override val logType: String
+        get() = when (this) {
+            is SshAgentApprovalRequest -> "approval"
+            is SshAgentGetListRequest -> "get_list"
+        }
 }
 
 /**
@@ -56,44 +61,3 @@ data class SshAgentGetListRequest(
     override val expiresAt: Instant,
     override val deferred: CompletableDeferred<Boolean>,
 ) : SshAgentRequest
-
-private val sshAgentRequestLogger = Logger.getLogger(SshAgentRequest::class.java.name)
-
-internal fun SshAgentRequest.completeWithLog(
-    value: Boolean,
-    reason: String,
-): Boolean {
-    val completed = deferred.complete(value)
-    if (!isRelease) {
-        log(
-            value = value,
-            reason = reason,
-            completed = completed,
-        )
-    }
-    return completed
-}
-
-private fun SshAgentRequest.log(
-    value: Boolean,
-    reason: String,
-    completed: Boolean,
-) {
-    val requestType = when (this) {
-        is SshAgentApprovalRequest -> "approval"
-        is SshAgentGetListRequest -> "get_list"
-    }
-    val caller = caller?.let {
-        it.appName.takeIf(String::isNotBlank)
-            ?: it.processName.takeIf(String::isNotBlank)
-            ?: it.executablePath.takeIf(String::isNotBlank)
-    } ?: "unknown"
-    val message =
-        "Completing SSH agent request type=$requestType result=$value completed=$completed " +
-                "reason=$reason notificationTag=$notificationTag caller=$caller"
-    if (completed) {
-        sshAgentRequestLogger.info(message)
-    } else {
-        sshAgentRequestLogger.warning(message)
-    }
-}

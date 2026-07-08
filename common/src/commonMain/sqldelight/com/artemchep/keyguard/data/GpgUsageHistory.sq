@@ -1,0 +1,44 @@
+import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType;
+import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType;
+import kotlin.time.Instant;
+
+CREATE TABLE gpgUsageHistory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cipherId TEXT,
+  sessionId TEXT NOT NULL,
+  caller TEXT,
+  request INTEGER AS GpgUsageHistoryRequestType NOT NULL,
+  response INTEGER AS GpgUsageHistoryResponseType NOT NULL,
+  fingerprint TEXT,
+  keygrip TEXT,
+  createdAt INTEGER AS Instant NOT NULL,
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_gpgUsageHistory_createdAt ON gpgUsageHistory(createdAt DESC);
+CREATE INDEX idx_gpgUsageHistory_cipherId_createdAt ON gpgUsageHistory(cipherId, createdAt DESC);
+
+insert:
+INSERT INTO gpgUsageHistory(cipherId, sessionId, caller, request, response, fingerprint, keygrip, createdAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+getRecent:
+SELECT *
+FROM gpgUsageHistory
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+getByCipherId:
+SELECT *
+FROM gpgUsageHistory
+WHERE cipherId = :cipherId
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+getCount:
+SELECT
+    COUNT(*) AS count
+FROM gpgUsageHistory;
+
+deleteAll:
+DELETE FROM gpgUsageHistory;

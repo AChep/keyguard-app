@@ -102,10 +102,24 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentPro
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentDisplayKeyNamesProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentLocalStorageInfoProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentFiltersProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentHistoryProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverSearchProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverUrlProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverProtocolProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverAutoRefreshProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverRefreshIntervalProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsDebug
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsPlayStoreProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingLicenseClaimProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeExpressiveProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeUseAmoledDarkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutLandscapeProvider
@@ -205,6 +219,7 @@ object Setting {
     const val LOGS = "logs"
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
+    const val SSH_SETTINGS = "ssh_settings"
     const val SSH_AGENT = "ssh_agent"
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
     const val SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent_display_key_names"
@@ -212,6 +227,19 @@ object Setting {
     const val SSH_AGENT_SETUP = "ssh_agent_setup"
     const val SSH_AGENT_FILTERS = "ssh_agent_filters"
     const val SSH_AGENT_HISTORY = "ssh_agent_history"
+    const val GPG_SETTINGS = "gpg_settings"
+    const val GPG_AGENT = "gpg_agent"
+    const val GPG_AGENT_APPROVAL_WINDOW = "gpg_agent_approval_window"
+    const val GPG_AGENT_DISPLAY_KEY_NAMES = "gpg_agent_display_key_names"
+    const val GPG_AGENT_LOCAL_STORAGE_INFO = "gpg_agent_local_storage_info"
+    const val GPG_AGENT_SETUP = "gpg_agent_setup"
+    const val GPG_AGENT_FILTERS = "gpg_agent_filters"
+    const val GPG_AGENT_HISTORY = "gpg_agent_history"
+    const val GPG_KEYSERVER_SEARCH = "gpg_keyserver_search"
+    const val GPG_KEYSERVER_URL = "gpg_keyserver_url"
+    const val GPG_KEYSERVER_PROTOCOL = "gpg_keyserver_protocol"
+    const val GPG_KEYSERVER_AUTO_REFRESH = "gpg_keyserver_auto_refresh"
+    const val GPG_KEYSERVER_REFRESH_INTERVAL = "gpg_keyserver_refresh_interval"
     const val RATE_APP = "rate_app"
     const val CONCEAL = "conceal"
     const val MARKDOWN = "markdown"
@@ -318,6 +346,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.LOGS to ::settingLogsProvider,
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
+    Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
     Setting.SSH_AGENT_DISPLAY_KEY_NAMES to ::settingSshAgentDisplayKeyNamesProvider,
@@ -325,6 +354,19 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
     Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,
     Setting.SSH_AGENT_HISTORY to ::settingSshAgentHistoryProvider,
+    Setting.GPG_SETTINGS to ::settingGpgSettingsProvider,
+    Setting.GPG_AGENT to ::settingGpgAgentProvider,
+    Setting.GPG_AGENT_APPROVAL_WINDOW to ::settingGpgAgentApprovalWindowProvider,
+    Setting.GPG_AGENT_DISPLAY_KEY_NAMES to ::settingGpgAgentDisplayKeyNamesProvider,
+    Setting.GPG_AGENT_LOCAL_STORAGE_INFO to ::settingGpgAgentLocalStorageInfoProvider,
+    Setting.GPG_AGENT_SETUP to ::settingGpgAgentSetupProvider,
+    Setting.GPG_AGENT_FILTERS to ::settingGpgAgentFiltersProvider,
+    Setting.GPG_AGENT_HISTORY to ::settingGpgAgentHistoryProvider,
+    Setting.GPG_KEYSERVER_SEARCH to ::settingGpgKeyserverSearchProvider,
+    Setting.GPG_KEYSERVER_URL to ::settingGpgKeyserverUrlProvider,
+    Setting.GPG_KEYSERVER_PROTOCOL to ::settingGpgKeyserverProtocolProvider,
+    Setting.GPG_KEYSERVER_AUTO_REFRESH to ::settingGpgKeyserverAutoRefreshProvider,
+    Setting.GPG_KEYSERVER_REFRESH_INTERVAL to ::settingGpgKeyserverRefreshIntervalProvider,
     Setting.RATE_APP to ::settingRateAppProvider,
     Setting.DIVIDER to ::settingSectionProvider,
     Setting.CONCEAL to ::settingConcealFieldsProvider,

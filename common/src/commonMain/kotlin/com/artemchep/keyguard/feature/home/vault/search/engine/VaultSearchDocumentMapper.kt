@@ -227,6 +227,25 @@ internal fun coldFieldValues(
         .takeIf(List<String>::isNotEmpty)
         ?.let { put(VaultTextField.Ssh, it) }
 
+    buildList {
+        source.gpgKey?.privateKeyArmored
+            ?.takeIf(String::isNotBlank)
+            ?.let(::add)
+        source.gpgKey?.publicKeyArmored
+            ?.takeIf(String::isNotBlank)
+            ?.let(::add)
+        source.gpgKey?.fingerprint
+            ?.takeIf(String::isNotBlank)
+            ?.let(::add)
+        source.gpgKey?.metadata?.keys?.forEach { key ->
+            key.fingerprint
+                .takeIf(String::isNotBlank)
+                ?.let(::add)
+        }
+    }
+        .takeIf(List<String>::isNotEmpty)
+        ?.let { put(VaultTextField.Gpg, it) }
+
     source.login?.password
         ?.takeIf { !source.reprompt && it.isNotBlank() }
         ?.let { put(VaultTextField.Password, listOf(it)) }
@@ -307,6 +326,14 @@ internal fun searchFingerprint(
         add(sshKey.privateKey.orEmpty())
         add(sshKey.publicKey.orEmpty())
         add(sshKey.fingerprint.orEmpty())
+    }
+    source.gpgKey?.let { gpgKey ->
+        add(gpgKey.privateKeyArmored.orEmpty())
+        add(gpgKey.publicKeyArmored.orEmpty())
+        add(gpgKey.fingerprint.orEmpty())
+        gpgKey.metadata?.keys?.forEach { key ->
+            add(key.fingerprint)
+        }
     }
 }.hashCode()
 

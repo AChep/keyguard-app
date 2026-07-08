@@ -1,12 +1,18 @@
 package com.artemchep.keyguard.provider.bitwarden.crypto
 
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
@@ -141,6 +147,107 @@ class CipherCryptoKeePassIconTest {
             decrypted.fields,
         )
     }
+
+    @Test
+    fun `encrypt adds gpg custom fields for secure note`() {
+        val gpgKey = gpgKey()
+
+        val encrypted = cipher(
+            type = BitwardenCipher.Type.GpgKey,
+            gpgKey = gpgKey,
+        )
+            .encryptForTest()
+
+        assertEquals(BitwardenCipher.Type.GpgKey, encrypted.type)
+        assertNull(encrypted.gpgKey)
+        assertEquals(3, encrypted.fields.size)
+        val fields = encrypted.fields.associateBy { it.name }
+        assertGpgField(
+            fields = fields,
+            name = GpgAgentFields.PRIVATE_KEY_ARMORED,
+            value = PRIVATE_KEY_ARMORED,
+            type = BitwardenCipher.Field.Type.Hidden,
+        )
+        assertGpgField(
+            fields = fields,
+            name = GpgAgentFields.PUBLIC_KEY_ARMORED,
+            value = PUBLIC_KEY_ARMORED,
+            type = BitwardenCipher.Field.Type.Text,
+        )
+        assertGpgField(
+            fields = fields,
+            name = GpgAgentFields.FINGERPRINT,
+            value = FINGERPRINT,
+            type = BitwardenCipher.Field.Type.Text,
+        )
+
+        assertNull(fields[GPG_METADATA_FIELD])
+    }
+
+    @Test
+    fun `encrypt-decrypt preserves public-only gpg custom fields`() {
+        val gpgKey = gpgKey().copy(privateKeyArmored = null)
+
+        val encrypted = cipher(
+            type = BitwardenCipher.Type.GpgKey,
+            gpgKey = gpgKey,
+        ).encryptForTest()
+
+        assertEquals(BitwardenCipher.Type.GpgKey, encrypted.type)
+        assertNull(encrypted.gpgKey)
+        assertNull(encrypted.fields.firstOrNull { it.name == GpgAgentFields.PRIVATE_KEY_ARMORED })
+        assertEquals(
+            setOf(
+                GpgAgentFields.PUBLIC_KEY_ARMORED,
+                GpgAgentFields.FINGERPRINT,
+            ),
+            encrypted.fields.mapNotNull { it.name }.toSet(),
+        )
+
+        val decrypted = encrypted.decryptForTest()
+        assertEquals(BitwardenCipher.Type.GpgKey, decrypted.type)
+        assertEquals(gpgKey.copy(metadata = null), decrypted.gpgKey)
+        assertTrue(decrypted.fields.isEmpty())
+    }
+
+    @Test
+    fun `decrypt converts valid gpg custom fields to typed key`() {
+        val gpgKey = gpgKey()
+
+        val decrypted = cipher(fields = gpgFields(gpgKey))
+            .decryptForTest()
+
+        assertEquals(BitwardenCipher.Type.GpgKey, decrypted.type)
+        assertEquals(gpgKey.copy(metadata = null), decrypted.gpgKey)
+        assertEquals(gpgFields(gpgKey).last(), decrypted.fields.single())
+    }
+
+    @Test
+    fun `decrypt leaves gpg metadata as regular custom field`() {
+        val metadataField = BitwardenCipher.Field(
+            name = GPG_METADATA_FIELD,
+            value = "{not json",
+            type = BitwardenCipher.Field.Type.Hidden,
+        )
+
+        val decrypted = cipher(
+            fields = listOf(
+                BitwardenCipher.Field(
+                    name = GpgAgentFields.PRIVATE_KEY_ARMORED,
+                    value = PRIVATE_KEY_ARMORED,
+                    type = BitwardenCipher.Field.Type.Hidden,
+                ),
+                metadataField,
+            ),
+        ).decryptForTest()
+
+        assertEquals(BitwardenCipher.Type.GpgKey, decrypted.type)
+        assertEquals(
+            BitwardenCipher.GpgKey(privateKeyArmored = PRIVATE_KEY_ARMORED),
+            decrypted.gpgKey,
+        )
+        assertEquals(listOf(metadataField), decrypted.fields)
+    }
 }
 
 private fun customIconField(
@@ -153,7 +260,9 @@ private fun customIconField(
 
 private fun cipher(
     keepassIcon: KeePassIcon? = null,
+    gpgKey: BitwardenCipher.GpgKey? = null,
     fields: List<BitwardenCipher.Field> = emptyList(),
+    type: BitwardenCipher.Type = BitwardenCipher.Type.SecureNote,
 ) = BitwardenCipher(
     accountId = "account-1",
     cipherId = "cipher-1",
@@ -165,9 +274,64 @@ private fun cipher(
     favorite = false,
     fields = fields,
     customIcon = keepassIcon,
+    gpgKey = gpgKey,
     reprompt = BitwardenCipher.RepromptType.None,
-    type = BitwardenCipher.Type.SecureNote,
+    type = type,
     secureNote = BitwardenCipher.SecureNote(),
+)
+
+private fun assertGpgField(
+    fields: Map<String?, BitwardenCipher.Field>,
+    name: String,
+    value: String,
+    type: BitwardenCipher.Field.Type,
+) {
+    val field = assertNotNull(fields[name])
+    assertEquals(value, field.value)
+    assertEquals(type, field.type)
+}
+
+private fun gpgFields(
+    gpgKey: BitwardenCipher.GpgKey,
+) = listOf(
+    BitwardenCipher.Field(
+        name = GpgAgentFields.PRIVATE_KEY_ARMORED,
+        value = gpgKey.privateKeyArmored,
+        type = BitwardenCipher.Field.Type.Hidden,
+    ),
+    BitwardenCipher.Field(
+        name = GpgAgentFields.PUBLIC_KEY_ARMORED,
+        value = gpgKey.publicKeyArmored,
+        type = BitwardenCipher.Field.Type.Text,
+    ),
+    BitwardenCipher.Field(
+        name = GpgAgentFields.FINGERPRINT,
+        value = gpgKey.fingerprint,
+        type = BitwardenCipher.Field.Type.Text,
+    ),
+    BitwardenCipher.Field(
+        name = GPG_METADATA_FIELD,
+        value = gpgKey.metadata?.let { Json.encodeToString(it) },
+        type = BitwardenCipher.Field.Type.Hidden,
+    ),
+)
+
+private const val GPG_METADATA_FIELD = "keyguard.gpg.metadata"
+
+private fun gpgKey() = BitwardenCipher.GpgKey(
+    privateKeyArmored = PRIVATE_KEY_ARMORED,
+    publicKeyArmored = PUBLIC_KEY_ARMORED,
+    fingerprint = FINGERPRINT,
+    metadata = GpgAgentKeyMetadata(
+        keys = listOf(
+            GpgAgentKeyMetadataKey(
+                keygrip = "keygrip-1",
+                fingerprint = FINGERPRINT,
+                algorithm = "rsa4096",
+                capabilities = setOf("sign", "decrypt"),
+            ),
+        ),
+    ),
 )
 
 private fun BitwardenCipher.encryptForTest() =
@@ -229,5 +393,9 @@ private object IdentityBase64Service : Base64Service {
 
     override fun decode(bytes: ByteArray): ByteArray = bytes
 }
+
+private const val PRIVATE_KEY_ARMORED = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+private const val PUBLIC_KEY_ARMORED = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
+private const val FINGERPRINT = "0123456789ABCDEF0123456789ABCDEF01234567"
 
 private val TEST_INSTANT = Instant.parse("2024-01-01T00:00:00Z")

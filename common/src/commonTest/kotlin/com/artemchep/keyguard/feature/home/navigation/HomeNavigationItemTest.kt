@@ -29,6 +29,13 @@ class HomeNavigationItemTest {
             items.map { (it.spec.ref as NavItemRef.BuiltIn).key },
         )
         assertEquals(homeVaultRoute, items.first().route)
+
+        val gpgTools = items.single {
+            it.spec.ref == NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_GPG_TOOLS)
+        }
+        assertEquals(homeGpgToolsRoute, gpgTools.route)
+        assertEquals("gpg_tools", gpgTools.stackId)
+        assertEquals(HOME_NAV_GPG_TOOLS_TEST_TAG, gpgTools.testTag)
     }
 
     @Test

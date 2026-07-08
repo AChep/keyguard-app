@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 pub(crate) fn linux_fallback_ssh_agent_socket_path(uid: libc::uid_t) -> PathBuf {
     PathBuf::from(format!("/tmp/keyguard-{uid}/ssh-agent.sock"))
 }
@@ -133,13 +133,20 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
-    fn macos_path_ends_with_sock() {
+    fn macos_default_path_uses_group_container() {
         let path = default_ssh_agent_socket_path();
-        let path_str = path.to_string_lossy();
         assert!(
-            path_str.ends_with(".sock"),
-            "macOS socket path should end with .sock, got: {}",
-            path_str
+            path.ends_with("Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock")
+        );
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_dev_fallback_path_matches_layout() {
+        let uid = unsafe { libc::getuid() };
+        assert_eq!(
+            linux_fallback_ssh_agent_socket_path(uid),
+            PathBuf::from(format!("/tmp/keyguard-{uid}/ssh-agent.sock"))
         );
     }
 

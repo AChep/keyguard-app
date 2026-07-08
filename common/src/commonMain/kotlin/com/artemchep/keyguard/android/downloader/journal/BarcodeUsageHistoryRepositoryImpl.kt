@@ -1,25 +1,20 @@
 package com.artemchep.keyguard.android.downloader.journal
 
-import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DBarcodeUsageHistory
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
+import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToOneOrNull
 import com.artemchep.keyguard.data.BarcodeUsageHistory
 import com.artemchep.keyguard.data.BarcodeUsageHistoryQueries
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class BarcodeUsageHistoryRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
@@ -43,12 +38,7 @@ class BarcodeUsageHistoryRepositoryImpl(
         daoEffect { dao ->
             dao.getById(id = id)
         }
-            .asFlow()
-            .flatMapLatest { query ->
-                query
-                    .asFlow()
-                    .mapToOneOrNull(dispatcher)
-            }
+            .flatMapQueryToOneOrNull(dispatcher)
             .map { entity ->
                 entity?.toDomain()
             }

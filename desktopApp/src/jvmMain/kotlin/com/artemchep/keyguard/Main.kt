@@ -51,18 +51,25 @@ import com.artemchep.keyguard.common.service.quicksearch.QuickSearchHotkeyServic
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowManager
 import com.artemchep.keyguard.common.service.session.VaultLockHotkeyService
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentManager
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeyRepository
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
+import com.artemchep.keyguard.common.service.gpgagent.retryGpgAgentStartup
 import com.artemchep.keyguard.common.service.sshagent.retrySshAgentStartup
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
-import com.artemchep.keyguard.common.model.SshAgentStatus
+import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.feature.sshagent.rememberSshAgentRequestUiState
+import com.artemchep.keyguard.feature.agent.rememberAgentRequestUiState
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
+import com.artemchep.keyguard.common.usecase.GetGpgAgent
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.GetSshAgent
@@ -78,6 +85,7 @@ import com.artemchep.keyguard.desktop.WindowStateManager
 import com.artemchep.keyguard.desktop.services.autotype.AutotypeServiceNative
 import com.artemchep.keyguard.desktop.services.keychain.KeychainRepositoryNative
 import com.artemchep.keyguard.desktop.services.notification.NotificationRepositoryNative
+import com.artemchep.keyguard.desktop.ui.GpgRequestWindow
 import com.artemchep.keyguard.desktop.ui.QuickSearchWindow
 import com.artemchep.keyguard.desktop.ui.SshRequestWindow
 import com.artemchep.keyguard.desktop.util.AppReopenedListenerEffect
@@ -304,6 +312,11 @@ fun main() {
     val getSshAgentFilter: GetSshAgentFilter = appDi.direct.instance()
     val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = appDi.direct.instance()
     val sshAgentStatusService: SshAgentStatusService = appDi.direct.instance()
+    val getGpgAgent: GetGpgAgent = appDi.direct.instance()
+    val getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow = appDi.direct.instance()
+    val getGpgAgentFilter: GetGpgAgentFilter = appDi.direct.instance()
+    val gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository = appDi.direct.instance()
+    val gpgAgentStatusService: GpgAgentStatusService = appDi.direct.instance()
 
     val translatorScope by lazy {
         val context = LeContext()
@@ -397,18 +410,18 @@ fun main() {
             ) {
                 val binaryPath = sshAgentManager.defaultBinaryPath
                 if (binaryPath == null) {
-                    sshAgentStatusService.set(SshAgentStatus.Unsupported)
+                    sshAgentStatusService.set(AgentStatus.Unsupported)
                     return@LaunchedEffect
                 }
                 if (!getSshAgentStateValue) {
-                    sshAgentStatusService.set(SshAgentStatus.Stopped)
+                    sshAgentStatusService.set(AgentStatus.Stopped)
                     return@LaunchedEffect
                 }
 
                 coroutineScope {
                     var failed = false
                     try {
-                        sshAgentStatusService.set(SshAgentStatus.Starting)
+                        sshAgentStatusService.set(AgentStatus.Starting)
 
                         val process = retrySshAgentStartup(
                             logRepository = logRepository,
@@ -420,7 +433,7 @@ fun main() {
                             },
                             stop = sshAgentManager::stop,
                         )
-                        sshAgentStatusService.set(SshAgentStatus.Ready)
+                        sshAgentStatusService.set(AgentStatus.Ready)
                         val exitCode = runInterruptible(Dispatchers.IO) {
                             process.waitFor()
                         }
@@ -431,7 +444,7 @@ fun main() {
                         e.throwIfFatal()
                         e.printStackTrace()
                         failed = true
-                        sshAgentStatusService.set(SshAgentStatus.Failed)
+                        sshAgentStatusService.set(AgentStatus.Failed)
 
                         val text = getErrorReadableMessage(e, translatorScope)
                             .title
@@ -446,20 +459,103 @@ fun main() {
                             sshAgentManager.stop()
                         }
                         if (!failed) {
-                            sshAgentStatusService.set(SshAgentStatus.Stopped)
+                            sshAgentStatusService.set(AgentStatus.Stopped)
                         }
                     }
                 }
             }
             // We want to collect all the requests into
             // a single model.
-            val sshAgentRequestUiState = rememberSshAgentRequestUiState(
+            val sshAgentRequestUiState = rememberAgentRequestUiState(
                 requestsFlow = sshAgentManager.requestsFlow,
             )
             if (sshAgentRequestUiState != null) {
                 SshRequestWindow(
                     processLifecycleProvider = processLifecycleProvider,
                     sshAgentRequestUiState = sshAgentRequestUiState,
+                )
+            }
+
+            val gpgAgentManager = remember {
+                GpgAgentManager(
+                    logRepository = logRepository,
+                    cryptoGenerator = cryptoGenerator,
+                    getVaultSession = getVaultSession,
+                    getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
+                    getGpgAgentFilter = getGpgAgentFilter,
+                    gpgAgentPublicKeyRepository = gpgAgentPublicKeyRepository,
+                )
+            }
+            val getGpgAgentState = remember { getGpgAgent() }
+                .collectAsState(false)
+            val getGpgAgentStateValue = getGpgAgentState.value
+            LaunchedEffect(
+                gpgAgentManager,
+                getGpgAgentStateValue,
+            ) {
+                val binaryPath = gpgAgentManager.defaultBinaryPath
+                if (binaryPath == null) {
+                    gpgAgentStatusService.set(AgentStatus.Unsupported)
+                    return@LaunchedEffect
+                }
+                if (!getGpgAgentStateValue) {
+                    gpgAgentStatusService.set(AgentStatus.Stopped)
+                    return@LaunchedEffect
+                }
+
+                coroutineScope {
+                    var failed = false
+                    try {
+                        gpgAgentStatusService.set(AgentStatus.Starting)
+
+                        val process = retryGpgAgentStartup(
+                            logRepository = logRepository,
+                            start = { _, _ ->
+                                gpgAgentManager.start(
+                                    scope = this,
+                                    binaryPath = binaryPath,
+                                )
+                            },
+                            stop = gpgAgentManager::stop,
+                        )
+                        gpgAgentStatusService.set(AgentStatus.Ready)
+                        val exitCode = runInterruptible(Dispatchers.IO) {
+                            process.waitFor()
+                        }
+                        throw IllegalStateException("GPG agent process exited unexpectedly: $exitCode")
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        e.throwIfFatal()
+                        e.printStackTrace()
+                        failed = true
+                        gpgAgentStatusService.set(AgentStatus.Failed)
+
+                        val text = getErrorReadableMessage(e, translatorScope)
+                            .title
+                        val msg = ToastMessage(
+                            type = ToastMessage.Type.ERROR,
+                            title = translatorScope.translate(Res.string.error_failed_gpg_agent_start),
+                            text = text,
+                        )
+                        showMessage.copy(msg)
+                    } finally {
+                        withContext(NonCancellable) {
+                            gpgAgentManager.stop()
+                        }
+                        if (!failed) {
+                            gpgAgentStatusService.set(AgentStatus.Stopped)
+                        }
+                    }
+                }
+            }
+            val gpgAgentRequestUiState = rememberAgentRequestUiState(
+                requestsFlow = gpgAgentManager.requestsFlow,
+            )
+            if (gpgAgentRequestUiState != null) {
+                GpgRequestWindow(
+                    processLifecycleProvider = processLifecycleProvider,
+                    gpgAgentRequestUiState = gpgAgentRequestUiState,
                 )
             }
 

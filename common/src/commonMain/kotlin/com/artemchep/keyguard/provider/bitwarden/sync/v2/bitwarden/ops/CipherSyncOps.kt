@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops
 import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil
@@ -121,6 +122,7 @@ class CipherSyncOps(
     private val serverFolders: List<FolderEntity>,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val diagnostics: BitwardenSyncDiagnostics = BitwardenSyncDiagnostics.NoOp,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) : EntitySyncOps<BitwardenCipher, CipherEntity>,
     BulkRemoteOps<BitwardenCipher> {
     companion object {
@@ -185,7 +187,12 @@ class CipherSyncOps(
                             server = server,
                             service = service,
                         )
-                merge(model, local, getPasswordStrength)
+                merge(
+                    remote = model,
+                    local = local,
+                    getPasswordStrength = getPasswordStrength,
+                    gpgKeyMetadataResolver = gpgKeyMetadataResolver,
+                )
             },
         )
 
@@ -820,11 +827,12 @@ class CipherSyncOps(
                 attachmentLocalId = localAttachment.id,
                 attachmentRemoteId = reservedRemoteAttachmentId,
             )
-            currentLocal =
+                currentLocal =
                 merge(
                     remote = refreshedRemote,
                     local = reconciliation.cipher,
                     getPasswordStrength = getPasswordStrength,
+                    gpgKeyMetadataResolver = gpgKeyMetadataResolver,
                 )
             updatePartialRemoteLocal(currentLocal)
         }
@@ -875,7 +883,12 @@ class CipherSyncOps(
                 // remote revision.
                 val service = server.toDecodingFailedService(now)
                 val fallback = local.copy(service = service)
-                val fallbackMerged = merge(fallback, local, getPasswordStrength)
+                val fallbackMerged = merge(
+                    remote = fallback,
+                    local = local,
+                    getPasswordStrength = getPasswordStrength,
+                    gpgKeyMetadataResolver = gpgKeyMetadataResolver,
+                )
                 return RemoteWriteOutcome.Upsert(fallbackMerged)
             }
 
@@ -1009,7 +1022,12 @@ class CipherSyncOps(
                 server = server,
                 cipherId = cipherId,
             )
-        return merge(decoded, local, getPasswordStrength)
+        return merge(
+            remote = decoded,
+            local = local,
+            getPasswordStrength = getPasswordStrength,
+            gpgKeyMetadataResolver = gpgKeyMetadataResolver,
+        )
     }
 
     private fun decodeServerCipherRaw(
@@ -1054,9 +1072,10 @@ class CipherSyncOps(
         local: BitwardenCipher,
     ): BitwardenCipher =
         merge(
-            decodeServerCipherRawForPush(server, local),
-            local,
-            getPasswordStrength,
+            remote = decodeServerCipherRawForPush(server, local),
+            local = local,
+            getPasswordStrength = getPasswordStrength,
+            gpgKeyMetadataResolver = gpgKeyMetadataResolver,
         )
 
     private fun decodeServerCipherRawForPush(

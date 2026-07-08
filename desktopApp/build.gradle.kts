@@ -58,6 +58,15 @@ dependencies {
         bundledAppResources.name,
         project(
             mapOf(
+                "path" to ":desktopGpgAgent",
+                "configuration" to "bundledAppResourcesElements",
+            ),
+        ),
+    )
+    add(
+        bundledAppResources.name,
+        project(
+            mapOf(
                 "path" to ":desktopLibNative",
                 "configuration" to "bundledAppResourcesElements",
             ),
@@ -263,6 +272,7 @@ fun Tar.installPackageDistributable(
             if (
                 name == "jspawnhelper" || // https://github.com/AChep/keyguard-app/issues/640#issuecomment-4111835953
                 name == "keyguard-ssh-agent" ||
+                name == "keyguard-gpg-agent" ||
                 name == "keyguard-lib"
             ) {
                 permissions = DefaultFilePermissions("755".toInt(8))

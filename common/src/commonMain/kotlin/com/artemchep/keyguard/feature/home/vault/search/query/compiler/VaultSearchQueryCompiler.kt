@@ -38,6 +38,7 @@ enum class VaultTextField(
     Note("note"),
     Field("field"),
     Ssh("ssh"),
+    Gpg("gpg"),
     Password("password"),
     CardNumber("card-number"),
 }

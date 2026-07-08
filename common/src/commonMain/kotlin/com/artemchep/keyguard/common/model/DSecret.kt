@@ -13,6 +13,7 @@ import arrow.optics.optics
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
@@ -68,6 +69,7 @@ data class DSecret(
     val card: Card? = null,
     val identity: Identity? = null,
     val sshKey: SshKey? = null,
+    val gpgKey: GpgKey? = null,
 ) : HasAccountId, HasCipherId {
     companion object {
         private const val ignoreLength = 3
@@ -202,6 +204,7 @@ data class DSecret(
         Card,
         Identity,
         SshKey,
+        GpgKey,
     }
 
     sealed interface Attachment {
@@ -409,6 +412,16 @@ data class DSecret(
     ) {
         companion object
     }
+
+    @optics
+    data class GpgKey(
+        val privateKeyArmored: String? = null,
+        val publicKeyArmored: String? = null,
+        val fingerprint: String? = null,
+        val metadata: GpgAgentKeyMetadata? = null,
+    ) {
+        companion object
+    }
 }
 
 fun DSecret.ignores(alertType: DWatchtowerAlertType) = alertType in ignoredAlerts
@@ -433,6 +446,7 @@ fun DSecret.Type.iconImageVector() = when (this) {
     DSecret.Type.Identity -> Icons.Outlined.PermIdentity
     DSecret.Type.SecureNote -> Icons.Outlined.KeyguardNote
     DSecret.Type.SshKey -> Icons.Outlined.KeyguardSshKey
+    DSecret.Type.GpgKey -> Icons.Outlined.Key
     DSecret.Type.None -> Icons.Stub
 }
 
@@ -489,6 +503,7 @@ fun DSecret.Type.titleH() = when (this) {
     DSecret.Type.Identity -> Res.string.cipher_type_identity
     DSecret.Type.SecureNote -> Res.string.cipher_type_note
     DSecret.Type.SshKey -> Res.string.cipher_type_ssh_key
+    DSecret.Type.GpgKey -> Res.string.cipher_type_gpg_key
     DSecret.Type.None -> Res.string.cipher_type_unknown
 }
 

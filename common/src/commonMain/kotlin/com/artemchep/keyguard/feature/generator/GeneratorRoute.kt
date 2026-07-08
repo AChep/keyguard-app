@@ -11,6 +11,7 @@ data class GeneratorRoute(
         val username: Boolean = false,
         val password: Boolean = false,
         val sshKey: Boolean = false,
+        val gpgKey: Boolean = false,
         /**
          * If specified, adds a prefix to all the persisted fields
          * such as the email, configs etc.

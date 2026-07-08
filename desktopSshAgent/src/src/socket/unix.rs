@@ -76,13 +76,13 @@ pub async fn serve<K: KeyProvider>(
 }
 
 fn ensure_socket_parent_dir(socket_path: &Path) -> Result<()> {
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
         let uid = unsafe { libc::getuid() };
         return ensure_socket_parent_dir_for_uid(socket_path, uid);
     }
 
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         if let Some(parent) = socket_path.parent() {
             fs::create_dir_all(parent).with_context(|| {
@@ -96,7 +96,7 @@ fn ensure_socket_parent_dir(socket_path: &Path) -> Result<()> {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn ensure_socket_parent_dir_for_uid(socket_path: &Path, uid: libc::uid_t) -> Result<()> {
     if is_linux_fallback_socket_path_for_uid(socket_path, uid) {
         let fallback_socket_path = crate::config::linux_fallback_ssh_agent_socket_path(uid);
@@ -118,12 +118,12 @@ fn ensure_socket_parent_dir_for_uid(socket_path: &Path, uid: libc::uid_t) -> Res
     Ok(())
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn is_linux_fallback_socket_path_for_uid(socket_path: &Path, uid: libc::uid_t) -> bool {
     socket_path == crate::config::linux_fallback_ssh_agent_socket_path(uid)
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn ensure_safe_linux_fallback_parent_dir(parent: &Path, uid: libc::uid_t) -> Result<()> {
     use std::io::ErrorKind;
     use std::os::unix::fs::{DirBuilderExt, MetadataExt, PermissionsExt};

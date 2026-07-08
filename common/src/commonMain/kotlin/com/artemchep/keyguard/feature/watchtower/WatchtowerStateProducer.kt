@@ -1032,6 +1032,135 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         },
     )
 
+    suspend fun onClickUnusableGpgKeys(
+        filter: DFilter,
+    ) {
+        val intent = NavigationIntent.NavigateToRoute(
+            vaultRouteFactory.watchtower(
+                title = translate(Res.string.watchtower_item_unusable_gpg_keys_title),
+                subtitle = translate(Res.string.watchtower_header_title),
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        DFilter.ByUnusableGpgKeys,
+                        filter,
+                        args.filter,
+                    ),
+                ),
+            ),
+        )
+        navigate(intent)
+    }
+
+    val unusableGpgKeysFlow = createCipherAlertStateFlow(
+        key = DFilter.ByUnusableGpgKeys.key,
+        type = DWatchtowerAlertType.GPG_KEY_UNUSABLE,
+        onCreate = { holder, count, new ->
+            val onClick = if (count > 0) {
+                val filter = holder?.filterConfig?.filter
+                    ?: DFilter.All
+                onClick {
+                    onClickUnusableGpgKeys(
+                        filter = filter,
+                    )
+                }
+            } else {
+                null
+            }
+            WatchtowerState.Content.UnusableGpgKeys(
+                revision = holder?.filterConfig?.id ?: 0,
+                count = count,
+                new = new,
+                onClick = onClick,
+            )
+        },
+    )
+
+    suspend fun onClickWeakGpgKeys(
+        filter: DFilter,
+    ) {
+        val intent = NavigationIntent.NavigateToRoute(
+            vaultRouteFactory.watchtower(
+                title = translate(Res.string.watchtower_item_weak_gpg_keys_title),
+                subtitle = translate(Res.string.watchtower_header_title),
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        DFilter.ByWeakGpgKeys,
+                        filter,
+                        args.filter,
+                    ),
+                ),
+            ),
+        )
+        navigate(intent)
+    }
+
+    val weakGpgKeysFlow = createCipherAlertStateFlow(
+        key = DFilter.ByWeakGpgKeys.key,
+        type = DWatchtowerAlertType.WEAK_GPG_KEY,
+        onCreate = { holder, count, new ->
+            val onClick = if (count > 0) {
+                val filter = holder?.filterConfig?.filter
+                    ?: DFilter.All
+                onClick {
+                    onClickWeakGpgKeys(
+                        filter = filter,
+                    )
+                }
+            } else {
+                null
+            }
+            WatchtowerState.Content.WeakGpgKeys(
+                revision = holder?.filterConfig?.id ?: 0,
+                count = count,
+                new = new,
+                onClick = onClick,
+            )
+        },
+    )
+
+    suspend fun onClickGpgKeyPublishing(
+        filter: DFilter,
+    ) {
+        val intent = NavigationIntent.NavigateToRoute(
+            vaultRouteFactory.watchtower(
+                title = translate(Res.string.watchtower_item_gpg_key_publishing_title),
+                subtitle = translate(Res.string.watchtower_header_title),
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        DFilter.ByGpgKeyPublishing,
+                        filter,
+                        args.filter,
+                    ),
+                ),
+            ),
+        )
+        navigate(intent)
+    }
+
+    val gpgKeyPublishingFlow = createCipherAlertStateFlow(
+        key = DFilter.ByGpgKeyPublishing.key,
+        type = DWatchtowerAlertType.GPG_KEY_PUBLISHING,
+        onCreate = { holder, count, new ->
+            val onClick = if (count > 0) {
+                val filter = holder?.filterConfig?.filter
+                    ?: DFilter.All
+                onClick {
+                    onClickGpgKeyPublishing(
+                        filter = filter,
+                    )
+                }
+            } else {
+                null
+            }
+            WatchtowerState.Content.GpgKeyPublishing(
+                revision = holder?.filterConfig?.id ?: 0,
+                count = count,
+                new = new,
+                onClick = onClick,
+            )
+        },
+    )
+
     suspend fun onClickWebsitePwned(
         filter: DFilter,
     ) {
@@ -1352,6 +1481,9 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         pwnedWebsites = websitePwnedFlow,
         reused = passwordReusedFlow,
         weakSshKeys = weakSshKeysFlow,
+        unusableGpgKeys = unusableGpgKeysFlow,
+        weakGpgKeys = weakGpgKeysFlow,
+        gpgKeyPublishing = gpgKeyPublishingFlow,
         incompleteItems = incompleteItemsFlow,
         expiringItems = expiringItemsFlow,
         duplicateItems = duplicateItemsFlow,

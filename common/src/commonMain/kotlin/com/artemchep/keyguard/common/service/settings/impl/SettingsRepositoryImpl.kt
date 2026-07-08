@@ -9,6 +9,8 @@ import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
+import com.artemchep.keyguard.common.model.GpgAgentFilter
+import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
@@ -85,6 +87,14 @@ class SettingsRepositoryImpl(
         private const val KEY_SSH_AGENT_APPROVAL_WINDOW = "ssh_agent.approval_window"
         private const val KEY_SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent.display_key_names"
         private const val KEY_SSH_AGENT_FILTER = "ssh_agent.filters"
+        private const val KEY_GPG_AGENT = "gpg_agent"
+        private const val KEY_GPG_AGENT_APPROVAL_WINDOW = "gpg_agent.approval_window"
+        private const val KEY_GPG_AGENT_DISPLAY_KEY_NAMES = "gpg_agent.display_key_names"
+        private const val KEY_GPG_AGENT_FILTER = "gpg_agent.filters"
+        private const val KEY_GPG_KEYSERVER_CONFIG = "gpg_agent.keyserver"
+        private const val KEY_GPG_KEYSERVER_AUTO_REFRESH = "gpg_agent.keyserver_auto_refresh"
+        private const val KEY_GPG_KEYSERVER_REFRESH_INTERVAL = "gpg_agent.keyserver_refresh_interval"
+        private const val KEY_GPG_KEYSERVER_LAST_REFRESH = "gpg_agent.keyserver_last_refresh"
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
         private const val KEY_NAV_LABEL = "nav_label"
@@ -223,6 +233,60 @@ class SettingsRepositoryImpl(
             defaultValue = SshAgentFilter(),
         )
 
+    private val gpgAgentPref =
+        store.getBoolean(KEY_GPG_AGENT, false)
+
+    private val gpgAgentApprovalWindowPref =
+        store.getLong(
+            key = KEY_GPG_AGENT_APPROVAL_WINDOW,
+            with(Duration) {
+                5L.minutes
+            }.inWholeMilliseconds,
+        )
+
+    private val gpgAgentDisplayKeyNamesPref =
+        store.getBoolean(KEY_GPG_AGENT_DISPLAY_KEY_NAMES, false)
+
+    private val gpgAgentFilterPref =
+        store.getSerializable(
+            json,
+            KEY_GPG_AGENT_FILTER,
+            defaultValue = GpgAgentFilter(),
+        )
+
+    private val gpgKeyserverConfigPref =
+        store.getSerializable(
+            json,
+            KEY_GPG_KEYSERVER_CONFIG,
+            defaultValue = GpgKeyserverConfig(),
+        )
+
+    private val gpgKeyserverAutoRefreshPref =
+        store.getBoolean(KEY_GPG_KEYSERVER_AUTO_REFRESH, false)
+
+    private val gpgKeyserverRefreshIntervalPref =
+        store.getLong(
+            key = KEY_GPG_KEYSERVER_REFRESH_INTERVAL,
+            with(Duration) {
+                7L.days
+            }.inWholeMilliseconds,
+        )
+
+    private val gpgKeyserverLastRefreshInstantPref =
+        store.getObject<Instant?>(
+            KEY_GPG_KEYSERVER_LAST_REFRESH,
+            defaultValue = null,
+            serialize = { instant ->
+                val millis = instant?.toEpochMilliseconds()
+                millis?.toString().orEmpty()
+            },
+            deserialize = { millis ->
+                millis
+                    .toLongOrNull()
+                    ?.let(Instant::fromEpochMilliseconds)
+            },
+        )
+
     private val themeUseAmoledDarkPref =
         store.getBoolean(KEY_THEME_USE_AMOLED_DARK, false)
 
@@ -328,6 +392,7 @@ class SettingsRepositoryImpl(
         KEY_ONBOARDING_LAST_VISIT,
         KEY_VERSION_LOG,
         KEY_DATABASE_EXPOSED_KEY,
+        KEY_GPG_KEYSERVER_LAST_REFRESH,
     )
 
     private val allPrefs by lazy {
@@ -362,7 +427,16 @@ class SettingsRepositoryImpl(
             markdownPref,
             sshAgentPref,
             sshAgentApprovalWindowPref,
+            sshAgentDisplayKeyNamesPref,
             sshAgentFilterPref,
+            gpgAgentPref,
+            gpgAgentApprovalWindowPref,
+            gpgAgentDisplayKeyNamesPref,
+            gpgAgentFilterPref,
+            gpgKeyserverConfigPref,
+            gpgKeyserverAutoRefreshPref,
+            gpgKeyserverRefreshIntervalPref,
+            gpgKeyserverLastRefreshInstantPref,
             themeUseAmoledDarkPref,
             keepScreenOnPref,
             gravatarPref,
@@ -627,6 +701,50 @@ class SettingsRepositoryImpl(
         .setAndCommit(filter)
 
     override fun getSshAgentFilter() = sshAgentFilterPref
+
+    override fun setGpgAgent(gpgAgent: Boolean) = gpgAgentPref
+        .setAndCommit(gpgAgent)
+
+    override fun getGpgAgent() = gpgAgentPref
+
+    override fun setGpgAgentApprovalWindow(duration: Duration) = gpgAgentApprovalWindowPref
+        .setAndCommit(duration)
+
+    override fun getGpgAgentApprovalWindow() = gpgAgentApprovalWindowPref
+        .asDuration()
+        .map { it ?: Duration.ZERO }
+
+    override fun setGpgAgentDisplayKeyNames(displayKeyNames: Boolean) = gpgAgentDisplayKeyNamesPref
+        .setAndCommit(displayKeyNames)
+
+    override fun getGpgAgentDisplayKeyNames() = gpgAgentDisplayKeyNamesPref
+
+    override fun setGpgAgentFilter(filter: GpgAgentFilter) = gpgAgentFilterPref
+        .setAndCommit(filter)
+
+    override fun getGpgAgentFilter() = gpgAgentFilterPref
+
+    override fun setGpgKeyserverConfig(config: GpgKeyserverConfig) = gpgKeyserverConfigPref
+        .setAndCommit(config)
+
+    override fun getGpgKeyserverConfig() = gpgKeyserverConfigPref
+
+    override fun setGpgKeyserverAutoRefresh(autoRefresh: Boolean) = gpgKeyserverAutoRefreshPref
+        .setAndCommit(autoRefresh)
+
+    override fun getGpgKeyserverAutoRefresh() = gpgKeyserverAutoRefreshPref
+
+    override fun setGpgKeyserverRefreshInterval(duration: Duration) = gpgKeyserverRefreshIntervalPref
+        .setAndCommit(duration)
+
+    override fun getGpgKeyserverRefreshInterval() = gpgKeyserverRefreshIntervalPref
+        .asDuration()
+        .map { it ?: Duration.ZERO }
+
+    override fun setGpgKeyserverLastRefresh(instant: Instant?) = gpgKeyserverLastRefreshInstantPref
+        .setAndCommit(instant)
+
+    override fun getGpgKeyserverLastRefresh() = gpgKeyserverLastRefreshInstantPref
 
     override fun setAppVersionLog(log: List<AppVersionLog>) =
         ioEffect {

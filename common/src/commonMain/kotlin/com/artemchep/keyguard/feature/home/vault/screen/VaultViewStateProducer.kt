@@ -91,13 +91,23 @@ import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayPars
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
+import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
-import com.artemchep.keyguard.common.usecase.KeyPrivateExport
-import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.service.extract.LinkInfoRegistry
+import com.artemchep.keyguard.common.service.gpgagent.chunkedGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmored
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPublicKeyArmored
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNull
+import com.artemchep.keyguard.common.service.gpgkeyserver.isEligibleForGpgKeyserverRefresh
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.create
@@ -139,17 +149,22 @@ import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
+import com.artemchep.keyguard.common.usecase.KeyPrivateExport
+import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
+import com.artemchep.keyguard.common.usecase.RefreshGpgPublicKeys
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
+import com.artemchep.keyguard.common.usecase.UploadGpgPublicKey
+import com.artemchep.keyguard.common.usecase.VerifyGpgPublicKey
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
@@ -192,10 +207,13 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherDisableConfirmAccess
 import com.artemchep.keyguard.feature.home.vault.util.cipherEnableConfirmAccessAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherExportAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherRefreshGpgPublicKeyAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherSendAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherUnarchiveAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherUploadGpgPublicKeyAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherVerifyGpgPublicKeyAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewSshAgentHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
@@ -275,6 +293,7 @@ import com.artemchep.keyguard.ui.FingerprintPlaneta
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
 
 typealias RevealConcealFlow = Flow<Unit>
 
@@ -308,6 +327,8 @@ fun vaultViewScreenState(
         markWatchtowerAlertAsRead = instance(),
         cryptoGenerator = instance(),
         keyPairGenerator = instance(),
+        gpgPublicKeyParser = instanceOrNull<GpgPublicKeyParser>()
+            ?: GpgPublicKeyParserUnsupported,
         keyPrivateExport = instance(),
         keyPublicExport = instance(),
         cipherUnsecureUrlCheck = instance(),
@@ -321,6 +342,9 @@ fun vaultViewScreenState(
         changeCipherNameById = instance(),
         changeCipherPasswordById = instance(),
         checkPasswordLeak = instance(),
+        uploadGpgPublicKey = instance(),
+        refreshGpgPublicKeys = instance(),
+        verifyGpgPublicKey = instance(),
         retryCipher = instance(),
         executeCommand = instance(),
         copyCipherById = instance(),
@@ -411,6 +435,7 @@ fun vaultViewScreenState(
     markWatchtowerAlertAsRead: MarkWatchtowerAlertAsRead,
     cryptoGenerator: CryptoGenerator,
     keyPairGenerator: KeyPairGenerator,
+    gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
@@ -424,6 +449,9 @@ fun vaultViewScreenState(
     changeCipherNameById: ChangeCipherNameById,
     changeCipherPasswordById: ChangeCipherPasswordById,
     checkPasswordLeak: CheckPasswordLeak,
+    uploadGpgPublicKey: UploadGpgPublicKey,
+    refreshGpgPublicKeys: RefreshGpgPublicKeys,
+    verifyGpgPublicKey: VerifyGpgPublicKey,
     retryCipher: RetryCipher,
     executeCommand: ExecuteCommand,
     copyCipherById: CopyCipherById,
@@ -475,6 +503,8 @@ fun vaultViewScreenState(
         downloadAttachment,
         clipboardService,
         dateFormatter,
+        gpgPublicKeyParser,
+        verifyGpgPublicKey,
         windowCoroutineScope,
         linkInfoExtractors,
         itemId,
@@ -506,6 +536,7 @@ fun vaultViewScreenState(
         markWatchtowerAlertAsRead = markWatchtowerAlertAsRead,
         cryptoGenerator = cryptoGenerator,
         keyPairGenerator = keyPairGenerator,
+        gpgPublicKeyParser = gpgPublicKeyParser,
         keyPrivateExport = keyPrivateExport,
         keyPublicExport = keyPublicExport,
         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
@@ -519,6 +550,9 @@ fun vaultViewScreenState(
         changeCipherNameById = changeCipherNameById,
         changeCipherPasswordById = changeCipherPasswordById,
         checkPasswordLeak = checkPasswordLeak,
+        uploadGpgPublicKey = uploadGpgPublicKey,
+        refreshGpgPublicKeys = refreshGpgPublicKeys,
+        verifyGpgPublicKey = verifyGpgPublicKey,
         retryCipher = retryCipher,
         executeCommand = executeCommand,
         copyCipherById = copyCipherById,
@@ -582,6 +616,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
     markWatchtowerAlertAsRead: MarkWatchtowerAlertAsRead,
     cryptoGenerator: CryptoGenerator,
     keyPairGenerator: KeyPairGenerator,
+    gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
@@ -595,6 +630,9 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
     changeCipherNameById: ChangeCipherNameById,
     changeCipherPasswordById: ChangeCipherPasswordById,
     checkPasswordLeak: CheckPasswordLeak,
+    uploadGpgPublicKey: UploadGpgPublicKey,
+    refreshGpgPublicKeys: RefreshGpgPublicKeys,
+    verifyGpgPublicKey: VerifyGpgPublicKey,
     retryCipher: RetryCipher,
     executeCommand: ExecuteCommand,
     copyCipherById: CopyCipherById,
@@ -954,6 +992,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         ?: pairUnlessEmpty(cipher?.identity?.email, CopyText.Type.EMAIL)
                         ?: pairUnlessEmpty(cipher?.identity?.phone, CopyText.Type.PHONE_NUMBER)
                         ?: pairUnlessEmpty(cipher?.sshKey?.publicKey, CopyText.Type.PUBLIC_KEY)
+                        ?: pairUnlessEmpty(cipher?.getGpgAgentPublicKeyArmored(), CopyText.Type.PUBLIC_KEY)
                         ?: pairUnlessEmpty(cipher?.notes, CopyText.Type.VALUE)
                 if (primaryFieldPair == null) {
                     return@map null
@@ -976,6 +1015,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                     pairUnlessEmpty(cipher?.login?.password, CopyText.Type.PASSWORD)
                         ?: pairUnlessEmpty(cipher?.card?.code, CopyText.Type.CARD_CVV)
                         ?: pairUnlessEmpty(cipher?.sshKey?.privateKey, CopyText.Type.PRIVATE_KEY)
+                        ?: pairUnlessEmpty(cipher?.getGpgAgentPrivateKeyArmored(), CopyText.Type.PRIVATE_KEY)
                 if (secretFieldPair == null) {
                     return@map null
                 }
@@ -1362,6 +1402,32 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                             patchWatchtowerAlertCipher = patchWatchtowerAlertCipher,
                             ciphers = listOf(secretOrNull),
                         ),
+                        cipherVerifyGpgPublicKeyAction(
+                            verifyGpgPublicKey = verifyGpgPublicKey,
+                            cipher = secretOrNull,
+                        )
+                            .takeIf {
+                                secretOrNull.getGpgAgentPublicKeyArmored()?.isNotBlank() == true &&
+                                        secretOrNull.getGpgAgentFingerprint()?.isNotBlank() == true
+                            }
+                            ?.verify(verify),
+                        cipherRefreshGpgPublicKeyAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
+                            refreshGpgPublicKeys = refreshGpgPublicKeys,
+                            cipher = secretOrNull,
+                        )
+                            .takeIf {
+                                canEdit &&
+                                        secretOrNull.isEligibleForGpgKeyserverRefresh()
+                            }
+                            ?.verify(verify),
+                        cipherUploadGpgPublicKeyAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
+                            uploadGpgPublicKey = uploadGpgPublicKey,
+                            cipher = secretOrNull,
+                        )
+                            .takeIf { secretOrNull.getGpgAgentPublicKeyArmored()?.isNotBlank() == true }
+                            ?.verify(verify),
                         cipherExportAction(
                             ciphers = listOf(secretOrNull),
                         ),
@@ -1422,6 +1488,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         passkeysCredentialViewRouteFactory = passkeysCredentialViewRouteFactory,
                         cryptoGenerator = cryptoGenerator,
                         keyPairGenerator = keyPairGenerator,
+                        gpgPublicKeyParser = gpgPublicKeyParser,
                         keyPrivateExport = keyPrivateExport,
                         keyPublicExport = keyPublicExport,
                         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
@@ -1491,6 +1558,7 @@ private fun RememberStateFlowScope.oh(
     passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
     cryptoGenerator: CryptoGenerator,
     keyPairGenerator: KeyPairGenerator,
+    gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
@@ -1669,6 +1737,28 @@ private fun RememberStateFlowScope.oh(
         emit(model)
     }
 
+    val gpgFingerprint = cipher.getGpgAgentFingerprint()
+        ?.normalizeGpgFingerprint()
+        ?.takeIf { it.isNotEmpty() }
+
+    createGpgKeyItems(
+        copy = copy,
+        cryptoGenerator = cryptoGenerator,
+        cipher = cipher,
+        accountId = account.id,
+        gpgFingerprint = gpgFingerprint,
+        now = now,
+        gpgPublicKeyParser = gpgPublicKeyParser,
+        dateFormatter = dateFormatter,
+        concealFields = concealFields,
+        hasCanNotSeePassword = hasCanNotSeePassword,
+        visibilityGlobalConfig = visibilityGlobalConfig,
+        visibilityGlobalUserTransform = visibilityGlobalUserTransform,
+        verify = verify,
+    ).forEach { item ->
+        emit(item)
+    }
+
     val sshKey = cipher.sshKey
     if (sshKey != null) {
         val keyPair = kotlin.run {
@@ -1790,23 +1880,21 @@ private fun RememberStateFlowScope.oh(
         }
         if (keyPair != null) {
             val keyLength = keyPairGenerator.getPrivateKeyLengthOrNull(keyPair)
-            val keyDesc = kotlin.run {
-                if (keyLength != null) {
-                    val bits = translate(Res.string.generator_key_length_item, keyLength)
-                    return@run "${keyPair.type.title}, $bits"
-                }
-
-                keyPair.type.title
-            }
-            val typeItem = create(
-                copy = copy,
-                cryptoGenerator = cryptoGenerator,
-                cipherLocalId = cipher.id,
-                id = "sshKey.keyType",
-                accountId = account.id,
+            val rows = mutableListOf<VaultViewItem.Table.Row>()
+            rows += VaultViewItem.Table.Row(
                 title = translate(Res.string.key_type),
-                value = keyDesc,
-                elevated = true,
+                value = keyPair.type.title,
+            )
+            if (keyLength != null) {
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.length),
+                    value = translate(Res.string.generator_key_length_item, keyLength),
+                )
+            }
+            val typeItem = VaultViewItem.Table(
+                id = "sshKey.keyType",
+                elevation = 1.dp,
+                rows = rows,
             )
             emit(typeItem)
         }
@@ -3782,6 +3870,8 @@ suspend fun RememberStateFlowScope.create(
     trailing: (@Composable RowScope.() -> Unit)? = null,
     verify: ((() -> Unit) -> Unit)? = null,
     onBuildActions: (ContextItemBuilder.() -> Unit)? = null,
+    copyTitle: TextHolder = Res.string.copy.wrap(),
+    copyType: CopyText.Type = CopyText.Type.VALUE,
     maxLines: Int = 64,
     password: Boolean = false,
     username: Boolean = false,
@@ -3794,10 +3884,11 @@ suspend fun RememberStateFlowScope.create(
             section {
                 this += copy.FlatItemAction(
                     id = "cipher.value.$id.copy",
-                    title = Res.string.copy.wrap(),
+                    title = copyTitle,
                     value = value,
                     shortcut = shortcut,
                     hidden = visibility.concealed,
+                    type = copyType,
                 )
             }
             if (onBuildActions != null) {
@@ -4016,6 +4107,375 @@ private suspend fun RememberStateFlowScope.create(
         visibility = visibility,
         elevation = 1.dp,
     )
+}
+
+private suspend fun RememberStateFlowScope.createGpgKeyItems(
+    copy: CopyText,
+    cryptoGenerator: CryptoGenerator,
+    cipher: DSecret,
+    accountId: AccountId,
+    gpgFingerprint: String?,
+    now: Instant,
+    gpgPublicKeyParser: GpgPublicKeyParser,
+    dateFormatter: DateFormatter,
+    concealFields: Boolean,
+    hasCanNotSeePassword: Boolean,
+    visibilityGlobalConfig: Visibility.Global,
+    visibilityGlobalUserTransform: (Boolean, (Boolean) -> Unit) -> Unit,
+    verify: ((() -> Unit) -> Unit)?,
+): List<VaultViewItem> {
+    val gpgPublicKeyArmored = cipher.getGpgAgentPublicKeyArmored()
+        ?.takeIf { it.isNotBlank() }
+    val gpgPrivateKeyArmored = cipher.getGpgAgentPrivateKeyArmored()
+        ?.takeIf { it.isNotBlank() }
+    val gpgMetadataKeys = cipher.parseGpgAgentMetadataOrNull()
+        ?.keys
+        .orEmpty()
+    val parsedGpgKey = gpgPublicKeyArmored
+        ?.let { armored ->
+            ioEffect(Dispatchers.Default) {
+                gpgPublicKeyParser.parsePublicKeyInfoOrNull(
+                    armored = armored,
+                    fingerprint = gpgFingerprint,
+                )
+            }
+                .attempt()
+                .bind()
+                .getOrNull()
+        }
+    val hasGpgKey = gpgPublicKeyArmored != null ||
+            gpgPrivateKeyArmored != null ||
+            gpgFingerprint != null ||
+            gpgMetadataKeys.isNotEmpty()
+    if (!hasGpgKey) {
+        return emptyList()
+    }
+
+    val items = mutableListOf<VaultViewItem>()
+
+    val gpgRevoked = parsedGpgKey?.revoked == true
+    val gpgExpired = parsedGpgKey?.expiresAt?.let { it <= now } == true
+    when {
+        gpgRevoked -> {
+            items += VaultViewItem.Info(
+                id = "info.gpg.revoked",
+                name = translate(Res.string.revoked),
+                message = translate(Res.string.gpg_key_status_revoked_text),
+            )
+        }
+
+        gpgExpired -> {
+            items += VaultViewItem.Info(
+                id = "info.gpg.expired",
+                name = translate(Res.string.expired),
+                message = translate(Res.string.gpg_key_status_expired_text),
+            )
+        }
+    }
+
+    val gpgUserIds = parsedGpgKey
+        ?.userIds
+        .orEmpty()
+        .ifEmpty { parsedGpgKey?.emails.orEmpty() }
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .distinct()
+
+    val effectiveGpgFingerprint = gpgFingerprint
+        ?: parsedGpgKey
+            ?.fingerprint
+            ?.normalizeGpgFingerprint()
+            ?.takeIf { it.isNotEmpty() }
+        ?: gpgMetadataKeys.firstNotNullOfOrNull { key ->
+            key.fingerprint
+                .normalizeGpgFingerprint()
+                .takeIf { it.isNotEmpty() }
+        }
+    if (effectiveGpgFingerprint != null) {
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.fingerprint",
+            accountId = accountId,
+            title = translate(Res.string.fingerprint),
+            value = effectiveGpgFingerprint.chunkedGpgFingerprint(),
+            maxLines = 2,
+            monospace = true,
+            colorize = true,
+            elevated = true,
+        )
+    }
+
+    val gpgKeyId = parsedGpgKey
+        ?.keyId
+        ?.normalizeGpgFingerprint()
+        ?.takeIf { it.isNotEmpty() }
+    if (gpgKeyId != null) {
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.keyId",
+            accountId = accountId,
+            title = translate(Res.string.key_id),
+            value = gpgKeyId.chunkedGpgFingerprint(),
+            maxLines = 1,
+            monospace = true,
+            colorize = true,
+            elevated = true,
+        )
+    }
+
+    if (gpgPublicKeyArmored != null) {
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.publicKeyArmored",
+            accountId = accountId,
+            title = translate(Res.string.public_key),
+            value = gpgPublicKeyArmored,
+            shortcut = KeyShortcut(
+                Key.C,
+                isCtrlPressed = true,
+            ),
+            copyTitle = Res.string.copy_gpg_public_key.wrap(),
+            copyType = CopyText.Type.PUBLIC_KEY,
+            maxLines = 4,
+            monospace = true,
+            elevated = true,
+        )
+    }
+    if (gpgPrivateKeyArmored != null) {
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.privateKeyArmored",
+            accountId = accountId,
+            title = translate(Res.string.private_key),
+            value = gpgPrivateKeyArmored,
+            shortcut = KeyShortcut(
+                Key.C,
+                isCtrlPressed = true,
+                isShiftPressed = true,
+            ),
+            verify = verify.takeIf { concealFields },
+            copyTitle = Res.string.copy_gpg_unencrypted_private_key.wrap(),
+            copyType = CopyText.Type.PRIVATE_KEY,
+            maxLines = 4,
+            monospace = true,
+            elevated = true,
+            visibility = Visibility(
+                concealed = concealFields,
+                hidden = hasCanNotSeePassword,
+                transformUserEvent = visibilityGlobalUserTransform,
+                globalConfig = visibilityGlobalConfig,
+            ),
+        )
+    }
+
+    val signCapability = translate(Res.string.gpg_keys_capability_sign)
+    val encryptDecryptCapability = translate(Res.string.gpg_key_capability_encrypt_decrypt)
+    val gpgCapabilities = buildList {
+        if (parsedGpgKey?.canSign == true || gpgMetadataKeys.any { it.canSign }) {
+            this += signCapability
+        }
+        if (parsedGpgKey?.canEncrypt == true || gpgMetadataKeys.any { it.canDecrypt }) {
+            this += encryptDecryptCapability
+        }
+    }.distinct()
+    val gpgAlgorithms = buildList {
+        parsedGpgKey
+            ?.formatGpgAlgorithm()
+            ?.let { this += it }
+        gpgMetadataKeys.forEach { key ->
+            key.algorithm
+                .takeIf { it.isNotBlank() }
+                ?.let { this += it }
+        }
+    }.distinct()
+    val gpgDetailRows = mutableListOf<VaultViewItem.Table.Row>()
+    if (gpgAlgorithms.isNotEmpty()) {
+        gpgDetailRows += VaultViewItem.Table.Row(
+            title = translate(Res.string.algorithm),
+            value = gpgAlgorithms.joinToString(separator = "\n"),
+        )
+    }
+    parsedGpgKey?.createdAt?.let { createdAt ->
+        gpgDetailRows += VaultViewItem.Table.Row(
+            title = translate(Res.string.created),
+            value = dateFormatter.formatDate(createdAt),
+        )
+    }
+    if (parsedGpgKey != null) {
+        val expiresAt = parsedGpgKey.expiresAt
+        gpgDetailRows += VaultViewItem.Table.Row(
+            title = translate(Res.string.expires),
+            value = expiresAt
+                ?.let(dateFormatter::formatDate)
+                ?: translate(Res.string.gpg_key_does_not_expire),
+        )
+    }
+    if (gpgCapabilities.isNotEmpty()) {
+        gpgDetailRows += VaultViewItem.Table.Row(
+            title = translate(Res.string.capabilities),
+            value = gpgCapabilities.joinToString(),
+        )
+    }
+    val gpgKeyMaterialText = when {
+        gpgPrivateKeyArmored != null && gpgPublicKeyArmored != null -> "sec/pub"
+        gpgPrivateKeyArmored != null -> "sec"
+        gpgPublicKeyArmored != null -> "pub"
+        else -> null
+    }
+    if (gpgKeyMaterialText != null) {
+        gpgDetailRows += VaultViewItem.Table.Row(
+            title = translate(Res.string.gpg_key_sec_pub),
+            value = gpgKeyMaterialText,
+        )
+    }
+    if (gpgDetailRows.isNotEmpty()) {
+        items += VaultViewItem.Table(
+            id = "gpg.details",
+            elevation = 1.dp,
+            rows = gpgDetailRows,
+        )
+    }
+
+    val gpgSubKeyItems = parsedGpgKey
+        ?.subKeys
+        .orEmpty()
+        .mapIndexedNotNull { index, subKey ->
+            val subKeyCapabilities = buildList {
+                if (subKey.canSign) {
+                    this += signCapability
+                }
+                if (subKey.canEncrypt) {
+                    this += encryptDecryptCapability
+                }
+            }.distinct()
+            val subKeyFingerprint = subKey.fingerprint
+                .normalizeGpgFingerprint()
+                .takeIf { it.isNotEmpty() }
+            val subKeyKeyId = subKey.keyId
+                .normalizeGpgFingerprint()
+                .takeIf { it.isNotEmpty() }
+            val rows = mutableListOf<VaultViewItem.Table.Row>()
+            if (subKeyFingerprint != null) {
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.fingerprint),
+                    value = subKeyFingerprint.chunkedGpgFingerprint(),
+                )
+            }
+            if (subKeyKeyId != null && subKeyKeyId != subKeyFingerprint) {
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.key_id),
+                    value = subKeyKeyId.chunkedGpgFingerprint(),
+                )
+            }
+            subKey.formatGpgAlgorithm()?.let { algorithm ->
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.algorithm),
+                    value = algorithm,
+                )
+            }
+            if (subKeyCapabilities.isNotEmpty()) {
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.capabilities),
+                    value = subKeyCapabilities.joinToString(),
+                )
+            }
+            if (subKey.revoked) {
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.gpg_key_status),
+                    value = translate(Res.string.revoked),
+                )
+            }
+            subKey.expiresAt?.let { expiresAt ->
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.expires),
+                    value = dateFormatter.formatDate(expiresAt),
+                )
+            }
+            if (rows.isEmpty()) {
+                return@mapIndexedNotNull null
+            }
+            VaultViewItem.Table(
+                id = "gpg.subKey.$index",
+                elevation = 1.dp,
+                title = translate(Res.string.gpg_key_subkey_n, index + 1),
+                rows = rows,
+            )
+        }
+    if (gpgSubKeyItems.isNotEmpty()) {
+        items += VaultViewItem.Section(
+            id = "gpg.subKeys.section",
+            text = translate(Res.string.subkeys),
+        )
+        items += gpgSubKeyItems
+    }
+
+    if (gpgUserIds.isNotEmpty()) {
+        items += VaultViewItem.Section(
+            id = "gpg.userIds.section",
+            text = translate(Res.string.gpg_key_user_ids),
+        )
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.userIds",
+            accountId = accountId,
+            title = null,
+            value = gpgUserIds.joinToString(separator = "\n"),
+            maxLines = 4,
+            elevated = true,
+        )
+    }
+
+    return items
+}
+
+private fun GpgPublicKeyParser.parsePublicKeyInfoOrNull(
+    armored: String,
+    fingerprint: String?,
+): GpgPublicKeyInfo? {
+    val result = parse(armored)
+    if (result !is GpgPublicKeyParseResult.Success) {
+        return null
+    }
+
+    val normalizedFingerprint = fingerprint
+        ?.normalizeGpgFingerprint()
+        .orEmpty()
+    return result.keys
+        .firstOrNull { key ->
+            normalizedFingerprint.isNotEmpty() &&
+                    key.fingerprint.normalizeGpgFingerprint() == normalizedFingerprint
+        }
+        ?: result.keys.firstOrNull()
+}
+
+private fun GpgPublicKeyInfo.formatGpgAlgorithm(): String? {
+    val values = listOfNotNull(
+        algorithm.takeIf { it.isNotBlank() },
+        bitStrength?.let { "$it-bit" },
+    )
+    return values
+        .joinToString(separator = " ")
+        .takeIf { it.isNotBlank() }
+}
+
+private fun GpgPublicSubKeyInfo.formatGpgAlgorithm(): String? {
+    val values = listOfNotNull(
+        algorithm.takeIf { it.isNotBlank() },
+        bitStrength?.let { "$it-bit" },
+    )
+    return values
+        .joinToString(separator = " ")
+        .takeIf { it.isNotBlank() }
 }
 
 @JvmName("verifyContextItemList")

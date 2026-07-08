@@ -1841,6 +1841,9 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                 createTypeAction(
                     type = DSecret.Type.SshKey,
                 ),
+                createTypeAction(
+                    type = DSecret.Type.GpgKey,
+                ),
             )
         }
         VaultListState(

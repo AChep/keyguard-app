@@ -127,11 +127,39 @@ class HomeNavigationConfigTest {
                 NavItemsConfigDefaults.BUILT_IN_VAULT,
                 NavItemsConfigDefaults.BUILT_IN_SENDS,
                 NavItemsConfigDefaults.BUILT_IN_GENERATOR,
+                NavItemsConfigDefaults.BUILT_IN_GPG_TOOLS,
                 NavItemsConfigDefaults.BUILT_IN_WATCHTOWER,
             ),
             config.items.map { (it.ref as NavItemRef.BuiltIn).key },
         )
         assertTrue(config.items.first().visible)
+    }
+
+    @Test
+    fun `normalization appends missing gpg tools item visible`() {
+        val oldDefaultItems = listOf(
+            NavItemsConfigDefaults.BUILT_IN_VAULT,
+            NavItemsConfigDefaults.BUILT_IN_SENDS,
+            NavItemsConfigDefaults.BUILT_IN_GENERATOR,
+            NavItemsConfigDefaults.BUILT_IN_WATCHTOWER,
+            NavItemsConfigDefaults.BUILT_IN_SETTINGS,
+        ).map { key ->
+            NavItemSpec(
+                ref = NavItemRef.BuiltIn(key),
+            )
+        }
+        val config = normalizeHomeNavigationConfig(
+            config = NavItemsConfig(
+                items = oldDefaultItems,
+            ),
+        )
+
+        val gpgTools = config.items.last()
+        assertEquals(
+            NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_GPG_TOOLS),
+            gpgTools.ref,
+        )
+        assertTrue(gpgTools.visible)
     }
 
     @Test

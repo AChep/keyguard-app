@@ -1,15 +1,17 @@
 package com.artemchep.keyguard.provider.bitwarden.crypto
 
-import kotlin.jvm.JvmName
-
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
+import kotlin.jvm.JvmName
 
 fun BitwardenCipher.transform(
     itemCrypto: BitwardenCrCta,
     globalCrypto: BitwardenCrCta,
 ): BitwardenCipher {
     val sourceCipher = encodeKeePassIconCustomField(
+        mode = itemCrypto.mode,
+    ).encodeGpgKeyCustomFields(
         mode = itemCrypto.mode,
     )
     return sourceCipher.copy(
@@ -32,6 +34,11 @@ fun BitwardenCipher.transform(
         card = sourceCipher.card?.transform(itemCrypto),
         identity = sourceCipher.identity?.transform(itemCrypto),
         sshKey = sourceCipher.sshKey?.transform(itemCrypto),
+        gpgKey = if (itemCrypto.mode == BitwardenCrCta.Mode.ENCRYPT) {
+            null
+        } else {
+            sourceCipher.gpgKey
+        },
     ).let { transformedCipher ->
         if (globalCrypto.mode == BitwardenCrCta.Mode.DECRYPT) {
             return@let decodeEntity(transformedCipher)
@@ -82,6 +89,61 @@ private fun BitwardenCipher.encodeKeePassIconCustomField(
     return copy(fields = listOf(iconField) + renamedFields)
 }
 
+private val GPG_FIELD_NAMES = setOf(
+    GpgAgentFields.PRIVATE_KEY_ARMORED,
+    GpgAgentFields.PUBLIC_KEY_ARMORED,
+    GpgAgentFields.FINGERPRINT,
+)
+
+private fun BitwardenCipher.encodeGpgKeyCustomFields(
+    mode: BitwardenCrCta.Mode,
+): BitwardenCipher {
+    if (mode != BitwardenCrCta.Mode.ENCRYPT) return this
+    if (type != BitwardenCipher.Type.SecureNote && type != BitwardenCipher.Type.GpgKey) return this
+    val gpgKey = gpgKey
+        ?.takeUnlessEmpty()
+        ?: return this
+
+    val remainingFields = fields.filterNot { field ->
+        field.name?.let { it in GPG_FIELD_NAMES } == true
+    }
+    return copy(fields = gpgKey.toFields() + remainingFields)
+}
+
+private fun BitwardenCipher.GpgKey.toFields(): List<BitwardenCipher.Field> = buildList {
+    addGpgField(
+        name = GpgAgentFields.PRIVATE_KEY_ARMORED,
+        value = privateKeyArmored,
+        type = BitwardenCipher.Field.Type.Hidden,
+    )
+    addGpgField(
+        name = GpgAgentFields.PUBLIC_KEY_ARMORED,
+        value = publicKeyArmored,
+        type = BitwardenCipher.Field.Type.Text,
+    )
+    addGpgField(
+        name = GpgAgentFields.FINGERPRINT,
+        value = fingerprint,
+        type = BitwardenCipher.Field.Type.Text,
+    )
+}
+
+private fun MutableList<BitwardenCipher.Field>.addGpgField(
+    name: String,
+    value: String?,
+    type: BitwardenCipher.Field.Type,
+) {
+    val v = value?.takeIf { it.isNotBlank() }
+        ?: return
+    add(
+        BitwardenCipher.Field(
+            name = name,
+            value = v,
+            type = type,
+        ),
+    )
+}
+
 private fun decodeEntity(
     cipher: BitwardenCipher,
 ): BitwardenCipher {
@@ -100,14 +162,32 @@ private fun decodeEntity(
             BitwardenCipher.Tag(name)
         }
     val decodedIcon = fieldsWithoutTags.decodeKeePassIconCustomField()
+    // Only these types may carry GPG key custom fields, see
+    // the encodeGpgKeyCustomFields gating. Other types must keep
+    // user-created fields with matching names untouched.
+    val canDecodeGpgKey = cipher.type == BitwardenCipher.Type.SecureNote ||
+            cipher.type == BitwardenCipher.Type.GpgKey
+    val decodedGpgKey = if (canDecodeGpgKey) {
+        decodedIcon.fields.decodeGpgKeyCustomFields(
+            existing = cipher.gpgKey,
+        ).takeIf { it.gpgKey != null }
+    } else {
+        null
+    }
     return cipher.copy(
-        fields = decodedIcon.fields,
+        fields = decodedGpgKey?.fields ?: decodedIcon.fields,
         tags = tags,
         customIcon = if (decodedIcon.consumed) {
             decodedIcon.keepassIcon
         } else {
             cipher.customIcon
         },
+        type = if (decodedGpgKey != null) {
+            BitwardenCipher.Type.GpgKey
+        } else {
+            cipher.type
+        },
+        gpgKey = decodedGpgKey?.gpgKey ?: cipher.gpgKey,
     )
 }
 
@@ -145,6 +225,78 @@ private fun BitwardenCipher.Field.decodeKeePassIconOrNull(): KeePassIcon? {
     val rawValue = value ?: return null
     return KeePassIcon.entries.firstOrNull { icon -> icon.name == rawValue }
 }
+
+private data class DecodedGpgKeyCustomFields(
+    val fields: List<BitwardenCipher.Field>,
+    val gpgKey: BitwardenCipher.GpgKey?,
+)
+
+private fun List<BitwardenCipher.Field>.decodeGpgKeyCustomFields(
+    existing: BitwardenCipher.GpgKey?,
+): DecodedGpgKeyCustomFields {
+    var privateKeyArmored = existing?.privateKeyArmored
+    var publicKeyArmored = existing?.publicKeyArmored
+    var fingerprint = existing?.fingerprint
+
+    val remainingFields = buildList {
+        this@decodeGpgKeyCustomFields.forEach { field ->
+            if (!field.canDecodeGpgField()) {
+                add(field)
+                return@forEach
+            }
+
+            when (field.name) {
+                GpgAgentFields.PRIVATE_KEY_ARMORED -> {
+                    if (privateKeyArmored == null) {
+                        privateKeyArmored = field.value
+                    }
+                }
+
+                GpgAgentFields.PUBLIC_KEY_ARMORED -> {
+                    if (publicKeyArmored == null) {
+                        publicKeyArmored = field.value
+                    }
+                }
+
+                GpgAgentFields.FINGERPRINT -> {
+                    if (fingerprint == null) {
+                        fingerprint = field.value
+                    }
+                }
+
+                else -> add(field)
+            }
+        }
+    }
+
+    val gpgKey = BitwardenCipher.GpgKey(
+        privateKeyArmored = privateKeyArmored,
+        publicKeyArmored = publicKeyArmored,
+        fingerprint = fingerprint,
+        metadata = existing?.metadata,
+    ).takeUnlessEmpty()
+
+    return DecodedGpgKeyCustomFields(
+        fields = remainingFields,
+        gpgKey = gpgKey,
+    )
+}
+
+private fun BitwardenCipher.Field.canDecodeGpgField(): Boolean {
+    val fieldName = name ?: return false
+    if (fieldName !in GPG_FIELD_NAMES) return false
+    if (linkedId != null) return false
+    return type == BitwardenCipher.Field.Type.Text ||
+            type == BitwardenCipher.Field.Type.Hidden
+}
+
+private fun BitwardenCipher.GpgKey.takeUnlessEmpty(): BitwardenCipher.GpgKey? =
+    takeIf {
+        privateKeyArmored?.isNotBlank() == true ||
+                publicKeyArmored?.isNotBlank() == true ||
+                fingerprint?.isNotBlank() == true ||
+                metadata != null
+    }
 
 @JvmName("encryptListOfBitwardenCipherAttachment")
 fun List<BitwardenCipher.Attachment>.transform(

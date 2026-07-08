@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
@@ -38,6 +39,7 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
 
 /**
  * @author Artem Chepurnyi
@@ -49,6 +51,7 @@ class AddCipherImpl(
     private val trashCipherById: TrashCipherById,
     private val cryptoGenerator: CryptoGenerator,
     private val getPasswordStrength: GetPasswordStrength,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver?,
     private val base64Service: Base64Service,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val tokenRepository: ServiceTokenRepository,
@@ -64,6 +67,7 @@ class AddCipherImpl(
         trashCipherById = directDI.instance(),
         cryptoGenerator = directDI.instance(),
         getPasswordStrength = directDI.instance(),
+        gpgKeyMetadataResolver = directDI.instanceOrNull(),
         base64Service = directDI.instance(),
         pendingUploadCoordinator = directDI.instance(),
         tokenRepository = directDI.instance(),
@@ -132,6 +136,7 @@ class AddCipherImpl(
                         cryptoGenerator = cryptoGenerator,
                         base64Service = base64Service,
                         getPasswordStrength = getPasswordStrength,
+                        gpgKeyMetadataResolver = gpgKeyMetadataResolver,
                         now = now,
                         request = request,
                         old = old,
@@ -364,6 +369,7 @@ private suspend fun BitwardenCipher.Companion.of(
     cryptoGenerator: CryptoGenerator,
     base64Service: Base64Service,
     getPasswordStrength: GetPasswordStrength,
+    gpgKeyMetadataResolver: GpgKeyMetadataResolver?,
     request: CreateRequest,
     now: Instant,
     old: BitwardenCipher? = null,
@@ -397,6 +403,7 @@ private suspend fun BitwardenCipher.Companion.of(
         DSecret.Type.Card -> BitwardenCipher.Type.Card
         DSecret.Type.Identity -> BitwardenCipher.Type.Identity
         DSecret.Type.SshKey -> BitwardenCipher.Type.SshKey
+        DSecret.Type.GpgKey -> BitwardenCipher.Type.GpgKey
         null,
         DSecret.Type.None,
         -> error("Cipher must have a type!")
@@ -407,6 +414,7 @@ private suspend fun BitwardenCipher.Companion.of(
     var card: BitwardenCipher.Card? = null
     var identity: BitwardenCipher.Identity? = null
     var sshKey: BitwardenCipher.SshKey? = null
+    var gpgKey: BitwardenCipher.GpgKey? = null
     when (type) {
         BitwardenCipher.Type.Login -> {
             login = BitwardenCipher.Login.of(
@@ -440,6 +448,17 @@ private suspend fun BitwardenCipher.Companion.of(
         BitwardenCipher.Type.SshKey -> {
             sshKey = BitwardenCipher.SshKey.of(
                 request = request,
+            )
+        }
+
+        BitwardenCipher.Type.GpgKey -> {
+            secureNote = BitwardenCipher.SecureNote.of(
+                request = request,
+            )
+            gpgKey = BitwardenCipher.GpgKey.of(
+                request = request,
+                old = old?.gpgKey,
+                gpgKeyMetadataResolver = gpgKeyMetadataResolver,
             )
         }
     }
@@ -709,6 +728,7 @@ private suspend fun BitwardenCipher.Companion.of(
         card = card,
         identity = identity,
         sshKey = sshKey,
+        gpgKey = gpgKey,
         // other
         passwordHistory = passwordHistory,
     )
@@ -903,6 +923,21 @@ private suspend fun BitwardenCipher.SshKey.Companion.of(
     publicKey = request.sshKey.publicKey,
     fingerprint = request.sshKey.fingerprint,
 )
+
+private suspend fun BitwardenCipher.GpgKey.Companion.of(
+    request: CreateRequest,
+    old: BitwardenCipher.GpgKey?,
+    gpgKeyMetadataResolver: GpgKeyMetadataResolver?,
+): BitwardenCipher.GpgKey =
+    BitwardenCipher.GpgKey(
+        privateKeyArmored = request.gpgKey.privateKeyArmored,
+        publicKeyArmored = request.gpgKey.publicKeyArmored,
+        fingerprint = request.gpgKey.fingerprint,
+        metadata = request.gpgKey.metadata,
+    ).resolveGpgMetadata(
+        old = old,
+        resolver = gpgKeyMetadataResolver,
+    )
 
 private suspend fun BitwardenCipher.Card.Companion.of(
     request: CreateRequest,

@@ -249,6 +249,7 @@ private fun ConfirmationBooleanItem(
                         style = MaterialTheme.typography.bodySmall,
                         color = LocalContentColor.current
                             .combineAlpha(MediumEmphasisAlpha),
+                        maxLines = item.textMaxLines,
                     )
                 }
             }

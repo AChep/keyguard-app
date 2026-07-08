@@ -4,6 +4,7 @@ import arrow.optics.Getter
 import arrow.optics.Lens
 import arrow.optics.optics
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.Companion.isSameDiffValueAs
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffApplierByListValue
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffFinder
@@ -70,6 +71,7 @@ data class BitwardenCipher(
     val card: Card? = null,
     val identity: Identity? = null,
     val sshKey: SshKey? = null,
+    val gpgKey: GpgKey? = null,
     // other
     val passwordHistory: List<PasswordHistory> = login?.passwordHistory.orEmpty(),
 ) : BitwardenService.Has<BitwardenCipher> {
@@ -86,6 +88,7 @@ data class BitwardenCipher(
         Card("Card"),
         Identity("Identity"),
         SshKey("SSH Key"),
+        GpgKey("GPG Key"),
     }
 
     @Serializable
@@ -212,6 +215,12 @@ data class BitwardenCipher(
         EXPIRING,
         @SerialName("weakSshKey")
         WEAK_SSH_KEY,
+        @SerialName("gpgKeyUnusable")
+        GPG_KEY_UNUSABLE,
+        @SerialName("weakGpgKey")
+        WEAK_GPG_KEY,
+        @SerialName("gpgKeyPublishing")
+        GPG_KEY_PUBLISHING,
     }
 
     @Serializable
@@ -361,6 +370,16 @@ data class BitwardenCipher(
     ) {
         companion object
     }
+
+    @Serializable
+    data class GpgKey(
+        val privateKeyArmored: String? = null,
+        val publicKeyArmored: String? = null,
+        val fingerprint: String? = null,
+        val metadata: GpgAgentKeyMetadata? = null,
+    ) {
+        companion object
+    }
 }
 
 /**
@@ -456,6 +475,7 @@ fun BitwardenCipher.Companion.getMergeRules() = kotlin.run {
                 ),
             ),
             DiffFinderNode.Leaf(BitwardenCipher.sshKey),
+            DiffFinderNode.Leaf(BitwardenCipher.gpgKey),
         ),
     )
 }

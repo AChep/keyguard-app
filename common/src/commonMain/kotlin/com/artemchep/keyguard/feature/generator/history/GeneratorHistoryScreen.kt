@@ -10,6 +10,7 @@ import androidx.compose.material.icons.automirrored.outlined.ForwardToInbox
 import androidx.compose.material.icons.outlined.AlternateEmail
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Checkbox
@@ -201,6 +202,7 @@ private fun GeneratorHistoryItem(
                     GeneratorHistoryItem.Value.Type.EMAIL_RELAY -> Icons.AutoMirrored.Outlined.ForwardToInbox
                     GeneratorHistoryItem.Value.Type.PASSWORD -> Icons.Outlined.Password
                     GeneratorHistoryItem.Value.Type.SSH_KEY -> Icons.Outlined.Terminal
+                    GeneratorHistoryItem.Value.Type.GPG_KEY -> Icons.Outlined.Key
                     null -> Icons.Stub
                 }
                 val secondaryIcon = when (type) {

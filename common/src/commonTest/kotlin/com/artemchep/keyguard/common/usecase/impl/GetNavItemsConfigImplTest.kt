@@ -3,12 +3,17 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DProfile
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.NavItemRef
 import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.NavItemsConfigDefaults
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.usecase.GetAccounts
+import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +30,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetNavItemsConfigImplTest {
@@ -174,20 +180,141 @@ class GetNavItemsConfigImplTest {
         assertTrue(fixture.useCase().value.sendsVisible())
     }
 
+    @Test
+    fun `gpg tools are hidden without usable gpg ciphers`() = runTest {
+        val fixture = fixture(
+            accounts = listOf(
+                createAccount(
+                    id = "account-1",
+                    type = AccountType.BITWARDEN,
+                ),
+            ),
+            profiles = listOf(
+                createProfile(
+                    accountId = "account-1",
+                    hidden = false,
+                ),
+            ),
+            ciphers = emptyList(),
+        )
+
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+
+        assertFalse(fixture.useCase().value.gpgToolsVisible())
+    }
+
+    @Test
+    fun `gpg tools are visible with usable gpg cipher`() = runTest {
+        val fixture = fixture(
+            accounts = listOf(
+                createAccount(
+                    id = "account-1",
+                    type = AccountType.BITWARDEN,
+                ),
+            ),
+            profiles = listOf(
+                createProfile(
+                    accountId = "account-1",
+                    hidden = false,
+                ),
+            ),
+            ciphers = listOf(
+                createGpgCipher(
+                    accountId = "account-1",
+                ),
+            ),
+        )
+
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+
+        assertTrue(fixture.useCase().value.gpgToolsVisible())
+    }
+
+    @Test
+    fun `available gpg tools preserve persisted visibility`() = runTest {
+        val persistedConfig = configWithGpgToolsVisible(false)
+        val fixture = fixture(
+            persistedConfig = persistedConfig,
+            accounts = listOf(
+                createAccount(
+                    id = "account-1",
+                    type = AccountType.BITWARDEN,
+                ),
+            ),
+            profiles = listOf(
+                createProfile(
+                    accountId = "account-1",
+                    hidden = false,
+                ),
+            ),
+            ciphers = listOf(
+                createGpgCipher(
+                    accountId = "account-1",
+                ),
+            ),
+        )
+
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+
+        assertFalse(fixture.useCase().value.gpgToolsVisible())
+    }
+
+    @Test
+    fun `gpg tools ignore ciphers from hidden profiles`() = runTest {
+        val fixture = fixture(
+            accounts = listOf(
+                createAccount(
+                    id = "gpg-account",
+                    type = AccountType.BITWARDEN,
+                ),
+                createAccount(
+                    id = "visible-account",
+                    type = AccountType.KEEPASS,
+                ),
+            ),
+            profiles = listOf(
+                createProfile(
+                    accountId = "gpg-account",
+                    hidden = true,
+                ),
+                createProfile(
+                    accountId = "visible-account",
+                    hidden = false,
+                ),
+            ),
+            ciphers = listOf(
+                createGpgCipher(
+                    accountId = "gpg-account",
+                ),
+            ),
+        )
+
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+
+        assertFalse(fixture.useCase().value.gpgToolsVisible())
+    }
+
     private fun TestScope.fixture(
         persistedConfig: NavItemsConfig? = NavItemsConfigDefaults.defaultConfig(),
         cachedConfig: NavItemsConfig? = null,
         accounts: List<DAccount> = emptyList(),
         profiles: List<DProfile> = emptyList(),
+        ciphers: List<DSecret> = emptyList(),
     ): Fixture {
         val persistedConfigFlow = MutableStateFlow(persistedConfig)
         val cachedConfigFlow = MutableStateFlow(cachedConfig)
         val accountsFlow = MutableStateFlow(accounts)
         val profilesFlow = MutableStateFlow(profiles)
+        val ciphersFlow = MutableStateFlow(ciphers)
         val cacheWrites = mutableListOf<NavItemsConfig>()
         val useCase = GetNavItemsConfigImpl(
             getAccounts = flowUseCase(accountsFlow),
             getProfiles = flowProfileUseCase(profilesFlow),
+            getCiphers = flowCipherUseCase(ciphersFlow),
             getPersistedConfig = { persistedConfigFlow },
             getCachedConfig = { cachedConfigFlow },
             putCachedConfig = { config ->
@@ -222,6 +349,12 @@ private fun flowProfileUseCase(
     override fun invoke(): Flow<List<DProfile>> = flow
 }
 
+private fun flowCipherUseCase(
+    flow: Flow<List<DSecret>>,
+): GetCiphers = object : GetCiphers {
+    override fun invoke(): Flow<List<DSecret>> = flow
+}
+
 private fun configWithSendsVisible(
     visible: Boolean,
 ): NavItemsConfig {
@@ -241,13 +374,40 @@ private fun configWithSendsVisible(
         )
 }
 
+private fun configWithGpgToolsVisible(
+    visible: Boolean,
+): NavItemsConfig {
+    val gpgToolsRef = gpgToolsRef()
+    return NavItemsConfigDefaults.defaultConfig()
+        .copy(
+            items = NavItemsConfigDefaults.defaultItems()
+                .map { item ->
+                    if (item.ref == gpgToolsRef) {
+                        item.copy(
+                            visible = visible,
+                        )
+                    } else {
+                        item
+                    }
+                },
+        )
+}
+
 private fun NavItemsConfig.sendsVisible(): Boolean {
     val sendsRef = sendsRef()
     return items.single { it.ref == sendsRef }
         .visible
 }
 
+private fun NavItemsConfig.gpgToolsVisible(): Boolean {
+    val gpgToolsRef = gpgToolsRef()
+    return items.single { it.ref == gpgToolsRef }
+        .visible
+}
+
 private fun sendsRef() = NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_SENDS)
+
+private fun gpgToolsRef() = NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_GPG_TOOLS)
 
 private fun createAccount(
     id: String,
@@ -284,4 +444,40 @@ private fun createProfile(
     masterPasswordHintEnabled = null,
     unofficialServer = false,
     serverVersion = null,
+)
+
+private fun createGpgCipher(
+    accountId: String,
+) = DSecret(
+    id = "gpg-cipher",
+    accountId = accountId,
+    folderId = null,
+    organizationId = null,
+    collectionIds = emptySet(),
+    revisionDate = Instant.fromEpochMilliseconds(0),
+    createdDate = Instant.fromEpochMilliseconds(0),
+    archivedDate = null,
+    deletedDate = null,
+    service = BitwardenService(),
+    name = "GPG key",
+    notes = "",
+    favorite = false,
+    reprompt = false,
+    synced = true,
+    type = DSecret.Type.GpgKey,
+    gpgKey = DSecret.GpgKey(
+        privateKeyArmored = "private",
+        publicKeyArmored = "public",
+        fingerprint = "fingerprint",
+        metadata = GpgAgentKeyMetadata(
+            keys = listOf(
+                GpgAgentKeyMetadataKey(
+                    keygrip = "keygrip",
+                    fingerprint = "fingerprint",
+                    algorithm = "ED25519",
+                    capabilities = setOf("sign"),
+                ),
+            ),
+        ),
+    ),
 )

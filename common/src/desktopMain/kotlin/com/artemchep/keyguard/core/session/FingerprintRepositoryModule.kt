@@ -60,6 +60,8 @@ import com.artemchep.keyguard.common.service.logging.kotlin.LogRepositoryKotlin
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
@@ -399,6 +401,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<SshAgentStatusService> {
         SshAgentStatusServiceImpl()
+    }
+    bindSingleton<GpgAgentStatusService> {
+        GpgAgentStatusServiceImpl()
     }
     bindSingleton<ReviewService> {
         ReviewServiceJvm(

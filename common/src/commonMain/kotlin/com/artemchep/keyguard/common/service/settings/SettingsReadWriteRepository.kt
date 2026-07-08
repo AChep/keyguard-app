@@ -6,6 +6,8 @@ import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
+import com.artemchep.keyguard.common.model.GpgAgentFilter
+import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
@@ -163,6 +165,38 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setSshAgentFilter(
         filter: SshAgentFilter,
+    ): IO<Unit>
+
+    fun setGpgAgent(
+        gpgAgent: Boolean,
+    ): IO<Unit>
+
+    fun setGpgAgentApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setGpgAgentDisplayKeyNames(
+        displayKeyNames: Boolean,
+    ): IO<Unit>
+
+    fun setGpgAgentFilter(
+        filter: GpgAgentFilter,
+    ): IO<Unit>
+
+    fun setGpgKeyserverConfig(
+        config: GpgKeyserverConfig,
+    ): IO<Unit>
+
+    fun setGpgKeyserverAutoRefresh(
+        autoRefresh: Boolean,
+    ): IO<Unit>
+
+    fun setGpgKeyserverRefreshInterval(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setGpgKeyserverLastRefresh(
+        instant: Instant?,
     ): IO<Unit>
 
     fun setAppVersionLog(

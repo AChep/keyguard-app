@@ -6,7 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.model.SshAgentStatus
+import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
 import com.artemchep.keyguard.common.usecase.PutSshAgent
@@ -83,7 +83,7 @@ fun settingSshAgentProvider(
 @Composable
 private fun SettingSshAgent(
     checked: Boolean,
-    status: SshAgentStatus,
+    status: AgentStatus,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
     LocalSettingPaneComponents.current.KgSwitch(
@@ -95,22 +95,22 @@ private fun SettingSshAgent(
         },
         text = {
             val statusColor = when (status) {
-                SshAgentStatus.Unsupported,
-                SshAgentStatus.Stopped,
+                AgentStatus.Unsupported,
+                AgentStatus.Stopped,
                     -> LocalContentColor.current
                     .combineAlpha(DisabledEmphasisAlpha)
 
-                SshAgentStatus.Starting -> MaterialTheme.colorScheme.info
-                SshAgentStatus.Ready -> MaterialTheme.colorScheme.ok
-                SshAgentStatus.Failed -> MaterialTheme.colorScheme.error
+                AgentStatus.Starting -> MaterialTheme.colorScheme.info
+                AgentStatus.Ready -> MaterialTheme.colorScheme.ok
+                AgentStatus.Failed -> MaterialTheme.colorScheme.error
             }
             val statusText = stringResource(
                 when (status) {
-                    SshAgentStatus.Unsupported -> Res.string.pref_item_ssh_agent_status_unsupported
-                    SshAgentStatus.Stopped -> Res.string.pref_item_ssh_agent_status_stopped
-                    SshAgentStatus.Starting -> Res.string.pref_item_ssh_agent_status_starting
-                    SshAgentStatus.Ready -> Res.string.pref_item_ssh_agent_status_ready
-                    SshAgentStatus.Failed -> Res.string.pref_item_ssh_agent_status_failed
+                    AgentStatus.Unsupported -> Res.string.pref_item_ssh_agent_status_unsupported
+                    AgentStatus.Stopped -> Res.string.pref_item_ssh_agent_status_stopped
+                    AgentStatus.Starting -> Res.string.pref_item_ssh_agent_status_starting
+                    AgentStatus.Ready -> Res.string.pref_item_ssh_agent_status_ready
+                    AgentStatus.Failed -> Res.string.pref_item_ssh_agent_status_failed
                 },
             )
             Text(

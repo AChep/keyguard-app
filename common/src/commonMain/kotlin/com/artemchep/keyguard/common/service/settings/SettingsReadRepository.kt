@@ -6,6 +6,8 @@ import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
+import com.artemchep.keyguard.common.model.GpgAgentFilter
+import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
@@ -104,6 +106,22 @@ interface SettingsReadRepository {
     fun getSshAgentDisplayKeyNames(): Flow<Boolean>
 
     fun getSshAgentFilter(): Flow<SshAgentFilter>
+
+    fun getGpgAgent(): Flow<Boolean>
+
+    fun getGpgAgentApprovalWindow(): Flow<Duration>
+
+    fun getGpgAgentDisplayKeyNames(): Flow<Boolean>
+
+    fun getGpgAgentFilter(): Flow<GpgAgentFilter>
+
+    fun getGpgKeyserverConfig(): Flow<GpgKeyserverConfig>
+
+    fun getGpgKeyserverAutoRefresh(): Flow<Boolean>
+
+    fun getGpgKeyserverRefreshInterval(): Flow<Duration>
+
+    fun getGpgKeyserverLastRefresh(): Flow<Instant?>
 
     fun getAppVersionLog(): Flow<List<AppVersionLog>>
 

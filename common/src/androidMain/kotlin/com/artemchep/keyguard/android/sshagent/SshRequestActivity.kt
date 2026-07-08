@@ -44,7 +44,7 @@ import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalRequest
 import com.artemchep.keyguard.common.service.sshagent.SshAgentGetListRequest
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestQueue
-import com.artemchep.keyguard.common.service.sshagent.completeWithLog
+import com.artemchep.keyguard.common.service.agent.completeWithLog
 import com.artemchep.keyguard.feature.keyguard.AuthScreen
 import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen

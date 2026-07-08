@@ -228,6 +228,7 @@ kotlin {
                 implementation(libs.nulabinc.zxcvbn)
                 implementation(libs.commons.codec)
                 implementation(libs.bouncycastle.bcpkix)
+                implementation(libs.bouncycastle.bcpg)
                 implementation(libs.bouncycastle.bcprov)
                 implementation(libs.halilibo.richtext.ui.material3)
                 implementation(libs.halilibo.richtext.commonmark)

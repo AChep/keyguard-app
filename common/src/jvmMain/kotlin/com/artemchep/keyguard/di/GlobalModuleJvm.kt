@@ -6,6 +6,11 @@ import com.artemchep.keyguard.common.service.backup.BackupRunService
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
@@ -44,6 +49,11 @@ import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptorJvm
+import com.artemchep.keyguard.crypto.GpgKeyImportServiceJvm
+import com.artemchep.keyguard.crypto.GpgKeyGeneratorJvm
+import com.artemchep.keyguard.crypto.GpgKeyMetadataResolverJvm
+import com.artemchep.keyguard.crypto.GpgOpenPgpServiceJvm
+import com.artemchep.keyguard.crypto.GpgPublicKeyParserJvm
 import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
 import com.artemchep.keyguard.crypto.SshKeyImportServiceJvm
 import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
@@ -210,8 +220,33 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GpgKeyGenerator> {
+        GpgKeyGeneratorJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<GpgKeyMetadataResolver> {
+        GpgKeyMetadataResolverJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<GpgKeyImportService> {
+        GpgKeyImportServiceJvm(
+            directDI = this,
+        )
+    }
     bindSingleton<SshKeyImportService> {
         SshKeyImportServiceJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<GpgPublicKeyParser> {
+        GpgPublicKeyParserJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<GpgOpenPgpService> {
+        GpgOpenPgpServiceJvm(
             directDI = this,
         )
     }

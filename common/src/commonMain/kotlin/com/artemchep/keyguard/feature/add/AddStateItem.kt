@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.home.vault.add.GpgKeyDecor2Brr
 import com.artemchep.keyguard.feature.home.vault.add.KeyPairDecor2Brr
 import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.collections.immutable.ImmutableList
@@ -267,6 +268,12 @@ sealed interface AddStateItem {
         val fileDrop: FileDrop? = null,
         override val state: LocalStateItem<KeyPairDecor2Brr, Request>,
     ) : AddStateItem, HasState<KeyPairDecor2Brr, Request>
+
+    data class GpgKey<Request>(
+        override val id: String,
+        val fileDrop: FileDrop? = null,
+        override val state: LocalStateItem<GpgKeyDecor2Brr, Request>,
+    ) : AddStateItem, HasState<GpgKeyDecor2Brr, Request>
 
     data class Enum<Request>(
         override val id: String,

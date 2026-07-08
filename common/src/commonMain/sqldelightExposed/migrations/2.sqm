@@ -1,0 +1,9 @@
+CREATE TABLE gpgAgentPublicKey (
+  keygrip TEXT NOT NULL PRIMARY KEY,
+  fingerprint TEXT NOT NULL,
+  algorithm TEXT NOT NULL,
+  canSign INTEGER NOT NULL,
+  canDecrypt INTEGER NOT NULL DEFAULT 0,
+  publicKeyArmored TEXT,
+  name TEXT
+);

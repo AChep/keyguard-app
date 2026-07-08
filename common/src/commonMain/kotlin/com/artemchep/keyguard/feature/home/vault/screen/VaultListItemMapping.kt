@@ -88,6 +88,9 @@ suspend fun DSecret.toVaultListItem(
                 concealFields = cf,
             )
 
+        DSecret.Type.GpgKey ->
+            createGpgKey()
+
         else -> createUnknown()
     }
 
@@ -376,6 +379,13 @@ private fun DSecret.createSshKey(
     concealFields: Boolean,
 ): TypeSpecific {
     val text = sshKey?.fingerprint.orEmpty()
+    return TypeSpecific(
+        text = text,
+    )
+}
+
+private fun DSecret.createGpgKey(): TypeSpecific {
+    val text = gpgKey?.fingerprint.orEmpty()
     return TypeSpecific(
         text = text,
     )

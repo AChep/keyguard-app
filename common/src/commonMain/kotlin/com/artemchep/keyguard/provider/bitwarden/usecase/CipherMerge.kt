@@ -14,22 +14,26 @@ import com.artemchep.keyguard.common.model.email
 import com.artemchep.keyguard.common.model.favorite
 import com.artemchep.keyguard.common.model.fido2Credentials
 import com.artemchep.keyguard.common.model.fields
-import com.artemchep.keyguard.common.model.sshKey
-import com.artemchep.keyguard.common.model.privateKey
-import com.artemchep.keyguard.common.model.publicKey
 import com.artemchep.keyguard.common.model.fingerprint
 import com.artemchep.keyguard.common.model.firstName
+import com.artemchep.keyguard.common.model.gpgKey
 import com.artemchep.keyguard.common.model.identity
 import com.artemchep.keyguard.common.model.lastName
 import com.artemchep.keyguard.common.model.licenseNumber
 import com.artemchep.keyguard.common.model.login
+import com.artemchep.keyguard.common.model.metadata
 import com.artemchep.keyguard.common.model.middleName
 import com.artemchep.keyguard.common.model.notes
 import com.artemchep.keyguard.common.model.passportNumber
 import com.artemchep.keyguard.common.model.password
 import com.artemchep.keyguard.common.model.phone
 import com.artemchep.keyguard.common.model.postalCode
+import com.artemchep.keyguard.common.model.privateKey
+import com.artemchep.keyguard.common.model.privateKeyArmored
+import com.artemchep.keyguard.common.model.publicKey
+import com.artemchep.keyguard.common.model.publicKeyArmored
 import com.artemchep.keyguard.common.model.reprompt
+import com.artemchep.keyguard.common.model.sshKey
 import com.artemchep.keyguard.common.model.ssn
 import com.artemchep.keyguard.common.model.state
 import com.artemchep.keyguard.common.model.tags
@@ -126,6 +130,15 @@ class CipherMergeImpl() : CipherMerge {
                     Node.Leaf(DSecret.SshKey.privateKey),
                     Node.Leaf(DSecret.SshKey.publicKey),
                     Node.Leaf(DSecret.SshKey.fingerprint),
+                ),
+            ),
+            Node.Group<DSecret, DSecret.GpgKey>(
+                lens = DSecret.gpgKey,
+                children = listOf(
+                    Node.Leaf(DSecret.GpgKey.privateKeyArmored),
+                    Node.Leaf(DSecret.GpgKey.publicKeyArmored),
+                    Node.Leaf(DSecret.GpgKey.fingerprint),
+                    Node.Leaf(DSecret.GpgKey.metadata),
                 ),
             ),
         ),
@@ -226,6 +239,7 @@ class CipherMergeImpl() : CipherMerge {
                     identity = identity ?: DSecret.Identity(),
                     card = card ?: DSecret.Card(),
                     sshKey = sshKey ?: DSecret.SshKey(),
+                    gpgKey = gpgKey ?: DSecret.GpgKey(),
                 )
             }
         mergeRules.merge(initialCipher, ciphers) as DSecret

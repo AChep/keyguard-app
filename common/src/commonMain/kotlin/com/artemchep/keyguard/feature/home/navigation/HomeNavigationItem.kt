@@ -4,10 +4,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Password
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
@@ -18,6 +20,7 @@ import com.artemchep.keyguard.common.model.NavItemSpec
 import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.NavItemsConfigDefaults
 import com.artemchep.keyguard.feature.generator.GeneratorRoute
+import com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsRoute
 import com.artemchep.keyguard.feature.home.settings.SettingsRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
@@ -28,6 +31,7 @@ import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.customfilters_header_title
+import com.artemchep.keyguard.res.gpg_tools_header_title
 import com.artemchep.keyguard.res.home_generator_label
 import com.artemchep.keyguard.res.home_send_label
 import com.artemchep.keyguard.res.home_settings_label
@@ -40,12 +44,14 @@ import kotlinx.coroutines.flow.flowOf
 const val HOME_NAV_VAULT_TEST_TAG = "nav_bar:vault"
 const val HOME_NAV_SENDS_TEST_TAG = "nav_bar:sends"
 const val HOME_NAV_GENERATOR_TEST_TAG = "nav_bar:generator"
+const val HOME_NAV_GPG_TOOLS_TEST_TAG = "nav_bar:gpg_tools"
 const val HOME_NAV_WATCHTOWER_TEST_TAG = "nav_bar:watchtower"
 const val HOME_NAV_SETTINGS_TEST_TAG = "nav_bar:settings"
 
 private const val STACK_ID_VAULT = "vault"
 private const val STACK_ID_SENDS = "sends"
 private const val STACK_ID_GENERATOR = "generator"
+private const val STACK_ID_GPG_TOOLS = "gpg_tools"
 private const val STACK_ID_WATCHTOWER = "watchtower"
 private const val STACK_ID_SETTINGS = "settings"
 
@@ -64,8 +70,11 @@ val homeGeneratorRoute = GeneratorRoute(
         password = true,
         username = true,
         sshKey = true,
+        gpgKey = true,
     ),
 )
+
+val homeGpgToolsRoute = GpgToolsRoute
 
 val homeWatchtowerRoute = WatchtowerRoute()
 
@@ -171,6 +180,17 @@ fun createBuiltInHomeNavigationItem(
             icon = Icons.Outlined.Password,
             iconSelected = Icons.Filled.Password,
             label = TextHolder.Res(Res.string.home_generator_label),
+        )
+
+        NavItemsConfigDefaults.BUILT_IN_GPG_TOOLS -> HomeNavigationItem(
+            key = key,
+            spec = spec,
+            testTag = HOME_NAV_GPG_TOOLS_TEST_TAG,
+            route = homeGpgToolsRoute,
+            stackId = STACK_ID_GPG_TOOLS,
+            icon = Icons.Outlined.Key,
+            iconSelected = Icons.Filled.Key,
+            label = TextHolder.Res(Res.string.gpg_tools_header_title),
         )
 
         NavItemsConfigDefaults.BUILT_IN_WATCHTOWER -> HomeNavigationItem(

@@ -7,6 +7,9 @@ import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
+import com.artemchep.keyguard.common.usecase.GpgKeyExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
@@ -68,6 +71,10 @@ import com.artemchep.keyguard.common.service.settings.impl.SettingsRepositoryImp
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeyRepositoryImpl
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeyRepository
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentPublicKeyRepositoryImpl
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
+import com.artemchep.keyguard.common.service.gpgkeyserver.impl.GpgKeyserverClientImpl
 import com.artemchep.keyguard.common.service.state.StateRepository
 import com.artemchep.keyguard.common.service.state.impl.StateRepositoryImpl
 import com.artemchep.keyguard.common.service.tld.TldService
@@ -333,6 +340,9 @@ import com.artemchep.keyguard.common.usecase.impl.GetVaultSessionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVersionLogImpl
 import com.artemchep.keyguard.common.usecase.impl.GetWebsiteIconsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetWriteAccessImpl
+import com.artemchep.keyguard.common.usecase.impl.GpgKeyExportImpl
+import com.artemchep.keyguard.common.usecase.impl.GpgKeyPrivateExportImpl
+import com.artemchep.keyguard.common.usecase.impl.GpgKeyPublicExportImpl
 import com.artemchep.keyguard.common.usecase.impl.KeyPairExportImpl
 import com.artemchep.keyguard.common.usecase.impl.KeyPrivateExportImpl
 import com.artemchep.keyguard.common.usecase.impl.KeyPublicExportImpl
@@ -410,6 +420,17 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
 import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
+import com.artemchep.keyguard.common.usecase.GetGpgAgent
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowVariants
+import com.artemchep.keyguard.common.usecase.GetGpgAgentDisplayKeyNames
+import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
+import com.artemchep.keyguard.common.usecase.GetGpgAgentStatus
+import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
+import com.artemchep.keyguard.common.usecase.GetGpgKeyserverAutoRefresh
+import com.artemchep.keyguard.common.usecase.GetGpgKeyserverLastRefresh
+import com.artemchep.keyguard.common.usecase.GetGpgKeyserverRefreshInterval
+import com.artemchep.keyguard.common.usecase.GetGpgKeyserverRefreshIntervalVariants
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.PutAutofillPasswordsEnabled
@@ -417,6 +438,15 @@ import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
+import com.artemchep.keyguard.common.usecase.PutGpgAgent
+import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.PutGpgAgentDisplayKeyNames
+import com.artemchep.keyguard.common.usecase.PutGpgAgentFilter
+import com.artemchep.keyguard.common.usecase.PutGpgKeyserverConfig
+import com.artemchep.keyguard.common.usecase.PutGpgKeyserverLastRefresh
+import com.artemchep.keyguard.common.usecase.PutGpgKeyserverAutoRefresh
+import com.artemchep.keyguard.common.usecase.PutGpgKeyserverRefreshInterval
+import com.artemchep.keyguard.common.usecase.SearchGpgPublicKey
 import com.artemchep.keyguard.common.usecase.impl.GetAllowScreenshotsVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
@@ -427,6 +457,17 @@ import com.artemchep.keyguard.common.usecase.impl.GetSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentStatusImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalWindowVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentDisplayKeyNamesImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentFilterImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgKeyserverConfigImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgKeyserverAutoRefreshImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgKeyserverLastRefreshImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgKeyserverRefreshIntervalImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgKeyserverRefreshIntervalVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetTotpCodeWithOffsetImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSessionLicensePremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
@@ -435,6 +476,15 @@ import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentFilterImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentDisplayKeyNamesImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentFilterImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGpgKeyserverConfigImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGpgKeyserverLastRefreshImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGpgKeyserverAutoRefreshImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGpgKeyserverRefreshIntervalImpl
+import com.artemchep.keyguard.common.usecase.impl.SearchGpgPublicKeyImpl
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadCoordinatorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
@@ -826,6 +876,69 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<GetSshAgentStatus> {
         GetSshAgentStatusImpl(this)
+    }
+    bindSingleton<PutGpgAgent> {
+        PutGpgAgentImpl(this)
+    }
+    bindSingleton<PutGpgAgentApprovalWindow> {
+        PutGpgAgentApprovalWindowImpl(this)
+    }
+    bindSingleton<PutGpgAgentDisplayKeyNames> {
+        PutGpgAgentDisplayKeyNamesImpl(this)
+    }
+    bindSingleton<PutGpgAgentFilter> {
+        PutGpgAgentFilterImpl(this)
+    }
+    bindSingleton<PutGpgKeyserverConfig> {
+        PutGpgKeyserverConfigImpl(this)
+    }
+    bindSingleton<PutGpgKeyserverLastRefresh> {
+        PutGpgKeyserverLastRefreshImpl(this)
+    }
+    bindSingleton<PutGpgKeyserverAutoRefresh> {
+        PutGpgKeyserverAutoRefreshImpl(this)
+    }
+    bindSingleton<PutGpgKeyserverRefreshInterval> {
+        PutGpgKeyserverRefreshIntervalImpl(this)
+    }
+    bindSingleton<GetGpgKeyserverConfig> {
+        GetGpgKeyserverConfigImpl(this)
+    }
+    bindSingleton<GetGpgKeyserverAutoRefresh> {
+        GetGpgKeyserverAutoRefreshImpl(this)
+    }
+    bindSingleton<GetGpgKeyserverRefreshInterval> {
+        GetGpgKeyserverRefreshIntervalImpl(this)
+    }
+    bindSingleton<GetGpgKeyserverRefreshIntervalVariants> {
+        GetGpgKeyserverRefreshIntervalVariantsImpl(this)
+    }
+    bindSingleton<GetGpgKeyserverLastRefresh> {
+        GetGpgKeyserverLastRefreshImpl(this)
+    }
+    bindSingleton<GpgKeyserverClient> {
+        GpgKeyserverClientImpl(this)
+    }
+    bindSingleton<SearchGpgPublicKey> {
+        SearchGpgPublicKeyImpl(this)
+    }
+    bindSingleton<GetGpgAgent> {
+        GetGpgAgentImpl(this)
+    }
+    bindSingleton<GetGpgAgentApprovalWindow> {
+        GetGpgAgentApprovalWindowImpl(this)
+    }
+    bindSingleton<GetGpgAgentApprovalWindowVariants> {
+        GetGpgAgentApprovalWindowVariantsImpl()
+    }
+    bindSingleton<GetGpgAgentDisplayKeyNames> {
+        GetGpgAgentDisplayKeyNamesImpl(this)
+    }
+    bindSingleton<GetGpgAgentFilter> {
+        GetGpgAgentFilterImpl(this)
+    }
+    bindSingleton<GetGpgAgentStatus> {
+        GetGpgAgentStatusImpl(this)
     }
     bindSingleton<GetAllowScreenshots> {
         GetAllowScreenshotsImpl(
@@ -1412,6 +1525,21 @@ fun globalModuleCommon() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<GpgKeyExport> {
+        GpgKeyExportImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GpgKeyPublicExport> {
+        GpgKeyPublicExportImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<GpgKeyPrivateExport> {
+        GpgKeyPrivateExportImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<WordlistService> {
         WordlistServiceImpl(
             directDI = this,
@@ -1610,5 +1738,8 @@ private fun DI.Builder.installExposedRepo() {
     }
     bindSingleton<SshAgentPublicKeyRepository> {
         SshAgentPublicKeyRepositoryImpl(this)
+    }
+    bindSingleton<GpgAgentPublicKeyRepository> {
+        GpgAgentPublicKeyRepositoryImpl(this)
     }
 }

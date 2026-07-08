@@ -3,6 +3,8 @@ package com.artemchep.keyguard.common.util.sqldelight
 import app.cash.sqldelight.Query
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOne
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.artemchep.keyguard.common.io.IO
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -24,4 +26,36 @@ fun <T : Any> Flow<Query<T>>.flatMapQueryToList(
         query
             .asFlow()
             .mapToList(context)
+    }
+
+fun <T : Any> IO<Query<T>>.flatMapQueryToOne(
+    context: CoroutineContext,
+) = this
+    .asFlow()
+    .flatMapQueryToOne(context)
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun <T : Any> Flow<Query<T>>.flatMapQueryToOne(
+    context: CoroutineContext,
+) = this
+    .flatMapLatest { query ->
+        query
+            .asFlow()
+            .mapToOne(context)
+    }
+
+fun <T : Any> IO<Query<T>>.flatMapQueryToOneOrNull(
+    context: CoroutineContext,
+) = this
+    .asFlow()
+    .flatMapQueryToOneOrNull(context)
+
+@OptIn(ExperimentalCoroutinesApi::class)
+fun <T : Any> Flow<Query<T>>.flatMapQueryToOneOrNull(
+    context: CoroutineContext,
+) = this
+    .flatMapLatest { query ->
+        query
+            .asFlow()
+            .mapToOneOrNull(context)
     }

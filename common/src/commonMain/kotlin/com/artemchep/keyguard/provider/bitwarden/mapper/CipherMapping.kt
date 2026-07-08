@@ -15,10 +15,15 @@ suspend fun BitwardenCipher.toDomain(
 ): DSecret {
     val type: DSecret.Type = when (type) {
         BitwardenCipher.Type.Login -> DSecret.Type.Login
-        BitwardenCipher.Type.SecureNote -> DSecret.Type.SecureNote
+        BitwardenCipher.Type.SecureNote -> if (gpgKey != null) {
+            DSecret.Type.GpgKey
+        } else {
+            DSecret.Type.SecureNote
+        }
         BitwardenCipher.Type.Card -> DSecret.Type.Card
         BitwardenCipher.Type.Identity -> DSecret.Type.Identity
         BitwardenCipher.Type.SshKey -> DSecret.Type.SshKey
+        BitwardenCipher.Type.GpgKey -> DSecret.Type.GpgKey
     }
     val ignoredAlerts = ignoredAlerts
         .map { (key, value) ->
@@ -71,6 +76,7 @@ suspend fun BitwardenCipher.toDomain(
         card = card?.toDomain(),
         identity = identity?.toDomain(),
         sshKey = sshKey?.toDomain(),
+        gpgKey = gpgKey?.toDomain(),
         // other
         passwordHistory = passwordHistory.map(BitwardenCipher.Login.PasswordHistory::toDomain),
     )
@@ -99,6 +105,9 @@ fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
     BitwardenCipher.IgnoreAlertType.INCOMPLETE -> DWatchtowerAlertType.INCOMPLETE
     BitwardenCipher.IgnoreAlertType.EXPIRING -> DWatchtowerAlertType.EXPIRING
     BitwardenCipher.IgnoreAlertType.WEAK_SSH_KEY -> DWatchtowerAlertType.WEAK_SSH_KEY
+    BitwardenCipher.IgnoreAlertType.GPG_KEY_UNUSABLE -> DWatchtowerAlertType.GPG_KEY_UNUSABLE
+    BitwardenCipher.IgnoreAlertType.WEAK_GPG_KEY -> DWatchtowerAlertType.WEAK_GPG_KEY
+    BitwardenCipher.IgnoreAlertType.GPG_KEY_PUBLISHING -> DWatchtowerAlertType.GPG_KEY_PUBLISHING
 }
 
 fun BitwardenCipher.Login.Uri.MatchType.toDomain() = when (this) {
@@ -274,6 +283,13 @@ fun BitwardenCipher.SshKey.toDomain() = DSecret.SshKey(
     privateKey = privateKey.oh(),
     publicKey = publicKey.oh(),
     fingerprint = fingerprint.oh(),
+)
+
+fun BitwardenCipher.GpgKey.toDomain() = DSecret.GpgKey(
+    privateKeyArmored = privateKeyArmored.oh(),
+    publicKeyArmored = publicKeyArmored.oh(),
+    fingerprint = fingerprint.oh(),
+    metadata = metadata,
 )
 
 private fun String?.oh() = this?.takeIf { it.isNotBlank() }

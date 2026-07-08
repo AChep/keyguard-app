@@ -109,6 +109,9 @@ val Icons.Outlined.KeyguardIncompleteItems
 val Icons.Outlined.KeyguardExpiringItems
     get() = Timer
 
+val Icons.Outlined.KeyguardFileSign
+    get() = FileSignIcon
+
 val Icons.Outlined.KeyguardTrashedItems
     get() = Delete
 

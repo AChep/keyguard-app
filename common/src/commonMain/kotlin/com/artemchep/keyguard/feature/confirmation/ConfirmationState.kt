@@ -28,6 +28,7 @@ data class ConfirmationState(
             override val enabled: Boolean,
             val title: String,
             val text: String?,
+            val textMaxLines: Int,
             val onChange: (Boolean) -> Unit,
         ) : Item {
             override val valid: Boolean

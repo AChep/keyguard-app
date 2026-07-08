@@ -2,15 +2,18 @@ package com.artemchep.keyguard.provider.bitwarden.api
 
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.pendingRemoteAttachmentDeletionIds
+import com.artemchep.keyguard.provider.bitwarden.usecase.resolveGpgMetadata
 
 suspend fun merge(
     remote: BitwardenCipher,
     local: BitwardenCipher?,
     getPasswordStrength: GetPasswordStrength,
+    gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ): BitwardenCipher {
     val attachments = mergeAttachments(
         remote = remote,
@@ -42,9 +45,14 @@ suspend fun merge(
         )
     }
 
+    val gpgKey = remote.gpgKey?.resolveGpgMetadata(
+        old = local?.gpgKey,
+        resolver = gpgKeyMetadataResolver,
+    )
     val ignoredAlerts = local?.ignoredAlerts.orEmpty()
     return remote.copy(
         login = login,
+        gpgKey = gpgKey,
         attachments = attachments,
         ignoredAlerts = ignoredAlerts,
     )

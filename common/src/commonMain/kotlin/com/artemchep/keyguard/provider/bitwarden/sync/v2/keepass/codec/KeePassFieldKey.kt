@@ -43,6 +43,11 @@ object KeePassFieldKey {
     const val SSH_PRIVATE_KEY = "ssh_privateKey"
     const val SSH_PUBLIC_KEY = "ssh_publicKey"
     const val SSH_FINGERPRINT = "ssh_fingerprint"
+
+    // GPG Key
+    const val GPG_PRIVATE_KEY_ARMORED = "gpg_privateKeyArmored"
+    const val GPG_PUBLIC_KEY_ARMORED = "gpg_publicKeyArmored"
+    const val GPG_FINGERPRINT = "gpg_fingerprint"
 }
 
 /**

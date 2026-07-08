@@ -8,14 +8,15 @@ CREATE TABLE generatorHistory (
   isPassword INTEGER AS Boolean NOT NULL,
   isUsername INTEGER AS Boolean NOT NULL,
   isEmailRelay INTEGER AS Boolean,
-  isSshKey INTEGER AS Boolean
+  isSshKey INTEGER AS Boolean,
+  isGpgKey INTEGER AS Boolean
 );
 
 CREATE INDEX idx_generatorHistory_createdAt ON generatorHistory(createdAt DESC);
 
 insert:
-INSERT INTO generatorHistory(value, createdAt, isPassword, isUsername, isEmailRelay, isSshKey)
-VALUES (?, ?, ?, ?, ?, ?);
+INSERT INTO generatorHistory(value, createdAt, isPassword, isUsername, isEmailRelay, isSshKey, isGpgKey)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 get:
 SELECT *

@@ -12,6 +12,7 @@ import app.keemobile.kotpass.models.TimeData
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keepass.KeePassUtil
 import com.artemchep.keyguard.common.service.keepass.generateAttachmentUrl
@@ -31,6 +32,7 @@ import com.artemchep.keyguard.core.store.bitwarden.withoutCardCanonicalPaths
 import com.artemchep.keyguard.core.store.bitwarden.withoutCanonicalPath
 import com.artemchep.keyguard.core.store.bitwarden.withoutIdentityCanonicalPaths
 import com.artemchep.keyguard.feature.fileupload.KEEPASS_FILE_UPLOAD_MAX_BYTES
+import com.artemchep.keyguard.provider.bitwarden.usecase.resolveGpgMetadata
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
@@ -44,9 +46,9 @@ import kotlin.time.Instant
  * Scope:
  * - Owns entry-level fields, tags, binaries, history, times, icon metadata, and
  *   type detection for one KeePass [Entry].
- * - Delegates login subfields to [KeePassUrlCodec], [KeePassTotpCodec], and
- *   [KeePassPasskeyCodec]; delegates card, identity, and SSH payloads to their
- *   dedicated codecs.
+     * - Delegates login subfields to [KeePassUrlCodec], [KeePassTotpCodec], and
+     *   [KeePassPasskeyCodec]; delegates card, identity, SSH, and GPG payloads to
+     *   their dedicated codecs.
  *
  * Entry fields consumed or written directly:
  *
@@ -89,6 +91,7 @@ class KeePassCipherCodec(
     private val fileService: FileService,
     private val getPasswordStrength: GetPasswordStrength,
     private val json: Json,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) {
     private val totpCodec = KeePassTotpCodec(
         base32Service = base32Service,
@@ -101,6 +104,7 @@ class KeePassCipherCodec(
     private val cardCodec = KeePassCardCodec()
     private val identityCodec = KeePassIdentityCodec()
     private val sshKeyCodec = KeePassSshKeyCodec()
+    private val gpgKeyCodec = KeePassGpgKeyCodec()
 
     companion object {
         private const val KEYGUARD_PREFIX = "Keyguard: "
@@ -200,6 +204,9 @@ class KeePassCipherCodec(
         }
         if (local.sshKey != null) {
             sshKeyCodec.encode(local.sshKey).forEach { scope.setValue(it.key, it.value) }
+        }
+        if (local.gpgKey != null) {
+            gpgKeyCodec.encode(local.gpgKey).forEach { scope.setValue(it.key, it.value) }
         }
 
         local.fields.forEach { field ->
@@ -328,6 +335,7 @@ class KeePassCipherCodec(
         var card: BitwardenCipher.Card? = null
         var identity: BitwardenCipher.Identity? = null
         var sshKey: BitwardenCipher.SshKey? = null
+        var gpgKey: BitwardenCipher.GpgKey? = null
 
         when (type) {
             BitwardenCipher.Type.Login -> {
@@ -352,7 +360,14 @@ class KeePassCipherCodec(
                 sshKey = sshKeyCodec.decode(scope)
             }
 
+            BitwardenCipher.Type.GpgKey -> {
+                gpgKey = gpgKeyCodec.decode(scope)
+            }
+
             BitwardenCipher.Type.SecureNote -> {}
+        }
+        if (type == BitwardenCipher.Type.SecureNote && gpgKeyCodec.detects(remote)) {
+            gpgKey = gpgKeyCodec.decode(scope)
         }
 
         val name = scope.consumeFieldAndReturnContent(BasicField.Title())
@@ -501,6 +516,15 @@ class KeePassCipherCodec(
             card = card,
             identity = identity,
             sshKey = sshKey,
+            secureNote = if (type == BitwardenCipher.Type.SecureNote || type == BitwardenCipher.Type.GpgKey) {
+                BitwardenCipher.SecureNote()
+            } else {
+                null
+            },
+            gpgKey = gpgKey?.resolveGpgMetadata(
+                old = local?.gpgKey,
+                resolver = gpgKeyMetadataResolver,
+            ),
             fields = customFields,
             sourceData = CipherSourceData(
                 providerId = CipherSourceProviderIds.KEEPASS,
@@ -536,6 +560,7 @@ class KeePassCipherCodec(
             cardCodec.hasCardFields(remote) -> return BitwardenCipher.Type.Card
             identityCodec.detects(remote) -> return BitwardenCipher.Type.Identity
             sshKeyCodec.detects(remote) -> return BitwardenCipher.Type.SshKey
+            gpgKeyCodec.detects(remote) -> return BitwardenCipher.Type.GpgKey
         }
 
         val isLogin = run {

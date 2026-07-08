@@ -5,6 +5,8 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeySyncer
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
@@ -42,6 +44,8 @@ class AppWorkerIm(
             .onState(LeLifecycleState.STARTED) {
                 launchSyncManagerWhenAvailable(this)
                 launchSyncSshAgentWhenAvailable(this)
+                launchSyncGpgAgentWhenAvailable(this)
+                launchRefreshGpgKeyserverWhenAvailable(this)
                 launchSyncLicenseWhenAvailable(this)
             }
             .launchIn(this)
@@ -91,6 +95,44 @@ class AppWorkerIm(
             // sync manager changes.
             coroutineScope {
                 syncManager.launch(this)
+            }
+        }
+        .launchIn(scope)
+
+    private fun launchSyncGpgAgentWhenAvailable(scope: CoroutineScope) = getVaultSession()
+        .map { session ->
+            val key = session as? MasterSession.Key
+            key?.di?.direct?.instance<GpgAgentPublicKeySyncer>()
+        }
+        .distinctUntilChanged { old, new -> old === new }
+        .mapLatest { syncManager ->
+            if (syncManager == null) {
+                return@mapLatest
+            }
+
+            // Launch the sync manager forever until the
+            // sync manager changes.
+            coroutineScope {
+                syncManager.launch(this)
+            }
+        }
+        .launchIn(scope)
+
+    private fun launchRefreshGpgKeyserverWhenAvailable(scope: CoroutineScope) = getVaultSession()
+        .map { session ->
+            val key = session as? MasterSession.Key
+            key?.di?.direct?.instance<GpgKeyserverRefreshWorker>()
+        }
+        .distinctUntilChanged { old, new -> old === new }
+        .mapLatest { worker ->
+            if (worker == null) {
+                return@mapLatest
+            }
+
+            // Launch the worker forever until the
+            // worker changes.
+            coroutineScope {
+                worker.launch(this)
             }
         }
         .launchIn(scope)

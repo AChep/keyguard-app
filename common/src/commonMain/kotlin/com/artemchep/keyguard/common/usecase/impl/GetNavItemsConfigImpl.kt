@@ -6,12 +6,15 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.NavItemRef
 import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.NavItemsConfigDefaults
+import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.service.settings.SettingsReadRepository
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.usecase.GetAccounts
+import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetNavItemsConfig
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
 import com.artemchep.keyguard.feature.home.navigation.applyHomeNavigationAvailability
 import com.artemchep.keyguard.feature.home.navigation.normalizeHomeNavigationConfig
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,6 +34,7 @@ import org.kodein.di.instance
 class GetNavItemsConfigImpl(
     private val getAccounts: GetAccounts,
     private val getProfiles: GetProfiles,
+    private val getCiphers: GetCiphers,
     private val getPersistedConfig: () -> Flow<NavItemsConfig?>,
     private val getCachedConfig: () -> Flow<NavItemsConfig?>,
     private val putCachedConfig: (NavItemsConfig) -> IO<Unit>,
@@ -57,12 +61,14 @@ class GetNavItemsConfigImpl(
     constructor(
         getAccounts: GetAccounts,
         getProfiles: GetProfiles,
+        getCiphers: GetCiphers,
         settingsReadRepository: SettingsReadRepository,
         settingsReadWriteRepository: SettingsReadWriteRepository,
         windowCoroutineScope: WindowCoroutineScope,
     ) : this(
         getAccounts = getAccounts,
         getProfiles = getProfiles,
+        getCiphers = getCiphers,
         getPersistedConfig = settingsReadRepository::getNavItemsConfig,
         getCachedConfig = settingsReadRepository::getCacheNavItemsConfig,
         putCachedConfig = settingsReadWriteRepository::setCacheNavItemsConfig,
@@ -72,6 +78,7 @@ class GetNavItemsConfigImpl(
     constructor(directDI: DirectDI) : this(
         getAccounts = directDI.instance(),
         getProfiles = directDI.instance(),
+        getCiphers = directDI.instance(),
         settingsReadRepository = directDI.instance(),
         settingsReadWriteRepository = directDI.instance(),
         windowCoroutineScope = directDI.instance(),
@@ -104,12 +111,15 @@ class GetNavItemsConfigImpl(
         )
     }
 
-    private fun getNavItemsAvailabilityFlow() = getSendAvailabilityFlow()
-        .map { sendAvailable ->
-            mapOf<NavItemRef, Boolean>(
-                NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_SENDS) to sendAvailable,
-            )
-        }
+    private fun getNavItemsAvailabilityFlow() = combine(
+        getSendAvailabilityFlow(),
+        getGpgToolsAvailabilityFlow(),
+    ) { sendAvailable, gpgToolsAvailable ->
+        mapOf<NavItemRef, Boolean>(
+            NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_SENDS) to sendAvailable,
+            NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_GPG_TOOLS) to gpgToolsAvailable,
+        )
+    }
 
     @OptIn(FlowPreview::class)
     private fun getSendAvailabilityFlow() = combine(
@@ -135,6 +145,17 @@ class GetNavItemsConfigImpl(
                 }
         }
         .debounce(1500L) // for slow loading accounts
+        .distinctUntilChanged()
+
+    private fun getGpgToolsAvailabilityFlow() = filterHiddenProfiles(
+        getCiphers = getCiphers,
+        getProfiles = getProfiles,
+    )
+        .map { ciphers ->
+            ciphers.any { cipher ->
+                cipher.toGpgAgentSecretOrNull() != null
+            }
+        }
         .distinctUntilChanged()
 
     private fun Flow<NavItemsConfigStatus>.onEachCacheUpstream() =

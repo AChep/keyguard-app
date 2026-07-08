@@ -33,6 +33,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.MatchDetection
@@ -58,6 +59,7 @@ import com.artemchep.keyguard.common.model.create.expYear
 import com.artemchep.keyguard.common.model.create.firstName
 import com.artemchep.keyguard.common.model.create.fromMonth
 import com.artemchep.keyguard.common.model.create.fromYear
+import com.artemchep.keyguard.common.model.create.gpgKey
 import com.artemchep.keyguard.common.model.create.identity
 import com.artemchep.keyguard.common.model.create.lastName
 import com.artemchep.keyguard.common.model.create.licenseNumber
@@ -76,11 +78,18 @@ import com.artemchep.keyguard.common.model.creditCards
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.titleH
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportServiceUnsupported
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportError
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.TextService
@@ -189,6 +198,7 @@ import kotlinx.serialization.SerialName
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
 import kotlin.uuid.Uuid
 
 // TODO: Support hide password option
@@ -209,6 +219,7 @@ fun produceAddScreenState(
         getMarkdown = instance(),
         textService = instance(),
         sshKeyImportService = instance(),
+        gpgKeyImportService = instanceOrNull() ?: GpgKeyImportServiceUnsupported,
         logRepository = instance(),
         clipboardService = instance(),
         otpMigrationService = instance(),
@@ -243,6 +254,7 @@ fun produceAddScreenState(
     getMarkdown: GetMarkdown,
     textService: TextService,
     sshKeyImportService: SshKeyImportService,
+    gpgKeyImportService: GpgKeyImportService,
     logRepository: LogRepository,
     clipboardService: ClipboardService,
     otpMigrationService: OtpMigrationService,
@@ -277,6 +289,7 @@ fun produceAddScreenState(
         getMarkdown = getMarkdown,
         textService = textService,
         sshKeyImportService = sshKeyImportService,
+        gpgKeyImportService = gpgKeyImportService,
         logRepository = logRepository,
         clipboardService = clipboardService,
         otpMigrationService = otpMigrationService,
@@ -301,6 +314,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     getMarkdown: GetMarkdown,
     textService: TextService,
     sshKeyImportService: SshKeyImportService,
+    gpgKeyImportService: GpgKeyImportService,
     logRepository: LogRepository,
     clipboardService: ClipboardService,
     otpMigrationService: OtpMigrationService,
@@ -388,6 +402,14 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         args = args,
         textService = textService,
         sshKeyImportService = sshKeyImportService,
+        showMessage = showMessage,
+        filePickerIntentSink = filePickerEvents,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+    val gpgKeyHolder = produceGpgKeyState(
+        args = args,
+        textService = textService,
+        gpgKeyImportService = gpgKeyImportService,
         showMessage = showMessage,
         filePickerIntentSink = filePickerEvents,
         confirmationRouteFactory = confirmationRouteFactory,
@@ -614,6 +636,9 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                 DSecret.Type.Card -> flowOf(cardHolder.items)
                 DSecret.Type.Identity -> flowOf(identityHolder.items)
                 DSecret.Type.SecureNote -> flowOf(noteHolder.items)
+
+                DSecret.Type.GpgKey -> flowOf(noteHolder.items + gpgKeyHolder.items)
+
                 DSecret.Type.SshKey -> flowOf(sshKeyHolder.items)
                 DSecret.Type.None -> flowOf(emptyList())
             }
@@ -644,7 +669,10 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     val miscFlow = typeFlow
         .map { type ->
             val hasNotes = when (type) {
-                DSecret.Type.SecureNote -> true
+                DSecret.Type.SecureNote,
+                DSecret.Type.GpgKey,
+                -> true
+
                 else -> false
             }
             hasNotes
@@ -795,7 +823,9 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                             )
 
                             DSecret.Type.SshKey,
-                            DSecret.Type.SecureNote -> listOf(
+                            DSecret.Type.SecureNote,
+                            DSecret.Type.GpgKey,
+                            -> listOf(
                                 plainTextType,
                                 concealedTextType,
                                 booleanType,
@@ -2461,6 +2491,11 @@ data class TmpSshKey(
     val items: List<AddStateItem>,
 )
 
+data class TmpGpgKey(
+    val gpgKey: AddStateItem.GpgKey<CreateRequest>,
+    val items: List<AddStateItem>,
+)
+
 private suspend fun RememberStateFlowScope.produceLoginState(
     args: AddRoute.Args,
     profileFlow: Flow<DProfile?>,
@@ -3601,6 +3636,12 @@ data class KeyPairDecor2Brr(
     val onImport: () -> Unit,
 )
 
+data class GpgKeyDecor2Brr(
+    val gpgKey: GeneratedGpgKey? = null,
+    val onChange: (GeneratedGpgKey) -> Unit,
+    val onImport: () -> Unit,
+)
+
 private suspend fun RememberStateFlowScope.produceSshKeyState(
     args: AddRoute.Args,
     textService: TextService,
@@ -3815,6 +3856,351 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
 //            sshKeySuggestions,
         ),
     )
+}
+
+private suspend fun RememberStateFlowScope.produceGpgKeyState(
+    args: AddRoute.Args,
+    textService: TextService,
+    gpgKeyImportService: GpgKeyImportService,
+    showMessage: ShowMessage,
+    filePickerIntentSink: EventFlow<FilePickerIntent<*>>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): TmpGpgKey {
+    val prefix = "gpgKey"
+
+    val gpgKey = kotlin.run {
+        val id = "$prefix.gpgKey"
+
+        val sink = mutablePersistedFlow(
+            id,
+            serialize = { json, m: GeneratedGpgKey ->
+                json.encodeToString(m)
+            },
+            deserialize = { json, m: String ->
+                json.decodeFromString(m)
+            },
+        ) {
+            args.gpgKey
+                ?: args.gpgKeyValue?.let { gpgKey ->
+                    GeneratedGpgKey(
+                        privateKeyArmored = gpgKey.privateKeyArmored.orEmpty(),
+                        publicKeyArmored = gpgKey.publicKeyArmored.orEmpty(),
+                        fingerprint = gpgKey.fingerprint.orEmpty(),
+                        metadata = gpgKey.metadata ?: GpgAgentKeyMetadata(),
+                        userId = "",
+                        typeLabel = "",
+                    )
+                }
+                ?: args.initialValue?.gpgKey?.let { gpgKey ->
+                    GeneratedGpgKey(
+                        privateKeyArmored = gpgKey.privateKeyArmored.orEmpty(),
+                        publicKeyArmored = gpgKey.publicKeyArmored.orEmpty(),
+                        fingerprint = gpgKey.fingerprint.orEmpty(),
+                        metadata = gpgKey.metadata ?: GpgAgentKeyMetadata(),
+                        userId = args.initialValue.name,
+                        typeLabel = "",
+                    )
+                }
+                ?: GeneratedGpgKey(
+                    privateKeyArmored = "",
+                    publicKeyArmored = "",
+                    fingerprint = "",
+                    metadata = GpgAgentKeyMetadata(),
+                    userId = "",
+                    typeLabel = "",
+                )
+        }
+
+        suspend fun importKey(
+            content: String,
+            fileName: String?,
+            passphrase: String?,
+            onNeedsPassphrase: suspend (GpgKeyImportResult.NeedsPassphrase) -> Unit,
+        ) {
+            when (
+                val result = gpgKeyImportService.import(
+                    GpgKeyImportRequest(
+                        content = content,
+                        fileName = fileName,
+                        passphrase = passphrase,
+                    ),
+                )
+            ) {
+                is GpgKeyImportResult.Success -> {
+                    val msg = ToastMessage(
+                        type = ToastMessage.Type.SUCCESS,
+                        title = translate(Res.string.gpg_key_import_success_title),
+                    )
+                    showMessage.copy(msg)
+                    sink.value = sink.value.mergeGpgKeyImport(result.gpgKey)
+                }
+
+                is GpgKeyImportResult.NeedsPassphrase -> {
+                    onNeedsPassphrase(result)
+                }
+
+                is GpgKeyImportResult.Error -> {
+                    val msg = createLocalizedGpgKeyImportErrorToast(result.reason)
+                    showMessage.copy(msg)
+                }
+            }
+        }
+
+        suspend fun onImportKeyWithPassphrase(
+            result: GpgKeyImportResult.NeedsPassphrase,
+            fileName: String?,
+            content: String,
+        ) {
+            val passphraseTitle = translate(Res.string.gpg_key_import_passphrase_title)
+            val passphraseHint = translate(Res.string.gpg_key_import_passphrase_hint)
+
+            val intent = createConfirmationDialogIntent(
+                confirmationRouteFactory = confirmationRouteFactory,
+                item = ConfirmationRoute.Args.Item.StringItem(
+                    key = "$id.passphrase",
+                    title = passphraseTitle,
+                    hint = passphraseHint,
+                    type = ConfirmationRoute.Args.Item.StringItem.Type.Password,
+                    canBeEmpty = false,
+                ),
+                title = translate(Res.string.gpg_key_import_passphrase_dialog_title),
+                message = translate(
+                    Res.string.gpg_key_import_passphrase_dialog_message,
+                    result.formatLabel,
+                ),
+            ) { passphrase ->
+                appScope.launch {
+                    importKey(
+                        content = content,
+                        fileName = fileName,
+                        passphrase = passphrase,
+                        onNeedsPassphrase = {
+                            val msg = createLocalizedGpgKeyImportPassphraseErrorToast()
+                            showMessage.copy(msg)
+                        },
+                    )
+                }
+            }
+            navigate(intent)
+        }
+
+        suspend fun onImportKey(
+            info: FilePickerResult,
+        ) {
+            handleGpgKeyFileImport(
+                info = info,
+                readText = textService::readFromFileAsText,
+                importGpgKey = gpgKeyImportService::import,
+                onSuccess = { importedGpgKey ->
+                    val msg = ToastMessage(
+                        type = ToastMessage.Type.SUCCESS,
+                        title = translate(Res.string.gpg_key_import_success_title),
+                    )
+                    showMessage.copy(msg)
+                    sink.value = sink.value.mergeGpgKeyImport(importedGpgKey)
+                },
+                onNeedsPassphrase = { result, fileName, content ->
+                    onImportKeyWithPassphrase(
+                        result = result,
+                        fileName = fileName,
+                        content = content,
+                    )
+                },
+                onImportError = { reason ->
+                    val msg = createLocalizedGpgKeyImportErrorToast(reason)
+                    showMessage.copy(msg)
+                },
+                onReadError = {
+                    val msg = createLocalizedGpgKeyImportReadErrorToast()
+                    showMessage.copy(msg)
+                },
+            )
+        }
+
+        fun requestImportKey() {
+            val intent = FilePickerIntent.OpenDocument(
+                mimeTypes = FilePickerIntent.mimeTypesAll,
+            ) { info ->
+                if (info == null) {
+                    return@OpenDocument
+                }
+
+                appScope.launch {
+                    onImportKey(info)
+                }
+            }
+            filePickerIntentSink.emit(intent)
+        }
+
+        val stateItem = LocalStateItem<GpgKeyDecor2Brr, CreateRequest>(
+            flow = sink
+                .map { value ->
+                    GpgKeyDecor2Brr(
+                        gpgKey = value,
+                        onChange = {
+                            sink.value = it
+                        },
+                        onImport = ::requestImportKey,
+                    )
+                }
+                .persistingStateIn(
+                    scope = screenScope,
+                    started = SharingStarted.WhileSubscribed(),
+                    initialValue = GpgKeyDecor2Brr(
+                        onChange = {
+                            // Do nothing
+                        },
+                        onImport = ::requestImportKey,
+                    ),
+                ),
+            populator = { state ->
+                val gpgKey = CreateRequest.GpgKey(
+                    privateKeyArmored = state.gpgKey?.privateKeyArmored,
+                    publicKeyArmored = state.gpgKey?.publicKeyArmored,
+                    fingerprint = state.gpgKey?.fingerprint,
+                    // The form model requires a metadata object, so ciphers
+                    // without one carry an empty placeholder; do not persist it.
+                    metadata = state.gpgKey?.metadata?.takeIf { it.keys.isNotEmpty() },
+                )
+                CreateRequest.gpgKey.set(this, gpgKey)
+            },
+        )
+        AddStateItem.GpgKey(
+            id = id,
+            fileDrop = AddStateItem.FileDrop(
+                text = translate(Res.string.gpg_key_import_drop_here),
+                onFileDrop = { info ->
+                    appScope.launch {
+                        onImportKey(info)
+                    }
+                },
+            ),
+            state = stateItem,
+        )
+    }
+    return TmpGpgKey(
+        gpgKey = gpgKey,
+        items = listOfNotNull<AddStateItem>(
+            gpgKey,
+        ),
+    )
+}
+
+suspend fun TranslatorScope.createLocalizedGpgKeyImportErrorToast(
+    reason: GpgKeyImportError,
+): ToastMessage = when (reason) {
+    GpgKeyImportError.Empty -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_empty),
+    )
+    GpgKeyImportError.UnsupportedFormat -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_unsupported_format),
+    )
+    GpgKeyImportError.UnsupportedPlatform -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_unsupported_platform),
+    )
+    GpgKeyImportError.InvalidPassphrase -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_invalid_passphrase),
+    )
+    GpgKeyImportError.MalformedKey -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_malformed_key),
+    )
+}
+
+suspend fun TranslatorScope.createLocalizedGpgKeyImportReadErrorToast(): ToastMessage = createGpgKeyImportToast(
+    title = translate(Res.string.gpg_key_import_failed_title),
+    text = translate(Res.string.gpg_key_import_error_read),
+)
+
+suspend fun TranslatorScope.createLocalizedGpgKeyImportPassphraseErrorToast(): ToastMessage = createGpgKeyImportToast(
+    title = translate(Res.string.gpg_key_import_failed_title),
+    text = translate(Res.string.gpg_key_import_error_passphrase_required),
+)
+
+private fun createGpgKeyImportToast(
+    title: String = "Failed to import GPG key",
+    text: String,
+): ToastMessage = ToastMessage(
+    type = ToastMessage.Type.ERROR,
+    title = title,
+    text = text,
+)
+
+private fun GeneratedGpgKey.mergeGpgKeyImport(
+    imported: GeneratedGpgKey,
+): GeneratedGpgKey {
+    val sameFingerprint = fingerprint.normalizeGpgFingerprint()
+        .takeIf { it.isNotEmpty() }
+        ?.let { current ->
+            imported.fingerprint.normalizeGpgFingerprint()
+                .takeIf { it.isNotEmpty() }
+                ?.let { importedFingerprint -> importedFingerprint == current }
+        } == true
+    return GeneratedGpgKey(
+        privateKeyArmored = when {
+            imported.privateKeyArmored.isNotBlank() -> imported.privateKeyArmored
+            sameFingerprint -> privateKeyArmored
+            else -> ""
+        },
+        publicKeyArmored = imported.publicKeyArmored.ifBlank {
+            if (sameFingerprint) publicKeyArmored else ""
+        },
+        fingerprint = imported.fingerprint.ifBlank {
+            if (sameFingerprint) fingerprint else ""
+        },
+        metadata = imported.metadata.takeIf { it.keys.isNotEmpty() }
+            ?: metadata.takeIf { sameFingerprint }
+            ?: GpgAgentKeyMetadata(),
+        userId = imported.userId.ifBlank {
+            if (sameFingerprint) userId else ""
+        },
+        typeLabel = imported.typeLabel.ifBlank {
+            if (sameFingerprint) typeLabel else ""
+        },
+    )
+}
+
+internal suspend fun handleGpgKeyFileImport(
+    info: FilePickerResult,
+    readText: suspend (String) -> String,
+    importGpgKey: suspend (GpgKeyImportRequest) -> GpgKeyImportResult,
+    onSuccess: suspend (GeneratedGpgKey) -> Unit,
+    onNeedsPassphrase: suspend (GpgKeyImportResult.NeedsPassphrase, String?, String) -> Unit,
+    onImportError: suspend (GpgKeyImportError) -> Unit,
+    onReadError: suspend () -> Unit,
+) {
+    val content = kotlin.runCatching {
+        readText(info.uri.toString())
+    }.getOrElse {
+        onReadError()
+        return
+    }
+    val fileName = info.name
+    when (
+        val result = importGpgKey(
+            GpgKeyImportRequest(
+                content = content,
+                fileName = fileName,
+                passphrase = null,
+            ),
+        )
+    ) {
+        is GpgKeyImportResult.Success -> {
+            onSuccess(result.gpgKey)
+        }
+
+        is GpgKeyImportResult.NeedsPassphrase -> {
+            onNeedsPassphrase(result, fileName, content)
+        }
+
+        is GpgKeyImportResult.Error -> {
+            onImportError(result.reason)
+        }
+    }
 }
 
 suspend fun TranslatorScope.createLocalizedSshKeyImportErrorToast(

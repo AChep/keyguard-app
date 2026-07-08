@@ -10,6 +10,9 @@ import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.usecase.GpgKeyExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
@@ -26,6 +29,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
+import com.artemchep.keyguard.feature.generator.gpgkey.GpgKeyActions
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
@@ -84,6 +88,9 @@ fun produceGeneratorHistoryState() = with(localDI().direct) {
         keyPairExport = instance(),
         publicKeyExport = instance(),
         privateKeyExport = instance(),
+        gpgKeyExport = instance(),
+        gpgPublicKeyExport = instance(),
+        gpgPrivateKeyExport = instance(),
         dateFormatter = instance(),
         clipboardService = instance(),
         confirmationRouteFactory = instance(),
@@ -98,6 +105,9 @@ fun produceGeneratorHistoryState(
     keyPairExport: KeyPairExport,
     publicKeyExport: KeyPublicExport,
     privateKeyExport: KeyPrivateExport,
+    gpgKeyExport: GpgKeyExport,
+    gpgPublicKeyExport: GpgKeyPublicExport,
+    gpgPrivateKeyExport: GpgKeyPrivateExport,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
     confirmationRouteFactory: ConfirmationRouteFactory,
@@ -119,6 +129,9 @@ fun produceGeneratorHistoryState(
         keyPairExport = keyPairExport,
         publicKeyExport = publicKeyExport,
         privateKeyExport = privateKeyExport,
+        gpgKeyExport = gpgKeyExport,
+        gpgPublicKeyExport = gpgPublicKeyExport,
+        gpgPrivateKeyExport = gpgPrivateKeyExport,
         dateFormatter = dateFormatter,
         clipboardService = clipboardService,
         confirmationRouteFactory = confirmationRouteFactory,
@@ -132,6 +145,9 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
     keyPairExport: KeyPairExport,
     publicKeyExport: KeyPublicExport,
     privateKeyExport: KeyPrivateExport,
+    gpgKeyExport: GpgKeyExport,
+    gpgPublicKeyExport: GpgKeyPublicExport,
+    gpgPrivateKeyExport: GpgKeyPrivateExport,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
     confirmationRouteFactory: ConfirmationRouteFactory,
@@ -259,6 +275,7 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
                     }
 
                     item.isSshKey -> GeneratorHistoryItem.Value.Type.SSH_KEY
+                    item.isGpgKey -> GeneratorHistoryItem.Value.Type.GPG_KEY
 
                     else -> null
                 }
@@ -281,6 +298,9 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
 
                                     GeneratorHistoryItem.Value.Type.SSH_KEY ->
                                         translate(Res.string.copy_value) to CopyText.Type.VALUE
+
+                                    GeneratorHistoryItem.Value.Type.GPG_KEY ->
+                                        translate(Res.string.copy_gpg_fingerprint) to CopyText.Type.FINGERPRINT
 
                                     null -> translate(Res.string.copy_value) to CopyText.Type.VALUE
                                 }
@@ -326,6 +346,17 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
                                 keyPairExport = keyPairExport,
                                 publicKeyExport = publicKeyExport,
                                 privateKeyExport = privateKeyExport,
+                                copyItemFactory = copyFactory,
+                            )
+                        }
+
+                        is GetPasswordResult.AsyncGpgKey -> {
+                            val gpgKey = v.gpgKey
+                            GpgKeyActions.addAll(
+                                gpgKey = gpgKey,
+                                gpgKeyExport = gpgKeyExport,
+                                publicKeyExport = gpgPublicKeyExport,
+                                privateKeyExport = gpgPrivateKeyExport,
                                 copyItemFactory = copyFactory,
                             )
                         }

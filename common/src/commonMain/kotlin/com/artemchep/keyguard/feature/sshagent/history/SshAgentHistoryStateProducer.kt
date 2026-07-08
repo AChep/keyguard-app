@@ -259,6 +259,9 @@ private suspend fun TranslatorScope.title(request: SshUsageHistoryRequestType): 
 
     SshUsageHistoryRequestType.AGENT_SIGN_DATA ->
         translate(Res.string.ssh_agent_history_request_sign_data)
+
+    SshUsageHistoryRequestType.UNKNOWN ->
+        translate(Res.string.cipher_type_unknown)
 }
 
 private suspend fun TranslatorScope.title(response: SshUsageHistoryResponseType): String = when (response) {
@@ -273,4 +276,7 @@ private suspend fun TranslatorScope.title(response: SshUsageHistoryResponseType)
 
     SshUsageHistoryResponseType.FAILURE ->
         translate(Res.string.ssh_agent_history_response_failure)
+
+    SshUsageHistoryResponseType.UNKNOWN ->
+        translate(Res.string.cipher_type_unknown)
 }

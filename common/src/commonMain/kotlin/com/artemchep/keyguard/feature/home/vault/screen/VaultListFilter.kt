@@ -968,6 +968,9 @@ suspend fun <
         DSecret.Type.SshKey to createTypeFilterAction(
             type = DSecret.Type.SshKey,
         ),
+        DSecret.Type.GpgKey to createTypeFilterAction(
+            type = DSecret.Type.GpgKey,
+        ),
     )
 
     val filterTypeListFlow = filterTypesWithCiphers

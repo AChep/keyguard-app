@@ -1,19 +1,16 @@
 package com.artemchep.keyguard.android.downloader.journal
 
-import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToOne
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DSshUsageHistory
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
+import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToOne
 import com.artemchep.keyguard.data.SshUsageHistory
 import com.artemchep.keyguard.data.SshUsageHistoryQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -65,12 +62,7 @@ class SshUsageHistoryRepositoryImpl(
         daoEffect { dao ->
             dao.getCount()
         }
-            .asFlow()
-            .flatMapLatest { query ->
-                query
-                    .asFlow()
-                    .mapToOne(dispatcher)
-            }
+            .flatMapQueryToOne(dispatcher)
 
     override fun put(model: DSshUsageHistory): IO<Unit> =
         databaseManager.mutate(TAG) { db ->

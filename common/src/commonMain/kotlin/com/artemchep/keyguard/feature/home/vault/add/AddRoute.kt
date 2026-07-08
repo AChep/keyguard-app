@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.home.vault.add
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.feature.navigation.Route
 
@@ -35,6 +36,8 @@ interface AddRoute {
         val password: String? = null,
         val note: String? = null,
         val keyPair: KeyPair? = null,
+        val gpgKey: GeneratedGpgKey? = null,
+        val gpgKeyValue: DSecret.GpgKey? = null,
         val autofill: Autofill? = null,
     ) {
         data class Behavior(

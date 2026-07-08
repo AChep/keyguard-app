@@ -45,6 +45,8 @@ import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceStatelessProxy
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
@@ -257,6 +259,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<SshAgentStatusService> {
         SshAgentStatusServiceStatelessProxy(this)
+    }
+    bindSingleton<GpgAgentStatusService> {
+        GpgAgentStatusServiceImpl()
     }
     bindSingleton<ReviewService> {
         ReviewServiceAndroid(

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
 import com.artemchep.keyguard.util.foundation.crypto.hkdfSha256
 import com.artemchep.keyguard.util.readNBytesCompat
 import java.io.BufferedInputStream
@@ -78,7 +79,7 @@ internal object SshAgentTcpProtocol {
         private val sessionId: ByteArray,
         sessionSecret: ByteArray,
         role: Role,
-    ) : SshAgentPacketChannel {
+    ) : AgentPacketChannel {
         private var sendCounter = 0L
         private var receiveCounter = 0L
 

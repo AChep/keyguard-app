@@ -614,6 +614,7 @@ internal fun resolveSearchContextBadgeIcon(field: VaultTextField?): ImageVector 
         VaultTextField.Note -> Icons.Outlined.KeyguardNote
         VaultTextField.Field -> Icons.Outlined.Info
         VaultTextField.Ssh -> Icons.Outlined.KeyguardSshKey
+        VaultTextField.Gpg -> Icons.Outlined.Key
         VaultTextField.Password -> Icons.Outlined.Password
         VaultTextField.CardNumber -> Icons.Outlined.CreditCard
         else -> Icons.Outlined.Info

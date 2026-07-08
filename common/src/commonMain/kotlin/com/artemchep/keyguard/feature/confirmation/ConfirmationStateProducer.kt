@@ -99,6 +99,7 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                             key = item.key,
                             title = item.title,
                             text = item.text,
+                            textMaxLines = item.textMaxLines,
                             value = value as Boolean,
                             enabled = item.enabled,
                             onChange = sink::value::set,

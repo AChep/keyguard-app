@@ -1,84 +1,44 @@
 package com.artemchep.keyguard.feature.sshagent.help
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Terminal
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
+import com.artemchep.keyguard.build.BuildKonfig
+import com.artemchep.keyguard.feature.agent.help.AgentSetupBodyLabel
+import com.artemchep.keyguard.feature.agent.help.AgentSetupCodeBlock
+import com.artemchep.keyguard.feature.agent.help.AgentSetupParagraph
+import com.artemchep.keyguard.feature.agent.help.AgentSetupScaffold
+import com.artemchep.keyguard.feature.agent.help.AgentSetupSectionDivider
 import com.artemchep.keyguard.feature.home.vault.component.LargeSection
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
-import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
-import com.artemchep.keyguard.ui.MediumEmphasisAlpha
-import com.artemchep.keyguard.ui.ScaffoldColumn
-import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.tabs.SegmentedButtonGroup
 import com.artemchep.keyguard.ui.tabs.TabItem
 import com.artemchep.keyguard.ui.theme.Dimens
-import com.artemchep.keyguard.ui.theme.combineAlpha
-import com.artemchep.keyguard.ui.theme.isDark
-import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
-import com.artemchep.keyguard.ui.util.HorizontalDivider
-import dev.snipme.highlights.Highlights
-import dev.snipme.highlights.model.BoldHighlight
-import dev.snipme.highlights.model.ColorHighlight
-import dev.snipme.highlights.model.SyntaxLanguage
-import dev.snipme.highlights.model.SyntaxThemes
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
-import org.kodein.di.compose.rememberInstance
 
 
 // Arguments to some keywords can be expanded at runtime from environment variables on the client
@@ -87,7 +47,10 @@ import org.kodein.di.compose.rememberInstance
 // the setting for that keyword will be ignored.
 //
 // https://github.com/AChep/keyguard-app/issues/1440
-private const val SSH_AGENT_SETUP_MACOS_SOCKET =
+private const val BUILD_TYPE_DEV = "DEV"
+private const val SSH_AGENT_SETUP_MACOS_DEV_SOCKET =
+    "/tmp/keyguard-<UID>/ssh-agent.sock"
+private const val SSH_AGENT_SETUP_MACOS_RELEASE_SOCKET =
     $$"${HOME}/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET =
     $$"${XDG_RUNTIME_DIR}/keyguard-ssh-agent.sock"
@@ -129,28 +92,10 @@ private const val SSH_AGENT_TERMUX_PKG_SETUP_STARTUP =
   eval "$("$PREFIX/bin/keyguard-android-ssh-agent" -a "$PREFIX/tmp/keyguard-ssh-agent.sock")"
 fi"""
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SshAgentSetupScreen() {
-    val scrollBehavior = ToolbarBehavior.behavior()
-    ScaffoldColumn(
-        modifier = Modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        expressive = true,
-        topAppBarScrollBehavior = scrollBehavior,
-        topBar = {
-            LargeToolbar(
-                title = {
-                    Text(
-                        text = stringResource(Res.string.ssh_agent_setup_header_title),
-                    )
-                },
-                navigationIcon = {
-                    NavigationIcon()
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
+    AgentSetupScaffold(
+        title = stringResource(Res.string.ssh_agent_setup_header_title),
     ) {
         SshAgentSetupScreenContent()
     }
@@ -158,7 +103,7 @@ fun SshAgentSetupScreen() {
 
 @Composable
 private fun ColumnScope.SshAgentSetupScreenContent() {
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_intro),
     )
 
@@ -187,7 +132,7 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
     isFlatpak: Boolean,
 ) {
     val sshAgentSocketPath = when {
-        isMacOS -> SSH_AGENT_SETUP_MACOS_SOCKET
+        isMacOS -> sshAgentSetupMacosSocket()
         isFlatpak -> SSH_AGENT_SETUP_LINUX_FLATPAK_SOCKET
         else -> SSH_AGENT_SETUP_LINUX_SOCKET
     }
@@ -195,15 +140,15 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
     Section(
         text = stringResource(Res.string.ssh_agent_setup_step_1_title),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_step_1_text),
     )
-    SectionDivider()
+    AgentSetupSectionDivider()
 
     Section(
         text = stringResource(Res.string.ssh_agent_setup_step_2_title),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_step_2_text),
     )
 
@@ -211,7 +156,7 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
         modifier = Modifier
             .height(4.dp),
     )
-    CopyableCodeBlock(
+    AgentSetupCodeBlock(
         text = sshAgentSocketPath,
     )
     if (!isMacOS && !isFlatpak) {
@@ -219,14 +164,14 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
             modifier = Modifier
                 .height(16.dp),
         )
-        BodyLabel(
+        AgentSetupBodyLabel(
             text = stringResource(Res.string.ssh_agent_setup_linux_socket_fallback_note),
         )
         Spacer(
             modifier = Modifier
                 .height(4.dp),
         )
-        CopyableCodeBlock(
+        AgentSetupCodeBlock(
             text = SSH_AGENT_SETUP_LINUX_SOCKET_FALLBACK,
         )
     }
@@ -259,55 +204,62 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
 
     when (selectedOption) {
         SetupOption.SetSshAuthSock -> {
-            BodyLabel(
+            AgentSetupBodyLabel(
                 text = stringResource(Res.string.ssh_agent_setup_option_env_label),
             )
             Spacer(
                 modifier = Modifier
                     .height(4.dp),
             )
-            CopyableCodeBlock(
+            AgentSetupCodeBlock(
                 text = sshAuthSockCommand(sshAgentSocketPath),
             )
         }
 
         SetupOption.UseIdentityAgent -> {
-            BodyLabel(
+            AgentSetupBodyLabel(
                 text = stringResource(Res.string.ssh_agent_setup_option_identityagent_label),
             )
             Spacer(
                 modifier = Modifier
                     .height(4.dp),
             )
-            CopyableCodeBlock(
+            AgentSetupCodeBlock(
                 file = SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_FILE,
                 text = identityAgentConfig(sshAgentSocketPath),
             )
         }
     }
-    SectionDivider()
+    AgentSetupSectionDivider()
 
     Section(
         text = stringResource(Res.string.ssh_agent_setup_step_3_title),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_step_3_text),
     )
     Spacer(
         modifier = Modifier
             .height(4.dp),
     )
-    CopyableCodeBlock(
+    AgentSetupCodeBlock(
         text = SSH_AGENT_SETUP_VERIFY_CMD_LIST,
     )
     Spacer(
         modifier = Modifier
             .height(4.dp),
     )
-    CopyableCodeBlock(
+    AgentSetupCodeBlock(
         text = SSH_AGENT_SETUP_VERIFY_CMD_CONNECT,
     )
 }
+
+private fun sshAgentSetupMacosSocket(): String =
+    if (BuildKonfig.buildType == BUILD_TYPE_DEV) {
+        SSH_AGENT_SETUP_MACOS_DEV_SOCKET
+    } else {
+        SSH_AGENT_SETUP_MACOS_RELEASE_SOCKET
+    }
 
 @Composable
 private fun ColumnScope.SshAgentSetupAndroidPlatformContent() {
@@ -315,13 +267,13 @@ private fun ColumnScope.SshAgentSetupAndroidPlatformContent() {
     LargeSection(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_title),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_text),
     )
     Section(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_step_1_title),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_step_1_text),
     )
     TextButton(
@@ -349,73 +301,73 @@ private fun ColumnScope.SshAgentSetupAndroidPlatformContent() {
     Section(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_step_2_title),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_step_2_text),
     )
     Spacer(
         modifier = Modifier
             .height(4.dp),
     )
-    CopyableCodeBlock(
+    AgentSetupCodeBlock(
         text = SSH_AGENT_TERMUX_PKG_ADD_REPO,
     )
-    CopyableCodeBlock(
+    AgentSetupCodeBlock(
         text = SSH_AGENT_TERMUX_PKG_INSTALL,
     )
     Section(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_step_3_title),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_step_3_shell_current),
     )
     Spacer(
         modifier = Modifier
             .height(4.dp),
     )
-    CopyableCodeBlock(
+    AgentSetupCodeBlock(
         text = SSH_AGENT_TERMUX_PKG_SETUP_CURRENT,
     )
     Spacer(
         modifier = Modifier
             .height(8.dp),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_step_3_shell_startup),
     )
     Spacer(
         modifier = Modifier
             .height(4.dp),
     )
-    CopyableCodeBlock(
+    AgentSetupCodeBlock(
         text = SSH_AGENT_TERMUX_PKG_SETUP_STARTUP,
     )
     Section(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_step_4_title),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_step_4_text),
     )
     Spacer(
         modifier = Modifier
             .height(4.dp),
     )
-    CopyableCodeBlock(
+    AgentSetupCodeBlock(
         text = SSH_AGENT_SETUP_VERIFY_CMD_LIST,
     )
-    CopyableCodeBlock(
+    AgentSetupCodeBlock(
         text = SSH_AGENT_SETUP_VERIFY_CMD_CONNECT,
     )
     LargeSection(
         text = stringResource(Res.string.ssh_agent_setup_android_how_does_it_work_title),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_android_how_does_it_work_1),
     )
     Spacer(
         modifier = Modifier
             .height(8.dp),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_android_how_does_it_work_2),
     )
 }
@@ -435,160 +387,8 @@ private fun ColumnScope.SshAgentSetupUnsupportedPlatformContent() {
     Section(
         text = stringResource(Res.string.ssh_agent_setup_windows_title),
     )
-    Paragraph(
+    AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_windows_text),
-    )
-}
-
-@Composable
-private fun BodyLabel(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    Text(
-        modifier = modifier
-            .padding(
-                horizontal = Dimens.textHorizontalPadding,
-            ),
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = LocalContentColor.current
-            .combineAlpha(MediumEmphasisAlpha),
-    )
-}
-
-@Composable
-private fun Paragraph(
-    text: String,
-) {
-    Text(
-        modifier = Modifier
-            .padding(horizontal = Dimens.textHorizontalPadding),
-        text = text,
-    )
-}
-
-@Composable
-private fun CopyableCodeBlock(
-    text: String,
-    file: String? = null,
-) {
-    val codeModifier = if (CurrentPlatform is Platform.Mobile) {
-        // On mobile the gesture of swiping to reveal more is trivial
-        // and intuitive, on desktop however that is most likely
-        // blocked.
-        Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-    } else {
-        Modifier
-    }
-
-    val clipboardService by rememberInstance<ClipboardService>()
-    val copyDescription = stringResource(Res.string.copy)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                vertical = 4.dp,
-                horizontal = Dimens.textHorizontalPadding,
-            )
-            .background(
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = RoundedCornerShape(12.dp),
-            )
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f, fill = true),
-        ) {
-            if (file != null) {
-                Text(
-                    modifier = Modifier
-                        .alpha(DisabledEmphasisAlpha),
-                    text = file,
-                    fontSize = 12.sp,
-                    fontFamily = FontFamily.Monospace,
-                )
-                Spacer(
-                    modifier = Modifier
-                        .height(8.dp),
-                )
-            }
-            SelectionContainer {
-                val isDark = MaterialTheme.colorScheme.isDark
-                var code by remember(text) {
-                    mutableStateOf(AnnotatedString(text))
-                }
-
-                // Async-ly highlight the syntax of the
-                // code snippet.
-                LaunchedEffect(text, isDark) {
-                    runCatching {
-                        code = withContext(Dispatchers.Default) {
-                            val codeHighlights = Highlights.Builder()
-                                .code(text)
-                                .theme(SyntaxThemes.darcula(darkMode = isDark))
-                                .language(SyntaxLanguage.SHELL)
-                                .build()
-
-                            buildAnnotatedString {
-                                append(text)
-
-                                // Highlight & bold special segments
-                                codeHighlights.getHighlights()
-                                    .filterIsInstance<ColorHighlight>()
-                                    .forEach {
-                                        addStyle(
-                                            SpanStyle(color = Color(it.rgb).copy(alpha = 1f)),
-                                            start = it.location.start,
-                                            end = it.location.end,
-                                        )
-                                    }
-                                codeHighlights.getHighlights()
-                                    .filterIsInstance<BoldHighlight>()
-                                    .forEach {
-                                        addStyle(
-                                            SpanStyle(fontWeight = FontWeight.Bold),
-                                            start = it.location.start,
-                                            end = it.location.end,
-                                        )
-                                    }
-                            }
-                        }
-                    }
-                }
-                Text(
-                    modifier = Modifier
-                        .then(codeModifier),
-                    text = code,
-                    fontFamily = FontFamily.Monospace,
-                )
-            }
-        }
-        IconButton(
-            onClick = {
-                clipboardService.setPrimaryClip(
-                    value = text,
-                    concealed = false,
-                )
-            },
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.ContentCopy,
-                contentDescription = copyDescription,
-            )
-        }
-    }
-}
-
-@Composable
-private fun SectionDivider() {
-    HorizontalDivider(
-        modifier = Modifier
-            .padding(vertical = 16.dp),
     )
 }
 

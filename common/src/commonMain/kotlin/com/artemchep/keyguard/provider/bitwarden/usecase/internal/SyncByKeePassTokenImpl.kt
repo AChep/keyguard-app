@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base32Service
@@ -19,6 +20,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassSyncCoor
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
 
 class SyncByKeePassTokenImpl(
     private val logRepository: LogRepository,
@@ -31,6 +33,7 @@ class SyncByKeePassTokenImpl(
     private val db: VaultDatabaseManager,
     private val webDavClientFactory: WebDavClientFactory,
     private val watchdog: Watchdog,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) : SyncByKeePassToken {
     companion object {
         private const val TAG = "SyncById.keepass"
@@ -43,6 +46,7 @@ class SyncByKeePassTokenImpl(
         base64Service = directDI.instance(),
         fileService = directDI.instance(),
         getPasswordStrength = directDI.instance(),
+        gpgKeyMetadataResolver = directDI.instanceOrNull(),
         json = directDI.instance(),
         db = directDI.instance(),
         webDavClientFactory = KtorWebDavClientFactory(
@@ -63,6 +67,7 @@ class SyncByKeePassTokenImpl(
                 base64Service = base64Service,
                 fileService = fileService,
                 getPasswordStrength = getPasswordStrength,
+                gpgKeyMetadataResolver = gpgKeyMetadataResolver,
                 json = json,
                 db = db,
                 webDavClientFactory = webDavClientFactory,

@@ -42,6 +42,7 @@ object NavItemsConfigDefaults {
     const val BUILT_IN_VAULT = "vault"
     const val BUILT_IN_SENDS = "sends"
     const val BUILT_IN_GENERATOR = "generator"
+    const val BUILT_IN_GPG_TOOLS = "gpg_tools"
     const val BUILT_IN_WATCHTOWER = "watchtower"
     const val BUILT_IN_SETTINGS = "settings"
 
@@ -49,6 +50,7 @@ object NavItemsConfigDefaults {
         BUILT_IN_VAULT,
         BUILT_IN_SENDS,
         BUILT_IN_GENERATOR,
+        BUILT_IN_GPG_TOOLS,
         BUILT_IN_WATCHTOWER,
         BUILT_IN_SETTINGS,
     )

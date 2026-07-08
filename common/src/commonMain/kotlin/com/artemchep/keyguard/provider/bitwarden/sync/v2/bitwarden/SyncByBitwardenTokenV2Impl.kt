@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.model.SyncProgress
 import com.artemchep.keyguard.common.model.SyncScope
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -77,6 +78,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Clock
 
@@ -133,6 +135,7 @@ class SyncByBitwardenTokenV2Impl(
     private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val watchdog: Watchdog,
     private val markBackupAsDirty: MarkBackupAsDirty,
+    private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) : SyncByBitwardenToken {
     companion object {
         private const val TAG = "SyncByIdV2.bitwarden"
@@ -146,6 +149,7 @@ class SyncByBitwardenTokenV2Impl(
         cryptoGenerator = directDI.instance(),
         base64Service = directDI.instance(),
         getPasswordStrength = directDI.instance(),
+        gpgKeyMetadataResolver = directDI.instanceOrNull(),
         json = directDI.instance(),
         httpClient = directDI.instance(),
         db = directDI.instance(),
@@ -470,6 +474,7 @@ class SyncByBitwardenTokenV2Impl(
                     cryptoGenerator = cryptoGenerator,
                     base64Service = base64Service,
                     getPasswordStrength = getPasswordStrength,
+                    gpgKeyMetadataResolver = gpgKeyMetadataResolver,
                     logRepository = logRepository,
                     httpClient = httpClient,
                     env = env,

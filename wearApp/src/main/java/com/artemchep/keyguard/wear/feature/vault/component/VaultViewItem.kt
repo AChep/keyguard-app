@@ -33,6 +33,7 @@ private fun wearVaultViewItemRenderers(
     quickBadges = { modifier, item -> WearVaultViewQuickBadgesItem(modifier, item, transformation = transformation) },
     action = { modifier, item -> WearVaultViewActionItem(modifier, item, transformation = transformation) },
     value = { modifier, item -> WearVaultViewValueItem(modifier, item, transformation = transformation) },
+    table = { modifier, item -> WearVaultViewTableItem(modifier, item, transformation = transformation) },
     switch = { modifier, item -> WearVaultViewSwitchItem(modifier, item, transformation = transformation) },
     uri = { modifier, item -> WearVaultViewUriItem(modifier, item, transformation = transformation) },
     button = { modifier, item -> WearVaultViewButtonItem(modifier, item, transformation = transformation) },

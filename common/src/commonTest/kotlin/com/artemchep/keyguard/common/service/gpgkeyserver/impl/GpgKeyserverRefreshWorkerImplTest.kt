@@ -209,7 +209,7 @@ class GpgKeyserverRefreshWorkerImplTest {
         id = id,
         type = DSecret.Type.GpgKey,
         gpgKey = DSecret.GpgKey(
-            privateKeyArmored = "private",
+            privateKeyArmored = null,
             publicKeyArmored = "public",
             fingerprint = fingerprint,
             metadata = null,

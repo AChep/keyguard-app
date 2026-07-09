@@ -112,7 +112,13 @@ jobs:
       - name: "Setup Protobuf compiler and gpg (Windows)"
         if: runner.os == 'Windows'
         run: |
-          choco install protoc gnupg --yes --no-progress
+          $originalPath = $env:Path
+          try {
+            $env:Path = "C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\ProgramData\chocolatey\bin"
+            choco install protoc gnupg --yes --no-progress
+          } finally {
+            $env:Path = $originalPath
+          }
           $gpgBin = @(
             "${env:ProgramFiles(x86)}\GnuPG\bin",
             "$env:ProgramFiles\GnuPG\bin"

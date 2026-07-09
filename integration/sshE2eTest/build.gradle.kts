@@ -60,11 +60,24 @@ tasks.register<Test>("sshE2eTest") {
     doFirst {
         fun requireExecutableOnPath(tool: String) {
             val path = System.getenv("PATH").orEmpty()
+            val executableNames = if (File.separatorChar == '\\' && !tool.contains('.')) {
+                val extensions = System.getenv("PATHEXT")
+                    ?.split(File.pathSeparatorChar, ';')
+                    ?.filter { it.isNotBlank() }
+                    ?: listOf(".COM", ".EXE", ".BAT", ".CMD")
+                listOf(tool) + extensions.map { tool + it.lowercase() }
+            } else {
+                listOf(tool)
+            }
             val candidates = path
                 .split(File.pathSeparator)
                 .asSequence()
                 .filter { it.isNotBlank() }
-                .map { Path.of(it).resolve(tool) }
+                .flatMap { dir ->
+                    executableNames
+                        .asSequence()
+                        .map { Path.of(dir).resolve(it) }
+                }
             if (candidates.none { Files.isExecutable(it) }) {
                 throw GradleException("SSH E2E test requires '$tool' on PATH.")
             }

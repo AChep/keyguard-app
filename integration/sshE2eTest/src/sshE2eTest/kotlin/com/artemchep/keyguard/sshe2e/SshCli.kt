@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.sshe2e
 
-import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
 data class ProcessResult(
@@ -24,7 +23,7 @@ data class ProcessResult(
 }
 
 class SshCli(
-    private val socketPath: Path,
+    private val socket: String,
 ) {
     fun run(
         vararg args: String,
@@ -33,7 +32,7 @@ class SshCli(
     ): ProcessResult {
         val command = args.toList()
         val builder = ProcessBuilder(command)
-        builder.environment()["SSH_AUTH_SOCK"] = socketPath.toAbsolutePath().toString()
+        builder.environment()["SSH_AUTH_SOCK"] = socket
         val process = builder.start()
         if (stdin != null) {
             process.outputStream.use { it.write(stdin) }

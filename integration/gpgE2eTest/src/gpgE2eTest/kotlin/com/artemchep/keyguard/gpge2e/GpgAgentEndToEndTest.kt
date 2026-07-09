@@ -1,12 +1,8 @@
 package com.artemchep.keyguard.gpge2e
 
 import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.crypto.GpgKeyGeneratorJvm
-import java.io.ByteArrayOutputStream
-import java.net.StandardProtocolFamily
-import java.net.UnixDomainSocketAddress
-import java.nio.ByteBuffer
-import java.nio.channels.SocketChannel
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
@@ -44,6 +40,7 @@ class GpgAgentEndToEndTest {
         private lateinit var workRoot: Path
         private lateinit var serverHome: Path
         private lateinit var clientHome: Path
+        private lateinit var gpgAgentSocket: String
         private lateinit var launcher: KeyguardAgentLauncher
         private lateinit var keys: GpgKeyFactory.GeneratedKeys
         private lateinit var generatedModern: TestGpgKey
@@ -58,9 +55,13 @@ class GpgAgentEndToEndTest {
                 "Missing system property keyguard.repoRoot"
             })
 
-            // Short base path so the unix socket paths stay well under the ~104 char limit.
+            // Short base path so the Unix socket paths stay well under the ~104 char limit.
             val token = randomHex(4)
-            workRoot = Path.of("/tmp", "kg-gpge2e-$token")
+            workRoot = if (isWindows()) {
+                Files.createTempDirectory("kg-gpge2e-$token-")
+            } else {
+                Path.of("/tmp", "kg-gpge2e-$token")
+            }
             Files.createDirectories(workRoot)
             restrict(workRoot)
 
@@ -100,9 +101,11 @@ class GpgAgentEndToEndTest {
             prepareClientHome(clientHome)
             clientGpg = GpgCli(clientHome)
             importPublicKeys(clientGpg, allKeys)
+            GpgCli(clientHome).gpgconf("--kill", "gpg-agent")
 
-            // 3) Stand up the Kotlin IPC server + Rust binary. The binary binds the
-            // client home's S.gpg-agent socket so client gpg talks to us.
+            // 3) Stand up the Kotlin IPC server + Rust binary. Unix binds the
+            // client home's S.gpg-agent socket; Windows binds the exact
+            // named pipe reported by gpgconf for this GNUPGHOME.
             val authToken = ByteArray(32).also { SecureRandom().nextBytes(it) }
             val processor = TestGpgAgentRequestProcessor(keys = allKeys)
             launcher = KeyguardAgentLauncher(
@@ -110,9 +113,23 @@ class GpgAgentEndToEndTest {
                 processor = processor,
                 authToken = authToken,
             )
-            val ipcSocketPath = workRoot.resolve("ipc.sock")
-            val gpgSocketPath = clientHome.resolve("S.gpg-agent")
-            launcher.start(ipcSocketPath = ipcSocketPath, gpgSocketPath = gpgSocketPath)
+            val ipcEndpoint = if (isWindows()) {
+                AgentIpcEndpoint.WindowsPipe("\\\\.\\pipe\\kg-gpge2e-$token-ipc")
+            } else {
+                val ipcSocketPath = workRoot.resolve("ipc.sock")
+                AgentIpcEndpoint.UnixSocket(
+                    socketPath = ipcSocketPath,
+                    directory = workRoot,
+                )
+            }
+            gpgAgentSocket = if (isWindows()) {
+                gpgAgentSocketForClientHome(clientHome)
+            } else {
+                clientHome.resolve("S.gpg-agent")
+                    .toAbsolutePath()
+                    .toString()
+            }
+            launcher.start(ipcEndpoint = ipcEndpoint, gpgSocket = gpgAgentSocket)
         }
 
         @JvmStatic
@@ -138,7 +155,7 @@ class GpgAgentEndToEndTest {
             val binary = agentDir
                 .resolve("target")
                 .resolve("release")
-                .resolve("keyguard-gpg-agent")
+                .resolve(executableName("keyguard-gpg-agent"))
             require(Files.isExecutable(binary)) {
                 "keyguard-gpg-agent binary not found / not executable at $binary"
             }
@@ -202,6 +219,32 @@ class GpgAgentEndToEndTest {
             SecureRandom().nextBytes(buf)
             return buf.joinToString("") { "%02x".format(it) }
         }
+
+        private fun gpgAgentSocketForClientHome(home: Path): String {
+            val result = GpgCli(home).gpgconf("--list-dirs", "agent-socket")
+            require(result.isSuccess) {
+                "Failed to resolve Windows GPG agent socket:\n${result.stderr}"
+            }
+            val socket = result.stdout
+                .lineSequence()
+                .map { it.trim() }
+                .firstOrNull { it.isNotEmpty() }
+                ?.let { line ->
+                    if (line.startsWith("agent-socket:")) {
+                        line.substringAfter("agent-socket:")
+                    } else {
+                        line
+                    }
+                }
+                ?: error("gpgconf did not report an agent-socket:\n${result.stdout}")
+            require(socket.startsWith("\\\\.\\pipe\\", ignoreCase = true)) {
+                "Expected gpgconf agent-socket to be a Windows named pipe, got: $socket"
+            }
+            return socket
+        }
+
+        private fun executableName(name: String): String =
+            if (isWindows()) "$name.exe" else name
 
         private data class GeneratedKeyCase(
             val key: TestGpgKey,
@@ -267,6 +310,20 @@ class GpgAgentEndToEndTest {
     }
 
     // ---- Raw Assuan failure-path tests ----------------------------------------------
+
+    @Test
+    fun `assuan keyinfo lists served keys`() {
+        val transcript = assuanTranscript(
+            "KEYINFO --list\n",
+            "BYE\n",
+        )
+
+        assertTrue(
+            transcript.any { it.startsWith("S KEYINFO ") },
+            transcript.joinToString("\n"),
+        )
+        assertAtLeastOkCount(transcript, 1)
+    }
 
     @Test
     fun `assuan command framing failures match gpg agent`() {
@@ -529,37 +586,10 @@ class GpgAgentEndToEndTest {
     private fun assuanTranscript(
         vararg commands: String,
     ): List<String> {
-        val socketPath = clientHome.resolve("S.gpg-agent")
-        SocketChannel.open(StandardProtocolFamily.UNIX).use { channel ->
-            channel.connect(UnixDomainSocketAddress.of(socketPath))
-            for (command in commands) {
-                val bytes = command.encodeToByteArray()
-                var buffer = ByteBuffer.wrap(bytes)
-                while (buffer.hasRemaining()) {
-                    channel.write(buffer)
-                }
-            }
-            channel.shutdownOutput()
-
-            val out = ByteArrayOutputStream()
-            val buffer = ByteBuffer.allocate(4096)
-            while (true) {
-                buffer.clear()
-                val read = channel.read(buffer)
-                if (read < 0) {
-                    break
-                }
-                buffer.flip()
-                val bytes = ByteArray(buffer.remaining())
-                buffer.get(bytes)
-                out.write(bytes)
-            }
-            return out.toByteArray()
-                .decodeToString()
-                .lineSequence()
-                .filter { it.isNotEmpty() }
-                .toList()
-        }
+        return launcher.assuanTranscript(
+            gpgSocket = gpgAgentSocket,
+            commands = commands.toList(),
+        )
     }
 
     private fun assertErrorCodes(
@@ -596,3 +626,6 @@ class GpgAgentEndToEndTest {
             (encoded and 0xffff).toInt()
         }
 }
+
+private fun isWindows(): Boolean =
+    System.getProperty("os.name").startsWith("Windows", ignoreCase = true)

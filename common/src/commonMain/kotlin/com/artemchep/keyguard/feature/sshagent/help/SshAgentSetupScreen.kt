@@ -41,15 +41,15 @@ import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 
 
+private const val BUILD_TYPE_DEV = "DEV"
+private const val SSH_AGENT_SETUP_MACOS_DEV_SOCKET =
+    "/tmp/keyguard-<UID>/ssh-agent.sock"
 // Arguments to some keywords can be expanded at runtime from environment variables on the client
 // by enclosing them in ${}, for example ${HOME}/.ssh would refer to the user's .ssh directory.
 // If a specified environment variable does not exist then an error will be returned and
 // the setting for that keyword will be ignored.
 //
 // https://github.com/AChep/keyguard-app/issues/1440
-private const val BUILD_TYPE_DEV = "DEV"
-private const val SSH_AGENT_SETUP_MACOS_DEV_SOCKET =
-    "/tmp/keyguard-<UID>/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_MACOS_RELEASE_SOCKET =
     $$"${HOME}/Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_SOCKET =
@@ -58,6 +58,8 @@ private const val SSH_AGENT_SETUP_LINUX_SOCKET_FALLBACK =
     "/tmp/keyguard-<UID>/ssh-agent.sock"
 private const val SSH_AGENT_SETUP_LINUX_FLATPAK_SOCKET =
     $$"${XDG_RUNTIME_DIR}/app/com.artemchep.keyguard/ssh-agent.sock"
+private const val SSH_AGENT_SETUP_WINDOWS_PIPE =
+    "\\\\.\\pipe\\keyguard-ssh-agent"
 private const val SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_FILE =
     "~/.ssh/config"
 private const val SSH_AGENT_SETUP_VERIFY_CMD_LIST =
@@ -116,9 +118,14 @@ private fun ColumnScope.SshAgentSetupScreenContent() {
         is Platform.Desktop.Linux -> SshAgentSetupSupportedPlatformContent(
             isMacOS = false,
             isFlatpak = platform.isFlatpak,
+            isWindows = false,
         )
 
-        is Platform.Desktop.Windows -> SshAgentSetupUnsupportedPlatformContent()
+        is Platform.Desktop.Windows -> SshAgentSetupSupportedPlatformContent(
+            isMacOS = false,
+            isFlatpak = false,
+            isWindows = true,
+        )
 
         is Platform.Mobile.Android -> SshAgentSetupAndroidPlatformContent()
 
@@ -130,8 +137,10 @@ private fun ColumnScope.SshAgentSetupScreenContent() {
 private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
     isMacOS: Boolean,
     isFlatpak: Boolean,
+    isWindows: Boolean = false,
 ) {
     val sshAgentSocketPath = when {
+        isWindows -> SSH_AGENT_SETUP_WINDOWS_PIPE
         isMacOS -> sshAgentSetupMacosSocket()
         isFlatpak -> SSH_AGENT_SETUP_LINUX_FLATPAK_SOCKET
         else -> SSH_AGENT_SETUP_LINUX_SOCKET
@@ -159,7 +168,7 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
     AgentSetupCodeBlock(
         text = sshAgentSocketPath,
     )
-    if (!isMacOS && !isFlatpak) {
+    if (!isMacOS && !isFlatpak && !isWindows) {
         Spacer(
             modifier = Modifier
                 .height(16.dp),
@@ -212,7 +221,10 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
                     .height(4.dp),
             )
             AgentSetupCodeBlock(
-                text = sshAuthSockCommand(sshAgentSocketPath),
+                text = sshAuthSockCommand(
+                    socketPath = sshAgentSocketPath,
+                    isWindows = isWindows,
+                ),
             )
         }
 
@@ -226,7 +238,10 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
             )
             AgentSetupCodeBlock(
                 file = SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_FILE,
-                text = identityAgentConfig(sshAgentSocketPath),
+                text = identityAgentConfig(
+                    socketPath = sshAgentSocketPath,
+                    isWindows = isWindows,
+                ),
             )
         }
     }
@@ -372,25 +387,31 @@ private fun ColumnScope.SshAgentSetupAndroidPlatformContent() {
     )
 }
 
-private fun sshAuthSockCommand(socketPath: String): String =
+private fun sshAuthSockCommand(
+    socketPath: String,
+    isWindows: Boolean,
+): String = if (isWindows) {
+    "\$env:SSH_AUTH_SOCK=\"${socketPath.escapePowerShellDoubleQuoted()}\""
+} else {
     "export SSH_AUTH_SOCK=\"${socketPath.escapeDoubleQuoted()}\""
+}
 
-private fun identityAgentConfig(socketPath: String): String =
+private fun identityAgentConfig(
+    socketPath: String,
+    isWindows: Boolean,
+): String = if (isWindows) {
+    "Host *\n  IdentityAgent $socketPath"
+} else {
     "Host *\n  IdentityAgent \"${socketPath.escapeDoubleQuoted()}\""
+}
 
 private fun String.escapeDoubleQuoted(): String =
     replace("\\", "\\\\")
         .replace("\"", "\\\"")
 
-@Composable
-private fun ColumnScope.SshAgentSetupUnsupportedPlatformContent() {
-    Section(
-        text = stringResource(Res.string.ssh_agent_setup_windows_title),
-    )
-    AgentSetupParagraph(
-        text = stringResource(Res.string.ssh_agent_setup_windows_text),
-    )
-}
+private fun String.escapePowerShellDoubleQuoted(): String =
+    replace("`", "``")
+        .replace("\"", "`\"")
 
 private enum class SetupOption(
     override val key: String,

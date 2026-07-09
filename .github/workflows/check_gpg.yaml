@@ -77,8 +77,13 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact: ubuntu
+            gradle: ./gradlew
           - os: macos-latest
             artifact: macos
+            gradle: ./gradlew
+          - os: windows-latest
+            artifact: windows
+            gradle: ./gradlew.bat
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
@@ -104,8 +109,15 @@ jobs:
           protoc --version
           gpg --version
           gpgconf --version
+      - name: "Setup Protobuf compiler and gpg (Windows)"
+        if: runner.os == 'Windows'
+        run: |
+          choco install protoc gnupg --yes --no-progress
+          protoc --version
+          gpg --version
+          gpgconf --version
       - name: "Run GPG end-to-end tests"
-        run: ./gradlew :integration:gpgE2eTest:gpgE2eTest
+        run: ${{ matrix.gradle }} :integration:gpgE2eTest:gpgE2eTest
       - name: "Upload test reports"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()

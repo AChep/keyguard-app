@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.sshe2e
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.sshagent.SshAgentIpcServer
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import kotlinx.coroutines.CompletableDeferred
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.OutputStream
+import java.io.RandomAccessFile
 import java.net.StandardProtocolFamily
 import java.net.UnixDomainSocketAddress
 import java.nio.channels.SocketChannel
@@ -29,17 +31,17 @@ class KeyguardSshAgentLauncher(
     private var ipcServer: SshAgentIpcServer? = null
     private var process: Process? = null
     private var processStdin: OutputStream? = null
-    private var ipcSocketPath: Path? = null
+    private var ipcEndpoint: AgentIpcEndpoint? = null
 
     /**
-     * @param ipcSocketPath short Unix socket path for the Kotlin <-> Rust IPC channel.
-     * @param sshSocketPath the SSH_AUTH_SOCK socket the Rust binary binds for OpenSSH clients.
+     * @param ipcEndpoint endpoint for the Kotlin <-> Rust IPC channel.
+     * @param sshSocket the SSH_AUTH_SOCK endpoint the Rust binary binds for OpenSSH clients.
      */
     fun start(
-        ipcSocketPath: Path,
-        sshSocketPath: Path,
+        ipcEndpoint: AgentIpcEndpoint,
+        sshSocket: String,
     ) {
-        this.ipcSocketPath = ipcSocketPath
+        this.ipcEndpoint = ipcEndpoint
 
         val log = TestLogRepository()
         val server = SshAgentIpcServer(
@@ -53,7 +55,7 @@ class KeyguardSshAgentLauncher(
         val onReady = CompletableDeferred<Unit>()
         serverJob = scope.launch {
             runCatching {
-                server.start(ipcSocketPath, onReady = onReady)
+                server.start(ipcEndpoint, onReady = onReady)
             }.onFailure { e ->
                 onReady.completeExceptionally(e)
             }
@@ -67,9 +69,9 @@ class KeyguardSshAgentLauncher(
         val command = buildList {
             add(binaryPath.toAbsolutePath().toString())
             add("--ipc-socket")
-            add(ipcSocketPath.toAbsolutePath().toString())
+            add(ipcEndpoint.argument)
             add("--ssh-socket")
-            add(sshSocketPath.toAbsolutePath().toString())
+            add(sshSocket)
             if (verbose) add("--verbose")
         }
         val builder = ProcessBuilder(command)
@@ -88,7 +90,7 @@ class KeyguardSshAgentLauncher(
             procStdin.write('\n'.code)
             procStdin.flush()
 
-            waitForSocket(sshSocketPath, proc)
+            waitForSocket(sshSocket, proc)
         } catch (e: Exception) {
             stop()
             throw e
@@ -96,7 +98,7 @@ class KeyguardSshAgentLauncher(
     }
 
     private fun waitForSocket(
-        sshSocketPath: Path,
+        sshSocket: String,
         proc: Process,
     ) {
         val deadline = System.currentTimeMillis() + 10_000
@@ -104,27 +106,39 @@ class KeyguardSshAgentLauncher(
             if (!proc.isAlive) {
                 error("keyguard-ssh-agent exited early with code ${proc.exitValue()}")
             }
-            if (Files.exists(sshSocketPath) && canConnectToSocket(sshSocketPath)) {
+            if (canConnectToSocket(sshSocket)) {
                 Thread.sleep(250)
                 if (!proc.isAlive) {
-                    error("keyguard-ssh-agent exited after binding $sshSocketPath with code ${proc.exitValue()}")
-                }
-                if (!Files.exists(sshSocketPath)) {
-                    error("keyguard-ssh-agent socket disappeared after binding: $sshSocketPath")
+                    error("keyguard-ssh-agent exited after binding $sshSocket with code ${proc.exitValue()}")
                 }
                 return
             }
             Thread.sleep(50)
         }
-        error("Timed out waiting for the SSH socket to appear at $sshSocketPath")
+        error("Timed out waiting for the SSH socket to appear at $sshSocket")
     }
 
-    private fun canConnectToSocket(sshSocketPath: Path): Boolean = runCatching {
-        SocketChannel.open(StandardProtocolFamily.UNIX).use { channel ->
-            channel.connect(UnixDomainSocketAddress.of(sshSocketPath))
+    private fun canConnectToSocket(sshSocket: String): Boolean {
+        if (isWindowsPipe(sshSocket)) {
+            return runCatching {
+                RandomAccessFile(sshSocket, "rw").use {
+                    // Connect and close: this is only a readiness probe.
+                }
+                true
+            }.getOrDefault(false)
         }
-        true
-    }.getOrDefault(false)
+
+        val sshSocketPath = Path.of(sshSocket)
+        if (!Files.exists(sshSocketPath)) {
+            return false
+        }
+        return runCatching {
+            SocketChannel.open(StandardProtocolFamily.UNIX).use { channel ->
+                channel.connect(UnixDomainSocketAddress.of(sshSocketPath))
+            }
+            true
+        }.getOrDefault(false)
+    }
 
     fun stop() {
         val stdin = processStdin
@@ -143,8 +157,10 @@ class KeyguardSshAgentLauncher(
         serverJob?.cancel()
         serverJob = null
         scope.cancel()
-        ipcSocketPath?.let { runCatching { Files.deleteIfExists(it) } }
-        ipcSocketPath = null
+        (ipcEndpoint as? AgentIpcEndpoint.UnixSocket)?.let { endpoint ->
+            runCatching { Files.deleteIfExists(endpoint.socketPath) }
+        }
+        ipcEndpoint = null
     }
 
     private fun invokeStop(server: SshAgentIpcServer) {
@@ -153,4 +169,7 @@ class KeyguardSshAgentLauncher(
         method.isAccessible = true
         method.invoke(server)
     }
+
+    private fun isWindowsPipe(value: String): Boolean =
+        value.startsWith("\\\\.\\pipe\\", ignoreCase = true)
 }

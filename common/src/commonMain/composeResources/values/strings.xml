@@ -1086,7 +1086,7 @@
     <string name="ssh_agent_setup_step_3_title">3. Verify</string>
     <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
     <string name="ssh_agent_setup_windows_title">Windows</string>
-    <string name="ssh_agent_setup_windows_text">The current Keyguard desktop SSH agent runtime is not available on Windows yet, so setup here is informational only.</string>
+    <string name="ssh_agent_setup_windows_text">Keyguard listens on a Windows named pipe. Point Windows OpenSSH at this pipe.</string>
     <string name="ssh_agent_setup_android_termux_title" translatable="false">Termux</string>
     <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
     <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
@@ -1806,6 +1806,10 @@
     <string name="gpg_agent_setup_step_4_text">List Keyguard-visible keys, then sign a short message. Replace YOUR_KEY_FINGERPRINT with the fingerprint from the imported key.</string>
     <string name="gpg_agent_setup_step_5_title">5. Sign Git commits</string>
     <string name="gpg_agent_setup_step_5_text">Use the same GNUPGHOME when Git signs commits. Keep the config local to one repository, or change --local to --global.</string>
+    <string name="gpg_agent_setup_windows_step_2_title">2. Connect to the named pipe</string>
+    <string name="gpg_agent_setup_windows_step_2_text">Keyguard listens on this Windows named pipe for GPG agent requests.</string>
+    <string name="gpg_agent_setup_windows_step_3_text">Export the public key from the GPG Key item in Keyguard, then import it into your GnuPG installation. This exposes only public key material.</string>
+    <string name="gpg_agent_setup_windows_step_4_text">Verify the pipe with gpg-connect-agent. Regular gpg and Git signing on Windows depend on your GnuPG build resolving this pipe as its agent socket.</string>
     <string name="gpg_agent_filters_header_title">GPG agent filters</string>
     <string name="gpg_agent_filters_note_save_to_apply">Changes apply after you press Save.</string>
     <string name="gpg_agent_history_header_title">GPG agent history</string>

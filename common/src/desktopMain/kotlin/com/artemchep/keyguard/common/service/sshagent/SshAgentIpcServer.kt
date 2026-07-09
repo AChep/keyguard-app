@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.sshagent
 
-import com.artemchep.keyguard.common.service.agent.AgentIpcProtocol
 import com.artemchep.keyguard.common.service.agent.AgentIpcServer
+import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
@@ -96,7 +96,7 @@ class SshAgentIpcServer(
         maxConcurrentConnections = maxConcurrentConnections,
         session = { channel ->
             runSshAgentPacketSession(
-                channel = AgentIpcProtocol.open(channel),
+                channel = channel,
                 rpcHandler = rpcHandler,
                 initialContext = SshAgentRpcRequestContext(
                     authenticated = false,
@@ -122,6 +122,11 @@ class SshAgentIpcServer(
         socketPath: Path,
         onReady: CompletableDeferred<Unit>? = null,
     ) = server.start(socketPath, onReady)
+
+    suspend fun start(
+        endpoint: AgentIpcEndpoint,
+        onReady: CompletableDeferred<Unit>? = null,
+    ) = server.start(endpoint, onReady)
 
     /**
      * Processes a single IPC request and returns the corresponding response.

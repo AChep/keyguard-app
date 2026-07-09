@@ -13,8 +13,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.attribute.PosixFilePermissions
 import java.util.concurrent.TimeUnit
 import kotlin.time.Clock
 
@@ -70,8 +68,8 @@ abstract class AgentManager(
      * Thin abstraction over an agent's IPC server, allowing the shared
      * lifecycle to start it without knowing its concrete type.
      */
-    fun interface IpcServerRunner {
-        suspend fun start(socketPath: Path, onReady: CompletableDeferred<Unit>?)
+    protected fun interface IpcServerRunner {
+        suspend fun start(endpoint: AgentIpcEndpoint, onReady: CompletableDeferred<Unit>?)
     }
 
     companion object {
@@ -87,8 +85,7 @@ abstract class AgentManager(
     private var agentProcess: Process? = null
     private var serverJob: Job? = null
     private var serverScope: CoroutineScope? = null
-    private var ipcSocketPath: Path? = null
-    private var ipcSocketDirectory: Path? = null
+    private var ipcEndpoint: AgentIpcEndpoint? = null
 
     val defaultBinaryPath: Path? by lazy {
         findAgentBinary(config.binaryBaseName)
@@ -149,8 +146,7 @@ abstract class AgentManager(
         if (existingProcess != null ||
             serverScope != null ||
             serverJob != null ||
-            ipcSocketPath != null ||
-            ipcSocketDirectory != null
+            ipcEndpoint != null
         ) {
             logRepository.post(config.tag, "Cleaning up stale ${config.displayName} state", LogLevel.INFO)
             stopLocked()
@@ -169,11 +165,9 @@ abstract class AgentManager(
         val effectiveAgentSocketPath = agentSocketPath
             ?: config.defaultAgentSocketPath
 
-        // Determine IPC socket path (temporary file).
-        val ipcSocket = createAgentIpcSocketPath(config.ipcSocketPrefix)
-        val ipcSocketPath = ipcSocket.socketPath
-        this.ipcSocketPath = ipcSocketPath
-        this.ipcSocketDirectory = ipcSocket.directory
+        // Determine IPC endpoint.
+        val ipcEndpoint = createAgentIpcEndpoint(config.ipcSocketPrefix)
+        this.ipcEndpoint = ipcEndpoint
 
         val serverScope = kotlin.run {
             val parentJob = scope.coroutineContext[Job]
@@ -183,7 +177,7 @@ abstract class AgentManager(
 
         logRepository.post(config.tag, "Starting ${config.displayName} system", LogLevel.INFO)
         logRepository.post(config.tag, "Binary: $binaryPath", LogLevel.INFO)
-        logRepository.post(config.tag, "IPC socket: $ipcSocketPath", LogLevel.INFO)
+        logRepository.post(config.tag, "IPC endpoint: ${ipcEndpoint.displayName}", LogLevel.INFO)
         effectiveAgentSocketPath?.let {
             logRepository.post(config.tag, "${config.agentSocketLogLabel}: $it", LogLevel.INFO)
         }
@@ -201,7 +195,7 @@ abstract class AgentManager(
 
         serverJob = serverScope.launch(Dispatchers.IO) {
             try {
-                ipcServer.start(ipcSocketPath, onReady = serverReady)
+                ipcServer.start(ipcEndpoint, onReady = serverReady)
             } catch (e: Exception) {
                 if (e !is CancellationException) {
                     logRepository.post(
@@ -235,7 +229,7 @@ abstract class AgentManager(
             val command = mutableListOf(
                 binaryPath.toAbsolutePath().toString(),
                 "--ipc-socket",
-                ipcSocketPath.toAbsolutePath().toString(),
+                ipcEndpoint.argument,
             )
             effectiveAgentSocketPath?.let {
                 command.add(config.agentSocketArg)
@@ -349,24 +343,16 @@ abstract class AgentManager(
         serverScope?.cancel()
         serverScope = null
 
-        // Explicitly delete the IPC socket file in case the server's
+        // Explicitly delete the IPC endpoint in case the server's
         // finally block doesn't get a chance to run (e.g. abrupt shutdown).
-        ipcSocketPath?.let { path ->
+        ipcEndpoint?.let { endpoint ->
             try {
-                Files.deleteIfExists(path)
+                cleanupAgentIpcEndpoint(endpoint)
             } catch (e: Exception) {
-                logRepository.post(config.tag, "Error deleting IPC socket: ${e.message}", LogLevel.ERROR)
+                logRepository.post(config.tag, "Error deleting IPC endpoint: ${e.message}", LogLevel.ERROR)
             }
         }
-        ipcSocketPath = null
-        ipcSocketDirectory?.let { path ->
-            try {
-                Files.deleteIfExists(path)
-            } catch (e: Exception) {
-                logRepository.post(config.tag, "Error deleting IPC socket directory: ${e.message}", LogLevel.ERROR)
-            }
-        }
-        ipcSocketDirectory = null
+        ipcEndpoint = null
     }
 
     private fun Process.closeStdinQuietly() {
@@ -391,58 +377,3 @@ internal fun macosDevAgentSocketPath(relativePath: String): Path? {
     return Path.of("/tmp", "keyguard-${uid.toLong()}")
         .resolve(relativePath)
 }
-
-internal data class AgentIpcSocketPath(
-    val socketPath: Path,
-    val directory: Path,
-)
-
-/**
- * Creates a short private directory for a Unix-domain IPC socket.
- *
- * macOS and Linux impose small sockaddr_un path limits. In particular, the
- * JVM temp directory on macOS commonly lives under /var/folders/... and can
- * consume most of that budget before the socket filename is appended.
- */
-internal fun createAgentIpcSocketPath(prefix: String): AgentIpcSocketPath {
-    val directory = createAgentIpcSocketDirectory(prefix)
-    return AgentIpcSocketPath(
-        socketPath = directory.resolve("ipc.sock"),
-        directory = directory,
-    )
-}
-
-private fun createAgentIpcSocketDirectory(prefix: String): Path {
-    val root = agentIpcSocketTempRoot()
-    return if (isWindows()) {
-        Files.createTempDirectory(root, "$prefix-")
-    } else {
-        Files.createTempDirectory(
-            root,
-            "$prefix-",
-            PosixFilePermissions.asFileAttribute(OWNER_ONLY_DIRECTORY_PERMISSIONS),
-        )
-    }
-}
-
-private fun agentIpcSocketTempRoot(): Path {
-    if (isWindows()) {
-        return Path.of(System.getProperty("java.io.tmpdir"))
-    }
-
-    val shortTempRoot = Path.of("/tmp")
-    if (Files.isDirectory(shortTempRoot)) {
-        return shortTempRoot
-    }
-
-    return Path.of(System.getProperty("java.io.tmpdir"))
-}
-
-private fun isWindows(): Boolean =
-    System.getProperty("os.name").startsWith("Windows", ignoreCase = true)
-
-private val OWNER_ONLY_DIRECTORY_PERMISSIONS = setOf(
-    PosixFilePermission.OWNER_READ,
-    PosixFilePermission.OWNER_WRITE,
-    PosixFilePermission.OWNER_EXECUTE,
-)

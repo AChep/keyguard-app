@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.sshe2e
 
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.sshagent.sshPublicKeysMatch
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
@@ -18,7 +19,7 @@ import org.junit.BeforeClass
 class SshAgentEndToEndTest {
     companion object {
         private lateinit var workRoot: Path
-        private lateinit var sshSocketPath: Path
+        private lateinit var sshSocket: String
         private lateinit var launcher: KeyguardSshAgentLauncher
         private lateinit var keys: List<TestSshKey>
         private lateinit var ssh: SshCli
@@ -31,7 +32,11 @@ class SshAgentEndToEndTest {
             })
 
             val token = randomHex(4)
-            workRoot = Path.of("/tmp", "kg-sshe2e-$token")
+            workRoot = if (isWindows()) {
+                Files.createTempDirectory("kg-sshe2e-$token-")
+            } else {
+                Path.of("/tmp", "kg-sshe2e-$token")
+            }
             Files.createDirectories(workRoot)
             restrict(workRoot)
 
@@ -45,10 +50,24 @@ class SshAgentEndToEndTest {
                 processor = processor,
                 authToken = authToken,
             )
-            val ipcSocketPath = workRoot.resolve("ipc.sock")
-            sshSocketPath = workRoot.resolve("a.sock")
-            launcher.start(ipcSocketPath = ipcSocketPath, sshSocketPath = sshSocketPath)
-            ssh = SshCli(sshSocketPath)
+            val ipcEndpoint = if (isWindows()) {
+                AgentIpcEndpoint.WindowsPipe("\\\\.\\pipe\\kg-sshe2e-$token-ipc")
+            } else {
+                val ipcSocketPath = workRoot.resolve("ipc.sock")
+                AgentIpcEndpoint.UnixSocket(
+                    socketPath = ipcSocketPath,
+                    directory = workRoot,
+                )
+            }
+            sshSocket = if (isWindows()) {
+                "\\\\.\\pipe\\kg-sshe2e-$token-agent"
+            } else {
+                workRoot.resolve("a.sock")
+                    .toAbsolutePath()
+                    .toString()
+            }
+            launcher.start(ipcEndpoint = ipcEndpoint, sshSocket = sshSocket)
+            ssh = SshCli(sshSocket)
         }
 
         @JvmStatic
@@ -72,7 +91,7 @@ class SshAgentEndToEndTest {
             val binary = agentDir
                 .resolve("target")
                 .resolve("release")
-                .resolve("keyguard-ssh-agent")
+                .resolve(executableName("keyguard-ssh-agent"))
             require(Files.isExecutable(binary)) {
                 "keyguard-ssh-agent binary not found / not executable at $binary"
             }
@@ -123,6 +142,9 @@ class SshAgentEndToEndTest {
             SecureRandom().nextBytes(buf)
             return buf.joinToString("") { "%02x".format(it) }
         }
+
+        private fun executableName(name: String): String =
+            if (isWindows()) "$name.exe" else name
     }
 
     @Test
@@ -205,3 +227,6 @@ class SshAgentEndToEndTest {
         assertTrue(verifyResult.isSuccess, verifyResult.describe())
     }
 }
+
+private fun isWindows(): Boolean =
+    System.getProperty("os.name").startsWith("Windows", ignoreCase = true)

@@ -30,12 +30,16 @@ private const val GPG_AGENT_SETUP_LINUX_FLATPAK_HOME =
     $$"${XDG_RUNTIME_DIR}/app/com.artemchep.keyguard/gnupg"
 private const val GPG_AGENT_SETUP_LINUX_HOME_FALLBACK =
     $$"/tmp/keyguard-$(id -u)/gnupg"
+private const val GPG_AGENT_SETUP_WINDOWS_PIPE =
+    "\\\\.\\pipe\\keyguard-gpg-agent"
 private const val GPG_AGENT_SETUP_IMPORT_CMD =
     "gpg --import /path/to/keyguard-public-key.asc"
 private const val GPG_AGENT_SETUP_LIST_KEYS_CMD =
     "gpg --no-autostart --list-secret-keys --with-keygrip --keyid-format=long"
 private const val GPG_AGENT_SETUP_VERIFY_CMD_LIST =
     $$"""gpg-connect-agent --raw-socket "$GNUPGHOME/S.gpg-agent" "KEYINFO --list" /bye"""
+private const val GPG_AGENT_SETUP_WINDOWS_VERIFY_CMD_LIST =
+    "gpg-connect-agent --raw-socket \"\\\\.\\pipe\\keyguard-gpg-agent\" \"KEYINFO --list\" /bye"
 private const val GPG_AGENT_SETUP_VERIFY_CMD_SIGN =
     $$"""printf "Keyguard GPG agent test\n" | gpg --no-autostart --local-user YOUR_KEY_FINGERPRINT --clearsign"""
 private const val GPG_AGENT_SETUP_GIT_CONFIG_CMD = """git config --local user.signingkey YOUR_KEY_FINGERPRINT
@@ -72,6 +76,8 @@ private fun ColumnScope.GpgAgentSetupScreenContent() {
             },
             fallbackHome = GPG_AGENT_SETUP_LINUX_HOME_FALLBACK.takeUnless { platform.isFlatpak },
         )
+
+        is Platform.Desktop.Windows -> GpgAgentSetupWindowsContent()
 
         else -> AgentSetupParagraph(
             text = stringResource(Res.string.gpg_agent_setup_unsupported_text),
@@ -190,3 +196,61 @@ private fun exportGpgHomeCommand(gpgHome: String): String =
 private fun String.escapeDoubleQuoted(): String =
     replace("\\", "\\\\")
         .replace("\"", "\\\"")
+
+@Composable
+private fun ColumnScope.GpgAgentSetupWindowsContent() {
+    Section(
+        text = stringResource(Res.string.gpg_agent_setup_step_1_title),
+    )
+    AgentSetupParagraph(
+        text = stringResource(Res.string.gpg_agent_setup_step_1_text),
+    )
+    AgentSetupSectionDivider()
+
+    Section(
+        text = stringResource(Res.string.gpg_agent_setup_windows_step_2_title),
+    )
+    AgentSetupParagraph(
+        text = stringResource(Res.string.gpg_agent_setup_windows_step_2_text),
+    )
+    Spacer(
+        modifier = Modifier
+            .height(4.dp),
+    )
+    AgentSetupCodeBlock(
+        text = GPG_AGENT_SETUP_WINDOWS_PIPE,
+    )
+    AgentSetupSectionDivider()
+
+    Section(
+        text = stringResource(Res.string.gpg_agent_setup_step_3_title),
+    )
+    AgentSetupParagraph(
+        text = stringResource(Res.string.gpg_agent_setup_windows_step_3_text),
+    )
+    Spacer(
+        modifier = Modifier
+            .height(4.dp),
+    )
+    AgentSetupCodeBlock(
+        text = GPG_AGENT_SETUP_IMPORT_CMD,
+    )
+    AgentSetupCodeBlock(
+        text = GPG_AGENT_SETUP_LIST_KEYS_CMD,
+    )
+    AgentSetupSectionDivider()
+
+    Section(
+        text = stringResource(Res.string.gpg_agent_setup_step_4_title),
+    )
+    AgentSetupParagraph(
+        text = stringResource(Res.string.gpg_agent_setup_windows_step_4_text),
+    )
+    Spacer(
+        modifier = Modifier
+            .height(4.dp),
+    )
+    AgentSetupCodeBlock(
+        text = GPG_AGENT_SETUP_WINDOWS_VERIFY_CMD_LIST,
+    )
+}

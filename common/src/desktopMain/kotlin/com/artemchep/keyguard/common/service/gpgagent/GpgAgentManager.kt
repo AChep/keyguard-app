@@ -74,8 +74,8 @@ class GpgAgentManager(
                 awaitWithExpiry(request, reason = "desktop_gpg_approval_timeout")
             },
         )
-        return IpcServerRunner { socketPath, onReady ->
-            ipcServer.start(socketPath, onReady = onReady)
+        return IpcServerRunner { endpoint, onReady ->
+            ipcServer.start(endpoint, onReady = onReady)
         }
     }
 }

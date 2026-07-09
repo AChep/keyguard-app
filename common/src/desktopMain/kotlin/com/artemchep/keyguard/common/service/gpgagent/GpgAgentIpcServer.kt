@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
-import com.artemchep.keyguard.common.service.agent.AgentIpcProtocol
+import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.agent.AgentIpcServer
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -83,7 +83,7 @@ class GpgAgentIpcServer(
         maxConcurrentConnections = maxConcurrentConnections,
         session = { channel ->
             runGpgAgentPacketSession(
-                channel = AgentIpcProtocol.open(channel),
+                channel = channel,
                 rpcHandler = rpcHandler,
                 initialContext = GpgAgentRpcRequestContext(
                     authenticated = false,
@@ -99,4 +99,9 @@ class GpgAgentIpcServer(
         socketPath: Path,
         onReady: CompletableDeferred<Unit>? = null,
     ) = server.start(socketPath, onReady)
+
+    suspend fun start(
+        endpoint: AgentIpcEndpoint,
+        onReady: CompletableDeferred<Unit>? = null,
+    ) = server.start(endpoint, onReady)
 }

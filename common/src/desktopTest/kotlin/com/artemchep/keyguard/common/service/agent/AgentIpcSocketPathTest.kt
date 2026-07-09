@@ -10,6 +10,16 @@ import kotlin.test.assertTrue
 class AgentIpcSocketPathTest {
     @Test
     fun `gpg ipc socket path stays below unix domain path limit`() {
+        if (isWindows()) {
+            val endpoint = createAgentIpcEndpoint("keyguard-gpg-ipc")
+            assertTrue(endpoint is AgentIpcEndpoint.WindowsPipe)
+            assertTrue(
+                endpoint.pipeName.startsWith("\\\\.\\pipe\\keyguard-gpg-ipc-"),
+                "Windows IPC endpoint should be a named pipe: ${endpoint.pipeName}",
+            )
+            return
+        }
+
         val path = createAgentIpcSocketPath("keyguard-gpg-ipc")
         try {
             assertEquals("ipc.sock", path.socketPath.fileName.toString())
@@ -17,12 +27,10 @@ class AgentIpcSocketPathTest {
                 path.socketPath.toString().length < 90,
                 "IPC socket path should leave room under Unix domain socket limits: ${path.socketPath}",
             )
-            if (!isWindows()) {
-                assertTrue(
-                    path.directory.startsWith(Path.of("/tmp")),
-                    "Unix IPC socket path should use short temp root: ${path.socketPath}",
-                )
-            }
+            assertTrue(
+                path.directory.startsWith(Path.of("/tmp")),
+                "Unix IPC socket path should use short temp root: ${path.socketPath}",
+            )
         } finally {
             Files.deleteIfExists(path.socketPath)
             Files.deleteIfExists(path.directory)

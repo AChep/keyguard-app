@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.gpge2e
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentIpcServer
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import kotlinx.coroutines.CompletableDeferred
@@ -13,6 +14,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
+import java.io.RandomAccessFile
 import java.net.StandardProtocolFamily
 import java.net.UnixDomainSocketAddress
 import java.nio.ByteBuffer
@@ -31,17 +33,17 @@ class KeyguardAgentLauncher(
     private var ipcServer: GpgAgentIpcServer? = null
     private var process: Process? = null
     private var processStdin: OutputStream? = null
-    private var ipcSocketPath: Path? = null
+    private var ipcEndpoint: AgentIpcEndpoint? = null
 
     /**
-     * @param ipcSocketPath short unix socket path for the Kotlin <-> Rust IPC channel.
-     * @param gpgSocketPath the `S.gpg-agent` socket the Rust binary binds for gpg to talk to.
+     * @param ipcEndpoint endpoint for the Kotlin <-> Rust IPC channel.
+     * @param gpgSocket the endpoint the Rust binary binds for gpg or raw Assuan clients.
      */
     fun start(
-        ipcSocketPath: Path,
-        gpgSocketPath: Path,
+        ipcEndpoint: AgentIpcEndpoint,
+        gpgSocket: String,
     ) {
-        this.ipcSocketPath = ipcSocketPath
+        this.ipcEndpoint = ipcEndpoint
 
         val log = TestLogRepository()
         val server = GpgAgentIpcServer(
@@ -55,7 +57,7 @@ class KeyguardAgentLauncher(
         val onReady = CompletableDeferred<Unit>()
         serverJob = scope.launch {
             runCatching {
-                server.start(ipcSocketPath, onReady = onReady)
+                server.start(ipcEndpoint, onReady = onReady)
             }.onFailure { e ->
                 onReady.completeExceptionally(e)
             }
@@ -68,8 +70,10 @@ class KeyguardAgentLauncher(
         val verbose = System.getProperty("keyguard.gpgE2e.verbose") == "true"
         val command = buildList {
             add(binaryPath.toAbsolutePath().toString())
-            add("--ipc-socket"); add(ipcSocketPath.toAbsolutePath().toString())
-            add("--gpg-socket"); add(gpgSocketPath.toAbsolutePath().toString())
+            add("--ipc-socket")
+            add(ipcEndpoint.argument)
+            add("--gpg-socket")
+            add(gpgSocket)
             if (verbose) add("--verbose")
         }
         val builder = ProcessBuilder(command)
@@ -89,7 +93,7 @@ class KeyguardAgentLauncher(
             procStdin.flush()
 
             // Wait for the Rust binary to bind the gpg socket before any client gpg runs.
-            waitForSocket(gpgSocketPath, proc)
+            waitForSocket(gpgSocket, proc)
         } catch (e: Exception) {
             stop()
             throw e
@@ -97,7 +101,7 @@ class KeyguardAgentLauncher(
     }
 
     private fun waitForSocket(
-        gpgSocketPath: Path,
+        gpgSocket: String,
         proc: Process,
     ) {
         val deadline = System.currentTimeMillis() + 10_000
@@ -105,27 +109,54 @@ class KeyguardAgentLauncher(
             if (!proc.isAlive) {
                 error("keyguard-gpg-agent exited early with code ${proc.exitValue()}")
             }
-            if (Files.exists(gpgSocketPath) && canConnectToSocket(gpgSocketPath)) {
+            if (canConnectToSocket(gpgSocket)) {
                 Thread.sleep(250)
                 if (!proc.isAlive) {
-                    error("keyguard-gpg-agent exited after binding $gpgSocketPath with code ${proc.exitValue()}")
-                }
-                if (!Files.exists(gpgSocketPath)) {
-                    error("keyguard-gpg-agent socket disappeared after binding: $gpgSocketPath")
+                    error("keyguard-gpg-agent exited after binding $gpgSocket with code ${proc.exitValue()}")
                 }
                 return
             }
             Thread.sleep(50)
         }
-        error("Timed out waiting for the gpg socket to appear at $gpgSocketPath")
+        error("Timed out waiting for the gpg socket to appear at $gpgSocket")
     }
 
-    private fun canConnectToSocket(gpgSocketPath: Path): Boolean = runCatching {
+    private fun canConnectToSocket(gpgSocket: String): Boolean = runCatching {
+        assuanTranscript(gpgSocket, listOf("BYE\n"))
+            .any { it == "OK" || it.startsWith("OK ") }
+    }.getOrDefault(false)
+
+    fun assuanTranscript(
+        gpgSocket: String,
+        commands: List<String>,
+    ): List<String> {
+        val bytes = if (isWindowsPipe(gpgSocket)) {
+            namedPipeAssuanTranscript(gpgSocket, commands)
+        } else {
+            unixAssuanTranscript(Path.of(gpgSocket), commands)
+        }
+        return bytes
+            .decodeToString()
+            .lineSequence()
+            .filter { it.isNotEmpty() }
+            .toList()
+    }
+
+    private fun unixAssuanTranscript(
+        gpgSocketPath: Path,
+        commands: List<String>,
+    ): ByteArray {
+        if (!Files.exists(gpgSocketPath)) {
+            return ByteArray(0)
+        }
+
         SocketChannel.open(StandardProtocolFamily.UNIX).use { channel ->
             channel.connect(UnixDomainSocketAddress.of(gpgSocketPath))
-            val command = ByteBuffer.wrap("BYE\n".encodeToByteArray())
-            while (command.hasRemaining()) {
-                channel.write(command)
+            for (command in commands) {
+                val buffer = ByteBuffer.wrap(command.encodeToByteArray())
+                while (buffer.hasRemaining()) {
+                    channel.write(buffer)
+                }
             }
             channel.shutdownOutput()
 
@@ -142,12 +173,29 @@ class KeyguardAgentLauncher(
                 buffer.get(bytes)
                 out.write(bytes)
             }
-            out.toByteArray()
-                .decodeToString()
-                .lineSequence()
-                .any { it == "OK" || it.startsWith("OK ") }
+            return out.toByteArray()
         }
-    }.getOrDefault(false)
+    }
+
+    private fun namedPipeAssuanTranscript(
+        pipeName: String,
+        commands: List<String>,
+    ): ByteArray = RandomAccessFile(pipeName, "rw").use { pipe ->
+        for (command in commands) {
+            pipe.write(command.encodeToByteArray())
+        }
+
+        val out = ByteArrayOutputStream()
+        val buffer = ByteArray(4096)
+        while (true) {
+            val read = pipe.read(buffer)
+            if (read < 0) {
+                break
+            }
+            out.write(buffer, 0, read)
+        }
+        out.toByteArray()
+    }
 
     fun stop() {
         val stdin = processStdin
@@ -166,8 +214,10 @@ class KeyguardAgentLauncher(
         serverJob?.cancel()
         serverJob = null
         scope.cancel()
-        ipcSocketPath?.let { runCatching { Files.deleteIfExists(it) } }
-        ipcSocketPath = null
+        (ipcEndpoint as? AgentIpcEndpoint.UnixSocket)?.let { endpoint ->
+            runCatching { Files.deleteIfExists(endpoint.socketPath) }
+        }
+        ipcEndpoint = null
     }
 
     private fun invokeStop(server: GpgAgentIpcServer) {
@@ -176,4 +226,7 @@ class KeyguardAgentLauncher(
         method.isAccessible = true
         method.invoke(server)
     }
+
+    private fun isWindowsPipe(value: String): Boolean =
+        value.startsWith("\\\\.\\pipe\\", ignoreCase = true)
 }

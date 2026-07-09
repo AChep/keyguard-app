@@ -116,8 +116,8 @@ class SshAgentManager(
                 requestGetList(it)
             },
         )
-        return IpcServerRunner { socketPath, onReady ->
-            ipcServer.start(socketPath, onReady = onReady)
+        return IpcServerRunner { endpoint, onReady ->
+            ipcServer.start(endpoint, onReady = onReady)
         }
     }
 

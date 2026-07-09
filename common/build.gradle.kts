@@ -253,6 +253,7 @@ kotlin {
                 implementation(libs.harawata.appdirs)
                 implementation(libs.directory.watcher)
                 implementation(libs.commons.lang3)
+                implementation(libs.java.jna)
                 val sqldelight = libs.cash.sqldelight.sqlite.driver.get()
                     .let { "${it.module}:${it.versionConstraint.requiredVersion}" }
                 api(sqldelight) {

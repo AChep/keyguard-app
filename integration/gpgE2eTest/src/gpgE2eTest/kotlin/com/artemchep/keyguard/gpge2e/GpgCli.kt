@@ -18,6 +18,7 @@ data class ProcessResult(
  */
 class GpgCli(
     private val gnupgHome: Path,
+    private val toolchain: GpgToolchain = GpgToolchain.current,
 ) {
     fun run(
         vararg args: String,
@@ -31,12 +32,12 @@ class GpgCli(
         timeoutSeconds: Long = 30,
     ): ProcessResult {
         val command = buildList {
-            add("gpg")
+            add(toolchain.gpg.toString())
             add("--homedir")
             add(gnupgHome.toAbsolutePath().toString())
             addAll(args)
         }
-        return exec(command, gnupgHome, stdin, timeoutSeconds)
+        return exec(command, gnupgHome, stdin, timeoutSeconds, toolchain)
     }
 
     fun gpgconf(
@@ -44,12 +45,12 @@ class GpgCli(
         timeoutSeconds: Long = 30,
     ): ProcessResult {
         val command = buildList {
-            add("gpgconf")
+            add(toolchain.gpgconf.toString())
             add("--homedir")
             add(gnupgHome.toAbsolutePath().toString())
             addAll(args)
         }
-        return exec(command, gnupgHome, null, timeoutSeconds)
+        return exec(command, gnupgHome, null, timeoutSeconds, toolchain)
     }
 
     companion object {
@@ -58,8 +59,10 @@ class GpgCli(
             gnupgHome: Path,
             stdin: ByteArray?,
             timeoutSeconds: Long,
+            toolchain: GpgToolchain = GpgToolchain.current,
         ): ProcessResult {
             val builder = ProcessBuilder(command)
+            toolchain.applyToEnvironment(builder.environment())
             builder.environment()["GNUPGHOME"] = gnupgHome.toAbsolutePath().toString()
             val process = builder.start()
             if (stdin != null) {

@@ -54,6 +54,7 @@ class GpgAgentEndToEndTest {
             val repoRoot = Path.of(requireNotNull(System.getProperty("keyguard.repoRoot")) {
                 "Missing system property keyguard.repoRoot"
             })
+            GpgToolchain.current.verifyCompatibleForE2e()
 
             // Short base path so the Unix socket paths stay well under the ~104 char limit.
             val token = randomHex(4)

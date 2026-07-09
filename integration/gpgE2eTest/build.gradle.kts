@@ -2,6 +2,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.tasks.testing.Test
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 plugins {
@@ -52,33 +53,50 @@ tasks.register<Test>("gpgE2eTest") {
     System.getProperty("keyguard.gpgE2e.verbose")?.let {
         systemProperty("keyguard.gpgE2e.verbose", it)
     }
+    System.getProperty("keyguard.gpg.binDir")?.let {
+        systemProperty("keyguard.gpg.binDir", it)
+    }
 
     doFirst {
-        // Preflight: a real gpg toolchain must be on PATH.
-        fun requireOnPath(tool: String, versionArg: String) {
+        fun gpgTool(tool: String): String {
+            val binDir = System.getProperty("keyguard.gpg.binDir")
+                ?: System.getenv("KEYGUARD_GPG_BIN_DIR")
+            if (binDir == null) return tool
+
+            val executableName = if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
+                "$tool.exe"
+            } else {
+                tool
+            }
+            return File(binDir, executableName).absolutePath
+        }
+
+        // Preflight: a real gpg toolchain and cargo must be available before
+        // starting the expensive test fork.
+        fun requireRuns(label: String, command: String, versionArg: String) {
             val process = try {
-                ProcessBuilder(tool, versionArg).redirectErrorStream(true).start()
+                ProcessBuilder(command, versionArg).redirectErrorStream(true).start()
             } catch (e: Exception) {
                 throw GradleException(
-                    "GPG E2E test requires '$tool' on PATH, but it could not be started.",
+                    "GPG E2E test requires '$label', but it could not be started at '$command'.",
                     e,
                 )
             }
             if (!process.waitFor(15, TimeUnit.SECONDS)) {
                 process.destroyForcibly()
-                throw GradleException("Timed out while running '$tool $versionArg'.")
+                throw GradleException("Timed out while running '$command $versionArg'.")
             }
             val output = process.inputStream.readBytes().decodeToString().trim()
             if (process.exitValue() != 0) {
                 throw GradleException(
-                    "GPG E2E test requires '$tool' on PATH, but '$tool $versionArg' exited " +
+                    "GPG E2E test requires '$label', but '$command $versionArg' exited " +
                         "with ${process.exitValue()}.\n$output",
                 )
             }
         }
-        requireOnPath("gpg", "--version")
-        requireOnPath("gpgconf", "--version")
-        requireOnPath("cargo", "--version")
+        requireRuns("gpg", gpgTool("gpg"), "--version")
+        requireRuns("gpgconf", gpgTool("gpgconf"), "--version")
+        requireRuns("cargo", "cargo", "--version")
     }
 
     testLogging {

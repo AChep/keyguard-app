@@ -113,9 +113,21 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           choco install protoc gnupg --yes --no-progress
+          $gpgBin = @(
+            "${env:ProgramFiles(x86)}\GnuPG\bin",
+            "$env:ProgramFiles\GnuPG\bin"
+          ) | Where-Object { Test-Path (Join-Path $_ "gpg.exe") } | Select-Object -First 1
+          if (-not $gpgBin) {
+            throw "Native GnuPG install not found after Chocolatey install."
+          }
+          $env:Path = "$gpgBin;$env:Path"
+          "KEYGUARD_GPG_BIN_DIR=$gpgBin" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+          "$gpgBin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
           protoc --version
           gpg --version
           gpgconf --version
+          where.exe gpg
+          where.exe gpgconf
       - name: "Run GPG end-to-end tests"
         run: ${{ matrix.gradle }} :integration:gpgE2eTest:gpgE2eTest
       - name: "Upload test reports"

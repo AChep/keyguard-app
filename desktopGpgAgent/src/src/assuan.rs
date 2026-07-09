@@ -510,11 +510,14 @@ async fn handle_pkdecrypt<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin>(
     reader: &mut R,
     write: &mut W,
 ) -> Result<()> {
-    if let Err(e) = parse_pkdecrypt_args(args) {
-        warn!("invalid PKDECRYPT request: {e}");
-        write_error(write, ERR_ASS_PARAMETER, "invalid PKDECRYPT").await?;
-        return Ok(());
-    }
+    let pkdecrypt_args = match parse_pkdecrypt_args(args) {
+        Ok(args) => args,
+        Err(e) => {
+            warn!("invalid PKDECRYPT request: {e}");
+            write_error(write, ERR_ASS_PARAMETER, "invalid PKDECRYPT").await?;
+            return Ok(());
+        }
+    };
 
     // gpg-agent still performs the ciphertext inquiry first; the missing
     // keygrip is reported only after the client has completed or canceled it.
@@ -577,11 +580,15 @@ async fn handle_pkdecrypt<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin>(
         return Ok(());
     }
 
-    match ipc_client.pkdecrypt(&keygrip, &ciphertext, caller).await {
+    match ipc_client
+        .pkdecrypt(&keygrip, &ciphertext, pkdecrypt_args.unwrap_ecdh, caller)
+        .await
+    {
         Ok(response) => {
-            // Note: deliberately no `S PADDING` status line. gpg performs
-            // the PKCS#1 unpadding / RFC 6637 KDF + unwrap itself from the
-            // raw (value ...) S-expression we relay.
+            // Note: deliberately no `S PADDING` status line. For RSA and legacy
+            // ECDH, gpg performs the final unpadding / unwrap work. For
+            // `PKDECRYPT --kem=...`, the app returns the already-unwrapped
+            // ECDH session-key block.
             //
             // The Keyguard processor hands us the value in libgcrypt's
             // advanced text form `(value #HEX#)`, but gpg's PKDECRYPT result
@@ -832,19 +839,35 @@ fn parse_keygrip_command_args(args: &str) -> Result<KeygripCommandArgs> {
     })
 }
 
-fn parse_pkdecrypt_args(args: &str) -> Result<()> {
-    for arg in args.split_whitespace() {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct PkdecryptArgs {
+    unwrap_ecdh: bool,
+}
+
+fn parse_pkdecrypt_args(args: &str) -> Result<PkdecryptArgs> {
+    let mut unwrap_ecdh = false;
+    let mut args = args.split_whitespace().peekable();
+    while let Some(arg) = args.next() {
         if arg == "--kem" {
+            unwrap_ecdh = true;
+            if let Some(next) = args.next_if(|next| !next.starts_with("--")) {
+                validate_pkdecrypt_kem(next)?;
+            }
             continue;
         }
         if let Some(kem) = arg.strip_prefix("--kem=") {
-            match kem {
-                "PQC-PGP" | "PGP" | "CMS" => {}
-                _ => bail!("invalid KEM algorithm"),
-            }
+            unwrap_ecdh = true;
+            validate_pkdecrypt_kem(kem)?;
         }
     }
-    Ok(())
+    Ok(PkdecryptArgs { unwrap_ecdh })
+}
+
+fn validate_pkdecrypt_kem(kem: &str) -> Result<()> {
+    match kem {
+        "PQC-PGP" | "PGP" | "CMS" => Ok(()),
+        _ => bail!("invalid KEM algorithm"),
+    }
 }
 
 fn normalize_keygrip(input: &str) -> Result<String> {
@@ -1363,11 +1386,12 @@ mod tests {
 
     #[test]
     fn pkdecrypt_args_accept_valid_kem_options() {
-        assert!(parse_pkdecrypt_args("").is_ok());
-        assert!(parse_pkdecrypt_args("--kem").is_ok());
-        assert!(parse_pkdecrypt_args("--kem=PQC-PGP").is_ok());
-        assert!(parse_pkdecrypt_args("--kem=PGP").is_ok());
-        assert!(parse_pkdecrypt_args("--kem=CMS").is_ok());
+        assert!(!parse_pkdecrypt_args("").unwrap().unwrap_ecdh);
+        assert!(parse_pkdecrypt_args("--kem").unwrap().unwrap_ecdh);
+        assert!(parse_pkdecrypt_args("--kem PGP").unwrap().unwrap_ecdh);
+        assert!(parse_pkdecrypt_args("--kem=PQC-PGP").unwrap().unwrap_ecdh);
+        assert!(parse_pkdecrypt_args("--kem=PGP").unwrap().unwrap_ecdh);
+        assert!(parse_pkdecrypt_args("--kem=CMS").unwrap().unwrap_ecdh);
         assert!(parse_pkdecrypt_args("--kem=BAD").is_err());
     }
 

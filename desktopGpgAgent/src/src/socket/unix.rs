@@ -19,16 +19,21 @@ pub async fn serve(
     if socket_path.exists() {
         warn!(path = %socket_path.display(), "removing stale GPG agent socket");
         fs::remove_file(socket_path).with_context(|| {
-            format!("failed to remove stale GPG agent socket: {}", socket_path.display())
+            format!(
+                "failed to remove stale GPG agent socket: {}",
+                socket_path.display()
+            )
         })?;
     }
 
     let listener = UnixListener::bind(socket_path).with_context(|| {
-        format!("failed to bind GPG agent socket at {}", socket_path.display())
+        format!(
+            "failed to bind GPG agent socket at {}",
+            socket_path.display()
+        )
     })?;
-    fs::set_permissions(socket_path, fs::Permissions::from_mode(0o600)).with_context(|| {
-        format!("failed to set permissions on {}", socket_path.display())
-    })?;
+    fs::set_permissions(socket_path, fs::Permissions::from_mode(0o600))
+        .with_context(|| format!("failed to set permissions on {}", socket_path.display()))?;
 
     info!(path = %socket_path.display(), "GPG agent listening on Unix socket");
 
@@ -56,7 +61,8 @@ async fn accept_loop(
         let ipc_client = ipc_client.clone();
         let socket_name = socket_name.clone();
         tokio::spawn(async move {
-            if let Err(e) = assuan::serve_connection(stream, ipc_client, caller, socket_name).await {
+            if let Err(e) = assuan::serve_connection(stream, ipc_client, caller, socket_name).await
+            {
                 warn!("GPG Assuan connection failed: {e}");
             }
         });
@@ -114,18 +120,23 @@ fn ensure_safe_linux_fallback_parent_dir(parent: &Path, uid: libc::uid_t) -> Res
         Ok(()) => {}
         Err(e) if e.kind() == ErrorKind::AlreadyExists => {}
         Err(e) => {
-            return Err(e)
-                .with_context(|| format!("failed to create {}", parent.display()));
+            return Err(e).with_context(|| format!("failed to create {}", parent.display()));
         }
     }
 
     let metadata = fs::symlink_metadata(parent)
         .with_context(|| format!("failed to inspect {}", parent.display()))?;
     if metadata.file_type().is_symlink() {
-        anyhow::bail!("unsafe GPG fallback directory {}: symlink", parent.display());
+        anyhow::bail!(
+            "unsafe GPG fallback directory {}: symlink",
+            parent.display()
+        );
     }
     if !metadata.file_type().is_dir() {
-        anyhow::bail!("unsafe GPG fallback directory {}: not a directory", parent.display());
+        anyhow::bail!(
+            "unsafe GPG fallback directory {}: not a directory",
+            parent.display()
+        );
     }
     if metadata.uid() != uid {
         anyhow::bail!(
@@ -136,9 +147,8 @@ fn ensure_safe_linux_fallback_parent_dir(parent: &Path, uid: libc::uid_t) -> Res
         );
     }
     if (metadata.mode() & 0o777) != 0o700 {
-        fs::set_permissions(parent, fs::Permissions::from_mode(0o700)).with_context(|| {
-            format!("failed to set permissions on {}", parent.display())
-        })?;
+        fs::set_permissions(parent, fs::Permissions::from_mode(0o700))
+            .with_context(|| format!("failed to set permissions on {}", parent.display()))?;
     }
     Ok(())
 }

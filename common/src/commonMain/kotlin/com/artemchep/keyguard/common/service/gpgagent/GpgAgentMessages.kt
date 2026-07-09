@@ -145,19 +145,23 @@ object GpgAgentMessages {
         val ciphertext: ByteArray = byteArrayOf(),
         @ProtoNumber(3)
         val caller: CallerIdentity? = null,
+        @ProtoNumber(4)
+        val unwrapEcdh: Boolean = false,
     ) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other !is PkdecryptRequest) return false
             return keygrip == other.keygrip &&
                     ciphertext.contentEquals(other.ciphertext) &&
-                    caller == other.caller
+                    caller == other.caller &&
+                    unwrapEcdh == other.unwrapEcdh
         }
 
         override fun hashCode(): Int {
             var result = keygrip.hashCode()
             result = 31 * result + ciphertext.contentHashCode()
             result = 31 * result + (caller?.hashCode() ?: 0)
+            result = 31 * result + unwrapEcdh.hashCode()
             return result
         }
     }

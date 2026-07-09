@@ -141,6 +141,7 @@ class GpgAgentRequestProcessorImpl(
                     ?: throw GpgAgentKeyNotFoundException(),
                 metadataKey = match.metadataKey,
                 ciphertext = request.ciphertext,
+                unwrapEcdh = request.unwrapEcdh,
             )
         },
     )

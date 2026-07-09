@@ -47,11 +47,10 @@ import kotlin.test.assertTrue
  *  - RSA: the agent does only the raw private-key operation, returning m = c^d mod n with
  *    the PKCS#1 padding intact; gpg strips the padding itself. The test PKCS#1-encrypts a
  *    session key, decrypts it through the agent, then unpads m and checks it round-trips.
- *  - ECDH: the agent does the FULL RFC 6637 operation — derive the shared point, run the
- *    KDF to build the KEK, and AES-key-unwrap the wrapped session key — and returns the
- *    still-PKCS#5-padded session-key block; gpg strips only that padding. The test acts as
- *    the sender: it generates an ephemeral keypair, wraps a session-key block under the
- *    KDF-derived KEK, and asserts the agent recovers the exact wrapped block.
+ *  - ECDH: newer `PKDECRYPT --kem=PGP` requests expect the agent to perform the
+ *    full RFC 6637 KDF + AES unwrap and return the still-PKCS#5-padded session-key
+ *    block. Legacy plain `PKDECRYPT` requests expect the shared-secret value so gpg
+ *    can do the KDF + unwrap itself.
  */
 class GpgAgentDecryptTest {
     @BeforeTest
@@ -129,6 +128,7 @@ class GpgAgentDecryptTest {
             privateKeyArmored = GpgTestKeyFixtures.RSA,
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.RSA)),
             ciphertext = encVal,
+            unwrapEcdh = false,
         )
 
         // The agent returns the raw m = c^d mod n with the PKCS#1 padding intact.
@@ -177,12 +177,58 @@ class GpgAgentDecryptTest {
             privateKeyArmored = GpgTestKeyFixtures.CV25519,
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.CV25519)),
             ciphertext = encVal,
+            unwrapEcdh = true,
         )
 
         // The agent must recover the original (still PKCS#5-padded) session-key block.
         assertTrue(
             sessionKeyBlock.contentEquals(parseValue(response.valueSexp)),
             "cv25519 agent must AES-unwrap the session key block",
+        )
+    }
+
+    @Test
+    fun `cv25519 legacy pkdecrypt returns prefixed shared secret`() {
+        val encryptionKey = encryptionPublicKey(GpgTestKeyFixtures.CV25519)
+        val recipientU = stripPointPrefix(curve25519PublicPoint(encryptionKey))
+
+        val generator = X25519KeyPairGenerator()
+        generator.init(X25519KeyGenerationParameters(SecureRandom()))
+        val ephemeral = generator.generateKeyPair()
+        val ephemeralPrivate = ephemeral.private as X25519PrivateKeyParameters
+        val ephemeralPublic = ephemeral.public as X25519PublicKeyParameters
+
+        val agreement = X25519Agreement()
+        agreement.init(ephemeralPrivate)
+        val sharedSecret = ByteArray(agreement.agreementSize)
+        agreement.calculateAgreement(X25519PublicKeyParameters(recipientU, 0), sharedSecret, 0)
+
+        val sessionKeyBlock = randomSessionKeyBlock()
+        val kek = rfc6637Kek(encryptionKey, sharedSecret)
+        val wrapped = aesWrap(kek, sessionKeyBlock)
+
+        val e = byteArrayOf(0x40) + ephemeralPublic.encoded
+        val encVal = canonicalSExpr(
+            list(
+                atom("enc-val"),
+                list(
+                    atom("ecdh"),
+                    list(atom("s"), atom(byteArrayOf(wrapped.size.toByte()) + wrapped)),
+                    list(atom("e"), atom(e)),
+                ),
+            ),
+        )
+
+        val response = GpgAgentCryptoJvm().pkdecrypt(
+            privateKeyArmored = GpgTestKeyFixtures.CV25519,
+            metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.CV25519)),
+            ciphertext = encVal,
+            unwrapEcdh = false,
+        )
+
+        assertTrue(
+            (byteArrayOf(0x40) + sharedSecret).contentEquals(parseValue(response.valueSexp)),
+            "legacy cv25519 agent response must be 0x40 || shared_u",
         )
     }
 
@@ -227,11 +273,58 @@ class GpgAgentDecryptTest {
             privateKeyArmored = GpgTestKeyFixtures.NISTP256,
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.NISTP256)),
             ciphertext = encVal,
+            unwrapEcdh = true,
         )
 
         assertTrue(
             sessionKeyBlock.contentEquals(parseValue(response.valueSexp)),
             "nistp256 agent must AES-unwrap the session key block",
+        )
+    }
+
+    @Test
+    fun `nistp256 legacy pkdecrypt returns shared point`() {
+        val encryptionKey = encryptionPublicKey(GpgTestKeyFixtures.NISTP256)
+        val publicKey = JcaPGPKeyConverter()
+            .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+            .getPublicKey(encryptionKey) as ECPublicKey
+
+        val generator = publicKey.parameters.g
+        val order = publicKey.parameters.n
+
+        val random = SecureRandom()
+        val ephemeralPrivate = BigInteger(order.bitLength(), random).mod(order)
+        val ephemeralPoint = generator.multiply(ephemeralPrivate).normalize()
+
+        val sharedPoint = publicKey.q.multiply(ephemeralPrivate).normalize()
+        val sharedSecret = sharedPoint.affineXCoord.encoded
+
+        val sessionKeyBlock = randomSessionKeyBlock()
+        val kek = rfc6637Kek(encryptionKey, sharedSecret)
+        val wrapped = aesWrap(kek, sessionKeyBlock)
+
+        val e = ephemeralPoint.getEncoded(false)
+        val encVal = canonicalSExpr(
+            list(
+                atom("enc-val"),
+                list(
+                    atom("ecdh"),
+                    list(atom("s"), atom(byteArrayOf(wrapped.size.toByte()) + wrapped)),
+                    list(atom("e"), atom(e)),
+                ),
+            ),
+        )
+
+        val response = GpgAgentCryptoJvm().pkdecrypt(
+            privateKeyArmored = GpgTestKeyFixtures.NISTP256,
+            metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.NISTP256)),
+            ciphertext = encVal,
+            unwrapEcdh = false,
+        )
+
+        assertTrue(
+            sharedPoint.getEncoded(false).contentEquals(parseValue(response.valueSexp)),
+            "legacy nistp256 agent response must be the uncompressed shared point",
         )
     }
 

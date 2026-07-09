@@ -130,6 +130,7 @@ impl IpcClient {
         &self,
         keygrip: &str,
         ciphertext: &[u8],
+        unwrap_ecdh: bool,
         caller: Option<CallerIdentity>,
     ) -> Result<PkdecryptResponse> {
         let id = self.next_request_id();
@@ -139,6 +140,7 @@ impl IpcClient {
                 request: Some(ipc_request::Request::Pkdecrypt(PkdecryptRequest {
                     keygrip: keygrip.to_string(),
                     ciphertext: ciphertext.to_vec(),
+                    unwrap_ecdh,
                     caller,
                 })),
             })

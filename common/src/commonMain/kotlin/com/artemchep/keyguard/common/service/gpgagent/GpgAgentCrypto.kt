@@ -15,10 +15,10 @@ package com.artemchep.keyguard.common.service.gpgagent
  *  - RSA (sign): the agent returns the PKCS#1-padded signature bytes.
  *  - RSA (decrypt): the agent returns the bare modular-exponentiation result
  *    (m = c^d mod n); gpg strips the PKCS#1 padding itself.
- *  - ECDH (decrypt): the agent does the full RFC 6637 operation — derive the
- *    shared secret, derive the KEK via the KDF, and AES-unwrap the wrapped
- *    session key — and returns the unwrapped session-key block; gpg strips the
- *    PKCS#5 padding.
+ *  - ECDH (decrypt): newer `PKDECRYPT --kem=PGP` clients expect the agent to
+ *    derive the shared secret, derive the KEK, and AES-unwrap the session key.
+ *    Legacy plain `PKDECRYPT` clients expect the shared-secret value and perform
+ *    the KDF + unwrap themselves.
  *  - ECDSA / EdDSA (sign): the agent signs the supplied digest directly.
  */
 interface GpgAgentCrypto {
@@ -51,6 +51,7 @@ interface GpgAgentCrypto {
         privateKeyArmored: String,
         metadataKey: GpgAgentKeyMetadataKey,
         ciphertext: ByteArray,
+        unwrapEcdh: Boolean,
     ): GpgAgentMessages.PkdecryptResponse
 }
 

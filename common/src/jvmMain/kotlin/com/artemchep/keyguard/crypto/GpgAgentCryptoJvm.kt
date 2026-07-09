@@ -98,13 +98,15 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
     // split matches the real gpg-agent, verified by the integration E2E test:
     //  - RSA: return the bare modular-exponentiation result (m = c^d mod n); gpg
     //    strips the PKCS#1 padding itself.
-    //  - ECDH: the agent does the full RFC 6637 operation — derive the shared secret,
-    //    derive the KEK via the KDF, and AES-unwrap the wrapped session key — and
-    //    returns the unwrapped session-key block; gpg strips the PKCS#5 padding.
+    //  - ECDH: old gpg clients use plain PKDECRYPT and expect the shared-secret
+    //    value so gpg can do RFC 6637 KDF + unwrap. Newer clients use
+    //    PKDECRYPT --kem=PGP and expect the agent to return the unwrapped
+    //    session-key block.
     override fun pkdecrypt(
         privateKeyArmored: String,
         metadataKey: GpgAgentKeyMetadataKey,
         ciphertext: ByteArray,
+        unwrapEcdh: Boolean,
     ): GpgAgentMessages.PkdecryptResponse {
         ensureBouncyCastleProvider()
 
@@ -127,6 +129,7 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
             "ecdh", "ecc" -> decryptEcdh(
                 secretKey = secretKey,
                 params = params,
+                unwrapEcdh = unwrapEcdh,
             )
 
             else -> throw GpgAgentUnsupportedAlgorithmException(
@@ -168,6 +171,7 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
     private fun decryptEcdh(
         secretKey: PGPSecretKey,
         params: Map<String, ByteArray>,
+        unwrapEcdh: Boolean,
     ): GpgAgentMessages.PkdecryptResponse {
         // gpg sends the ECDH enc-val with two MPIs:
         //  - `e`: the ephemeral point, from which the shared secret is derived.
@@ -189,13 +193,18 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
             is BcECPrivateKey -> ecdhSharedSecretNist(privateKey, e)
             else -> ecdhSharedSecretX25519(secretKey, e)
         }
+        if (!unwrapEcdh) {
+            return GpgAgentMessages.PkdecryptResponse(
+                valueSexp = "(value #${sharedSecret.legacyValue.toHex().uppercase()}#)",
+            )
+        }
 
         val ecdhPublicKey = secretKey.publicKey.publicKeyPacket.key as? ECDHPublicBCPGKey
             ?: throw GpgAgentUnsupportedAlgorithmException("ECDH key has unexpected public-key packet")
         val kek = rfc6637DeriveKek(
             publicKeyPacket = secretKey.publicKey.publicKeyPacket,
             ecdhPublicKey = ecdhPublicKey,
-            sharedSecret = sharedSecret,
+            sharedSecret = sharedSecret.kdfInput,
         )
         val unwrapped = aesUnwrap(kek = kek, wrapped = wrappedKey)
 
@@ -203,6 +212,11 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
             valueSexp = "(value #${unwrapped.toHex().uppercase()}#)",
         )
     }
+
+    private data class EcdhSharedSecret(
+        val kdfInput: ByteArray,
+        val legacyValue: ByteArray,
+    )
 
     // gpg encodes the ECDH wrapped key MPI as `<len-byte> || <wrapped key bytes>`;
     // the leading byte is the length of the remaining (wrapped) bytes.
@@ -221,19 +235,22 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
     private fun ecdhSharedSecretNist(
         privateKey: BcECPrivateKey,
         ephemeralPoint: ByteArray,
-    ): ByteArray {
+    ): EcdhSharedSecret {
         // `e` is the uncompressed point 0x04||X||Y; multiply by our scalar d. The
         // RFC 6637 KDF consumes the fixed-width X coordinate of the shared point.
         val curve = privateKey.parameters.curve
         val point = curve.decodePoint(ephemeralPoint)
         val shared = point.multiply(privateKey.d).normalize()
-        return shared.affineXCoord.encoded
+        return EcdhSharedSecret(
+            kdfInput = shared.affineXCoord.encoded,
+            legacyValue = shared.getEncoded(false),
+        )
     }
 
     private fun ecdhSharedSecretX25519(
         secretKey: PGPSecretKey,
         ephemeralPoint: ByteArray,
-    ): ByteArray {
+    ): EcdhSharedSecret {
         // The OpenPGP MPI carries the X25519 point prefixed with 0x40 (33 bytes);
         // strip it to get the 32-byte u-coordinate.
         val u = if (ephemeralPoint.size == X25519_POINT_SIZE + 1 &&
@@ -266,7 +283,10 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
         agreement.init(privateKeyParameters)
         val shared = ByteArray(agreement.agreementSize)
         agreement.calculateAgreement(publicKeyParameters, shared, 0)
-        return shared
+        return EcdhSharedSecret(
+            kdfInput = shared,
+            legacyValue = byteArrayOf(X25519_POINT_PREFIX) + shared,
+        )
     }
 
     // RFC 6637 §7/§8: KEK = leftmost(keyLen, Hash(00 00 00 01 || sharedX || Param)),

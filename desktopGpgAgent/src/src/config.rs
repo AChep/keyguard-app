@@ -7,7 +7,6 @@ pub(crate) fn linux_fallback_gpg_agent_socket_path(uid: libc::uid_t) -> PathBuf 
     PathBuf::from(format!("/tmp/keyguard-{uid}/gnupg/S.gpg-agent"))
 }
 
-
 #[cfg(target_os = "linux")]
 const FLATPAK_APP_ID_FALLBACK: &str = "com.artemchep.keyguard";
 
@@ -88,9 +87,7 @@ mod tests {
     #[test]
     fn macos_default_path_uses_group_container() {
         let path = default_gpg_agent_socket_path();
-        assert!(
-            path.ends_with("Library/Group Containers/com.artemchep.keyguard/gnupg/S.gpg-agent")
-        );
+        assert!(path.ends_with("Library/Group Containers/com.artemchep.keyguard/gnupg/S.gpg-agent"));
     }
 
     #[cfg(target_os = "macos")]

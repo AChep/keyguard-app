@@ -80,13 +80,18 @@ message PkdecryptRequest {
   // Assuan INQUIRE CIPHERTEXT round-trip, relayed verbatim.
   bytes ciphertext = 2;
   CallerIdentity caller = 3;
+  // Newer gpg sends `PKDECRYPT --kem=PGP` and expects the agent to complete the
+  // OpenPGP ECDH KDF + unwrap. Older gpg sends plain `PKDECRYPT` and expects the
+  // legacy shared-secret value so gpg can perform the unwrap itself.
+  bool unwrap_ecdh = 4;
 }
 
 message PkdecryptResponse {
   // Libgcrypt-style decryption result S-expression, for example:
   // (value #...#)
-  // For RSA this carries the raw decryption block; for ECDH it carries the
-  // shared point. gpg performs PKCS#1 unpadding / RFC 6637 KDF + unwrap itself.
+  // For RSA this carries the raw decryption block. For ECDH it carries either
+  // the legacy shared-secret value or the unwrapped session-key block, matching
+  // the PkdecryptRequest.unwrap_ecdh mode.
   string value_sexp = 1;
 }
 
@@ -104,4 +109,3 @@ enum ErrorCode {
   ERROR_CODE_NOT_AUTHENTICATED = 5;
   ERROR_CODE_UNSUPPORTED = 6;
 }
-

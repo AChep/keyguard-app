@@ -80,6 +80,7 @@ class TestGpgAgentRequestProcessor(
                 privateKeyArmored = match.key.privateKeyArmored,
                 metadataKey = match.metadataKey,
                 ciphertext = request.ciphertext,
+                unwrapEcdh = request.unwrapEcdh,
             )
             GpgAgentRequestProcessor.GpgAgentOperationResult.Success(response = response)
         } catch (e: Exception) {

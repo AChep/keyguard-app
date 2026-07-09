@@ -113,10 +113,14 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           $originalPath = $env:Path
+          $originalMachinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+          $chocoPath = "C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\ProgramData\chocolatey\bin"
           try {
-            $env:Path = "C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\ProgramData\chocolatey\bin"
+            $env:Path = $chocoPath
+            [Environment]::SetEnvironmentVariable("Path", $chocoPath, "Machine")
             choco install protoc gnupg --yes --no-progress
           } finally {
+            [Environment]::SetEnvironmentVariable("Path", $originalMachinePath, "Machine")
             $env:Path = $originalPath
           }
           $gpgBin = @(

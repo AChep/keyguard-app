@@ -112,9 +112,7 @@ async fn main() -> Result<()> {
     };
     let parent_stdin_closed = spawn_stdin_eof_watcher()?;
 
-    let gpg_socket_path = args
-        .gpg_socket
-        .unwrap_or_else(config::default_gpg_agent_socket_path);
+    let gpg_socket_path = resolve_gpg_socket_path(args.gpg_socket)?;
 
     info!(
         ipc_socket = %args.ipc_socket.display(),
@@ -139,9 +137,23 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+fn resolve_gpg_socket_path(configured: Option<PathBuf>) -> Result<PathBuf> {
+    #[cfg(windows)]
+    {
+        configured.context("--gpg-socket is required on Windows")
+    }
+
+    #[cfg(unix)]
+    {
+        Ok(configured.unwrap_or_else(config::default_gpg_agent_socket_path))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::decode_auth_token_from_stdin_line;
+    #[cfg(windows)]
+    use super::resolve_gpg_socket_path;
 
     #[test]
     fn auth_token_rejects_wrong_length() {
@@ -155,5 +167,12 @@ mod tests {
     fn auth_token_accepts_32_bytes() {
         let token = decode_auth_token_from_stdin_line(&"ab".repeat(32)).unwrap();
         assert_eq!(token.len(), 32);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_requires_an_explicit_gpg_socket() {
+        let err = resolve_gpg_socket_path(None).unwrap_err().to_string();
+        assert!(err.contains("--gpg-socket is required on Windows"));
     }
 }

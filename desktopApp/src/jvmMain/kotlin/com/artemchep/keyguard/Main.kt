@@ -80,6 +80,7 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.worker.Wrker
+import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.desktop.WindowStateManager
 import com.artemchep.keyguard.desktop.services.autotype.AutotypeServiceNative
@@ -317,6 +318,7 @@ fun main() {
     val getGpgAgentFilter: GetGpgAgentFilter = appDi.direct.instance()
     val gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository = appDi.direct.instance()
     val gpgAgentStatusService: GpgAgentStatusService = appDi.direct.instance()
+    val dataDirectory: DataDirectory = appDi.direct.instance()
 
     val translatorScope by lazy {
         val context = LeContext()
@@ -480,6 +482,7 @@ fun main() {
                 GpgAgentManager(
                     logRepository = logRepository,
                     cryptoGenerator = cryptoGenerator,
+                    dataDirectory = dataDirectory,
                     getVaultSession = getVaultSession,
                     getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
                     getGpgAgentFilter = getGpgAgentFilter,

@@ -90,9 +90,11 @@ data class GpgToolchain(
             )
 
             if (isWindowsHost()) {
-                require(agentSocket.startsWith("\\\\.\\pipe\\", ignoreCase = true)) {
-                    "GPG E2E on Windows requires a native GnuPG build whose " +
-                        "gpgconf agent-socket is a Windows named pipe. " +
+                require(
+                    !isWindowsNamedPipePath(agentSocket) &&
+                        Path.of(agentSocket).isAbsolute,
+                ) {
+                    "GPG E2E on Windows requires an absolute libassuan marker-file socket. " +
                         "Selected ${describe()} reported '$agentSocket'. " +
                         "Check KEYGUARD_GPG_BIN_DIR or -Dkeyguard.gpg.binDir."
                 }
@@ -295,3 +297,8 @@ private fun String.parseGpgconfListDirValue(): String =
 
 internal fun isWindowsHost(): Boolean =
     System.getProperty("os.name").startsWith("Windows", ignoreCase = true)
+
+internal fun isWindowsNamedPipePath(value: String): Boolean =
+    value
+        .replace('/', '\\')
+        .startsWith("\\\\.\\pipe\\", ignoreCase = true)

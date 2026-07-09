@@ -1,6 +1,8 @@
 //! Platform-specific configuration for the GPG agent socket.
 
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::path::{Path, PathBuf};
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::process::Command;
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -97,6 +99,7 @@ fn prepare_gpgconf_socket_directory(home: &Path, socket: &Path) {
 }
 
 /// Returns the default path for the GPG agent socket.
+#[cfg(unix)]
 pub fn default_gpg_agent_socket_path() -> PathBuf {
     #[cfg(target_os = "macos")]
     {
@@ -114,19 +117,9 @@ pub fn default_gpg_agent_socket_path() -> PathBuf {
         let gpg_home = linux_managed_gpg_home_path();
         gpgconf_agent_socket_path(&gpg_home).unwrap_or_else(|| gpg_home.join("S.gpg-agent"))
     }
-
-    #[cfg(target_os = "windows")]
-    {
-        PathBuf::from(r"\\.\pipe\keyguard-gpg-agent")
-    }
-
-    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
-    {
-        compile_error!("unsupported platform for GPG agent socket path");
-    }
 }
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod tests {
     use super::*;
 

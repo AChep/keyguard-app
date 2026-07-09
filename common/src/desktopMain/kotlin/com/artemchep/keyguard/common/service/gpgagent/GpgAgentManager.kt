@@ -9,8 +9,10 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.util.flow.EventFlow
+import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
@@ -33,6 +35,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class GpgAgentManager(
     logRepository: LogRepository,
     cryptoGenerator: CryptoGenerator,
+    private val dataDirectory: DataDirectory,
     private val getVaultSession: GetVaultSession,
     private val getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow,
     private val getGpgAgentFilter: GetGpgAgentFilter,
@@ -54,13 +57,15 @@ class GpgAgentManager(
 
     val requestsFlow = approvalRequests
 
+    private val gpgconfExecutable: Path by lazy(::resolveGpgconfExecutable)
+
     suspend fun resolveGpgAgentSocketPathOrNull(): Path? = withContext(Dispatchers.IO) {
         val platform = CurrentPlatform
         val home = managedGpgHomePath(platform)
             ?: return@withContext null
 
         runCatching {
-            require(!isDefaultUserGpgHome(home)) {
+            require(!isDefaultUserGpgHome(home, platform)) {
                 "Refusing to serve the default user GnuPG home: $home"
             }
 
@@ -69,7 +74,13 @@ class GpgAgentManager(
             ensureNoAutostart(home)
 
             val socket = resolveGpgconfAgentSocket(home)
-            prepareGpgconfSocketDirectory(home, socket)
+            require(
+                platform !is Platform.Desktop.Windows ||
+                    !isWindowsNamedPipePath(socket.toString()),
+            ) {
+                "Native Windows GnuPG must report a libassuan marker-file socket, got: $socket"
+            }
+            prepareGpgconfSocketDirectory(home, socket, platform)
             logRepository.post(
                 TAG,
                 "Resolved GPG socket with gpgconf: $socket",
@@ -77,20 +88,29 @@ class GpgAgentManager(
             )
             socket
         }.getOrElse { e ->
-            val isFlatpak = platform is Platform.Desktop.Linux && platform.isFlatpak
+            val requiresResolvedSocket =
+                platform is Platform.Desktop.Windows ||
+                    platform is Platform.Desktop.Linux && platform.isFlatpak
             logRepository.post(
                 TAG,
-                if (isFlatpak) {
-                    "Could not resolve Flatpak host-visible GPG socket with gpgconf: ${e.message}"
+                if (requiresResolvedSocket) {
+                    "Could not resolve the platform GPG socket with gpgconf: ${e.message}"
                 } else {
                     "Could not resolve GPG socket with gpgconf; falling back to bundled default: ${e.message}"
                 },
                 LogLevel.WARNING,
             )
-            if (isFlatpak) {
+            if (requiresResolvedSocket) {
                 throw IllegalStateException(
-                    "Could not resolve the Flatpak host-visible GPG socket. " +
-                        "Check that gpgconf is available and the Flatpak has xdg-run/gnupg access.",
+                    when (platform) {
+                        is Platform.Desktop.Windows ->
+                            "Could not resolve the native Windows GnuPG agent socket. " +
+                                "Install GnuPG or configure KEYGUARD_GPG_BIN_DIR."
+
+                        else ->
+                            "Could not resolve the Flatpak host-visible GPG socket. " +
+                                "Check that gpgconf is available and the Flatpak has xdg-run/gnupg access."
+                    },
                     e,
                 )
             }
@@ -142,6 +162,9 @@ class GpgAgentManager(
                 .resolve("gnupg")
 
         is Platform.Desktop.Linux -> linuxManagedGpgHomePath(platform)
+
+        is Platform.Desktop.Windows -> Path.of(dataDirectory.dataBlocking())
+            .resolve("gnupg")
 
         else -> null
     }
@@ -195,7 +218,16 @@ class GpgAgentManager(
         return path
     }
 
-    private fun prepareGpgconfSocketDirectory(home: Path, socket: Path) {
+    private fun prepareGpgconfSocketDirectory(
+        home: Path,
+        socket: Path,
+        platform: Platform,
+    ) {
+        if (platform is Platform.Desktop.Windows) {
+            Files.createDirectories(requireNotNull(socket.parent))
+            return
+        }
+
         val homePath = home.toAbsolutePath().normalize()
         val socketPath = socket.toAbsolutePath().normalize()
         if (socketPath.startsWith(homePath)) return
@@ -211,14 +243,17 @@ class GpgAgentManager(
         vararg args: String,
     ): GpgconfResult {
         val command = buildList {
-            add("gpgconf")
+            add(gpgconfExecutable.toString())
             add("--homedir")
             add(home.toAbsolutePath().toString())
             addAll(args)
         }
-        val process = ProcessBuilder(command)
+        val processBuilder = ProcessBuilder(command)
             .redirectErrorStream(true)
-            .start()
+        if (gpgconfExecutable.isAbsolute) {
+            prependPath(processBuilder.environment(), requireNotNull(gpgconfExecutable.parent))
+        }
+        val process = processBuilder.start()
         process.outputStream.close()
 
         val output = CompletableFuture.supplyAsync {
@@ -272,16 +307,68 @@ class GpgAgentManager(
             ?.takeIf { it.isNotBlank() }
             ?: FLATPAK_APP_ID_FALLBACK
 
-    private fun isDefaultUserGpgHome(home: Path): Boolean {
+    private fun resolveGpgconfExecutable(): Path {
+        if (CurrentPlatform !is Platform.Desktop.Windows) {
+            return Path.of("gpgconf")
+        }
+
+        val configuredBinDir = System.getProperty("keyguard.gpg.binDir")
+            ?.takeIf { it.isNotBlank() }
+            ?.let(Path::of)
+            ?: envPath("KEYGUARD_GPG_BIN_DIR")
+        val programFilesRoots = listOfNotNull(
+            envPath("ProgramFiles(x86)"),
+            envPath("ProgramFiles"),
+        )
+        val pathDirectories = System.getenv("PATH")
+            .orEmpty()
+            .split(File.pathSeparatorChar)
+            .asSequence()
+            .map { it.trim().trim('"') }
+            .filter { it.isNotBlank() }
+            .map(Path::of)
+            .toList()
+        val binDir = findNativeWindowsGnuPgBinDir(
+            configuredBinDir = configuredBinDir,
+            programFilesRoots = programFilesRoots,
+            pathDirectories = pathDirectories,
+        ) ?: error(
+            "Could not find native gpg.exe and gpgconf.exe. " +
+                "Set KEYGUARD_GPG_BIN_DIR or -Dkeyguard.gpg.binDir to the GnuPG bin directory.",
+        )
+        return binDir.resolve(WINDOWS_GPGCONF_EXECUTABLE)
+    }
+
+    private fun prependPath(
+        environment: MutableMap<String, String>,
+        directory: Path,
+    ) {
+        val pathKey = environment.keys
+            .firstOrNull { it.equals("PATH", ignoreCase = true) }
+            ?: "PATH"
+        environment[pathKey] = listOf(
+            directory.toAbsolutePath().toString(),
+            environment[pathKey].orEmpty(),
+        )
+            .filter { it.isNotBlank() }
+            .joinToString(File.pathSeparator)
+    }
+
+    private fun isDefaultUserGpgHome(
+        home: Path,
+        platform: Platform,
+    ): Boolean {
         val userHome = System.getProperty("user.home")
             ?.takeIf { it.isNotBlank() }
             ?.let { Path.of(it) }
-            ?: return false
-        val defaultHome = userHome
-            .resolve(".gnupg")
-            .toAbsolutePath()
-            .normalize()
-        return home.toAbsolutePath().normalize() == defaultHome
+        val defaultHomes = buildList {
+            userHome?.resolve(".gnupg")?.let(::add)
+            if (platform is Platform.Desktop.Windows) {
+                envPath("APPDATA")?.resolve("gnupg")?.let(::add)
+            }
+        }
+        val normalizedHome = home.toAbsolutePath().normalize()
+        return defaultHomes.any { it.toAbsolutePath().normalize() == normalizedHome }
     }
 
     private fun currentUnixUid(): Long? = runCatching {
@@ -297,6 +384,7 @@ class GpgAgentManager(
         private const val FLATPAK_APP_ID_FALLBACK = "com.artemchep.keyguard"
         private const val GPGCONF_TIMEOUT_SECONDS = 15L
         private const val TAG = "GpgAgentManager"
+        private const val WINDOWS_GPGCONF_EXECUTABLE = "gpgconf.exe"
 
         private val OWNER_ONLY_DIRECTORY_PERMISSIONS = setOf(
             PosixFilePermission.OWNER_READ,
@@ -310,3 +398,43 @@ class GpgAgentManager(
         )
     }
 }
+
+internal fun findNativeWindowsGnuPgBinDir(
+    configuredBinDir: Path?,
+    programFilesRoots: List<Path>,
+    pathDirectories: List<Path>,
+    isRegularFile: (Path) -> Boolean = { Files.isRegularFile(it) },
+): Path? {
+    val candidates = buildList {
+        configuredBinDir?.let(::add)
+        programFilesRoots.forEach { root ->
+            add(root.resolve("GnuPG").resolve("bin"))
+        }
+        addAll(pathDirectories)
+    }
+        .map { it.toAbsolutePath().normalize() }
+        .distinctBy { it.toString().lowercase() }
+
+    return candidates.firstOrNull { binDir ->
+        !binDir.isKnownIncompatibleWindowsGnuPgPath() &&
+            isRegularFile(binDir.resolve("gpg.exe")) &&
+            isRegularFile(binDir.resolve("gpgconf.exe"))
+    }
+}
+
+private fun Path.isKnownIncompatibleWindowsGnuPgPath(): Boolean {
+    val value = toString()
+        .replace('/', '\\')
+        .lowercase()
+    return listOf(
+        "\\git\\usr\\bin",
+        "\\msys64\\usr\\bin",
+        "\\cygwin\\bin",
+        "\\cygwin64\\bin",
+    ).any { value.endsWith(it) || "$it\\" in value }
+}
+
+internal fun isWindowsNamedPipePath(value: String): Boolean =
+    value
+        .replace('/', '\\')
+        .startsWith("\\\\.\\pipe\\", ignoreCase = true)

@@ -270,6 +270,7 @@ dependencies = [
  "clap",
  "common-gpg-agent-rust",
  "dirs",
+ "getrandom 0.2.17",
  "hex",
  "libc",
  "prost",

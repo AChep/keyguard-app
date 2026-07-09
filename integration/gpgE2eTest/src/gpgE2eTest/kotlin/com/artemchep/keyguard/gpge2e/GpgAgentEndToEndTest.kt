@@ -234,8 +234,10 @@ class GpgAgentEndToEndTest {
                 }
                 ?: error("gpgconf did not report an agent-socket:\n${result.stdout}")
             if (isWindows()) {
-                require(socket.startsWith("\\\\.\\pipe\\", ignoreCase = true)) {
-                    "Expected gpgconf agent-socket to be a Windows named pipe, got: $socket"
+                require(
+                    !isWindowsNamedPipePath(socket) && Path.of(socket).isAbsolute,
+                ) {
+                    "Expected a Windows libassuan marker-file socket, got: $socket"
                 }
             } else {
                 require(Path.of(socket).isAbsolute) {
@@ -246,7 +248,10 @@ class GpgAgentEndToEndTest {
         }
 
         private fun prepareGpgAgentSocketDirectory(home: Path, socket: String) {
-            if (isWindows()) return
+            if (isWindows()) {
+                Files.createDirectories(requireNotNull(Path.of(socket).parent))
+                return
+            }
 
             val homePath = home.toAbsolutePath().normalize()
             val socketPath = Path.of(socket).toAbsolutePath().normalize()

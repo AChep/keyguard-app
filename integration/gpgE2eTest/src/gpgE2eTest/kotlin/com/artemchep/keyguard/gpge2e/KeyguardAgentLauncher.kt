@@ -14,7 +14,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
-import java.io.RandomAccessFile
+import java.net.InetAddress
+import java.net.Socket
 import java.net.StandardProtocolFamily
 import java.net.UnixDomainSocketAddress
 import java.nio.ByteBuffer
@@ -130,8 +131,8 @@ class KeyguardAgentLauncher(
         gpgSocket: String,
         commands: List<String>,
     ): List<String> {
-        val bytes = if (isWindowsPipe(gpgSocket)) {
-            namedPipeAssuanTranscript(gpgSocket, commands)
+        val bytes = if (isWindowsHost()) {
+            windowsLibassuanTranscript(Path.of(gpgSocket), commands)
         } else {
             unixAssuanTranscript(Path.of(gpgSocket), commands)
         }
@@ -177,24 +178,47 @@ class KeyguardAgentLauncher(
         }
     }
 
-    private fun namedPipeAssuanTranscript(
-        pipeName: String,
+    private fun windowsLibassuanTranscript(
+        markerPath: Path,
         commands: List<String>,
-    ): ByteArray = RandomAccessFile(pipeName, "rw").use { pipe ->
-        for (command in commands) {
-            pipe.write(command.encodeToByteArray())
+    ): ByteArray {
+        val marker = readWindowsAssuanMarker(markerPath) ?: return ByteArray(0)
+        Socket(InetAddress.getByName("127.0.0.1"), marker.port).use { socket ->
+            val output = socket.getOutputStream()
+            output.write(marker.nonce)
+            for (command in commands) {
+                output.write(command.encodeToByteArray())
+            }
+            output.flush()
+            socket.shutdownOutput()
+            return socket.getInputStream().readBytes()
+        }
+    }
+
+    private fun readWindowsAssuanMarker(path: Path): WindowsAssuanMarker? {
+        if (!Files.isRegularFile(path)) return null
+
+        val bytes = Files.readAllBytes(path)
+        val separator = bytes.indexOf('\n'.code.toByte())
+        require(separator > 0) {
+            "Invalid Windows Assuan socket marker at $path: missing port separator"
+        }
+        require(bytes.size == separator + 1 + WINDOWS_ASSUAN_NONCE_SIZE) {
+            "Invalid Windows Assuan socket marker at $path: " +
+                "expected a $WINDOWS_ASSUAN_NONCE_SIZE-byte nonce"
         }
 
-        val out = ByteArrayOutputStream()
-        val buffer = ByteArray(4096)
-        while (true) {
-            val read = pipe.read(buffer)
-            if (read < 0) {
-                break
-            }
-            out.write(buffer, 0, read)
+        val portText = bytes
+            .copyOfRange(0, separator)
+            .toString(Charsets.US_ASCII)
+        val port = portText.toIntOrNull()
+        require(port != null && port in 1..65535) {
+            "Invalid Windows Assuan socket marker at $path: invalid port '$portText'"
         }
-        out.toByteArray()
+        return WindowsAssuanMarker(
+            port = port,
+            nonce = bytes.copyOfRange(separator + 1, bytes.size),
+        )
     }
 
     fun stop() {
@@ -227,6 +251,12 @@ class KeyguardAgentLauncher(
         method.invoke(server)
     }
 
-    private fun isWindowsPipe(value: String): Boolean =
-        value.startsWith("\\\\.\\pipe\\", ignoreCase = true)
+    private data class WindowsAssuanMarker(
+        val port: Int,
+        val nonce: ByteArray,
+    )
+
+    companion object {
+        private const val WINDOWS_ASSUAN_NONCE_SIZE = 16
+    }
 }

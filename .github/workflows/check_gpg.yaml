@@ -69,8 +69,16 @@ jobs:
         run: ./gradlew :common:desktopTest --tests "com.artemchep.keyguard.common.service.gpgagent.*" --tests "com.artemchep.keyguard.common.service.crypto.Gpg*"
 
   gpg-e2e-tests:
-    name: "End-to-end (real gpg)"
-    runs-on: ubuntu-latest
+    name: "End-to-end (${{ matrix.os }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: ubuntu
+          - os: macos-latest
+            artifact: macos
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
@@ -82,10 +90,18 @@ jobs:
         uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
         with:
           toolchain: "1.94.0"
-      - name: "Setup Protobuf compiler and gpg"
+      - name: "Setup Protobuf compiler and gpg (Linux)"
+        if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler gnupg
+          gpg --version
+          gpgconf --version
+      - name: "Setup Protobuf compiler and gpg (macOS)"
+        if: runner.os == 'macOS'
+        run: |
+          brew install protobuf
+          protoc --version
           gpg --version
           gpgconf --version
       - name: "Run GPG end-to-end tests"
@@ -94,7 +110,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: gpg-e2e-test-reports
+          name: gpg-e2e-test-reports-${{ matrix.artifact }}
           path: |
             integration/gpgE2eTest/build/reports/tests/
             integration/gpgE2eTest/build/test-results/

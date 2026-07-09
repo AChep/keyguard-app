@@ -1798,7 +1798,7 @@
     <string name="gpg_agent_setup_step_1_title">1. Enable GPG agent in Keyguard</string>
     <string name="gpg_agent_setup_step_1_text">Open GPG settings, enable GPG agent, and make sure the vault contains a GPG key the agent is allowed to use.</string>
     <string name="gpg_agent_setup_step_2_title">2. Configure GNUPGHOME</string>
-    <string name="gpg_agent_setup_step_2_text">Run GnuPG commands from a shell that points to Keyguard's agent home. Keyguard listens on S.gpg-agent inside this directory.</string>
+    <string name="gpg_agent_setup_step_2_text">Run GnuPG commands from a shell that points to Keyguard's agent home. Keyguard listens on the agent socket that GnuPG resolves for this home.</string>
     <string name="gpg_agent_setup_linux_home_fallback_note">If XDG_RUNTIME_DIR is not set, use this fallback instead:</string>
     <string name="gpg_agent_setup_step_3_title">3. Import the public key</string>
     <string name="gpg_agent_setup_step_3_text">Export the public key from the GPG Key item in Keyguard, then import it into this GnuPG home. This exposes only public key material.</string>

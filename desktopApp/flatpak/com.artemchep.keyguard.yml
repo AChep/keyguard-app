@@ -10,6 +10,7 @@ finish-args:
   - --socket=x11
   - --device=dri
   - --filesystem=xdg-download
+  - --filesystem=xdg-run/gnupg:create
 modules:
   - name: keyguard
     buildsystem: simple

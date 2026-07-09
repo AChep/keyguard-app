@@ -507,6 +507,7 @@ fun main() {
                     var failed = false
                     try {
                         gpgAgentStatusService.set(AgentStatus.Starting)
+                        val gpgAgentSocketPath = gpgAgentManager.resolveGpgAgentSocketPathOrNull()
 
                         val process = retryGpgAgentStartup(
                             logRepository = logRepository,
@@ -514,6 +515,7 @@ fun main() {
                                 gpgAgentManager.start(
                                     scope = this,
                                     binaryPath = binaryPath,
+                                    agentSocketPath = gpgAgentSocketPath,
                                 )
                             },
                             stop = gpgAgentManager::stop,

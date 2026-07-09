@@ -27,7 +27,7 @@ private const val GPG_AGENT_SETUP_MACOS_RELEASE_HOME =
 private const val GPG_AGENT_SETUP_LINUX_HOME =
     $$"${XDG_RUNTIME_DIR}/keyguard-gpg-agent"
 private const val GPG_AGENT_SETUP_LINUX_FLATPAK_HOME =
-    $$"${XDG_RUNTIME_DIR}/app/com.artemchep.keyguard/gnupg"
+    $$"${HOME}/.var/app/com.artemchep.keyguard/data/gnupg"
 private const val GPG_AGENT_SETUP_LINUX_HOME_FALLBACK =
     $$"/tmp/keyguard-$(id -u)/gnupg"
 private const val GPG_AGENT_SETUP_WINDOWS_PIPE =
@@ -37,7 +37,8 @@ private const val GPG_AGENT_SETUP_IMPORT_CMD =
 private const val GPG_AGENT_SETUP_LIST_KEYS_CMD =
     "gpg --no-autostart --list-secret-keys --with-keygrip --keyid-format=long"
 private const val GPG_AGENT_SETUP_VERIFY_CMD_LIST =
-    $$"""gpg-connect-agent --raw-socket "$GNUPGHOME/S.gpg-agent" "KEYINFO --list" /bye"""
+    $$"""GPG_AGENT_SOCKET="$(gpgconf --homedir "$GNUPGHOME" --list-dirs agent-socket)"
+gpg-connect-agent --raw-socket "$GPG_AGENT_SOCKET" "KEYINFO --list" /bye"""
 private const val GPG_AGENT_SETUP_WINDOWS_VERIFY_CMD_LIST =
     "gpg-connect-agent --raw-socket \"\\\\.\\pipe\\keyguard-gpg-agent\" \"KEYINFO --list\" /bye"
 private const val GPG_AGENT_SETUP_VERIFY_CMD_SIGN =

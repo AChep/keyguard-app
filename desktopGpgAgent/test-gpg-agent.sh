@@ -153,7 +153,13 @@ gpg_home_from_socket() {
 
 gpg_socket_from_home() {
     local gpg_home="$1"
-    echo "${gpg_home}/S.gpg-agent"
+    local socket_path
+    socket_path="$(gpgconf --homedir "$gpg_home" --list-dirs agent-socket 2>/dev/null || true)"
+    if [ -n "$socket_path" ]; then
+        echo "$socket_path"
+    else
+        echo "${gpg_home}/S.gpg-agent"
+    fi
 }
 
 # -- GNUPGHOME / socket detection -------------------------------------------
@@ -176,8 +182,12 @@ detect_default_paths() {
             add_candidate_home "$HOME/Library/Group Containers/com.artemchep.keyguard/gnupg"
             ;;
         Linux)
-            if [ "${container:-}" = "flatpak" ] && [ -n "${XDG_RUNTIME_DIR:-}" ]; then
-                add_candidate_home "${XDG_RUNTIME_DIR}/app/${FLATPAK_ID:-com.artemchep.keyguard}/gnupg"
+            if [ "${container:-}" = "flatpak" ]; then
+                if [ -n "${XDG_DATA_HOME:-}" ]; then
+                    add_candidate_home "${XDG_DATA_HOME}/gnupg"
+                else
+                    add_candidate_home "${HOME}/.var/app/${FLATPAK_ID:-com.artemchep.keyguard}/data/gnupg"
+                fi
             fi
             if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
                 add_candidate_home "${XDG_RUNTIME_DIR}/keyguard-gpg-agent"

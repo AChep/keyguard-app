@@ -99,10 +99,26 @@ fun TextFieldHandle.modelFlow(
     )
 }
 
+internal const val RESTORED_TEXT_REVISION = 1
+
+/** Serializes a [TextCell] for persistence; only the text is stored. */
+internal fun serializeTextCell(cell: TextCell): String = cell.text
+
+/**
+ * Deserializes a persisted text into a [TextCell]. Restoration is a
+ * programmatic write and lands at [RESTORED_TEXT_REVISION] (non-zero) so UI
+ * edge buffers adopt the restored text.
+ */
+internal fun deserializeTextCell(text: String): TextCell =
+    TextCell(text = text, revision = RESTORED_TEXT_REVISION)
+
 /**
  * Creates a [TextFieldHandle] whose text is persisted under [key].
  * Only the text is persisted; the revision is a session-local command
- * counter and restores as zero.
+ * counter that is not. Restoration is treated as a programmatic write and
+ * restores with a non-zero revision ([RESTORED_TEXT_REVISION]) so UI edge
+ * buffers — seeded from a default/placeholder model at revision 0 — adopt
+ * the restored text.
  */
 fun RememberStateFlowScope.textFieldHandle(
     key: String,
@@ -112,8 +128,8 @@ fun RememberStateFlowScope.textFieldHandle(
     val sink = mutablePersistedFlow(
         key,
         storage = storage,
-        serialize = { _, cell: TextCell -> cell.text },
-        deserialize = { _, text: String -> TextCell(text) },
+        serialize = { _, cell: TextCell -> serializeTextCell(cell) },
+        deserialize = { _, text: String -> deserializeTextCell(text) },
     ) { TextCell(text = initial) }
     return TextFieldHandle(sink = sink, id = key)
 }

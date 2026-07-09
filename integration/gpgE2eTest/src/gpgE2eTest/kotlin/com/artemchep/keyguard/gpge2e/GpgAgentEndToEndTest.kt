@@ -103,9 +103,8 @@ class GpgAgentEndToEndTest {
             importPublicKeys(clientGpg, allKeys)
             GpgCli(clientHome).gpgconf("--kill", "gpg-agent")
 
-            // 3) Stand up the Kotlin IPC server + Rust binary. Unix binds the
-            // client home's S.gpg-agent socket; Windows binds the exact
-            // named pipe reported by gpgconf for this GNUPGHOME.
+            // 3) Stand up the Kotlin IPC server + Rust binary at the same
+            // endpoint that the real gpg client resolves for this GNUPGHOME.
             val authToken = ByteArray(32).also { SecureRandom().nextBytes(it) }
             val processor = TestGpgAgentRequestProcessor(keys = allKeys)
             launcher = KeyguardAgentLauncher(
@@ -122,13 +121,8 @@ class GpgAgentEndToEndTest {
                     directory = workRoot,
                 )
             }
-            gpgAgentSocket = if (isWindows()) {
-                gpgAgentSocketForClientHome(clientHome)
-            } else {
-                clientHome.resolve("S.gpg-agent")
-                    .toAbsolutePath()
-                    .toString()
-            }
+            gpgAgentSocket = gpgAgentSocketForClientHome(clientHome)
+            prepareGpgAgentSocketDirectory(clientHome, gpgAgentSocket)
             launcher.start(ipcEndpoint = ipcEndpoint, gpgSocket = gpgAgentSocket)
         }
 
@@ -139,6 +133,7 @@ class GpgAgentEndToEndTest {
             runCatching { if (::launcher.isInitialized) launcher.stop() }
             runCatching { if (::serverHome.isInitialized) GpgCli(serverHome).gpgconf("--kill", "gpg-agent") }
             runCatching { if (::clientHome.isInitialized) GpgCli(clientHome).gpgconf("--kill", "gpg-agent") }
+            runCatching { if (::clientHome.isInitialized) GpgCli(clientHome).gpgconf("--remove-socketdir") }
             runCatching { if (::workRoot.isInitialized) workRoot.deleteRecursively() }
         }
 
@@ -179,7 +174,7 @@ class GpgAgentEndToEndTest {
             restrict(home)
             // No allow-loopback needed on the client: the agent that handles PKSIGN/
             // PKDECRYPT is OUR Rust binary, not a gpg-agent. --no-autostart on each call
-            // makes gpg reuse the already-bound S.gpg-agent socket.
+            // makes gpg reuse the already-bound agent socket.
             Files.writeString(home.resolve("gpg.conf"), "no-autostart\ntrust-model always\n")
         }
 
@@ -223,7 +218,7 @@ class GpgAgentEndToEndTest {
         private fun gpgAgentSocketForClientHome(home: Path): String {
             val result = GpgCli(home).gpgconf("--list-dirs", "agent-socket")
             require(result.isSuccess) {
-                "Failed to resolve Windows GPG agent socket:\n${result.stderr}"
+                "Failed to resolve GPG agent socket:\n${result.stderr}"
             }
             val socket = result.stdout
                 .lineSequence()
@@ -237,10 +232,30 @@ class GpgAgentEndToEndTest {
                     }
                 }
                 ?: error("gpgconf did not report an agent-socket:\n${result.stdout}")
-            require(socket.startsWith("\\\\.\\pipe\\", ignoreCase = true)) {
-                "Expected gpgconf agent-socket to be a Windows named pipe, got: $socket"
+            if (isWindows()) {
+                require(socket.startsWith("\\\\.\\pipe\\", ignoreCase = true)) {
+                    "Expected gpgconf agent-socket to be a Windows named pipe, got: $socket"
+                }
+            } else {
+                require(Path.of(socket).isAbsolute) {
+                    "Expected gpgconf agent-socket to be absolute, got: $socket"
+                }
             }
             return socket
+        }
+
+        private fun prepareGpgAgentSocketDirectory(home: Path, socket: String) {
+            if (isWindows()) return
+
+            val homePath = home.toAbsolutePath().normalize()
+            val socketPath = Path.of(socket).toAbsolutePath().normalize()
+            if (socketPath.startsWith(homePath)) return
+
+            val result = GpgCli(home).gpgconf("--create-socketdir")
+            require(result.isSuccess) {
+                "gpgconf resolved agent-socket outside GNUPGHOME ($socket), " +
+                    "but failed to create its socket directory:\n${result.stderr}\n${result.stdout}"
+            }
         }
 
         private fun executableName(name: String): String =

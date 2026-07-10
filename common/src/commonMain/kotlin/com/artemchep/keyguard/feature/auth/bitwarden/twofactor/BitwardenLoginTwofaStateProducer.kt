@@ -867,17 +867,15 @@ private fun RememberStateFlowScope.createResendFlow(
     ) { send, sent ->
         send.takeUnless { it == sent }
     }.filterNotNull()
-        .onEach {
+        .onEach { key ->
             io
                 .effectTap {
                     canResendAtSink.value = Clock.System.now() + resendDelay
+                    // Remember the key only after the request succeeds, so a
+                    // failed request can be attempted again after resubscribing.
+                    currentSink.value = key
                 }
                 .launchIn(this)
-        }
-        .onEach { key ->
-            // Remember the key, so next time when we resubscribe
-            // we do not send the email request again.
-            currentSink.value = key
         }
         .launchIn(screenScope)
 

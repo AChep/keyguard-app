@@ -58,19 +58,22 @@ pub async fn serve<K: KeyProvider>(
         "SSH agent listening on Unix socket"
     );
 
-    // Use ssh-agent-lib's listen() free function.
-    // We provide a custom Agent factory so we can capture per-connection
-    // caller identity (peer credentials) from the accepted Unix socket.
-    tokio::select! {
-        result = ssh_agent_lib::agent::listen(listener, agent) => {
-            result.map_err(|e| anyhow::anyhow!("SSH agent server error: {}", e))?;
-        }
-        reason = wait_for_shutdown_request(parent_stdin_closed) => {
-            info!(reason, "Stopping SSH agent listener");
-        }
-    }
+    // Use the local bounded server so untrusted protocol frames and client
+    // connections cannot grow process resources without limit. The custom
+    // Agent factory still captures per-connection peer credentials.
+    let result = super::server::listen_until(
+        listener,
+        agent,
+        wait_for_shutdown_request(parent_stdin_closed),
+    )
+    .await
+    .map_err(|e| anyhow::anyhow!("SSH agent server error: {}", e));
 
+    // Always remove the socket, including when the accept loop fails.
     cleanup_socket_file(socket_path.to_path_buf());
+
+    let reason = result?;
+    info!(reason, "Stopping SSH agent listener");
 
     Ok(())
 }

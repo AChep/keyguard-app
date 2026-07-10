@@ -23,20 +23,18 @@ pub async fn serve<K: KeyProvider>(
         "SSH agent listening on Windows named pipe"
     );
 
-    // Use ssh-agent-lib's NamedPipeListener and listen() free function.
-    // We pass an explicit Agent factory; caller identity is not available
-    // on Windows in this iteration.
+    // Reuse ssh-agent-lib's named-pipe listener, but serve it through the
+    // local bounded protocol loop. Caller identity is not available on
+    // Windows in this iteration.
     let listener = ssh_agent_lib::agent::NamedPipeListener::bind(pipe_name)
         .with_context(|| format!("Failed to bind named pipe: {}", pipe_name))?;
 
-    tokio::select! {
-        result = ssh_agent_lib::agent::listen(listener, agent) => {
-            result.map_err(|e| anyhow::anyhow!("SSH agent server error: {}", e))?;
-        }
-        _ = parent_stdin_closed => {
-            info!("Parent stdin closed, stopping SSH agent listener");
-        }
-    }
+    super::server::listen_until(listener, agent, async move {
+        let _ = parent_stdin_closed.await;
+    })
+    .await
+    .map_err(|e| anyhow::anyhow!("SSH agent server error: {}", e))?;
+    info!("Parent stdin closed, stopping SSH agent listener");
 
     Ok(())
 }

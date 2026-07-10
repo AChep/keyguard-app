@@ -12,8 +12,8 @@ path = "src/main.rs"
 common-ssh-agent-rust = { path = "../../commonSshAgent" }
 # SSH agent protocol
 ssh-agent-lib = "0.5"
-ssh-key = { version = "0.6", features = ["ed25519", "rsa", "crypto"] }
-ssh-encoding = "0.2"
+ssh-key = { version = "=0.6.7", features = ["ed25519", "rsa", "crypto"] }
+ssh-encoding = "=0.2.0"
 
 # Async runtime
 tokio = { version = "1", features = ["full"] }
@@ -48,6 +48,16 @@ libc = "0.2"
 [dev-dependencies]
 tokio = { version = "1", features = ["test-util", "io-util", "macros", "rt"] }
 tempfile = "3"
+
+[patch.crates-io]
+# crates.io ssh-encoding 0.2.0
+# (checksum eb9242b9ef4108a78e8cd1a2c98e193ef372437f8c22be363075233321dd4a15):
+# backport the nested-length bounds check until the graph moves to ssh-encoding 0.3+.
+ssh-encoding = { path = "vendor/ssh-encoding-0.2.0-keyguard" }
+# crates.io ssh-key 0.6.7
+# (checksum 3b86f5297f0f04d08cabaa0f6bff7cb6aec4d9c3b49d87990d63da9d9156a8c3):
+# backport bounded opaque-key decoding from current RustCrypto SSH.
+ssh-key = { path = "vendor/ssh-key-0.6.7-keyguard" }
 
 [profile.release]
 strip = true

@@ -29,6 +29,8 @@ const RECONNECT_MAX_ATTEMPTS: u32 = 6;
 const RECONNECT_INITIAL_DELAY_MS: u64 = 100;
 const RECONNECT_MAX_DELAY_MS: u64 = 3_000;
 const RECONNECT_MAX_JITTER_MS: u64 = 250;
+const IPC_REQUEST_TIMEOUT: Duration = Duration::from_secs(5 * 60);
+const IPC_AUTHENTICATION_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// IPC client for communicating with the Keyguard desktop application.
 ///
@@ -40,7 +42,10 @@ pub struct IpcClient {
 }
 
 struct IpcClientInner {
-    stream: Mutex<IpcStream<Box<dyn AsyncStream>>>,
+    // `None` means the previous transport is unusable. In particular, an
+    // async read or write cancelled by a timeout may have consumed only part
+    // of a frame, so that transport must never be used again.
+    stream: Mutex<Option<IpcStream<Box<dyn AsyncStream>>>>,
     next_id: AtomicU64,
     reconnect: Option<ReconnectConfig>,
 }
@@ -182,7 +187,7 @@ impl IpcClient {
 
         let client = Self {
             inner: Arc::new(IpcClientInner {
-                stream: Mutex::new(ipc_stream),
+                stream: Mutex::new(Some(ipc_stream)),
                 next_id: AtomicU64::new(1),
                 reconnect: Some(ReconnectConfig {
                     socket_path: socket_path.to_path_buf(),
@@ -205,7 +210,9 @@ impl IpcClient {
     pub(crate) fn from_stream(stream: impl AsyncStream + 'static) -> Self {
         Self {
             inner: Arc::new(IpcClientInner {
-                stream: Mutex::new(IpcStream::new(Box::new(stream) as Box<dyn AsyncStream>)),
+                stream: Mutex::new(Some(IpcStream::new(
+                    Box::new(stream) as Box<dyn AsyncStream>
+                ))),
                 next_id: AtomicU64::new(1),
                 reconnect: None,
             }),
@@ -220,7 +227,9 @@ impl IpcClient {
     ) -> Self {
         Self {
             inner: Arc::new(IpcClientInner {
-                stream: Mutex::new(IpcStream::new(Box::new(stream) as Box<dyn AsyncStream>)),
+                stream: Mutex::new(Some(IpcStream::new(
+                    Box::new(stream) as Box<dyn AsyncStream>
+                ))),
                 next_id: AtomicU64::new(1),
                 reconnect: Some(ReconnectConfig {
                     socket_path: PathBuf::new(),
@@ -313,7 +322,32 @@ impl IpcClient {
         }
     }
 
-    async fn reconnect_locked(&self, stream: &mut IpcStream<Box<dyn AsyncStream>>) -> Result<()> {
+    async fn authenticate_stream_with_timeout(
+        stream: &mut IpcStream<Box<dyn AsyncStream>>,
+        next_id: &AtomicU64,
+        token: &[u8],
+    ) -> Result<()> {
+        tokio::time::timeout(
+            IPC_AUTHENTICATION_TIMEOUT,
+            Self::authenticate_stream(stream, next_id, token),
+        )
+        .await
+        .map_err(|_| {
+            anyhow!(
+                "IPC authentication timed out after {} seconds",
+                IPC_AUTHENTICATION_TIMEOUT.as_secs()
+            )
+        })?
+    }
+
+    async fn reconnect_locked(
+        &self,
+        stream: &mut Option<IpcStream<Box<dyn AsyncStream>>>,
+    ) -> Result<()> {
+        // A reconnect is only ever allowed to replace an invalidated
+        // transport. Keep the slot empty until the new stream has completed
+        // authentication so a failed attempt cannot restore stale state.
+        stream.take();
         let reconnect = self
             .inner
             .reconnect
@@ -331,87 +365,242 @@ impl IpcClient {
                     .context("No test reconnect streams remaining")?
             };
             let mut new_stream = IpcStream::new(next_stream);
-            Self::authenticate_stream(
+            Self::authenticate_stream_with_timeout(
                 &mut new_stream,
                 &self.inner.next_id,
                 reconnect.auth_token.as_slice(),
             )
             .await?;
-            *stream = new_stream;
+            *stream = Some(new_stream);
             return Ok(());
         }
 
         let mut new_stream = Self::connect_stream(&reconnect.socket_path).await?;
-        Self::authenticate_stream(
+        Self::authenticate_stream_with_timeout(
             &mut new_stream,
             &self.inner.next_id,
             reconnect.auth_token.as_slice(),
         )
         .await?;
-        *stream = new_stream;
+        *stream = Some(new_stream);
         Ok(())
+    }
+
+    async fn reconnect_with_backoff_locked(
+        &self,
+        stream: &mut Option<IpcStream<Box<dyn AsyncStream>>>,
+        reconnect_attempts: &mut u32,
+        mut last_error: anyhow::Error,
+    ) -> Result<()> {
+        while *reconnect_attempts < RECONNECT_MAX_ATTEMPTS {
+            *reconnect_attempts += 1;
+            let reconnect_attempt = *reconnect_attempts;
+            let delay = reconnect_delay_with_jitter(reconnect_attempt);
+            warn!(
+                attempt = reconnect_attempt,
+                max_attempts = RECONNECT_MAX_ATTEMPTS,
+                delay_ms = delay.as_millis() as u64,
+                error = %last_error,
+                "IPC transport failed; reconnecting and re-authenticating"
+            );
+            tokio::time::sleep(delay).await;
+
+            match self.reconnect_locked(stream).await {
+                Ok(()) => {
+                    info!(
+                        attempt = reconnect_attempt,
+                        "IPC reconnect and re-authentication succeeded"
+                    );
+                    return Ok(());
+                }
+                Err(reconnect_error) => {
+                    warn!(
+                        attempt = reconnect_attempt,
+                        max_attempts = RECONNECT_MAX_ATTEMPTS,
+                        error = %reconnect_error,
+                        "IPC reconnect attempt failed"
+                    );
+                    last_error = reconnect_error;
+                }
+            }
+        }
+
+        Err(last_error).context(format!(
+            "Unable to restore IPC connection after {} attempts",
+            RECONNECT_MAX_ATTEMPTS
+        ))
+    }
+
+    async fn repair_connection_locked(
+        &self,
+        stream: &mut Option<IpcStream<Box<dyn AsyncStream>>>,
+        request_deadline: tokio::time::Instant,
+    ) -> Result<()> {
+        stream.take();
+        let recovery_deadline =
+            request_deadline.min(tokio::time::Instant::now() + IPC_AUTHENTICATION_TIMEOUT);
+        tokio::time::timeout_at(recovery_deadline, self.reconnect_locked(stream))
+            .await
+            .map_err(|_| anyhow!("IPC connection recovery did not complete before its deadline"))?
+    }
+
+    fn request_timeout_error_locked(
+        stream: &mut Option<IpcStream<Box<dyn AsyncStream>>>,
+        timeout_message: String,
+    ) -> anyhow::Error {
+        // Keep the slot empty so the next request must reconnect. Eager
+        // recovery here would extend the request beyond its absolute deadline
+        // while continuing to hold the shared mutex and SSH session permit.
+        stream.take();
+        anyhow!(timeout_message)
     }
 
     /// Sends an IPC request and waits for the matching response.
     async fn request(&self, request: ipc_request::Request) -> Result<ipc_response::Response> {
-        let mut stream = self.inner.stream.lock().await;
-        let mut reconnect_attempt = 0u32;
+        let deadline = tokio::time::Instant::now() + IPC_REQUEST_TIMEOUT;
+        let mut stream = tokio::time::timeout_at(deadline, self.inner.stream.lock())
+            .await
+            .map_err(|_| {
+                anyhow!(
+                    "IPC request timed out after {} seconds while waiting for the shared connection; operation was not sent",
+                    IPC_REQUEST_TIMEOUT.as_secs()
+                )
+            })?;
+        let mut reconnect_attempts = 0;
+        // Only read-only requests are safe to replay after an ordinary
+        // transport failure. A failed SignData response is ambiguous: the
+        // server may have completed the signature before the channel broke.
+        let is_retry_safe = matches!(&request, ipc_request::Request::ListKeys(_));
 
         loop {
+            if stream.is_none() {
+                if self.inner.reconnect.is_none() {
+                    bail!("IPC connection is unavailable");
+                }
+                match tokio::time::timeout_at(
+                    deadline,
+                    self.reconnect_with_backoff_locked(
+                        &mut stream,
+                        &mut reconnect_attempts,
+                        anyhow!("IPC connection is unavailable"),
+                    ),
+                )
+                .await
+                {
+                    Ok(result) => result?,
+                    Err(_) => {
+                        let timeout_message = format!(
+                            "IPC request timed out after {} seconds while restoring the connection; operation was not sent",
+                            IPC_REQUEST_TIMEOUT.as_secs()
+                        );
+                        return Err(Self::request_timeout_error_locked(
+                            &mut stream,
+                            timeout_message,
+                        ));
+                    }
+                }
+            }
+
             let id = self.inner.next_id.fetch_add(1, Ordering::Relaxed);
             let msg = IpcRequest {
                 id,
                 request: Some(request.clone()),
             };
 
-            match Self::request_once_locked(&mut stream, &msg).await {
-                Ok(response) => return Self::parse_response(id, response),
-                Err(err) => {
+            // Move the transport out of shared state for the entire
+            // transaction. If this future is cancelled externally, the local
+            // stream is dropped and the shared slot remains `None`, so a
+            // partially written/read frame can never be reused.
+            let mut active_stream = stream
+                .take()
+                .context("IPC connection unexpectedly unavailable")?;
+            match tokio::time::timeout_at(
+                deadline,
+                Self::request_once_locked(&mut active_stream, &msg),
+            )
+            .await
+            {
+                Ok(Ok(response)) => {
+                    if response.id != id {
+                        let actual_id = response.id;
+                        drop(active_stream);
+                        let mismatch = anyhow!(
+                            "IPC response ID mismatch: expected {}, got {}",
+                            id,
+                            actual_id
+                        );
+                        if self.inner.reconnect.is_none() {
+                            return Err(mismatch);
+                        }
+
+                        return match self.repair_connection_locked(&mut stream, deadline).await {
+                            Ok(()) => Err(mismatch),
+                            Err(reconnect_error) => Err(reconnect_error)
+                                .context(format!("{}; connection recovery failed", mismatch)),
+                        };
+                    }
+
+                    *stream = Some(active_stream);
+                    return Self::parse_response(id, response);
+                }
+                Ok(Err(err)) => {
+                    // A transport error can leave framing state ambiguous.
+                    // Invalidate it before attempting the existing bounded
+                    // reconnect-and-retry behavior.
+                    drop(active_stream);
                     if self.inner.reconnect.is_none() {
                         return Err(err).context("IPC transport failure");
                     }
 
-                    if reconnect_attempt >= RECONNECT_MAX_ATTEMPTS {
-                        return Err(err).context(format!(
-                            "IPC transport failed after {} reconnect attempts",
-                            RECONNECT_MAX_ATTEMPTS
-                        ));
+                    if !is_retry_safe {
+                        let result = self.repair_connection_locked(&mut stream, deadline).await;
+                        return match result {
+                            Ok(()) => Err(err).context(
+                                "IPC transport failed during a non-idempotent request; operation was not retried because completion is unknown",
+                            ),
+                            Err(reconnect_error) => Err(reconnect_error).context(format!(
+                                "IPC transport failed during a non-idempotent request and connection recovery failed; operation was not retried because completion is unknown: {err}"
+                            )),
+                        };
                     }
 
-                    reconnect_attempt += 1;
-                    let delay = reconnect_delay_with_jitter(reconnect_attempt);
-                    warn!(
-                        attempt = reconnect_attempt,
-                        max_attempts = RECONNECT_MAX_ATTEMPTS,
-                        delay_ms = delay.as_millis() as u64,
-                        error = %err,
-                        "IPC transport failed; reconnecting and re-authenticating"
+                    match tokio::time::timeout_at(
+                        deadline,
+                        self.reconnect_with_backoff_locked(
+                            &mut stream,
+                            &mut reconnect_attempts,
+                            err,
+                        ),
+                    )
+                    .await
+                    {
+                        Ok(result) => result?,
+                        Err(_) => {
+                            let timeout_message = format!(
+                                "IPC request timed out after {} seconds while restoring the connection; operation was not retried",
+                                IPC_REQUEST_TIMEOUT.as_secs()
+                            );
+                            return Err(Self::request_timeout_error_locked(
+                                &mut stream,
+                                timeout_message,
+                            ));
+                        }
+                    }
+                }
+                Err(_) => {
+                    // Cancellation may interrupt a prefix, body, or response
+                    // read. Drop the stream before reconnecting; retrying this
+                    // request could duplicate a signing operation whose result
+                    // was merely delayed.
+                    drop(active_stream);
+                    let timeout_message = format!(
+                        "IPC request timed out after {} seconds; operation was not retried",
+                        IPC_REQUEST_TIMEOUT.as_secs()
                     );
-                    tokio::time::sleep(delay).await;
-
-                    match self.reconnect_locked(&mut stream).await {
-                        Ok(()) => {
-                            info!(
-                                attempt = reconnect_attempt,
-                                "IPC reconnect and re-authentication succeeded"
-                            );
-                            continue;
-                        }
-                        Err(reconnect_err) => {
-                            warn!(
-                                attempt = reconnect_attempt,
-                                max_attempts = RECONNECT_MAX_ATTEMPTS,
-                                error = %reconnect_err,
-                                "IPC reconnect attempt failed"
-                            );
-                            if reconnect_attempt >= RECONNECT_MAX_ATTEMPTS {
-                                return Err(reconnect_err).context(format!(
-                                    "Unable to restore IPC connection after {} attempts",
-                                    RECONNECT_MAX_ATTEMPTS
-                                ));
-                            }
-                        }
-                    }
+                    return Err(Self::request_timeout_error_locked(
+                        &mut stream,
+                        timeout_message,
+                    ));
                 }
             }
         }
@@ -419,8 +608,32 @@ impl IpcClient {
 
     /// Authenticates with the IPC server using the shared token.
     async fn authenticate(&self, token: &[u8]) -> Result<()> {
-        let mut stream = self.inner.stream.lock().await;
-        Self::authenticate_stream(&mut stream, &self.inner.next_id, token).await
+        let deadline = tokio::time::Instant::now() + IPC_AUTHENTICATION_TIMEOUT;
+        let mut stream = tokio::time::timeout_at(deadline, self.inner.stream.lock())
+            .await
+            .map_err(|_| {
+                anyhow!(
+                    "IPC authentication timed out after {} seconds while waiting for the shared connection",
+                    IPC_AUTHENTICATION_TIMEOUT.as_secs()
+                )
+            })?;
+        let mut candidate = stream.take().context("IPC connection is unavailable")?;
+        let result = tokio::time::timeout_at(
+            deadline,
+            Self::authenticate_stream(&mut candidate, &self.inner.next_id, token),
+        )
+        .await
+        .map_err(|_| {
+            anyhow!(
+                "IPC authentication timed out after {} seconds",
+                IPC_AUTHENTICATION_TIMEOUT.as_secs()
+            )
+        })?;
+
+        if result.is_ok() {
+            *stream = Some(candidate);
+        }
+        result
     }
 
     /// Requests the list of SSH keys available in the Keyguard vault.
@@ -818,6 +1031,10 @@ mod tests {
             err_msg.contains("mismatch"),
             "Expected ID mismatch error, got: {}",
             err_msg
+        );
+        assert!(
+            client.inner.stream.lock().await.is_none(),
+            "an out-of-sequence response must invalidate the connection"
         );
 
         let _ = server_handle.await.unwrap();
@@ -1319,6 +1536,180 @@ mod tests {
         let keys = client.list_keys(None).await.unwrap();
         assert_eq!(keys.keys[0].name, "after-malformed-frame");
 
+        first_server_task.await.unwrap();
+        second_server_task.await.unwrap();
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn authentication_timeout_invalidates_the_stream() {
+        let (client_stream, server_stream) = tokio::io::duplex(64 * 1024);
+        let mut server = IpcStream::new(server_stream);
+        let client = IpcClient::from_stream(client_stream);
+
+        let authenticate_client = client.clone();
+        let authenticate_task =
+            tokio::spawn(async move { authenticate_client.authenticate(&[0x31; 32]).await });
+
+        let request = server.read_request().await.unwrap();
+        assert!(matches!(
+            request.request,
+            Some(ipc_request::Request::Authenticate(_))
+        ));
+
+        tokio::time::advance(IPC_AUTHENTICATION_TIMEOUT).await;
+        let error = authenticate_task.await.unwrap().unwrap_err().to_string();
+        assert!(error.contains("authentication timed out"), "{error}");
+        assert!(
+            client.inner.stream.lock().await.is_none(),
+            "a stream cancelled during authentication must not be reused"
+        );
+    }
+
+    #[tokio::test]
+    async fn externally_cancelled_request_invalidates_the_stream() {
+        let (client, mut server) = make_test_client().await;
+        let request_client = client.clone();
+        let request_task = tokio::spawn(async move { request_client.list_keys(None).await });
+
+        let request = server.read_request().await.unwrap();
+        assert!(matches!(
+            request.request,
+            Some(ipc_request::Request::ListKeys(_))
+        ));
+
+        request_task.abort();
+        assert!(request_task.await.unwrap_err().is_cancelled());
+        assert!(
+            client.inner.stream.lock().await.is_none(),
+            "a transport cancelled mid-transaction must not be reused"
+        );
+        assert!(
+            server.read_request().await.is_err(),
+            "cancelling the request must close the in-flight transport"
+        );
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn request_timeout_includes_waiting_for_the_shared_stream() {
+        let (client_stream, _server_stream) = tokio::io::duplex(64 * 1024);
+        let client = IpcClient::from_stream(client_stream);
+        let stream_guard = client.inner.stream.lock().await;
+
+        let waiting_client = client.clone();
+        let request_task = tokio::spawn(async move { waiting_client.list_keys(None).await });
+        tokio::task::yield_now().await;
+        tokio::time::advance(IPC_REQUEST_TIMEOUT).await;
+
+        let error = request_task.await.unwrap().unwrap_err().to_string();
+        assert!(
+            error.contains("waiting for the shared connection"),
+            "{error}"
+        );
+        assert!(error.contains("operation was not sent"), "{error}");
+
+        drop(stream_guard);
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn request_timeout_invalidates_without_retry_and_next_request_reconnects() {
+        let token = vec![0xA7; 32];
+        let (client_stream1, server_stream1) = tokio::io::duplex(64 * 1024);
+        let (client_stream2, server_stream2) = tokio::io::duplex(64 * 1024);
+        let client = IpcClient::from_stream_with_reconnect(
+            client_stream1,
+            token.clone(),
+            vec![Box::new(client_stream2)],
+        );
+
+        let (timed_request_seen_tx, timed_request_seen_rx) = tokio::sync::oneshot::channel();
+        let (release_first_connection_tx, release_first_connection_rx) =
+            tokio::sync::oneshot::channel();
+        let first_token = token.clone();
+        let first_server_task = tokio::spawn(async move {
+            let mut connection = IpcStream::new(server_stream1);
+            let authenticate = connection.read_request().await.unwrap();
+            match authenticate.request {
+                Some(ipc_request::Request::Authenticate(auth)) => {
+                    assert_eq!(auth.token, first_token)
+                }
+                _ => panic!("Expected Authenticate request on first connection"),
+            }
+            connection
+                .write_response(&auth_ok_response(authenticate.id))
+                .await
+                .unwrap();
+
+            let timed_request = connection.read_request().await.unwrap();
+            assert!(matches!(
+                timed_request.request,
+                Some(ipc_request::Request::SignData(_))
+            ));
+            timed_request_seen_tx.send(()).unwrap();
+
+            // Keep the original connection open without replying. This makes
+            // the client deadline, rather than EOF, end the transaction.
+            let _ = release_first_connection_rx.await;
+        });
+
+        let second_token = token.clone();
+        let second_server_task = tokio::spawn(async move {
+            let mut connection = IpcStream::new(server_stream2);
+            let authenticate = connection.read_request().await.unwrap();
+            match authenticate.request {
+                Some(ipc_request::Request::Authenticate(auth)) => {
+                    assert_eq!(auth.token, second_token)
+                }
+                _ => panic!("Expected Authenticate request on replacement connection"),
+            }
+            connection
+                .write_response(&auth_ok_response(authenticate.id))
+                .await
+                .unwrap();
+
+            // The next request after reconnect must be the caller's new
+            // ListKeys operation, never a replay of the ambiguous SignData.
+            let next_request = connection.read_request().await.unwrap();
+            assert!(matches!(
+                next_request.request,
+                Some(ipc_request::Request::ListKeys(_))
+            ));
+            connection
+                .write_response(&list_keys_response(
+                    next_request.id,
+                    vec![SshKey {
+                        name: "after-timeout".to_string(),
+                        public_key: "ssh-ed25519 AAAA... after-timeout".to_string(),
+                        key_type: "ssh-ed25519".to_string(),
+                        fingerprint: "SHA256:after-timeout".to_string(),
+                    }],
+                ))
+                .await
+                .unwrap();
+        });
+
+        client.authenticate(&token).await.unwrap();
+
+        let timed_client = client.clone();
+        let timed_request_task = tokio::spawn(async move {
+            timed_client
+                .sign_data("ssh-ed25519 AAAA...", &[1, 2, 3], 0, None)
+                .await
+        });
+        timed_request_seen_rx.await.unwrap();
+        tokio::time::advance(IPC_REQUEST_TIMEOUT).await;
+
+        let error = timed_request_task.await.unwrap().unwrap_err().to_string();
+        assert!(error.contains("request timed out"), "{error}");
+        assert!(error.contains("operation was not retried"), "{error}");
+        assert!(
+            client.inner.stream.lock().await.is_none(),
+            "timed-out transport must remain invalid until the next request reconnects"
+        );
+
+        let next_response = client.list_keys(None).await.unwrap();
+        assert_eq!(next_response.keys[0].name, "after-timeout");
+
+        let _ = release_first_connection_tx.send(());
         first_server_task.await.unwrap();
         second_server_task.await.unwrap();
     }

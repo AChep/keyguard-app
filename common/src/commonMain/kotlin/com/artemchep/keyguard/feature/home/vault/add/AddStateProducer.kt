@@ -3393,7 +3393,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val companySuggestions = createItem2Txt(
         prefix = prefix,
-        key = "country",
+        key = "company",
         args = args,
         getSuggestion = { it.identity?.company },
         field = company,

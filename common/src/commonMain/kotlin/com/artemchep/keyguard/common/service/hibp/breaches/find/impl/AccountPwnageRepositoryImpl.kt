@@ -11,7 +11,6 @@ import com.artemchep.keyguard.common.io.handleErrorWith
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
-import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.UsernamePwnage
@@ -59,14 +58,6 @@ class AccountPwnageRepositoryImpl(
         .flatMap { localPwnage ->
             localPwnage?.let { entity ->
                 val localIo = io(entity)
-                    .effectTap { pwnage ->
-                        val msg = kotlin.run {
-                            val passwordPrefix = username.take(2)
-                            val passwordOccurrences = pwnage.count
-                            "Obtained local pwnage report for '$passwordPrefix****', $passwordOccurrences occurrences."
-                        }
-                        logRepository.post(TAG, msg)
-                    }
                     .map {
                         UsernamePwnage(
                             leaks = emptyList(),
@@ -194,13 +185,6 @@ class AccountPwnageRepositoryImpl(
 //                localDataSource
 //                    .put(entity)
 //                    .bind()
-//            }
-        }
-        .measure { duration, remotePwnage ->
-//            logRepository.postDebug(TAG) {
-//                val prefix = password.take(4)
-//                val count = remotePwnage.occurrences
-//                "Obtained remote pwnage report for '$prefix****': $count occurrences, took $duration."
 //            }
         }
 }

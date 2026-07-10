@@ -75,7 +75,7 @@ class SyncByKeePassTokenImpl(
             coordinator.sync(user)
         }
         .measure { duration, _ ->
-            val message = "Synced user ${user.id} in $duration."
+            val message = "Synced KeePass account in $duration."
             logRepository.post(TAG, message)
         }
 }

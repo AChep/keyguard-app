@@ -82,18 +82,10 @@ class GetPasswordStrengthJvm(
             // analytics, because we have no idea how sanitized the
             // inputs of the underlying implementation are.
             val name = e::class.qualifiedName.orEmpty()
-            val message = "Failed to calculate password strength for ${password.length} " +
-                    "chars long password with a '$name' exception"
+            val message = "Failed to calculate password strength with a '$name' exception"
             recordException(PasswordStrengthException(message))
         }
         .dispatchOn(dispatcher)
-        .measure { duration, passwordStrength ->
-            logRepository.add(
-                tag = TAG,
-                message = "Calculating a password strength for ${password.length} chars long password " +
-                        "took $duration, verdict ${passwordStrength.score}",
-            )
-        }
 
     private fun passphraseStrengthIo(
         password: String,

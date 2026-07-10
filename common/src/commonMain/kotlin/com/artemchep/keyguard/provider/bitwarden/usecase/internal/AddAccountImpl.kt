@@ -133,8 +133,8 @@ class AddAccountImpl(
                 .bind()
         }
         // Log the time spent adding an account.
-        .measure { duration, finalAccountId ->
-            val message = "Added an account '$finalAccountId' in $duration."
+        .measure { duration, _ ->
+            val message = "Added an account in $duration."
             logRepository.post(TAG, message)
         }
 }

@@ -339,7 +339,7 @@ private class WatchtowerClient(
                 .filter { (version, ciphers) -> ciphers.isNotEmpty() }
                 .onEach { (version, ciphers) ->
                     val message = "Processing watchtower alert [$type/$version]: " +
-                            ciphers.joinToString { it.id }
+                            "${ciphers.size} items"
                     logRepository.add(TAG, message)
 
                     val now = Clock.System.now()

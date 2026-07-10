@@ -88,7 +88,7 @@ class ImportCompanionBitwardenAccountImpl(
             syncById(accountId)
                 .map { Unit }
         }
-        .measure { duration, accountId ->
-            logRepository.post(TAG, "Imported a companion Bitwarden account '$accountId' in $duration.")
+        .measure { duration, _ ->
+            logRepository.post(TAG, "Imported a companion Bitwarden account in $duration.")
         }
 }

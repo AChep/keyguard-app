@@ -1,18 +1,62 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.io.io
+import com.artemchep.keyguard.common.model.CheckPasswordSetLeakRequest
+import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.PasswordPwnage
+import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
+import com.artemchep.keyguard.common.usecase.GetBreachesLatestDate
+import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
+import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WatchtowerSyncerImplTest {
+    @Test
+    fun `pwned password processing flags every positive occurrence count`() = runTest {
+        val ciphers = listOf(
+            passwordSecret(id = "safe", password = "safe-password"),
+            passwordSecret(id = "pwned-once", password = "pwned-once-password"),
+            passwordSecret(id = "pwned-twice", password = "pwned-twice-password"),
+        )
+        val client = WatchtowerPasswordPwned(
+            checkPasswordSetLeak = TestCheckPasswordSetLeak(
+                occurrences = mapOf(
+                    "safe-password" to 0,
+                    "pwned-once-password" to 1,
+                    "pwned-twice-password" to 2,
+                ),
+            ),
+            getBreachesLatestDate = TestGetBreachesLatestDate,
+            getCheckPwnedPasswords = TestGetCheckPwnedPasswords,
+        )
+
+        val result = client.process(ciphers)
+            .associate { it.cipher.id to it.threat }
+
+        assertEquals(
+            mapOf(
+                "safe" to false,
+                "pwned-once" to true,
+                "pwned-twice" to true,
+            ),
+            result,
+        )
+    }
+
     @Test
     fun `initial empty sync set permits immediate processing`() = runTest {
         val syncs = MutableStateFlow<Set<String>>(emptySet())
@@ -164,4 +208,32 @@ class WatchtowerSyncerImplTest {
 
         assertEquals(listOf(2, 3, 5), values)
     }
+}
+
+private fun passwordSecret(
+    id: String,
+    password: String,
+): DSecret = createSecret(
+    id = id,
+    login = DSecret.Login(password = password),
+)
+
+private class TestCheckPasswordSetLeak(
+    private val occurrences: Map<String, Int>,
+) : CheckPasswordSetLeak {
+    override fun invoke(
+        request: CheckPasswordSetLeakRequest,
+    ): IO<Map<String, PasswordPwnage?>> = io(
+        request.passwords.associateWith { password ->
+            occurrences[password]?.let(::PasswordPwnage)
+        },
+    )
+}
+
+private object TestGetBreachesLatestDate : GetBreachesLatestDate {
+    override fun invoke(): Flow<LocalDate?> = flowOf(null)
+}
+
+private object TestGetCheckPwnedPasswords : GetCheckPwnedPasswords {
+    override fun invoke(): Flow<Boolean> = flowOf(true)
 }

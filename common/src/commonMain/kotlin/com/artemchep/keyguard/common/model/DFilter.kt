@@ -882,7 +882,7 @@ sealed interface DFilter {
             val set = buildPwnedPasswordsState(directDI = directDI, ciphers = ciphers)
                 .asSequence()
                 .mapNotNull { entry ->
-                    entry.key.takeIf { entry.value > 1 }
+                    entry.key.takeIf { entry.value > 0 }
                 }
                 .toSet()
             ::predicate.partially1(set)
@@ -895,7 +895,7 @@ sealed interface DFilter {
         ) = buildPwnedPasswordsState(directDI = directDI, ciphers = ciphers)
             .asSequence()
             .count { entry ->
-                entry.value > 1
+                entry.value > 0
             }
 
         private suspend fun buildPwnedPasswordsState(

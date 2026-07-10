@@ -642,7 +642,7 @@ class WatchtowerPasswordPwned(
         )
             .asSequence()
             .mapNotNull { entry ->
-                entry.key.takeIf { entry.value > 1 }
+                entry.key.takeIf { entry.value > 0 }
             }
             .toSet()
         return ciphers

@@ -924,7 +924,10 @@ private suspend fun RememberStateFlowScope.produceOptionsState(
         val id = "$prefix.max_access_count"
         val state = LocalStateItem<AddStateItem.Text.State, CreateSendRequest>(
             flow = kotlin.run {
-                val handle = textFieldHandle(id)
+                val handle = textFieldHandle(
+                    key = id,
+                    initial = args.initialValue?.maxAccessCount?.toString().orEmpty(),
+                )
                 combine(
                     handle.sink,
                     handle.sink

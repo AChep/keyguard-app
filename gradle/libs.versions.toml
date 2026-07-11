@@ -166,7 +166,7 @@ sqlcipherAndroid = "4.17.0"
 # https://github.com/cashapp/sqldelight
 sqldelight = "2.3.2"
 # https://github.com/Willena/sqlite-jdbc-crypt
-sqliteJdbcCrypt = "3.51.2.0"
+sqliteJdbcCrypt = "3.53.2.0"
 # https://github.com/vinceglb/FileKit
 filekit = "0.14.1"
 # https://github.com/ohmae/touch-icon-extractor

@@ -168,7 +168,7 @@ sqldelight = "2.3.2"
 # https://github.com/Willena/sqlite-jdbc-crypt
 sqliteJdbcCrypt = "3.53.2.0"
 # https://github.com/vinceglb/FileKit
-filekit = "0.14.1"
+filekit = "0.14.2"
 # https://github.com/ohmae/touch-icon-extractor
 touchIcon = "0.9.12"
 # https://github.com/littlerobots/version-catalog-update-plugin

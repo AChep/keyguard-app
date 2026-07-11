@@ -35,6 +35,23 @@ import kotlin.time.Instant
 @OptIn(ExperimentalCoroutinesApi::class)
 class GetNavItemsConfigImplTest {
     @Test
+    fun `conditional items are hidden before cached or upstream config emits`() = runTest {
+        val fixture = fixture()
+
+        val initialConfig = fixture.useCase().value
+
+        assertFalse(initialConfig.sendsVisible())
+        assertFalse(initialConfig.gpgToolsVisible())
+        initialConfig.items
+            .filterNot { item ->
+                item.ref == sendsRef() || item.ref == gpgToolsRef()
+            }
+            .forEach { item ->
+                assertTrue(item.visible, "Expected ${item.ref} to be initially visible")
+            }
+    }
+
+    @Test
     fun `cached config emits before upstream availability`() = runTest {
         val cachedConfig = configWithSendsVisible(false)
         val fixture = fixture(

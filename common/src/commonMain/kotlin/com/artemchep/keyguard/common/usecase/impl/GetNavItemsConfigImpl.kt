@@ -55,7 +55,7 @@ class GetNavItemsConfigImpl(
         .stateIn(
             scope = windowCoroutineScope,
             started = SharingStarted.Eagerly,
-            initialValue = NavItemsConfigDefaults.defaultConfig(),
+            initialValue = initialConfig(),
         )
 
     constructor(
@@ -173,3 +173,11 @@ class GetNavItemsConfigImpl(
         val isUpstream: Boolean,
     )
 }
+
+private fun initialConfig(): NavItemsConfig = applyHomeNavigationAvailability(
+    config = NavItemsConfigDefaults.defaultConfig(),
+    availability = mapOf(
+        NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_SENDS) to false,
+        NavItemRef.BuiltIn(NavItemsConfigDefaults.BUILT_IN_GPG_TOOLS) to false,
+    ),
+)

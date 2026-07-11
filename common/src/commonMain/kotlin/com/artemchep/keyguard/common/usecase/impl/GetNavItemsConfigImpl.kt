@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
@@ -121,7 +122,6 @@ class GetNavItemsConfigImpl(
         )
     }
 
-    @OptIn(FlowPreview::class)
     private fun getSendAvailabilityFlow() = combine(
         getAccounts(),
         getProfiles(),
@@ -132,31 +132,19 @@ class GetNavItemsConfigImpl(
             .toSet()
         accounts.filter { it.accountId() in shownAccountIds }
     }
-        .mapNotNull { accounts ->
-            // If the accounts read as empty, then do not change the
-            // current value.
-            if (accounts.isEmpty()) {
-                return@mapNotNull null
-            }
-
-            accounts
-                .any { account ->
-                    account.type.capabilities.supportsSends
-                }
+        .mapToAvailable { account ->
+            account.type.capabilities.supportsSends
         }
-        .debounce(1500L) // for slow loading accounts
-        .distinctUntilChanged()
 
     private fun getGpgToolsAvailabilityFlow() = filterHiddenProfiles(
         getCiphers = getCiphers,
         getProfiles = getProfiles,
     )
-        .map { ciphers ->
-            ciphers.any { cipher ->
-                cipher.toGpgAgentSecretOrNull() != null
-            }
+        .mapToAvailable(
+            initialWhenEmpty = false,
+        ) { cipher ->
+            cipher.toGpgAgentSecretOrNull() != null
         }
-        .distinctUntilChanged()
 
     private fun Flow<NavItemsConfigStatus>.onEachCacheUpstream() =
         map { status ->
@@ -173,6 +161,31 @@ class GetNavItemsConfigImpl(
         val isUpstream: Boolean,
     )
 }
+
+@OptIn(FlowPreview::class)
+private fun <T> Flow<List<T>>.mapToAvailable(
+    initialWhenEmpty: Boolean? = null,
+    predicate: (T) -> Boolean,
+): Flow<Boolean> = flow {
+    var initialized = false
+    this@mapToAvailable
+        .debounce(1500L)
+        .collect { items ->
+            if (items.isEmpty()) {
+                // Some sources need an initial empty snapshot to establish a
+                // baseline, but later empty snapshots are treated as transient.
+                if (!initialized && initialWhenEmpty != null) {
+                    initialized = true
+                    emit(initialWhenEmpty)
+                }
+                return@collect
+            }
+
+            initialized = true
+            emit(items.any(predicate))
+        }
+}
+    .distinctUntilChanged()
 
 private fun initialConfig(): NavItemsConfig = applyHomeNavigationAvailability(
     config = NavItemsConfigDefaults.defaultConfig(),

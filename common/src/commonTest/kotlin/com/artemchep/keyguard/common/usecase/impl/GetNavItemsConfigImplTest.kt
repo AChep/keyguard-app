@@ -212,7 +212,11 @@ class GetNavItemsConfigImplTest {
                     hidden = false,
                 ),
             ),
-            ciphers = emptyList(),
+            ciphers = listOf(
+                createRegularCipher(
+                    accountId = "account-1",
+                ),
+            ),
         )
 
         advanceTimeBy(2_001L)
@@ -247,6 +251,67 @@ class GetNavItemsConfigImplTest {
         advanceUntilIdle()
 
         assertTrue(fixture.useCase().value.gpgToolsVisible())
+    }
+
+    @Test
+    fun `gpg tools stay visible during transient mixed account cipher snapshot`() = runTest {
+        val gpgCipher = createGpgCipher(
+            accountId = "gpg-account",
+        )
+        val regularCipher = createRegularCipher(
+            accountId = "regular-account",
+        )
+        val fixture = fixture(
+            accounts = listOf(
+                createAccount(
+                    id = "gpg-account",
+                    type = AccountType.BITWARDEN,
+                ),
+                createAccount(
+                    id = "regular-account",
+                    type = AccountType.BITWARDEN,
+                ),
+            ),
+            profiles = listOf(
+                createProfile(
+                    accountId = "gpg-account",
+                    hidden = false,
+                ),
+                createProfile(
+                    accountId = "regular-account",
+                    hidden = false,
+                ),
+            ),
+            ciphers = listOf(
+                gpgCipher,
+                regularCipher,
+            ),
+        )
+
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+        assertTrue(fixture.useCase().value.gpgToolsVisible())
+
+        fixture.ciphersFlow.value = emptyList()
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+        assertTrue(fixture.useCase().value.gpgToolsVisible())
+
+        fixture.ciphersFlow.value = listOf(regularCipher)
+        advanceTimeBy(750L)
+        assertTrue(fixture.useCase().value.gpgToolsVisible())
+
+        fixture.ciphersFlow.value = listOf(gpgCipher, regularCipher)
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+
+        assertTrue(fixture.useCase().value.gpgToolsVisible())
+
+        fixture.ciphersFlow.value = listOf(regularCipher)
+        advanceTimeBy(2_001L)
+        advanceUntilIdle()
+
+        assertFalse(fixture.useCase().value.gpgToolsVisible())
     }
 
     @Test
@@ -345,6 +410,7 @@ class GetNavItemsConfigImplTest {
         return Fixture(
             useCase = useCase,
             cacheWrites = cacheWrites,
+            ciphersFlow = ciphersFlow,
         )
     }
 }
@@ -352,6 +418,7 @@ class GetNavItemsConfigImplTest {
 private data class Fixture(
     val useCase: GetNavItemsConfigImpl,
     val cacheWrites: List<NavItemsConfig>,
+    val ciphersFlow: MutableStateFlow<List<DSecret>>,
 )
 
 private fun flowUseCase(
@@ -498,3 +565,13 @@ private fun createGpgCipher(
         ),
     ),
 )
+
+private fun createRegularCipher(
+    accountId: String,
+) = createGpgCipher(accountId)
+    .copy(
+        id = "regular-cipher-$accountId",
+        name = "Login",
+        type = DSecret.Type.Login,
+        gpgKey = null,
+    )

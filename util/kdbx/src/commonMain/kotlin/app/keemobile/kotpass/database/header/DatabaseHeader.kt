@@ -4,9 +4,9 @@ import app.keemobile.kotpass.constants.CrsAlgorithm
 import app.keemobile.kotpass.constants.HeaderFieldId
 import app.keemobile.kotpass.cryptography.format.BaseCiphers
 import app.keemobile.kotpass.errors.FormatError
-import app.keemobile.kotpass.extensions.asIntLe
-import app.keemobile.kotpass.extensions.asLongLe
-import app.keemobile.kotpass.extensions.asUuid
+import app.keemobile.kotpass.extensions.asIntLeOrNull
+import app.keemobile.kotpass.extensions.asLongLeOrNull
+import app.keemobile.kotpass.extensions.asUuidOrNull
 import app.keemobile.kotpass.extensions.nextByteString
 import app.keemobile.kotpass.io.BufferedStream
 import app.keemobile.kotpass.models.FormatVersion
@@ -192,18 +192,29 @@ sealed class DatabaseHeader {
                 when (fieldId) {
                     HeaderFieldId.EndOfHeader -> break
                     HeaderFieldId.Comment -> Unit
-                    HeaderFieldId.CipherId -> cipherId = data.asUuid()
+                    HeaderFieldId.CipherId -> cipherId = data.asUuidOrNull()
+                        ?: throw FormatError.InvalidHeader("Invalid cipher ID.")
                     HeaderFieldId.Compression -> {
-                        compression = Compression.entries[data.asIntLe()]
+                        val ordinal = data.asIntLeOrNull()
+                            ?: throw FormatError.InvalidHeader("Invalid compression field.")
+                        compression = Compression.entries.getOrNull(ordinal)
+                            ?: throw FormatError.InvalidHeader("Unsupported compression algorithm.")
                     }
                     HeaderFieldId.MasterSeed -> masterSeed = data
                     HeaderFieldId.TransformSeed -> transformSeed = data
-                    HeaderFieldId.TransformRounds -> transformRounds = data.asLongLe().toULong()
+                    HeaderFieldId.TransformRounds -> {
+                        val value = data.asLongLeOrNull()
+                            ?: throw FormatError.InvalidHeader("Invalid transform rounds.")
+                        transformRounds = value.toULong()
+                    }
                     HeaderFieldId.EncryptionIV -> encryptionIV = data
                     HeaderFieldId.InnerRandomStreamKey -> innerRandomStreamKey = data
                     HeaderFieldId.StreamStartBytes -> streamStartBytes = data
                     HeaderFieldId.InnerRandomStreamId -> {
-                        innerRandomStreamID = CrsAlgorithm.entries[data.asIntLe()]
+                        val ordinal = data.asIntLeOrNull()
+                            ?: throw FormatError.InvalidHeader("Invalid inner random stream ID.")
+                        innerRandomStreamID = CrsAlgorithm.entries.getOrNull(ordinal)
+                            ?: throw FormatError.InvalidHeader("Unsupported inner random stream algorithm.")
                     }
                     HeaderFieldId.KdfParameters -> {
                         kdfParameters = KdfParameters.readFrom(data)

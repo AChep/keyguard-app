@@ -21,3 +21,12 @@ internal fun ByteString.asLongLe(): Long {
 }
 
 internal fun ByteString.asUuid(): Uuid = Uuid.fromByteArray(toByteArray())
+
+internal fun ByteString.asIntLeOrNull(): Int? =
+    if (size >= Int.SIZE_BYTES) asIntLe() else null
+
+internal fun ByteString.asLongLeOrNull(): Long? =
+    if (size >= Long.SIZE_BYTES) asLongLe() else null
+
+internal fun ByteString.asUuidOrNull(): Uuid? =
+    if (size == 16) asUuid() else null

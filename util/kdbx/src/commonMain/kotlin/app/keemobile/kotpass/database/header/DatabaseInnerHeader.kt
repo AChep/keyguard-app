@@ -59,7 +59,13 @@ data class DatabaseInnerHeader(
 
             while (true) {
                 val id = source.readByte()
+                // The length is a signed little-endian int in the format, so a
+                // declared payload >= 2 GiB wraps to a negative value; guard it
+                // before it reaches any read call.
                 val length = source.readIntLe().toLong()
+                if (length < 0) {
+                    throw FormatError.InvalidContent("Invalid inner header field length: $length.")
+                }
 
                 when (id.toInt()) {
                     InnerHeaderFieldId.Terminator -> {
@@ -67,12 +73,19 @@ data class DatabaseInnerHeader(
                         break
                     }
                     InnerHeaderFieldId.StreamId -> {
-                        randomStreamId = CrsAlgorithm.entries[source.readIntLe()]
+                        val ordinal = source.readIntLe()
+                        randomStreamId = CrsAlgorithm.entries.getOrNull(ordinal)
+                            ?: throw FormatError.InvalidContent("Unknown inner random stream id: $ordinal.")
                     }
                     InnerHeaderFieldId.StreamKey -> {
                         randomStreamKey = source.readByteString(length)
                     }
                     InnerHeaderFieldId.Binary -> {
+                        if (length < BinaryFlagsSize) {
+                            val msg = "Invalid binary inner header field length: $length."
+                            throw FormatError.InvalidContent(msg)
+                        }
+
                         val memoryProtection = source.readByte() != 0x0.toByte()
                         val content = source.readByteArray(length - BinaryFlagsSize)
                         val binary = BinaryData.Uncompressed(memoryProtection, content)

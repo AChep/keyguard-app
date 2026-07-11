@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.copy
 
+import com.artemchep.jna.macos.setMacClipboardText
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
@@ -50,8 +51,16 @@ class ClipboardServiceJvm(
         value: String,
         concealed: Boolean,
     ) {
-        val selection = if (concealed && CurrentPlatform is Platform.Desktop.Linux) {
-            SensitiveStringSelection(value)
+        val platform = CurrentPlatform
+        if (
+            platform is Platform.Desktop.MacOS &&
+            setMacClipboardText(value, concealed)
+        ) {
+            return
+        }
+
+        val selection = if (concealed && platform is Platform.Desktop) {
+            SensitiveStringSelection(value, platform)
         } else {
             StringSelection(value)
         }
@@ -123,37 +132,98 @@ class ClipboardServiceJvm(
     }.getOrNull()
 }
 
-private class SensitiveStringSelection(
+internal class SensitiveStringSelection(
     value: String,
+    platform: Platform.Desktop,
 ) : Transferable {
     private val textSelection = StringSelection(value)
 
+    private val markers = sensitiveClipboardMarkers(platform)
+
     override fun getTransferDataFlavors(): Array<DataFlavor> =
-        textSelection.transferDataFlavors + kdePasswordManagerHintFlavor
+        textSelection.transferDataFlavors +
+                markers.map(SensitiveClipboardMarker::flavor)
 
     override fun isDataFlavorSupported(flavor: DataFlavor): Boolean =
         textSelection.isDataFlavorSupported(flavor) ||
-                flavor == kdePasswordManagerHintFlavor
+                markers.any { marker -> marker.flavor == flavor }
 
-    override fun getTransferData(flavor: DataFlavor): Any = when {
-        flavor == kdePasswordManagerHintFlavor -> kdePasswordManagerHintValue.copyOf()
-        else -> textSelection.getTransferData(flavor)
-    }
+    override fun getTransferData(flavor: DataFlavor): Any = markers
+        .firstOrNull { marker -> marker.flavor == flavor }
+        ?.value
+        ?.copyOf()
+        ?: textSelection.getTransferData(flavor)
 
-    companion object {
-        private const val KDE_PASSWORD_MANAGER_HINT_NATIVE = "x-kde-passwordManagerHint"
-        private const val KDE_PASSWORD_MANAGER_HINT_MIME = "application/x-kde-password-manager-hint;class=\"[B\""
+    private companion object {
+        // KDE Klipper treats this MIME type/value pair as a password-manager hint and skips
+        // storing the clipboard item in its history. This is a KDE convention, not access control.
+        // https://bugs.kde.org/show_bug.cgi?id=508326
+        private val kdePasswordManagerHint = SensitiveClipboardMarker(
+            native = "x-kde-passwordManagerHint",
+            mime = "application/x-kde-password-manager-hint;class=\"[B\"",
+            value = "secret".encodeToByteArray(),
+        )
 
-        private val kdePasswordManagerHintValue = "secret".encodeToByteArray()
-        private val kdePasswordManagerHintFlavor = DataFlavor(
-            KDE_PASSWORD_MANAGER_HINT_MIME,
-            KDE_PASSWORD_MANAGER_HINT_NATIVE,
-        ).also { flavor ->
-            val flavorMap = SystemFlavorMap.getDefaultFlavorMap() as? SystemFlavorMap
-            flavorMap?.setNativesForFlavor(
-                flavor,
-                arrayOf(KDE_PASSWORD_MANAGER_HINT_NATIVE),
+        // Fallback for when the native AppKit write fails. ConcealedType is an ecosystem marker
+        // asking clipboard-history tools to conceal or avoid persisting the item.
+        // https://nspasteboard.org/
+        private val macOsConcealed = SensitiveClipboardMarker(
+            native = "org.nspasteboard.ConcealedType",
+            mime = "application/x-keyguard-nspasteboard-concealed;class=\"[B\"",
+            value = byteArrayOf(),
+        )
+
+        // Windows recognizes these registered formats as controls for Clipboard History and
+        // Cloud Clipboard. ExcludeClipboardContentFromMonitorProcessing accepts any payload;
+        // the other two require a serialized DWORD zero (four zero bytes) to opt out.
+        // https://learn.microsoft.com/en-us/windows/win32/dataxchg/clipboard-formats#cloud-clipboard-and-clipboard-history-formats
+        private val windowsExcludeFromMonitorProcessing = SensitiveClipboardMarker(
+            native = "ExcludeClipboardContentFromMonitorProcessing",
+            mime = "application/x-keyguard-windows-clipboard-monitor-exclusion;class=\"[B\"",
+            value = byteArrayOf(1),
+        )
+
+        private val windowsCanIncludeInClipboardHistory = SensitiveClipboardMarker(
+            native = "CanIncludeInClipboardHistory",
+            mime = "application/x-keyguard-windows-clipboard-history-inclusion;class=\"[B\"",
+            value = ByteArray(Int.SIZE_BYTES),
+        )
+
+        private val windowsCanUploadToCloudClipboard = SensitiveClipboardMarker(
+            native = "CanUploadToCloudClipboard",
+            mime = "application/x-keyguard-windows-cloud-clipboard-upload;class=\"[B\"",
+            value = ByteArray(Int.SIZE_BYTES),
+        )
+
+        private fun sensitiveClipboardMarkers(
+            platform: Platform.Desktop,
+        ): List<SensitiveClipboardMarker> = when (platform) {
+            is Platform.Desktop.Linux -> listOf(kdePasswordManagerHint)
+            Platform.Desktop.MacOS -> listOf(macOsConcealed)
+            Platform.Desktop.Windows -> listOf(
+                windowsExcludeFromMonitorProcessing,
+                windowsCanIncludeInClipboardHistory,
+                windowsCanUploadToCloudClipboard,
             )
+
+            Platform.Desktop.Other -> emptyList()
         }
+    }
+}
+
+private class SensitiveClipboardMarker(
+    native: String,
+    mime: String,
+    val value: ByteArray,
+) {
+    val flavor = DataFlavor(
+        mime,
+        native,
+    ).also { flavor ->
+        val flavorMap = SystemFlavorMap.getDefaultFlavorMap() as? SystemFlavorMap
+        flavorMap?.setNativesForFlavor(
+            flavor,
+            arrayOf(native),
+        )
     }
 }

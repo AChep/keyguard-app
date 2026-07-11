@@ -86,7 +86,7 @@ firebase = "34.12.0"
 ionspinBignum = "0.3.10"
 # https://github.com/tfcporciuncula/flow-preferences
 flowPreferences = "1.9.1"
-googleServicesPlugin = "4.4.4"
+googleServicesPlugin = "4.5.0"
 # https://github.com/ch4rl3x/HtmlText
 htmlText = "3.0.0-beta02"
 # https://chrisbanes.github.io/haze/latest/

@@ -11,11 +11,13 @@ import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigProvider
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
 import kotlinx.coroutines.flow.Flow
-import kotlin.time.Instant
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 /**
  * @author Artem Chepurnyi
@@ -103,6 +105,10 @@ interface SettingsReadRepository {
 
     fun getSshAgentApprovalWindow(): Flow<Duration>
 
+    fun getSshAgentApprovalCachePolicy(): Flow<AgentApprovalCachePolicy>
+
+    fun getSshAgentApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
+
     fun getSshAgentDisplayKeyNames(): Flow<Boolean>
 
     fun getSshAgentFilter(): Flow<SshAgentFilter>
@@ -110,6 +116,10 @@ interface SettingsReadRepository {
     fun getGpgAgent(): Flow<Boolean>
 
     fun getGpgAgentApprovalWindow(): Flow<Duration>
+
+    fun getGpgAgentApprovalCachePolicy(): Flow<AgentApprovalCachePolicy>
+
+    fun getGpgAgentApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
 
     fun getGpgAgentDisplayKeyNames(): Flow<Boolean>
 

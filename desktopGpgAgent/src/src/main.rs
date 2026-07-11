@@ -22,6 +22,10 @@ struct Args {
     #[arg(long)]
     ipc_socket: PathBuf,
 
+    /// PID of the Keyguard desktop process that owns the private IPC server.
+    #[arg(long)]
+    parent_pid: u32,
+
     /// Path to the GPG agent socket to listen on.
     #[arg(long)]
     gpg_socket: Option<PathBuf>,
@@ -120,9 +124,10 @@ async fn main() -> Result<()> {
         "Configuration loaded"
     );
 
-    let ipc_client = ipc::client::IpcClient::connect(&args.ipc_socket, &auth_token)
-        .await
-        .context("failed to connect to Keyguard IPC server");
+    let ipc_client =
+        ipc::client::IpcClient::connect(&args.ipc_socket, &auth_token, args.parent_pid)
+            .await
+            .context("failed to connect to Keyguard IPC server");
     zeroize_bytes(&mut auth_token);
     let ipc_client = ipc_client?;
     info!("authenticated with Keyguard IPC server");

@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
+import com.artemchep.keyguard.common.service.agent.CallerAuthorization
+import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -27,7 +30,10 @@ class SshAgentMessagesTest {
         val token = ByteArray(32) { it.toByte() }
         val original = SshAgentMessages.IpcRequest(
             id = 1L,
-            authenticate = SshAgentMessages.AuthenticateRequest(token = token),
+            authenticate = SshAgentMessages.AuthenticateRequest(
+                token = token,
+                protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            ),
         )
 
         val bytes = protoBuf.encodeToByteArray(original)
@@ -35,6 +41,10 @@ class SshAgentMessagesTest {
 
         assertEquals(1L, decoded.id)
         assertContentEquals(token, decoded.authenticate?.token)
+        assertEquals(
+            SshAgentMessages.PROTOCOL_REVISION,
+            decoded.authenticate?.protocolRevision,
+        )
         assertNull(decoded.listKeys)
         assertNull(decoded.signData)
     }
@@ -167,6 +177,45 @@ class SshAgentMessagesTest {
         assertEquals("com.termux", decoded.signData?.caller?.appBundlePath)
     }
 
+    @Test
+    fun `CallerAuthorization round-trips as field 9`() {
+        val connection = ByteArray(32) { it.toByte() }
+        val process = ByteArray(32) { (it + 32).toByte() }
+        val context = ByteArray(32) { (it + 64).toByte() }
+        val caller = SshAgentMessages.CallerIdentity(
+            appName = "Terminal",
+            authorization = CallerAuthorization(
+                connectionFingerprint = connection,
+                subjects = listOf(
+                    CallerAuthorizationSubject(
+                        kind = AgentCallerAuthorizationSchema.SubjectKind.PROCESS,
+                        evidenceSource =
+                            AgentCallerAuthorizationSchema.EvidenceSource.LINUX_PIDFD,
+                        fingerprint = process,
+                    ),
+                ),
+                authorizationContextFingerprint = context,
+            ),
+        )
+        val original = SshAgentMessages.IpcRequest(
+            id = 10L,
+            listKeys = SshAgentMessages.ListKeysRequest(caller = caller),
+        )
+
+        val bytes = protoBuf.encodeToByteArray(original)
+        val decoded = protoBuf.decodeFromByteArray<SshAgentMessages.IpcRequest>(bytes)
+        val authorization = decoded.listKeys?.caller?.authorization
+
+        assertContentEquals(connection, authorization?.connectionFingerprint)
+        assertEquals(1, authorization?.subjects?.size)
+        assertEquals(
+            AgentCallerAuthorizationSchema.SubjectKind.PROCESS,
+            authorization?.subjects?.single()?.kind,
+        )
+        assertContentEquals(process, authorization?.subjects?.single()?.fingerprint)
+        assertContentEquals(context, authorization?.authorizationContextFingerprint)
+    }
+
     // ================================================================
     // IpcResponse round-trips
     // ================================================================
@@ -175,7 +224,10 @@ class SshAgentMessagesTest {
     fun `AuthenticateResponse round-trips correctly`() {
         val original = SshAgentMessages.IpcResponse(
             id = 1L,
-            authenticate = SshAgentMessages.AuthenticateResponse(success = true),
+            authenticate = SshAgentMessages.AuthenticateResponse(
+                success = true,
+                protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            ),
         )
 
         val bytes = protoBuf.encodeToByteArray(original)
@@ -183,9 +235,30 @@ class SshAgentMessagesTest {
 
         assertEquals(1L, decoded.id)
         assertTrue(decoded.authenticate!!.success)
+        assertEquals(
+            SshAgentMessages.PROTOCOL_REVISION,
+            decoded.authenticate?.protocolRevision,
+        )
         assertNull(decoded.listKeys)
         assertNull(decoded.signData)
         assertNull(decoded.error)
+    }
+
+    @Test
+    fun `protocol revision is emitted as protobuf field 2`() {
+        val requestBytes = protoBuf.encodeToByteArray(
+            SshAgentMessages.AuthenticateRequest(
+                protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            ),
+        )
+        val responseBytes = protoBuf.encodeToByteArray(
+            SshAgentMessages.AuthenticateResponse(
+                protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            ),
+        )
+
+        assertContentEquals(byteArrayOf(0x0a, 0x00, 0x10, 0x01), requestBytes)
+        assertContentEquals(byteArrayOf(0x10, 0x01), responseBytes)
     }
 
     @Test

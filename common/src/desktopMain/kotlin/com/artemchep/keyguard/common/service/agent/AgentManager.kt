@@ -97,11 +97,14 @@ abstract class AgentManager(
      * @param authToken The shared authentication token.
      * @param sessionId The agent session identifier.
      * @param scope The coroutine scope that owns the server.
+     * @param expectedPeerProcess Completed with the exact child process after
+     *   it is spawned. The IPC transport waits for this before accepting.
      */
     protected abstract fun createIpcServer(
         authToken: ByteArray,
         sessionId: String,
         scope: CoroutineScope,
+        expectedPeerProcess: Deferred<Process>,
     ): IpcServerRunner
 
     /**
@@ -182,11 +185,14 @@ abstract class AgentManager(
             logRepository.post(config.tag, "${config.agentSocketLogLabel}: $it", LogLevel.INFO)
         }
 
-        // Start the IPC server.
+        // Start the IPC server. It binds before the helper is spawned, but its
+        // accept loop remains gated on this exact Process handle.
+        val expectedPeerProcess = CompletableDeferred<Process>()
         val ipcServer = createIpcServer(
             authToken = authToken,
             sessionId = agentSessionId,
             scope = serverScope,
+            expectedPeerProcess = expectedPeerProcess,
         )
 
         // The server signals readiness via this deferred once the
@@ -197,6 +203,8 @@ abstract class AgentManager(
             try {
                 ipcServer.start(ipcEndpoint, onReady = serverReady)
             } catch (e: Exception) {
+                val serverFailure = e.takeUnless { it is CancellationException }
+                    ?: IllegalStateException("IPC server was cancelled before the helper was ready")
                 if (e !is CancellationException) {
                     logRepository.post(
                         config.tag,
@@ -206,10 +214,11 @@ abstract class AgentManager(
                 }
                 // If the server fails before signalling readiness,
                 // complete exceptionally so we don't hang forever.
-                serverReady.completeExceptionally(
-                    e.takeUnless { it is CancellationException }
-                        ?: IllegalStateException("IPC server was cancelled before becoming ready"),
-                )
+                serverReady.completeExceptionally(serverFailure)
+                // The server may already have signalled readiness and be
+                // waiting for the helper Process. Wake that gate as well so a
+                // concurrent startup cannot publish a child to a dead server.
+                expectedPeerProcess.completeExceptionally(serverFailure)
             }
         }
 
@@ -220,6 +229,7 @@ abstract class AgentManager(
             }
             logRepository.post(config.tag, "IPC server is ready", LogLevel.INFO)
         } catch (e: Exception) {
+            expectedPeerProcess.completeExceptionally(e)
             stopLocked()
             throw e
         }
@@ -230,6 +240,8 @@ abstract class AgentManager(
                 binaryPath.toAbsolutePath().toString(),
                 "--ipc-socket",
                 ipcEndpoint.argument,
+                "--parent-pid",
+                ProcessHandle.current().pid().toString(),
             )
             effectiveAgentSocketPath?.let {
                 command.add(config.agentSocketArg)
@@ -245,6 +257,10 @@ abstract class AgentManager(
             val process = processBuilder.start()
             val processStdin = process.outputStream
             agentProcess = process
+            publishExpectedPeerProcess(
+                expectedPeerProcess = expectedPeerProcess,
+                process = process,
+            )
             // Pass the auth token via stdin -- this avoids exposing the
             // token in the process environment, which is readable by
             // other same-user processes on Linux and macOS. Keep stdin
@@ -276,6 +292,7 @@ abstract class AgentManager(
             }
             return process
         } catch (e: Exception) {
+            expectedPeerProcess.completeExceptionally(e)
             stopLocked()
             throw e
         }
@@ -361,6 +378,21 @@ abstract class AgentManager(
         } catch (_: Exception) {
         }
     }
+}
+
+internal suspend fun publishExpectedPeerProcess(
+    expectedPeerProcess: CompletableDeferred<Process>,
+    process: Process,
+) {
+    if (expectedPeerProcess.complete(process)) {
+        return
+    }
+
+    // If the IPC server completed the gate exceptionally after signalling
+    // readiness, preserve that failure instead of replacing it with a
+    // misleading duplicate-publication error.
+    expectedPeerProcess.await()
+    error("Expected IPC peer process was already published")
 }
 
 private const val BUILD_TYPE_DEV = "DEV"

@@ -10,6 +10,7 @@ path = "src/main.rs"
 
 [dependencies]
 common-ssh-agent-rust = { path = "../../commonSshAgent" }
+keyguard-agent-identity = { path = "../../commonAgent" }
 # SSH agent protocol
 ssh-agent-lib = "0.5"
 ssh-key = { version = "=0.6.7", features = ["ed25519", "rsa", "crypto"] }
@@ -45,7 +46,15 @@ dirs = "6"
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System_Threading",
+] }
+
 [dev-dependencies]
+signature = "2"
 tokio = { version = "1", features = ["test-util", "io-util", "macros", "rt"] }
 tempfile = "3"
 

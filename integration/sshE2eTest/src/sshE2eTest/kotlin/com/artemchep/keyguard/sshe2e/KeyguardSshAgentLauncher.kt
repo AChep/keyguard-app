@@ -44,11 +44,13 @@ class KeyguardSshAgentLauncher(
         this.ipcEndpoint = ipcEndpoint
 
         val log = TestLogRepository()
+        val expectedPeerProcess = CompletableDeferred<Process>()
         val server = SshAgentIpcServer(
             logRepository = log,
             authToken = authToken,
             scope = scope,
             requestProcessor = processor,
+            expectedPeerProcess = expectedPeerProcess,
         )
         this.ipcServer = server
 
@@ -58,31 +60,37 @@ class KeyguardSshAgentLauncher(
                 server.start(ipcEndpoint, onReady = onReady)
             }.onFailure { e ->
                 onReady.completeExceptionally(e)
+                expectedPeerProcess.completeExceptionally(e)
             }
         }
 
-        runBlocking {
-            withTimeout(5_000) { onReady.await() }
-        }
-
-        val verbose = System.getProperty("keyguard.sshE2e.verbose") == "true"
-        val command = buildList {
-            add(binaryPath.toAbsolutePath().toString())
-            add("--ipc-socket")
-            add(ipcEndpoint.argument)
-            add("--ssh-socket")
-            add(sshSocket)
-            if (verbose) add("--verbose")
-        }
-        val builder = ProcessBuilder(command)
-        builder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
-        builder.redirectError(ProcessBuilder.Redirect.INHERIT)
-        val proc = builder.start()
-        this.process = proc
-        val procStdin = proc.outputStream
-        this.processStdin = procStdin
-
         try {
+            runBlocking {
+                withTimeout(5_000) { onReady.await() }
+            }
+
+            val verbose = System.getProperty("keyguard.sshE2e.verbose") == "true"
+            val command = buildList {
+                add(binaryPath.toAbsolutePath().toString())
+                add("--ipc-socket")
+                add(ipcEndpoint.argument)
+                add("--parent-pid")
+                add(ProcessHandle.current().pid().toString())
+                add("--ssh-socket")
+                add(sshSocket)
+                if (verbose) add("--verbose")
+            }
+            val builder = ProcessBuilder(command)
+            builder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            builder.redirectError(ProcessBuilder.Redirect.INHERIT)
+            val proc = builder.start()
+            this.process = proc
+            check(expectedPeerProcess.complete(proc)) {
+                "Expected SSH IPC peer process was already published"
+            }
+            val procStdin = proc.outputStream
+            this.processStdin = procStdin
+
             // The Rust binary reads the auth token as HEX + '\n' from stdin.
             // Keep the stream open until stop(): EOF is the agent's parent-death signal.
             val authTokenHex = authToken.joinToString("") { "%02x".format(it) }
@@ -92,6 +100,7 @@ class KeyguardSshAgentLauncher(
 
             waitForSocket(sshSocket, proc)
         } catch (e: Exception) {
+            expectedPeerProcess.completeExceptionally(e)
             stop()
             throw e
         }

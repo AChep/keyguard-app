@@ -3,7 +3,13 @@
 use crate::ipc::client::{IpcClient, IpcError};
 use crate::ipc::messages::{CallerIdentity, ErrorCode, GpgKey};
 use anyhow::{bail, Context, Result};
+use std::future::Future;
+use std::io;
+use std::pin::Pin;
+use std::task::{Context as TaskContext, Poll};
+use std::time::Duration;
 use tokio::io::{AsyncBufRead, AsyncBufReadExt, AsyncRead, AsyncWrite, AsyncWriteExt, BufReader};
+use tokio::time::{timeout, timeout_at, Instant, Sleep};
 use tracing::{debug, warn};
 
 const ERR_GENERAL: u32 = 1;
@@ -49,6 +55,31 @@ const MAX_INQUIRE_LINE_LEN: usize = ASSUAN_LINE_LEN;
 /// at or below 1000 leaves room for the LF we append below.
 const ASSUAN_MAX_LINE_CONTENT_LEN: usize = ASSUAN_LINE_LEN - 2;
 
+// Keep authenticated clients from occupying a connection indefinitely without
+// sending a command, completing a line, or reading the response. Operation
+// deadlines deliberately remain in the IPC layer: cancelling an IPC exchange
+// between its write and read would desynchronize the shared framed stream.
+const CONNECTION_IDLE_TIMEOUT: Duration = Duration::from_secs(5 * 60);
+const LINE_COMPLETION_TIMEOUT: Duration = Duration::from_secs(30);
+const RESPONSE_WRITE_TIMEOUT: Duration = Duration::from_secs(30);
+
+#[derive(Clone, Copy, Debug)]
+struct AssuanTimeouts {
+    idle: Duration,
+    line: Duration,
+    write: Duration,
+}
+
+impl Default for AssuanTimeouts {
+    fn default() -> Self {
+        Self {
+            idle: CONNECTION_IDLE_TIMEOUT,
+            line: LINE_COMPLETION_TIMEOUT,
+            write: RESPONSE_WRITE_TIMEOUT,
+        }
+    }
+}
+
 #[derive(Default)]
 struct SessionState {
     sigkey: Option<String>,
@@ -60,6 +91,33 @@ struct SessionState {
     setkey_another: Option<String>,
 }
 
+#[derive(Default)]
+struct CallerGuard {
+    #[cfg(target_os = "macos")]
+    macos: Option<keyguard_agent_identity::macos::MacosPeerIdentity>,
+    #[cfg(target_os = "linux")]
+    linux: Option<keyguard_agent_identity::linux_identity::LinuxProcessIdentity>,
+}
+
+impl CallerGuard {
+    fn revalidate(&self) -> Result<()> {
+        #[cfg(target_os = "macos")]
+        if let Some(identity) = self.macos.as_ref() {
+            identity
+                .revalidate()
+                .map_err(|error| anyhow::anyhow!("macOS caller identity changed: {error}"))?;
+        }
+        #[cfg(target_os = "linux")]
+        if let Some(identity) = self.linux.as_ref() {
+            identity
+                .revalidate()
+                .map_err(|error| anyhow::anyhow!("Linux caller identity changed: {error}"))?;
+        }
+        Ok(())
+    }
+}
+
+#[cfg_attr(any(target_os = "linux", target_os = "macos"), allow(dead_code))]
 pub async fn serve_connection<S>(
     stream: S,
     ipc_client: IpcClient,
@@ -69,14 +127,81 @@ pub async fn serve_connection<S>(
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
-    let (read_half, mut write_half) = tokio::io::split(stream);
-    let mut reader = BufReader::new(read_half);
+    serve_connection_with_timeouts_and_guard(
+        stream,
+        ipc_client,
+        caller,
+        socket_name,
+        AssuanTimeouts::default(),
+        CallerGuard::default(),
+    )
+    .await
+}
+
+#[cfg(target_os = "linux")]
+pub async fn serve_connection_with_linux_guard<S>(
+    stream: S,
+    ipc_client: IpcClient,
+    caller: Option<CallerIdentity>,
+    linux_guard: Option<keyguard_agent_identity::linux_identity::LinuxProcessIdentity>,
+    socket_name: String,
+) -> Result<()>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    serve_connection_with_timeouts_and_guard(
+        stream,
+        ipc_client,
+        caller,
+        socket_name,
+        AssuanTimeouts::default(),
+        CallerGuard { linux: linux_guard },
+    )
+    .await
+}
+
+#[cfg(target_os = "macos")]
+pub async fn serve_connection_with_macos_guard<S>(
+    stream: S,
+    ipc_client: IpcClient,
+    caller: Option<CallerIdentity>,
+    macos_guard: Option<keyguard_agent_identity::macos::MacosPeerIdentity>,
+    socket_name: String,
+) -> Result<()>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    serve_connection_with_timeouts_and_guard(
+        stream,
+        ipc_client,
+        caller,
+        socket_name,
+        AssuanTimeouts::default(),
+        CallerGuard { macos: macos_guard },
+    )
+    .await
+}
+
+async fn serve_connection_with_timeouts_and_guard<S>(
+    stream: S,
+    ipc_client: IpcClient,
+    caller: Option<CallerIdentity>,
+    socket_name: String,
+    timeouts: AssuanTimeouts,
+    caller_guard: CallerGuard,
+) -> Result<()>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    let (read_half, write_half) = tokio::io::split(stream);
+    let mut reader = DeadlineReader::new(BufReader::new(read_half), timeouts);
+    let mut write_half = DeadlineWriter::new(write_half, timeouts.write);
     let mut state = SessionState::default();
 
     write_response(&mut write_half, "OK Keyguard GPG agent ready").await?;
 
     loop {
-        let line = match read_until_limited(&mut reader, b'\n', MAX_LINE_LEN).await? {
+        let line = match reader.read_until_limited(b'\n', MAX_LINE_LEN).await? {
             BoundedRead::Eof => break,
             BoundedRead::TooLong => {
                 // A single command line exceeded the cap. The stream can no
@@ -112,6 +237,7 @@ where
             command,
             &mut state,
             &ipc_client,
+            &caller_guard,
             caller.clone(),
             &socket_name,
             &mut reader,
@@ -126,7 +252,185 @@ where
     Ok(())
 }
 
+/// Buffered reader with separate idle and absolute line-completion deadlines.
+struct DeadlineReader<R> {
+    inner: R,
+    idle_timeout: Duration,
+    line_timeout: Duration,
+}
+
+impl<R> DeadlineReader<R> {
+    fn new(inner: R, timeouts: AssuanTimeouts) -> Self {
+        Self {
+            inner,
+            idle_timeout: timeouts.idle,
+            line_timeout: timeouts.line,
+        }
+    }
+}
+
+impl<R: AsyncBufRead + Unpin> DeadlineReader<R> {
+    /// Reads one line with a strict memory cap. The completion deadline starts
+    /// only after the first byte is available, so an idle client and a
+    /// slow-drip partial line are reported independently.
+    async fn read_until_limited(&mut self, delim: u8, max_len: usize) -> Result<BoundedRead> {
+        let mut buf = Vec::new();
+        let mut line_deadline = None;
+        loop {
+            let available = match line_deadline {
+                Some(deadline) => {
+                    timeout_at(deadline, self.inner.fill_buf())
+                        .await
+                        .map_err(|_| {
+                            anyhow::anyhow!(
+                                "Assuan client did not complete a line within {:?}",
+                                self.line_timeout
+                            )
+                        })??
+                }
+                None => timeout(self.idle_timeout, self.inner.fill_buf())
+                    .await
+                    .map_err(|_| {
+                        anyhow::anyhow!(
+                            "Assuan client was idle for longer than {:?}",
+                            self.idle_timeout
+                        )
+                    })??,
+            };
+            if available.is_empty() {
+                return Ok(if buf.is_empty() {
+                    BoundedRead::Eof
+                } else {
+                    BoundedRead::Chunk(buf)
+                });
+            }
+            if line_deadline.is_none() {
+                line_deadline = Some(Instant::now() + self.line_timeout);
+            }
+
+            let (end, found) = match available.iter().position(|&byte| byte == delim) {
+                Some(position) => (position + 1, true),
+                None => (available.len(), false),
+            };
+
+            if buf.len() + end > max_len {
+                let take = max_len - buf.len();
+                self.inner.consume(take);
+                return Ok(BoundedRead::TooLong);
+            }
+
+            buf.extend_from_slice(&available[..end]);
+            self.inner.consume(end);
+            if found {
+                return Ok(BoundedRead::Chunk(buf));
+            }
+        }
+    }
+}
+
+/// Async writer that applies one absolute deadline from the first byte of a
+/// response through its flush. All Assuan response helpers flush before
+/// returning, so a peer cannot extend the deadline by accepting one small
+/// partial write at a time.
+struct DeadlineWriter<W> {
+    inner: W,
+    write_timeout: Duration,
+    deadline: Option<Pin<Box<Sleep>>>,
+}
+
+impl<W> DeadlineWriter<W> {
+    fn new(inner: W, write_timeout: Duration) -> Self {
+        Self {
+            inner,
+            write_timeout,
+            deadline: None,
+        }
+    }
+
+    fn ensure_deadline(&mut self) {
+        if self.deadline.is_none() {
+            self.deadline = Some(Box::pin(tokio::time::sleep(self.write_timeout)));
+        }
+    }
+
+    fn poll_deadline(&mut self, cx: &mut TaskContext<'_>) -> Option<io::Error> {
+        self.ensure_deadline();
+        let expired = self
+            .deadline
+            .as_mut()
+            .expect("deadline was initialized above")
+            .as_mut()
+            .poll(cx)
+            .is_ready();
+        if expired {
+            self.deadline = None;
+            Some(io::Error::new(
+                io::ErrorKind::TimedOut,
+                format!(
+                    "Assuan client did not read response within {:?}",
+                    self.write_timeout
+                ),
+            ))
+        } else {
+            None
+        }
+    }
+
+    fn finish_response(&mut self) {
+        self.deadline = None;
+    }
+}
+
+impl<W: AsyncWrite + Unpin> AsyncWrite for DeadlineWriter<W> {
+    fn poll_write(
+        self: Pin<&mut Self>,
+        cx: &mut TaskContext<'_>,
+        buf: &[u8],
+    ) -> Poll<io::Result<usize>> {
+        let this = self.get_mut();
+        if let Some(error) = this.poll_deadline(cx) {
+            return Poll::Ready(Err(error));
+        }
+        match Pin::new(&mut this.inner).poll_write(cx, buf) {
+            Poll::Ready(Err(error)) => {
+                this.finish_response();
+                Poll::Ready(Err(error))
+            }
+            result => result,
+        }
+    }
+
+    fn poll_flush(self: Pin<&mut Self>, cx: &mut TaskContext<'_>) -> Poll<io::Result<()>> {
+        let this = self.get_mut();
+        if let Some(error) = this.poll_deadline(cx) {
+            return Poll::Ready(Err(error));
+        }
+        match Pin::new(&mut this.inner).poll_flush(cx) {
+            Poll::Ready(result) => {
+                this.finish_response();
+                Poll::Ready(result)
+            }
+            Poll::Pending => Poll::Pending,
+        }
+    }
+
+    fn poll_shutdown(self: Pin<&mut Self>, cx: &mut TaskContext<'_>) -> Poll<io::Result<()>> {
+        let this = self.get_mut();
+        if let Some(error) = this.poll_deadline(cx) {
+            return Poll::Ready(Err(error));
+        }
+        match Pin::new(&mut this.inner).poll_shutdown(cx) {
+            Poll::Ready(result) => {
+                this.finish_response();
+                Poll::Ready(result)
+            }
+            Poll::Pending => Poll::Pending,
+        }
+    }
+}
+
 /// Outcome of a length-bounded read up to a delimiter byte.
+#[derive(Debug)]
 enum BoundedRead {
     /// A complete chunk: either terminated by the delimiter, or the trailing
     /// bytes that preceded EOF.
@@ -138,54 +442,17 @@ enum BoundedRead {
     TooLong,
 }
 
-/// Reads from `reader` up to and including the next `delim` byte, buffering at
-/// most `max_len` bytes. Unlike `AsyncBufReadExt::read_until` / `read_line`, the
-/// cap is enforced incrementally as data arrives, so a client cannot exhaust
-/// memory with a single never-terminated line.
-async fn read_until_limited<R: AsyncBufRead + Unpin>(
-    reader: &mut R,
-    delim: u8,
-    max_len: usize,
-) -> Result<BoundedRead> {
-    let mut buf: Vec<u8> = Vec::new();
-    loop {
-        let available = reader.fill_buf().await?;
-        if available.is_empty() {
-            return Ok(if buf.is_empty() {
-                BoundedRead::Eof
-            } else {
-                BoundedRead::Chunk(buf)
-            });
-        }
-
-        let (end, found) = match available.iter().position(|&b| b == delim) {
-            Some(pos) => (pos + 1, true),
-            None => (available.len(), false),
-        };
-
-        if buf.len() + end > max_len {
-            // Consume up to the cap and stop; the rest of the oversized line is
-            // left unread because the caller will drop the connection.
-            let take = max_len - buf.len();
-            reader.consume(take);
-            return Ok(BoundedRead::TooLong);
-        }
-
-        buf.extend_from_slice(&available[..end]);
-        reader.consume(end);
-        if found {
-            return Ok(BoundedRead::Chunk(buf));
-        }
-    }
-}
-
-async fn handle_command<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin>(
+// Keeping the protocol state, guarded caller, bounded reader, and writer as
+// explicit borrows makes the security boundaries visible at this dispatcher.
+#[allow(clippy::too_many_arguments)]
+async fn handle_command<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
     command: ParsedCommand<'_>,
     state: &mut SessionState,
     ipc_client: &IpcClient,
+    caller_guard: &CallerGuard,
     caller: Option<CallerIdentity>,
     socket_name: &str,
-    reader: &mut R,
+    reader: &mut DeadlineReader<R>,
     write: &mut W,
 ) -> Result<bool> {
     match command.name.as_str() {
@@ -211,11 +478,11 @@ async fn handle_command<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin>(
             Ok(false)
         }
         "HAVEKEY" => {
-            handle_havekey(command.args, ipc_client, caller, write).await?;
+            handle_havekey(command.args, ipc_client, caller_guard, caller, write).await?;
             Ok(false)
         }
         "KEYINFO" => {
-            handle_keyinfo(command.args, ipc_client, caller, write).await?;
+            handle_keyinfo(command.args, ipc_client, caller_guard, caller, write).await?;
             Ok(false)
         }
         "SIGKEY" => {
@@ -238,12 +505,21 @@ async fn handle_command<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin>(
             Ok(false)
         }
         "PKSIGN" => {
-            handle_pksign(state, ipc_client, caller, write).await?;
+            handle_pksign(state, ipc_client, caller_guard, caller, write).await?;
             Ok(false)
         }
         "PKDECRYPT" => {
-            handle_pkdecrypt(command.args, state, ipc_client, caller, reader, write).await?;
-            Ok(false)
+            let should_close = handle_pkdecrypt(
+                command.args,
+                state,
+                ipc_client,
+                caller_guard,
+                caller,
+                reader,
+                write,
+            )
+            .await?;
+            Ok(should_close)
         }
         _ => {
             write_error(write, ERR_ASS_UNKNOWN_CMD, "unsupported command").await?;
@@ -278,6 +554,7 @@ async fn handle_getinfo<W: AsyncWriteExt + Unpin>(
 async fn handle_havekey<W: AsyncWriteExt + Unpin>(
     args: &str,
     ipc_client: &IpcClient,
+    caller_guard: &CallerGuard,
     caller: Option<CallerIdentity>,
     write: &mut W,
 ) -> Result<()> {
@@ -290,7 +567,7 @@ async fn handle_havekey<W: AsyncWriteExt + Unpin>(
         }
     };
 
-    let keys = match list_keys(ipc_client, caller).await {
+    let keys = match list_keys(ipc_client, caller_guard, caller).await {
         Ok(keys) => keys,
         Err(e) => {
             warn!("LIST_KEYS failed: {e}");
@@ -332,6 +609,7 @@ async fn handle_havekey<W: AsyncWriteExt + Unpin>(
 async fn handle_keyinfo<W: AsyncWriteExt + Unpin>(
     args: &str,
     ipc_client: &IpcClient,
+    caller_guard: &CallerGuard,
     caller: Option<CallerIdentity>,
     write: &mut W,
 ) -> Result<()> {
@@ -343,7 +621,7 @@ async fn handle_keyinfo<W: AsyncWriteExt + Unpin>(
             return Ok(());
         }
     };
-    let keys = match list_keys(ipc_client, caller).await {
+    let keys = match list_keys(ipc_client, caller_guard, caller).await {
         Ok(keys) => keys,
         Err(e) => {
             warn!("LIST_KEYS failed: {e}");
@@ -442,6 +720,7 @@ async fn handle_sethash<W: AsyncWriteExt + Unpin>(
 async fn handle_pksign<W: AsyncWriteExt + Unpin>(
     state: &mut SessionState,
     ipc_client: &IpcClient,
+    caller_guard: &CallerGuard,
     caller: Option<CallerIdentity>,
     write: &mut W,
 ) -> Result<()> {
@@ -450,7 +729,7 @@ async fn handle_pksign<W: AsyncWriteExt + Unpin>(
         return Ok(());
     };
 
-    let keys = match list_keys(ipc_client, caller.clone()).await {
+    let keys = match list_keys(ipc_client, caller_guard, caller.clone()).await {
         Ok(keys) => keys,
         Err(e) => {
             warn!("LIST_KEYS failed: {e}");
@@ -484,6 +763,13 @@ async fn handle_pksign<W: AsyncWriteExt + Unpin>(
         return Ok(());
     }
 
+    if let Err(error) = caller_guard.revalidate() {
+        warn!(%error, "Refusing PKSIGN after caller identity changed");
+        write_error(write, ERR_GENERAL, "caller identity changed").await?;
+        clear_sign_state(state);
+        return Ok(());
+    }
+
     match ipc_client
         .sign_hash(&keygrip, &hash_algorithm, &hash, caller)
         .await
@@ -502,20 +788,21 @@ async fn handle_pksign<W: AsyncWriteExt + Unpin>(
     Ok(())
 }
 
-async fn handle_pkdecrypt<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin>(
+async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
     args: &str,
     state: &mut SessionState,
     ipc_client: &IpcClient,
+    caller_guard: &CallerGuard,
     caller: Option<CallerIdentity>,
-    reader: &mut R,
+    reader: &mut DeadlineReader<R>,
     write: &mut W,
-) -> Result<()> {
+) -> Result<bool> {
     let pkdecrypt_args = match parse_pkdecrypt_args(args) {
         Ok(args) => args,
         Err(e) => {
             warn!("invalid PKDECRYPT request: {e}");
             write_error(write, ERR_ASS_PARAMETER, "invalid PKDECRYPT").await?;
-            return Ok(());
+            return Ok(false);
         }
     };
 
@@ -530,45 +817,47 @@ async fn handle_pkdecrypt<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin>(
         InquireResult::Canceled => {
             write_error(write, ERR_ASS_CANCELED, "canceled").await?;
             clear_decrypt_state(state);
-            return Ok(());
+            return Ok(false);
         }
+        // Both oversized outcomes leave the inquiry incomplete. Close after
+        // the error response so its remaining bytes cannot become commands.
         InquireResult::LineTooLong => {
             write_error(write, ERR_ASS_LINE_TOO_LONG, "line too long").await?;
             clear_decrypt_state(state);
-            return Ok(());
+            return Ok(true);
         }
         InquireResult::TooMuchData => {
             write_error(write, ERR_ASS_TOO_MUCH_DATA, "too much data").await?;
             clear_decrypt_state(state);
-            return Ok(());
+            return Ok(true);
         }
         InquireResult::Unexpected => {
             write_error(write, ERR_ASS_UNEXPECTED_CMD, "unexpected command").await?;
             clear_decrypt_state(state);
-            return Ok(());
+            return Ok(false);
         }
         InquireResult::BadData => {
             write_error(write, ERR_INV_DATA, "bad ciphertext").await?;
             clear_decrypt_state(state);
-            return Ok(());
+            return Ok(false);
         }
     };
 
     let Some(keygrip) = keygrip else {
         write_error(write, ERR_NO_SECKEY, "missing SETKEY").await?;
         clear_decrypt_state(state);
-        return Ok(());
+        return Ok(false);
     };
 
     // SETKEY only stores the selected keygrip; the real availability check
     // happens when the operation is attempted so gpg can probe recipients.
-    let keys = match list_keys(ipc_client, caller.clone()).await {
+    let keys = match list_keys(ipc_client, caller_guard, caller.clone()).await {
         Ok(keys) => keys,
         Err(e) => {
             warn!("LIST_KEYS failed: {e}");
             write_ipc_or_general_error(write, &e, "key listing failed").await?;
             clear_decrypt_state(state);
-            return Ok(());
+            return Ok(false);
         }
     };
     if !keys
@@ -577,7 +866,14 @@ async fn handle_pkdecrypt<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin>(
     {
         write_error(write, ERR_NO_SECKEY, "no secret key").await?;
         clear_decrypt_state(state);
-        return Ok(());
+        return Ok(false);
+    }
+
+    if let Err(error) = caller_guard.revalidate() {
+        warn!(%error, "Refusing PKDECRYPT after caller identity changed");
+        write_error(write, ERR_GENERAL, "caller identity changed").await?;
+        clear_decrypt_state(state);
+        return Ok(false);
     }
 
     match ipc_client
@@ -613,7 +909,7 @@ async fn handle_pkdecrypt<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin>(
     }
 
     clear_decrypt_state(state);
-    Ok(())
+    Ok(false)
 }
 
 enum InquireResult {
@@ -629,8 +925,8 @@ enum InquireResult {
 /// connection as raw bytes. The ciphertext is a binary canonical S-expression,
 /// so D-line payloads are read byte-wise and percent-unescaped rather than
 /// going through the UTF-8 command line buffer.
-async fn inquire_ciphertext<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin>(
-    reader: &mut R,
+async fn inquire_ciphertext<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
+    reader: &mut DeadlineReader<R>,
     write: &mut W,
 ) -> Result<InquireResult> {
     write_status(write, "INQUIRE_MAXLEN", &MAX_CIPHERTEXT_LEN.to_string()).await?;
@@ -639,7 +935,10 @@ async fn inquire_ciphertext<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin
 
     let mut ciphertext: Vec<u8> = Vec::new();
     loop {
-        let buf = match read_until_limited(reader, b'\n', MAX_INQUIRE_LINE_LEN).await? {
+        let buf = match reader
+            .read_until_limited(b'\n', MAX_INQUIRE_LINE_LEN)
+            .await?
+        {
             BoundedRead::Eof => return Ok(InquireResult::BadData),
             BoundedRead::TooLong => return Ok(InquireResult::LineTooLong),
             BoundedRead::Chunk(buf) => buf,
@@ -670,7 +969,12 @@ async fn inquire_ciphertext<R: AsyncBufReadExt + Unpin, W: AsyncWriteExt + Unpin
     }
 }
 
-async fn list_keys(ipc_client: &IpcClient, caller: Option<CallerIdentity>) -> Result<Vec<GpgKey>> {
+async fn list_keys(
+    ipc_client: &IpcClient,
+    caller_guard: &CallerGuard,
+    caller: Option<CallerIdentity>,
+) -> Result<Vec<GpgKey>> {
+    caller_guard.revalidate()?;
     ipc_client
         .list_keys(caller)
         .await
@@ -996,9 +1300,9 @@ fn parse_sethash(args: &str) -> std::result::Result<(String, Vec<u8>, bool), Set
 }
 
 fn validate_hash_length(hash_algorithm: Option<&str>, hash: &[u8]) -> Result<()> {
-    if hash_algorithm == Some("tls-md5sha1") && hash.len() == 36 {
-        Ok(())
-    } else if matches!(hash.len(), 16 | 20 | 24 | 28 | 32 | 48 | 64) {
+    if hash_algorithm == Some("tls-md5sha1") && hash.len() == 36
+        || matches!(hash.len(), 16 | 20 | 24 | 28 | 32 | 48 | 64)
+    {
         Ok(())
     } else {
         bail!("unsupported length of hash")
@@ -1184,6 +1488,7 @@ fn hex_value(byte: u8) -> Option<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tokio::io::AsyncReadExt;
 
     const KEYGRIP_LOWER: &str = "0123456789abcdef0123456789abcdef01234567";
     const KEYGRIP_UPPER: &str = "0123456789ABCDEF0123456789ABCDEF01234567";
@@ -1524,7 +1829,7 @@ mod tests {
     #[tokio::test]
     async fn inquire_ciphertext_advertises_maxlen_and_decodes_data() {
         let input = b"D abc%25\nEND\n";
-        let mut reader = BufReader::new(&input[..]);
+        let mut reader = DeadlineReader::new(BufReader::new(&input[..]), AssuanTimeouts::default());
         let mut output = Vec::new();
 
         match inquire_ciphertext(&mut reader, &mut output).await.unwrap() {
@@ -1538,19 +1843,83 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn pkdecrypt_oversized_inquiry_closes_connection() {
+        let mut overlong_line = b"D ".to_vec();
+        overlong_line.extend_from_slice(&vec![b'A'; MAX_INQUIRE_LINE_LEN]);
+        overlong_line.extend_from_slice(b"\nEND\nNOP\n");
+
+        let max_payload_per_line = MAX_INQUIRE_LINE_LEN - b"D \n".len();
+        let mut too_much_data = Vec::new();
+        let mut remaining = MAX_CIPHERTEXT_LEN + 1;
+        while remaining > 0 {
+            let chunk_len = remaining.min(max_payload_per_line);
+            too_much_data.extend_from_slice(b"D ");
+            too_much_data.extend_from_slice(&vec![b'A'; chunk_len]);
+            too_much_data.push(b'\n');
+            remaining -= chunk_len;
+        }
+        too_much_data.extend_from_slice(b"END\nNOP\n");
+
+        for (inquiry, expected_response) in [
+            (overlong_line, b"ERR 263 line too long\n".as_slice()),
+            (too_much_data, b"ERR 273 too much data\n".as_slice()),
+        ] {
+            let response = run_oversized_pkdecrypt_inquiry(&inquiry).await;
+
+            assert_eq!(response, expected_response);
+        }
+    }
+
+    async fn run_oversized_pkdecrypt_inquiry(inquiry: &[u8]) -> Vec<u8> {
+        let (ipc_stream, _ipc_peer) = tokio::io::duplex(1);
+        let ipc_client = IpcClient::from_test_stream(ipc_stream);
+        let (client, server) = tokio::io::duplex(inquiry.len() + 128);
+        let server_task = tokio::spawn(serve_connection(
+            server,
+            ipc_client,
+            None,
+            "test".to_string(),
+        ));
+        let (client_read, mut client_write) = tokio::io::split(client);
+        let mut client_read = BufReader::new(client_read);
+        let mut line = Vec::new();
+
+        client_read.read_until(b'\n', &mut line).await.unwrap();
+        assert_eq!(line, b"OK Keyguard GPG agent ready\n");
+
+        client_write.write_all(b"PKDECRYPT\n").await.unwrap();
+        line.clear();
+        client_read.read_until(b'\n', &mut line).await.unwrap();
+        assert_eq!(
+            line,
+            format!("S INQUIRE_MAXLEN {MAX_CIPHERTEXT_LEN}\n").as_bytes(),
+        );
+        line.clear();
+        client_read.read_until(b'\n', &mut line).await.unwrap();
+        assert_eq!(line, b"INQUIRE CIPHERTEXT\n");
+
+        client_write.write_all(inquiry).await.unwrap();
+        client_write.shutdown().await.unwrap();
+        let mut response = Vec::new();
+        client_read.read_to_end(&mut response).await.unwrap();
+        server_task.await.unwrap().unwrap();
+        response
+    }
+
+    #[tokio::test]
     async fn read_until_limited_splits_lines_and_reports_eof() {
         let data = b"hello\nworld";
-        let mut reader = BufReader::new(&data[..]);
-        match read_until_limited(&mut reader, b'\n', 64).await.unwrap() {
+        let mut reader = DeadlineReader::new(BufReader::new(&data[..]), AssuanTimeouts::default());
+        match reader.read_until_limited(b'\n', 64).await.unwrap() {
             BoundedRead::Chunk(b) => assert_eq!(b, b"hello\n"),
             _ => panic!("expected first line"),
         }
-        match read_until_limited(&mut reader, b'\n', 64).await.unwrap() {
+        match reader.read_until_limited(b'\n', 64).await.unwrap() {
             BoundedRead::Chunk(b) => assert_eq!(b, b"world"),
             _ => panic!("expected trailing chunk"),
         }
         assert!(matches!(
-            read_until_limited(&mut reader, b'\n', 64).await.unwrap(),
+            reader.read_until_limited(b'\n', 64).await.unwrap(),
             BoundedRead::Eof
         ));
     }
@@ -1559,12 +1928,72 @@ mod tests {
     async fn read_until_limited_rejects_overlong_line() {
         // A 100-byte unterminated line must be rejected against a 16-byte cap
         // rather than being buffered in full.
-        let data = vec![b'A'; 100];
-        let mut reader = BufReader::new(&data[..]);
+        let data = [b'A'; 100];
+        let mut reader = DeadlineReader::new(BufReader::new(&data[..]), AssuanTimeouts::default());
         assert!(matches!(
-            read_until_limited(&mut reader, b'\n', 16).await.unwrap(),
+            reader.read_until_limited(b'\n', 16).await.unwrap(),
             BoundedRead::TooLong
         ));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn authenticated_session_idle_read_times_out() {
+        let (_client, server) = tokio::io::duplex(16);
+        let idle_timeout = Duration::from_secs(60);
+        let mut reader = DeadlineReader::new(
+            BufReader::new(server),
+            AssuanTimeouts {
+                idle: idle_timeout,
+                line: Duration::from_secs(10),
+                write: Duration::from_secs(10),
+            },
+        );
+
+        let error = reader
+            .read_until_limited(b'\n', MAX_LINE_LEN)
+            .await
+            .expect_err("silent authenticated client must time out");
+
+        assert!(error.to_string().contains("idle"));
+        assert!(error.to_string().contains("60s"));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn partial_assuan_line_has_an_absolute_completion_deadline() {
+        let (mut client, server) = tokio::io::duplex(16);
+        client.write_all(b"N").await.unwrap();
+        let line_timeout = Duration::from_secs(10);
+        let mut reader = DeadlineReader::new(
+            BufReader::new(server),
+            AssuanTimeouts {
+                idle: Duration::from_secs(60),
+                line: line_timeout,
+                write: Duration::from_secs(10),
+            },
+        );
+
+        let error = reader
+            .read_until_limited(b'\n', MAX_LINE_LEN)
+            .await
+            .expect_err("partial Assuan line must time out");
+
+        assert!(error.to_string().contains("complete a line"));
+        assert!(error.to_string().contains("10s"));
+    }
+
+    #[tokio::test(start_paused = true)]
+    async fn blocked_assuan_response_write_times_out() {
+        let (_client, server) = tokio::io::duplex(1);
+        let mut writer = DeadlineWriter::new(server, Duration::from_secs(10));
+
+        let error = write_response(&mut writer, "response that cannot fit")
+            .await
+            .expect_err("client that does not read must time out");
+        let io_error = error
+            .downcast_ref::<io::Error>()
+            .expect("write timeout should retain its I/O error");
+
+        assert_eq!(io_error.kind(), io::ErrorKind::TimedOut);
     }
 
     fn decode_data_lines(output: &[u8]) -> (Vec<u8>, usize) {

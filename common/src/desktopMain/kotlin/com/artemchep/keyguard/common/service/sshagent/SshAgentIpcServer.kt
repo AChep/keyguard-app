@@ -1,15 +1,21 @@
 package com.artemchep.keyguard.common.service.sshagent
 
-import com.artemchep.keyguard.common.service.agent.AgentIpcServer
 import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
+import com.artemchep.keyguard.common.service.agent.AgentIpcPeerVerificationPolicy
+import com.artemchep.keyguard.common.service.agent.AgentIpcServer
+import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
+import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowNoOp
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicyNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import java.nio.file.Path
 import java.security.MessageDigest
 
@@ -25,12 +31,13 @@ import java.security.MessageDigest
  * - Key listing (returning SSH keys from the vault)
  * - Sign requests (delegating to the vault's private keys)
  */
-class SshAgentIpcServer(
+class SshAgentIpcServer private constructor(
     private val logRepository: LogRepository,
     private val authToken: ByteArray,
     private val scope: CoroutineScope,
     private val requestProcessor: SshAgentRequestProcessor,
     private val maxConcurrentConnections: Int = 8,
+    private val peerVerificationPolicy: AgentIpcPeerVerificationPolicy,
 ) {
     companion object {
         private const val TAG = "SshAgentIpcServer"
@@ -38,11 +45,52 @@ class SshAgentIpcServer(
         const val APPROVAL_TIMEOUT_MS = SshAgentRequestProcessorJvm.APPROVAL_TIMEOUT_MS
     }
 
+    constructor(
+        logRepository: LogRepository,
+        authToken: ByteArray,
+        scope: CoroutineScope,
+        requestProcessor: SshAgentRequestProcessor,
+        maxConcurrentConnections: Int = 8,
+        expectedPeerProcess: Deferred<Process>,
+    ) : this(
+        logRepository = logRepository,
+        authToken = authToken,
+        scope = scope,
+        requestProcessor = requestProcessor,
+        maxConcurrentConnections = maxConcurrentConnections,
+        peerVerificationPolicy = AgentIpcPeerVerificationPolicy.ExactProcess(expectedPeerProcess),
+    )
+
+    @TestOnlyUnverifiedAgentIpcApi
+    internal constructor(
+        logRepository: LogRepository,
+        authToken: ByteArray,
+        scope: CoroutineScope,
+        requestProcessor: SshAgentRequestProcessor,
+        maxConcurrentConnections: Int = 8,
+        testOnlyUnverifiedPeer: TestOnlyUnverifiedAgentIpcPeer,
+    ) : this(
+        logRepository = logRepository,
+        authToken = authToken,
+        scope = scope,
+        requestProcessor = requestProcessor,
+        maxConcurrentConnections = maxConcurrentConnections,
+        peerVerificationPolicy = AgentIpcPeerVerificationPolicy.TestOnlyUnverified,
+    )
+
     private val rpcHandler = SshAgentRpcHandler(
         requestProcessor = requestProcessor,
         authenticate = { req ->
-            val success = MessageDigest.isEqual(authToken, req.token)
-            if (!success) {
+            val tokenMatches = MessageDigest.isEqual(authToken, req.token)
+            val revisionMatches = req.protocolRevision == SshAgentMessages.PROTOCOL_REVISION
+            val success = tokenMatches && revisionMatches
+            if (!revisionMatches) {
+                val errorMessage =
+                    "Authentication failed: protocol revision mismatch " +
+                        "(expected=${SshAgentMessages.PROTOCOL_REVISION}, " +
+                        "actual=${req.protocolRevision})"
+                logRepository.post(TAG, errorMessage, LogLevel.ERROR)
+            } else if (!tokenMatches) {
                 val errorMessage = "Authentication failed: token mismatch"
                 logRepository.post(TAG, errorMessage, LogLevel.ERROR)
             } else {
@@ -57,9 +105,12 @@ class SshAgentIpcServer(
         logRepository: LogRepository,
         getVaultSession: GetVaultSession,
         getSshAgentApprovalWindow: GetSshAgentApprovalWindow = GetSshAgentApprovalWindowNoOp,
+        getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy =
+            GetSshAgentApprovalCachePolicyNoOp,
         getSshAgentFilter: GetSshAgentFilter,
         authToken: ByteArray,
         scope: CoroutineScope,
+        expectedPeerProcess: Deferred<Process>,
         sessionId: String = "",
         maxConcurrentConnections: Int = 8,
         onApprovalRequest: suspend (
@@ -79,6 +130,7 @@ class SshAgentIpcServer(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
+            getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
             sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
@@ -87,6 +139,49 @@ class SshAgentIpcServer(
             onGetListRequest = onGetListRequest,
         ),
         maxConcurrentConnections = maxConcurrentConnections,
+        expectedPeerProcess = expectedPeerProcess,
+    )
+
+    @TestOnlyUnverifiedAgentIpcApi
+    internal constructor(
+        logRepository: LogRepository,
+        getVaultSession: GetVaultSession,
+        getSshAgentApprovalWindow: GetSshAgentApprovalWindow = GetSshAgentApprovalWindowNoOp,
+        getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy =
+            GetSshAgentApprovalCachePolicyNoOp,
+        getSshAgentFilter: GetSshAgentFilter,
+        authToken: ByteArray,
+        scope: CoroutineScope,
+        testOnlyUnverifiedPeer: TestOnlyUnverifiedAgentIpcPeer,
+        sessionId: String = "",
+        maxConcurrentConnections: Int = 8,
+        onApprovalRequest: suspend (
+            caller: SshAgentMessages.CallerIdentity?,
+            keyName: String,
+            keyFingerprint: String,
+        ) -> Boolean = { _, _, _ -> true },
+        onGetListRequest: suspend (
+            caller: SshAgentMessages.CallerIdentity?,
+        ) -> Boolean = { _ -> false },
+        sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
+    ) : this(
+        logRepository = logRepository,
+        authToken = authToken,
+        scope = scope,
+        requestProcessor = SshAgentRequestProcessorJvm(
+            logRepository = logRepository,
+            getVaultSession = getVaultSession,
+            getSshAgentApprovalWindow = getSshAgentApprovalWindow,
+            getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
+            getSshAgentFilter = getSshAgentFilter,
+            scope = scope,
+            sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
+            sessionId = sessionId,
+            onApprovalRequest = onApprovalRequest,
+            onGetListRequest = onGetListRequest,
+        ),
+        maxConcurrentConnections = maxConcurrentConnections,
+        testOnlyUnverifiedPeer = testOnlyUnverifiedPeer,
     )
 
     private val server = AgentIpcServer(
@@ -94,6 +189,7 @@ class SshAgentIpcServer(
         scope = scope,
         tag = TAG,
         maxConcurrentConnections = maxConcurrentConnections,
+        peerVerificationPolicy = peerVerificationPolicy,
         session = { channel ->
             runSshAgentPacketSession(
                 channel = channel,

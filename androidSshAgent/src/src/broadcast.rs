@@ -14,9 +14,22 @@ const EXTRA_PROTOCOL_VERSION: &str = "com.artemchep.keyguard.extra.SSH_AGENT_PRO
 const EXTRA_PROXY_PORT: &str = "com.artemchep.keyguard.extra.SSH_AGENT_PROXY_PORT";
 const EXTRA_SESSION_ID: &str = "com.artemchep.keyguard.extra.SSH_AGENT_SESSION_ID";
 const EXTRA_SESSION_SECRET: &str = "com.artemchep.keyguard.extra.SSH_AGENT_SESSION_SECRET";
+const BROADCAST_RESULT_PREFIX: &str = "keyguard.ssh-agent.broadcast.v1:";
 
 pub(crate) const DEFAULT_COMPONENT: &str =
     "com.artemchep.keyguard/com.artemchep.keyguard.android.sshagent.SshAgentReceiver";
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum BroadcastOutcome {
+    Accepted,
+    Deferred,
+    Busy,
+    Disabled,
+    Invalid,
+    StartFailed,
+    InternalError,
+    LegacyNoAcknowledgement,
+}
 
 #[derive(Clone, Debug)]
 pub(crate) struct BroadcastCommandSpec {
@@ -55,7 +68,7 @@ impl AndroidBroadcastLauncher {
         session_id: &[u8; SESSION_ID_LEN],
         session_secret: &[u8; SESSION_SECRET_LEN],
         deadline: Instant,
-    ) -> Result<()> {
+    ) -> Result<BroadcastOutcome> {
         let session_id_b64 = base64::engine::general_purpose::STANDARD.encode(session_id);
         let session_secret_b64 = base64::engine::general_purpose::STANDARD.encode(session_secret);
         let mut command = Command::new(&self.spec.program);
@@ -98,8 +111,45 @@ impl AndroidBroadcastLauncher {
             .into());
         }
 
-        Ok(())
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        parse_broadcast_outcome(&stdout).map_err(Into::into)
     }
+}
+
+fn parse_broadcast_outcome(
+    stdout: &str,
+) -> std::result::Result<BroadcastOutcome, BroadcastLaunchError> {
+    let completion_line = stdout
+        .lines()
+        .rev()
+        .find(|line| line.contains("Broadcast completed:"));
+    let Some(completion_line) = completion_line else {
+        return Ok(BroadcastOutcome::LegacyNoAcknowledgement);
+    };
+    let Some(prefix_index) = completion_line.find(BROADCAST_RESULT_PREFIX) else {
+        return Ok(BroadcastOutcome::LegacyNoAcknowledgement);
+    };
+
+    let value = &completion_line[prefix_index + BROADCAST_RESULT_PREFIX.len()..];
+    let value = value
+        .split(|character: char| character == '"' || character == ',' || character.is_whitespace())
+        .next()
+        .unwrap_or_default();
+    let outcome = match value {
+        "accepted" => BroadcastOutcome::Accepted,
+        "deferred" => BroadcastOutcome::Deferred,
+        "busy" => BroadcastOutcome::Busy,
+        "disabled" => BroadcastOutcome::Disabled,
+        "invalid" => BroadcastOutcome::Invalid,
+        "start_failed" => BroadcastOutcome::StartFailed,
+        "internal_error" => BroadcastOutcome::InternalError,
+        _ => {
+            return Err(BroadcastLaunchError::UnrecognizedOutcome {
+                value: value.to_string(),
+            });
+        }
+    };
+    Ok(outcome)
 }
 
 #[derive(Debug)]
@@ -113,6 +163,9 @@ pub(crate) enum BroadcastLaunchError {
         status: ExitStatus,
         stdout: String,
         stderr: String,
+    },
+    UnrecognizedOutcome {
+        value: String,
     },
 }
 
@@ -132,6 +185,9 @@ impl std::fmt::Display for BroadcastLaunchError {
                 f,
                 "Android broadcast failed via `{program}` (status {status}): stdout=`{stdout}` stderr=`{stderr}`",
             ),
+            Self::UnrecognizedOutcome { value } => {
+                write!(f, "Android broadcast returned an unknown Keyguard outcome `{value}`")
+            }
         }
     }
 }
@@ -149,6 +205,51 @@ impl std::error::Error for BroadcastLaunchError {
 mod tests {
     use super::*;
     use tokio::time::Duration;
+
+    #[test]
+    fn parses_versioned_broadcast_outcomes() {
+        let cases = [
+            ("accepted", BroadcastOutcome::Accepted),
+            ("deferred", BroadcastOutcome::Deferred),
+            ("busy", BroadcastOutcome::Busy),
+            ("disabled", BroadcastOutcome::Disabled),
+            ("invalid", BroadcastOutcome::Invalid),
+            ("start_failed", BroadcastOutcome::StartFailed),
+            ("internal_error", BroadcastOutcome::InternalError),
+        ];
+
+        for (value, expected) in cases {
+            let stdout = format!(
+                "Broadcasting: Intent {{ ... }}\nBroadcast completed: result=-1, data=\"{BROADCAST_RESULT_PREFIX}{value}\"\n"
+            );
+            assert_eq!(parse_broadcast_outcome(&stdout).unwrap(), expected);
+        }
+    }
+
+    #[test]
+    fn missing_keyguard_outcome_preserves_legacy_behavior() {
+        assert_eq!(
+            parse_broadcast_outcome("Broadcast completed: result=0\n").unwrap(),
+            BroadcastOutcome::LegacyNoAcknowledgement,
+        );
+        assert_eq!(
+            parse_broadcast_outcome("").unwrap(),
+            BroadcastOutcome::LegacyNoAcknowledgement,
+        );
+    }
+
+    #[test]
+    fn unknown_versioned_outcome_is_rejected() {
+        let err = parse_broadcast_outcome(&format!(
+            "Broadcast completed: result=0, data=\"{BROADCAST_RESULT_PREFIX}future\""
+        ))
+        .unwrap_err();
+
+        assert!(matches!(
+            err,
+            BroadcastLaunchError::UnrecognizedOutcome { value } if value == "future"
+        ));
+    }
 
     #[tokio::test]
     async fn broadcast_launcher_reports_non_zero_exit() {

@@ -1,3 +1,5 @@
+//! Protocol-neutral Unix peer credentials and process display metadata.
+
 use tokio::net::UnixStream;
 
 #[cfg(any(target_os = "linux", target_os = "android"))]
@@ -211,20 +213,20 @@ mod tests {
                 let seen_comm = Rc::clone(&seen_comm);
                 move |path| {
                     seen_comm.replace(Some(path.display().to_string()));
-                    Ok("gpg\n".to_string())
+                    Ok("ssh\n".to_string())
                 }
             },
             {
                 let seen_exe = Rc::clone(&seen_exe);
                 move |path| {
                     seen_exe.replace(Some(path.display().to_string()));
-                    Ok(PathBuf::from("/usr/bin/gpg"))
+                    Ok(PathBuf::from("/usr/bin/ssh"))
                 }
             },
         );
 
-        assert_eq!(details.process_name, Some("gpg".to_string()));
-        assert_eq!(details.executable_path, Some("/usr/bin/gpg".to_string()));
+        assert_eq!(details.process_name, Some("ssh".to_string()));
+        assert_eq!(details.executable_path, Some("/usr/bin/ssh".to_string()));
         assert_eq!(seen_comm.borrow().as_deref(), Some("/proc/4321/comm"));
         assert_eq!(seen_exe.borrow().as_deref(), Some("/proc/4321/exe"));
     }
@@ -234,13 +236,13 @@ mod tests {
         let details = process_details_from_pid_with(
             7,
             |_path| Err(Error::new(std::io::ErrorKind::NotFound, "missing")),
-            |_path| Ok(PathBuf::from("/usr/local/bin/gpg")),
+            |_path| Ok(PathBuf::from("/usr/local/bin/git")),
         );
 
-        assert_eq!(details.process_name, Some("gpg".to_string()));
+        assert_eq!(details.process_name, Some("git".to_string()));
         assert_eq!(
             details.executable_path,
-            Some("/usr/local/bin/gpg".to_string())
+            Some("/usr/local/bin/git".to_string())
         );
     }
 

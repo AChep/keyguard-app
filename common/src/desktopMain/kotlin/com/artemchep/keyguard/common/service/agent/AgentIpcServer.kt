@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
@@ -37,6 +38,7 @@ internal class AgentIpcServer(
     private val scope: CoroutineScope,
     private val tag: String,
     private val maxConcurrentConnections: Int = 8,
+    private val peerVerificationPolicy: AgentIpcPeerVerificationPolicy,
     private val session: suspend (AgentPacketChannel) -> Unit,
 ) {
     private val serverChannelLock = Any()
@@ -127,6 +129,10 @@ internal class AgentIpcServer(
         val connectionSemaphore = Semaphore(maxConcurrentConnections)
 
         try {
+            // AgentManager starts the listener before spawning the helper. Do not
+            // accept any queued connection until the exact child Process handle is
+            // available for kernel-level peer verification.
+            val peerVerification = peerVerificationPolicy.resolve(logRepository, tag)
             logRepository.post(tag, "IPC server listening on $socketPath", LogLevel.INFO)
 
             while (scope.isActive && currentCoroutineContext().isActive) {
@@ -153,7 +159,10 @@ internal class AgentIpcServer(
                 // Handle each connection in a separate coroutine.
                 scope.launch(Dispatchers.IO) {
                     try {
-                        handleConnection(clientChannel)
+                        handleConnection(
+                            channel = clientChannel,
+                            peerVerification = peerVerification,
+                        )
                     } finally {
                         connectionSemaphore.release()
                     }
@@ -180,11 +189,18 @@ internal class AgentIpcServer(
         val cancellationHandler = currentCoroutineContext()[Job]
             ?.invokeOnCompletion { stop() }
 
-        onReady?.complete(Unit)
-
         val connectionSemaphore = Semaphore(maxConcurrentConnections)
 
         try {
+            // Create the first owner-only pipe instance before publishing
+            // readiness. Otherwise the helper's one-shot open can race the
+            // first accept() call and observe a nonexistent pipe.
+            pipeServer.prepare()
+            onReady?.complete(Unit)
+
+            // See startUnix: keep the accept loop gated until AgentManager has
+            // published the exact child Process handle.
+            val peerVerification = peerVerificationPolicy.resolve(logRepository, tag)
             logRepository.post(tag, "IPC server listening on $pipeName", LogLevel.INFO)
 
             while (scope.isActive && currentCoroutineContext().isActive) {
@@ -216,6 +232,14 @@ internal class AgentIpcServer(
                         handleConnection(
                             channel = WindowsNamedPipePacketChannel(connection),
                             close = connection::close,
+                            verifyPeer = {
+                                when (peerVerification) {
+                                    is ResolvedAgentIpcPeerVerification.ExactProcess ->
+                                        connection.verifyClient(peerVerification.process)
+
+                                    ResolvedAgentIpcPeerVerification.TestOnlyUnverified -> Unit
+                                }
+                            },
                         )
                     } finally {
                         connectionSemaphore.release()
@@ -236,16 +260,27 @@ internal class AgentIpcServer(
      */
     private suspend fun handleConnection(
         channel: SocketChannel,
+        peerVerification: ResolvedAgentIpcPeerVerification,
     ) = handleConnection(
         channel = AgentIpcProtocol.open(channel),
         close = channel::close,
+        verifyPeer = {
+            when (peerVerification) {
+                is ResolvedAgentIpcPeerVerification.ExactProcess ->
+                    verifyUnixAgentPeer(channel, peerVerification.process)
+
+                ResolvedAgentIpcPeerVerification.TestOnlyUnverified -> Unit
+            }
+        },
     )
 
     private suspend fun handleConnection(
         channel: AgentPacketChannel,
         close: () -> Unit,
+        verifyPeer: () -> Unit,
     ) {
         try {
+            verifyPeer()
             session(channel)
         } catch (_: AsynchronousCloseException) {
             // Normal during server shutdown.
@@ -264,5 +299,61 @@ internal class AgentIpcServer(
             } catch (_: Exception) {
             }
         }
+    }
+}
+
+/**
+ * Marks the only API that permits IPC sessions without kernel-authenticated
+ * exact-process verification. It exists solely for in-process component tests
+ * whose client is the test JVM rather than a spawned agent helper.
+ */
+@RequiresOptIn(
+    message = "Unverified agent IPC is restricted to in-process component tests.",
+    level = RequiresOptIn.Level.ERROR,
+)
+@Retention(AnnotationRetention.BINARY)
+@Target(
+    AnnotationTarget.CLASS,
+    AnnotationTarget.CONSTRUCTOR,
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.PROPERTY,
+)
+internal annotation class TestOnlyUnverifiedAgentIpcApi
+
+@TestOnlyUnverifiedAgentIpcApi
+internal data object TestOnlyUnverifiedAgentIpcPeer
+
+internal sealed interface AgentIpcPeerVerificationPolicy {
+    data class ExactProcess(
+        val expectedProcess: Deferred<Process>,
+    ) : AgentIpcPeerVerificationPolicy
+
+    @TestOnlyUnverifiedAgentIpcApi
+    data object TestOnlyUnverified : AgentIpcPeerVerificationPolicy
+}
+
+private sealed interface ResolvedAgentIpcPeerVerification {
+    data class ExactProcess(
+        val process: Process,
+    ) : ResolvedAgentIpcPeerVerification
+
+    data object TestOnlyUnverified : ResolvedAgentIpcPeerVerification
+}
+
+@OptIn(TestOnlyUnverifiedAgentIpcApi::class)
+private suspend fun AgentIpcPeerVerificationPolicy.resolve(
+    logRepository: LogRepository,
+    tag: String,
+): ResolvedAgentIpcPeerVerification = when (this) {
+    is AgentIpcPeerVerificationPolicy.ExactProcess ->
+        ResolvedAgentIpcPeerVerification.ExactProcess(expectedProcess.await())
+
+    AgentIpcPeerVerificationPolicy.TestOnlyUnverified -> {
+        logRepository.post(
+            tag,
+            "IPC peer verification is DISABLED by an in-process test-only policy",
+            LogLevel.WARNING,
+        )
+        ResolvedAgentIpcPeerVerification.TestOnlyUnverified
     }
 }

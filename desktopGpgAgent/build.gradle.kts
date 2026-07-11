@@ -12,6 +12,7 @@ val gpgAgentBinaryName = hostPlatform.binaryName("keyguard-gpg-agent")
 keyguardCargo {
     sourceDir.set(layout.projectDirectory.dir("src"))
     extraSourceInputs.from(rootProject.file("commonGpgAgent"))
+    extraSourceInputs.from(rootProject.file("commonAgent"))
     rustTarget.set(hostPlatform.sshAgentRustTarget)
     cargoBinaryName.set(gpgAgentBinaryName)
     packagedBinaryName.set(gpgAgentBinaryName)
@@ -20,4 +21,3 @@ keyguardCargo {
     platformMacOs.set(hostPlatform.isMacOs)
     platformWindows.set(hostPlatform.isWindows)
 }
-

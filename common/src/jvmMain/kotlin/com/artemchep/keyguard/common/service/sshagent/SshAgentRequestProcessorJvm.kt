@@ -13,6 +13,8 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicyNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -46,8 +48,17 @@ class SshAgentRequestProcessorJvm(
     private val logRepository: LogRepository,
     private val getVaultSession: GetVaultSession,
     getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
+    getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy =
+        GetSshAgentApprovalCachePolicyNoOp,
     private val getSshAgentFilter: GetSshAgentFilter,
     scope: CoroutineScope,
+    private val approvalWindowMemory: SshAgentApprovalWindowMemory =
+        SshAgentApprovalWindowMemory(
+            getSshAgentApprovalWindow = getSshAgentApprovalWindow,
+            getVaultSession = getVaultSession,
+            scope = scope,
+            getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
+        ),
     private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
     private val sessionId: String = "",
     private val json: Json = Json,
@@ -173,12 +184,6 @@ class SshAgentRequestProcessorJvm(
     private val sshAgentFilterState = getSshAgentFilter()
         .stateIn(scope, SharingStarted.Eagerly, SshAgentFilter())
 
-    private val approvalWindowMemory = SshAgentApprovalWindowMemory(
-        getSshAgentApprovalWindow = getSshAgentApprovalWindow,
-        getVaultSession = getVaultSession,
-        scope = scope,
-    )
-
     override suspend fun listKeys(
         caller: SshAgentMessages.CallerIdentity?,
     ): SshAgentRequestProcessor.ListKeysResult {
@@ -229,7 +234,8 @@ class SshAgentRequestProcessorJvm(
             approvalWindowMemory.clearSession()
         }
 
-        val approvalRemembered = vault?.approvalWindowSession?.isRemembered(request) == true
+        var approvalAccess = vault?.approvalWindowSession?.access(request)
+        val approvalRemembered = approvalAccess?.isRemembered == true
         var approvalGranted = false
 
         if (wasVaultLocked) {
@@ -250,6 +256,7 @@ class SshAgentRequestProcessorJvm(
             if (vault == null) {
                 return SshAgentRequestProcessor.SignDataResult.VaultLocked
             }
+            approvalAccess = vault.approvalWindowSession.access(request)
         }
 
         val availableSshKeys: List<DSecret> = vault.sshKeys
@@ -310,7 +317,7 @@ class SshAgentRequestProcessorJvm(
                 flags = request.flags,
             )
             if (approvalGranted) {
-                vault.approvalWindowSession.remember(request)
+                approvalAccess?.remember()
             }
             recordSshUsageSignData(SshUsageHistoryResponseType.SUCCESS)
             SshAgentRequestProcessor.SignDataResult.Success(response = response)
@@ -478,4 +485,3 @@ class SshAgentRequestProcessorJvm(
         }
     }
 }
-

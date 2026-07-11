@@ -4,7 +4,9 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketAddress
+import java.net.SocketException
 import java.util.Base64
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -23,6 +25,7 @@ import kotlinx.serialization.protobuf.ProtoBuf
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -59,6 +62,10 @@ class AndroidSshAgentSecureBridgeTest {
                 val senderAppInfo = buildAndroidSshAgentCallerIdentity(
                     appName = "Termux",
                     appBundlePath = "com.termux",
+                    authorization = androidBridgeAuthorization(
+                        principalFingerprint = ByteArray(32) { 0x33 },
+                        connectionFingerprint = ByteArray(32) { 0x44 },
+                    ),
                 )
                 val requestPayload = ProtoBuf.encodeToByteArray(
                     SshAgentMessages.IpcRequest(
@@ -111,6 +118,14 @@ class AndroidSshAgentSecureBridgeTest {
                     assertEquals("/data/data/com.termux/files/usr/bin/ssh", capturedCaller?.executablePath)
                     assertEquals("Termux", capturedCaller?.appName)
                     assertEquals("com.termux", capturedCaller?.appBundlePath)
+                    assertContentEquals(
+                        ByteArray(32) { 0x44 },
+                        capturedCaller?.authorization?.connectionFingerprint,
+                    )
+                    assertContentEquals(
+                        ByteArray(32) { 0x33 },
+                        capturedCaller?.authorization?.subjects?.single()?.fingerprint,
+                    )
                     bridgeJob.join()
                     assertFalse(bridgeJob.isCancelled)
                 }
@@ -122,7 +137,7 @@ class AndroidSshAgentSecureBridgeTest {
 
     @OptIn(ExperimentalSerializationApi::class)
     @Test
-    fun `launch preserves protobuf caller when Android sender app info is unavailable`() = runBlocking {
+    fun `launch discards protobuf caller when Android sender app info is unavailable`() = runBlocking {
         withTimeout(5_000) {
             val bridgeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
             try {
@@ -193,13 +208,7 @@ class AndroidSshAgentSecureBridgeTest {
                         ),
                         response.signData,
                     )
-                    assertEquals(222, capturedRequest?.caller?.pid)
-                    assertEquals(333, capturedRequest?.caller?.uid)
-                    assertEquals(444, capturedRequest?.caller?.gid)
-                    assertEquals("ssh", capturedRequest?.caller?.processName)
-                    assertEquals("/data/data/com.termux/files/usr/bin/ssh", capturedRequest?.caller?.executablePath)
-                    assertEquals("", capturedRequest?.caller?.appName)
-                    assertEquals("", capturedRequest?.caller?.appBundlePath)
+                    assertNull(capturedRequest?.caller)
                     assertEquals(publicKey, capturedRequest?.publicKey)
                     assertContentEquals(byteArrayOf(1, 2, 3, 4), capturedRequest?.data)
                     assertEquals(0, capturedRequest?.flags)
@@ -363,6 +372,70 @@ class AndroidSshAgentSecureBridgeTest {
                 bridgeScope.cancel()
             }
         }
+    }
+
+    @Test
+    fun `idle authenticated proxy session is closed at the packet deadline`() = runBlocking {
+        withTimeout(5_000) {
+            val bridgeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            val sessionId = ByteArray(SshAgentTcpProtocol.SESSION_ID_LENGTH) { 0x11 }
+            val sessionSecret = ByteArray(SshAgentTcpProtocol.SESSION_SECRET_LENGTH) { 0x22 }
+            try {
+                ServerSocket().use { server ->
+                    server.bind(InetSocketAddress("127.0.0.1", 0))
+                    val bridgeJob = bridgeScope.launchSshAgentProxyBridge(
+                        requestProcessor = createRequestProcessor(),
+                        proxyPort = server.localPort,
+                        sessionId = sessionId,
+                        sessionSecret = sessionSecret,
+                        connectHostCandidates = listOf("127.0.0.1"),
+                        packetReadTimeoutMs = 75,
+                    )
+                    val toolJob = async(Dispatchers.IO) {
+                        server.accept().use { socket ->
+                            val toolChannel = SshAgentTcpProtocol.openAsTool(
+                                input = socket.getInputStream(),
+                                output = socket.getOutputStream(),
+                                sessionId = sessionId,
+                                sessionSecret = sessionSecret,
+                            )
+                            toolChannel.readPacket()
+                        }
+                    }
+
+                    bridgeJob.join()
+                    assertFalse(bridgeJob.isCancelled)
+                    assertNull(toolJob.await())
+                }
+            } finally {
+                bridgeScope.cancel()
+            }
+        }
+    }
+
+    @Test
+    fun `blocked proxy write is interrupted by closing its socket at the deadline`() = runBlocking {
+        val closeSignal = CountDownLatch(1)
+        val socket = object : Socket() {
+            override fun close() {
+                closeSignal.countDown()
+                super.close()
+            }
+        }
+
+        val error = assertFailsWith<java.net.SocketTimeoutException> {
+            runSocketOperationWithDeadline(
+                socket = socket,
+                timeoutMs = 25,
+                operationName = "test proxy write",
+            ) {
+                closeSignal.await()
+                throw SocketException("closed")
+            }
+        }
+
+        assertTrue(error.message.orEmpty().contains("test proxy write timed out"))
+        assertTrue(socket.isClosed)
     }
 
     private fun createRequestProcessor(

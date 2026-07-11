@@ -10,6 +10,8 @@ mod caller_identity;
 mod config;
 mod ipc;
 mod socket;
+#[cfg(windows)]
+mod windows_identity;
 
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -26,6 +28,10 @@ struct Args {
     /// Path to the IPC socket for communicating with the Keyguard app.
     #[arg(long)]
     ipc_socket: PathBuf,
+
+    /// PID of the Keyguard desktop process that owns the private IPC server.
+    #[arg(long)]
+    parent_pid: u32,
 
     /// Path to the SSH agent socket to listen on.
     /// If not specified, uses a platform-specific default.
@@ -145,9 +151,10 @@ async fn main() -> Result<()> {
     );
 
     // Connect to the Keyguard IPC server and authenticate.
-    let ipc_client = ipc::client::IpcClient::connect(&args.ipc_socket, &auth_token)
-        .await
-        .context("Failed to connect to Keyguard IPC server");
+    let ipc_client =
+        ipc::client::IpcClient::connect(&args.ipc_socket, &auth_token, args.parent_pid)
+            .await
+            .context("Failed to connect to Keyguard IPC server");
     zeroize_bytes(&mut auth_token);
     let ipc_client = ipc_client?;
     info!("Authenticated with Keyguard IPC server");

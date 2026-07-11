@@ -11,9 +11,10 @@ import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
-import kotlin.time.Instant
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 /**
  * @author Artem Chepurnyi
@@ -159,6 +160,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration,
     ): IO<Unit>
 
+    fun setSshAgentApprovalCachePolicy(
+        policy: AgentApprovalCachePolicy,
+    ): IO<Unit>
+
     fun setSshAgentDisplayKeyNames(
         displayKeyNames: Boolean,
     ): IO<Unit>
@@ -173,6 +178,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setGpgAgentApprovalWindow(
         duration: Duration,
+    ): IO<Unit>
+
+    fun setGpgAgentApprovalCachePolicy(
+        policy: AgentApprovalCachePolicy,
     ): IO<Unit>
 
     fun setGpgAgentDisplayKeyNames(

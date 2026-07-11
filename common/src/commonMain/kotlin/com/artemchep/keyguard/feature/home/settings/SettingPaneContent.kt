@@ -96,6 +96,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingScreenshots
 import com.artemchep.keyguard.feature.home.settings.component.settingSectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocaleProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalCachePolicyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentDisplayKeyNamesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentLocalStorageInfoProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentProvider
@@ -103,6 +104,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFil
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSetupProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalCachePolicyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentDisplayKeyNamesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentLocalStorageInfoProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentProvider
@@ -222,6 +224,7 @@ object Setting {
     const val SSH_SETTINGS = "ssh_settings"
     const val SSH_AGENT = "ssh_agent"
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
+    const val SSH_AGENT_APPROVAL_CACHE_POLICY = "ssh_agent_approval_cache_policy"
     const val SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent_display_key_names"
     const val SSH_AGENT_LOCAL_STORAGE_INFO = "ssh_agent_local_storage_info"
     const val SSH_AGENT_SETUP = "ssh_agent_setup"
@@ -230,6 +233,7 @@ object Setting {
     const val GPG_SETTINGS = "gpg_settings"
     const val GPG_AGENT = "gpg_agent"
     const val GPG_AGENT_APPROVAL_WINDOW = "gpg_agent_approval_window"
+    const val GPG_AGENT_APPROVAL_CACHE_POLICY = "gpg_agent_approval_cache_policy"
     const val GPG_AGENT_DISPLAY_KEY_NAMES = "gpg_agent_display_key_names"
     const val GPG_AGENT_LOCAL_STORAGE_INFO = "gpg_agent_local_storage_info"
     const val GPG_AGENT_SETUP = "gpg_agent_setup"
@@ -349,6 +353,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
+    Setting.SSH_AGENT_APPROVAL_CACHE_POLICY to ::settingSshAgentApprovalCachePolicyProvider,
     Setting.SSH_AGENT_DISPLAY_KEY_NAMES to ::settingSshAgentDisplayKeyNamesProvider,
     Setting.SSH_AGENT_LOCAL_STORAGE_INFO to ::settingSshAgentLocalStorageInfoProvider,
     Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
@@ -357,6 +362,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.GPG_SETTINGS to ::settingGpgSettingsProvider,
     Setting.GPG_AGENT to ::settingGpgAgentProvider,
     Setting.GPG_AGENT_APPROVAL_WINDOW to ::settingGpgAgentApprovalWindowProvider,
+    Setting.GPG_AGENT_APPROVAL_CACHE_POLICY to ::settingGpgAgentApprovalCachePolicyProvider,
     Setting.GPG_AGENT_DISPLAY_KEY_NAMES to ::settingGpgAgentDisplayKeyNamesProvider,
     Setting.GPG_AGENT_LOCAL_STORAGE_INFO to ::settingGpgAgentLocalStorageInfoProvider,
     Setting.GPG_AGENT_SETUP to ::settingGpgAgentSetupProvider,

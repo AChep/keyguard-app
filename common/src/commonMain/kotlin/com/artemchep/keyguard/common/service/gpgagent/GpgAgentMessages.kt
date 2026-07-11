@@ -1,12 +1,16 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
 import com.artemchep.keyguard.common.service.agent.AgentCallerIdentity
+import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
 
 @OptIn(ExperimentalSerializationApi::class)
 object GpgAgentMessages {
+    /** Exact IPC contract revision required by the current app and agent. */
+    const val PROTOCOL_REVISION = 1
+
     @Serializable
     data class IpcRequest(
         @ProtoNumber(1)
@@ -41,17 +45,26 @@ object GpgAgentMessages {
     data class AuthenticateRequest(
         @ProtoNumber(1)
         val token: ByteArray = byteArrayOf(),
+        // Keep the wire default at zero so an absent field from a stale agent
+        // cannot be mistaken for the current clean-cutover revision.
+        @ProtoNumber(2)
+        val protocolRevision: Int = 0,
     ) {
         override fun equals(other: Any?): Boolean =
-            this === other || other is AuthenticateRequest && token.contentEquals(other.token)
+            this === other ||
+                other is AuthenticateRequest &&
+                token.contentEquals(other.token) &&
+                protocolRevision == other.protocolRevision
 
-        override fun hashCode(): Int = token.contentHashCode()
+        override fun hashCode(): Int = 31 * token.contentHashCode() + protocolRevision
     }
 
     @Serializable
     data class AuthenticateResponse(
         @ProtoNumber(1)
         val success: Boolean = false,
+        @ProtoNumber(2)
+        val protocolRevision: Int = 0,
     )
 
     @Serializable
@@ -71,7 +84,13 @@ object GpgAgentMessages {
         @ProtoNumber(7)
         override val appName: String = "",
         @ProtoNumber(8)
-        val appBundlePath: String = "",
+        override val appBundlePath: String = "",
+        /**
+         * Machine-verifiable authorization evidence. All preceding fields are
+         * display metadata and are deliberately excluded from approval keys.
+         */
+        @ProtoNumber(9)
+        override val authorization: CallerAuthorization? = null,
     ) : AgentCallerIdentity
 
     @Serializable

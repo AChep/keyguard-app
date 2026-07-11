@@ -23,6 +23,16 @@ const MAX_CONCURRENT_CONNECTIONS: usize = 32;
 #[cfg(unix)]
 // Leave room for the listener, IPC, logging, runtime, and transient files.
 const NON_AGENT_FD_RESERVE: usize = 16;
+#[cfg(all(unix, target_os = "macos"))]
+// Include the public socket and peak retained/transient identity descriptors.
+const AGENT_FDS_PER_CONNECTION: usize =
+    1 + keyguard_agent_identity::macos::MacosPeerIdentity::MAX_ADDITIONAL_FD_COUNT;
+#[cfg(all(unix, target_os = "linux"))]
+// Linux sessions retain both a pidfd and an O_PATH executable handle.
+const AGENT_FDS_PER_CONNECTION: usize =
+    1 + keyguard_agent_identity::linux_identity::LinuxProcessIdentity::RETAINED_FD_COUNT;
+#[cfg(all(unix, not(any(target_os = "linux", target_os = "macos"))))]
+const AGENT_FDS_PER_CONNECTION: usize = 1;
 const CONNECTION_IDLE_TIMEOUT: Duration = Duration::from_secs(5 * 60);
 const FRAME_COMPLETION_TIMEOUT: Duration = Duration::from_secs(30);
 const RESPONSE_WRITE_TIMEOUT: Duration = Duration::from_secs(30);
@@ -75,7 +85,7 @@ fn default_max_connections() -> usize {
 #[cfg(unix)]
 fn max_connections_for_soft_limit(soft_limit: usize) -> usize {
     MAX_CONCURRENT_CONNECTIONS
-        .min(soft_limit.saturating_sub(NON_AGENT_FD_RESERVE))
+        .min(soft_limit.saturating_sub(NON_AGENT_FD_RESERVE) / AGENT_FDS_PER_CONNECTION)
         .max(1)
 }
 
@@ -566,9 +576,20 @@ mod tests {
     #[test]
     fn connection_cap_preserves_file_descriptor_reserve() {
         assert_eq!(max_connections_for_soft_limit(1_024), 32);
-        assert_eq!(max_connections_for_soft_limit(32), 16);
+        assert_eq!(
+            max_connections_for_soft_limit(32),
+            16 / AGENT_FDS_PER_CONNECTION,
+        );
+        assert_eq!(
+            max_connections_for_soft_limit(NON_AGENT_FD_RESERVE + 2),
+            (2 / AGENT_FDS_PER_CONNECTION).max(1),
+        );
         assert_eq!(max_connections_for_soft_limit(16), 1);
         assert_eq!(max_connections_for_soft_limit(0), 1);
+        assert_eq!(
+            max_connections_for_soft_limit(NON_AGENT_FD_RESERVE + AGENT_FDS_PER_CONNECTION * 2,),
+            2,
+        );
     }
 
     #[tokio::test]

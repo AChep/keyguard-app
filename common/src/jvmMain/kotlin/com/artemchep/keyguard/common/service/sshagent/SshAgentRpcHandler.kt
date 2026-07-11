@@ -4,6 +4,7 @@ data class SshAgentRpcRequestContext(
     val authenticated: Boolean,
     val allowAuthenticate: Boolean,
     val callerAugmentation: SshAgentMessages.CallerIdentity? = null,
+    val replaceCallerAuthorization: Boolean = false,
 )
 
 internal class SshAgentRpcHandler(
@@ -50,12 +51,12 @@ internal class SshAgentRpcHandler(
 
             request.listKeys != null -> handleListKeys(
                 requestId = request.id,
-                request = request.listKeys.withAugmentedCaller(context.callerAugmentation),
+                request = request.listKeys.withAugmentedCaller(context),
             )
 
             request.signData != null -> handleSignData(
                 requestId = request.id,
-                request = request.signData.withAugmentedCaller(context.callerAugmentation),
+                request = request.signData.withAugmentedCaller(context),
             )
 
             else -> errorResponse(
@@ -71,7 +72,10 @@ internal class SshAgentRpcHandler(
         request: SshAgentMessages.AuthenticateRequest,
     ): SshAgentMessages.IpcResponse = SshAgentMessages.IpcResponse(
         id = requestId,
-        authenticate = SshAgentMessages.AuthenticateResponse(success = authenticate(request)),
+        authenticate = SshAgentMessages.AuthenticateResponse(
+            success = authenticate(request),
+            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+        ),
     )
 
     suspend fun handleListKeys(
@@ -143,22 +147,24 @@ internal class SshAgentRpcHandler(
     )
 
     private fun SshAgentMessages.ListKeysRequest.withAugmentedCaller(
-        callerAugmentation: SshAgentMessages.CallerIdentity?,
+        context: SshAgentRpcRequestContext,
     ): SshAgentMessages.ListKeysRequest =
         copy(
             caller = mergeAndroidSshAgentCallerIdentity(
                 caller = caller,
-                senderAppInfo = callerAugmentation,
+                senderAppInfo = context.callerAugmentation,
+                replaceCallerAuthorization = context.replaceCallerAuthorization,
             ),
         )
 
     private fun SshAgentMessages.SignDataRequest.withAugmentedCaller(
-        callerAugmentation: SshAgentMessages.CallerIdentity?,
+        context: SshAgentRpcRequestContext,
     ): SshAgentMessages.SignDataRequest =
         copy(
             caller = mergeAndroidSshAgentCallerIdentity(
                 caller = caller,
-                senderAppInfo = callerAugmentation,
+                senderAppInfo = context.callerAugmentation,
+                replaceCallerAuthorization = context.replaceCallerAuthorization,
             ),
         )
 }

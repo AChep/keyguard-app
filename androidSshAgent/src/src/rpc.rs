@@ -17,6 +17,9 @@ pub const SSH_AGENT_SIGN_REQUEST: u8 = 13;
 pub const SSH_AGENT_SIGN_RESPONSE: u8 = 14;
 
 #[derive(Debug)]
+// Forward is the overwhelmingly normal path and is consumed immediately;
+// boxing every request would add a heap allocation only to shrink Failure.
+#[allow(clippy::large_enum_variant)]
 pub enum RequestTranslation {
     Forward(IpcRequest),
     Failure,
@@ -73,6 +76,8 @@ fn to_proto_caller_identity(caller: &AndroidCallerIdentity) -> CallerIdentity {
         app_pid: 0,
         app_name: String::new(),
         app_bundle_path: String::new(),
+        // The Android app bridge supplies trusted package authorization.
+        authorization: None,
     }
 }
 

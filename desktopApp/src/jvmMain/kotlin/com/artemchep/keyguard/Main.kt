@@ -69,11 +69,13 @@ import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetGpgAgent
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -310,11 +312,13 @@ fun main() {
     val getCloseToTray: GetCloseToTray = appDi.direct.instance()
     val getSshAgent: GetSshAgent = appDi.direct.instance()
     val getSshAgentApprovalWindow: GetSshAgentApprovalWindow = appDi.direct.instance()
+    val getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy = appDi.direct.instance()
     val getSshAgentFilter: GetSshAgentFilter = appDi.direct.instance()
     val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = appDi.direct.instance()
     val sshAgentStatusService: SshAgentStatusService = appDi.direct.instance()
     val getGpgAgent: GetGpgAgent = appDi.direct.instance()
     val getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow = appDi.direct.instance()
+    val getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy = appDi.direct.instance()
     val getGpgAgentFilter: GetGpgAgentFilter = appDi.direct.instance()
     val gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository = appDi.direct.instance()
     val gpgAgentStatusService: GpgAgentStatusService = appDi.direct.instance()
@@ -398,6 +402,7 @@ fun main() {
                     cryptoGenerator = cryptoGenerator,
                     getVaultSession = getVaultSession,
                     getSshAgentApprovalWindow = getSshAgentApprovalWindow,
+                    getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
                     getSshAgentFilter = getSshAgentFilter,
                     sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
                 )
@@ -485,6 +490,7 @@ fun main() {
                     dataDirectory = dataDirectory,
                     getVaultSession = getVaultSession,
                     getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
+                    getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
                     getGpgAgentFilter = getGpgAgentFilter,
                     gpgAgentPublicKeyRepository = gpgAgentPublicKeyRepository,
                 )

@@ -10,6 +10,10 @@ internal suspend fun runSshAgentPacketSession(
     codec: SshAgentProtoCodec = SshAgentProtoCodec,
     onRequest: suspend (SshAgentMessages.IpcRequest, ByteArray) -> Unit = { _, _ -> },
     onResponse: suspend (SshAgentMessages.IpcResponse, ByteArray) -> Unit = { _, _ -> },
+    readPacket: suspend (AgentPacketChannel) -> ByteArray? = { it.readPacket() },
+    writePacket: suspend (AgentPacketChannel, ByteArray) -> Unit = { channel, packet ->
+        channel.writePacket(packet)
+    },
 ) {
     runAgentPacketSession(
         channel = channel,
@@ -27,5 +31,7 @@ internal suspend fun runSshAgentPacketSession(
         },
         onRequest = onRequest,
         onResponse = onResponse,
+        readPacket = readPacket,
+        writePacket = writePacket,
     )
 }

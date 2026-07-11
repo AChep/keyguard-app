@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.TableRowItem
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 
@@ -59,31 +60,12 @@ fun VaultViewTableItem(
             }
 
             item.rows.forEachIndexed { index, row ->
-                Row(
+                TableRowItem(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.Top,
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .weight(1f),
-                        text = row.title,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = LocalContentColor.current
-                            .combineAlpha(MediumEmphasisAlpha),
-                    )
-                    Text(
-                        modifier = Modifier
-                            .weight(1f),
-                        text = row.value,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = LocalContentColor.current
-                            .combineAlpha(MediumEmphasisAlpha),
-                    )
-                }
+                        .fillMaxWidth(),
+                    title = row.title,
+                    text = row.value,
+                )
                 if (index < item.rows.lastIndex) {
                     HorizontalDivider()
                 }

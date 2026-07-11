@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandJvm
 import com.artemchep.keyguard.common.service.licensekey.EcdsaP256LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.zip.ZipService
@@ -26,6 +27,9 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAppBuildDate
 import com.artemchep.keyguard.common.usecase.GetAppBuildRef
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.common.usecase.TestBackupLocation
@@ -74,7 +78,9 @@ import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -94,6 +100,14 @@ fun globalModuleJvm() = DI.Module(
 
     bindProvider<CoroutineDispatcher>(tag = DatabaseDispatcher) {
         Dispatchers.IO
+    }
+    bindSingleton<SshAgentApprovalWindowMemory> {
+        SshAgentApprovalWindowMemory(
+            getSshAgentApprovalWindow = instance<GetSshAgentApprovalWindow>(),
+            getVaultSession = instance<GetVaultSession>(),
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+            getSshAgentApprovalCachePolicy = instance<GetSshAgentApprovalCachePolicy>(),
+        )
     }
     bindSingleton<LicenseSignatureVerifier> {
         EcdsaP256LicenseSignatureVerifier()

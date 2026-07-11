@@ -27,10 +27,12 @@ message IpcResponse {
 
 message AuthenticateRequest {
   bytes token = 1;
+  uint32 protocol_revision = 2;
 }
 
 message AuthenticateResponse {
   bool success = 1;
+  uint32 protocol_revision = 2;
 }
 
 message CallerIdentity {
@@ -42,6 +44,60 @@ message CallerIdentity {
   uint32 app_pid = 6;
   string app_name = 7;
   string app_bundle_path = 8;
+  // Machine-verifiable authorization identity. Fields 1-8 above are display
+  // metadata only and must never be used to reuse an approval.
+  CallerAuthorization authorization = 9;
+}
+
+message CallerAuthorization {
+  // Prevent stale agents from having their legacy identity fields interpreted
+  // as the current authorization contract.
+  reserved 1 to 5;
+  // Fresh OS-CSPRNG identity for this live public-agent connection. Always
+  // required as exactly 32 bytes and used as the narrowest safe fallback.
+  bytes connection_fingerprint = 6;
+  // Independently verified cache subjects. At most one subject of each kind
+  // may be present; the app selects among them according to its approval
+  // policy rather than trusting the agent to select a scope.
+  repeated CallerAuthorizationSubject subjects = 7;
+  // Optional verified protocol context. When present, this must contain
+  // exactly 32 bytes and participates in approval-cache equality independently
+  // of the selected subject.
+  bytes authorization_context_fingerprint = 8;
+}
+
+message CallerAuthorizationSubject {
+  CallerAuthorizationSubjectKind kind = 1;
+  CallerAuthorizationEvidenceSource evidence_source = 2;
+  // Canonical, domain-separated identity for this exact subject kind.
+  bytes fingerprint = 3;
+}
+
+enum CallerAuthorizationSubjectKind {
+  CALLER_AUTHORIZATION_SUBJECT_KIND_UNSPECIFIED = 0;
+  CALLER_AUTHORIZATION_SUBJECT_KIND_PROCESS = 1;
+  CALLER_AUTHORIZATION_SUBJECT_KIND_APPLICATION_INSTANCE = 2;
+  CALLER_AUTHORIZATION_SUBJECT_KIND_STABLE_APPLICATION = 3;
+  CALLER_AUTHORIZATION_SUBJECT_KIND_TERMINAL_SESSION = 4;
+}
+
+enum CallerAuthorizationEvidenceSource {
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_UNSPECIFIED = 0;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_CONNECTION_RANDOM = 1;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_LINUX_PIDFD = 2;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_LINUX_LSM = 3;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_MACOS_AUDIT_TOKEN = 4;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_MACOS_CODE_SIGNING = 5;
+  // Reserved but currently rejected by the app: named-pipe client PIDs are
+  // spoofable and cannot establish process/application authorization.
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_WINDOWS_NAMED_PIPE_TOKEN = 6;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_WINDOWS_PACKAGED_APP = 7;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_WINDOWS_TCP_OWNER = 8;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_ANDROID_FRAMEWORK_PACKAGE = 9;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_LINUX_APPLICATION_ANCESTRY = 10;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_LINUX_TERMINAL_SESSION = 11;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_MACOS_APPLICATION_ANCESTRY = 12;
+  CALLER_AUTHORIZATION_EVIDENCE_SOURCE_MACOS_TERMINAL_SESSION = 13;
 }
 
 message ListKeysRequest {

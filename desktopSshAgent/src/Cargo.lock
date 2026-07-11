@@ -189,10 +189,8 @@ checksum = "b05b61dc5112cbb17e4b6cd61790d9845d13888356391624cbe7e41efeac1e75"
 name = "common-ssh-agent-rust"
 version = "0.1.0"
 dependencies = [
- "libc",
  "prost",
  "prost-build",
- "tokio",
 ]
 
 [[package]]
@@ -630,6 +628,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "92ecc6618181def0457392ccd0ee51198e065e016d1d527a7ac1b6dc7c1f09d2"
 
 [[package]]
+name = "keyguard-agent-identity"
+version = "0.1.0"
+dependencies = [
+ "getrandom 0.4.1",
+ "hex",
+ "libc",
+ "sha2",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "keyguard-ssh-agent"
 version = "0.1.0"
 dependencies = [
@@ -641,8 +652,10 @@ dependencies = [
  "dirs",
  "futures",
  "hex",
+ "keyguard-agent-identity",
  "libc",
  "prost",
+ "signature",
  "ssh-agent-lib",
  "ssh-encoding",
  "ssh-key",
@@ -652,6 +665,7 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "tracing-subscriber",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

@@ -115,7 +115,7 @@ mod tests {
     fn default_socket_path_is_not_empty() {
         let path = default_ssh_agent_socket_path();
         assert!(
-            path.to_str().map_or(false, |s| !s.is_empty()),
+            path.to_str().is_some_and(|s| !s.is_empty()),
             "Default socket path should be non-empty"
         );
     }
@@ -135,9 +135,7 @@ mod tests {
     #[test]
     fn macos_default_path_uses_group_container() {
         let path = default_ssh_agent_socket_path();
-        assert!(
-            path.ends_with("Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock")
-        );
+        assert!(path.ends_with("Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"));
     }
 
     #[cfg(target_os = "macos")]

@@ -12,6 +12,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bytes::{Buf, BufMut, BytesMut};
+use keyguard_agent_identity::IPC_PROTOCOL_REVISION;
 use prost::Message;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio::sync::Mutex;
@@ -53,6 +54,7 @@ struct IpcClientInner {
 struct ReconnectConfig {
     socket_path: PathBuf,
     auth_token: Vec<u8>,
+    expected_parent_pid: u32,
     #[cfg(test)]
     test_reconnect_streams: Option<std::sync::Mutex<VecDeque<Box<dyn AsyncStream>>>>,
 }
@@ -174,16 +176,23 @@ impl IpcClient {
     /// # Arguments
     /// * `socket_path` - Path to the IPC Unix socket (or named pipe on Windows).
     /// * `auth_token` - The 256-bit authentication token (raw bytes).
-    pub async fn connect(socket_path: &Path, auth_token: &[u8]) -> Result<Self> {
+    pub async fn connect(
+        socket_path: &Path,
+        auth_token: &[u8],
+        expected_parent_pid: u32,
+    ) -> Result<Self> {
         if auth_token.len() != 32 {
             bail!(
                 "IPC auth token must be exactly 32 bytes, got {} bytes",
                 auth_token.len()
             );
         }
+        if expected_parent_pid == 0 {
+            bail!("Expected parent PID must be non-zero");
+        }
 
         debug!(path = %socket_path.display(), "Connecting to IPC server");
-        let ipc_stream = Self::connect_stream(socket_path).await?;
+        let ipc_stream = Self::connect_stream(socket_path, expected_parent_pid).await?;
 
         let client = Self {
             inner: Arc::new(IpcClientInner {
@@ -192,6 +201,7 @@ impl IpcClient {
                 reconnect: Some(ReconnectConfig {
                     socket_path: socket_path.to_path_buf(),
                     auth_token: auth_token.to_vec(),
+                    expected_parent_pid,
                     #[cfg(test)]
                     test_reconnect_streams: None,
                 }),
@@ -234,6 +244,7 @@ impl IpcClient {
                 reconnect: Some(ReconnectConfig {
                     socket_path: PathBuf::new(),
                     auth_token,
+                    expected_parent_pid: std::process::id(),
                     test_reconnect_streams: Some(std::sync::Mutex::new(
                         reconnect_streams.into_iter().collect(),
                     )),
@@ -242,24 +253,33 @@ impl IpcClient {
         }
     }
 
-    async fn connect_stream(socket_path: &Path) -> Result<IpcStream<Box<dyn AsyncStream>>> {
+    async fn connect_stream(
+        socket_path: &Path,
+        expected_parent_pid: u32,
+    ) -> Result<IpcStream<Box<dyn AsyncStream>>> {
         #[cfg(unix)]
-        let stream = tokio::net::UnixStream::connect(socket_path)
-            .await
-            .with_context(|| {
-                format!(
-                    "Failed to connect to IPC socket at {}",
-                    socket_path.display()
-                )
-            })?;
+        let stream = {
+            let stream = tokio::net::UnixStream::connect(socket_path)
+                .await
+                .with_context(|| {
+                    format!(
+                        "Failed to connect to IPC socket at {}",
+                        socket_path.display()
+                    )
+                })?;
+            verify_unix_ipc_server(&stream, expected_parent_pid)?;
+            stream
+        };
 
         #[cfg(windows)]
         let stream = {
             use tokio::net::windows::named_pipe::ClientOptions;
             let pipe_name = socket_path.to_str().context("Invalid pipe name")?;
-            ClientOptions::new()
+            let stream = ClientOptions::new()
                 .open(pipe_name)
-                .with_context(|| format!("Failed to connect to named pipe {}", pipe_name))?
+                .with_context(|| format!("Failed to connect to named pipe {}", pipe_name))?;
+            verify_windows_ipc_server(&stream, expected_parent_pid)?;
+            stream
         };
 
         Ok(IpcStream::new(Box::new(stream) as Box<dyn AsyncStream>))
@@ -302,6 +322,7 @@ impl IpcClient {
             id,
             request: Some(ipc_request::Request::Authenticate(AuthenticateRequest {
                 token: token.to_vec(),
+                protocol_revision: IPC_PROTOCOL_REVISION,
             })),
         };
 
@@ -312,8 +333,14 @@ impl IpcClient {
 
         match payload {
             ipc_response::Response::Authenticate(auth) => {
-                if auth.success {
+                if auth.success && auth.protocol_revision == IPC_PROTOCOL_REVISION {
                     Ok(())
+                } else if auth.protocol_revision != IPC_PROTOCOL_REVISION {
+                    bail!(
+                        "IPC protocol revision mismatch: expected {}, received {}",
+                        IPC_PROTOCOL_REVISION,
+                        auth.protocol_revision,
+                    )
                 } else {
                     bail!("Authentication failed: server rejected the token")
                 }
@@ -375,7 +402,8 @@ impl IpcClient {
             return Ok(());
         }
 
-        let mut new_stream = Self::connect_stream(&reconnect.socket_path).await?;
+        let mut new_stream =
+            Self::connect_stream(&reconnect.socket_path, reconnect.expected_parent_pid).await?;
         Self::authenticate_stream_with_timeout(
             &mut new_stream,
             &self.inner.next_id,
@@ -708,6 +736,67 @@ impl KeyProvider for IpcClient {
     }
 }
 
+#[cfg(unix)]
+fn verify_unix_ipc_server(stream: &tokio::net::UnixStream, expected_parent_pid: u32) -> Result<()> {
+    let credentials = stream
+        .peer_cred()
+        .context("Failed to read IPC server peer credentials")?;
+    let peer_pid = credentials
+        .pid()
+        .context("IPC server peer credentials did not include a PID")?;
+    let peer_pid = u32::try_from(peer_pid).context("IPC server reported an invalid peer PID")?;
+    if peer_pid != expected_parent_pid {
+        bail!(
+            "IPC server PID mismatch: expected parent {}, got {}",
+            expected_parent_pid,
+            peer_pid
+        );
+    }
+
+    // SAFETY: geteuid has no preconditions and does not dereference pointers.
+    let expected_uid = unsafe { libc::geteuid() };
+    if credentials.uid() != expected_uid {
+        bail!(
+            "IPC server UID mismatch: expected {}, got {}",
+            expected_uid,
+            credentials.uid()
+        );
+    }
+    Ok(())
+}
+
+#[cfg(windows)]
+fn verify_windows_ipc_server(
+    stream: &tokio::net::windows::named_pipe::NamedPipeClient,
+    expected_parent_pid: u32,
+) -> Result<()> {
+    use std::ffi::c_void;
+    use std::os::windows::io::AsRawHandle;
+
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn GetNamedPipeServerProcessId(pipe: *mut c_void, server_process_id: *mut u32) -> i32;
+    }
+
+    let mut server_pid = 0u32;
+    // SAFETY: the Tokio client owns a valid pipe handle for the duration of
+    // this call, and server_pid points to writable u32 storage.
+    let succeeded =
+        unsafe { GetNamedPipeServerProcessId(stream.as_raw_handle().cast(), &mut server_pid) };
+    if succeeded == 0 {
+        return Err(std::io::Error::last_os_error())
+            .context("Failed to read named-pipe server PID");
+    }
+    if server_pid != expected_parent_pid {
+        bail!(
+            "IPC named-pipe server PID mismatch: expected parent {}, got {}",
+            expected_parent_pid,
+            server_pid
+        );
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -729,6 +818,7 @@ mod tests {
             id,
             response: Some(ipc_response::Response::Authenticate(AuthenticateResponse {
                 success: true,
+                protocol_revision: IPC_PROTOCOL_REVISION,
             })),
         }
     }
@@ -775,7 +865,9 @@ mod tests {
 
         let request = IpcRequest {
             id: 42,
-            request: Some(ipc_request::Request::ListKeys(ListKeysRequest { caller: None })),
+            request: Some(ipc_request::Request::ListKeys(ListKeysRequest {
+                caller: None,
+            })),
         };
 
         client_side.write_message(&request).await.unwrap();
@@ -811,11 +903,15 @@ mod tests {
         // Send two requests.
         let req1 = IpcRequest {
             id: 1,
-            request: Some(ipc_request::Request::ListKeys(ListKeysRequest { caller: None })),
+            request: Some(ipc_request::Request::ListKeys(ListKeysRequest {
+                caller: None,
+            })),
         };
         let req2 = IpcRequest {
             id: 2,
-            request: Some(ipc_request::Request::ListKeys(ListKeysRequest { caller: None })),
+            request: Some(ipc_request::Request::ListKeys(ListKeysRequest {
+                caller: None,
+            })),
         };
 
         client_side.write_message(&req1).await.unwrap();
@@ -916,6 +1012,7 @@ mod tests {
             app_pid: 321,
             app_name: "Terminal".to_string(),
             app_bundle_path: "/System/Applications/Utilities/Terminal.app".to_string(),
+            authorization: None,
         };
         let expected_pid = caller.pid;
         let expected_app_name = caller.app_name.clone();
@@ -923,7 +1020,10 @@ mod tests {
         let server_handle = tokio::spawn(async move {
             let req = server.read_request().await.unwrap();
             if let Some(ipc_request::Request::ListKeys(list_req)) = &req.request {
-                let caller = list_req.caller.as_ref().expect("caller identity should be set");
+                let caller = list_req
+                    .caller
+                    .as_ref()
+                    .expect("caller identity should be set");
                 assert_eq!(caller.pid, expected_pid);
                 assert_eq!(caller.app_name, expected_app_name);
             } else {
@@ -962,6 +1062,7 @@ mod tests {
             app_pid: 321,
             app_name: "Terminal".to_string(),
             app_bundle_path: "/System/Applications/Utilities/Terminal.app".to_string(),
+            authorization: None,
         };
 
         let server_handle = tokio::spawn(async move {
@@ -1088,6 +1189,7 @@ mod tests {
                 id: req.id,
                 response: Some(ipc_response::Response::Authenticate(AuthenticateResponse {
                     success: false,
+                    protocol_revision: IPC_PROTOCOL_REVISION,
                 })),
             };
             server.write_response(&response).await.unwrap();
@@ -1104,6 +1206,39 @@ mod tests {
         );
 
         let _ = server_handle.await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn client_authenticate_rejects_mismatched_protocol_revision() {
+        let (client_stream, server_stream) = tokio::io::duplex(64 * 1024);
+        let mut server = IpcStream::new(server_stream);
+        let client = IpcClient::from_stream(client_stream);
+
+        let server_handle = tokio::spawn(async move {
+            let request = server.read_request().await.expect("authenticate request");
+            let Some(ipc_request::Request::Authenticate(authenticate)) = request.request else {
+                panic!("expected authenticate request");
+            };
+            assert_eq!(authenticate.protocol_revision, IPC_PROTOCOL_REVISION);
+            server
+                .write_response(&IpcResponse {
+                    id: request.id,
+                    response: Some(ipc_response::Response::Authenticate(AuthenticateResponse {
+                        success: true,
+                        protocol_revision: IPC_PROTOCOL_REVISION + 1,
+                    })),
+                })
+                .await
+                .expect("authenticate response");
+        });
+
+        let error = client
+            .authenticate(&[0u8; 32])
+            .await
+            .expect_err("revision mismatch")
+            .to_string();
+        assert!(error.contains("protocol revision mismatch"), "{error}");
+        server_handle.await.expect("server task");
     }
 
     #[tokio::test]
@@ -1344,8 +1479,12 @@ mod tests {
 
     #[tokio::test]
     async fn connect_rejects_invalid_token_length() {
-        let err = match IpcClient::connect(Path::new("/tmp/should-not-connect.sock"), &[0xAA; 31])
-            .await
+        let err = match IpcClient::connect(
+            Path::new("/tmp/should-not-connect.sock"),
+            &[0xAA; 31],
+            std::process::id(),
+        )
+        .await
         {
             Ok(_) => panic!("Expected invalid auth token length error"),
             Err(err) => err.to_string(),
@@ -1355,6 +1494,30 @@ mod tests {
             "Expected explicit length failure, got: {}",
             err
         );
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn unix_ipc_server_verification_accepts_current_process() {
+        let (stream, _peer) = std::os::unix::net::UnixStream::pair().unwrap();
+        stream.set_nonblocking(true).unwrap();
+        let stream = tokio::net::UnixStream::from_std(stream).unwrap();
+
+        verify_unix_ipc_server(&stream, std::process::id()).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn unix_ipc_server_verification_rejects_wrong_parent_pid() {
+        let (stream, _peer) = std::os::unix::net::UnixStream::pair().unwrap();
+        stream.set_nonblocking(true).unwrap();
+        let stream = tokio::net::UnixStream::from_std(stream).unwrap();
+        let wrong_pid = std::process::id().wrapping_add(1).max(1);
+
+        let error = verify_unix_ipc_server(&stream, wrong_pid)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("PID mismatch"), "{error}");
     }
 
     #[test]

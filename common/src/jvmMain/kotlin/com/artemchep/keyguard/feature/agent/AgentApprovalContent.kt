@@ -39,7 +39,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.service.agent.AgentCallerIdentity
 import com.artemchep.keyguard.common.service.agent.AgentRequest
+import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_APP_BUNDLE_PATH_LENGTH
+import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_EXECUTABLE_PATH_LENGTH
+import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_NAME_LENGTH
 import com.artemchep.keyguard.common.service.agent.completeWithLog
+import com.artemchep.keyguard.common.service.agent.isUnsafeAgentCallerDisplayCodePoint
 import com.artemchep.keyguard.feature.dialog.DialogContent
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
@@ -99,7 +103,16 @@ fun AgentApprovalContent(
         focusRequester.requestFocus()
     }
 
-    val callerInfo = buildAgentApprovalCallerInfo(request.caller)
+    val applicationPresentation = rememberAgentApplicationPresentation(request.caller)
+    val callerInfo = remember(
+        request.caller,
+        applicationPresentation.displayName,
+    ) {
+        buildAgentApprovalCallerInfo(
+            request.caller,
+            resolvedAppName = applicationPresentation.displayName,
+        )
+    }
     DialogContent(
         icon = {
             Box(
@@ -268,18 +281,38 @@ internal data class AgentApprovalCallerInfo(
 
 internal fun buildAgentApprovalCallerInfo(
     caller: AgentCallerIdentity?,
+    resolvedAppName: String? = null,
 ): AgentApprovalCallerInfo? {
     caller ?: return null
 
-    val appName = caller.appName.takeIf { it.isNotBlank() }
-    val processName = caller.processName.takeIf { it.isNotBlank() }
-    val primaryLabel = appName ?: processName
-    val secondaryLabel = buildList {
-        if (appName != null && processName != null && appName != processName) {
+    val resolvedName = resolvedAppName
+        .sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH)
+    val appName = caller.appName
+        .sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH)
+    val appBundlePath = caller.appBundlePath
+        .sanitizedAgentDisplayValue(MAX_AGENT_CALLER_APP_BUNDLE_PATH_LENGTH)
+    val processName = caller.processName
+        .sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH)
+    // Native collectors include an authenticated signing identifier or a
+    // verified instance prefix in appName. Keep that security label primary;
+    // the OS-resolved friendly name and icon are presentation-only hints.
+    val primaryLabel = appName ?: resolvedName ?: appBundlePath ?: processName
+    val secondaryLabel = buildSet {
+        resolvedName
+            ?.takeIf { it != primaryLabel }
+            ?.let(::add)
+        // Always pair friendly labels with the package or bundle location when
+        // one is available.
+        appBundlePath
+            ?.takeIf { it != primaryLabel }
+            ?.let(::add)
+        if (processName != null && primaryLabel != processName && appBundlePath != processName) {
             add(processName)
         }
         caller.pid.takeIf { it != 0 }?.let { add("pid $it") }
-        caller.executablePath.takeIf { it.isNotBlank() }?.let { add(it) }
+        caller.executablePath
+            .sanitizedAgentDisplayValue(MAX_AGENT_CALLER_EXECUTABLE_PATH_LENGTH)
+            ?.let(::add)
     }.takeIf { it.isNotEmpty() }?.joinToString(separator = " • ")
 
     return AgentApprovalCallerInfo(
@@ -287,3 +320,37 @@ internal fun buildAgentApprovalCallerInfo(
         secondaryLabel = secondaryLabel,
     )
 }
+
+/** Escapes control/directionality characters and bounds security-prompt text. */
+private fun String?.sanitizedAgentDisplayValue(
+    maxLength: Int,
+): String? {
+    val value = this
+        ?.trim()
+        ?.takeIf(String::isNotEmpty)
+        ?: return null
+    val output = StringBuilder(minOf(value.length, maxLength))
+    var truncated = false
+    for (character in value) {
+        val encoded = if (character.requiresSecurityPromptEscape()) {
+            "\\u${character.code.toString(16).padStart(4, '0')}"
+        } else {
+            character.toString()
+        }
+        if (output.length + encoded.length > maxLength) {
+            truncated = true
+            break
+        }
+        output.append(encoded)
+    }
+    if (truncated && output.length >= maxLength) {
+        output.setLength(maxLength - 1)
+    }
+    if (truncated) {
+        output.append('…')
+    }
+    return output.toString().takeIf(String::isNotEmpty)
+}
+
+private fun Char.requiresSecurityPromptEscape(): Boolean =
+    isUnsafeAgentCallerDisplayCodePoint(code)

@@ -78,7 +78,10 @@ internal class GpgAgentRpcHandler(
         request: GpgAgentMessages.AuthenticateRequest,
     ): GpgAgentMessages.IpcResponse = GpgAgentMessages.IpcResponse(
         id = requestId,
-        authenticate = GpgAgentMessages.AuthenticateResponse(success = authenticate(request)),
+        authenticate = GpgAgentMessages.AuthenticateResponse(
+            success = authenticate(request),
+            protocolRevision = GpgAgentMessages.PROTOCOL_REVISION,
+        ),
     )
 
     suspend fun handleListKeys(

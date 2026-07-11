@@ -35,30 +35,39 @@ fun <T> KeyValueStore.getObject(
     defaultValue: T,
     serialize: (T) -> String,
     deserialize: (String) -> T,
-): VirtualKeyValuePreference<T, String> {
-    val stringPref = getString(key, serialize(defaultValue))
-    return object : VirtualKeyValuePreference<T, String> {
+): VirtualKeyValuePreference<T, String> = getString(
+    key = key,
+    defaultValue = serialize(defaultValue),
+).mapToObjectPreference(
+    serialize = serialize,
+    deserialize = deserialize,
+)
+
+fun <T> KeyValuePreference<String>.mapToObjectPreference(
+    serialize: (T) -> String,
+    deserialize: (String) -> T,
+): VirtualKeyValuePreference<T, String> =
+    object : VirtualKeyValuePreference<T, String> {
         override val key: String
-            get() = key
+            get() = this@mapToObjectPreference.key
 
         override val field: KeyValuePreference<String>
-            get() = stringPref
+            get() = this@mapToObjectPreference
 
         override fun setAndCommit(value: T): IO<Unit> = ioEffect(Dispatchers.Default) {
             serialize(value)
         }
-            .flatMap(stringPref::setAndCommit)
+            .flatMap(field::setAndCommit)
 
-        override fun deleteAndCommit(): IO<Unit> = stringPref.deleteAndCommit()
+        override fun deleteAndCommit(): IO<Unit> = field.deleteAndCommit()
 
-        override suspend fun collect(collector: FlowCollector<T>) = stringPref
+        override suspend fun collect(collector: FlowCollector<T>) = field
             .map {
                 deserialize(it)
             }
             .flowOn(Dispatchers.Default)
             .collect(collector)
     }
-}
 
 inline fun <reified T> KeyValueStore.getSerializable(
     json: Json,

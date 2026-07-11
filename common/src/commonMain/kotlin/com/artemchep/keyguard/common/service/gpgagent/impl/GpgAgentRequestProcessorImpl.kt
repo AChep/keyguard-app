@@ -8,7 +8,11 @@ import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheIdentity
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentApprovalWindowMemory
+import com.artemchep.keyguard.common.service.agent.flowBackedAgentApprovalCacheConfigProvider
+import com.artemchep.keyguard.common.service.agent.toApprovalCacheIdentity
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentCrypto
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyNotFoundException
@@ -29,6 +33,8 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicyNoOp
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -48,6 +54,8 @@ class GpgAgentRequestProcessorImpl(
     private val crypto: GpgAgentCrypto,
     private val getVaultSession: GetVaultSession,
     getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow,
+    getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy =
+        GetGpgAgentApprovalCachePolicyNoOp,
     private val getGpgAgentFilter: GetGpgAgentFilter,
     scope: CoroutineScope,
     private val gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository = GpgAgentPublicKeyRepositoryEmpty,
@@ -70,11 +78,19 @@ class GpgAgentRequestProcessorImpl(
     private val gpgAgentFilterState = getGpgAgentFilter()
         .stateIn(scope, SharingStarted.Eagerly, GpgAgentFilter())
 
-    private val approvalWindowMemory = AgentApprovalWindowMemory<GpgApprovalCacheKey>(
-        approvalWindow = getGpgAgentApprovalWindow(),
-        getVaultSession = getVaultSession,
-        scope = scope,
-    )
+    private val approvalCacheConfig = getGpgAgentApprovalCachePolicy.approvalCacheConfig
+        ?: flowBackedAgentApprovalCacheConfigProvider(
+            approvalWindow = getGpgAgentApprovalWindow(),
+            cachePolicy = getGpgAgentApprovalCachePolicy(),
+            scope = scope,
+        )
+
+    private val approvalWindowMemory =
+        AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>(
+            approvalCacheConfig = approvalCacheConfig,
+            getVaultSession = getVaultSession,
+            scope = scope,
+        )
 
     override suspend fun listKeys(
         caller: GpgAgentMessages.CallerIdentity?,
@@ -168,8 +184,13 @@ class GpgAgentRequestProcessorImpl(
             approvalWindowMemory.clearSession()
         }
 
-        val approvalRemembered = vault?.approvalWindowSession
-            ?.isRemembered(operation, normalizedKeygrip, caller) == true
+        var approvalAccess = vault?.approvalWindowSession
+            ?.access(
+                operation = operation,
+                keygrip = normalizedKeygrip,
+                caller = caller,
+            )
+        val approvalRemembered = approvalAccess?.isRemembered == true
         var approvalGranted = false
 
         if (wasVaultLocked) {
@@ -191,6 +212,11 @@ class GpgAgentRequestProcessorImpl(
             if (vault == null) {
                 return GpgAgentOperationResult.VaultLocked
             }
+            approvalAccess = vault.approvalWindowSession.access(
+                operation = operation,
+                keygrip = normalizedKeygrip,
+                caller = caller,
+            )
         }
 
         val match = vault.findKey(normalizedKeygrip)
@@ -244,7 +270,7 @@ class GpgAgentRequestProcessorImpl(
         return try {
             val response = crypto(match)
             if (approvalGranted) {
-                vault.approvalWindowSession.remember(operation, normalizedKeygrip, caller)
+                approvalAccess?.remember()
             }
             recordGpgUsageForOperation(GpgUsageHistoryResponseType.SUCCESS)
             GpgAgentOperationResult.Success(response = response)
@@ -422,7 +448,7 @@ class GpgAgentRequestProcessorImpl(
     private data class GpgVaultContext(
         val gpgSecrets: List<GpgAgentSecret>,
         val addGpgUsageHistory: AddGpgUsageHistory,
-        val approvalWindowSession: AgentApprovalWindowMemory<GpgApprovalCacheKey>.Session,
+        val approvalWindowSession: AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Session,
     )
 
     private data class GpgKeyMatch(
@@ -437,37 +463,33 @@ class GpgAgentRequestProcessorImpl(
     }
 }
 
-private suspend fun AgentApprovalWindowMemory<GpgApprovalCacheKey>.Session.isRemembered(
+private suspend fun AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Session.access(
     operation: GpgAgentOperation,
     keygrip: String,
     caller: GpgAgentMessages.CallerIdentity?,
-): Boolean = isRemembered(gpgApprovalCacheKey(operation, keygrip, caller))
-
-private suspend fun AgentApprovalWindowMemory<GpgApprovalCacheKey>.Session.remember(
-    operation: GpgAgentOperation,
-    keygrip: String,
-    caller: GpgAgentMessages.CallerIdentity?,
-) {
-    remember(gpgApprovalCacheKey(operation, keygrip, caller))
+): AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Access = access { policy ->
+    gpgApprovalCacheKey(operation, keygrip, caller, policy)
 }
 
-private fun gpgApprovalCacheKey(
+internal fun gpgApprovalCacheKey(
     operation: GpgAgentOperation,
     keygrip: String,
     caller: GpgAgentMessages.CallerIdentity?,
-) = GpgApprovalCacheKey(
-    operation = operation,
-    // The keygrip is already normalized by the caller (runKeyOperation); normalizing
-    // once there keeps a single source of truth for the cache-key identity.
-    keygrip = keygrip,
-    callerToken = caller.toApprovalCacheToken(),
-)
+    policy: AgentApprovalCachePolicy = AgentApprovalCachePolicy.Default,
+): GpgApprovalCacheKey? {
+    val callerIdentity = caller.toApprovalCacheIdentity(policy)
+        ?: return null
+    return GpgApprovalCacheKey(
+        operation = operation,
+        // The keygrip is already normalized by the caller (runKeyOperation); normalizing
+        // once there keeps a single source of truth for the cache-key identity.
+        keygrip = keygrip,
+        callerIdentity = callerIdentity,
+    )
+}
 
-private fun GpgAgentMessages.CallerIdentity?.toApprovalCacheToken(): String =
-    "generic-caller=${this?.appName.orEmpty()}"
-
-private data class GpgApprovalCacheKey(
+internal data class GpgApprovalCacheKey(
     val operation: GpgAgentOperation,
     val keygrip: String,
-    val callerToken: String,
+    val callerIdentity: AgentApprovalCacheIdentity,
 )

@@ -82,7 +82,7 @@ fn ensure_socket_parent_dir(socket_path: &Path) -> Result<()> {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
         let uid = unsafe { libc::getuid() };
-        return ensure_socket_parent_dir_for_uid(socket_path, uid);
+        ensure_socket_parent_dir_for_uid(socket_path, uid)
     }
 
     #[cfg(not(any(target_os = "linux", target_os = "macos")))]
@@ -103,9 +103,9 @@ fn ensure_socket_parent_dir(socket_path: &Path) -> Result<()> {
 fn ensure_socket_parent_dir_for_uid(socket_path: &Path, uid: libc::uid_t) -> Result<()> {
     if is_linux_fallback_socket_path_for_uid(socket_path, uid) {
         let fallback_socket_path = crate::config::linux_fallback_ssh_agent_socket_path(uid);
-        let fallback_parent = fallback_socket_path.parent().context(
-            "Linux fallback SSH agent socket path does not have a parent directory",
-        )?;
+        let fallback_parent = fallback_socket_path
+            .parent()
+            .context("Linux fallback SSH agent socket path does not have a parent directory")?;
         ensure_safe_linux_fallback_parent_dir(fallback_parent, uid)?;
         return Ok(());
     }
@@ -329,7 +329,10 @@ mod tests {
         let fallback_socket_path = crate::config::linux_fallback_ssh_agent_socket_path(uid);
         let non_fallback_socket_path = PathBuf::from(format!("/tmp/keyguard-{uid}/other.sock"));
 
-        assert!(is_linux_fallback_socket_path_for_uid(&fallback_socket_path, uid));
+        assert!(is_linux_fallback_socket_path_for_uid(
+            &fallback_socket_path,
+            uid
+        ));
         assert!(!is_linux_fallback_socket_path_for_uid(
             &non_fallback_socket_path,
             uid

@@ -43,6 +43,7 @@ fun rememberSettingsGpgItems(
                 key = "gpg_agent.settings",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.GPG_AGENT_APPROVAL_WINDOW),
+                    SettingPaneItem.Item(Setting.GPG_AGENT_APPROVAL_CACHE_POLICY),
                     SettingPaneItem.Item(Setting.GPG_AGENT_DISPLAY_KEY_NAMES),
                     SettingPaneItem.Item(Setting.GPG_AGENT_FILTERS),
                 ),

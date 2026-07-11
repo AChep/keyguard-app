@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -20,6 +21,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
@@ -38,6 +40,7 @@ class GpgAgentManager(
     private val dataDirectory: DataDirectory,
     private val getVaultSession: GetVaultSession,
     private val getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow,
+    private val getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy,
     private val getGpgAgentFilter: GetGpgAgentFilter,
     private val gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository,
 ) : AgentManager(
@@ -122,15 +125,18 @@ class GpgAgentManager(
         authToken: ByteArray,
         sessionId: String,
         scope: CoroutineScope,
+        expectedPeerProcess: Deferred<Process>,
     ): IpcServerRunner {
         val ipcServer = GpgAgentIpcServer(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
             getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
+            getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
             getGpgAgentFilter = getGpgAgentFilter,
             gpgAgentPublicKeyRepository = gpgAgentPublicKeyRepository,
             authToken = authToken,
             scope = scope,
+            expectedPeerProcess = expectedPeerProcess,
             sessionId = sessionId,
             onApprovalRequest = { operation, caller, keyName, keyFingerprint, keygrip ->
                 val deferred = CompletableDeferred<Boolean>()

@@ -65,6 +65,9 @@ class AndroidSshAgentPlugin : Plugin<Project> {
                     rootProject.fileTree("commonSshAgent") {
                         exclude("target/**")
                     },
+                    rootProject.fileTree("commonAgent") {
+                        exclude("target/**")
+                    },
                 )
                 this.cargoTargetDir.set(cargoTargetDir)
                 rustTarget.set(targetInfo.rustTarget)

@@ -16,7 +16,7 @@ class ProstDecodeTest {
     private val protoBuf = ProtoBuf
 
     @Test
-    fun `decode prost-encoded AuthenticateRequest bytes`() {
+    fun `stale prost authentication without revision decodes to rejected sentinel`() {
         val hex = "080112220a20fba9b3fd1613d5eaa05cfc2bb7e0988e0bb06e5e88dbd85db75322912de256f3"
         val bytes = hex.hexToByteArray()
         val decoded = protoBuf.decodeFromByteArray<SshAgentMessages.IpcRequest>(bytes)
@@ -25,6 +25,7 @@ class ProstDecodeTest {
         assertNull(decoded.signData)
         val auth = decoded.authenticate!!
         assertEquals(32, auth.token.size)
+        assertEquals(0, auth.protocolRevision)
     }
 
     @Test
@@ -91,10 +92,14 @@ class ProstDecodeTest {
         )
         val original = SshAgentMessages.IpcRequest(
             id = 1L,
-            authenticate = SshAgentMessages.AuthenticateRequest(token = token),
+            authenticate = SshAgentMessages.AuthenticateRequest(
+                token = token,
+                protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            ),
         )
         val kotlinxHex = protoBuf.encodeToByteArray(original).toHex()
-        val prostHex = "080112220a20fba9b3fd1613d5eaa05cfc2bb7e0988e0bb06e5e88dbd85db75322912de256f3"
+        val prostHex =
+            "080112240a20fba9b3fd1613d5eaa05cfc2bb7e0988e0bb06e5e88dbd85db75322912de256f31001"
         println("kotlinx hex: $kotlinxHex")
         println("prost hex:   $prostHex")
         println("match: ${kotlinxHex == prostHex}")

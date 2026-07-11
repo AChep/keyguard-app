@@ -1,7 +1,13 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheIdentity
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentApprovalWindowMemory
+import com.artemchep.keyguard.common.service.agent.flowBackedAgentApprovalCacheConfigProvider
+import com.artemchep.keyguard.common.service.agent.toApprovalCacheIdentity
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicyNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.util.toHex
@@ -18,12 +24,22 @@ class SshAgentApprovalWindowMemory(
     getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
     getVaultSession: GetVaultSession,
     scope: CoroutineScope,
+    getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy =
+        GetSshAgentApprovalCachePolicyNoOp,
 ) {
-    private val memory = AgentApprovalWindowMemory<SshApprovalCacheKey>(
-        approvalWindow = getSshAgentApprovalWindow(),
-        getVaultSession = getVaultSession,
-        scope = scope,
-    )
+    private val approvalCacheConfig = getSshAgentApprovalCachePolicy.approvalCacheConfig
+        ?: flowBackedAgentApprovalCacheConfigProvider(
+            approvalWindow = getSshAgentApprovalWindow(),
+            cachePolicy = getSshAgentApprovalCachePolicy(),
+            scope = scope,
+        )
+
+    private val memory =
+        AgentApprovalWindowMemory<SshApprovalCacheKey, AgentApprovalCachePolicy>(
+            approvalCacheConfig = approvalCacheConfig,
+            getVaultSession = getVaultSession,
+            scope = scope,
+        )
 
     suspend fun clearSession() {
         memory.clearSession()
@@ -33,41 +49,46 @@ class SshAgentApprovalWindowMemory(
         session: MasterSession.Key,
     ): Session = Session(memory.getOrGenerateSession(session))
 
-    private fun SshAgentMessages.SignDataRequest.toApprovalCacheKey(): SshApprovalCacheKey {
+    private fun SshAgentMessages.SignDataRequest.toApprovalCacheKey(
+        policy: AgentApprovalCachePolicy,
+    ): SshApprovalCacheKey? {
+        val callerIdentity = caller.toApprovalCacheIdentity(policy)
+            ?: return null
         val publicKeyToken = decodeSshPublicKeyBlob(publicKey)
             ?.toHex()
             ?: publicKey.trim()
         return SshApprovalCacheKey(
             publicKeyToken = publicKeyToken,
-            callerToken = caller.toApprovalCacheToken(),
+            callerIdentity = callerIdentity,
         )
     }
 
-    private fun SshAgentMessages.CallerIdentity?.toApprovalCacheToken(): String {
-        // At this moment we are not precise at all with the caller
-        // identity, so for now just use a generic name of the app.
-        return "generic-caller=${this?.appName.orEmpty()}"
-    }
-
     inner class Session internal constructor(
-        private val session: AgentApprovalWindowMemory<SshApprovalCacheKey>.Session,
+        private val session: AgentApprovalWindowMemory<SshApprovalCacheKey, AgentApprovalCachePolicy>.Session,
     ) {
         val generation: Long
             get() = session.generation
 
-        suspend fun isRemembered(
+        suspend fun access(
             request: SshAgentMessages.SignDataRequest,
-        ): Boolean = session.isRemembered(request.toApprovalCacheKey())
+        ): Access = Access(
+            session.access { policy -> request.toApprovalCacheKey(policy) },
+        )
+    }
 
-        suspend fun remember(
-            request: SshAgentMessages.SignDataRequest,
-        ) {
-            session.remember(request.toApprovalCacheKey())
+    inner class Access internal constructor(
+        private val access: AgentApprovalWindowMemory<SshApprovalCacheKey, AgentApprovalCachePolicy>.Access,
+    ) {
+        val isRemembered: Boolean
+            get() = access.isRemembered
+
+        suspend fun remember() {
+            access.remember()
         }
     }
 
     internal data class SshApprovalCacheKey(
         val publicKeyToken: String,
-        val callerToken: String,
+        val callerIdentity: AgentApprovalCacheIdentity,
     )
 }

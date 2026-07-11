@@ -12,7 +12,6 @@ import java.io.EOFException
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.channels.ClosedChannelException
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 
 private const val MAX_PACKET_SIZE = 16 * 1024 * 1024
@@ -39,31 +38,47 @@ private const val INVALID_HANDLE_VALUE = -1L
 private const val TOKEN_QUERY = 0x0008
 private const val TOKEN_USER_INFORMATION_CLASS = 1
 private const val SDDL_REVISION_1 = 1
+private const val PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
 
 internal class WindowsNamedPipeServer(
     private val pipeName: String,
 ) : AutoCloseable {
-    private val closed = AtomicBoolean(false)
-    private val firstInstance = AtomicBoolean(true)
-    private val handles = ConcurrentHashMap.newKeySet<Pointer>()
+    private val lifecycleLock = Any()
+    private var closed = false
+    private var firstInstance = true
+    private var preparedHandle: WindowsNamedPipeHandle? = null
+    private val handles = mutableSetOf<WindowsNamedPipeHandle>()
 
     // Restrict the pipe to the current user via an explicit DACL, mirroring
     // the owner-only (0600) permissions used for the Unix domain socket.
     // Without this the pipe would be created with the default security
     // descriptor, which grants read access to Everyone.
-    private val securityDescriptor: Pointer = buildOwnerOnlySecurityDescriptor()
+    private var securityDescriptor: Pointer? = buildOwnerOnlySecurityDescriptor()
     private val securityAttributes: WindowsSecurityAttributes =
-        WindowsSecurityAttributes(securityDescriptor)
+        WindowsSecurityAttributes(requireNotNull(securityDescriptor))
+
+    /**
+     * Creates and registers the first owner-only pipe instance before callers
+     * are told that the server is ready. A named pipe does not exist in the
+     * Windows namespace until CreateNamedPipeW succeeds, so deferring this to
+     * [accept] leaves a startup window in which the one-shot helper open fails.
+     */
+    fun prepare() {
+        synchronized(lifecycleLock) {
+            if (closed) {
+                throw ClosedChannelException()
+            }
+            if (preparedHandle == null) {
+                preparedHandle = createPipeInstanceLocked()
+            }
+        }
+    }
 
     fun accept(): WindowsNamedPipeConnection {
-        if (closed.get()) {
-            throw ClosedChannelException()
-        }
-
-        val handle = createPipeInstance()
+        val handle = takePreparedOrCreatePipeInstance()
         var connected = false
         try {
-            connected = Kernel32.INSTANCE.ConnectNamedPipe(handle, null)
+            connected = Kernel32.INSTANCE.ConnectNamedPipe(handle.value, null)
             if (!connected) {
                 val error = Native.getLastError()
                 connected = error == ERROR_PIPE_CONNECTED
@@ -75,15 +90,17 @@ internal class WindowsNamedPipeServer(
             return WindowsNamedPipeConnection(
                 handle = handle,
                 onClose = {
-                    handles.remove(handle)
+                    synchronized(lifecycleLock) {
+                        handles.remove(handle)
+                    }
                 },
             )
         } catch (e: Throwable) {
-            if (!connected) {
-                closeHandle(handle)
+            handle.close()
+            synchronized(lifecycleLock) {
                 handles.remove(handle)
             }
-            if (closed.get()) {
+            if (isClosed()) {
                 throw ClosedChannelException()
             }
             throw e
@@ -91,27 +108,53 @@ internal class WindowsNamedPipeServer(
     }
 
     override fun close() {
-        if (!closed.compareAndSet(false, true)) {
-            return
+        val resources = synchronized(lifecycleLock) {
+            if (closed) {
+                return
+            }
+            closed = true
+            val activeHandles = handles.toList()
+            handles.clear()
+            preparedHandle = null
+            val descriptor = securityDescriptor
+            securityDescriptor = null
+            activeHandles to descriptor
         }
 
-        handles.forEach { handle ->
-            closeHandle(handle)
+        resources.first.forEach { handle ->
+            handle.close()
         }
-        handles.clear()
 
         // Release the security descriptor allocated by
         // ConvertStringSecurityDescriptorToSecurityDescriptorW.
-        Kernel32.INSTANCE.LocalFree(securityDescriptor)
+        resources.second?.let(Kernel32.INSTANCE::LocalFree)
     }
 
-    private fun createPipeInstance(): Pointer {
-        val firstPipeFlag = if (firstInstance.getAndSet(false)) {
+    private fun takePreparedOrCreatePipeInstance(): WindowsNamedPipeHandle = synchronized(lifecycleLock) {
+        if (closed) {
+            throw ClosedChannelException()
+        }
+
+        preparedHandle?.also {
+            preparedHandle = null
+            return@synchronized it
+        }
+        createPipeInstanceLocked()
+    }
+
+    /** Must be called while [lifecycleLock] is held. */
+    private fun createPipeInstanceLocked(): WindowsNamedPipeHandle {
+        check(Thread.holdsLock(lifecycleLock))
+
+        // Creation and registration share the lifecycle lock with close(), so
+        // the security descriptor cannot be freed mid-call and every created
+        // handle is either registered before shutdown or never exposed.
+        val firstPipeFlag = if (firstInstance) {
             FILE_FLAG_FIRST_PIPE_INSTANCE
         } else {
             0
         }
-        val handle = Kernel32.INSTANCE.CreateNamedPipeW(
+        val rawHandle = Kernel32.INSTANCE.CreateNamedPipeW(
             WString(pipeName),
             PIPE_ACCESS_DUPLEX or firstPipeFlag,
             PIPE_TYPE_BYTE or PIPE_READMODE_BYTE or PIPE_WAIT or PIPE_REJECT_REMOTE_CLIENTS,
@@ -122,20 +165,91 @@ internal class WindowsNamedPipeServer(
             securityAttributes.pointer,
         )
 
-        if (Pointer.nativeValue(handle) == INVALID_HANDLE_VALUE) {
+        if (Pointer.nativeValue(rawHandle) == INVALID_HANDLE_VALUE) {
             throw pipeException("CreateNamedPipeW", Native.getLastError())
         }
 
+        firstInstance = false
+        val handle = WindowsNamedPipeHandle(rawHandle)
         handles.add(handle)
         return handle
+    }
+
+    private fun isClosed(): Boolean = synchronized(lifecycleLock) {
+        closed
+    }
+}
+
+/** Owns a raw pipe handle and guarantees that the native value is closed once. */
+internal class WindowsNamedPipeHandle(
+    val value: Pointer,
+) {
+    private val closed = AtomicBoolean(false)
+
+    fun isClosed(): Boolean = closed.get()
+
+    fun close() {
+        if (!closed.compareAndSet(false, true)) {
+            return
+        }
+        runCatching {
+            Kernel32.INSTANCE.DisconnectNamedPipe(value)
+        }
+        closeHandle(value)
     }
 }
 
 internal class WindowsNamedPipeConnection(
-    private val handle: Pointer,
+    private val handle: WindowsNamedPipeHandle,
     private val onClose: () -> Unit,
 ) : AutoCloseable {
     private val closed = AtomicBoolean(false)
+
+    /**
+     * Checks the client-reported PID/user against the spawned helper as
+     * defense in depth before the independent 32-byte IPC authentication.
+     *
+     * `GetNamedPipeClientProcessId` is spoofable through handle transfer and
+     * PID reuse, so this check must never establish caller authorization by
+     * itself. The per-launch random pipe name and stdin-delivered auth token
+     * remain the security boundary for private helper IPC.
+     */
+    fun verifyClient(expectedProcess: Process) {
+        ensureOpen()
+        check(expectedProcess.isAlive) {
+            "Expected agent process ${expectedProcess.pid()} is no longer alive"
+        }
+
+        val clientPid = IntByReference()
+        val pidAvailable = Kernel32.INSTANCE.GetNamedPipeClientProcessId(
+            handle.value,
+            clientPid,
+        )
+        if (!pidAvailable) {
+            throw pipeException(
+                "GetNamedPipeClientProcessId",
+                Native.getLastError(),
+            )
+        }
+
+        val actualPid = Integer.toUnsignedLong(clientPid.value)
+        val expectedPid = expectedProcess.pid()
+        check(actualPid == expectedPid) {
+            "IPC peer PID mismatch: expected $expectedPid, got $actualPid"
+        }
+
+        val expectedSid = currentUserSidString()
+        val actualSid = processUserSidString(clientPid.value)
+        check(actualSid == expectedSid) {
+            "IPC peer user SID mismatch"
+        }
+
+        // This catches ordinary exit/reuse races, but does not make the
+        // client-reported PID a non-spoofable identity.
+        check(expectedProcess.isAlive) {
+            "Expected agent process $expectedPid exited during peer verification"
+        }
+    }
 
     fun read(
         buffer: ByteArray,
@@ -155,7 +269,7 @@ internal class WindowsNamedPipeConnection(
         }
         val bytesRead = IntByReference()
         val ok = Kernel32.INSTANCE.ReadFile(
-            handle,
+            handle.value,
             target,
             length,
             bytesRead,
@@ -206,7 +320,7 @@ internal class WindowsNamedPipeConnection(
             }
             val written = IntByReference()
             val ok = Kernel32.INSTANCE.WriteFile(
-                handle,
+                handle.value,
                 chunk,
                 chunk.size,
                 written,
@@ -236,7 +350,7 @@ internal class WindowsNamedPipeConnection(
 
     fun flush() {
         ensureOpen()
-        val ok = Kernel32.INSTANCE.FlushFileBuffers(handle)
+        val ok = Kernel32.INSTANCE.FlushFileBuffers(handle.value)
         if (!ok) {
             val error = Native.getLastError()
             if (error == ERROR_BROKEN_PIPE ||
@@ -257,15 +371,12 @@ internal class WindowsNamedPipeConnection(
             return
         }
 
-        runCatching {
-            Kernel32.INSTANCE.DisconnectNamedPipe(handle)
-        }
-        closeHandle(handle)
+        handle.close()
         onClose()
     }
 
     private fun ensureOpen() {
-        if (closed.get()) {
+        if (closed.get() || handle.isClosed()) {
             throw ClosedChannelException()
         }
     }
@@ -358,14 +469,15 @@ private fun pipeException(
  * [Advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW], to be freed
  * with [Kernel32.LocalFree]).
  *
- * The SDDL `D:P(A;;GA;;;<sid>)` means: a protected DACL (`P`, no inherited
- * ACEs) with a single allow ACE granting `GENERIC_ALL` (`GA`) to the current
- * user's SID. Every other principal is denied by omission, which is the
- * Windows equivalent of the owner-only (0600) Unix domain socket permissions.
+ * The SDDL `O:<sid>D:P(A;;GA;;;<sid>)` assigns ownership to the current user
+ * and installs a protected DACL (`P`, no inherited ACEs) with one `GENERIC_ALL`
+ * (`GA`) allow ACE for that same SID. Explicit ownership matters for elevated
+ * administrator tokens, whose default owner may otherwise be the Administrators
+ * group even though the DACL names only the user.
  */
 private fun buildOwnerOnlySecurityDescriptor(): Pointer {
     val sid = currentUserSidString()
-    val sddl = "D:P(A;;GA;;;$sid)"
+    val sddl = "O:${sid}D:P(A;;GA;;;$sid)"
     val securityDescriptor = PointerByReference()
     val ok = Advapi32.INSTANCE.ConvertStringSecurityDescriptorToSecurityDescriptorW(
         WString(sddl),
@@ -385,10 +497,30 @@ private fun buildOwnerOnlySecurityDescriptor(): Pointer {
 /**
  * Returns the current process user's SID in string form (e.g. `S-1-5-21-...`).
  */
-private fun currentUserSidString(): String {
+private fun currentUserSidString(): String = processUserSidString(
+    Kernel32.INSTANCE.GetCurrentProcess(),
+)
+
+private fun processUserSidString(pid: Int): String {
+    val processHandle = Kernel32.INSTANCE.OpenProcess(
+        PROCESS_QUERY_LIMITED_INFORMATION,
+        false,
+        pid,
+    )
+    if (Pointer.nativeValue(processHandle) == 0L) {
+        throw pipeException("OpenProcess", Native.getLastError())
+    }
+    try {
+        return processUserSidString(processHandle)
+    } finally {
+        Kernel32.INSTANCE.CloseHandle(processHandle)
+    }
+}
+
+private fun processUserSidString(processHandle: Pointer): String {
     val token = PointerByReference()
     val opened = Advapi32.INSTANCE.OpenProcessToken(
-        Kernel32.INSTANCE.GetCurrentProcess(),
+        processHandle,
         TOKEN_QUERY,
         token,
     )
@@ -518,6 +650,17 @@ private interface Kernel32 : StdCallLibrary {
     fun CloseHandle(
         hObject: Pointer,
     ): Boolean
+
+    fun GetNamedPipeClientProcessId(
+        Pipe: Pointer,
+        ClientProcessId: IntByReference,
+    ): Boolean
+
+    fun OpenProcess(
+        ProcessAccess: Int,
+        InheritHandle: Boolean,
+        ProcessId: Int,
+    ): Pointer
 
     fun GetCurrentProcess(): Pointer
 

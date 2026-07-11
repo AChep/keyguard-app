@@ -1,14 +1,18 @@
 use anyhow::{Context, Result};
+use common_ssh_agent_rust::messages::IpcRequest;
 use std::ffi::OsString;
 use std::io::{self, ErrorKind};
 use std::path::Path;
-use tokio::net::{TcpListener, UnixListener, UnixStream};
+use std::sync::Arc;
+use tokio::io::{AsyncRead, AsyncWrite};
+use tokio::net::{TcpListener, TcpStream, UnixListener, UnixStream};
 use tokio::process::{Child, Command};
 use tokio::signal::unix::{signal, SignalKind};
-use tokio::task::JoinHandle;
+use tokio::sync::Semaphore;
+use tokio::task::{JoinHandle, JoinSet};
 use tokio::time::{sleep, timeout, timeout_at, Duration, Instant};
 
-use crate::broadcast::{AndroidBroadcastLauncher, BroadcastCommandSpec};
+use crate::broadcast::{AndroidBroadcastLauncher, BroadcastCommandSpec, BroadcastOutcome};
 use crate::caller_identity::{caller_from_unix_stream, CallerIdentity};
 use crate::packet_io::{read_ssh_agent_packet, write_ssh_agent_packet};
 use crate::process::{terminate_pid, AGENT_PID_ENV, AUTH_SOCK_ENV};
@@ -23,7 +27,16 @@ use crate::secure_transport::{
 };
 
 const ACCEPT_RETRY_DELAY: Duration = Duration::from_millis(100);
+// Must cover a full app cold start plus the receiver's 5s service-start
+// acknowledgement window (SshAgentReceiver.SERVICE_START_ACK_TIMEOUT_MS);
+// still bounded by the overall connect timeout.
+const BROADCAST_ACK_TIMEOUT: Duration = Duration::from_secs(30);
 const CHILD_TERMINATION_TIMEOUT: Duration = Duration::from_secs(1);
+// Keep aligned with SshAgentContract.MAX_CONCURRENT_SESSIONS on Android.
+const MAX_CONCURRENT_SESSIONS: usize = 8;
+const CLIENT_PACKET_TIMEOUT: Duration = Duration::from_secs(120);
+const APP_RESPONSE_TIMEOUT: Duration = Duration::from_secs(75);
+const RESPONSE_WRITE_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Clone)]
 pub(crate) struct Config {
@@ -146,11 +159,47 @@ async fn terminate_child(child: &mut Child) -> Result<()> {
 }
 
 async fn run_server(listener: UnixListener, config: Config) -> Result<()> {
+    let session_permits = Arc::new(Semaphore::new(MAX_CONCURRENT_SESSIONS));
+    let mut sessions = JoinSet::new();
+
     loop {
-        match listener.accept().await {
+        while let Some(result) = sessions.try_join_next() {
+            if let Err(err) = result {
+                log_debug(
+                    config.debug,
+                    &format!("SSH client session task failed: {err}"),
+                );
+            }
+        }
+
+        // Reserve capacity before accepting. Once all slots are occupied, new
+        // clients remain in the kernel's bounded listen backlog instead of
+        // creating unbounded tasks, TCP listeners, or Android broadcasts.
+        let permit = session_permits
+            .clone()
+            .acquire_owned()
+            .await
+            .context("SSH client session limiter closed")?;
+
+        let accepted = loop {
+            tokio::select! {
+                result = listener.accept() => break result,
+                result = sessions.join_next(), if !sessions.is_empty() => {
+                    if let Some(Err(err)) = result {
+                        log_debug(
+                            config.debug,
+                            &format!("SSH client session task failed: {err}"),
+                        );
+                    }
+                }
+            }
+        };
+
+        match accepted {
             Ok((client, _)) => {
                 let config = config.clone();
-                tokio::spawn(async move {
+                sessions.spawn(async move {
+                    let _permit = permit;
                     let debug = config.debug;
                     if let Err(err) = handle_client_connection(client, config).await {
                         log_debug(debug, &format!("SSH client session failed: {err:#}"));
@@ -158,6 +207,7 @@ async fn run_server(listener: UnixListener, config: Config) -> Result<()> {
                 });
             }
             Err(err) if is_retryable_accept_error(&err) => {
+                drop(permit);
                 log_debug(
                     config.debug,
                     &format!("Transient SSH client accept failure: {err}"),
@@ -165,6 +215,8 @@ async fn run_server(listener: UnixListener, config: Config) -> Result<()> {
                 sleep(ACCEPT_RETRY_DELAY).await;
             }
             Err(err) => {
+                drop(permit);
+                sessions.shutdown().await;
                 return Err(err).context("Failed to accept SSH client connection");
             }
         }
@@ -184,6 +236,30 @@ fn is_retryable_accept_error(err: &io::Error) -> bool {
 
 async fn handle_client_connection(mut client: UnixStream, config: Config) -> Result<()> {
     let caller = caller_from_unix_stream(&client);
+    log_debug(
+        config.debug,
+        &format!(
+            "SSH client connected: caller={}",
+            describe_caller(caller.as_ref())
+        ),
+    );
+
+    // Do not allocate a TCP listener or execute `am broadcast` for a bare UDS
+    // connect. Only a complete, bounded, forwardable SSH-agent request can
+    // activate the Android bridge. Unsupported packets are answered locally.
+    let Some(first_request) = read_next_forward_request(
+        &mut client,
+        1,
+        caller.as_ref(),
+        config.debug,
+        CLIENT_PACKET_TIMEOUT,
+        RESPONSE_WRITE_TIMEOUT,
+    )
+    .await?
+    else {
+        return Ok(());
+    };
+
     let app_listener = TcpListener::bind(("127.0.0.1", 0))
         .await
         .context("Failed to bind localhost proxy listener")?;
@@ -193,25 +269,52 @@ async fn handle_client_connection(mut client: UnixStream, config: Config) -> Res
         .port();
     log_debug(
         config.debug,
-        &format!(
-            "SSH client connected: caller={}, proxy_port={proxy_port}",
-            describe_caller(caller.as_ref())
-        ),
+        &format!("Opening Android bridge: proxy_port={proxy_port}"),
     );
 
     let deadline = Instant::now() + config.connect_timeout;
+    let broadcast_deadline = deadline.min(Instant::now() + BROADCAST_ACK_TIMEOUT);
     let session_id = random_array::<SESSION_ID_LEN>();
     let session_secret = random_array::<SESSION_SECRET_LEN>();
-    AndroidBroadcastLauncher::new(config.broadcast_command.clone())
+    let broadcast_outcome = match AndroidBroadcastLauncher::new(config.broadcast_command.clone())
         .launch(
             &config.android_component,
             proxy_port,
             &session_id,
             &session_secret,
-            deadline,
+            broadcast_deadline,
         )
         .await
-        .context("Failed to send Android SSH agent broadcast")?;
+    {
+        Ok(outcome) => outcome,
+        Err(err) => {
+            // Best effort only: the broadcast failure is the error worth
+            // surfacing, not a write error to an already-gone client.
+            let _ = write_client_failure(&mut client).await;
+            return Err(err).context("Failed to send Android SSH agent broadcast");
+        }
+    };
+    match broadcast_outcome {
+        BroadcastOutcome::Accepted | BroadcastOutcome::Deferred => {}
+        BroadcastOutcome::LegacyNoAcknowledgement => {
+            log_debug(
+                config.debug,
+                "Keyguard returned no broadcast acknowledgement; using legacy behavior",
+            );
+        }
+        BroadcastOutcome::Busy
+        | BroadcastOutcome::Disabled
+        | BroadcastOutcome::Invalid
+        | BroadcastOutcome::StartFailed
+        | BroadcastOutcome::InternalError => {
+            log_debug(
+                config.debug,
+                &format!("Keyguard rejected Android bridge activation: {broadcast_outcome:?}"),
+            );
+            write_client_failure(&mut client).await?;
+            return Ok(());
+        }
+    }
 
     let (app_stream, _) = timeout_at(deadline, app_listener.accept())
         .await
@@ -232,53 +335,130 @@ async fn handle_client_connection(mut client: UnixStream, config: Config) -> Res
     log_debug(config.debug, "SSH agent handshake established");
 
     let mut next_request_id = 1u64;
-    while let Some(packet) = read_ssh_agent_packet(&mut client, MAX_FRAME_PAYLOAD_SIZE).await? {
-        log_debug(
-            config.debug,
-            &format!("SSH client request: {}", describe_agent_packet(&packet)),
-        );
-        match translate_client_packet(&packet, next_request_id, caller.as_ref()) {
-            RequestTranslation::Failure => {
-                let response = build_failure_packet();
-                log_debug(
-                    config.debug,
-                    &format!("SSH client response: {}", describe_agent_packet(&response)),
-                );
-                write_ssh_agent_packet(&mut client, &response, MAX_FRAME_PAYLOAD_SIZE).await?;
-                continue;
-            }
-            RequestTranslation::Forward(request) => {
-                let request_id = request.id;
-                let request_bytes = encode_protobuf_request(&request);
-                transport
-                    .write_packet(&request_bytes)
-                    .await
-                    .context("Failed to send protobuf request to the Keyguard app")?;
-                let response_bytes = transport
-                    .read_packet()
-                    .await
-                    .context("Failed to read protobuf response from the Keyguard app")?
-                    .ok_or_else(|| anyhow::anyhow!("Keyguard app disconnected before replying"))?;
-                let response = decode_protobuf_response(&response_bytes)
-                    .context("Failed to decode protobuf response from the Keyguard app")?;
-                let ssh_response = translate_server_response(request_id, response)
-                    .context("Failed to translate protobuf response into SSH agent packet")?;
-                log_debug(
-                    config.debug,
-                    &format!(
-                        "SSH client response: {}",
-                        describe_agent_packet(&ssh_response)
-                    ),
-                );
-                write_ssh_agent_packet(&mut client, &ssh_response, MAX_FRAME_PAYLOAD_SIZE).await?;
-                next_request_id = next_request_id
-                    .checked_add(1)
-                    .context("SSH agent request id overflow")?;
-            }
-        }
+    forward_request(&mut client, &mut transport, first_request, config.debug).await?;
+    next_request_id = next_request_id
+        .checked_add(1)
+        .context("SSH agent request id overflow")?;
+
+    while let Some(request) = read_next_forward_request(
+        &mut client,
+        next_request_id,
+        caller.as_ref(),
+        config.debug,
+        CLIENT_PACKET_TIMEOUT,
+        RESPONSE_WRITE_TIMEOUT,
+    )
+    .await?
+    {
+        forward_request(&mut client, &mut transport, request, config.debug).await?;
+        next_request_id = next_request_id
+            .checked_add(1)
+            .context("SSH agent request id overflow")?;
     }
 
     Ok(())
+}
+
+async fn read_next_forward_request<S>(
+    client: &mut S,
+    request_id: u64,
+    caller: Option<&CallerIdentity>,
+    debug: bool,
+    packet_timeout: Duration,
+    write_timeout: Duration,
+) -> Result<Option<IpcRequest>>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
+    loop {
+        let packet = timeout(
+            packet_timeout,
+            read_ssh_agent_packet(client, MAX_FRAME_PAYLOAD_SIZE),
+        )
+        .await
+        .context("Timed out waiting for a complete SSH client packet")??;
+        let Some(packet) = packet else {
+            return Ok(None);
+        };
+
+        log_debug(
+            debug,
+            &format!("SSH client request: {}", describe_agent_packet(&packet)),
+        );
+        match translate_client_packet(&packet, request_id, caller) {
+            RequestTranslation::Forward(request) => return Ok(Some(request)),
+            RequestTranslation::Failure => {
+                let response = build_failure_packet();
+                log_debug(
+                    debug,
+                    &format!("SSH client response: {}", describe_agent_packet(&response)),
+                );
+                write_client_packet(client, &response, write_timeout).await?;
+            }
+        }
+    }
+}
+
+async fn forward_request<S>(
+    client: &mut S,
+    transport: &mut SecureTransport<TcpStream>,
+    request: IpcRequest,
+    debug: bool,
+) -> Result<()>
+where
+    S: AsyncWrite + Unpin,
+{
+    let request_id = request.id;
+    let request_bytes = encode_protobuf_request(&request);
+    timeout(
+        RESPONSE_WRITE_TIMEOUT,
+        transport.write_packet(&request_bytes),
+    )
+    .await
+    .context("Timed out sending protobuf request to the Keyguard app")?
+    .context("Failed to send protobuf request to the Keyguard app")?;
+    let response_bytes = timeout(APP_RESPONSE_TIMEOUT, transport.read_packet())
+        .await
+        .context("Timed out waiting for a protobuf response from the Keyguard app")?
+        .context("Failed to read protobuf response from the Keyguard app")?
+        .ok_or_else(|| anyhow::anyhow!("Keyguard app disconnected before replying"))?;
+    let response = decode_protobuf_response(&response_bytes)
+        .context("Failed to decode protobuf response from the Keyguard app")?;
+    let ssh_response = translate_server_response(request_id, response)
+        .context("Failed to translate protobuf response into SSH agent packet")?;
+    log_debug(
+        debug,
+        &format!(
+            "SSH client response: {}",
+            describe_agent_packet(&ssh_response)
+        ),
+    );
+    write_client_packet(client, &ssh_response, RESPONSE_WRITE_TIMEOUT).await
+}
+
+async fn write_client_packet<S>(
+    client: &mut S,
+    packet: &[u8],
+    write_timeout: Duration,
+) -> Result<()>
+where
+    S: AsyncWrite + Unpin,
+{
+    timeout(
+        write_timeout,
+        write_ssh_agent_packet(client, packet, MAX_FRAME_PAYLOAD_SIZE),
+    )
+    .await
+    .context("Timed out writing an SSH client response")??;
+    Ok(())
+}
+
+async fn write_client_failure<S>(client: &mut S) -> Result<()>
+where
+    S: AsyncWrite + Unpin,
+{
+    let response = build_failure_packet();
+    write_client_packet(client, &response, RESPONSE_WRITE_TIMEOUT).await
 }
 
 fn describe_agent_packet(packet: &[u8]) -> String {
@@ -564,6 +744,95 @@ mod tests {
         assert!(!is_retryable_accept_error(&io::Error::from(
             ErrorKind::PermissionDenied
         )));
+    }
+
+    #[tokio::test]
+    async fn bridge_activation_waits_for_a_forwardable_complete_packet() {
+        let (mut server, mut client) = tokio::io::duplex(128);
+        let activation = tokio::spawn(async move {
+            read_next_forward_request(
+                &mut server,
+                7,
+                None,
+                false,
+                Duration::from_secs(1),
+                Duration::from_secs(1),
+            )
+            .await
+        });
+
+        write_ssh_agent_packet(&mut client, &[0xff], MAX_FRAME_PAYLOAD_SIZE)
+            .await
+            .unwrap();
+        let failure = read_ssh_agent_packet(&mut client, MAX_FRAME_PAYLOAD_SIZE)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(failure, build_failure_packet());
+        assert!(!activation.is_finished());
+
+        write_ssh_agent_packet(
+            &mut client,
+            &[SSH_AGENT_REQUEST_IDENTITIES],
+            MAX_FRAME_PAYLOAD_SIZE,
+        )
+        .await
+        .unwrap();
+        let request = activation.await.unwrap().unwrap().unwrap();
+        assert_eq!(request.id, 7);
+    }
+
+    #[tokio::test]
+    async fn incomplete_client_packet_has_an_absolute_deadline() {
+        let (mut server, mut client) = tokio::io::duplex(64);
+        tokio::io::AsyncWriteExt::write_all(&mut client, &4u32.to_be_bytes())
+            .await
+            .unwrap();
+        tokio::io::AsyncWriteExt::write_all(&mut client, &[SSH_AGENT_REQUEST_IDENTITIES])
+            .await
+            .unwrap();
+
+        let err = read_next_forward_request(
+            &mut server,
+            1,
+            None,
+            false,
+            Duration::from_millis(25),
+            Duration::from_secs(1),
+        )
+        .await
+        .unwrap_err();
+
+        assert!(err
+            .to_string()
+            .contains("Timed out waiting for a complete SSH client packet"));
+    }
+
+    #[tokio::test]
+    async fn blocked_client_response_write_has_an_absolute_deadline() {
+        let (mut server, _client) = tokio::io::duplex(1);
+        let packet = vec![0x11; 64];
+
+        let err = write_client_packet(&mut server, &packet, Duration::from_millis(25))
+            .await
+            .unwrap_err();
+
+        assert!(err
+            .to_string()
+            .contains("Timed out writing an SSH client response"));
+    }
+
+    #[tokio::test]
+    async fn rejected_broadcast_returns_ssh_agent_failure() {
+        let (mut server, mut client) = tokio::io::duplex(64);
+
+        write_client_failure(&mut server).await.unwrap();
+        let packet = read_ssh_agent_packet(&mut client, MAX_FRAME_PAYLOAD_SIZE)
+            .await
+            .unwrap()
+            .unwrap();
+
+        assert_eq!(packet, build_failure_packet());
     }
 
     #[tokio::test]

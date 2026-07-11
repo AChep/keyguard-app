@@ -2,10 +2,11 @@
 
 use anyhow::{bail, Context, Error, Result};
 use common_gpg_agent_rust::messages::{
-    ipc_request, ipc_response, AuthenticateRequest, CallerIdentity, ErrorCode, ErrorResponse,
-    IpcRequest, IpcResponse, ListKeysRequest, ListKeysResponse, PkdecryptRequest,
-    PkdecryptResponse, SignHashRequest, SignHashResponse,
+    ipc_request, ipc_response, AuthenticateRequest, AuthenticateResponse, CallerIdentity,
+    ErrorCode, ErrorResponse, IpcRequest, IpcResponse, ListKeysRequest, ListKeysResponse,
+    PkdecryptRequest, PkdecryptResponse, SignHashRequest, SignHashResponse,
 };
+use keyguard_agent_identity::IPC_PROTOCOL_REVISION;
 use prost::Message;
 use std::fmt;
 use std::path::Path;
@@ -44,6 +45,7 @@ impl IpcError {
         self.code
     }
 
+    #[cfg(test)]
     pub fn message(&self) -> &str {
         &self.message
     }
@@ -58,8 +60,26 @@ impl fmt::Display for IpcError {
 impl std::error::Error for IpcError {}
 
 impl IpcClient {
-    pub async fn connect(socket_path: &Path, auth_token: &[u8]) -> Result<Self> {
-        let stream = connect_stream(socket_path).await?;
+    #[cfg(test)]
+    pub(crate) fn from_test_stream<S>(stream: S) -> Self
+    where
+        S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
+    {
+        Self {
+            stream: Arc::new(Mutex::new(Box::new(stream))),
+            next_id: Arc::new(AtomicU64::new(1)),
+        }
+    }
+
+    pub async fn connect(
+        socket_path: &Path,
+        auth_token: &[u8],
+        expected_parent_pid: u32,
+    ) -> Result<Self> {
+        if expected_parent_pid == 0 {
+            bail!("expected parent PID must be non-zero");
+        }
+        let stream = connect_stream(socket_path, expected_parent_pid).await?;
         let client = Self {
             stream: Arc::new(Mutex::new(stream)),
             next_id: Arc::new(AtomicU64::new(1)),
@@ -70,12 +90,15 @@ impl IpcClient {
                 id: client.next_request_id(),
                 request: Some(ipc_request::Request::Authenticate(AuthenticateRequest {
                     token: auth_token.to_vec(),
+                    protocol_revision: IPC_PROTOCOL_REVISION,
                 })),
             })
             .await?;
         match response.response {
-            Some(ipc_response::Response::Authenticate(auth)) if auth.success => Ok(client),
-            Some(ipc_response::Response::Authenticate(_)) => bail!("authentication failed"),
+            Some(ipc_response::Response::Authenticate(auth)) => {
+                validate_authenticate_response(&auth)?;
+                Ok(client)
+            }
             Some(ipc_response::Response::Error(error)) => {
                 Err(Error::new(ipc_error(&error)).context("authentication failed"))
             }
@@ -175,6 +198,20 @@ impl IpcClient {
     }
 }
 
+fn validate_authenticate_response(response: &AuthenticateResponse) -> Result<()> {
+    if response.protocol_revision != IPC_PROTOCOL_REVISION {
+        bail!(
+            "IPC protocol revision mismatch: expected {}, received {}",
+            IPC_PROTOCOL_REVISION,
+            response.protocol_revision,
+        );
+    }
+    if !response.success {
+        bail!("authentication failed");
+    }
+    Ok(())
+}
+
 /// Converts an IPC `ErrorResponse` into a typed error, preserving the
 /// locked/denied/not-found distinction carried in `code` so the Assuan layer
 /// can map it to an appropriate response.
@@ -185,12 +222,16 @@ fn ipc_error(error: &ErrorResponse) -> IpcError {
 
 /// Establishes the platform-appropriate IPC transport: a Unix domain socket on
 /// macOS/Linux or a named pipe on Windows.
-async fn connect_stream(socket_path: &Path) -> Result<Box<dyn AsyncStream>> {
+async fn connect_stream(
+    socket_path: &Path,
+    expected_parent_pid: u32,
+) -> Result<Box<dyn AsyncStream>> {
     #[cfg(unix)]
     {
         let stream = tokio::net::UnixStream::connect(socket_path)
             .await
             .with_context(|| format!("failed to connect to {}", socket_path.display()))?;
+        verify_unix_ipc_server(&stream, expected_parent_pid)?;
         Ok(Box::new(stream) as Box<dyn AsyncStream>)
     }
 
@@ -201,8 +242,70 @@ async fn connect_stream(socket_path: &Path) -> Result<Box<dyn AsyncStream>> {
         let stream = ClientOptions::new()
             .open(pipe_name)
             .with_context(|| format!("failed to connect to named pipe {pipe_name}"))?;
+        verify_windows_ipc_server(&stream, expected_parent_pid)?;
         Ok(Box::new(stream) as Box<dyn AsyncStream>)
     }
+}
+
+#[cfg(unix)]
+fn verify_unix_ipc_server(stream: &tokio::net::UnixStream, expected_parent_pid: u32) -> Result<()> {
+    let credentials = stream
+        .peer_cred()
+        .context("failed to read IPC server peer credentials")?;
+    let peer_pid = credentials
+        .pid()
+        .context("IPC server peer credentials did not include a PID")?;
+    let peer_pid = u32::try_from(peer_pid).context("IPC server reported an invalid peer PID")?;
+    if peer_pid != expected_parent_pid {
+        bail!(
+            "IPC server PID mismatch: expected parent {}, got {}",
+            expected_parent_pid,
+            peer_pid
+        );
+    }
+
+    // SAFETY: geteuid has no preconditions and does not dereference pointers.
+    let expected_uid = unsafe { libc::geteuid() };
+    if credentials.uid() != expected_uid {
+        bail!(
+            "IPC server UID mismatch: expected {}, got {}",
+            expected_uid,
+            credentials.uid()
+        );
+    }
+    Ok(())
+}
+
+#[cfg(windows)]
+fn verify_windows_ipc_server(
+    stream: &tokio::net::windows::named_pipe::NamedPipeClient,
+    expected_parent_pid: u32,
+) -> Result<()> {
+    use std::ffi::c_void;
+    use std::os::windows::io::AsRawHandle;
+
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn GetNamedPipeServerProcessId(pipe: *mut c_void, server_process_id: *mut u32) -> i32;
+    }
+
+    let mut server_pid = 0u32;
+    // SAFETY: the Tokio client owns a valid pipe handle for the duration of
+    // this call, and server_pid points to writable u32 storage.
+    let succeeded =
+        unsafe { GetNamedPipeServerProcessId(stream.as_raw_handle().cast(), &mut server_pid) };
+    if succeeded == 0 {
+        return Err(std::io::Error::last_os_error())
+            .context("failed to read named-pipe server PID");
+    }
+    if server_pid != expected_parent_pid {
+        bail!(
+            "IPC named-pipe server PID mismatch: expected parent {}, got {}",
+            expected_parent_pid,
+            server_pid
+        );
+    }
+    Ok(())
 }
 
 async fn write_frame<W: AsyncWrite + Unpin>(stream: &mut W, body: &[u8]) -> Result<()> {
@@ -263,5 +366,41 @@ mod tests {
             .downcast_ref::<IpcError>()
             .expect("context should preserve typed IPC error");
         assert_eq!(ipc_error.code(), ErrorCode::AuthFailed);
+    }
+
+    #[test]
+    fn authentication_rejects_mismatched_protocol_revision() {
+        let error = validate_authenticate_response(&AuthenticateResponse {
+            success: true,
+            protocol_revision: IPC_PROTOCOL_REVISION + 1,
+        })
+        .expect_err("revision mismatch")
+        .to_string();
+
+        assert!(error.contains("protocol revision mismatch"), "{error}");
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn unix_ipc_server_verification_accepts_current_process() {
+        let (stream, _peer) = std::os::unix::net::UnixStream::pair().unwrap();
+        stream.set_nonblocking(true).unwrap();
+        let stream = tokio::net::UnixStream::from_std(stream).unwrap();
+
+        verify_unix_ipc_server(&stream, std::process::id()).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn unix_ipc_server_verification_rejects_wrong_parent_pid() {
+        let (stream, _peer) = std::os::unix::net::UnixStream::pair().unwrap();
+        stream.set_nonblocking(true).unwrap();
+        let stream = tokio::net::UnixStream::from_std(stream).unwrap();
+        let wrong_pid = std::process::id().wrapping_add(1).max(1);
+
+        let error = verify_unix_ipc_server(&stream, wrong_pid)
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("PID mismatch"), "{error}");
     }
 }

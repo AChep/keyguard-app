@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -28,6 +29,7 @@ class SshAgentManager(
     cryptoGenerator: CryptoGenerator,
     private val getVaultSession: GetVaultSession,
     private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
+    private val getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy,
     private val getSshAgentFilter: GetSshAgentFilter,
     private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository,
 ) : AgentManager(
@@ -89,15 +91,18 @@ class SshAgentManager(
         authToken: ByteArray,
         sessionId: String,
         scope: CoroutineScope,
+        expectedPeerProcess: Deferred<Process>,
     ): IpcServerRunner {
         val ipcServer = SshAgentIpcServer(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
+            getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
             getSshAgentFilter = getSshAgentFilter,
             sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
             authToken = authToken,
             scope = scope,
+            expectedPeerProcess = expectedPeerProcess,
             sessionId = sessionId,
             onApprovalRequest = { caller, keyName, keyFingerprint ->
                 val deferred = CompletableDeferred<Boolean>()

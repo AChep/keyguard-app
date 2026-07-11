@@ -3,11 +3,8 @@ package com.artemchep.keyguard.common.service.agent
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Duration
@@ -22,37 +19,33 @@ import kotlin.time.TimeSource
  *
  * The [K] type parameter is the agent-specific approval identity (for example,
  * the public-key token and caller for SSH, or the operation, keygrip and caller
- * for GPG). Callers derive that identity and pass it to [Session.isRemembered]
- * and [Session.remember]; this class combines it with the vault session
- * generation to form the actual cache key.
+ * for GPG). [P] is the policy used to derive that identity. A request obtains
+ * one [Access] from [Session.access] and keeps it through the approval prompt;
+ * this binds lookup and remember to the same policy epoch. If policy, window,
+ * or vault state changes meanwhile, [Access.remember] is a no-op.
  */
-class AgentApprovalWindowMemory<K : Any>(
-    approvalWindow: Flow<Duration>,
+class AgentApprovalWindowMemory<K : Any, P : Any>(
+    private val approvalCacheConfig: AgentApprovalCacheConfigProvider<P>,
     getVaultSession: GetVaultSession,
     scope: CoroutineScope,
+    maxCacheEntries: Int = DEFAULT_MAX_CACHE_ENTRIES,
+    private val timeSource: TimeSource = TimeSource.Monotonic,
 ) {
-    private val approvalWindowState = approvalWindow
-        .stateIn(scope, SharingStarted.Eagerly, Duration.ZERO)
+    companion object {
+        private const val DEFAULT_MAX_CACHE_ENTRIES = 256
+    }
 
+    private val maxCacheEntries = maxCacheEntries.also {
+        require(it > 0) { "maxCacheEntries must be positive." }
+    }
     private val mutex = Mutex()
-    private val cache = mutableMapOf<CacheKey<K>, ApprovalCacheEntry>()
+    private val cache = linkedMapOf<CacheKey<K>, ApprovalCacheEntry>()
     private var activeSession: ActiveSession? = null
     private var sessionGeneration = 0L
+    private var activeConfigRevision: Long? = null
+    private var cacheEpoch = 0L
 
     init {
-        // Changing the window invalidates approvals granted under older rules.
-        var previousApprovalWindow = approvalWindowState.value
-        approvalWindowState
-            .onEach { approvalWindow ->
-                val hasChanged = approvalWindow != previousApprovalWindow
-                previousApprovalWindow = approvalWindow
-
-                if (hasChanged || approvalWindow <= Duration.ZERO) {
-                    clearCache()
-                }
-            }
-            .launchIn(scope)
-
         // A remembered approval belongs only to the currently unlocked vault.
         getVaultSession()
             .onEach { session ->
@@ -69,7 +62,7 @@ class AgentApprovalWindowMemory<K : Any>(
     suspend fun clearSession() {
         mutex.withLock {
             activeSession = null
-            cache.clear()
+            invalidateCacheLocked()
         }
     }
 
@@ -87,87 +80,132 @@ class AgentApprovalWindowMemory<K : Any>(
             session = session,
             generation = generation,
         )
-        cache.clear()
+        invalidateCacheLocked()
         Session(generation = generation)
     }
 
-    private suspend fun clearCache() {
-        mutex.withLock {
-            cache.clear()
-        }
+    private fun invalidateCacheLocked() {
+        cache.clear()
+        cacheEpoch += 1L
     }
 
-    private suspend fun isRemembered(
+    private suspend fun getApprovalCacheConfigLocked(): AgentApprovalCacheConfig<P> {
+        val config = approvalCacheConfig.get()
+        if (activeConfigRevision != config.revision) {
+            activeConfigRevision = config.revision
+            invalidateCacheLocked()
+        }
+        return config
+    }
+
+    private suspend fun access(
         session: Session,
-        key: K,
-    ): Boolean {
-        val approvalWindow = approvalWindowState.value
-        if (approvalWindow <= Duration.ZERO) {
-            return false
+        keyForPolicy: (P) -> K?,
+    ): Access = mutex.withLock {
+        val config = getApprovalCacheConfigLocked()
+        val approvalWindow = config.approvalWindow
+        val epoch = cacheEpoch
+        val key = config.cachePolicy.let(keyForPolicy)
+        val isActiveSession = activeSession?.generation == session.generation
+        if (approvalWindow <= Duration.ZERO || !isActiveSession || key == null) {
+            return@withLock Access(
+                sessionGeneration = session.generation,
+                cacheEpoch = epoch,
+                configRevision = config.revision,
+                approvalWindow = approvalWindow,
+                key = key,
+                isRemembered = false,
+            )
         }
 
-        val cacheKey = CacheKey(
-            sessionGeneration = session.generation,
-            key = key,
-        )
-        return mutex.withLock {
-            val entry = cache[cacheKey]
-                ?: return@withLock false
-
+        val cacheKey = CacheKey(session.generation, key)
+        val isRemembered = run {
+            // Removing and re-inserting a live entry refreshes its position in
+            // the insertion-ordered map, giving us simple LRU eviction.
+            val entry = cache.remove(cacheKey)
+                ?: return@run false
             if (entry.approvalWindow != approvalWindow || entry.isExpired()) {
-                cache.remove(cacheKey)
                 false
             } else {
+                cache[cacheKey] = entry
                 true
             }
         }
+        Access(
+            sessionGeneration = session.generation,
+            cacheEpoch = epoch,
+            configRevision = config.revision,
+            approvalWindow = approvalWindow,
+            key = key,
+            isRemembered = isRemembered,
+        )
     }
 
     private suspend fun remember(
-        session: Session,
-        key: K,
+        access: Access,
     ) {
-        val approvalWindow = approvalWindowState.value
-        if (approvalWindow <= Duration.ZERO) {
-            return
-        }
-
-        val cacheKey = CacheKey(
-            sessionGeneration = session.generation,
-            key = key,
-        )
-        val entry = ApprovalCacheEntry(
-            approvalWindow = approvalWindow,
-            expiresAt = approvalWindow
-                .takeUnless { it == Duration.INFINITE }
-                ?.let { TimeSource.Monotonic.markNow() + it },
-        )
         mutex.withLock {
-            // Re-check after suspension so stale approvals are not written back.
-            val currentApprovalWindow = approvalWindowState.value
-            if (currentApprovalWindow != approvalWindow || currentApprovalWindow <= Duration.ZERO) {
+            val config = getApprovalCacheConfigLocked()
+            val currentApprovalWindow = config.approvalWindow
+            if (
+                config.revision != access.configRevision ||
+                currentApprovalWindow != access.approvalWindow ||
+                currentApprovalWindow <= Duration.ZERO ||
+                cacheEpoch != access.cacheEpoch ||
+                activeSession?.generation != access.sessionGeneration
+            ) {
                 return
             }
 
-            if (activeSession?.generation != session.generation) {
-                return
-            }
+            val key = access.key ?: return
+            val cacheKey = CacheKey(access.sessionGeneration, key)
+            pruneExpiredEntriesLocked(currentApprovalWindow)
+            val entry = ApprovalCacheEntry(
+                approvalWindow = currentApprovalWindow,
+                expiresAt = currentApprovalWindow
+                    .takeUnless { it == Duration.INFINITE }
+                    ?.let { timeSource.markNow() + it },
+            )
 
+            cache.remove(cacheKey)
             cache[cacheKey] = entry
+            while (cache.size > maxCacheEntries) {
+                val leastRecentlyUsedKey = cache.keys.first()
+                cache.remove(leastRecentlyUsedKey)
+            }
+        }
+    }
+
+    private fun pruneExpiredEntriesLocked(
+        approvalWindow: Duration,
+    ) {
+        val iterator = cache.entries.iterator()
+        while (iterator.hasNext()) {
+            val entry = iterator.next().value
+            if (entry.approvalWindow != approvalWindow || entry.isExpired()) {
+                iterator.remove()
+            }
         }
     }
 
     inner class Session internal constructor(
         val generation: Long,
     ) {
-        suspend fun isRemembered(
-            key: K,
-        ): Boolean = this@AgentApprovalWindowMemory.isRemembered(this, key)
+        suspend fun access(
+            keyForPolicy: (P) -> K?,
+        ): Access = this@AgentApprovalWindowMemory.access(this, keyForPolicy)
+    }
 
-        suspend fun remember(
-            key: K,
-        ) {
-            this@AgentApprovalWindowMemory.remember(this, key)
+    inner class Access internal constructor(
+        internal val sessionGeneration: Long,
+        internal val cacheEpoch: Long,
+        internal val configRevision: Long,
+        internal val approvalWindow: Duration,
+        internal val key: K?,
+        val isRemembered: Boolean,
+    ) {
+        suspend fun remember() {
+            this@AgentApprovalWindowMemory.remember(this)
         }
     }
 

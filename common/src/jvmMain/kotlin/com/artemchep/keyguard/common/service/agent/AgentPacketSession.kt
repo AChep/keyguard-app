@@ -11,11 +11,15 @@ internal suspend fun <Req, Res> runAgentPacketSession(
     handleRequest: suspend (request: Req, authenticated: Boolean) -> Res,
     onRequest: suspend (Req, ByteArray) -> Unit = { _, _ -> },
     onResponse: suspend (Res, ByteArray) -> Unit = { _, _ -> },
+    readPacket: suspend (AgentPacketChannel) -> ByteArray? = { it.readPacket() },
+    writePacket: suspend (AgentPacketChannel, ByteArray) -> Unit = { channel, packet ->
+        channel.writePacket(packet)
+    },
 ) {
     var authenticated = initialAuthenticated
 
     while (true) {
-        val requestPacket = channel.readPacket()
+        val requestPacket = readPacket(channel)
             ?: break
         val request = decodeRequest(requestPacket)
         onRequest(request, requestPacket)
@@ -23,7 +27,7 @@ internal suspend fun <Req, Res> runAgentPacketSession(
         val response = handleRequest(request, authenticated)
         val responsePacket = encodeResponse(response)
         onResponse(response, responsePacket)
-        channel.writePacket(responsePacket)
+        writePacket(channel, responsePacket)
 
         if (allowAuthenticate && isAuthenticateRequest(request)) {
             if (isAuthenticateSuccess(response)) {

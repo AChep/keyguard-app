@@ -416,12 +416,14 @@ import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.GetLicensePremium
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
 import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
 import com.artemchep.keyguard.common.usecase.GetGpgAgent
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowVariants
 import com.artemchep.keyguard.common.usecase.GetGpgAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
@@ -436,10 +438,12 @@ import com.artemchep.keyguard.common.usecase.PutAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.PutAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.PutSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
 import com.artemchep.keyguard.common.usecase.PutGpgAgent
 import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.PutGpgAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.PutGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.PutGpgKeyserverConfig
@@ -452,12 +456,14 @@ import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedI
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillPasswordsEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalCachePolicyImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalCachePolicyImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalWindowVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentFilterImpl
@@ -473,10 +479,12 @@ import com.artemchep.keyguard.common.usecase.impl.GetVaultSessionLicensePremiumI
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasskeysEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasswordsEnabledImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalCachePolicyImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentApprovalCachePolicyImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentFilterImpl
@@ -853,6 +861,9 @@ fun globalModuleCommon() = DI.Module(
     bindSingleton<PutSshAgentApprovalWindow> {
         PutSshAgentApprovalWindowImpl(this)
     }
+    bindSingleton<PutSshAgentApprovalCachePolicy> {
+        PutSshAgentApprovalCachePolicyImpl(this)
+    }
     bindSingleton<PutSshAgentDisplayKeyNames> {
         PutSshAgentDisplayKeyNamesImpl(this)
     }
@@ -864,6 +875,9 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<GetSshAgentApprovalWindow> {
         GetSshAgentApprovalWindowImpl(this)
+    }
+    bindSingleton<GetSshAgentApprovalCachePolicy> {
+        GetSshAgentApprovalCachePolicyImpl(this)
     }
     bindSingleton<GetSshAgentApprovalWindowVariants> {
         GetSshAgentApprovalWindowVariantsImpl(this)
@@ -882,6 +896,9 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<PutGpgAgentApprovalWindow> {
         PutGpgAgentApprovalWindowImpl(this)
+    }
+    bindSingleton<PutGpgAgentApprovalCachePolicy> {
+        PutGpgAgentApprovalCachePolicyImpl(this)
     }
     bindSingleton<PutGpgAgentDisplayKeyNames> {
         PutGpgAgentDisplayKeyNamesImpl(this)
@@ -927,6 +944,9 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<GetGpgAgentApprovalWindow> {
         GetGpgAgentApprovalWindowImpl(this)
+    }
+    bindSingleton<GetGpgAgentApprovalCachePolicy> {
+        GetGpgAgentApprovalCachePolicyImpl(this)
     }
     bindSingleton<GetGpgAgentApprovalWindowVariants> {
         GetGpgAgentApprovalWindowVariantsImpl()

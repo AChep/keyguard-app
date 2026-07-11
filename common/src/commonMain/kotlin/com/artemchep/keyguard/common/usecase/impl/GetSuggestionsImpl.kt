@@ -24,6 +24,8 @@ import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.GetUrlBlocks
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
+import com.artemchep.keyguard.common.util.normalizeSha256FingerprintOrNull
+import com.artemchep.keyguard.common.util.parseAndroidAppPackageNameOrNull
 import com.artemchep.keyguard.feature.home.vault.search.findAlike
 import io.ktor.http.Url
 import kotlinx.collections.immutable.persistentMapOf
@@ -139,6 +141,7 @@ class GetSuggestionsImpl(
         // It's preferable if we have the name, but we
         // can still operate without it.
         val appName: String?,
+        val signingCertificates: LinkInfoAndroid.SigningCertificates? = null,
     ) : LocalAutofillTarget {
         val appIdTokens = appId
             .lowercase()
@@ -277,6 +280,7 @@ class GetSuggestionsImpl(
                 uri = "${PROTOCOL_ANDROID_APP}$appId",
                 appId = appId,
                 appName = appInfo?.label,
+                signingCertificates = appInfo?.signingCertificates,
             )
         }
         val unfilteredAutofillTargetWeb = kotlin.run {
@@ -465,9 +469,8 @@ private fun GetSuggestionsImpl.LocalAutofillTargetAndroid.findByApp(
     // the cipher, then we give it maximum priority.
     val scoreByUri = secret.uris
         .any { uri ->
-            uri.uri.startsWith(PROTOCOL_ANDROID_APP) &&
-                    uri.uri.trim().endsWith(appId) &&
-                    uri.match != DSecret.Uri.MatchType.Never
+            uri.match != DSecret.Uri.MatchType.Never &&
+                    uri.matchesAndroidApp(this)
         }
         .let { directMatch ->
             if (directMatch) 35f else 0f
@@ -483,6 +486,41 @@ private fun GetSuggestionsImpl.LocalAutofillTargetAndroid.findByApp(
         appIdTokens,
     )
     scoreById * 0.5f + scoreByName * 1.2f + scoreByUri
+}
+
+internal fun DSecret.Uri.matchesAndroidApp(
+    target: GetSuggestionsImpl.LocalAutofillTargetAndroid,
+): Boolean {
+    val storedPackageName = parseAndroidAppPackageNameOrNull(uri)
+        ?: return false
+    if (storedPackageName != target.appId) {
+        return false
+    }
+
+    if (signatures.isEmpty()) {
+        return true
+    }
+    val targetSignatures = target.signingCertificates
+        ?: return false
+    val storedFingerprints = signatures
+        .mapNotNullTo(mutableSetOf()) { signature ->
+            signature.certFingerprintSha256.normalizeSha256FingerprintOrNull()
+        }
+    if (storedFingerprints.isEmpty()) {
+        return false
+    }
+
+    val currentFingerprints = targetSignatures.current
+        .mapNotNullTo(mutableSetOf(), String::normalizeSha256FingerprintOrNull)
+    val historyFingerprints = targetSignatures.history
+        .mapNotNullTo(mutableSetOf(), String::normalizeSha256FingerprintOrNull)
+
+    return if (targetSignatures.hasMultipleSigners) {
+        currentFingerprints.isNotEmpty() &&
+                currentFingerprints.all(storedFingerprints::contains)
+    } else {
+        historyFingerprints.any(storedFingerprints::contains)
+    }
 }
 
 // If the URI matches something then the output score will be

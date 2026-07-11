@@ -5,6 +5,7 @@ import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryValue
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.common.util.REGEX_ANDROID_APP
+import com.artemchep.keyguard.common.util.normalizeSha256FingerprintOrNull
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 
 /**
@@ -62,7 +63,7 @@ internal class KeePassUrlCodec {
 
                 val signatures = uri.signatures
                     .mapNotNull { signature ->
-                        normalizeSha256FingerprintOrNull(signature.certFingerprintSha256)
+                        signature.certFingerprintSha256.normalizeSha256FingerprintOrNull()
                     }
                 if (signatures.isNotEmpty()) {
                     addConcealed(androidAppSignatureFieldKey(index), signatures.joinToString(SIGNATURE_DELIMITER))
@@ -341,7 +342,7 @@ internal class KeePassUrlCodec {
         val signatures = value
             .split(SIGNATURE_DELIMITER)
             .map { fingerprint ->
-                val normalized = normalizeSha256FingerprintOrNull(fingerprint)
+                val normalized = fingerprint.normalizeSha256FingerprintOrNull()
                     ?: return null
                 BitwardenCipher.Login.Uri.Signature(
                     certFingerprintSha256 = normalized,
@@ -350,24 +351,6 @@ internal class KeePassUrlCodec {
         return signatures
             .takeIf { it.isNotEmpty() }
             ?.let { DecodedSignatures(sourceKey = key, signatures = it) }
-    }
-
-    private fun normalizeSha256FingerprintOrNull(
-        fingerprint: String,
-    ): String? {
-        val hex = fingerprint
-            .trim()
-            .replace(":", "")
-            .uppercase()
-        if (hex.length != 64) {
-            return null
-        }
-        if (!hex.all { char -> char in '0'..'9' || char in 'A'..'F' }) {
-            return null
-        }
-        return hex
-            .chunked(2)
-            .joinToString(":")
     }
 
     private fun isStrongboxUrlKey(key: String): Boolean =

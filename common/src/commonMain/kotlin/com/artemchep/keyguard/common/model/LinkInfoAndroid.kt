@@ -8,10 +8,17 @@ sealed interface LinkInfoAndroid : LinkInfo {
     data class Installed(
         val label: String,
         val icon: Painter,
+        val signingCertificates: SigningCertificates? = null,
         override val platform: LinkInfoPlatform.Android,
     ) : LinkInfoAndroid
 
     data class NotInstalled(
         override val platform: LinkInfoPlatform.Android,
     ) : LinkInfoAndroid
+
+    data class SigningCertificates(
+        val current: Set<String>,
+        val history: Set<String>,
+        val hasMultipleSigners: Boolean,
+    )
 }

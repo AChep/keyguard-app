@@ -13,6 +13,7 @@ import app.keemobile.kotpass.database.header.DatabaseInnerHeader
 import app.keemobile.kotpass.database.header.Signature
 import app.keemobile.kotpass.errors.CryptoError
 import app.keemobile.kotpass.errors.FormatError
+import app.keemobile.kotpass.errors.KeyfileError
 import app.keemobile.kotpass.extensions.teeBufferStream
 import app.keemobile.kotpass.io.BufferedStream
 import app.keemobile.kotpass.io.gunzip
@@ -135,6 +136,20 @@ fun KeePassDatabase.Companion.decode(
                 KeePassDatabase.Ver4x(credentials, header, content, innerHeader)
             }
         }
+    } catch (error: FormatError) {
+        throw error
+    } catch (error: CryptoError) {
+        throw error
+    } catch (error: KeyfileError) {
+        throw error
+    } catch (error: Exception) {
+        // Any other exception originates from malformed, attacker-controlled
+        // input reaching a lower-level parser or cipher (e.g. an out-of-bounds
+        // read from a truncated field). Surface it as a format error rather than
+        // letting a raw runtime exception escape the decode boundary.
+        throw FormatError.InvalidContent(
+            "Failed to decode the database: ${error.message ?: error::class.simpleName}"
+        )
     } finally {
         source.close()
     }
@@ -179,6 +194,17 @@ private fun decryptRawContent(
     val cipher = cipherProviders
         .firstOrNull { it.uuid == header.cipherId }
         ?: throw FormatError.InvalidHeader("Unsupported cipher ID (${header.cipherId}).")
+    // The EncryptionIV header field is attacker-controlled and stored verbatim,
+    // with no length check at parse time. For KDBX3 the content is decrypted
+    // before any authentication, so an IV shorter than the cipher expects would
+    // otherwise reach the engine and throw a raw out-of-bounds exception. Reject
+    // a mismatched IV length here, at the trust boundary, before any engine runs.
+    if (header.encryptionIV.size != cipher.ivLength.toInt()) {
+        throw FormatError.InvalidHeader(
+            "Encryption IV length (${header.encryptionIV.size}) does not match " +
+                "the cipher's expected length (${cipher.ivLength})."
+        )
+    }
     val masterSeed = header.masterSeed.toByteArray()
     val decryptedContent = when (header) {
         is DatabaseHeader.Ver3x -> {

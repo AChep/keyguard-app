@@ -34,6 +34,10 @@ sealed class BinaryData(val hash: ByteString) {
     ) : BinaryData(sha256(rawContent).toByteString()) {
         override fun getContent(): ByteArray = try {
             rawContent.gunzip()
+        } catch (error: FormatError) {
+            // Preserve specific format errors,
+            // instead of masking them behind the generic message below.
+            throw error
         } catch (_: Exception) {
             throw FormatError.FailedCompression(
                 "Failed to read from compressed binary data stream."

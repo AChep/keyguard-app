@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,7 @@ import com.artemchep.keyguard.res.pref_item_agent_approval_scope_table_same_term
 import com.artemchep.keyguard.res.pref_item_agent_approval_scope_title
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.TableRowItem
+import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import kotlinx.coroutines.flow.Flow
@@ -118,9 +120,11 @@ private fun SettingAgentApprovalCachePolicy(
     presentation: AgentApprovalScopePresentation,
     dropdown: List<FlatItemAction>,
 ) {
+    val selectedPresentation = presentation.row(policy)
     LocalSettingPaneComponents.current.KgPicker(
-        icon = null,
+        icon = Icons.Stub,
         title = stringResource(Res.string.pref_item_agent_approval_scope_title),
+        text = stringResource(selectedPresentation.titleResource),
         footer = {
             AgentApprovalScopeComparison(
                 selectedPolicy = policy,

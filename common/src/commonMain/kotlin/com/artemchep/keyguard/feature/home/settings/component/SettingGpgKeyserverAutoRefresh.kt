@@ -26,7 +26,6 @@ fun settingGpgKeyserverAutoRefreshProvider(
     getGpgKeyserverAutoRefresh = directDI.instance(),
     getGpgKeyserverLastRefresh = directDI.instance(),
     putGpgKeyserverAutoRefresh = directDI.instance(),
-    dateFormatter = directDI.instance(),
     windowCoroutineScope = directDI.instance(),
 )
 
@@ -34,12 +33,11 @@ fun settingGpgKeyserverAutoRefreshProvider(
     getGpgKeyserverAutoRefresh: GetGpgKeyserverAutoRefresh,
     getGpgKeyserverLastRefresh: GetGpgKeyserverLastRefresh,
     putGpgKeyserverAutoRefresh: PutGpgKeyserverAutoRefresh,
-    dateFormatter: DateFormatter,
     windowCoroutineScope: WindowCoroutineScope,
 ): SettingComponent = combine(
     getGpgKeyserverAutoRefresh(),
     getGpgKeyserverLastRefresh(),
-) { autoRefresh, lastRefresh ->
+) { autoRefresh, _ ->
     val onCheckedChange = { shouldAutoRefresh: Boolean ->
         putGpgKeyserverAutoRefresh(shouldAutoRefresh)
             .launchIn(windowCoroutineScope)
@@ -67,8 +65,6 @@ fun settingGpgKeyserverAutoRefreshProvider(
     ) {
         SettingGpgKeyserverAutoRefresh(
             checked = autoRefresh,
-            lastRefresh = lastRefresh,
-            dateFormatter = dateFormatter,
             onCheckedChange = onCheckedChange,
         )
     }
@@ -77,22 +73,12 @@ fun settingGpgKeyserverAutoRefreshProvider(
 @Composable
 private fun SettingGpgKeyserverAutoRefresh(
     checked: Boolean,
-    lastRefresh: Instant?,
-    dateFormatter: DateFormatter,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {
-    val text = lastRefresh
-        ?.let { instant ->
-            stringResource(
-                Res.string.gpg_keyserver_status_checked_at,
-                dateFormatter.formatDateTime(instant),
-            )
-        }
-        ?: stringResource(Res.string.gpg_keyserver_status_not_checked)
     LocalSettingPaneComponents.current.KgSwitch(
         icon = Icons.Outlined.Sync,
         title = stringResource(Res.string.pref_item_gpg_keyserver_auto_refresh_title),
-        text = text,
+        text = null,
         checked = checked,
         onCheckedChange = onCheckedChange,
     )

@@ -1748,6 +1748,7 @@
     <string name="pref_item_gpg_keyserver_url_text">Server used to look up and refresh public GPG keys</string>
     <string name="pref_item_gpg_keyserver_protocol_title">Keyserver protocol</string>
     <string name="pref_item_gpg_keyserver_auto_refresh_title">Auto-refresh public keys</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_note">While the app is active and the vault is unlocked, Keyguard contacts your configured GPG keyserver at the selected interval using the fingerprint of each GPG item that contains only a public key. If a matching public key is found, Keyguard updates the stored public key, key metadata, and keyserver status.</string>
     <string name="pref_item_gpg_keyserver_refresh_interval_title">Refresh interval</string>
 
     <string name="theme_dark">Dark</string>

@@ -171,7 +171,7 @@ import org.kodein.di.direct
 import org.kodein.di.instance
 
 @LeParcelize
-data class OhOhOh(
+data class ScrollPositionState(
     val id: String? = null,
     val offset: Int = 0,
     val revision: Int = 0,
@@ -679,7 +679,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         .launchIn(screenScope)
 
     var scrollPositionKey: Any? = null
-    val scrollPositionSink = mutablePersistedFlow<OhOhOh>("scroll_state") { OhOhOh() }
+    val scrollPositionSink = mutablePersistedFlow<ScrollPositionState>("scroll_state") { ScrollPositionState() }
 
     val filterResult = createFilter(directDI)
     val actionsFlow = kotlin.run {
@@ -1461,7 +1461,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     )
 
     val autofillTarget = mode.autofillTarget
-    val ciphersFilteredStateFlow = hahah(
+    val ciphersFilteredStateFlow = createFilteredCiphersFlow(
         directDI = directDI,
         ciphersFlow = ciphersFlow,
         orderFlow = sortSink,
@@ -1580,7 +1580,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     } else {
         null
     }
-    val filterListFlow = ah(
+    val filterListFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = { it.source },
         outputFlow = ciphersFilteredFlow
@@ -1691,7 +1691,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
 
                         val item = items.getOrNull(index)
                             ?: return@Revision
-                        scrollPositionSink.value = OhOhOh(
+                        scrollPositionSink.value = ScrollPositionState(
                             id = item.id,
                             offset = offset,
                             revision = ciphers.revision,
@@ -1938,7 +1938,7 @@ private data class QueryStateData(
     val queryQualifierSuggestion: VaultSearchQualifierSuggestion?,
 )
 
-private data class FilteredBoo<T>(
+private data class FilteredList<T>(
     val count: Int,
     val list: List<T>,
     val preferredList: List<T>?,
@@ -1954,7 +1954,7 @@ private data class Preferences(
     val webDomain: String? = null,
 )
 
-private fun hahah(
+private fun createFilteredCiphersFlow(
     directDI: DirectDI,
     ciphersFlow: Flow<List<VaultItem2.Item>>,
     orderFlow: Flow<ComparatorHolder>,
@@ -1987,7 +1987,7 @@ private fun hahah(
         } else {
             null
         }
-        FilteredBoo(
+        FilteredList(
             count = items.size,
             list = items,
             preferredList = preferredList,
@@ -2062,7 +2062,7 @@ private fun hahah(
     }
     .mapLatest { (state, queryContext) ->
         if (queryContext == null) {
-            return@mapLatest FilteredBoo(
+            return@mapLatest FilteredList(
                 count = state.list.size,
                 list = state.list,
                 preferredList = state.preferredList,
@@ -2091,7 +2091,7 @@ private fun hahah(
                     highlightContentColor = highlightContentColor,
                 )
             }
-        FilteredBoo(
+        FilteredList(
             count = filteredAllItems.size,
             list = filteredAllItems,
             preferredList = filteredPreferredItems,
@@ -2214,7 +2214,7 @@ private fun hahah(
         }.ifEmpty {
             listOf(VaultItem2.NoItems)
         }
-        FilteredBoo(
+        FilteredList(
             count = state.list.size,
             list = items,
             preferredList = items,

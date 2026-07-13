@@ -62,7 +62,7 @@ fun settingRequireMasterPasswordProvider(
     .distinctUntilChanged()
     .flatMapLatest { hasBiometrics ->
         if (hasBiometrics) {
-            ah(
+            createSettingComponentFlow(
                 fingerprintReadRepository = fingerprintReadRepository,
                 getBiometricTimeout = getBiometricTimeout,
                 getBiometricTimeoutVariants = getBiometricTimeoutVariants,
@@ -76,7 +76,7 @@ fun settingRequireMasterPasswordProvider(
         }
     }
 
-private suspend fun ah(
+private suspend fun createSettingComponentFlow(
     fingerprintReadRepository: FingerprintReadRepository,
     getBiometricTimeout: GetBiometricTimeout,
     getBiometricTimeoutVariants: GetBiometricTimeoutVariants,

@@ -20,6 +20,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
+import com.artemchep.keyguard.common.model.DFilterCipherPresence
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DProfile
@@ -27,6 +28,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DTag
 import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.common.model.displayName
+import com.artemchep.keyguard.common.model.existsIn
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
@@ -127,10 +129,6 @@ enum class FilterSection(
         id = "misc",
         title = TextHolder.Res(Res.string.misc),
     ),
-}
-
-enum class FilterZzz {
-
 }
 
 suspend fun RememberStateFlowScope.createFilter(
@@ -414,7 +412,7 @@ suspend fun <
         Folder,
         Collection,
         Organization,
-        > RememberStateFlowScope.ah(
+        > RememberStateFlowScope.createFilterItemsFlow(
     directDI: DirectDI,
     outputGetter: (Output) -> DSecret,
     outputFlow: Flow<List<Output>>,
@@ -455,11 +453,11 @@ suspend fun <
         }
     }
 
-    val outputCipherFlow = outputFlow
+    val outputPresenceFlow = outputFlow
         .map { list ->
-            list
-                .map { outputGetter(it) }
+            DFilterCipherPresence.of(list, outputGetter)
         }
+        .distinctUntilChanged()
 
     val filterTypesWithCiphers = mapCiphers(cipherFlow) { cipherGetter(it).type }
     val filterFoldersWithCiphers = mapCiphers(cipherFlow) { cipherGetter(it).folderId }
@@ -550,7 +548,7 @@ suspend fun <
         is FilterItem.Section -> this
     }
 
-    fun Flow<List<FilterItem.Item>>.aaa(
+    fun Flow<List<FilterItem.Item>>.asFilterSection(
         sectionId: String,
         sectionTitle: String,
         collapse: Boolean = true,
@@ -593,21 +591,21 @@ suspend fun <
                 }
         }
 
-    fun Flow<List<FilterItem.Item>>.aaa(
+    fun Flow<List<FilterItem.Item>>.asFilterSection(
         sectionId: String,
         sectionTitle: String,
         collapse: Boolean = true,
         layout: (List<FilterItem.Item>) -> FilterItemModel.Section.Layout = {
             FilterItemModel.Section.Layout.Flow
         },
-    ) = aaa(
+    ) = asFilterSection(
         sectionId = sectionId,
         sectionTitle = sectionTitle,
         collapse = collapse,
         layout = layout,
         checked = { item, filterHolder ->
             val filter = item.filter
-                ?: return@aaa false
+                ?: return@asFilterSection false
 
             val filterSectionId = item.filterSectionId
             when (filter) {
@@ -946,7 +944,7 @@ suspend fun <
                         }
                 }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = FilterSection.ACCOUNT.id,
             sectionTitle = translate(FilterSection.ACCOUNT.title),
         )
@@ -979,7 +977,7 @@ suspend fun <
                 item.takeIf { type in types }
             }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = FilterSection.TYPE.id,
             sectionTitle = translate(FilterSection.TYPE.title),
         )
@@ -1058,7 +1056,7 @@ suspend fun <
                         }
                 }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = FilterSection.FOLDER.id,
             sectionTitle = translate(FilterSection.FOLDER.title),
             layout = { items ->
@@ -1108,7 +1106,7 @@ suspend fun <
                         }
                 }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = FilterSection.TAG.id,
             sectionTitle = translate(FilterSection.TAG.title),
         )
@@ -1151,7 +1149,7 @@ suspend fun <
                         }
                 }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = FilterSection.COLLECTION.id,
             sectionTitle = translate(FilterSection.COLLECTION.title),
         )
@@ -1194,7 +1192,7 @@ suspend fun <
                         }
                 }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = FilterSection.ORGANIZATION.id,
             sectionTitle = translate(FilterSection.ORGANIZATION.title),
         )
@@ -1270,7 +1268,7 @@ suspend fun <
         .map {
             filterMiscAll
         }
-        .aaa(
+        .asFilterSection(
             sectionId = FilterSection.MISC.id,
             sectionTitle = translate(FilterSection.MISC.title),
             collapse = false,
@@ -1317,7 +1315,7 @@ suspend fun <
                     )
                 }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = FilterSection.CUSTOM.id,
             sectionTitle = translate(FilterSection.CUSTOM.title),
             collapse = false,
@@ -1356,7 +1354,7 @@ suspend fun <
             }
             out
         }
-        .combine(outputCipherFlow) { items, outputCiphers ->
+        .combine(outputPresenceFlow) { items, presence ->
             val checkedSectionIds = items
                 .asSequence()
                 .mapNotNull { item ->
@@ -1384,8 +1382,11 @@ suspend fun <
                                 ?: return@run true
                             filterItemFilter.filters
                                 .any { filter ->
-                                    val filterPredicate = filter.prepare(directDI, outputCiphers)
-                                    outputCiphers.any(filterPredicate)
+                                    // Every primitive this factory puts into a chip is
+                                    // indexable, so the fallback is unreachable today; a
+                                    // non-indexable primitive keeps the chip enabled.
+                                    filter.existsIn(presence)
+                                        ?: true
                                 }
                         }
 

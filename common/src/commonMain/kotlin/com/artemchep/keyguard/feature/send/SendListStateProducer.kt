@@ -78,8 +78,8 @@ import com.artemchep.keyguard.feature.send.search.LastModifiedSendSort
 import com.artemchep.keyguard.feature.send.search.OurFilterResult
 import com.artemchep.keyguard.feature.send.search.SendSort
 import com.artemchep.keyguard.feature.send.search.SendSortItem
-import com.artemchep.keyguard.feature.send.search.ah
 import com.artemchep.keyguard.feature.send.search.createFilter
+import com.artemchep.keyguard.feature.send.search.createFilterItemsFlow
 import com.artemchep.keyguard.feature.send.search.filter.FilterSendHolder
 import com.artemchep.keyguard.feature.send.util.SendUtil
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
@@ -117,7 +117,7 @@ import org.kodein.di.instance
 import kotlin.time.measureTimedValue
 
 @LeParcelize
-data class OhOhOh(
+data class ScrollPositionState(
     val id: String? = null,
     val offset: Int = 0,
     val revision: Int = 0,
@@ -454,7 +454,7 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
     }
 
     var scrollPositionKey: Any? = null
-    val scrollPositionSink = mutablePersistedFlow<OhOhOh>("scroll_state") { OhOhOh() }
+    val scrollPositionSink = mutablePersistedFlow<ScrollPositionState>("scroll_state") { ScrollPositionState() }
 
     val filterResult = createFilter()
     val actionsFlow = kotlin.run {
@@ -829,7 +829,7 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
         val revision: Int = 0,
     )
 
-    val ciphersFilteredFlow = hahah(
+    val ciphersFilteredFlow = createFilteredSendsFlow(
         directDI = directDI,
         ciphersFlow = ciphersFlow,
         orderFlow = sortSink,
@@ -852,7 +852,7 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
         .flowOn(Dispatchers.Default)
         .shareIn(this, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val filterListFlow = ah(
+    val filterListFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = { it.source },
         outputFlow = ciphersFilteredFlow
@@ -997,7 +997,7 @@ suspend fun RememberStateFlowScope.sendListScreenStateProducer(
 
                         val item = items.getOrNull(index)
                             ?: return@Revision
-                        scrollPositionSink.value = OhOhOh(
+                        scrollPositionSink.value = ScrollPositionState(
                             id = item.id,
                             offset = offset,
                             revision = ciphers.revision,
@@ -1132,7 +1132,7 @@ private data class FilteredCiphers<T>(
     val revision: Int,
 )
 
-private data class FilteredBoo<T>(
+private data class FilteredList<T>(
     val count: Int,
     val list: List<T>,
     val preferredList: List<T>,
@@ -1146,7 +1146,7 @@ private data class Preferences(
     val webDomain: String? = null,
 )
 
-private fun hahah(
+private fun createFilteredSendsFlow(
     directDI: DirectDI,
     ciphersFlow: Flow<List<IndexedModel<SendItem.Item>>>,
     orderFlow: Flow<ComparatorHolder>,
@@ -1157,7 +1157,7 @@ private fun hahah(
     highlightContentColor: Color,
 ) = ciphersFlow
     .map { items ->
-        FilteredBoo(
+        FilteredList(
             count = items.size,
             list = items,
             preferredList = emptyList(),
@@ -1224,7 +1224,7 @@ private fun hahah(
     .combine(queryFlow) { a, b -> a to b } // i want to use map latest
     .mapLatest { (state, query) ->
         if (query == null) {
-            return@mapLatest FilteredBoo(
+            return@mapLatest FilteredList(
                 count = state.list.size,
                 list = state.list.map { it.model },
                 preferredList = state.preferredList.map { it.model },
@@ -1244,7 +1244,7 @@ private fun hahah(
             highlightBackgroundColor = highlightBackgroundColor,
             highlightContentColor = highlightContentColor,
         )
-        FilteredBoo(
+        FilteredList(
             count = filteredAllItems.size,
             list = filteredAllItems,
             preferredList = filteredPreferredItems,
@@ -1333,7 +1333,7 @@ private fun hahah(
         ) { item ->
             out += item
         }
-        FilteredBoo(
+        FilteredList(
             count = state.list.size,
             list = out.ifEmpty {
                 listOf(SendItem.NoItems)

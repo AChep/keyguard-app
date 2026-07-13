@@ -37,8 +37,8 @@ import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRouteFactory
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
-import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
+import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
 import com.artemchep.keyguard.feature.home.vault.watchtower
@@ -105,7 +105,7 @@ fun produceWatchtowerState(
     )
 }
 
-private data class FilteredBoo<T>(
+private data class FilteredList<T>(
     val list: List<T>,
     val filterConfig: FilterHolder? = null,
 )
@@ -256,7 +256,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
 
     fun filteredCiphers(ciphersFlow: Flow<List<DSecret>>) = ciphersFlow
         .map {
-            FilteredBoo(
+            FilteredList(
                 list = it,
             )
         }
@@ -285,7 +285,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
 
     fun filteredFolders(foldersFlow: Flow<List<DFolder>>) = foldersFlow
         .map {
-            FilteredBoo(
+            FilteredList(
                 list = it,
             )
         }
@@ -340,7 +340,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         foldersFlow = foldersFlow,
     )
 
-    val filterFlow = ah(
+    val filterFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = ::identity,
         outputFlow = filteredCiphersFlow
@@ -443,12 +443,12 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
     }
 
     fun <S, T> internalCreateGenericAlertStateFlow(
-        source: Flow<FilteredBoo<S>>,
+        source: Flow<FilteredList<S>>,
         key: String,
         enabledFlow: Flow<Boolean>,
-        counterFlow: (FilteredBoo<S>) -> Flow<Int>,
-        alertsFlow: (FilteredBoo<S>) -> Flow<Int>,
-        onCreate: (FilteredBoo<S>?, Int, Int) -> T,
+        counterFlow: (FilteredList<S>) -> Flow<Int>,
+        alertsFlow: (FilteredList<S>) -> Flow<Int>,
+        onCreate: (FilteredList<S>?, Int, Int) -> T,
     ): StateFlow<Loadable<T?>> = internalCreateAlertStateFlow(
         key = key,
         enabledFlow = enabledFlow,
@@ -507,11 +507,11 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
     )
 
     fun <S, T> createGenericAlertStateFlow(
-        source: Flow<FilteredBoo<S>>,
+        source: Flow<FilteredList<S>>,
         key: String,
         enabledFlow: Flow<Boolean> = flowOf(true),
-        counterBlock: suspend (FilteredBoo<S>) -> Int,
-        onCreate: (FilteredBoo<S>?, Int, Int) -> T,
+        counterBlock: suspend (FilteredList<S>) -> Int,
+        onCreate: (FilteredList<S>?, Int, Int) -> T,
     ) = internalCreateGenericAlertStateFlow(
         source = source,
         key = key,

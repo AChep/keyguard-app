@@ -51,12 +51,12 @@ import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
 import com.artemchep.keyguard.feature.home.vault.model.SortItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.screen.ComparatorHolder
-import com.artemchep.keyguard.feature.home.vault.screen.OhOhOh
+import com.artemchep.keyguard.feature.home.vault.screen.ScrollPositionState
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListState
-import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
+import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
@@ -250,7 +250,7 @@ internal fun wearVaultListScreenState(
         .launchIn(screenScope)
 
     var scrollPositionKey: Any? = null
-    val scrollPositionSink = mutablePersistedFlow<OhOhOh>("scroll_state") { OhOhOh() }
+    val scrollPositionSink = mutablePersistedFlow<ScrollPositionState>("scroll_state") { ScrollPositionState() }
 
     val filterResult = createFilter(directDI)
 
@@ -587,7 +587,7 @@ internal fun wearVaultListScreenState(
         val revision: Int = 0,
     )
 
-    val ciphersFilteredStateFlow = hahah(
+    val ciphersFilteredStateFlow = createFilteredCiphersFlow(
         directDI = directDI,
         ciphersFlow = ciphersFlow,
         orderFlow = sortSink,
@@ -669,7 +669,7 @@ internal fun wearVaultListScreenState(
     } else {
         null
     }
-    val filterListFlow = ah(
+    val filterListFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = { it.source },
         outputFlow = ciphersFilteredFlow
@@ -771,7 +771,7 @@ internal fun wearVaultListScreenState(
 
                         val item = items.getOrNull(index)
                             ?: return@Revision
-                        scrollPositionSink.value = OhOhOh(
+                        scrollPositionSink.value = ScrollPositionState(
                             id = item.id,
                             offset = offset,
                             revision = ciphers.revision,
@@ -836,14 +836,14 @@ internal fun wearVaultListScreenState(
     }
 }
 
-private data class FilteredBoo<T>(
+private data class FilteredList<T>(
     val count: Int,
     val list: List<T>,
     val orderConfig: ComparatorHolder? = null,
     val filterConfig: FilterHolder? = null,
 )
 
-private fun hahah(
+private fun createFilteredCiphersFlow(
     directDI: DirectDI,
     ciphersFlow: Flow<List<VaultItem2.Item>>,
     orderFlow: Flow<ComparatorHolder>,
@@ -851,7 +851,7 @@ private fun hahah(
     dateFormatter: DateFormatter,
 ) = ciphersFlow
     .map { items ->
-        FilteredBoo(
+        FilteredList(
             count = items.size,
             list = items,
         )
@@ -997,7 +997,7 @@ private fun hahah(
         }.ifEmpty {
             listOf(VaultItem2.NoItems)
         }
-        FilteredBoo(
+        FilteredList(
             count = state.list.size,
             list = items,
             orderConfig = state.orderConfig,

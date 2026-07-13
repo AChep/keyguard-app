@@ -14,6 +14,8 @@ import arrow.core.widen
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.DSendFilter
+import com.artemchep.keyguard.common.model.DSendFilterPresence
+import com.artemchep.keyguard.common.model.existsIn
 import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
@@ -116,7 +118,7 @@ data class FilterParams(
 suspend fun <
         Output : Any,
         Secret,
-        > RememberStateFlowScope.ah(
+        > RememberStateFlowScope.createFilterItemsFlow(
     directDI: DirectDI,
     outputGetter: (Output) -> DSend,
     outputFlow: Flow<List<Output>>,
@@ -145,11 +147,11 @@ suspend fun <
         }
     }
 
-    val outputCipherFlow = outputFlow
+    val outputPresenceFlow = outputFlow
         .map { list ->
-            list
-                .map { outputGetter(it) }
+            DSendFilterPresence.of(list, outputGetter)
         }
+        .distinctUntilChanged()
 
     val filterTypesWithCiphers = mapCiphers(cipherFlow) { cipherGetter(it).type }
     val filterAccountsWithCiphers = mapCiphers(cipherFlow) { cipherGetter(it).accountId }
@@ -162,7 +164,7 @@ suspend fun <
         flowOf(emptyList())
     }
 
-    fun Flow<List<SendFilterItem.ChipItem>>.aaa(
+    fun Flow<List<SendFilterItem.ChipItem>>.asFilterSection(
         sectionId: String,
         sectionTitle: String,
         collapse: Boolean = true,
@@ -322,7 +324,7 @@ suspend fun <
                         }
                 }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = accountSectionId,
             sectionTitle = translate(Res.string.account),
         )
@@ -343,7 +345,7 @@ suspend fun <
                 item.takeIf { type in types }
             }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = typeSectionId,
             sectionTitle = translate(Res.string.type),
         )
@@ -356,7 +358,7 @@ suspend fun <
         .map {
             filterMiscAll
         }
-        .aaa(
+        .asFilterSection(
             sectionId = miscSectionId,
             sectionTitle = translate(Res.string.misc),
             collapse = false,
@@ -390,7 +392,7 @@ suspend fun <
             }
             out
         }
-        .combine(outputCipherFlow) { items, outputCiphers ->
+        .combine(outputPresenceFlow) { items, presence ->
             val checkedSectionIds = items
                 .asSequence()
                 .mapNotNull {
@@ -408,13 +410,14 @@ suspend fun <
                     is SendFilterItem.Section -> out += item
                     is SendFilterItem.ChipItem -> {
                         val fastEnabled = item.checked || item.sectionId in checkedSectionIds
-                        val enabled = fastEnabled || kotlin.run {
-                            item.filters
-                                .any { filter ->
-                                    val filterPredicate = filter.prepare(directDI, outputCiphers)
-                                    outputCiphers.any(filterPredicate)
-                                }
-                        }
+                        // Every primitive this factory creates is indexable, so
+                        // `existsIn` never returns null here; the `?: true` only
+                        // guards against a hypothetical future non-indexable one.
+                        val enabled = fastEnabled || item.filters
+                            .any { filter ->
+                                filter.existsIn(presence)
+                                    ?: true
+                            }
 
                         if (enabled) {
                             out += item

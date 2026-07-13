@@ -69,7 +69,7 @@ class DirsServiceAndroid(
     ) = ioEffect {
         val mimeType = MimeTypeMap.getSingleton()
             .getMimeTypeFromExtension(fileName.substringAfterLast('.'))
-        ah(
+        saveToMediaStore(
             write = write,
         ) {
             put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
@@ -85,7 +85,7 @@ class DirsServiceAndroid(
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun ah(
+    private fun saveToMediaStore(
         write: suspend (Sink) -> Unit,
         configure: ContentValues.() -> Uri,
     ) = ioEffect {

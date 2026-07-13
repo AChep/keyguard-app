@@ -32,8 +32,8 @@ import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactoryDefault
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
-import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
+import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
@@ -74,7 +74,7 @@ fun produceExportScreenState(
     )
 }
 
-private data class FilteredBoo<T>(
+private data class FilteredList<T>(
     val list: List<T>,
     val filterConfig: FilterHolder? = null,
 )
@@ -187,7 +187,7 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
 
     val filteredCiphersFlow = ciphersFlow
         .map {
-            FilteredBoo(
+            FilteredList(
                 list = it,
             )
         }
@@ -214,7 +214,7 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
         }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val filterRawFlow = ah(
+    val filterRawFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = ::identity,
         outputFlow = filteredCiphersFlow

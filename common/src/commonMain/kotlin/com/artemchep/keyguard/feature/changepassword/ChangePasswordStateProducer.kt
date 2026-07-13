@@ -83,7 +83,7 @@ suspend fun RememberStateFlowScope.changePasswordStateProducer(
                 is VaultState.Main -> {
                     val requireConfirmation = getBiometricRequireConfirmation()
                         .first()
-                    ah(
+                    createChangePasswordActions(
                         state = vaultState,
                         requireConfirmation = requireConfirmation,
                         biometricPromptSink = biometricPromptSink,
@@ -167,7 +167,7 @@ suspend fun RememberStateFlowScope.changePasswordStateProducer(
     }
 }
 
-private fun RememberStateFlowScope.ah(
+private fun RememberStateFlowScope.createChangePasswordActions(
     state: VaultState.Main,
     requireConfirmation: Boolean,
     biometricPromptSink: EventFlow<BiometricAuthPrompt>,

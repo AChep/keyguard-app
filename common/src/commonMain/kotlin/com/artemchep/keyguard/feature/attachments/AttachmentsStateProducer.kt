@@ -45,8 +45,8 @@ import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRouteFactory
-import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
+import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
 import com.artemchep.keyguard.feature.localization.wrap
@@ -123,7 +123,7 @@ private data class ItemCipher(
     val attachment: DSecret.Attachment.Remote,
 )
 
-private data class FilteredBoo<T>(
+private data class FilteredList<T>(
     val count: Int,
     val list: List<T>,
     val filterConfig: FilterHolder? = null,
@@ -443,7 +443,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
 
     val itemsFilteredFlow = itemsRawFlow
         .map { attachments ->
-            FilteredBoo(
+            FilteredList(
                 count = attachments.size,
                 list = attachments,
             )
@@ -473,7 +473,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
         }
         .shareInScreenScope()
 
-    val filterListFlow = ah(
+    val filterListFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = { it.cipher },
         outputFlow = itemsFilteredFlow
@@ -548,7 +548,7 @@ suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
                 )
                 out += wrappedItem
             }
-            FilteredBoo(
+            FilteredList(
                 count = state.list.size,
                 list = out,
                 filterConfig = state.filterConfig,

@@ -63,7 +63,7 @@ import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.debounceSearch
 import com.artemchep.keyguard.feature.send.ComparatorHolder
-import com.artemchep.keyguard.feature.send.OhOhOh
+import com.artemchep.keyguard.feature.send.ScrollPositionState
 import com.artemchep.keyguard.feature.send.SendItem
 import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
@@ -75,8 +75,8 @@ import com.artemchep.keyguard.feature.send.search.LastModifiedSendSort
 import com.artemchep.keyguard.feature.send.search.OurFilterResult
 import com.artemchep.keyguard.feature.send.search.SendSort
 import com.artemchep.keyguard.feature.send.search.SendSortItem
-import com.artemchep.keyguard.feature.send.search.ah
 import com.artemchep.keyguard.feature.send.search.createFilter
+import com.artemchep.keyguard.feature.send.search.createFilterItemsFlow
 import com.artemchep.keyguard.feature.send.search.filter.FilterSendHolder
 import com.artemchep.keyguard.feature.send.toVaultListItem
 import com.artemchep.keyguard.feature.send.util.SendUtil
@@ -186,7 +186,7 @@ fun wearSendListScreenState(
     }
 
     var scrollPositionKey: Any? = null
-    val scrollPositionSink = mutablePersistedFlow<OhOhOh>("scroll_state") { OhOhOh() }
+    val scrollPositionSink = mutablePersistedFlow<ScrollPositionState>("scroll_state") { ScrollPositionState() }
 
     val filterResult = createFilter()
 
@@ -459,7 +459,7 @@ fun wearSendListScreenState(
         val revision: Int = 0,
     )
 
-    val ciphersFilteredFlow = hahah(
+    val ciphersFilteredFlow = createFilteredSendsFlow(
         directDI = directDI,
         ciphersFlow = ciphersFlow,
         orderFlow = sortSink,
@@ -477,7 +477,7 @@ fun wearSendListScreenState(
         .flowOn(Dispatchers.Default)
         .shareIn(this, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val filterListFlow = ah(
+    val filterListFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = { it.source },
         outputFlow = ciphersFilteredFlow
@@ -568,7 +568,7 @@ fun wearSendListScreenState(
 
                         val item = items.getOrNull(index)
                             ?: return@Revision
-                        scrollPositionSink.value = OhOhOh(
+                        scrollPositionSink.value = ScrollPositionState(
                             id = item.id,
                             offset = offset,
                             revision = ciphers.revision,
@@ -614,14 +614,14 @@ fun wearSendListScreenState(
     }
 }
 
-private data class FilteredBoo<T>(
+private data class FilteredList<T>(
     val count: Int,
     val list: List<T>,
     val orderConfig: ComparatorHolder? = null,
     val filterConfig: FilterSendHolder? = null,
 )
 
-private fun hahah(
+private fun createFilteredSendsFlow(
     directDI: DirectDI,
     ciphersFlow: Flow<List<SendItem.Item>>,
     orderFlow: Flow<ComparatorHolder>,
@@ -629,7 +629,7 @@ private fun hahah(
     dateFormatter: DateFormatter,
 ) = ciphersFlow
     .map { items ->
-        FilteredBoo(
+        FilteredList(
             count = items.size,
             list = items,
         )
@@ -744,7 +744,7 @@ private fun hahah(
         ) { item ->
             out += item
         }
-        FilteredBoo(
+        FilteredList(
             count = state.list.size,
             list = out.ifEmpty {
                 listOf(SendItem.NoItems)

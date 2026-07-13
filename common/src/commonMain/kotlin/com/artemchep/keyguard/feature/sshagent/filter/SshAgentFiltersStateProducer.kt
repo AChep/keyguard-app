@@ -18,7 +18,7 @@ import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
 import com.artemchep.keyguard.feature.home.vault.screen.CreateFilterResult
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
-import com.artemchep.keyguard.feature.home.vault.screen.ah
+import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
@@ -184,7 +184,7 @@ suspend fun RememberStateFlowScope.sshAgentFiltersStateProducer(
         }
         .distinctUntilChanged()
 
-    val filterListFlow = ah(
+    val filterListFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = ::identity,
         outputFlow = filteredSshKeysFlow,

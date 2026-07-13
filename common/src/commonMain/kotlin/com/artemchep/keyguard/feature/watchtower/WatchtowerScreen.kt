@@ -878,7 +878,7 @@ private fun CardUnusableGpgKeys(
         new = state.new,
         title = {
             ContentCardsContentTitle(
-                icon = WatchtowerStatusIcon.ERROR.takeIf { state.count > 0 }
+                icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
                 title = stringResource(Res.string.watchtower_item_unusable_gpg_keys_title),
             )
@@ -918,7 +918,7 @@ private fun CardGpgKeyPublishing(
         new = state.new,
         title = {
             ContentCardsContentTitle(
-                icon = WatchtowerStatusIcon.WARNING.takeIf { state.count > 0 }
+                icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
                     ?: WatchtowerStatusIcon.OK,
                 title = stringResource(Res.string.watchtower_item_gpg_key_publishing_title),
             )

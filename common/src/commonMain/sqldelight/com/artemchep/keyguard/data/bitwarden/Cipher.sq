@@ -7,19 +7,20 @@ CREATE TABLE cipher (
   folderId TEXT,
   data TEXT AS BitwardenCipher NOT NULL,
   updatedAt INTEGER AS Instant,
+  dataRevCounter INTEGER NOT NULL DEFAULT 0,
   FOREIGN KEY (accountId) REFERENCES account(accountId) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_cipher_accountId ON cipher(accountId);
 CREATE INDEX idx_cipher_folderId ON cipher(folderId);
-CREATE INDEX idx_cipher_updatedAt ON cipher(updatedAt);
 
 insert {
   UPDATE cipher
   SET
     folderId = :folderId,
     data = :data,
-    updatedAt = :updatedAt
+    updatedAt = :updatedAt,
+    dataRevCounter = dataRevCounter + 1
   WHERE
     accountId = :accountId AND
     cipherId = :cipherId;
@@ -35,6 +36,30 @@ FROM cipher;
 getIds:
 SELECT cipherId
 FROM cipher;
+
+getCipherSnapshots:
+SELECT
+  cipherId,
+  data,
+  dataRevCounter
+FROM cipher
+ORDER BY cipherId;
+
+getCipherSnapshotKeys:
+SELECT
+  cipherId,
+  dataRevCounter
+FROM cipher
+ORDER BY cipherId;
+
+getCipherSnapshotsByIds:
+SELECT
+  cipherId,
+  data,
+  dataRevCounter
+FROM cipher
+WHERE cipherId IN :cipherIds
+ORDER BY cipherId;
 
 getByCipherId:
 SELECT *

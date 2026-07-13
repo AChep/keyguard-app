@@ -1,0 +1,8 @@
+ALTER TABLE cipher
+ADD COLUMN dataRevCounter INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE watchtowerThreat
+ADD COLUMN cipherDataRevCounter INTEGER NOT NULL DEFAULT -1;
+
+DROP INDEX IF EXISTS idx_cipher_updatedAt;
+DROP INDEX IF EXISTS idx_watchtowerThreat_cipherId_type_version_reportedAt;

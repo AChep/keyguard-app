@@ -1,8 +1,9 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.usecase.CipherSnapshot
 import com.artemchep.keyguard.common.usecase.GetAccounts
-import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetCipherSnapshots
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
@@ -26,9 +27,9 @@ import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.coroutines.CoroutineContext
 
-class GetVaultSearchIndexImpl(
+class GetVaultSearchIndexImpl internal constructor(
     private val logRepository: LogRepository,
-    private val getCiphers: GetCiphers,
+    private val getCipherSnapshots: GetCipherSnapshots,
     private val getAccounts: GetAccounts,
     private val getFolders: GetFolders,
     private val getTags: GetTags,
@@ -44,7 +45,7 @@ class GetVaultSearchIndexImpl(
 
     constructor(directDI: DirectDI) : this(
         logRepository = directDI.instance(),
-        getCiphers = directDI.instance(),
+        getCipherSnapshots = directDI.instance(),
         getAccounts = directDI.instance(),
         getFolders = directDI.instance(),
         getTags = directDI.instance(),
@@ -71,15 +72,20 @@ class GetVaultSearchIndexImpl(
     }
 
     private val sharedFlow = combine(
-        getCiphers(),
+        getCipherSnapshots(),
         metadataFlow,
-    ) { ciphers, metadata ->
-        ciphers to metadata
+    ) { snapshots, metadata ->
+        snapshots to metadata
     }
-        .mapLatest { (ciphers, metadata) ->
+        .mapLatest { (snapshots, metadata) ->
+            val ciphers = snapshots
+                .map(CipherSnapshot::cipher)
             searchIndexBuilder.build(
                 items = ciphers,
                 metadata = metadata,
+                dataRevCounters = snapshots.associate { snapshot ->
+                    snapshot.key.cipherId to snapshot.key.dataRevCounter
+                },
             )
         }
         .withLogTimeOfFirstEvent(logRepository, TAG)

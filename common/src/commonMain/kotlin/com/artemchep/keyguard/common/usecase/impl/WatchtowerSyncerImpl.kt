@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.usecase.impl
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOne
 import arrow.core.getOrElse
 import com.artemchep.keyguard.build.FileHashes
 import com.artemchep.keyguard.common.io.attempt
@@ -34,6 +35,8 @@ import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
+import com.artemchep.keyguard.common.usecase.CipherSnapshot
+import com.artemchep.keyguard.common.usecase.CipherSnapshotKey
 import com.artemchep.keyguard.common.usecase.CipherBreachCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
@@ -48,6 +51,7 @@ import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.GetCheckTwoFA
+import com.artemchep.keyguard.common.usecase.GetCipherSnapshots
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetEquivalentDomains
 import com.artemchep.keyguard.common.usecase.GetPasskeys
@@ -72,18 +76,19 @@ import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import io.ktor.http.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -96,6 +101,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.runningFold
@@ -254,8 +260,8 @@ private class WatchtowerNotifications(
 }
 
 private class WatchtowerClient(
-    private val getCiphers: GetCiphers,
     private val getBreaches: GetBreaches,
+    private val getCipherSnapshots: GetCipherSnapshots,
     private val databaseManager: VaultDatabaseManager,
     private val logRepository: LogRepository,
     private val syncSupervisor: SupervisorRead,
@@ -268,8 +274,8 @@ private class WatchtowerClient(
     }
 
     constructor(directDI: DirectDI) : this(
-        getCiphers = directDI.instance(),
         getBreaches = directDI.instance(),
+        getCipherSnapshots = directDI.instance(),
         databaseManager = directDI.instance(),
         logRepository = directDI.instance(),
         syncSupervisor = directDI.instance(),
@@ -279,12 +285,6 @@ private class WatchtowerClient(
     )
 
     fun launch(scope: CoroutineScope) = scope.launch {
-        val cipherByIdFlow = getCiphers()
-            .map { ciphers ->
-                ciphers
-                    .associateBy { it.id }
-            }
-            .shareIn(this, SharingStarted.Lazily, replay = 1)
         val processingAllowedFlow = syncSupervisor
             .get(AccountTask.SYNC)
             .watchtowerProcessingAllowedFlow()
@@ -292,6 +292,9 @@ private class WatchtowerClient(
 
         val db = databaseManager.get()
             .bind()
+        val cipherSnapshotsFlow = getCipherSnapshots()
+            .map(::CipherSnapshotIndex)
+            .shareIn(this, SharingStarted.Eagerly, replay = 1)
         list.forEach { processor ->
             val type = processor.type
             // For how long we want to wait
@@ -311,10 +314,10 @@ private class WatchtowerClient(
                             // helps a LOT because we avoid processing
                             // of non-changed ciphers.
                             getPendingCiphersFlow(
-                                cipherByIdFlow = cipherByIdFlow,
                                 db = db,
                                 type = type,
                                 version = version,
+                                cipherSnapshotsFlow = cipherSnapshotsFlow,
                             )
                         }
 
@@ -323,38 +326,75 @@ private class WatchtowerClient(
                                 db = db,
                                 type = type,
                                 version = version,
+                                cipherSnapshotsFlow = cipherSnapshotsFlow,
                             )
                         }
                     }
                     ciphersFlow
-                        .map { ciphers -> version to ciphers }
+                        .map { ciphers ->
+                            WatchtowerProcessingRequest(
+                                version = version,
+                                ciphers = ciphers,
+                            )
+                        }
                 }
             requestsFlow
-                .gateLatestWhenAllowed(processingAllowedFlow)
-                .debounce(debounceTimeoutMs)
-                .buffer(
-                    capacity = 1,
-                    onBufferOverflow = BufferOverflow.DROP_OLDEST,
-                )
-                .filter { (version, ciphers) -> ciphers.isNotEmpty() }
-                .onEach { (version, ciphers) ->
-                    val message = "Processing watchtower alert [$type/$version]: " +
-                            "${ciphers.size} items"
+                .mapLatestWhenAllowed(
+                    allowedFlow = processingAllowedFlow,
+                    debounceMs = debounceTimeoutMs,
+                ) { request ->
+                    if (request.ciphers.isEmpty()) {
+                        return@mapLatestWhenAllowed
+                    }
+
+                    val version = request.version
+                    val ciphers = request.ciphers
+                        .map(CipherSnapshot::cipher)
+                    val message = "Processing watchtower alert [$type/$version]: ${ciphers.size} items"
                     logRepository.add(TAG, message)
 
                     val now = Clock.System.now()
                     val results = try {
                         processor.process(ciphers)
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         // If there's a bug in the watchtower processor then we
                         // just want to report that and not crash the app. The
                         // watchtower crashes might be quite annoying because they
                         // soft-lock you out of the app.
                         recordException(e)
-                        return@onEach
+                        return@mapLatestWhenAllowed
                     }
+                    if (!processingAllowedFlow.first()) {
+                        return@mapLatestWhenAllowed
+                    }
+                    currentCoroutineContext().ensureActive()
+
                     db.transaction {
+                        if (processor.mode == WatchtowerClientMode.ALL) {
+                            val requestKeys = request.ciphers
+                                .map(CipherSnapshot::key)
+                                .sortedBy(CipherSnapshotKey::cipherId)
+                            val currentKeys = db.cipherQueries
+                                .getCipherSnapshotKeys()
+                                .executeAsList()
+                                .map { row ->
+                                    CipherSnapshotKey(
+                                        cipherId = row.cipherId,
+                                        dataRevCounter = row.dataRevCounter,
+                                    )
+                                }
+                            if (requestKeys != currentKeys) {
+                                return@transaction
+                            }
+                        }
+
+                        val snapshotByCipherId = request.ciphers
+                            .associateBy { snapshot -> snapshot.key.cipherId }
                         results.forEach { r ->
+                            val snapshot = snapshotByCipherId[r.cipher.id]
+                                ?: return@forEach
                             // We might be inserting a threat report on a cipher that
                             // does not exist anymore. This is fine, just ignore it.
                             runCatching {
@@ -365,6 +405,7 @@ private class WatchtowerClient(
                                     type = type,
                                     reportedAt = now,
                                     version = version,
+                                    cipherDataRevCounter = snapshot.key.dataRevCounter,
                                 )
                             }
                         }
@@ -386,61 +427,73 @@ private class WatchtowerClient(
         db: Database,
         type: Long,
         version: String,
-    ): Flow<List<DSecret>> {
-        val cipherIdsFlow = getPendingCipherIdsFlow(
-            db = db,
+        cipherSnapshotsFlow: Flow<CipherSnapshotIndex>,
+    ): Flow<List<CipherSnapshot>> = db.watchtowerThreatQueries
+        .hasPendingCiphers(
             type = type,
             version = version,
-            limit = 1L,
         )
-        val cipherNonEmptyFlow = cipherIdsFlow
-            .map { it.isNotEmpty() }
-            .distinctUntilChanged()
-        return getCiphers()
-            .combine(cipherNonEmptyFlow) { ciphers, nonEmpty ->
-                if (nonEmpty) {
-                    return@combine ciphers
-                }
-
+        .asFlow()
+        .mapToOne(dbDispatcher)
+        .distinctUntilChanged()
+        .combine(cipherSnapshotsFlow) { hasPending, cipherSnapshots ->
+            if (hasPending) {
+                cipherSnapshots.snapshots
+            } else {
                 emptyList()
             }
-    }
+        }
+        .distinctUntilChanged()
 
     private fun getPendingCiphersFlow(
-        cipherByIdFlow: Flow<Map<String, DSecret>>,
         db: Database,
         type: Long,
         version: String,
-    ): Flow<List<DSecret>> {
-        val cipherIdsFlow = getPendingCipherIdsFlow(
-            db = db,
+        cipherSnapshotsFlow: Flow<CipherSnapshotIndex>,
+    ): Flow<List<CipherSnapshot>> = db.watchtowerThreatQueries
+        .getPendingCipherKeys(
             type = type,
             version = version,
             limit = 500L,
         )
-        return cipherByIdFlow
-            .combine(cipherIdsFlow) { cipherById, ids ->
-                ids.mapNotNull(cipherById::get)
-            }
-    }
-
-    private fun getPendingCipherIdsFlow(
-        db: Database,
-        type: Long,
-        version: String,
-        limit: Long,
-    ): Flow<Set<String>> = db.watchtowerThreatQueries
-        .getPendingCipherIds(
-            type = type,
-            version = version,
-            limit = limit,
-        )
         .asFlow()
         .mapToList(dbDispatcher)
-        .map { ids ->
-            ids.toSet()
+        .map { rows ->
+            rows.map { row ->
+                WatchtowerPendingCipherKey(
+                    cipherId = row.cipherId,
+                    dataRevCounter = row.dataRevCounter,
+                )
+            }
         }
         .distinctUntilChanged()
+        .combine(cipherSnapshotsFlow, ::resolvePendingCipherSnapshots)
+        .distinctUntilChanged()
+}
+
+private data class WatchtowerProcessingRequest(
+    val version: String,
+    val ciphers: List<CipherSnapshot>,
+)
+
+internal class CipherSnapshotIndex(
+    val snapshots: List<CipherSnapshot>,
+) {
+    val byCipherId = snapshots
+        .associateBy { snapshot -> snapshot.key.cipherId }
+}
+
+internal data class WatchtowerPendingCipherKey(
+    val cipherId: String,
+    val dataRevCounter: Long,
+)
+
+internal fun resolvePendingCipherSnapshots(
+    keys: List<WatchtowerPendingCipherKey>,
+    index: CipherSnapshotIndex,
+): List<CipherSnapshot> = keys.mapNotNull { key ->
+    index.byCipherId[key.cipherId]
+        ?.takeIf { snapshot -> snapshot.key.dataRevCounter == key.dataRevCounter }
 }
 
 private const val WATCHTOWER_PROCESSING_RESUME_DELAY_MS = 2_000L
@@ -476,56 +529,24 @@ private data class WatchtowerProcessingGateState(
     val seenBefore: Boolean,
 )
 
-internal fun <T> Flow<T>.gateLatestWhenAllowed(
+@OptIn(ExperimentalCoroutinesApi::class)
+internal fun <T> Flow<T>.mapLatestWhenAllowed(
     allowedFlow: Flow<Boolean>,
-): Flow<T> {
-    val requestFlow = flow {
-        var requestId = 0L
-        collect { value ->
-            emit(
-                PendingValue(
-                    id = requestId++,
-                    value = value,
-                ),
-            )
-        }
-    }
-
-    return requestFlow
-        .combine(allowedFlow.distinctUntilChanged()) { request, allowed ->
-            GateLatestSnapshot(
-                request = request,
-                allowed = allowed,
-            )
-        }
-        .runningFold(GateLatestState<T>()) { state, snapshot ->
-            val emitValue = snapshot
-                .request
-                .takeIf { snapshot.allowed && it.id != state.emittedRequestId }
-            GateLatestState(
-                emittedRequestId = emitValue?.id ?: state.emittedRequestId,
-                emitValue = emitValue,
-            )
-        }
-        .mapNotNull { state ->
-            state.emitValue?.value
-        }
+    debounceMs: Long,
+    transform: suspend (T) -> Unit,
+): Flow<Unit> = combine(
+    allowedFlow.distinctUntilChanged(),
+) { value, allowed ->
+    value to allowed
 }
+    .mapLatest { (value, allowed) ->
+        if (!allowed) {
+            return@mapLatest
+        }
 
-private data class GateLatestSnapshot<T>(
-    val request: PendingValue<T>,
-    val allowed: Boolean,
-)
-
-private data class GateLatestState<T>(
-    val emittedRequestId: Long? = null,
-    val emitValue: PendingValue<T>? = null,
-)
-
-private data class PendingValue<T>(
-    val id: Long,
-    val value: T,
-)
+        delay(debounceMs)
+        transform(value)
+    }
 
 data class WatchtowerClientResult(
     val value: String? = null,

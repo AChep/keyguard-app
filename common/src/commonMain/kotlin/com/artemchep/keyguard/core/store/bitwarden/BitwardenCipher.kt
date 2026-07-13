@@ -32,6 +32,10 @@ data class BitwardenCipher(
      * login.
      */
     val accountId: String,
+    /**
+     * Stable local database ID. A cipher without an existing local row must
+     * receive a freshly generated ID instead of reusing one from a deleted row.
+     */
     val cipherId: String,
     val folderId: String? = null,
     val organizationId: String? = null,

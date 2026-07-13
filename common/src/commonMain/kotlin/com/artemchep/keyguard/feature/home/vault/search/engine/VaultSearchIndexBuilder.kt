@@ -16,9 +16,14 @@ data class VaultSearchIndexMetadata(
 )
 
 interface VaultSearchIndexBuilder {
+    /**
+     * Builds an index for [items], which must contain
+     * at most one secret for each ID.
+     */
     suspend fun build(
         items: List<DSecret>,
         metadata: VaultSearchIndexMetadata = VaultSearchIndexMetadata(),
         surface: String? = null,
+        dataRevCounters: Map<String, Long> = emptyMap(),
     ): VaultSearchIndex
 }

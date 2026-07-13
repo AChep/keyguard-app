@@ -6,8 +6,10 @@ import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DTag
+import com.artemchep.keyguard.common.usecase.CipherSnapshot
+import com.artemchep.keyguard.common.usecase.CipherSnapshotKey
 import com.artemchep.keyguard.common.usecase.GetAccounts
-import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetCipherSnapshots
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetOrganizations
@@ -54,19 +56,25 @@ class GetVaultSearchIndexImplTest {
             compiler = DefaultVaultSearchQueryCompiler(tokenizer),
             traceSink = traceSink,
         )
-        val ciphersFlow = MutableStateFlow(
+        val cipherSnapshotsFlow = MutableStateFlow(
             listOf(
-                createSecret(
-                    id = "alpha",
-                    name = "Alpha Account",
-                    login = DSecret.Login(username = "alice@example.com"),
+                CipherSnapshot(
+                    cipher = createSecret(
+                        id = "alpha",
+                        name = "Alpha Account",
+                        login = DSecret.Login(username = "alice@example.com"),
+                    ),
+                    key = CipherSnapshotKey(
+                        cipherId = "alpha",
+                        dataRevCounter = 0L,
+                    ),
                 ),
             ),
         )
         val dispatcher = StandardTestDispatcher(testScheduler)
         val useCase = GetVaultSearchIndexImpl(
             logRepository = NoOpLogRepository,
-            getCiphers = flowUseCase(ciphersFlow),
+            getCipherSnapshots = cipherSnapshotsUseCase(cipherSnapshotsFlow),
             getAccounts = flowUseCase(MutableStateFlow<List<DAccount>>(emptyList())),
             getFolders = flowUseCase(MutableStateFlow<List<DFolder>>(emptyList())),
             getTags = flowUseCase(MutableStateFlow<List<DTag>>(emptyList())),
@@ -96,10 +104,10 @@ class GetVaultSearchIndexImplTest {
     }
 }
 
-private fun flowUseCase(
-    flow: Flow<List<DSecret>>,
-): GetCiphers = object : GetCiphers {
-    override fun invoke(): Flow<List<DSecret>> = flow
+private fun cipherSnapshotsUseCase(
+    flow: Flow<List<CipherSnapshot>>,
+): GetCipherSnapshots = object : GetCipherSnapshots {
+    override fun invoke(): Flow<List<CipherSnapshot>> = flow
 }
 
 private fun flowUseCase(

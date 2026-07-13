@@ -128,6 +128,7 @@ import com.artemchep.keyguard.common.usecase.GetBreachesLatestDate
 import com.artemchep.keyguard.common.usecase.GetCanAddAccount
 import com.artemchep.keyguard.common.usecase.GetCipherOpenedCount
 import com.artemchep.keyguard.common.usecase.GetCipherOpenedHistory
+import com.artemchep.keyguard.common.usecase.GetCipherSnapshots
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetWordlists
@@ -347,6 +348,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetAccountsHasErrorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetAccountsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCipherOpenedCountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCipherOpenedHistoryImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetCipherSnapshotsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCiphersImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCollectionsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetWordlistsImpl
@@ -611,6 +613,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<GetAccountHasError> {
         GetAccountHasErrorImpl(this)
+    }
+    bindSingleton<GetCipherSnapshots> {
+        GetCipherSnapshotsImpl(this)
     }
     bindSingleton<GetCiphers> {
         GetCiphersImpl(this)

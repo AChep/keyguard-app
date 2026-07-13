@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
+import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
@@ -1175,14 +1176,20 @@ internal fun SendEntity.toLocalSend(localId: String) = BitwardenSend(
     },
 )
 
-internal fun createUploadTestDatabase(): Database {
+internal fun createUploadTestDatabase(
+    cipherDataAdapter: ColumnAdapter<BitwardenCipher, String>? = null,
+): Database {
     val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
     Database.Schema.create(driver)
-    return createUploadTestDatabase(driver)
+    return createUploadTestDatabase(
+        driver = driver,
+        cipherDataAdapter = cipherDataAdapter,
+    )
 }
 
 internal fun createUploadTestDatabase(
     driver: JdbcSqliteDriver,
+    cipherDataAdapter: ColumnAdapter<BitwardenCipher, String>? = null,
 ): Database {
     val json = UploadTestServer.json
     return Database(
@@ -1215,7 +1222,7 @@ internal fun createUploadTestDatabase(
         urlOverrideAdapter = UrlOverride.Adapter(InstantToLongAdapter),
         cipherAdapter = Cipher.Adapter(
             updatedAtAdapter = InstantToLongAdapter,
-            data_Adapter = ObjectToStringAdapter<BitwardenCipher>(json),
+            data_Adapter = cipherDataAdapter ?: ObjectToStringAdapter<BitwardenCipher>(json),
         ),
         sendAdapter = DbSend.Adapter(ObjectToStringAdapter<BitwardenSend>(json)),
         collectionAdapter = DbCollection.Adapter(ObjectToStringAdapter<BitwardenCollection>(json)),

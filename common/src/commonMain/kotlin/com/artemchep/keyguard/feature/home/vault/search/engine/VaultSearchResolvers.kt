@@ -11,6 +11,35 @@ internal data class MetadataResolver(
     val fuzzyValues: Set<String> = values.keys,
 )
 
+internal data class VaultSearchMetadataResolvers(
+    val account: MetadataResolver,
+    val folder: MetadataResolver,
+    val tag: MetadataResolver,
+    val organization: MetadataResolver,
+    val collection: MetadataResolver,
+)
+
+internal fun buildMetadataResolvers(
+    metadata: VaultSearchIndexMetadata,
+    tokenizer: SearchTokenizer,
+): VaultSearchMetadataResolvers =
+    VaultSearchMetadataResolvers(
+        account = buildAccountResolver(metadata.accounts, tokenizer),
+        folder =
+            buildNamedResolver(metadata.folders, tokenizer) { folder ->
+                listOf(folder.id, folder.name)
+            },
+        tag = buildTagResolver(metadata.tags, tokenizer),
+        organization =
+            buildNamedResolver(metadata.organizations, tokenizer) { organization ->
+                listOf(organization.id, organization.name)
+            },
+        collection =
+            buildNamedResolver(metadata.collections, tokenizer) { collection ->
+                listOf(collection.id, collection.name)
+            },
+    )
+
 internal data class ExactFacetIndex(
     val account: Map<String, Set<Int>>,
     val folder: Map<String, Set<Int>>,

@@ -6,12 +6,14 @@ import com.artemchep.keyguard.common.model.CheckPasswordSetLeakRequest
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.PasswordPwnage
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
+import com.artemchep.keyguard.common.usecase.CipherSnapshot
+import com.artemchep.keyguard.common.usecase.CipherSnapshotKey
 import com.artemchep.keyguard.common.usecase.GetBreachesLatestDate
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedPasswords
 import com.artemchep.keyguard.feature.home.vault.search.createSecret
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
@@ -25,6 +27,38 @@ import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WatchtowerSyncerImplTest {
+    @Test
+    fun `pending snapshots resolve the current shared payload by marker`() {
+        val snapshot = cipherSnapshot(
+            id = "cipher-1",
+            dataRevCounter = 3L,
+        )
+        val index = CipherSnapshotIndex(listOf(snapshot))
+        val pendingKey = WatchtowerPendingCipherKey(
+            cipherId = snapshot.key.cipherId,
+            dataRevCounter = snapshot.key.dataRevCounter,
+        )
+
+        assertEquals(
+            listOf(snapshot),
+            resolvePendingCipherSnapshots(listOf(pendingKey), index),
+        )
+        assertEquals(
+            emptyList(),
+            resolvePendingCipherSnapshots(
+                keys = listOf(pendingKey.copy(dataRevCounter = 4L)),
+                index = index,
+            ),
+        )
+        assertEquals(
+            emptyList(),
+            resolvePendingCipherSnapshots(
+                keys = listOf(pendingKey.copy(cipherId = "missing")),
+                index = index,
+            ),
+        )
+    }
+
     @Test
     fun `pwned password processing flags every positive occurrence count`() = runTest {
         val ciphers = listOf(
@@ -144,71 +178,98 @@ class WatchtowerSyncerImplTest {
     }
 
     @Test
-    fun `initially allowed request gate emits first request immediately`() = runTest {
+    fun `active sync cancels request debounce and restarts it after resume`() = runTest {
         val allowed = MutableStateFlow(true)
-        val requests = MutableSharedFlow<Int>()
+        val requests = MutableStateFlow(1)
         val values = mutableListOf<Int>()
 
         backgroundScope.launch {
             requests
-                .gateLatestWhenAllowed(allowed)
-                .toList(values)
+                .mapLatestWhenAllowed(
+                    allowedFlow = allowed,
+                    debounceMs = 1_000L,
+                ) { value ->
+                    values += value
+                }
+                .toList()
         }
         runCurrent()
 
-        requests.emit(1)
+        advanceTimeBy(500L)
+        allowed.value = false
         runCurrent()
-
-        assertEquals(listOf(1), values)
-    }
-
-    @Test
-    fun `paused request gate resumes with latest request only`() = runTest {
-        val allowed = MutableStateFlow(false)
-        val requests = MutableSharedFlow<Int>()
-        val values = mutableListOf<Int>()
-
-        backgroundScope.launch {
-            requests
-                .gateLatestWhenAllowed(allowed)
-                .toList(values)
-        }
-        runCurrent()
-
-        requests.emit(1)
-        requests.emit(2)
+        advanceTimeBy(1_000L)
         runCurrent()
 
         assertEquals(emptyList(), values)
 
         allowed.value = true
         runCurrent()
-
-        assertEquals(listOf(2), values)
-
-        requests.emit(3)
+        advanceTimeBy(999L)
         runCurrent()
 
-        assertEquals(listOf(2, 3), values)
+        assertEquals(emptyList(), values)
 
-        allowed.value = false
-        runCurrent()
-        allowed.value = true
+        advanceTimeBy(1L)
         runCurrent()
 
-        assertEquals(listOf(2, 3), values)
+        assertEquals(listOf(1), values)
+    }
 
-        allowed.value = false
-        runCurrent()
-        requests.emit(4)
-        requests.emit(5)
-        runCurrent()
-        allowed.value = true
+    @Test
+    fun `new request cancels active watchtower processing`() = runTest {
+        val allowed = MutableStateFlow(true)
+        val requests = MutableStateFlow(1)
+        val started = mutableListOf<Int>()
+        val cancelled = mutableListOf<Int>()
+        val completed = mutableListOf<Int>()
+
+        backgroundScope.launch {
+            requests
+                .mapLatestWhenAllowed(
+                    allowedFlow = allowed,
+                    debounceMs = 0L,
+                ) { value ->
+                    started += value
+                    try {
+                        delay(1_000L)
+                        completed += value
+                    } finally {
+                        if (value !in completed) {
+                            cancelled += value
+                        }
+                    }
+                }
+                .toList()
+        }
         runCurrent()
 
-        assertEquals(listOf(2, 3, 5), values)
+        assertEquals(listOf(1), started)
+
+        requests.value = 2
+        runCurrent()
+
+        assertEquals(listOf(1, 2), started)
+        assertEquals(listOf(1), cancelled)
+        assertEquals(emptyList(), completed)
+
+        advanceTimeBy(1_000L)
+        runCurrent()
+
+        assertEquals(listOf(2), completed)
     }
 }
+
+private fun cipherSnapshot(
+    id: String,
+    dataRevCounter: Long,
+): CipherSnapshot = CipherSnapshot(
+    cipher = createSecret(id = id),
+    key = CipherSnapshotKey(
+        cipherId = id,
+        dataRevCounter = dataRevCounter,
+    ),
+)
 
 private fun passwordSecret(
     id: String,

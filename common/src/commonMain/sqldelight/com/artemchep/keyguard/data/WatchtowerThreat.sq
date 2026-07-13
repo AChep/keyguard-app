@@ -9,13 +9,13 @@ CREATE TABLE watchtowerThreat (
   reportedAt INTEGER AS Instant NOT NULL,
   version TEXT NOT NULL,
   read INTEGER AS Boolean NOT NULL,
+  cipherDataRevCounter INTEGER NOT NULL DEFAULT -1,
   PRIMARY KEY (cipherId, type),
   FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_watchtowerThreat_threat_reportedAt ON watchtowerThreat(threat, reportedAt DESC);
 CREATE INDEX idx_watchtowerThreat_type_version ON watchtowerThreat(type, version);
-CREATE INDEX idx_watchtowerThreat_cipherId_type_version_reportedAt ON watchtowerThreat(cipherId, type, version, reportedAt);
 
 upsert {
   UPDATE watchtowerThreat
@@ -24,17 +24,44 @@ upsert {
     threat = :threat,
     reportedAt = :reportedAt,
     version = :version,
+    cipherDataRevCounter = :cipherDataRevCounter,
     read = CASE
       WHEN value != :value OR threat != :threat THEN 0
       ELSE read
     END
   WHERE
-    (value != :value OR version != :version OR threat != :threat OR reportedAt != :reportedAt) AND
+    (
+      value != :value OR
+      version != :version OR
+      threat != :threat OR
+      reportedAt != :reportedAt OR
+      cipherDataRevCounter != :cipherDataRevCounter
+    ) AND
     cipherId = :cipherId AND
-    type = :type;
+    type = :type AND
+    EXISTS (
+      SELECT 1
+      FROM cipher c
+      WHERE
+        c.cipherId = :cipherId AND
+        c.dataRevCounter = :cipherDataRevCounter
+    );
 
-  INSERT OR IGNORE INTO watchtowerThreat(cipherId, type, value, threat, reportedAt, version, read)
-  VALUES (:cipherId, :type,:value, :threat, :reportedAt, :version, 0);
+  INSERT OR IGNORE INTO watchtowerThreat(
+    cipherId,
+    type,
+    value,
+    threat,
+    reportedAt,
+    version,
+    read,
+    cipherDataRevCounter
+  )
+  SELECT :cipherId, :type, :value, :threat, :reportedAt, :version, 0, :cipherDataRevCounter
+  FROM cipher c
+  WHERE
+    c.cipherId = :cipherId AND
+    c.dataRevCounter = :cipherDataRevCounter;
 }
 
 markAllAsNotRead {
@@ -70,22 +97,34 @@ WHERE
   watchtowerThreat.threat > 0
 ORDER BY watchtowerThreat.reportedAt DESC;
 
-getPendingCipherIds:
+getPendingCipherKeys:
 SELECT
-  c.cipherId
+  c.cipherId,
+  c.dataRevCounter
 FROM
   cipher c
-LEFT JOIN (
-  SELECT cipherId, type, reportedAt
-  FROM watchtowerThreat
-  WHERE
-    type = :type AND
-    version = :version
-) t ON c.cipherId = t.cipherId
+LEFT JOIN watchtowerThreat t ON
+  c.cipherId = t.cipherId AND
+  t.type = :type AND
+  t.version = :version
 WHERE
-  t.type IS NULL OR
-  (c.updatedAt IS NOT NULL AND c.updatedAt >= t.reportedAt)
+  t.cipherId IS NULL OR
+  c.dataRevCounter != t.cipherDataRevCounter
+ORDER BY c.cipherId
 LIMIT :limit;
+
+hasPendingCiphers:
+SELECT EXISTS (
+  SELECT 1
+  FROM cipher c
+  LEFT JOIN watchtowerThreat t ON
+    c.cipherId = t.cipherId AND
+    t.type = :type AND
+    t.version = :version
+  WHERE
+    t.cipherId IS NULL OR
+    c.dataRevCounter != t.cipherDataRevCounter
+) AS hasPending;
 
 deleteAll:
 DELETE FROM watchtowerThreat;

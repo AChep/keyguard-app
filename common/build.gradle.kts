@@ -367,6 +367,7 @@ val desktopTestClassesTask = tasks.named("desktopTestClasses")
 desktopTestTask.configure {
     filter {
         excludeTestsMatching("com.artemchep.keyguard.feature.home.vault.search.benchmark.*")
+        excludeTestsMatching("com.artemchep.keyguard.provider.bitwarden.usecase.benchmark.*")
     }
 }
 
@@ -388,6 +389,43 @@ tasks.register<Test>("vaultSearchBenchmark") {
 
     filter {
         includeTestsMatching("com.artemchep.keyguard.feature.home.vault.search.benchmark.*")
+        isFailOnNoMatchingTests = true
+    }
+
+    testLogging {
+        events =
+            setOf(
+                TestLogEvent.FAILED,
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_ERROR,
+                TestLogEvent.STANDARD_OUT,
+            )
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showStackTraces = true
+        showStandardStreams = true
+    }
+}
+
+tasks.register<Test>("cipherSnapshotBenchmark") {
+    group = "verification"
+    description = "Runs the cipher snapshot loading JVM benchmark suite from desktopTest."
+
+    dependsOn(desktopTestClassesTask)
+
+    testClassesDirs = desktopTestTask.get().testClassesDirs
+    classpath = desktopTestTask.get().classpath
+
+    maxParallelForks = 1
+    forkEvery = 0L
+    outputs.upToDateWhen { false }
+
+    systemProperty("user.language", "en")
+    systemProperty("user.country", "US")
+
+    filter {
+        includeTestsMatching("com.artemchep.keyguard.provider.bitwarden.usecase.benchmark.*")
         isFailOnNoMatchingTests = true
     }
 

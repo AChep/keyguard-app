@@ -24,6 +24,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class VaultSearchIndexBuilderTest {
@@ -524,6 +525,53 @@ class VaultSearchIndexBuilderTest {
     }
 
     @Test
+    fun `unchanged data revision counters skip search fingerprints`() = runTest {
+        var fingerprintCalls = 0
+        val traceSink = BuilderRecordingVaultSearchTraceSink()
+        val builder = createBuilder(
+            traceSink = traceSink,
+            fingerprintOf = { secret ->
+                fingerprintCalls += 1
+                searchFingerprint(secret)
+            },
+        )
+        val alpha = createSecret(id = "alpha", name = "Alpha Account")
+        val beta = createSecret(id = "beta", name = "Beta Account")
+        val revisions = mapOf(
+            alpha.id to 0L,
+            beta.id to 0L,
+        )
+        val initialIndex = builder.build(
+            items = listOf(alpha, beta),
+            dataRevCounters = revisions,
+        )
+        assertEquals(2, fingerprintCalls)
+
+        val reusedIndex = builder.build(
+            items = listOf(alpha, beta),
+            dataRevCounters = revisions,
+        )
+        assertEquals(2, fingerprintCalls)
+        assertSame(
+            initialIndex.privateField<Map<*, *>>("documents"),
+            reusedIndex.privateField<Map<*, *>>("documents"),
+        )
+        assertSame(
+            initialIndex.privateField<Map<*, *>>("postings"),
+            reusedIndex.privateField<Map<*, *>>("postings"),
+        )
+
+        builder.build(
+            items = listOf(alpha, beta),
+            dataRevCounters = revisions + (alpha.id to 1L),
+        )
+        assertEquals(3, fingerprintCalls)
+        val rebuildEvent = traceSink.indexEvents.last()
+        assertEquals(2, rebuildEvent.reusedDocumentCount)
+        assertEquals(0, rebuildEvent.rebuiltDocumentCount)
+    }
+
+    @Test
     fun `metadata only refresh does not rebuild text corpus`() = runTest {
         val traceSink = BuilderRecordingVaultSearchTraceSink()
         val builder = createBuilder(traceSink)
@@ -612,43 +660,42 @@ class VaultSearchIndexBuilderTest {
                     ),
             )
 
-        val index = builder.build(items = listOf(secret))
-        val documents: Map<*, *> = index.privateField("documents")
-        val document = requireNotNull(documents.values.single())
+        val document =
+            VaultSearchDocumentIndexer(tokenizer)
+                .build(docId = 0, secret = secret)
+                .document
 
-        val hotFields: Map<*, *> = document.privateField("hotFields")
-        val coldFields: Map<*, *> = document.privateField("coldFields")
+        val titleFieldData = requireNotNull(document.hotFields[VaultTextField.Title])
+        val titleValue = titleFieldData.values.single()
+        assertNull(titleValue.normalizedTerms)
+        assertNull(titleValue.exactNormalizedTerms)
 
-        val titleFieldData = requireNotNull(hotFields[VaultTextField.Title])
-        val titleValue = requireNotNull(titleFieldData.privateList("values").single())
-        assertNull(titleValue.privateField("normalizedTerms"))
-        assertNull(titleValue.privateField("exactNormalizedTerms"))
-
-        val noteFieldData = requireNotNull(coldFields[VaultTextField.Note])
-        val noteValue = requireNotNull(noteFieldData.privateList("values").single())
+        val noteFieldData = requireNotNull(document.coldFields[VaultTextField.Note])
+        val noteValue = noteFieldData.values.single()
         assertEquals(
             listOf("secret", "note"),
-            noteValue.privateField("normalizedTerms"),
+            noteValue.normalizedTerms,
         )
         assertEquals(
             listOf("secret", "note"),
-            noteValue.privateField("exactNormalizedTerms"),
+            noteValue.exactNormalizedTerms,
         )
 
-        val passwordFieldData = requireNotNull(coldFields[VaultTextField.Password])
-        val passwordValue = requireNotNull(passwordFieldData.privateList("values").single())
+        val passwordFieldData = requireNotNull(document.coldFields[VaultTextField.Password])
+        val passwordValue = passwordFieldData.values.single()
         assertEquals(
             listOf("super", "secret"),
-            passwordValue.privateField("normalizedTerms"),
+            passwordValue.normalizedTerms,
         )
         assertEquals(
             listOf("super", "secret"),
-            passwordValue.privateField("exactNormalizedTerms"),
+            passwordValue.exactNormalizedTerms,
         )
     }
 
     private fun createBuilder(
         traceSink: VaultSearchTraceSink,
+        fingerprintOf: (DSecret) -> Int = ::searchFingerprint,
     ): DefaultVaultSearchIndexBuilder = DefaultVaultSearchIndexBuilder(
         tokenizer = tokenizer,
         scorer = scorer,
@@ -656,6 +703,7 @@ class VaultSearchIndexBuilderTest {
         parser = parser,
         compiler = compiler,
         traceSink = traceSink,
+        fingerprintOf = fingerprintOf,
     )
 
     private suspend fun assertFacetQueryMatches(
@@ -684,9 +732,6 @@ class VaultSearchIndexBuilderTest {
         javaClass.getDeclaredField(name).apply {
             isAccessible = true
         }.get(this) as T
-
-    private fun Any.privateList(name: String): List<*> =
-        privateField(name)
 
     private fun metadata(
         folderName: String,

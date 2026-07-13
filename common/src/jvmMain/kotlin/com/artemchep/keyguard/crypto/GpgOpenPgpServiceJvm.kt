@@ -25,10 +25,8 @@ import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.bcpg.BCPGOutputStream
 import org.bouncycastle.bcpg.HashAlgorithmTags
-import org.bouncycastle.bcpg.SignatureSubpacketTags
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
 import org.bouncycastle.bcpg.sig.KeyFlags
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openpgp.PGPCompressedData
 import org.bouncycastle.openpgp.PGPCompressedDataGenerator
 import org.bouncycastle.openpgp.PGPEncryptedDataGenerator
@@ -39,7 +37,6 @@ import org.bouncycastle.openpgp.PGPOnePassSignatureList
 import org.bouncycastle.openpgp.PGPPrivateKey
 import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.PGPPublicKeyRing
-import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.PGPPublicKeyEncryptedData
 import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
@@ -49,7 +46,6 @@ import org.bouncycastle.openpgp.PGPSignatureList
 import org.bouncycastle.openpgp.PGPSignatureSubpacketGenerator
 import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory
-import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentVerifierBuilderProvider
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder
@@ -74,7 +70,6 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
     override fun clearSignText(
         request: GpgOpenPgpSignTextRequest,
     ): String {
-        ensureBouncyCastleProvider()
         val signingKey = findSigningSecretKey(request.privateKey)
             ?: throw IllegalStateException("No signing-capable GPG private key was found.")
         val privateKey = signingKey.extractPrivateKeyEmptyPassphrase()
@@ -125,7 +120,6 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
     override fun signTextDetached(
         request: GpgOpenPgpSignTextRequest,
     ): String {
-        ensureBouncyCastleProvider()
         val signingKey = findSigningSecretKey(request.privateKey)
             ?: throw IllegalStateException("No signing-capable GPG private key was found.")
         val privateKey = signingKey.extractPrivateKeyEmptyPassphrase()
@@ -150,8 +144,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
     override fun verifyClearSignedText(
         request: GpgOpenPgpVerifyTextRequest,
     ): GpgOpenPgpVerification {
-        ensureBouncyCastleProvider()
-        val publicKeyRings = parsePublicKeyRings(request.publicKeys)
+        val publicKeyRings = parsePublicKeyCandidates(request.publicKeys)
         val clearSignedMessage = parseClearSignedMessage(request.signedText)
         val signatureList = readSignatureList(
             PGPUtil.getDecoderStream(ByteArrayInputStream(clearSignedMessage.signatureArmored.encodeToByteArray())),
@@ -163,13 +156,14 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
 
         signature.init(
             JcaPGPContentVerifierBuilderProvider()
-                .setProvider(BouncyCastleProvider.PROVIDER_NAME),
+                .setProvider(gpgBouncyCastleProvider),
             publicKey,
         )
         updateCanonicalTextSignature(signature, clearSignedMessage.lines)
         return verificationResult(
             signature = signature,
             publicKey = publicKey,
+            publicKeyRings = publicKeyRings,
             valid = signature.verify(),
         )
     }
@@ -177,8 +171,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
     override fun verifyDetachedText(
         request: GpgOpenPgpVerifyDetachedTextRequest,
     ): GpgOpenPgpVerification {
-        ensureBouncyCastleProvider()
-        val publicKeyRings = parsePublicKeyRings(request.publicKeys)
+        val publicKeyRings = parsePublicKeyCandidates(request.publicKeys)
         val signatureList = readSignatureList(
             PGPUtil.getDecoderStream(ByteArrayInputStream(request.signature.encodeToByteArray())),
         )
@@ -189,7 +182,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
 
         signature.init(
             JcaPGPContentVerifierBuilderProvider()
-                .setProvider(BouncyCastleProvider.PROVIDER_NAME),
+                .setProvider(gpgBouncyCastleProvider),
             publicKey,
         )
         val data = request.text.encodeToByteArray()
@@ -197,6 +190,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
         return verificationResult(
             signature = signature,
             publicKey = publicKey,
+            publicKeyRings = publicKeyRings,
             valid = signature.verify(),
         )
     }
@@ -235,7 +229,6 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
     override fun signFile(
         request: GpgOpenPgpSignFileRequest,
     ) {
-        ensureBouncyCastleProvider()
         val signingKey = findSigningSecretKey(request.privateKey)
             ?: throw IllegalStateException("No signing-capable GPG private key was found.")
         val privateKey = signingKey.extractPrivateKeyEmptyPassphrase()
@@ -270,8 +263,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
     override fun verifyFile(
         request: GpgOpenPgpVerifyFileRequest,
     ): GpgOpenPgpVerification {
-        ensureBouncyCastleProvider()
-        val publicKeyRings = parsePublicKeyRings(request.publicKeys)
+        val publicKeyRings = parsePublicKeyCandidates(request.publicKeys)
         val signatureList = readSignatureList(PGPUtil.getDecoderStream(request.signatureInput.toInputStream()))
         val (signature, publicKey) = selectVerifiableSignature(signatureList, publicKeyRings)
         if (publicKey == null) {
@@ -280,7 +272,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
 
         signature.init(
             JcaPGPContentVerifierBuilderProvider()
-                .setProvider(BouncyCastleProvider.PROVIDER_NAME),
+                .setProvider(gpgBouncyCastleProvider),
             publicKey,
         )
         request.input.toInputStream().use { input ->
@@ -298,6 +290,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
         return verificationResult(
             signature = signature,
             publicKey = publicKey,
+            publicKeyRings = publicKeyRings,
             valid = signature.verify(),
         )
     }
@@ -339,9 +332,15 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
         armored: Boolean,
         signingPrivateKey: GpgOpenPgpPrivateKey?,
     ) {
-        ensureBouncyCastleProvider()
-        val encryptionKeys = parsePublicKeyRings(publicKeys)
-            .mapNotNull(::findEncryptionPublicKey)
+        val publicKeyRings = parsePublicKeyRings(publicKeys)
+        val candidateRevocationKeys = publicKeyRings.allPublicKeys()
+        val encryptionKeys = publicKeyRings
+            .mapNotNull { publicKeyRing ->
+                findEncryptionPublicKey(
+                    publicKeyRing = publicKeyRing,
+                    candidateRevocationKeys = candidateRevocationKeys,
+                )
+            }
             .distinctBy { it.keyID }
         if (encryptionKeys.isEmpty()) {
             throw IllegalStateException("No encryption-capable GPG public key was found.")
@@ -362,14 +361,14 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
         val finalOutput = output.maybeArmored(armored)
         try {
             val encryptorBuilder = JcePGPDataEncryptorBuilder(SymmetricKeyAlgorithmTags.AES_256)
-                .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                .setProvider(gpgBouncyCastleProvider)
                 .setSecureRandom(SecureRandom())
                 .setWithIntegrityPacket(true)
             val encryptedDataGenerator = PGPEncryptedDataGenerator(encryptorBuilder)
             encryptionKeys.forEach { key ->
                 encryptedDataGenerator.addMethod(
                     JcePublicKeyKeyEncryptionMethodGenerator(key)
-                        .setProvider(BouncyCastleProvider.PROVIDER_NAME),
+                        .setProvider(gpgBouncyCastleProvider),
                 )
             }
 
@@ -424,7 +423,6 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
         privateKeys: List<GpgOpenPgpPrivateKey>,
         publicKeys: List<GpgOpenPgpPublicKey>,
     ): GpgOpenPgpVerification? {
-        ensureBouncyCastleProvider()
         val encryptedDataList = readEncryptedDataList(PGPUtil.getDecoderStream(input))
         var encryptedData: PGPPublicKeyEncryptedData? = null
         var privateKey: PGPPrivateKey? = null
@@ -453,7 +451,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
 
         val clear = selectedEncryptedData.getDataStream(
             JcePublicKeyDataDecryptorFactoryBuilder()
-                .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                .setProvider(gpgBouncyCastleProvider)
                 .build(selectedPrivateKey),
         )
         val verification = pipePgpMessage(
@@ -507,7 +505,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
         output: OutputStream,
         publicKeys: List<GpgOpenPgpPublicKey>,
     ): GpgOpenPgpVerification {
-        val publicKeyRings = parsePublicKeyRings(publicKeys)
+        val publicKeyRings = parsePublicKeyCandidates(publicKeys)
         // Prefer the first one-pass signature we hold a public key for; otherwise fall back
         // to the first (so a missing key is still reported for single-signature messages).
         var onePassSignature = onePassSignatureList.get(0)
@@ -524,7 +522,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
         if (publicKey != null) {
             onePassSignature.init(
                 JcaPGPContentVerifierBuilderProvider()
-                    .setProvider(BouncyCastleProvider.PROVIDER_NAME),
+                    .setProvider(gpgBouncyCastleProvider),
                 publicKey,
             )
         }
@@ -559,6 +557,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
             verificationResult(
                 signature = signature,
                 publicKey = publicKey,
+                publicKeyRings = publicKeyRings,
                 valid = onePassSignature.verify(signature),
             )
         } else {
@@ -611,7 +610,7 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
     ): PGPSignatureGenerator {
         val generator = PGPSignatureGenerator(
             JcaPGPContentSignerBuilder(secretKey.publicKey.algorithm, HashAlgorithmTags.SHA256)
-                .setProvider(BouncyCastleProvider.PROVIDER_NAME),
+                .setProvider(gpgBouncyCastleProvider),
         )
         generator.init(signatureType, privateKey)
         val userId = secretKey.publicKey.userIDs
@@ -658,52 +657,121 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
             ?.normalizeGpgFingerprint()
             ?.takeIf { it.isNotBlank() }
         val collection = parseSecretKeyCollection(privateKey.armored)
-        val fallback = mutableListOf<PGPSecretKey>()
-        val keyRings = collection.keyRings
-        while (keyRings.hasNext()) {
-            val secretKeys = keyRings.next().secretKeys
-            while (secretKeys.hasNext()) {
-                val secretKey = secretKeys.next()
-                if (!secretKey.isSigningKey) {
-                    continue
+        val secretRings = collection.keyRings.asSequence().toList()
+        val candidateRevocationKeys = secretRings
+            .asSequence()
+            .flatMap { secretRing -> secretRing.publicKeys.asSequence() }
+            .toList()
+        val now = Clock.System.now()
+        return secretRings
+            .asSequence()
+            .mapNotNull { secretRing ->
+                val certificate = GpgCertificateInspectorJvm.inspect(
+                    ring = secretRing.toCertificate(),
+                    candidateRevocationKeys = candidateRevocationKeys,
+                    referenceTime = now,
+                )
+                    ?: return@mapNotNull null
+                if (
+                    !certificate.primary.authenticated ||
+                    certificate.primary.revoked ||
+                    certificate.primary.isExpired(now)
+                ) {
+                    return@mapNotNull null
                 }
-                if (expectedFingerprint != null && secretKey.fingerprintHex() == expectedFingerprint) {
-                    return secretKey
+                val expectedComponent = expectedFingerprint?.let { expected ->
+                    certificate.keys.firstOrNull { key ->
+                        key.publicKey.fingerprintHex().normalizeGpgFingerprint() == expected
+                    } ?: return@mapNotNull null
                 }
-                fallback += secretKey
+                val candidates = certificate.authenticatedKeys
+                    .asSequence()
+                    .filter { key -> !key.revoked && !key.isExpired(now) }
+                    .filter { key ->
+                        key.keyFlags?.let { flags -> flags and KeyFlags.SIGN_DATA != 0 }
+                            ?: key.publicKey.isSigningKey()
+                    }
+                    .filter { key ->
+                        key.publicKey.isMasterKey || key.signingCrossCertified
+                    }
+                    .mapNotNull { key ->
+                        secretRing.getSecretKey(key.publicKey.keyID)
+                            ?.takeIf { secretKey ->
+                                !secretKey.isPrivateKeyEmpty && secretKey.isSigningKey
+                            }
+                            ?.let { secretKey -> key to secretKey }
+                    }
+                    .toList()
+                if (expectedComponent != null && !expectedComponent.publicKey.isMasterKey) {
+                    candidates.firstOrNull { (key) -> key === expectedComponent }?.second
+                } else {
+                    candidates
+                        .sortedWith(
+                            compareByDescending<Pair<GpgVerifiedCertificateKeyJvm, PGPSecretKey>> {
+                                !it.first.publicKey.isMasterKey
+                            }.thenByDescending { it.first.publicKey.creationTime?.time ?: 0L },
+                        )
+                        .firstOrNull()
+                        ?.second
+                }
             }
-        }
-        return when {
-            expectedFingerprint != null -> null
-            fallback.isNotEmpty() -> fallback.first()
-            else -> null
-        }
+            .firstOrNull()
     }
 
     private fun findPrivateKey(
         privateKeys: List<GpgOpenPgpPrivateKey>,
         keyId: Long,
-    ): PGPPrivateKey? = privateKeys.firstNotNullOfOrNull { privateKey ->
-        parseSecretKeyCollection(privateKey.armored)
-            .getSecretKey(keyId)
-            ?.extractPrivateKeyEmptyPassphrase()
+    ): PGPPrivateKey? {
+        var unsupportedVersion: GpgUnsupportedKeyVersionException? = null
+        var hasSupportedCandidate = false
+        privateKeys.forEach { privateKey ->
+            val collection = try {
+                parseSecretKeyCollection(privateKey.armored)
+            } catch (error: GpgUnsupportedKeyVersionException) {
+                unsupportedVersion = unsupportedVersion ?: error
+                return@forEach
+            }
+            hasSupportedCandidate = true
+            collection.getSecretKey(keyId)
+                ?.extractPrivateKeyEmptyPassphrase()
+                ?.let { return it }
+        }
+        if (!hasSupportedCandidate) {
+            unsupportedVersion?.let { throw it }
+        }
+        return null
     }
 
     private fun parseSecretKeyCollection(
         armored: String,
-    ): PGPSecretKeyRingCollection = PGPSecretKeyRingCollection(
-        PGPUtil.getDecoderStream(ByteArrayInputStream(armored.encodeToByteArray())),
-        JcaKeyFingerprintCalculator(),
-    )
+    ): PGPSecretKeyRingCollection = parseGpgSecretKeyRingCollection(armored)
 
     private fun parsePublicKeyRings(
         publicKeys: List<GpgOpenPgpPublicKey>,
     ): List<PGPPublicKeyRing> = publicKeys.flatMap { publicKey ->
-        val collection = PGPPublicKeyRingCollection(
-            PGPUtil.getDecoderStream(ByteArrayInputStream(publicKey.armored.encodeToByteArray())),
-            JcaKeyFingerprintCalculator(),
-        )
-        collection.keyRings.asSequence().toList()
+        parseGpgPublicKeyRingCollection(publicKey.armored)
+            .keyRings
+            .asSequence()
+            .toList()
+    }
+
+    private fun parsePublicKeyCandidates(
+        publicKeys: List<GpgOpenPgpPublicKey>,
+    ): List<PGPPublicKeyRing> {
+        var unsupportedVersion: GpgUnsupportedKeyVersionException? = null
+        val rings = publicKeys.flatMap { publicKey ->
+            try {
+                val collection = parseGpgPublicKeyRingCollection(publicKey.armored)
+                collection.keyRings.asSequence().toList()
+            } catch (error: GpgUnsupportedKeyVersionException) {
+                unsupportedVersion = unsupportedVersion ?: error
+                emptyList()
+            }
+        }
+        if (rings.isEmpty()) {
+            unsupportedVersion?.let { throw it }
+        }
+        return rings
     }
 
     private fun findPublicKey(
@@ -734,58 +802,65 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
 
     private fun findEncryptionPublicKey(
         publicKeyRing: PGPPublicKeyRing,
+        candidateRevocationKeys: List<PGPPublicKey>,
     ): PGPPublicKey? {
         val now = Clock.System.now()
+        val certificate = GpgCertificateInspectorJvm.inspect(
+            ring = publicKeyRing,
+            candidateRevocationKeys = candidateRevocationKeys,
+            referenceTime = now,
+        )
+            ?: return null
+        if (
+            !certificate.primary.authenticated ||
+            certificate.primary.revoked ||
+            certificate.primary.isExpired(now)
+        ) {
+            return null
+        }
         // Match gpg's recipient selection by key flags (RFC 4880 §5.2.3.21) rather than by
         // algorithm: RSA primaries are encryption-capable by algorithm but must not be
         // used unless their self-signature actually requests an encryption usage.
-        return publicKeyRing.publicKeys
+        return certificate.authenticatedKeys
             .asSequence()
             .filter { it.isEncryptionCandidate() }
             // Never encrypt to a revoked or expired key; there is deliberately no fallback
             // to one — the caller reports "no encryption-capable key" instead.
-            .filter { !it.hasRevocation() && !it.isExpired(now) }
+            .filter { !it.revoked && !it.isExpired(now) }
             // Prefer a dedicated encryption subkey over the primary, then the newest key,
             // exactly the recipient a real gpg client would route the message to.
             .sortedWith(
-                compareByDescending<PGPPublicKey> { !it.isMasterKey }
-                    .thenByDescending { it.creationTime?.time ?: 0L },
+                compareByDescending<GpgVerifiedCertificateKeyJvm> { !it.publicKey.isMasterKey }
+                    .thenByDescending { it.publicKey.creationTime?.time ?: 0L },
             )
             .firstOrNull()
+            ?.publicKey
     }
 
-    private fun PGPPublicKey.isEncryptionCandidate(): Boolean {
-        val flags = encryptionKeyFlags()
+    private fun GpgVerifiedCertificateKeyJvm.isEncryptionCandidate(): Boolean {
         // A key with no key-flags subpacket at all (older keys) falls back to the
         // algorithm-based capability; a key that does carry flags must request encryption.
-        return if (flags == null) {
-            isEncryptionKey
-        } else {
+        return keyFlags?.let { flags ->
             flags and (KeyFlags.ENCRYPT_COMMS or KeyFlags.ENCRYPT_STORAGE) != 0
-        }
-    }
-
-    // OR of the key-flags across this key's self-signatures, or null when none of them
-    // carries a key-flags subpacket (so callers can tell "no flags" from "flags == 0").
-    private fun PGPPublicKey.encryptionKeyFlags(): Int? {
-        var flags: Int? = null
-        val signatures = this.signatures
-        while (signatures.hasNext()) {
-            val signature = signatures.next() ?: continue
-            val hashed = signature.hashedSubPackets ?: continue
-            if (hashed.hasSubpacket(SignatureSubpacketTags.KEY_FLAGS)) {
-                flags = (flags ?: 0) or hashed.keyFlags
-            }
-        }
-        return flags
+        } ?: publicKey.isEncryptionKey
     }
 
     private fun verificationResult(
         signature: PGPSignature,
         publicKey: PGPPublicKey,
+        publicKeyRings: List<PGPPublicKeyRing>,
         valid: Boolean,
     ): GpgOpenPgpVerification {
         val now = Clock.System.now()
+        val (certificate, inspectedKey) = findInspectedPublicKey(
+            publicKeyRings = publicKeyRings,
+            publicKey = publicKey,
+            referenceTime = now,
+        )
+        val signerKey = inspectedKey?.takeIf { key ->
+            key.authenticated &&
+                (key.publicKey.isMasterKey || key.signingCrossCertified)
+        }
         return GpgOpenPgpVerification(
             status = if (valid) {
                 GpgOpenPgpVerificationStatus.VALID
@@ -794,21 +869,64 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
             },
             keyId = signature.keyID.gpgKeyIdHex(),
             fingerprint = publicKey.fingerprintHex(),
-            userIds = publicKey.userIDs.asSequence().toList(),
+            userIds = certificate
+                ?.takeIf { signerKey != null }
+                ?.verifiedUserIds
+                .orEmpty(),
             createdAt = signature.creationTime?.let { Instant.fromEpochMilliseconds(it.time) },
             warnings = buildList {
-                if (publicKey.hasRevocation()) {
+                if (
+                    signerKey != null &&
+                    (certificate?.primary?.revoked == true || signerKey.revoked)
+                ) {
                     add(GpgOpenPgpVerificationWarning.KEY_REVOKED)
                 }
-                if (publicKey.isExpired(now)) {
+                if (
+                    signerKey != null &&
+                    (
+                        certificate?.primary?.isExpired(now) == true ||
+                            signerKey.isExpired(now)
+                        )
+                ) {
                     add(GpgOpenPgpVerificationWarning.KEY_EXPIRED)
                 }
-                if (signature.isExpired(now)) {
+                if (signature.isExpiredAt(now)) {
                     add(GpgOpenPgpVerificationWarning.SIGNATURE_EXPIRED)
                 }
             },
         )
     }
+
+    private fun findInspectedPublicKey(
+        publicKeyRings: List<PGPPublicKeyRing>,
+        publicKey: PGPPublicKey,
+        referenceTime: Instant,
+    ): Pair<GpgCertificateInspectorJvm?, GpgVerifiedCertificateKeyJvm?> {
+        val candidateRevocationKeys = publicKeyRings.allPublicKeys()
+        return publicKeyRings
+            .asSequence()
+            .mapNotNull { ring ->
+                GpgCertificateInspectorJvm.inspect(
+                    ring = ring,
+                    candidateRevocationKeys = candidateRevocationKeys,
+                    referenceTime = referenceTime,
+                )
+            }
+            .mapNotNull { certificate ->
+                certificate.keys
+                    .firstOrNull { key ->
+                        key.publicKey.fingerprint.contentEquals(publicKey.fingerprint)
+                    }
+                    ?.let { key -> certificate to key }
+            }
+            .firstOrNull()
+            ?: (null to null)
+    }
+
+    private fun List<PGPPublicKeyRing>.allPublicKeys(): List<PGPPublicKey> =
+        asSequence()
+            .flatMap { ring -> ring.publicKeys.asSequence() }
+            .toList()
 
     private fun missingPublicKey(
         signature: PGPSignature,
@@ -820,27 +938,14 @@ class GpgOpenPgpServiceJvm() : GpgOpenPgpService {
         createdAt = signature.creationTime?.let { Instant.fromEpochMilliseconds(it.time) },
     )
 
-    private fun PGPPublicKey.isExpired(
+    private fun GpgVerifiedCertificateKeyJvm.isExpired(
         now: Instant,
     ): Boolean {
-        val validSeconds = validSeconds
         if (validSeconds <= 0L) {
             return false
         }
-        val created = creationTime ?: return false
+        val created = publicKey.creationTime ?: return false
         val expiresAt = Instant.fromEpochMilliseconds(created.time + validSeconds * 1000L)
-        return expiresAt <= now
-    }
-
-    private fun PGPSignature.isExpired(
-        now: Instant,
-    ): Boolean {
-        val createdAt = creationTime ?: return false
-        val validSeconds = hashedSubPackets?.signatureExpirationTime ?: return false
-        if (validSeconds <= 0L) {
-            return false
-        }
-        val expiresAt = Instant.fromEpochMilliseconds(createdAt.time + validSeconds * 1000L)
         return expiresAt <= now
     }
 

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.AlternateEmail
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Domain
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Info
@@ -47,6 +48,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.model.GpgKeyExpiry
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyPairConfig
 import com.artemchep.keyguard.common.model.Loadable
@@ -67,6 +69,7 @@ import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
 import com.artemchep.keyguard.common.usecase.CopyText
+import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
@@ -86,12 +89,20 @@ import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
 import com.artemchep.keyguard.feature.auth.common.util.validateUri
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
+import com.artemchep.keyguard.feature.datedaypicker.DateDayPickerRoute
+import com.artemchep.keyguard.feature.datedaypicker.createDateDayPickerDialogIntent
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListRoute
 import com.artemchep.keyguard.feature.generator.gpgkey.GpgKeyActions
 import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryRoute
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.generator.util.findBestUserEmailOrNull
 import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
+import com.artemchep.keyguard.feature.gpgkey.GpgKeyExpiryPreset
+import com.artemchep.keyguard.feature.gpgkey.defaultGpgKeyExpirationDate
+import com.artemchep.keyguard.feature.gpgkey.gpgKeyExpirationDateRange
+import com.artemchep.keyguard.feature.gpgkey.normalizeGpgKeyCustomExpiryDate
+import com.artemchep.keyguard.feature.gpgkey.shortDescription
+import com.artemchep.keyguard.feature.gpgkey.titleResource
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -146,6 +157,11 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.compose.localDI
@@ -200,6 +216,7 @@ private const val EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_MAX = 10
 
 private const val KEY_PAIR_RSA_LENGTH_DEFAULT = "4096"
 private val GPG_KEY_RSA_LENGTH_DEFAULT = GpgKeyConfig.RsaLength.default.size.toString()
+private val GPG_KEY_EXPIRY_DEFAULT = GpgKeyExpiryPreset.default.key
 
 private const val PIN_CODE_LENGTH_DEFAULT = 4L
 private const val PIN_CODE_LENGTH_MIN = 3
@@ -233,6 +250,7 @@ fun produceGeneratorState(
         gpgPublicKeyExport = instance(),
         gpgPrivateKeyExport = instance(),
         numberFormatter = instance(),
+        dateFormatter = instance(),
         getCanWrite = instance(),
         tldService = instance(),
         clipboardService = instance(),
@@ -278,6 +296,7 @@ fun produceGeneratorState(
     gpgPublicKeyExport: GpgKeyPublicExport,
     gpgPrivateKeyExport: GpgKeyPrivateExport,
     numberFormatter: NumberFormatter,
+    dateFormatter: DateFormatter,
     getCanWrite: GetCanWrite,
     tldService: TldService,
     clipboardService: ClipboardService,
@@ -291,6 +310,7 @@ fun produceGeneratorState(
         getPasswordStrength,
         getCanWrite,
         clipboardService,
+        dateFormatter,
     ),
 ) {
     generatorStateProducer(
@@ -312,6 +332,7 @@ fun produceGeneratorState(
         gpgPublicKeyExport = gpgPublicKeyExport,
         gpgPrivateKeyExport = gpgPrivateKeyExport,
         numberFormatter = numberFormatter,
+        dateFormatter = dateFormatter,
         getCanWrite = getCanWrite,
         tldService = tldService,
         clipboardService = clipboardService,
@@ -339,6 +360,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
     gpgPublicKeyExport: GpgKeyPublicExport,
     gpgPrivateKeyExport: GpgKeyPrivateExport,
     numberFormatter: NumberFormatter,
+    dateFormatter: DateFormatter,
     getCanWrite: GetCanWrite,
     tldService: TldService,
     clipboardService: ClipboardService,
@@ -771,6 +793,23 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
         key = "$PREFIX_GPG_KEY.rsa.length",
         storage = storage,
     ) { GPG_KEY_RSA_LENGTH_DEFAULT }
+    val gpgKeyExpiryOptionSink = mutablePersistedFlow(
+        key = "$PREFIX_GPG_KEY.expiry.option",
+        storage = storage,
+    ) { GPG_KEY_EXPIRY_DEFAULT }
+
+    fun currentGpgKeyExpiryDate(timeZone: TimeZone): LocalDate = Clock.System.now()
+        .toLocalDateTime(timeZone)
+        .date
+
+    val initialGpgKeyExpiryTimeZone = TimeZone.currentSystemDefault()
+    val initialGpgKeyExpiryDate = currentGpgKeyExpiryDate(initialGpgKeyExpiryTimeZone)
+    val gpgKeyCustomExpiryDateSink = mutablePersistedFlow(
+        key = "$PREFIX_GPG_KEY.expiry.custom_date",
+        storage = storage,
+    ) {
+        defaultGpgKeyExpirationDate(initialGpgKeyExpiryDate).toString()
+    }
     val gpgKeyNameHandle = textFieldHandle(
         key = "$PREFIX_GPG_KEY.name",
         storage = storage,
@@ -783,6 +822,61 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
         gpgKeyEmailHandle.setText(
             getUserEmailDefaultIo.attempt().bind().getOrNull().orEmpty()
         )
+    }
+
+    // Persisted generator settings can outlive their selected date. Normalize an
+    // invalid or elapsed value immediately so the filter and generated key agree.
+    //
+    // TODO: Do not consume the `gpgKeyCustomExpiryDateSink` directly, as it might have
+    //  an outdated custom date set. Instead consume a flow with a pair of custom and normalized
+    //  date so we can show an error on the UI if that date is now invalid.
+    val normalizedGpgKeyCustomExpiryDate = normalizeGpgKeyCustomExpiryDate(
+        rawDate = gpgKeyCustomExpiryDateSink.value,
+        currentDate = initialGpgKeyExpiryDate,
+    )
+    if (gpgKeyCustomExpiryDateSink.value != normalizedGpgKeyCustomExpiryDate.toString()) {
+        gpgKeyCustomExpiryDateSink.value = normalizedGpgKeyCustomExpiryDate.toString()
+    }
+
+    fun gpgKeyExpiry(
+        rawOption: String,
+        rawCustomDate: String,
+    ): GpgKeyExpiry {
+        val preset = GpgKeyExpiryPreset.getOrDefault(rawOption)
+        val customDate = if (preset == GpgKeyExpiryPreset.Custom) {
+            val timeZone = TimeZone.currentSystemDefault()
+            normalizeGpgKeyCustomExpiryDate(
+                rawDate = rawCustomDate,
+                currentDate = currentGpgKeyExpiryDate(timeZone),
+            )
+        } else {
+            null
+        }
+        return preset.toPolicy(customDate)
+            ?: GpgKeyExpiry.default
+    }
+
+    fun selectCustomGpgKeyExpiryDate() {
+        val timeZone = TimeZone.currentSystemDefault()
+        val today = currentGpgKeyExpiryDate(timeZone)
+        val selectableDates = gpgKeyExpirationDateRange(
+            currentDate = today,
+            maximumDate = today.plus(100, DateTimeUnit.YEAR),
+        ) ?: return
+        val current = normalizeGpgKeyCustomExpiryDate(
+            rawDate = gpgKeyCustomExpiryDateSink.value,
+            currentDate = today,
+        )
+        val intent = createDateDayPickerDialogIntent(
+            args = DateDayPickerRoute.Args(
+                initialDate = current,
+                selectableDates = selectableDates,
+            ),
+        ) { date ->
+            gpgKeyCustomExpiryDateSink.value = date.toString()
+            gpgKeyExpiryOptionSink.value = GpgKeyExpiryPreset.Custom.key
+        }
+        navigate(intent)
     }
 
     suspend fun keyPairTypeFilterItem(
@@ -886,6 +980,49 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
         val title = translate(Res.string.generator_key_length_item, keyType)
         return GeneratorState.Filter.Item.Enum.Model(
             value = title,
+            dropdown = dropdown,
+        )
+    }
+
+    suspend fun gpgKeyExpiryFilterItem(
+        rawOption: String,
+        rawCustomDate: String,
+    ): GeneratorState.Filter.Item.Enum.Model {
+        val option = GpgKeyExpiryPreset.getOrDefault(rawOption)
+
+        suspend fun title(item: GpgKeyExpiryPreset): String = translate(item.titleResource())
+
+        val dropdown = buildContextItems {
+            section {
+                GpgKeyExpiryPreset.entries.forEach { item ->
+                    val itemTitle = title(item)
+                    this += FlatItemAction(
+                        id = "generator.gpgKeyExpiry.${item.key}",
+                        title = TextHolder.Value(itemTitle),
+                        selected = item == option,
+                        onClick = if (item == GpgKeyExpiryPreset.Custom) {
+                            ::selectCustomGpgKeyExpiryDate
+                        } else {
+                            gpgKeyExpiryOptionSink::value::set
+                                .partially1(item.key)
+                        },
+                    )
+                }
+            }
+        }
+        val value = title(option).let { title ->
+            if (option == GpgKeyExpiryPreset.Custom) {
+                val customDateTitle = runCatching { LocalDate.parse(rawCustomDate) }
+                    .getOrNull()
+                    ?.let(dateFormatter::formatDateMedium)
+                    ?: rawCustomDate
+                "$title · $customDateTitle"
+            } else {
+                title
+            }
+        }
+        return GeneratorState.Filter.Item.Enum.Model(
+            value = value,
             dropdown = dropdown,
         )
     }
@@ -1427,6 +1564,15 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                     onSelect = gpgKeyTypeSink::value::set,
                 ),
             ),
+            GeneratorState.Filter.Item.Enum(
+                key = "$PREFIX_GPG_KEY.expiry",
+                icon = Icons.Outlined.CalendarMonth,
+                title = translate(Res.string.gpg_key_expiry_title),
+                model = gpgKeyExpiryFilterItem(
+                    rawOption = gpgKeyExpiryOptionSink.value,
+                    rawCustomDate = gpgKeyCustomExpiryDateSink.value,
+                ),
+            ),
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_GPG_KEY.name",
                 title = translate(Res.string.generator_gpg_key_name_title),
@@ -1749,13 +1895,21 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                             GpgKeyConfig.Type.MODERN -> combine(
                                 gpgKeyNameHandle.sink,
                                 gpgKeyEmailHandle.sink,
-                            ) { name, email ->
+                                gpgKeyExpiryOptionSink,
+                                gpgKeyCustomExpiryDateSink,
+                            ) { name, email, rawExpiryOption, rawCustomExpiryDate ->
                                 val userId = buildGpgUserId(
                                     name = name.text,
                                     email = email.text,
                                 )
                                 PasswordGeneratorConfigBuilder2.GpgKey(
-                                    config = GpgKeyConfig.Modern(userId),
+                                    config = GpgKeyConfig.Modern(
+                                        userId = userId,
+                                        expiry = gpgKeyExpiry(
+                                            rawOption = rawExpiryOption,
+                                            rawCustomDate = rawCustomExpiryDate,
+                                        ),
+                                    ),
                                 )
                             }
 
@@ -1763,7 +1917,9 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                                 gpgKeyNameHandle.sink,
                                 gpgKeyEmailHandle.sink,
                                 gpgKeyRsaLengthSink,
-                            ) { name, email, rawLength ->
+                                gpgKeyExpiryOptionSink,
+                                gpgKeyCustomExpiryDateSink,
+                            ) { name, email, rawLength, rawExpiryOption, rawCustomExpiryDate ->
                                 val length = GpgKeyConfig.RsaLength.getOrDefault(rawLength)
                                 val userId = buildGpgUserId(
                                     name = name.text,
@@ -1773,6 +1929,10 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                                     config = GpgKeyConfig.Rsa(
                                         userId = userId,
                                         length = length,
+                                        expiry = gpgKeyExpiry(
+                                            rawOption = rawExpiryOption,
+                                            rawCustomDate = rawCustomExpiryDate,
+                                        ),
                                     ),
                                 )
                             }
@@ -1804,11 +1964,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
         .map { (configBuilder, type) ->
             val config = configBuilder.build()
             val factory = getPassword(generatorContext, config)
-            Triple(
-                config,
-                factory,
-                type,
-            )
+            Triple(config, factory, type)
         }
         .flatMapLatest { (config, factory, type) ->
             val generateOnInit = !config.isExpensive()

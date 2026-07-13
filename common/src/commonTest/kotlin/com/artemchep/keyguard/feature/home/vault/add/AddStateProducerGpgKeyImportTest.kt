@@ -1,11 +1,14 @@
 package com.artemchep.keyguard.feature.home.vault.add
 
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
+import com.artemchep.keyguard.common.model.toGpgKeyMaterial
+import com.artemchep.keyguard.common.model.withGpgKeyMaterial
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.platform.leParseUri
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -13,6 +16,89 @@ import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class AddStateProducerGpgKeyImportTest {
+    @Test
+    fun `direct import result cannot overwrite a newer expiration mutation`() {
+        val original = createGpgKey()
+        val sink = MutableStateFlow(original)
+        val mutations = GpgKeyMutationGuard(sink)
+        val importSnapshot = mutations.snapshot()
+        val expirationSnapshot = mutations.snapshot()
+        val renewedMaterial = original.toGpgKeyMaterial().copy(
+            privateKeyArmored = "RENEWED PRIVATE",
+            publicKeyArmored = "RENEWED PUBLIC",
+        )
+
+        assertTrue(mutations.commitExpiration(expirationSnapshot, renewedMaterial))
+        assertFalse(
+            mutations.commitImport(
+                snapshot = importSnapshot,
+                imported = original.copy(
+                    privateKeyArmored = "STALE IMPORT PRIVATE",
+                    publicKeyArmored = "STALE IMPORT PUBLIC",
+                ),
+            ),
+        )
+        assertEquals(original.withGpgKeyMaterial(renewedMaterial), sink.value)
+    }
+
+    @Test
+    fun `expiration result cannot overwrite a newer import mutation`() {
+        val original = createGpgKey()
+        val sink = MutableStateFlow(original)
+        val mutations = GpgKeyMutationGuard(sink)
+        val expirationSnapshot = mutations.snapshot()
+        val importSnapshot = mutations.snapshot()
+        val imported = original.copy(
+            privateKeyArmored = "IMPORTED PRIVATE",
+            publicKeyArmored = "IMPORTED PUBLIC",
+        )
+        val staleRenewal = original.toGpgKeyMaterial().copy(
+            privateKeyArmored = "STALE RENEWED PRIVATE",
+            publicKeyArmored = "STALE RENEWED PUBLIC",
+        )
+
+        assertTrue(mutations.commitImport(importSnapshot, imported))
+        assertFalse(mutations.commitExpiration(expirationSnapshot, staleRenewal))
+        assertEquals(imported, sink.value)
+    }
+
+    @Test
+    fun `only one overlapping import can commit a shared snapshot`() {
+        val original = createGpgKey()
+        val sink = MutableStateFlow(original)
+        val mutations = GpgKeyMutationGuard(sink)
+        val firstSnapshot = mutations.snapshot()
+        val secondSnapshot = mutations.snapshot()
+        val firstImport = original.copy(publicKeyArmored = "FIRST IMPORT PUBLIC")
+        val secondImport = original.copy(publicKeyArmored = "SECOND IMPORT PUBLIC")
+
+        assertTrue(mutations.commitImport(firstSnapshot, firstImport))
+        assertFalse(mutations.commitImport(secondSnapshot, secondImport))
+        assertEquals(firstImport, sink.value)
+    }
+
+    @Test
+    fun `passphrase import result cannot commit after an ABA key mutation`() {
+        val original = createGpgKey()
+        val sink = MutableStateFlow(original)
+        val mutations = GpgKeyMutationGuard(sink)
+        val passphraseSnapshot = mutations.snapshot()
+
+        mutations.replace(original.copy(publicKeyArmored = "INTERVENING PUBLIC"))
+        mutations.replace(original)
+
+        assertFalse(
+            mutations.commitImport(
+                snapshot = passphraseSnapshot,
+                imported = original.copy(
+                    privateKeyArmored = "UNLOCKED PRIVATE",
+                    publicKeyArmored = "STALE PUBLIC",
+                ),
+            ),
+        )
+        assertEquals(original, sink.value)
+    }
+
     @Test
     fun `successful gpg key file import returns imported key`() = kotlinx.coroutines.test.runTest {
         val info = FilePickerResult(

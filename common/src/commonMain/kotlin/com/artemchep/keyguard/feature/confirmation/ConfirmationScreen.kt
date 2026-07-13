@@ -235,6 +235,7 @@ private fun ConfirmationBooleanItem(
             Checkbox(
                 checked = item.value,
                 onCheckedChange = null,
+                enabled = item.enabled,
             )
         },
         content = {
@@ -254,9 +255,13 @@ private fun ConfirmationBooleanItem(
                 }
             }
         },
-        onClick = {
-            val newValue = !item.value
-            item.onChange.invoke(newValue)
+        onClick = if (item.enabled) {
+            {
+                val newValue = !item.value
+                item.onChange.invoke(newValue)
+            }
+        } else {
+            null
         },
     )
 }

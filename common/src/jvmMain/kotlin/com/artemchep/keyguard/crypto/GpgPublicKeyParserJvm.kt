@@ -10,11 +10,7 @@ import com.artemchep.keyguard.common.service.crypto.gpgAlgorithmName
 import org.bouncycastle.bcpg.sig.KeyFlags
 import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.PGPPublicKeyRing
-import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
-import org.bouncycastle.openpgp.PGPUtil
-import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.kodein.di.DirectDI
-import java.io.ByteArrayInputStream
 import kotlin.time.Instant
 
 class GpgPublicKeyParserJvm() : GpgPublicKeyParser {
@@ -29,82 +25,99 @@ class GpgPublicKeyParserJvm() : GpgPublicKeyParser {
             return GpgPublicKeyParseResult.Error(GpgPublicKeyParseError.Empty)
         }
         return runCatching {
-            val collection = PGPPublicKeyRingCollection(
-                PGPUtil.getDecoderStream(ByteArrayInputStream(armored.encodeToByteArray())),
-                JcaKeyFingerprintCalculator(),
-            )
-            val keys = collection.keyRings
+            val collection = parseGpgPublicKeyRingCollection(armored)
+            val rings = collection.keyRings
                 .asSequence()
-                .mapNotNull(::parseRing)
                 .toList()
+            val candidateRevocationKeys = rings
+                .asSequence()
+                .flatMap { ring -> ring.publicKeys.asSequence() }
+                .toList()
+            val keys = rings.mapNotNull { ring ->
+                parseRing(
+                    ring = ring,
+                    candidateRevocationKeys = candidateRevocationKeys,
+                )
+            }
             if (keys.isEmpty()) {
                 GpgPublicKeyParseResult.Error(GpgPublicKeyParseError.Malformed)
             } else {
                 GpgPublicKeyParseResult.Success(keys)
             }
-        }.getOrElse {
-            GpgPublicKeyParseResult.Error(GpgPublicKeyParseError.Malformed)
+        }.getOrElse { error ->
+            GpgPublicKeyParseResult.Error(
+                when (error) {
+                    is GpgUnsupportedKeyVersionException ->
+                        GpgPublicKeyParseError.UnsupportedKeyVersion
+
+                    else -> GpgPublicKeyParseError.Malformed
+                },
+            )
         }
     }
 
     private fun parseRing(
         ring: PGPPublicKeyRing,
+        candidateRevocationKeys: List<PGPPublicKey>,
     ): GpgPublicKeyInfo? {
-        val primary = ring.publicKeys
-            .asSequence()
-            .firstOrNull { it.isMasterKey }
-            ?: ring.publicKey
+        val certificate = GpgCertificateInspectorJvm.inspect(
+            ring = ring,
+            candidateRevocationKeys = candidateRevocationKeys,
+        )
             ?: return null
-        val userIds = primary.userIDs
+        val primary = certificate.primary
+        val primaryKey = primary.publicKey
+        val certificateRevoked = primary.revoked
+        val userIds = certificate.verifiedUserIds
+        val subKeys = certificate.subkeys
             .asSequence()
-            .toList()
-        val subKeys = ring.publicKeys
-            .asSequence()
-            .filterNot { it.keyID == primary.keyID }
-            .map { sub ->
-                val flags = sub.keyFlags()
+            .filter { it.authenticated }
+            .map { subkey ->
+                val sub = subkey.publicKey
+                val flags = subkey.keyFlags
                 GpgPublicSubKeyInfo(
                     fingerprint = sub.fingerprintHex(),
                     keygrip = GpgKeygripCalculatorJvm.calculate(sub),
                     keyId = sub.keyID.gpgKeyIdHex(),
                     algorithm = gpgAlgorithmName(sub.algorithm),
                     bitStrength = sub.bitStrength.takeIf { it > 0 },
-                    canSign = flags.canSign(),
-                    canEncrypt = flags.canEncrypt() || sub.isEncryptionKey,
-                    revoked = sub.hasRevocation(),
-                    expiresAt = sub.expiresAt(),
+                    canSign = !certificateRevoked &&
+                        !subkey.revoked &&
+                        (flags?.canSign() ?: sub.isSigningKey()) &&
+                        subkey.signingCrossCertified,
+                    canEncrypt = !certificateRevoked &&
+                        !subkey.revoked &&
+                        (flags?.canEncrypt() ?: sub.isEncryptionKey),
+                    revoked = subkey.revoked,
+                    createdAt = sub.creationTime?.let { Instant.fromEpochMilliseconds(it.time) },
+                    expiresAt = subkey.expiresAt(),
                 )
             }
             .toList()
-        val primaryFlags = primary.keyFlags()
+        val primaryCanSign = primary.authenticated &&
+            !primary.revoked &&
+            (primary.keyFlags?.canSign() ?: primaryKey.isSigningKey())
+        val certificateCanEncrypt = !certificateRevoked &&
+            certificate.authenticatedKeys.any { key ->
+                !key.revoked &&
+                (key.keyFlags?.canEncrypt() ?: key.publicKey.isEncryptionKey)
+            }
         return GpgPublicKeyInfo(
-            fingerprint = primary.fingerprintHex(),
-            keygrip = GpgKeygripCalculatorJvm.calculate(primary),
-            keyId = primary.keyID.gpgKeyIdHex(),
-            algorithm = gpgAlgorithmName(primary.algorithm),
-            bitStrength = primary.bitStrength.takeIf { it > 0 },
+            fingerprint = primaryKey.fingerprintHex(),
+            keygrip = GpgKeygripCalculatorJvm.calculate(primaryKey),
+            keyId = primaryKey.keyID.gpgKeyIdHex(),
+            algorithm = gpgAlgorithmName(primaryKey.algorithm),
+            bitStrength = primaryKey.bitStrength.takeIf { it > 0 },
             userIds = userIds,
             emails = userIds.mapNotNull(::extractGpgUserIdEmail).distinct(),
-            createdAt = primary.creationTime?.let { Instant.fromEpochMilliseconds(it.time) },
+            createdAt = primaryKey.creationTime?.let { Instant.fromEpochMilliseconds(it.time) },
             expiresAt = primary.expiresAt(),
-            revoked = primary.hasRevocation(),
-            canSign = primaryFlags.canSign() || subKeys.any { it.canSign },
-            canEncrypt = primaryFlags.canEncrypt() ||
-                    ring.publicKeys.asSequence().any { it.isEncryptionKey },
+            revoked = primary.revoked,
+            canSign = primaryCanSign || subKeys.any { it.canSign },
+            canEncrypt = certificateCanEncrypt,
             publicKeyArmored = ring.armored(),
             subKeys = subKeys,
         )
-    }
-
-    private fun PGPPublicKey.keyFlags(): Int {
-        var flags = 0
-        val signatures = this.signatures
-        while (signatures.hasNext()) {
-            val signature = signatures.next() ?: continue
-            val hashed = signature.hashedSubPackets ?: continue
-            flags = flags or hashed.keyFlags
-        }
-        return flags
     }
 
     private fun Int.canSign(): Boolean = this and KeyFlags.SIGN_DATA != 0
@@ -112,13 +125,11 @@ class GpgPublicKeyParserJvm() : GpgPublicKeyParser {
     private fun Int.canEncrypt(): Boolean =
         this and (KeyFlags.ENCRYPT_COMMS or KeyFlags.ENCRYPT_STORAGE) != 0
 
-    private fun PGPPublicKey.expiresAt(): Instant? {
-        val validSeconds = this.validSeconds
+    private fun GpgVerifiedCertificateKeyJvm.expiresAt(): Instant? {
         if (validSeconds <= 0L) {
             return null
         }
-        val creationTime = this.creationTime ?: return null
+        val creationTime = publicKey.creationTime ?: return null
         return Instant.fromEpochMilliseconds(creationTime.time + validSeconds * 1000L)
     }
-
 }

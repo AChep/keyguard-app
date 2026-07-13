@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.crypto.GpgLegacyKeyFixtures
 import com.artemchep.keyguard.common.service.crypto.GpgTestKeyFixtures
 import com.artemchep.keyguard.common.util.hexToByteArray
 import com.artemchep.keyguard.crypto.GpgAgentCryptoJvm
+import com.artemchep.keyguard.crypto.armored
 import org.bouncycastle.asn1.ASN1EncodableVector
 import org.bouncycastle.asn1.ASN1Integer
 import org.bouncycastle.asn1.DERSequence
@@ -17,9 +19,10 @@ import java.security.MessageDigest
 import java.security.PublicKey
 import java.security.Security
 import java.security.Signature
-import kotlin.test.Test
 import kotlin.test.BeforeTest
+import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
@@ -36,6 +39,20 @@ class GpgAgentSigningTest {
     fun setup() {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
             Security.addProvider(BouncyCastleProvider())
+        }
+    }
+
+    @Test
+    fun `legacy V2 and V3 private keys are unsupported`() {
+        GpgLegacyKeyFixtures.versions.forEach { version ->
+            assertFailsWith<GpgAgentUnsupportedAlgorithmException> {
+                GpgAgentCryptoJvm().signHash(
+                    privateKeyArmored = GpgLegacyKeyFixtures.secretRing(version).armored(),
+                    metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = ""),
+                    hashAlgorithm = "sha256",
+                    hash = sha256("legacy key".encodeToByteArray()),
+                )
+            }
         }
     }
 

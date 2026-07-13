@@ -1,10 +1,17 @@
 package com.artemchep.keyguard.common.service.crypto
 
+import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.crypto.GpgKeyGeneratorJvm
 import com.artemchep.keyguard.crypto.GpgOpenPgpServiceJvm
+import com.artemchep.keyguard.crypto.GpgUnsupportedKeyVersionException
+import com.artemchep.keyguard.crypto.armored
+import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
+import com.artemchep.keyguard.crypto.fingerprintHex
 import com.artemchep.keyguard.util.foundation.io.toSource
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import org.bouncycastle.bcpg.ArmoredOutputStream
+import org.bouncycastle.bcpg.HashAlgorithmTags
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openpgp.PGPEncryptedDataGenerator
@@ -15,9 +22,13 @@ import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.PGPPublicKeyEncryptedData
 import org.bouncycastle.openpgp.PGPPublicKeyRing
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
+import org.bouncycastle.openpgp.PGPSignature
+import org.bouncycastle.openpgp.PGPSignatureGenerator
+import org.bouncycastle.openpgp.PGPSignatureList
 import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
+import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcePGPDataEncryptorBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyKeyEncryptionMethodGenerator
 import java.io.ByteArrayInputStream
@@ -75,6 +86,29 @@ class GpgOpenPgpServiceJvmTest {
         assertEquals(GpgOpenPgpVerificationStatus.VALID, verification.status)
         assertEquals("D0BBCFBB250D3BB0658E5384F83D947D29EFECF7", verification.fingerprint)
         assertTrue(verification.userIds.any { "cv25519@test.invalid" in it })
+    }
+
+    @Test
+    fun `legacy public key candidate does not hide a supported verification key`() {
+        val signed = service.clearSignText(
+            GpgOpenPgpSignTextRequest(
+                text = "hello from keyguard",
+                privateKey = privateKey,
+            ),
+        )
+        val legacyKey = GpgOpenPgpPublicKey(
+            GpgLegacyKeyFixtures.publicRing(version = 3).armored(),
+        )
+
+        val verification = service.verifyClearSignedText(
+            GpgOpenPgpVerifyTextRequest(
+                signedText = signed,
+                publicKeys = listOf(legacyKey, publicKey),
+            ),
+        )
+
+        assertEquals(GpgOpenPgpVerificationStatus.VALID, verification.status)
+        assertEquals("D0BBCFBB250D3BB0658E5384F83D947D29EFECF7", verification.fingerprint)
     }
 
     @Test
@@ -164,6 +198,73 @@ class GpgOpenPgpServiceJvmTest {
 
         assertEquals("secret text", decrypted.text)
         assertNull(decrypted.verification)
+    }
+
+    @Test
+    fun `legacy recipient cannot be silently dropped from encryption`() {
+        GpgLegacyKeyFixtures.versions.forEach { version ->
+            val legacyKey = GpgOpenPgpPublicKey(
+                GpgLegacyKeyFixtures.publicRing(version).armored(),
+            )
+
+            assertFailsWith<GpgUnsupportedKeyVersionException> {
+                service.encryptText(
+                    GpgOpenPgpEncryptTextRequest(
+                        text = "all recipients must be supported",
+                        publicKeys = listOf(legacyKey, publicKey),
+                    ),
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `legacy private key candidate does not hide a supported decryption key`() {
+        val encrypted = service.encryptText(
+            GpgOpenPgpEncryptTextRequest(
+                text = "supported decryption key",
+                publicKeys = listOf(publicKey),
+            ),
+        )
+
+        GpgLegacyKeyFixtures.versions.forEach { version ->
+            val legacyKey = GpgOpenPgpPrivateKey(
+                armored = GpgLegacyKeyFixtures.secretRing(version).armored(),
+            )
+            val decrypted = service.decryptText(
+                GpgOpenPgpDecryptTextRequest(
+                    encryptedText = encrypted,
+                    privateKeys = listOf(legacyKey, privateKey),
+                ),
+            )
+
+            assertEquals("supported decryption key", decrypted.text)
+        }
+    }
+
+    @Test
+    fun `legacy-only private key candidates are rejected`() {
+        val encrypted = service.encryptText(
+            GpgOpenPgpEncryptTextRequest(
+                text = "unsupported decryption key",
+                publicKeys = listOf(publicKey),
+            ),
+        )
+
+        GpgLegacyKeyFixtures.versions.forEach { version ->
+            val legacyKey = GpgOpenPgpPrivateKey(
+                armored = GpgLegacyKeyFixtures.secretRing(version).armored(),
+            )
+
+            assertFailsWith<GpgUnsupportedKeyVersionException> {
+                service.decryptText(
+                    GpgOpenPgpDecryptTextRequest(
+                        encryptedText = encrypted,
+                        privateKeys = listOf(legacyKey),
+                    ),
+                )
+            }
+        }
     }
 
     @Test
@@ -610,6 +711,78 @@ class GpgOpenPgpServiceJvmTest {
                 subkeyId,
                 keyId,
                 "encryption must target the RSA encryption subkey, not the primary",
+            )
+        }
+    }
+
+    @Test
+    fun `preferred RSA primary fingerprint selects its authenticated signing subkey`() {
+        val generated = GpgKeyGeneratorJvm().generate(
+            GpgKeyConfig.Rsa(
+                userId = "Signing selection <signing-selection@test.invalid>",
+                length = GpgKeyConfig.RsaLength.B3072,
+            ),
+        )
+        val signingFingerprint = generated.metadata.keys.single { it.canSign }.fingerprint
+        val text = "sign with authenticated capability"
+
+        val armoredSignature = service.signTextDetached(
+            GpgOpenPgpSignTextRequest(
+                text = text,
+                privateKey = GpgOpenPgpPrivateKey(
+                    armored = generated.privateKeyArmored,
+                    preferredFingerprint = generated.fingerprint,
+                ),
+            ),
+        )
+        val verification = service.verifyDetachedText(
+            GpgOpenPgpVerifyDetachedTextRequest(
+                text = text,
+                signature = armoredSignature,
+                publicKeys = listOf(GpgOpenPgpPublicKey(generated.publicKeyArmored)),
+            ),
+        )
+
+        assertEquals(GpgOpenPgpVerificationStatus.VALID, verification.status)
+        assertEquals(signingFingerprint, verification.fingerprint)
+    }
+
+    @Test
+    fun `revoked primary invalidates an otherwise usable encryption subkey`() {
+        val secretCollection = PGPSecretKeyRingCollection(
+            PGPUtil.getDecoderStream(ByteArrayInputStream(CV25519_SECRET_KEY.encodeToByteArray())),
+            JcaKeyFingerprintCalculator(),
+        )
+        val secretRing = secretCollection.keyRings.next()
+        val certificate = PGPPublicKeyRing(secretRing.publicKeys.asSequence().toList())
+        val primary = certificate.publicKey
+        val revocation = PGPSignatureGenerator(
+            JcaPGPContentSignerBuilder(primary.algorithm, HashAlgorithmTags.SHA256)
+                .setProvider(BouncyCastleProvider.PROVIDER_NAME),
+            primary,
+        ).apply {
+            init(
+                PGPSignature.KEY_REVOCATION,
+                secretRing.secretKey.extractPrivateKeyEmptyPassphrase(),
+            )
+        }.generateCertification(primary)
+        val revokedCertificate = PGPPublicKeyRing.insertPublicKey(
+            certificate,
+            PGPPublicKey.addCertification(primary, revocation),
+        )
+        val out = ByteArrayOutputStream()
+        ArmoredOutputStream(out).use { armoredOut ->
+            revokedCertificate.encode(armoredOut)
+        }
+
+        assertFailsWith<IllegalStateException> {
+            service.encryptText(
+                GpgOpenPgpEncryptTextRequest(
+                    text = "do not encrypt",
+                    publicKeys = listOf(
+                        GpgOpenPgpPublicKey(out.toString(Charsets.UTF_8)),
+                    ),
+                ),
             )
         }
     }

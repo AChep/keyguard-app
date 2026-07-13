@@ -392,6 +392,7 @@
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Refresh public key from keyserver?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard will contact your configured GPG keyserver with this key's fingerprint. If a matching public key is found, Keyguard will update the stored public key, key metadata, and keyserver status for this item.</string>
     <string name="ciphers_action_verify_gpg_public_key_title">Verify GPG public key</string>
+    <string name="ciphers_action_change_gpg_key_expiry_title">Change GPG key expiry</string>
     <string name="ciphers_action_archive_title">Archive</string>
     <string name="ciphers_action_archive_confirmation_title">Move to archive?</string>
     <string name="ciphers_action_unarchive_title">Restore from archive</string>
@@ -552,10 +553,40 @@
     <string name="gpg_key_import_error_malformed_key">The GPG key file is malformed.</string>
     <string name="gpg_key_import_error_read">Unable to read the selected file.</string>
     <string name="gpg_key_import_error_passphrase_required">A passphrase is required to unlock this GPG key.</string>
+    <string name="gpg_key_import_error_key_changed">The GPG key changed while the import was in progress. Try importing it again.</string>
     <string name="gpg_key_import_passphrase_title">Passphrase</string>
     <string name="gpg_key_import_passphrase_hint">Enter GPG key passphrase</string>
     <string name="gpg_key_import_passphrase_dialog_title">Enter GPG key passphrase</string>
     <string name="gpg_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> private key is encrypted. Keyguard will store it without the key passphrase after import.</string>
+    <string name="gpg_key_expiry_title">Expiry</string>
+    <string name="gpg_key_expiry_never">Never</string>
+    <string name="gpg_key_expiry_same_as_primary">Same as primary key (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
+    <string name="gpg_key_expiry_unknown">Unknown</string>
+    <string name="gpg_key_expiry_private_key_required">Import the private key to change its expiry.</string>
+    <string name="gpg_key_expiry_unavailable">Expiry editing is not supported on this platform.</string>
+    <string name="gpg_key_expiry_key_unreadable">The public key or its fingerprint could not be verified.</string>
+    <string name="gpg_key_expiry_dialog_title">Change GPG key expiry</string>
+    <string name="gpg_key_expiry_dialog_message">Expiration is reversible and does not protect a compromised key. Revoke a compromised key instead.</string>
+    <string name="gpg_key_expiry_primary">Primary key</string>
+    <string name="gpg_key_expiry_subkey">Subkey <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
+    <string name="gpg_key_expiry_subkey_capabilities">Capabilities: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>. Current expiry: <xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
+    <string name="gpg_key_expiry_capability_sign">sign</string>
+    <string name="gpg_key_expiry_capability_encrypt">encrypt</string>
+    <string name="gpg_key_expiry_preset_one_year">One year</string>
+    <string name="gpg_key_expiry_preset_two_years">Two years</string>
+    <string name="gpg_key_expiry_preset_five_years">Five years</string>
+    <string name="gpg_key_expiry_preset_custom">Custom date</string>
+    <string name="gpg_key_expiry_no_explicit_expiry">No explicit expiry</string>
+    <string name="gpg_key_expiry_success_title">GPG key expiry updated</string>
+    <string name="gpg_key_expiry_success_message">Save this item, then redistribute or upload its public key.</string>
+    <string name="gpg_key_expiry_cipher_success_message">The item was updated. Redistribute or upload its public key.</string>
+    <string name="gpg_key_expiry_failed_title">Failed to update GPG key expiry</string>
+    <string name="gpg_key_expiry_failed_message">The key expiry could not be updated. The original key was left unchanged.</string>
+    <string name="gpg_key_expiry_no_components_message">Select at least one key component.</string>
+    <string name="gpg_key_expiry_after_primary_message">A subkey cannot remain usable after the primary key expires. Select the primary key too or choose an earlier expiry.</string>
+    <string name="gpg_key_expiry_invalid_message">Choose a valid future expiry date.</string>
+    <string name="gpg_key_expiry_revoked_message">A revoked key component cannot be renewed.</string>
+    <string name="gpg_key_expiry_unresolved_revocation_message">A designated revocation cannot be verified because the revoker's public key is unavailable. Import it and try again.</string>
     <string name="ssh_key_import_title">Import SSH key</string>
     <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
     <string name="ssh_key_import_failed_title">Failed to import SSH key</string>

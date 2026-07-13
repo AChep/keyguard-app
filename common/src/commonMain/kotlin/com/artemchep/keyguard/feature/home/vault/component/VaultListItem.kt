@@ -883,6 +883,7 @@ fun FlatItemSimpleExpressive(
         ?: LocalContentColor.current,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
+    padding: PaddingValues? = null,
     title: @Composable () -> Unit,
     text: (@Composable () -> Unit)? = null,
     footer: (@Composable ColumnScope.() -> Unit)? = null,
@@ -898,6 +899,7 @@ fun FlatItemSimpleExpressive(
     contentColor = contentColor,
     shapeState = shapeState,
     expressive = expressive,
+    padding = padding,
     content = {
         FlatItemTextContent(
             title = title,

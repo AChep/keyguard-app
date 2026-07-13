@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.model.GpgKeyExpiry
 import com.artemchep.keyguard.crypto.GpgKeyGeneratorJvm
 import com.artemchep.keyguard.crypto.GpgOpenPgpServiceJvm
 import com.artemchep.keyguard.crypto.GpgPublicKeyParserJvm
@@ -14,8 +15,14 @@ import kotlin.io.path.writeText
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.datetime.TimeZone
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
 
 class GpgKeyGeneratorJvmTest {
     private val generator = GpgKeyGeneratorJvm()
@@ -46,6 +53,88 @@ class GpgKeyGeneratorJvmTest {
                 length = GpgKeyConfig.RsaLength.B3072,
             ),
         )
+    }
+
+    @Test
+    fun `default expiry is applied to every generated component`() {
+        val generated = generator.generate(
+            GpgKeyConfig.Modern(
+                userId = "Keyguard Test <default-expiry@test.invalid>",
+            ),
+        )
+
+        val parsed = parser.parse(generated.publicKeyArmored)
+        assertTrue(parsed is GpgPublicKeyParseResult.Success, "expected Success, got $parsed")
+        val key = parsed.keys.single()
+        val primaryCreatedAt = assertNotNull(key.createdAt)
+        val expectedExpiry = assertNotNull(
+            GpgKeyExpiry.default.resolve(
+                creationTime = primaryCreatedAt,
+                timeZone = TimeZone.currentSystemDefault(),
+            ),
+        )
+        assertEquals(
+            expectedExpiry,
+            key.expiresAt,
+        )
+        key.subKeys.forEach { subkey ->
+            assertEquals(
+                expectedExpiry,
+                subkey.expiresAt,
+            )
+        }
+    }
+
+    @Test
+    fun `never expiry is applied to every generated component`() {
+        val generated = generator.generate(
+            GpgKeyConfig.Modern(
+                userId = "Keyguard Test <never-expiry@test.invalid>",
+                expiry = GpgKeyExpiry.Never,
+            ),
+        )
+
+        val parsed = parser.parse(generated.publicKeyArmored)
+        assertTrue(parsed is GpgPublicKeyParseResult.Success, "expected Success, got $parsed")
+        val key = parsed.keys.single()
+        assertNull(key.expiresAt)
+        key.subKeys.forEach { subkey ->
+            assertNull(subkey.expiresAt)
+        }
+    }
+
+    @Test
+    fun `absolute expiry is applied to every generated component`() {
+        val target = Instant.fromEpochSeconds((Clock.System.now() + 30.days).epochSeconds)
+        val generated = generator.generate(
+            GpgKeyConfig.Modern(
+                userId = "Keyguard Test <absolute-expiry@test.invalid>",
+                expiry = GpgKeyExpiry.At(target),
+            ),
+        )
+
+        val parsed = parser.parse(generated.publicKeyArmored)
+        assertTrue(parsed is GpgPublicKeyParseResult.Success, "expected Success, got $parsed")
+        val key = parsed.keys.single()
+        assertEquals(target, key.expiresAt)
+        key.subKeys.forEach { subkey ->
+            assertEquals(target, subkey.expiresAt)
+        }
+    }
+
+    @Test
+    fun `metadata resolution failure aborts generation`() {
+        val generator = GpgKeyGeneratorJvm(
+            metadataResolver = GpgKeyMetadataResolverUnsupported,
+        )
+
+        assertFailsWith<IllegalStateException> {
+            generator.generate(
+                GpgKeyConfig.Modern(
+                    userId = "Keyguard Test <metadata-failure@test.invalid>",
+                ),
+            )
+        }
     }
 
     @Test
@@ -239,7 +328,12 @@ class GpgKeyGeneratorJvmTest {
             ),
         )
         assertEquals(GpgOpenPgpVerificationStatus.VALID, verification.status)
-        assertEquals(generated.fingerprint, verification.fingerprint)
+        assertTrue(
+            generated.metadata.keys.any { key ->
+                key.canSign && key.fingerprint == verification.fingerprint
+            },
+            "verification should identify an authenticated signing component",
+        )
 
         val encrypted = openPgpService.encryptText(
             GpgOpenPgpEncryptTextRequest(

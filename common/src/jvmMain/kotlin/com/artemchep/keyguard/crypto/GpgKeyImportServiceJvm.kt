@@ -10,24 +10,18 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
-import com.artemchep.keyguard.common.service.crypto.gpgAlgorithmName
+import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openpgp.PGPException
-import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.PGPSecretKey
 import org.bouncycastle.openpgp.PGPSecretKeyRing
-import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
-import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor
-import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.io.ByteArrayInputStream
 
 class GpgKeyImportServiceJvm(
     private val publicKeyParser: GpgPublicKeyParser,
@@ -58,8 +52,13 @@ class GpgKeyImportServiceJvm(
     private fun importPrivateKey(
         request: GpgKeyImportRequest,
     ): GpgKeyImportResult? {
-        val collection = parseSecretKeyRingCollection(request.content)
-            ?: return null
+        val collection = try {
+            parseGpgSecretKeyRingCollection(request.content)
+        } catch (_: GpgUnsupportedKeyVersionException) {
+            return GpgKeyImportResult.Error(GpgKeyImportError.UnsupportedFormat)
+        } catch (_: Exception) {
+            return null
+        }
         val ring = collection.keyRings
             .asSequence()
             .firstOrNull { it.hasSecretKeyMaterial() }
@@ -92,9 +91,9 @@ class GpgKeyImportServiceJvm(
         val publicKeyRing = importedRing.toCertificate()
         val publicKeyArmored = publicKeyRing.armored()
         val privateKeyArmored = importedRing.armored()
-        val primary = publicKeyRing.publicKey
+        val keyInfo = publicKeyParser.parsePrimaryKeyInfo(publicKeyArmored)
             ?: return GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey)
-        val fingerprint = primary.fingerprintHex()
+        val fingerprint = keyInfo.fingerprint
         val metadata = metadataResolver.resolve(
             privateKeyArmored = privateKeyArmored,
             publicKeyArmored = publicKeyArmored,
@@ -106,8 +105,8 @@ class GpgKeyImportServiceJvm(
                 publicKeyArmored = publicKeyArmored,
                 fingerprint = fingerprint,
                 metadata = metadata,
-                userId = primary.userIDs.asSequence().firstOrNull().orEmpty(),
-                typeLabel = gpgAlgorithmName(primary.algorithm),
+                userId = keyInfo.userIds.firstOrNull().orEmpty(),
+                typeLabel = keyInfo.algorithm,
             ),
         )
     }
@@ -139,33 +138,21 @@ class GpgKeyImportServiceJvm(
             reason = when (result.reason) {
                 GpgPublicKeyParseError.Empty -> GpgKeyImportError.Empty
                 GpgPublicKeyParseError.Malformed -> GpgKeyImportError.MalformedKey
+                GpgPublicKeyParseError.UnsupportedKeyVersion -> GpgKeyImportError.UnsupportedFormat
                 GpgPublicKeyParseError.Unsupported -> GpgKeyImportError.UnsupportedPlatform
             },
         )
     }
 
-    private fun parseSecretKeyRingCollection(
-        content: String,
-    ): PGPSecretKeyRingCollection? {
-        ensureBouncyCastleProvider()
-        return runCatching {
-            PGPSecretKeyRingCollection(
-                PGPUtil.getDecoderStream(ByteArrayInputStream(content.encodeToByteArray())),
-                JcaKeyFingerprintCalculator(),
-            )
-        }.getOrNull()
-    }
-
     private fun buildDecryptor(
         passphrase: String,
     ): PBESecretKeyDecryptor {
-        ensureBouncyCastleProvider()
         return JcePBESecretKeyDecryptorBuilder(
             JcaPGPDigestCalculatorProviderBuilder()
-                .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+                .setProvider(gpgBouncyCastleProvider)
                 .build(),
         )
-            .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+            .setProvider(gpgBouncyCastleProvider)
             .build(passphrase.toCharArray())
     }
 

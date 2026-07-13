@@ -387,6 +387,7 @@ class GpgKeyserverClientImpl(
 
             is GpgPublicKeyParseResult.Error -> when (result.reason) {
                 GpgPublicKeyParseError.Empty -> emptyList()
+                GpgPublicKeyParseError.UnsupportedKeyVersion -> emptyList()
                 GpgPublicKeyParseError.Malformed -> throw IllegalStateException(
                     "Keyserver returned malformed OpenPGP public key data.",
                 )

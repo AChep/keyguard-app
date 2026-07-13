@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
 import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
@@ -55,6 +56,7 @@ import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptorJvm
 import com.artemchep.keyguard.crypto.GpgKeyImportServiceJvm
 import com.artemchep.keyguard.crypto.GpgKeyGeneratorJvm
+import com.artemchep.keyguard.crypto.GpgKeyExpirationServiceJvm
 import com.artemchep.keyguard.crypto.GpgKeyMetadataResolverJvm
 import com.artemchep.keyguard.crypto.GpgOpenPgpServiceJvm
 import com.artemchep.keyguard.crypto.GpgPublicKeyParserJvm
@@ -236,6 +238,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<GpgKeyGenerator> {
         GpgKeyGeneratorJvm(
+            directDI = this,
+        )
+    }
+    bindSingleton<GpgKeyExpirationService> {
+        GpgKeyExpirationServiceJvm(
             directDI = this,
         )
     }

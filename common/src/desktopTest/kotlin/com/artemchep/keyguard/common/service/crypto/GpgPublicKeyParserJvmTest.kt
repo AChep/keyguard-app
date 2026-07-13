@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.crypto.GpgPublicKeyParserJvm
+import com.artemchep.keyguard.crypto.armored
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openpgp.PGPPublicKeyRing
@@ -13,6 +14,8 @@ import java.security.Security
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -75,6 +78,50 @@ class GpgPublicKeyParserJvmTest {
             GpgPublicKeyParseResult.Error(GpgPublicKeyParseError.Malformed),
             result,
         )
+    }
+
+    @Test
+    fun `legacy V2 and V3 public keys are unsupported`() {
+        GpgLegacyKeyFixtures.versions.forEach { version ->
+            val result = parser.parse(
+                GpgLegacyKeyFixtures.publicRing(version).armored(),
+            )
+            assertEquals(
+                GpgPublicKeyParseResult.Error(GpgPublicKeyParseError.UnsupportedKeyVersion),
+                result,
+            )
+        }
+    }
+
+    @Test
+    fun `primary key lookup requires a supplied fingerprint to match`() {
+        val armored = publicKeyArmoredOf(CV25519_SECRET_KEY)
+
+        assertNull(
+            parser.parsePrimaryKeyInfo(
+                armored = armored,
+                fingerprint = "0000000000000000000000000000000000000000",
+            ),
+        )
+        assertNotNull(
+            parser.parsePrimaryKeyInfo(
+                armored = armored,
+                fingerprint = "d0bb cfbb 250d 3bb0 658e 5384 f83d 947d 29ef ecf7",
+            ),
+        )
+        assertNotNull(
+            parser.parsePrimaryKeyInfo(
+                armored = armored,
+                fingerprint = "",
+            ),
+        )
+        assertNotNull(
+            parser.parsePrimaryKeyInfo(
+                armored = armored,
+                fingerprint = null,
+            ),
+        )
+        assertNotNull(parser.parsePrimaryKeyInfo(armored = armored))
     }
 
     private fun publicKeyArmoredOf(

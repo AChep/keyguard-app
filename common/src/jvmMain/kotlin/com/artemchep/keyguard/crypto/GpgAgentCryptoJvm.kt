@@ -26,15 +26,11 @@ import org.bouncycastle.crypto.engines.RFC3394WrapEngine
 import org.bouncycastle.crypto.params.KeyParameter
 import org.bouncycastle.crypto.params.X25519PrivateKeyParameters
 import org.bouncycastle.crypto.params.X25519PublicKeyParameters
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openpgp.operator.RFC6637Utils
 import org.bouncycastle.openpgp.PGPSecretKey
-import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
-import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPKeyConverter
 import org.kodein.di.DirectDI
-import java.io.ByteArrayInputStream
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.security.PrivateKey
@@ -54,8 +50,6 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
         hashAlgorithm: String,
         hash: ByteArray,
     ): GpgAgentMessages.SignHashResponse {
-        ensureBouncyCastleProvider()
-
         val secretKey = findSecretKey(
             privateKeyArmored = privateKeyArmored,
             metadataKey = metadataKey,
@@ -108,8 +102,6 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
         ciphertext: ByteArray,
         unwrapEcdh: Boolean,
     ): GpgAgentMessages.PkdecryptResponse {
-        ensureBouncyCastleProvider()
-
         val secretKey = findSecretKey(
             privateKeyArmored = privateKeyArmored,
             metadataKey = metadataKey,
@@ -160,7 +152,7 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
         val block = ByteArray(modulusBytes)
         magnitude.copyInto(block, destinationOffset = modulusBytes - magnitude.size)
 
-        val cipher = Cipher.getInstance("RSA/ECB/NoPadding", BouncyCastleProvider.PROVIDER_NAME)
+        val cipher = Cipher.getInstance("RSA/ECB/NoPadding", gpgBouncyCastleProvider)
         cipher.init(Cipher.DECRYPT_MODE, privateKey)
         val m = BigInteger(1, cipher.doFinal(block))
         return GpgAgentMessages.PkdecryptResponse(
@@ -306,7 +298,7 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
 
         val digest = MessageDigest.getInstance(
             hashAlgorithmJcaName(hashAlgorithm),
-            BouncyCastleProvider.PROVIDER_NAME,
+            gpgBouncyCastleProvider,
         )
         digest.update(byteArrayOf(0x00, 0x00, 0x00, 0x01))
         digest.update(sharedSecret)
@@ -355,10 +347,11 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
         metadataKey: GpgAgentKeyMetadataKey,
         usable: (PGPSecretKey) -> Boolean,
     ): PGPSecretKey? {
-        val collection = PGPSecretKeyRingCollection(
-            PGPUtil.getDecoderStream(ByteArrayInputStream(privateKeyArmored.encodeToByteArray())),
-            JcaKeyFingerprintCalculator(),
-        )
+        val collection = try {
+            parseGpgSecretKeyRingCollection(privateKeyArmored)
+        } catch (error: GpgUnsupportedKeyVersionException) {
+            throw GpgAgentUnsupportedAlgorithmException(error.message.orEmpty())
+        }
         val expectedFingerprint = metadataKey.fingerprint
             .takeIf { it.isNotBlank() }
             ?.normalizeGpgFingerprint()
@@ -396,7 +389,7 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
     private fun extractJcaPrivateKey(
         secretKey: PGPSecretKey,
     ): PrivateKey = JcaPGPKeyConverter()
-        .setProvider(BouncyCastleProvider.PROVIDER_NAME)
+        .setProvider(gpgBouncyCastleProvider)
         .getPrivateKey(secretKey.extractPrivateKeyEmptyPassphrase())
 
     private fun signRsa(
@@ -411,7 +404,7 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
             ),
             hash,
         ).encoded
-        val signer = Signature.getInstance("NONEwithRSA", BouncyCastleProvider.PROVIDER_NAME)
+        val signer = Signature.getInstance("NONEwithRSA", gpgBouncyCastleProvider)
         signer.initSign(privateKey)
         signer.update(digestInfo)
         val signature = signer.sign()
@@ -428,7 +421,7 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
         // gpg sends the bare digest for ECDSA (no DigestInfo wrapping). BouncyCastle's
         // NONEwithECDSA treats the input as the pre-computed hash and truncates it to the
         // curve order's bit length, exactly as ECDSA requires.
-        val signer = Signature.getInstance("NONEwithECDSA", BouncyCastleProvider.PROVIDER_NAME)
+        val signer = Signature.getInstance("NONEwithECDSA", gpgBouncyCastleProvider)
         signer.initSign(privateKey)
         signer.update(hash)
         val derSignature = signer.sign()
@@ -447,7 +440,7 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
         hash: ByteArray,
     ): GpgAgentMessages.SignHashResponse {
         // Ed25519 signs the supplied digest directly (the agent never sees the message).
-        val signer = Signature.getInstance("Ed25519", BouncyCastleProvider.PROVIDER_NAME)
+        val signer = Signature.getInstance("Ed25519", gpgBouncyCastleProvider)
         signer.initSign(privateKey)
         signer.update(hash)
         val signature = signer.sign()

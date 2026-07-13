@@ -36,6 +36,7 @@ import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.service.tld.TldService
+import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetPassword
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
@@ -402,6 +403,7 @@ private fun wearGeneratorScreenState(
         gpgPublicKeyExport = instance<GpgKeyPublicExport>(),
         gpgPrivateKeyExport = instance<GpgKeyPrivateExport>(),
         numberFormatter = instance<NumberFormatter>(),
+        dateFormatter = instance<DateFormatter>(),
         getCanWrite = GetCanWriteStub(),
         tldService = instance<TldService>(),
         clipboardService = instance<ClipboardService>(),

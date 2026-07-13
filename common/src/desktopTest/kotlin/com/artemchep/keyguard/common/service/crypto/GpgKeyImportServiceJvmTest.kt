@@ -60,6 +60,22 @@ class GpgKeyImportServiceJvmTest {
     }
 
     @Test
+    fun `rejects legacy V2 and V3 public keys`() {
+        GpgLegacyKeyFixtures.versions.forEach { version ->
+            val result = service.import(
+                GpgKeyImportRequest(
+                    content = GpgLegacyKeyFixtures.publicRing(version).armored(),
+                    fileName = "legacy-public.asc",
+                ),
+            )
+            assertEquals(
+                GpgKeyImportResult.Error(GpgKeyImportError.UnsupportedFormat),
+                result,
+            )
+        }
+    }
+
+    @Test
     fun `imports unencrypted private key with derived public key`() {
         val result = service.import(
             GpgKeyImportRequest(
@@ -75,6 +91,23 @@ class GpgKeyImportServiceJvmTest {
         assertEquals("D0BBCFBB250D3BB0658E5384F83D947D29EFECF7", key.fingerprint)
         assertTrue(key.metadata.keys.any { it.canSign })
         assertTrue(key.metadata.keys.any { it.canDecrypt })
+    }
+
+    @Test
+    fun `rejects legacy V2 and V3 private keys`() {
+        GpgLegacyKeyFixtures.versions.forEach { version ->
+            val privateKeyArmored = GpgLegacyKeyFixtures.secretRing(version).armored()
+            val result = service.import(
+                GpgKeyImportRequest(
+                    content = privateKeyArmored,
+                    fileName = "legacy-private.asc",
+                ),
+            )
+            assertEquals(
+                GpgKeyImportResult.Error(GpgKeyImportError.UnsupportedFormat),
+                result,
+            )
+        }
     }
 
     @Test

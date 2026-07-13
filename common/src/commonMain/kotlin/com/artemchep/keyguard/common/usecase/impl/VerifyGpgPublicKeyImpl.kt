@@ -136,6 +136,11 @@ class VerifyGpgPublicKeyImpl(
                     "The stored public GPG key is malformed.",
                 )
 
+                GpgPublicKeyParseError.UnsupportedKeyVersion ->
+                    throw UnsupportedOperationException(
+                        "OpenPGP V2/V3 keys are not supported.",
+                    )
+
                 GpgPublicKeyParseError.Unsupported -> throw UnsupportedOperationException(
                     "OpenPGP public key parsing is not supported on this platform.",
                 )

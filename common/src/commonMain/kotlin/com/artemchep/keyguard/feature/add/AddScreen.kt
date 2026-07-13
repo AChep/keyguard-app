@@ -80,6 +80,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GetPasswordResult
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.UsernameVariationIcon
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.model.titleH
@@ -908,58 +909,103 @@ private fun GpgKeyField(
         containerPadding = defaultFlatItemPaddingValues(),
         fileDrop = item.fileDrop,
     ) {
-        FlatItemLayoutExpressive(
-            backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-            leading = icon<RowScope>(Icons.Outlined.Key),
-            shapeState = shapeState,
-            padding = PaddingValues(0.dp),
-            content = {
-                val fingerprint = state.gpgKey?.fingerprint
-                if (!fingerprint.isNullOrEmpty()) {
-                    FlatItemTextContent(
-                        title = {
-                            Text(
-                                text = fingerprint,
-                            )
-                        },
-                    )
+        val expiration = state.expiration
+        Column {
+            FlatItemLayoutExpressive(
+                backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                leading = icon<RowScope>(Icons.Outlined.Key),
+                shapeState = if (expiration != null) {
+                    shapeState and ShapeState.END.inv()
                 } else {
-                    FlatItemTextContent(
-                        title = {
-                            Text(
-                                modifier = Modifier
-                                    .alpha(DisabledEmphasisAlpha),
-                                text = stringResource(Res.string.key_gpg_value_placeholder),
-                            )
+                    shapeState
+                },
+                padding = PaddingValues(0.dp),
+                content = {
+                    val fingerprint = state.gpgKey?.fingerprint
+                    if (!fingerprint.isNullOrEmpty()) {
+                        FlatItemTextContent(
+                            title = {
+                                Text(
+                                    text = fingerprint,
+                                )
+                            },
+                        )
+                    } else {
+                        FlatItemTextContent(
+                            title = {
+                                Text(
+                                    modifier = Modifier
+                                        .alpha(DisabledEmphasisAlpha),
+                                    text = stringResource(Res.string.key_gpg_value_placeholder),
+                                )
+                            },
+                        )
+                    }
+                },
+                trailing = {
+                    AutofillButton(
+                        key = "gpgKey",
+                        gpgKey = true,
+                        provideUris = {
+                            addScope
+                                .obtainUriContext()
+                        },
+                        onResultChange = if (state.enabled) {
+                            {
+                                if (it is GetPasswordResult.AsyncGpgKey) {
+                                    state.onChange(it.gpgKey)
+                                }
+                            }
+                        } else {
+                            null
                         },
                     )
-                }
-            },
-            trailing = {
-                AutofillButton(
-                    key = "gpgKey",
-                    gpgKey = true,
-                    provideUris = {
-                        addScope
-                            .obtainUriContext()
+                    IconButton(
+                        enabled = state.enabled,
+                        onClick = state.onImport,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FileUpload,
+                            contentDescription = stringResource(Res.string.gpg_key_import_title),
+                        )
+                    }
+                },
+                enabled = state.enabled,
+            )
+            if (expiration != null) {
+                FlatItemSimpleExpressive(
+                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                    shapeState = shapeState and ShapeState.START.inv(),
+                    padding = PaddingValues(0.dp),
+                    title = {
+                        Text(text = stringResource(Res.string.gpg_key_expiry_title))
                     },
-                    onResultChange = {
-                        if (it is GetPasswordResult.AsyncGpgKey) {
-                            state.onChange(it.gpgKey)
+                    text = {
+                        Column {
+                            Text(text = expiration.value)
+                            expiration.text?.let { text ->
+                                Text(
+                                    modifier = Modifier.alpha(MediumEmphasisAlpha),
+                                    text = text,
+                                )
+                            }
                         }
                     },
+                    trailing = if (expiration.onClick != null) {
+                        {
+                            Icon(
+                                imageVector = Icons.Outlined.ArrowDropDown,
+                                contentDescription = null,
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                    onClick = expiration.onClick,
+                    enabled = expiration.onClick != null,
                 )
-                IconButton(
-                    onClick = state.onImport,
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.FileUpload,
-                        contentDescription = stringResource(Res.string.gpg_key_import_title),
-                    )
-                }
-            },
-            enabled = true,
-        )
+            }
+        }
     }
 }
 

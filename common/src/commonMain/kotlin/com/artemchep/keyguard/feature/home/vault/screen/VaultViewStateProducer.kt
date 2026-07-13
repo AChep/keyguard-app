@@ -92,11 +92,11 @@ import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
-import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
@@ -118,6 +118,7 @@ import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
+import com.artemchep.keyguard.common.usecase.ChangeGpgKeyExpirationById
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherFieldSwitchToggle
@@ -199,6 +200,7 @@ import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
 import com.artemchep.keyguard.feature.home.vault.util.cipherArchiveAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherChangeGpgKeyExpiryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangeNameAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangePasswordAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherCopyToAction
@@ -341,6 +343,7 @@ fun vaultViewScreenState(
         rePromptCipherById = instance(),
         changeCipherNameById = instance(),
         changeCipherPasswordById = instance(),
+        changeGpgKeyExpirationById = instance(),
         checkPasswordLeak = instance(),
         uploadGpgPublicKey = instance(),
         refreshGpgPublicKeys = instance(),
@@ -448,6 +451,7 @@ fun vaultViewScreenState(
     rePromptCipherById: RePromptCipherById,
     changeCipherNameById: ChangeCipherNameById,
     changeCipherPasswordById: ChangeCipherPasswordById,
+    changeGpgKeyExpirationById: ChangeGpgKeyExpirationById,
     checkPasswordLeak: CheckPasswordLeak,
     uploadGpgPublicKey: UploadGpgPublicKey,
     refreshGpgPublicKeys: RefreshGpgPublicKeys,
@@ -549,6 +553,7 @@ fun vaultViewScreenState(
         rePromptCipherById = rePromptCipherById,
         changeCipherNameById = changeCipherNameById,
         changeCipherPasswordById = changeCipherPasswordById,
+        changeGpgKeyExpirationById = changeGpgKeyExpirationById,
         checkPasswordLeak = checkPasswordLeak,
         uploadGpgPublicKey = uploadGpgPublicKey,
         refreshGpgPublicKeys = refreshGpgPublicKeys,
@@ -629,6 +634,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
     rePromptCipherById: RePromptCipherById,
     changeCipherNameById: ChangeCipherNameById,
     changeCipherPasswordById: ChangeCipherPasswordById,
+    changeGpgKeyExpirationById: ChangeGpgKeyExpirationById,
     checkPasswordLeak: CheckPasswordLeak,
     uploadGpgPublicKey: UploadGpgPublicKey,
     refreshGpgPublicKeys: RefreshGpgPublicKeys,
@@ -1402,6 +1408,20 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                             patchWatchtowerAlertCipher = patchWatchtowerAlertCipher,
                             ciphers = listOf(secretOrNull),
                         ),
+                        cipherChangeGpgKeyExpiryAction(
+                            gpgPublicKeyParser = gpgPublicKeyParser,
+                            changeGpgKeyExpirationById = changeGpgKeyExpirationById,
+                            cipher = secretOrNull,
+                        )
+                            .takeIf {
+                                canEdit &&
+                                        secretOrNull.type == DSecret.Type.GpgKey &&
+                                        secretOrNull.getGpgAgentPrivateKeyArmored()?.isNotBlank() == true &&
+                                        secretOrNull.getGpgAgentPublicKeyArmored()?.isNotBlank() == true &&
+                                        gpgPublicKeyParser.isSupported &&
+                                        changeGpgKeyExpirationById.isSupported
+                            }
+                            ?.verify(verify),
                         cipherVerifyGpgPublicKeyAction(
                             verifyGpgPublicKey = verifyGpgPublicKey,
                             cipher = secretOrNull,
@@ -4134,7 +4154,7 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
     val parsedGpgKey = gpgPublicKeyArmored
         ?.let { armored ->
             ioEffect(Dispatchers.Default) {
-                gpgPublicKeyParser.parsePublicKeyInfoOrNull(
+                gpgPublicKeyParser.parsePrimaryKeyInfo(
                     armored = armored,
                     fingerprint = gpgFingerprint,
                 )
@@ -4436,26 +4456,6 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
     }
 
     return items
-}
-
-private fun GpgPublicKeyParser.parsePublicKeyInfoOrNull(
-    armored: String,
-    fingerprint: String?,
-): GpgPublicKeyInfo? {
-    val result = parse(armored)
-    if (result !is GpgPublicKeyParseResult.Success) {
-        return null
-    }
-
-    val normalizedFingerprint = fingerprint
-        ?.normalizeGpgFingerprint()
-        .orEmpty()
-    return result.keys
-        .firstOrNull { key ->
-            normalizedFingerprint.isNotEmpty() &&
-                    key.fingerprint.normalizeGpgFingerprint() == normalizedFingerprint
-        }
-        ?: result.keys.firstOrNull()
 }
 
 private fun GpgPublicKeyInfo.formatGpgAlgorithm(): String? {

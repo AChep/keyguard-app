@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.crypto.gpgAlgorithmName
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
@@ -9,13 +10,8 @@ import org.bouncycastle.bcpg.PublicKeyAlgorithmTags
 import org.bouncycastle.bcpg.sig.KeyFlags
 import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.PGPPublicKeyRing
-import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.PGPSecretKeyRing
-import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
-import org.bouncycastle.openpgp.PGPUtil
-import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.kodein.di.DirectDI
-import java.io.ByteArrayInputStream
 
 class GpgKeyMetadataResolverJvm() : GpgKeyMetadataResolver {
     constructor(
@@ -26,42 +22,53 @@ class GpgKeyMetadataResolverJvm() : GpgKeyMetadataResolver {
         privateKeyArmored: String?,
         publicKeyArmored: String?,
         fingerprint: String?,
+        candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
     ): GpgAgentKeyMetadata? {
-        ensureBouncyCastleProvider()
+        val externalRevocationKeys = candidateRevocationKeys.parseGpgPublicKeyCandidates()
         return privateKeyArmored
             ?.takeIf { it.isNotBlank() }
-            ?.let { parsePrivateKeyMetadataOrNull(it, fingerprint) }
+            ?.let { parsePrivateKeyMetadataOrNull(it, fingerprint, externalRevocationKeys) }
             ?: publicKeyArmored
                 ?.takeIf { it.isNotBlank() }
-                ?.let { parsePublicKeyMetadataOrNull(it, fingerprint) }
+                ?.let { parsePublicKeyMetadataOrNull(it, fingerprint, externalRevocationKeys) }
     }
 
     private fun parsePrivateKeyMetadataOrNull(
         armored: String,
         fingerprint: String?,
+        externalRevocationKeys: List<PGPPublicKey>,
     ): GpgAgentKeyMetadata? = runCatching {
-        val collection = PGPSecretKeyRingCollection(
-            PGPUtil.getDecoderStream(ByteArrayInputStream(armored.encodeToByteArray())),
-            JcaKeyFingerprintCalculator(),
-        )
-        val rings = collection.keyRings
+        val collection = parseGpgSecretKeyRingCollection(armored)
+        val allRings = collection.keyRings
+            .asSequence()
+            .toList()
+        val candidateRevocationKeys = buildList {
+            allRings.forEach { ring -> ring.publicKeys.asSequence().forEach(::add) }
+            addAll(externalRevocationKeys)
+        }
+        val rings = allRings
             .asSequence()
             .selectSecretRingsByFingerprint(fingerprint)
-        rings.secretRingsToMetadataOrNull()
+        rings.secretRingsToMetadataOrNull(candidateRevocationKeys)
     }.getOrNull()
 
     private fun parsePublicKeyMetadataOrNull(
         armored: String,
         fingerprint: String?,
+        externalRevocationKeys: List<PGPPublicKey>,
     ): GpgAgentKeyMetadata? = runCatching {
-        val collection = PGPPublicKeyRingCollection(
-            PGPUtil.getDecoderStream(ByteArrayInputStream(armored.encodeToByteArray())),
-            JcaKeyFingerprintCalculator(),
-        )
-        val rings = collection.keyRings
+        val collection = parseGpgPublicKeyRingCollection(armored)
+        val allRings = collection.keyRings
+            .asSequence()
+            .toList()
+        val candidateRevocationKeys = buildList {
+            allRings.forEach { ring -> ring.publicKeys.asSequence().forEach(::add) }
+            addAll(externalRevocationKeys)
+        }
+        val rings = allRings
             .asSequence()
             .selectPublicRingsByFingerprint(fingerprint)
-        rings.publicRingsToMetadataOrNull()
+        rings.publicRingsToMetadataOrNull(candidateRevocationKeys)
     }.getOrNull()
 
     private fun Sequence<PGPSecretKeyRing>.selectSecretRingsByFingerprint(
@@ -92,31 +99,48 @@ class GpgKeyMetadataResolverJvm() : GpgKeyMetadataResolver {
         }
     }
 
-    private fun Sequence<PGPSecretKeyRing>.secretRingsToMetadataOrNull(): GpgAgentKeyMetadata? =
-        flatMap { ring -> ring.publicKeysWithPrimaryMarker() }
+    private fun Sequence<PGPSecretKeyRing>.secretRingsToMetadataOrNull(
+        candidateRevocationKeys: List<PGPPublicKey>,
+    ): GpgAgentKeyMetadata? =
+        mapNotNull { ring ->
+            GpgCertificateInspectorJvm.inspect(
+                ring = ring.toCertificate(),
+                candidateRevocationKeys = candidateRevocationKeys,
+            )
+        }
+            .flatMap { inspector -> inspector.keysWithPrimaryMarker() }
             .publicKeysToMetadataOrNull()
 
-    private fun Sequence<PGPPublicKeyRing>.publicRingsToMetadataOrNull(): GpgAgentKeyMetadata? =
-        flatMap { ring -> ring.publicKeysWithPrimaryMarker() }
+    private fun Sequence<PGPPublicKeyRing>.publicRingsToMetadataOrNull(
+        candidateRevocationKeys: List<PGPPublicKey>,
+    ): GpgAgentKeyMetadata? =
+        mapNotNull { ring ->
+            GpgCertificateInspectorJvm.inspect(
+                ring = ring,
+                candidateRevocationKeys = candidateRevocationKeys,
+            )
+        }
+            .flatMap { inspector -> inspector.keysWithPrimaryMarker() }
             .publicKeysToMetadataOrNull()
 
-    private fun PGPSecretKeyRing.publicKeysWithPrimaryMarker(): Sequence<Pair<PGPPublicKey, Boolean>> {
-        val primaryKeyId = publicKey?.keyID
-        return publicKeys
-            .asSequence()
-            .map { key -> key to (key.isMasterKey || key.keyID == primaryKeyId) }
-    }
+    private fun GpgCertificateInspectorJvm.keysWithPrimaryMarker(): Sequence<MetadataKey> =
+        authenticatedKeys
+        .asSequence()
+        .map { key ->
+            MetadataKey(
+                key = key,
+                primary = key === primary,
+                certificateRevoked = primary.revoked,
+            )
+        }
 
-    private fun PGPPublicKeyRing.publicKeysWithPrimaryMarker(): Sequence<Pair<PGPPublicKey, Boolean>> {
-        val primaryKeyId = publicKey?.keyID
-        return publicKeys
-            .asSequence()
-            .map { key -> key to (key.isMasterKey || key.keyID == primaryKeyId) }
-    }
-
-    private fun Sequence<Pair<PGPPublicKey, Boolean>>.publicKeysToMetadataOrNull(): GpgAgentKeyMetadata? {
-        val keys = mapNotNull { (key, primary) ->
-            key.toMetadataKeyOrNull(includeWithoutCapabilities = primary)
+    private fun Sequence<MetadataKey>.publicKeysToMetadataOrNull(): GpgAgentKeyMetadata? {
+        val keys = mapNotNull { inspected ->
+            inspected.key.toMetadataKeyOrNull(
+                isPrimary = inspected.primary,
+                includeWithoutCapabilities = inspected.primary,
+                certificateRevoked = inspected.certificateRevoked,
+            )
         }
             .toList()
         return GpgAgentKeyMetadata(
@@ -125,43 +149,44 @@ class GpgKeyMetadataResolverJvm() : GpgKeyMetadataResolver {
         ).takeIf { keys.isNotEmpty() }
     }
 
-    private fun PGPPublicKey.toMetadataKeyOrNull(
+    private fun GpgVerifiedCertificateKeyJvm.toMetadataKeyOrNull(
+        isPrimary: Boolean,
         includeWithoutCapabilities: Boolean,
+        certificateRevoked: Boolean,
     ): GpgAgentKeyMetadataKey? {
-        val capabilities = capabilities()
+        val capabilities = capabilities(
+            isPrimary = isPrimary,
+            certificateRevoked = certificateRevoked,
+        )
         if (capabilities.isEmpty() && !includeWithoutCapabilities) {
             return null
         }
         val keygrip = runCatching {
-            GpgKeygripCalculatorJvm.calculate(this)
+            GpgKeygripCalculatorJvm.calculate(publicKey)
         }.getOrNull() ?: return null
         return GpgAgentKeyMetadataKey(
             keygrip = keygrip,
-            fingerprint = fingerprintHex(),
-            algorithm = gpgAlgorithmName(algorithm),
+            fingerprint = publicKey.fingerprintHex(),
+            algorithm = gpgAlgorithmName(publicKey.algorithm),
             capabilities = capabilities,
         )
     }
 
-    private fun PGPPublicKey.capabilities(): Set<String> = buildSet {
-        val flags = keyFlags()
-        if (flags.canSign() || (flags == 0 && isSigningKey())) {
-            add("sign")
+    private fun GpgVerifiedCertificateKeyJvm.capabilities(
+        isPrimary: Boolean,
+        certificateRevoked: Boolean,
+    ): Set<String> = if (certificateRevoked || revoked) {
+        emptySet()
+    } else {
+        buildSet {
+            val signingCapability = keyFlags?.canSign() ?: publicKey.isSigningKey()
+            if (signingCapability && (isPrimary || signingCrossCertified)) {
+                add("sign")
+            }
+            if (keyFlags?.canEncrypt() ?: publicKey.isEncryptionKey) {
+                add("decrypt")
+            }
         }
-        if (flags.canEncrypt() || isEncryptionKey) {
-            add("decrypt")
-        }
-    }
-
-    private fun PGPPublicKey.keyFlags(): Int {
-        var flags = 0
-        val signatures = this.signatures
-        while (signatures.hasNext()) {
-            val signature = signatures.next() ?: continue
-            val hashed = signature.hashedSubPackets ?: continue
-            flags = flags or hashed.keyFlags
-        }
-        return flags
     }
 
     private fun Int.canSign(): Boolean =
@@ -169,6 +194,12 @@ class GpgKeyMetadataResolverJvm() : GpgKeyMetadataResolver {
 
     private fun Int.canEncrypt(): Boolean =
         this and (KeyFlags.ENCRYPT_COMMS or KeyFlags.ENCRYPT_STORAGE) != 0
+
+    private data class MetadataKey(
+        val key: GpgVerifiedCertificateKeyJvm,
+        val primary: Boolean,
+        val certificateRevoked: Boolean,
+    )
 }
 
 internal fun PGPPublicKey.isSigningKey(): Boolean =

@@ -29,7 +29,7 @@ import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 class GpgCertificateInspectorJvmTest {
-    private val generator = GpgKeyGeneratorJvm()
+    private val generator = NativeGpgKeyGenerator
 
     @Test
     fun `legacy V2 and V3 certificates are rejected`() {
@@ -142,7 +142,7 @@ class GpgCertificateInspectorJvmTest {
         )
 
         val unresolvedMetadata = assertNotNull(
-            GpgKeyMetadataResolverJvm().resolve(
+            NativeGpgKeyMetadataResolver.resolve(
                 privateKeyArmored = null,
                 publicKeyArmored = revokedRing.armored(),
                 fingerprint = victim.fingerprint,
@@ -154,7 +154,7 @@ class GpgCertificateInspectorJvmTest {
             },
         )
         val resolvedMetadata = assertNotNull(
-            GpgKeyMetadataResolverJvm().resolve(
+            NativeGpgKeyMetadataResolver.resolve(
                 privateKeyArmored = null,
                 publicKeyArmored = revokedRing.armored(),
                 fingerprint = victim.fingerprint,
@@ -450,7 +450,7 @@ class GpgCertificateInspectorJvmTest {
         )
         val revokedRing = PGPPublicKeyRing.insertPublicKey(victimRing, primaryWithSignatures)
 
-        val result = GpgPublicKeyParserJvm().parse(
+        val result = NativeGpgPublicKeyParser.parse(
             armoredCollection(revokedRing, revokerRing),
         )
 
@@ -784,7 +784,7 @@ class GpgCertificateInspectorJvmTest {
         assertEquals(0, primaryFlags and (KeyFlags.ENCRYPT_COMMS or KeyFlags.ENCRYPT_STORAGE))
 
         val metadata = assertNotNull(
-            GpgKeyMetadataResolverJvm().resolve(
+            NativeGpgKeyMetadataResolver.resolve(
                 privateKeyArmored = null,
                 publicKeyArmored = generated.publicKeyArmored,
                 fingerprint = generated.fingerprint,
@@ -811,7 +811,7 @@ class GpgCertificateInspectorJvmTest {
         assertFalse(inspected.primary.authenticated)
         assertTrue(inspected.authenticatedKeys.isEmpty())
         assertNull(
-            GpgKeyMetadataResolverJvm().resolve(
+            NativeGpgKeyMetadataResolver.resolve(
                 privateKeyArmored = null,
                 publicKeyArmored = bareCertificate.armored(),
                 fingerprint = barePrimary.fingerprintHex(),

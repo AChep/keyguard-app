@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.download.util
 
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
 import com.artemchep.keyguard.common.service.crypto.decode
+import com.artemchep.keyguard.crypto.createPrivateTemporaryFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -97,7 +98,7 @@ private fun createTempFileNear(
     val dir = file.absoluteFile.parentFile
         ?: throw IOException("Can not create a temporary file for '${file.path}'.")
     dir.mkdirs()
-    return File.createTempFile("download.", ".tmp", dir)
+    return createPrivateTemporaryFile(dir)
 }
 
 private fun File.replaceWith(

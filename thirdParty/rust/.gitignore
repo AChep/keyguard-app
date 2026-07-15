@@ -1,0 +1,3 @@
+/target/
+/ssh-key-0.6.7-keyguard/tests/scratch/*
+!/ssh-key-0.6.7-keyguard/tests/scratch/.gitkeep

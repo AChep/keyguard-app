@@ -1,11 +1,9 @@
 package app.keemobile.kotpass.database
 
-import app.keemobile.kotpass.cryptography.intToLittleEndian
-import app.keemobile.kotpass.cryptography.longToLittleEndian
 import app.keemobile.kotpass.errors.FormatError
 import app.keemobile.kotpass.io.BufferedStream
 import com.artemchep.keyguard.util.foundation.constantTimeEquals
-import com.artemchep.keyguard.util.foundation.crypto.hmacSha256
+import com.artemchep.keyguard.util.foundation.crypto.createHmacSha256
 import com.artemchep.keyguard.util.foundation.crypto.sha256
 import com.artemchep.keyguard.util.foundation.crypto.sha512
 import okio.Buffer
@@ -137,12 +135,49 @@ internal object ContentBlocks {
         length: Int,
         data: ByteArray
     ): ByteArray {
-        val indexBytes = longToLittleEndian(index)
-        val blockKey = sha512(indexBytes + hmacKey)
+        val blockHeader = ByteArray(Long.SIZE_BYTES + Int.SIZE_BYTES)
+        writeLongLittleEndian(index, blockHeader, 0)
+        writeIntLittleEndian(length, blockHeader, Long.SIZE_BYTES)
 
-        return hmacSha256(
-            key = blockKey,
-            data = indexBytes + intToLittleEndian(length) + data,
+        val blockKeyInput = ByteArray(Long.SIZE_BYTES + hmacKey.size)
+        blockHeader.copyInto(
+            destination = blockKeyInput,
+            endIndex = Long.SIZE_BYTES,
         )
+        hmacKey.copyInto(
+            destination = blockKeyInput,
+            destinationOffset = Long.SIZE_BYTES,
+        )
+        val blockKey = sha512(blockKeyInput)
+
+        return createHmacSha256(blockKey).use { hmac ->
+            hmac.update(blockHeader)
+            hmac.update(data)
+            hmac.doFinal()
+        }
+    }
+
+    private fun writeLongLittleEndian(
+        value: Long,
+        destination: ByteArray,
+        offset: Int,
+    ) {
+        var remaining = value
+        repeat(Long.SIZE_BYTES) { index ->
+            destination[offset + index] = remaining.toByte()
+            remaining = remaining ushr 8
+        }
+    }
+
+    private fun writeIntLittleEndian(
+        value: Int,
+        destination: ByteArray,
+        offset: Int,
+    ) {
+        var remaining = value
+        repeat(Int.SIZE_BYTES) { index ->
+            destination[offset + index] = remaining.toByte()
+            remaining = remaining ushr 8
+        }
     }
 }

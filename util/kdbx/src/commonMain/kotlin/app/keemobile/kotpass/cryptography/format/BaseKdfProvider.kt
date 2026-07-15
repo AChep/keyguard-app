@@ -1,10 +1,11 @@
 package app.keemobile.kotpass.cryptography.format
 
-import app.keemobile.kotpass.cryptography.engines.Argon2Engine
 import app.keemobile.kotpass.database.header.KdfParameters
 import app.keemobile.kotpass.database.header.KdfParameters.Aes
 import app.keemobile.kotpass.database.header.KdfParameters.Argon2
 import app.keemobile.kotpass.errors.FormatError
+import com.artemchep.keyguard.nativecrypto.NativeArgon2Mode
+import com.artemchep.keyguard.nativecrypto.NativeArgon2Version
 import com.artemchep.keyguard.util.foundation.crypto.KdfLimits
 
 internal object BaseKdfProvider : KdfProvider {
@@ -32,20 +33,34 @@ internal object BaseKdfProvider : KdfProvider {
             if (kdfParameters.memory < KdfLimits.MinArgon2Memory || kdfParameters.memory > KdfLimits.MaxArgon2Memory) {
                 throw FormatError.InvalidHeader("Argon2 memory is out of the allowed range.")
             }
-            Argon2Kdf.transformKey(
-                variant = when (kdfParameters.variant) {
-                    Argon2.Variant.Argon2d -> Argon2Engine.Variant.Argon2d
-                    Argon2.Variant.Argon2id -> Argon2Engine.Variant.Argon2id
-                },
-                version = Argon2Engine.Version.from(kdfParameters.version),
-                password = compositeKey,
-                salt = kdfParameters.salt.toByteArray(),
-                secretKey = kdfParameters.secretKey?.toByteArray(),
-                additional = kdfParameters.associatedData?.toByteArray(),
-                iterations = kdfParameters.iterations,
-                parallelism = kdfParameters.parallelism,
-                memory = kdfParameters.memory
-            )
+            val ownedSalt = kdfParameters.salt.toByteArray()
+            val ownedSecretKey = kdfParameters.secretKey?.toByteArray()
+            val ownedAssociatedData = kdfParameters.associatedData?.toByteArray()
+            try {
+                Argon2Kdf.transformKey(
+                    variant = when (kdfParameters.variant) {
+                        Argon2.Variant.Argon2d -> NativeArgon2Mode.ARGON2_D
+                        Argon2.Variant.Argon2id -> NativeArgon2Mode.ARGON2_ID
+                    },
+                    // Preserve the historical parser behavior: only 0x13 is
+                    // treated as v1.3; every other stored value selects v1.0.
+                    version = when (kdfParameters.version) {
+                        0x13U -> NativeArgon2Version.VERSION_1_3
+                        else -> NativeArgon2Version.VERSION_1_0
+                    },
+                    password = compositeKey,
+                    salt = ownedSalt,
+                    secretKey = ownedSecretKey,
+                    additional = ownedAssociatedData,
+                    iterations = kdfParameters.iterations,
+                    parallelism = kdfParameters.parallelism,
+                    memory = kdfParameters.memory
+                )
+            } finally {
+                ownedSalt.fill(0)
+                ownedSecretKey?.fill(0)
+                ownedAssociatedData?.fill(0)
+            }
         }
     }
 }

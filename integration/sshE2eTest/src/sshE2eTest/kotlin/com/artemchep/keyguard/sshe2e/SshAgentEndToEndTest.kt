@@ -1,10 +1,10 @@
 package com.artemchep.keyguard.sshe2e
 
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.sshagent.sshPublicKeysMatch
-import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
-import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
+import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
@@ -99,7 +99,7 @@ class SshAgentEndToEndTest {
         }
 
         private fun generateKeys(): List<TestSshKey> {
-            val generator = KeyPairGeneratorJvm(CryptoGeneratorJvm())
+            val generator = NativeKeyPairGenerator(Base64ServiceImpl())
             return listOf(
                 generator.populate(generator.ed25519()).toTestKey(
                     name = "Keyguard E2E Ed25519",

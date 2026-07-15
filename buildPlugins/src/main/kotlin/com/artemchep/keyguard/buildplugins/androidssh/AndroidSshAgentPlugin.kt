@@ -18,6 +18,7 @@ class AndroidSshAgentPlugin : Plugin<Project> {
         val cargoBinaryName = AndroidSshAgentTermuxPackaging.PACKAGE_NAME
         val termuxTargets = AndroidSshAgentTermuxPackaging.supportedTargets
         val androidMinSdk = libs.findVersion("androidMinSdk").get().requiredVersion.toInt()
+        val androidNdk = libs.findVersion("androidNdk").get().requiredVersion
         val appMarketingVersion = libs.findVersion("appVersionName").get().requiredVersion
         val termuxPackageVersion = AndroidSshAgentTermuxPackaging.resolvePackageVersion(
             marketingVersion = appMarketingVersion,
@@ -38,6 +39,7 @@ class AndroidSshAgentPlugin : Plugin<Project> {
                     localPropertiesFile = null,
                     rustTarget = rustTarget,
                     androidApiLevel = androidMinSdk,
+                    ndkVersion = androidNdk,
                 )
             },
         )

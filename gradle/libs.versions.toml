@@ -6,6 +6,8 @@ androidCompileSdk = "37"
 # @keep
 androidTargetSdk = "36"
 # @keep
+androidNdk = "27.0.12077973"
+# @keep
 jdk = "21"
 # @keep
 appVersionName = "2.14.2"
@@ -159,8 +161,6 @@ richtext = "1.0.0-alpha05"
 slf4j = "2.0.18"
 # https://github.com/bcgit/bc-java
 bouncycastle = "1.84"
-# https://github.com/hierynomus/sshj
-sshj = "0.40.0"
 # https://github.com/sqlcipher/sqlcipher-android
 sqlcipherAndroid = "4.17.0"
 # https://github.com/cashapp/sqldelight
@@ -331,8 +331,6 @@ snipme-highlights = { module = "dev.snipme:highlights", version.ref = "highlight
 bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bcpg = { module = "org.bouncycastle:bcpg-jdk18on", version.ref = "bouncycastle" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
-bouncycastle-bctls = { module = "org.bouncycastle:bctls-jdk18on", version.ref = "bouncycastle" }
-hierynomus-sshj = { module = "com.hierynomus:sshj", version.ref = "sshj" }
 mayakapps-window-styler = { module = "com.mayakapps.compose:window-styler", version.ref = "windowStyler" }
 mm2d-touchicon = { module = "net.mm2d.touchicon:touchicon", version.ref = "touchIcon" }
 mm2d-touchicon-http-okhttp = { module = "net.mm2d.touchicon:touchicon-http-okhttp", version.ref = "touchIcon" }

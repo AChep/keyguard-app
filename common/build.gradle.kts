@@ -19,6 +19,7 @@ plugins {
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
     id("keyguard.resources-common")
+    id("keyguard.native-crypto-consumer")
 }
 
 //
@@ -114,6 +115,7 @@ kotlin {
                 api(libs.ktor.ktor.serialization.kotlinx)
                 api(project(":util:foundation"))
                 api(project(":util:kdbx"))
+                api(project(":util:crypto"))
                 api(project(":util:signalr"))
                 api(project(":util:webdav"))
                 api(project(":util:planeta"))
@@ -143,6 +145,11 @@ kotlin {
         val jvmTest by creating {
             dependsOn(commonTest)
             kotlin.srcDir("src/commonTest/kotlin")
+            dependencies {
+                implementation(libs.bouncycastle.bcpkix)
+                implementation(libs.bouncycastle.bcpg)
+                implementation(libs.bouncycastle.bcprov)
+            }
         }
 
         val appleMain by creating {
@@ -227,14 +234,10 @@ kotlin {
                 implementation(libs.kyant0.m3color)
                 implementation(libs.nulabinc.zxcvbn)
                 implementation(libs.commons.codec)
-                implementation(libs.bouncycastle.bcpkix)
-                implementation(libs.bouncycastle.bcpg)
-                implementation(libs.bouncycastle.bcprov)
                 implementation(libs.halilibo.richtext.ui.material3)
                 implementation(libs.halilibo.richtext.commonmark)
                 implementation(libs.halilibo.richtext.markdown)
                 implementation(libs.mm2d.touchicon)
-                implementation(libs.hierynomus.sshj)
                 implementation(libs.google.zxing.core)
                 implementation(libs.icu4j)
                 implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
@@ -367,6 +370,7 @@ val desktopTestClassesTask = tasks.named("desktopTestClasses")
 desktopTestTask.configure {
     filter {
         excludeTestsMatching("com.artemchep.keyguard.feature.home.vault.search.benchmark.*")
+        excludeTestsMatching("com.artemchep.keyguard.crypto.benchmark.*")
         excludeTestsMatching("com.artemchep.keyguard.provider.bitwarden.usecase.benchmark.*")
     }
 }
@@ -389,6 +393,42 @@ tasks.register<Test>("vaultSearchBenchmark") {
 
     filter {
         includeTestsMatching("com.artemchep.keyguard.feature.home.vault.search.benchmark.*")
+        isFailOnNoMatchingTests = true
+    }
+
+    testLogging {
+        events = setOf(
+            TestLogEvent.FAILED,
+            TestLogEvent.PASSED,
+            TestLogEvent.SKIPPED,
+            TestLogEvent.STANDARD_ERROR,
+            TestLogEvent.STANDARD_OUT,
+        )
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showStackTraces = true
+        showStandardStreams = true
+    }
+}
+
+tasks.register<Test>("bitwardenCryptoBenchmark") {
+    group = "verification"
+    description = "Runs the Bitwarden BC-vs-native crypto JVM benchmark suite from desktopTest."
+
+    dependsOn(desktopTestClassesTask)
+
+    testClassesDirs = desktopTestTask.get().testClassesDirs
+    classpath = desktopTestTask.get().classpath
+
+    maxParallelForks = 1
+    forkEvery = 0L
+    outputs.upToDateWhen { false }
+
+    systemProperty("user.language", "en")
+    systemProperty("user.country", "US")
+
+    filter {
+        includeTestsMatching("com.artemchep.keyguard.crypto.benchmark.*")
         isFailOnNoMatchingTests = true
     }
 

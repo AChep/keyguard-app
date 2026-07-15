@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    id("keyguard.native-crypto-consumer")
 }
 
 val gpgE2eTest by sourceSets.creating {

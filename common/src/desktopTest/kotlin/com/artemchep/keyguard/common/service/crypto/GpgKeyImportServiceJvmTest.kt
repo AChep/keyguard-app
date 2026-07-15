@@ -1,8 +1,6 @@
 package com.artemchep.keyguard.common.service.crypto
 
-import com.artemchep.keyguard.crypto.GpgKeyImportServiceJvm
-import com.artemchep.keyguard.crypto.GpgKeyMetadataResolverJvm
-import com.artemchep.keyguard.crypto.GpgPublicKeyParserJvm
+import com.artemchep.keyguard.crypto.NativeGpgKeyImportService
 import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
 import org.bouncycastle.bcpg.HashAlgorithmTags
@@ -20,15 +18,13 @@ import java.security.Security
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class GpgKeyImportServiceJvmTest {
-    private val service = GpgKeyImportServiceJvm(
-        publicKeyParser = GpgPublicKeyParserJvm(),
-        metadataResolver = GpgKeyMetadataResolverJvm(),
-    )
+    private val service = NativeGpgKeyImportService
 
     @BeforeTest
     fun setup() {
@@ -53,7 +49,12 @@ class GpgKeyImportServiceJvmTest {
         assertTrue(result is GpgKeyImportResult.Success, "expected Success, got $result")
         val key = result.gpgKey
         assertEquals("", key.privateKeyArmored)
-        assertEquals(publicKeyArmored, key.publicKeyArmored)
+        val neutralPublicKeyArmored = publicKeyArmored.replace(
+            oldValue = "Version: BCPG v1.84\n",
+            newValue = "",
+        )
+        assertEquals(neutralPublicKeyArmored, key.publicKeyArmored)
+        assertFalse(key.publicKeyArmored.contains("Version: BCPG"))
         assertEquals("D0BBCFBB250D3BB0658E5384F83D947D29EFECF7", key.fingerprint)
         assertTrue(key.metadata.keys.any { it.canSign })
         assertTrue(key.metadata.keys.any { it.canDecrypt })
@@ -71,8 +72,24 @@ class GpgKeyImportServiceJvmTest {
             assertEquals(
                 GpgKeyImportResult.Error(GpgKeyImportError.UnsupportedFormat),
                 result,
+                "legacy public key version $version",
             )
         }
+    }
+
+    @Test
+    fun `garbage private key remains malformed`() {
+        val result = service.import(
+            GpgKeyImportRequest(
+                content = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\ntruncated",
+                fileName = "malformed-private.asc",
+            ),
+        )
+
+        assertEquals(
+            GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey),
+            result,
+        )
     }
 
     @Test
@@ -106,6 +123,7 @@ class GpgKeyImportServiceJvmTest {
             assertEquals(
                 GpgKeyImportResult.Error(GpgKeyImportError.UnsupportedFormat),
                 result,
+                "legacy private key version $version",
             )
         }
     }

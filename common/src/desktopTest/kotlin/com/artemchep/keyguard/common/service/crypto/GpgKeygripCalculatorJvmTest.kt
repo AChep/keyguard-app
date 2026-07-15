@@ -1,8 +1,11 @@
 package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.crypto.GpgKeygripCalculatorJvm
+import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
+import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.fingerprintHex
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.openpgp.PGPPublicKeyRing
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
 import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
@@ -11,6 +14,7 @@ import java.security.Security
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 /**
  * Golden-value tests for [GpgKeygripCalculatorJvm].
@@ -22,10 +26,9 @@ import kotlin.test.assertEquals
  * exactly the keys that `gpg --with-keygrip` (gpg 2.5.20 / libgcrypt 1.12) was run
  * against, so the expected values below are ground truth pulled straight from gpg.
  *
- * Every public key in each ring is checked: both the primary and its subkey. These tests
- * are expected to FAIL against the current implementation, which computes the RSA/ECC
- * keygrips over the wrong byte sequence (and throws for the ECDSA/ECDH algorithm ids 18
- * and 19 it does not handle at all) — the fixes land in a follow-up task.
+ * Every public key in each ring is checked: both the primary and its subkey. The same
+ * external GnuPG goldens cover the retained Bouncy Castle test oracle and the OpenPGP read path
+ * native parser output.
  */
 class GpgKeygripCalculatorJvmTest {
     @BeforeTest
@@ -114,5 +117,23 @@ class GpgKeygripCalculatorJvmTest {
                 "keygrip mismatch for $fingerprint",
             )
         }
+
+        val parsed = assertIs<GpgPublicKeyParseResult.Success>(
+            NativeGpgPublicKeyParser.parse(PGPPublicKeyRing(publicKeys).armored()),
+        )
+        val nativeKeygrips = parsed.keys
+            .asSequence()
+            .flatMap { key ->
+                sequenceOf(key.fingerprint to key.keygrip) +
+                    key.subKeys.asSequence().map { subkey ->
+                        subkey.fingerprint to subkey.keygrip
+                    }
+            }
+            .associate { (fingerprint, keygrip) -> fingerprint to keygrip }
+        assertEquals(
+            golden,
+            nativeKeygrips,
+            "native keygrips must match the GnuPG golden table",
+        )
     }
 }

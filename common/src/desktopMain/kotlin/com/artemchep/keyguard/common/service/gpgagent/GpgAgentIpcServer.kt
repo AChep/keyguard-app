@@ -14,7 +14,7 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicyNoOp
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
-import com.artemchep.keyguard.crypto.GpgAgentCryptoJvm
+import com.artemchep.keyguard.crypto.NativeGpgAgentCrypto
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -117,7 +117,7 @@ class GpgAgentIpcServer private constructor(
         scope = scope,
         requestProcessor = GpgAgentRequestProcessorImpl(
             logRepository = logRepository,
-            crypto = GpgAgentCryptoJvm(),
+            crypto = NativeGpgAgentCrypto,
             getVaultSession = getVaultSession,
             getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
             getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
@@ -158,7 +158,7 @@ class GpgAgentIpcServer private constructor(
         scope = scope,
         requestProcessor = GpgAgentRequestProcessorImpl(
             logRepository = logRepository,
-            crypto = GpgAgentCryptoJvm(),
+            crypto = NativeGpgAgentCrypto,
             getVaultSession = getVaultSession,
             getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
             getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,

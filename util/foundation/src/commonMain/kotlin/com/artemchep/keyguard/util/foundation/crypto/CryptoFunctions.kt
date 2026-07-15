@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.util.foundation.crypto
 
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
+
 private val defaultCryptoPrimitives: CryptoPrimitives by lazy {
     PlatformCryptoPrimitives()
 }
@@ -64,6 +66,17 @@ fun aesEcbNoPaddingEncrypt(
     data = data,
 )
 
+/** Application-internal bulk AES-KDF primitive; intentionally absent from [CryptoPrimitives]. */
+fun aesEcbNoPaddingTransform(
+    key: ByteArray,
+    data: ByteArray,
+    rounds: Int,
+): ByteArray = NativeCrypto.primitives.aesEcbNoPaddingTransform(
+    key = key,
+    data = data,
+    rounds = rounds,
+)
+
 fun aesCbcPkcs7Encrypt(
     key: ByteArray,
     iv: ByteArray,
@@ -83,4 +96,3 @@ fun aesCbcPkcs7Decrypt(
     iv = iv,
     data = data,
 )
-

@@ -1,0 +1,23 @@
+accepted = [
+    "0BSD",
+    "Apache-2.0",
+    "BSD-1-Clause",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "CC0-1.0",
+    "GPL-3.0-only",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "NCSA",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+
+# Cargo notices cover third-party dependencies. Keyguard's unpublished
+# proprietary workspace crates are governed by the repository license.
+private = { ignore = true }
+
+ignore-dev-dependencies = true
+ignore-build-dependencies = true

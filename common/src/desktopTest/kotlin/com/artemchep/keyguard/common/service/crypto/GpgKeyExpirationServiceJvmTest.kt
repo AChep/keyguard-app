@@ -8,9 +8,9 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.crypto.GpgCertificateInspectorJvm
 import com.artemchep.keyguard.crypto.GpgKeyExpirationServiceJvm
-import com.artemchep.keyguard.crypto.GpgKeyGeneratorJvm
-import com.artemchep.keyguard.crypto.GpgKeyMetadataResolverJvm
-import com.artemchep.keyguard.crypto.GpgPublicKeyParserJvm
+import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.NativeGpgKeyExpirationService
+import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import com.artemchep.keyguard.crypto.GpgRevocationStatusJvm
 import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
@@ -57,8 +57,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 class GpgKeyExpirationServiceJvmTest {
-    private val generator = GpgKeyGeneratorJvm()
-    private val parser = GpgPublicKeyParserJvm()
+    private val generator = NativeGpgKeyGenerator
+    private val parser = NativeGpgPublicKeyParser
 
     @BeforeTest
     fun setup() {
@@ -206,8 +206,7 @@ class GpgKeyExpirationServiceJvmTest {
         val latestOriginalSignatureTime = originalSignatures.maxOf { it.creationTime.time }
         var currentTime = Instant.fromEpochMilliseconds(latestOriginalSignatureTime)
         var waits = 0
-        val service = GpgKeyExpirationServiceJvm(
-            metadataResolver = GpgKeyMetadataResolverJvm(),
+        val service = nativeService(
             now = { currentTime },
             waitForClock = { milliseconds ->
                 waits += 1
@@ -216,6 +215,7 @@ class GpgKeyExpirationServiceJvmTest {
                     currentTime + milliseconds.milliseconds,
                     Clock.System.now(),
                 )
+                true
             },
         )
         val target = currentTime + 365.days
@@ -251,12 +251,12 @@ class GpgKeyExpirationServiceJvmTest {
         val template = latestPrimarySelfCertification(primary)
         var currentTime = Instant.fromEpochMilliseconds(template.creationTime.time) - 5.seconds
         var waits = 0
-        val service = GpgKeyExpirationServiceJvm(
-            metadataResolver = GpgKeyMetadataResolverJvm(),
+        val service = nativeService(
             now = { currentTime },
             waitForClock = { milliseconds ->
                 waits += 1
                 currentTime += milliseconds.milliseconds
+                true
             },
         )
 
@@ -273,6 +273,123 @@ class GpgKeyExpirationServiceJvmTest {
             assertIs<GpgKeyExpirationResult.Error>(result).reason,
         )
         assertEquals(5, waits)
+    }
+
+    @Test
+    fun `failed clock wait stops time conflict retries`() {
+        val generated = generateModernKey()
+        val primary = publicRing(generated.publicKeyArmored).publicKey
+        val template = latestPrimarySelfCertification(primary)
+        val currentTime = Instant.fromEpochMilliseconds(template.creationTime.time) - 5.seconds
+        var waits = 0
+        val service = nativeService(
+            now = { currentTime },
+            waitForClock = {
+                waits += 1
+                false
+            },
+        )
+
+        val result = service.update(
+            GpgKeyExpirationRequest(
+                key = generated,
+                expiresAt = currentTime + 365.days,
+                componentFingerprints = setOf(generated.fingerprint),
+            ),
+        )
+
+        assertEquals(
+            GpgKeyExpirationError.TimeConflict,
+            assertIs<GpgKeyExpirationResult.Error>(result).reason,
+        )
+        assertEquals(1, waits)
+    }
+
+    @Test
+    fun `clock failures are reported as internal failures`() {
+        val generated = generateModernKey()
+        var waits = 0
+        val service = nativeService(
+            now = { error("clock failure") },
+            waitForClock = {
+                waits += 1
+                true
+            },
+        )
+
+        val result = service.update(
+            GpgKeyExpirationRequest(
+                key = generated,
+                expiresAt = null,
+                componentFingerprints = setOf(generated.fingerprint),
+            ),
+        )
+
+        assertEquals(
+            GpgKeyExpirationError.InternalFailure,
+            assertIs<GpgKeyExpirationResult.Error>(result).reason,
+        )
+        assertEquals(0, waits)
+    }
+
+    @Test
+    fun `cheap validation completes before reading the clock`() {
+        val generated = generateModernKey()
+        var clockReads = 0
+        var waits = 0
+        val service = nativeService(
+            now = {
+                clockReads += 1
+                error("clock must not be read")
+            },
+            waitForClock = {
+                waits += 1
+                true
+            },
+        )
+
+        val result = service.update(
+            GpgKeyExpirationRequest(
+                key = generated.copy(privateKeyArmored = ""),
+                expiresAt = Clock.System.now() + 365.days,
+                componentFingerprints = setOf(generated.fingerprint),
+            ),
+        )
+
+        assertEquals(
+            GpgKeyExpirationError.EmptyPrivateKey,
+            assertIs<GpgKeyExpirationResult.Error>(result).reason,
+        )
+        assertEquals(0, clockReads)
+        assertEquals(0, waits)
+    }
+
+    @Test
+    fun `non-time-conflict errors do not wait`() {
+        val generated = generateModernKey()
+        val currentTime = Clock.System.now()
+        var waits = 0
+        val service = nativeService(
+            now = { currentTime },
+            waitForClock = {
+                waits += 1
+                true
+            },
+        )
+
+        val result = service.update(
+            GpgKeyExpirationRequest(
+                key = generated.copy(privateKeyArmored = "not an OpenPGP key"),
+                expiresAt = currentTime + 365.days,
+                componentFingerprints = setOf(generated.fingerprint),
+            ),
+        )
+
+        assertEquals(
+            GpgKeyExpirationError.MalformedKey,
+            assertIs<GpgKeyExpirationResult.Error>(result).reason,
+        )
+        assertEquals(0, waits)
     }
 
     @Test
@@ -534,7 +651,6 @@ class GpgKeyExpirationServiceJvmTest {
             revoker = revoker,
             revokeSubkeyFingerprint = subkeyFingerprint,
         )
-
         assertEquals(
             GpgKeyExpirationError.UnresolvedRevocationAuthority,
             assertIs<GpgKeyExpirationResult.Error>(
@@ -1030,14 +1146,27 @@ class GpgKeyExpirationServiceJvmTest {
 
     private fun service(
         now: Instant,
-    ): GpgKeyExpirationServiceJvm {
+    ): GpgKeyExpirationService {
         var currentTime = now
-        return GpgKeyExpirationServiceJvm(
-            metadataResolver = GpgKeyMetadataResolverJvm(),
+        return nativeService(
             now = { currentTime },
             waitForClock = { milliseconds ->
                 currentTime += milliseconds.milliseconds
+                true
             },
+        )
+    }
+
+    private fun nativeService(
+        now: () -> Instant,
+        waitForClock: (milliseconds: Long) -> Boolean,
+    ): GpgKeyExpirationService = object : GpgKeyExpirationService {
+        override fun update(
+            request: GpgKeyExpirationRequest,
+        ): GpgKeyExpirationResult = NativeGpgKeyExpirationService.update(
+            request = request,
+            now = now,
+            waitForClock = waitForClock,
         )
     }
 

@@ -36,6 +36,7 @@ plugins {
     alias(libs.plugins.license.check) apply false
     alias(libs.plugins.versions) apply true
     alias(libs.plugins.version.catalog.update) apply true
+    id("keyguard.crypto-dependency-policy")
 }
 
 tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
@@ -85,9 +86,6 @@ subprojects {
                 because("MIT License, but self-hosted copy of the license")
             }
             allowUrl("https://github.com/devsrsouza/compose-icons/blob/master/LICENSE") {
-                because("MIT License, but self-hosted copy of the license")
-            }
-            allowUrl("https://www.bouncycastle.org/licence.html") {
                 because("MIT License, but self-hosted copy of the license")
             }
             allowUrl("https://spdx.org/licenses/MIT.txt") {
@@ -152,9 +150,6 @@ subprojects {
 
             allowUrl("https://www.zetetic.net/sqlcipher/license/") {
                 because("BDS-like License")
-            }
-            allowUrl("http://www.bouncycastle.org/licence.html") {
-                because("MIT-like License")
             }
         }
     }

@@ -116,12 +116,6 @@
 }
 
 #
-# sshj
-#
-
--dontwarn sun.security.x509.X509Key
-
-#
 # yubikey, can be removed after the next release
 # https://github.com/Yubico/yubikit-android/pull/297
 #
@@ -154,5 +148,4 @@
 -dontwarn java.sql.JDBCType
 #-dontwarn okhttp3.internal.platform.**
 #-dontwarn org.conscrypt.**
-#-dontwarn org.bouncycastle.jsse**
 #-dontwarn org.openjsse.**

@@ -1,0 +1,12 @@
+# Exact exports of the Apple static C ABI.
+keyguard_crypto_abi_version
+keyguard_crypto_capabilities
+keyguard_crypto_random_int
+keyguard_crypto_call
+keyguard_crypto_stream_open
+keyguard_crypto_stream_update
+keyguard_crypto_stream_finish
+keyguard_crypto_stream_close
+keyguard_crypto_aes_cbc_pkcs7_hmac_sha256_encrypt
+keyguard_crypto_aes_cbc_pkcs7_hmac_sha256_decrypt
+keyguard_crypto_buffer_free

@@ -69,6 +69,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun GpgToolsPickerScreen() {
     val updatedNavigationController by rememberUpdatedState(LocalNavigationController.current)
     GpgToolsPickerScreen(
+        operations = GpgToolsOperation.entries,
         onOperationClick = { operation ->
             navigateTo(
                 navigationController = updatedNavigationController,
@@ -108,6 +109,7 @@ private fun navigateTo(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GpgToolsPickerScreen(
+    operations: List<GpgToolsOperation>,
     onOperationClick: (GpgToolsOperation) -> Unit,
     onKeyserverSearchClick: () -> Unit,
     onSettingsClick: () -> Unit,
@@ -151,7 +153,7 @@ private fun GpgToolsPickerScreen(
                 crossAxisSpacing = 8.dp,
                 minCellWidth = 188.dp,
             ) {
-                GpgToolsOperation.entries.forEach { operation ->
+                operations.forEach { operation ->
                     GpgOperationCard(
                         operation = operation,
                         onClick = {

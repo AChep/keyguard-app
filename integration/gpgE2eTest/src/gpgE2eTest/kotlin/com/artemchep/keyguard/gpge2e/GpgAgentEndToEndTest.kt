@@ -2,7 +2,7 @@ package com.artemchep.keyguard.gpge2e
 
 import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
-import com.artemchep.keyguard.crypto.GpgKeyGeneratorJvm
+import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
@@ -159,7 +159,7 @@ class GpgAgentEndToEndTest {
         }
 
         private fun keyguardGeneratedKey(config: GpgKeyConfig): TestGpgKey {
-            val generated = GpgKeyGeneratorJvm().generate(config)
+            val generated = NativeGpgKeyGenerator.generate(config)
             return TestGpgKey(
                 name = config.userId,
                 privateKeyArmored = generated.privateKeyArmored,

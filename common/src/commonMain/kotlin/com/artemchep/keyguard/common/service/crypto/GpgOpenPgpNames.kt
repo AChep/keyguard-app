@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.crypto
 
 // Numeric OpenPGP public-key algorithm ids (RFC 4880 + later additions).
-// Hard-coded to stay stable across BouncyCastle constant renames.
+// Hard-coded so the domain mapping is independent of parser implementation details.
 internal fun gpgAlgorithmName(
     algorithm: Int,
 ): String = when (algorithm) {
@@ -23,7 +23,7 @@ internal fun extractGpgUserIdEmail(
 ): String? {
     val start = userId.indexOf('<')
     val end = userId.indexOf('>', startIndex = start + 1)
-    if (start >= 0 && end > start) {
+    if (start in 0..<end) {
         return userId.substring(start + 1, end)
             .trim()
             .takeIf { it.isNotEmpty() }

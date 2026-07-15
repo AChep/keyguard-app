@@ -1,6 +1,9 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
+import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
+import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
 import com.artemchep.keyguard.util.foundation.crypto.hkdfSha256
 import com.artemchep.keyguard.util.readNBytesCompat
 import java.io.BufferedInputStream
@@ -11,11 +14,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.security.SecureRandom
-import org.bouncycastle.crypto.InvalidCipherTextException
-import org.bouncycastle.crypto.modes.ChaCha20Poly1305
-import org.bouncycastle.crypto.params.AEADParameters
-import org.bouncycastle.crypto.params.KeyParameter
 
 internal object SshAgentTcpProtocol {
     const val PROTOCOL_VERSION = 2
@@ -366,22 +364,12 @@ internal object SshAgentTcpProtocol {
         counter: Long,
         aad: ByteArray,
         payload: ByteArray,
-    ): ByteArray {
-        val cipher = ChaCha20Poly1305()
-        cipher.init(
-            true,
-            AEADParameters(
-                KeyParameter(key),
-                128,
-                buildNonce(noncePrefix, counter),
-                aad,
-            ),
-        )
-        val output = ByteArray(cipher.getOutputSize(payload.size))
-        var written = cipher.processBytes(payload, 0, payload.size, output, 0)
-        written += cipher.doFinal(output, written)
-        return output.copyOf(written)
-    }
+    ): ByteArray = NativeCryptoPrimitives.sshAgentTcpChaCha20Poly1305Encrypt(
+        key = key,
+        nonce = buildNonce(noncePrefix, counter),
+        header = aad,
+        payload = payload,
+    )
 
     private fun decrypt(
         key: ByteArray,
@@ -389,25 +377,18 @@ internal object SshAgentTcpProtocol {
         counter: Long,
         aad: ByteArray,
         payload: ByteArray,
-    ): ByteArray {
-        val cipher = ChaCha20Poly1305()
-        cipher.init(
-            false,
-            AEADParameters(
-                KeyParameter(key),
-                128,
-                buildNonce(noncePrefix, counter),
-                aad,
-            ),
+    ): ByteArray = try {
+        NativeCryptoPrimitives.sshAgentTcpChaCha20Poly1305Decrypt(
+            key = key,
+            nonce = buildNonce(noncePrefix, counter),
+            header = aad,
+            payload = payload,
         )
-        val output = ByteArray(cipher.getOutputSize(payload.size))
-        return try {
-            var written = cipher.processBytes(payload, 0, payload.size, output, 0)
-            written += cipher.doFinal(output, written)
-            output.copyOf(written)
-        } catch (e: InvalidCipherTextException) {
+    } catch (e: NativeCryptoException) {
+        if (e.code == NativeCryptoErrorCode.AUTHENTICATION_FAILED) {
             throw IllegalArgumentException("SSH agent payload authentication failed", e)
         }
+        throw e
     }
 
     private fun buildNonce(
@@ -422,4 +403,4 @@ internal object SshAgentTcpProtocol {
 
 private fun secureRandomBytes(
     size: Int,
-): ByteArray = ByteArray(size).also(SecureRandom()::nextBytes)
+): ByteArray = NativeCryptoPrimitives.randomBytes(size)

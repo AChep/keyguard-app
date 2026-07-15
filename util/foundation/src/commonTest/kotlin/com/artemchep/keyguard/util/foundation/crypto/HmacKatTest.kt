@@ -122,6 +122,20 @@ class HmacKatTest {
     }
 
     @Test
+    fun incrementalHmacSplitsUpdatesLargerThanNativeChunkLimit() {
+        val data = ByteArray(3 * 64 * 1024 + 17) { index ->
+            (index % 251).toByte()
+        }
+        val expected = crypto.hmacSha256(key0b20, data)
+        val actual = createHmacSha256(key0b20).use { state ->
+            state.update(data)
+            state.doFinal()
+        }
+
+        assertContentEquals(expected, actual)
+    }
+
+    @Test
     fun incrementalHmacUseBlockMatchesOneShot() {
         val expected = crypto.hmacSha256(key0b20, dataHiThere)
         val actual = createHmacSha256(key0b20).use { state ->

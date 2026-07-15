@@ -1,9 +1,10 @@
 package app.keemobile.kotpass.cryptography.format
 
-import app.keemobile.kotpass.cryptography.block.BlockCipherMode
-import app.keemobile.kotpass.cryptography.block.PaddedBufferedBlockCipher
-import app.keemobile.kotpass.cryptography.engines.TwofishEngine
-import app.keemobile.kotpass.cryptography.padding.PKCS7Padding
+import app.keemobile.kotpass.errors.CryptoError.InvalidCipherText
+import app.keemobile.kotpass.errors.CryptoError.InvalidDataLength
+import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
+import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
 import kotlin.uuid.Uuid
 
 /**
@@ -22,18 +23,40 @@ object TwofishCipher : CipherProvider {
         key: ByteArray,
         iv: ByteArray,
         data: ByteArray
-    ): ByteArray = createPaddedCipher(BlockCipherMode.CBC(iv))
-        .apply { init(true, key) }
-        .processBytes(data)
+    ): ByteArray = processBytes(encrypt = true, key, iv, data)
 
     override fun decrypt(
         key: ByteArray,
         iv: ByteArray,
         data: ByteArray
-    ): ByteArray = createPaddedCipher(BlockCipherMode.CBC(iv))
-        .apply { init(false, key) }
-        .processBytes(data)
+    ): ByteArray = processBytes(encrypt = false, key, iv, data)
 
-    private fun createPaddedCipher(mode: BlockCipherMode) =
-        PaddedBufferedBlockCipher(TwofishEngine(), mode, PKCS7Padding)
+    private fun processBytes(
+        encrypt: Boolean,
+        key: ByteArray,
+        iv: ByteArray,
+        data: ByteArray,
+    ): ByteArray {
+        if (key.size !in setOf(16, 24, 32)) {
+            throw InvalidDataLength("Twofish key length must be 128/192/256 bits")
+        }
+        if (iv.size != 16) {
+            throw InvalidDataLength("Twofish IV length must be 128 bits")
+        }
+        if (!encrypt && (data.isEmpty() || data.size % 16 != 0)) {
+            throw InvalidDataLength("Last block incomplete in decryption")
+        }
+        return try {
+            if (encrypt) {
+                NativeCryptoPrimitives.twofishCbcPkcs7Encrypt(key, iv, data)
+            } else {
+                NativeCryptoPrimitives.twofishCbcPkcs7Decrypt(key, iv, data)
+            }
+        } catch (e: NativeCryptoException) {
+            if (e.code == NativeCryptoErrorCode.AUTHENTICATION_FAILED) {
+                throw InvalidCipherText("Pad block is corrupted")
+            }
+            throw e
+        }
+    }
 }

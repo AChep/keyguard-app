@@ -6,10 +6,9 @@ import kotlin.test.assertEquals
 /**
  * Argon2 v1.3 known-answer tests using the official PHC reference vectors.
  *
- * This suite is ALSO the regression gate for cross-backend Argon2 equivalence
- * (BouncyCastle on JVM vs diglol on iOS) and for the diglol cinterop. If the
- * diglol dependency is bumped, re-verify these vectors to ensure all backends
- * still produce identical output.
+ * This suite is also the platform-independent regression gate for the native
+ * Rust Argon2 backend. Re-verify these vectors whenever its Argon2 dependency
+ * or FFI encoding changes.
  *
  * Only small parameter sets are exercised here (no heavy m >= 65536 cases) so
  * the suite stays fast enough to run on every build.

@@ -13,22 +13,36 @@ on:
       - master
     paths:
       - 'commonSshAgent/**'
+      - 'androidSshAgent/**'
       - 'desktopSshAgent/**'
+      - 'util/crypto/**'
+      - 'thirdParty/rust/**'
       - 'integration/sshE2eTest/**'
       - 'common/src/**/sshagent/**'
       - 'common/src/**/service/agent/**'
       - 'common/src/**/*Ssh*'
+      - 'common/src/desktopTest/**/ssh-import-corpus/**'
+      - 'common/src/**/crypto/KeyPairGenerator*'
+      - '.github/actions/setup_protobuf/**'
+      - '.github/actions/setup_rust/**'
       - '.github/workflows/check_ssh.yaml'
   pull_request:
     branches:
       - master
     paths:
       - 'commonSshAgent/**'
+      - 'androidSshAgent/**'
       - 'desktopSshAgent/**'
+      - 'util/crypto/**'
+      - 'thirdParty/rust/**'
       - 'integration/sshE2eTest/**'
       - 'common/src/**/sshagent/**'
       - 'common/src/**/service/agent/**'
       - 'common/src/**/*Ssh*'
+      - 'common/src/desktopTest/**/ssh-import-corpus/**'
+      - 'common/src/**/crypto/KeyPairGenerator*'
+      - '.github/actions/setup_protobuf/**'
+      - '.github/actions/setup_rust/**'
       - '.github/workflows/check_ssh.yaml'
 
 permissions:
@@ -43,15 +57,12 @@ jobs:
         with:
           persist-credentials: false
       - name: "Setup Rust toolchain"
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
-        with:
-          toolchain: "1.94.0"
-      - name: "Setup Protobuf compiler"
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
+        uses: ./.github/actions/setup_rust
+      - uses: ./.github/actions/setup_protobuf
       - name: "Test commonSshAgent crate"
         run: cargo test --manifest-path commonSshAgent/Cargo.toml
+      - name: "Test androidSshAgent crate"
+        run: cargo test --manifest-path androidSshAgent/src/Cargo.toml --locked
       - name: "Test desktopSshAgent crate"
         run: cargo test --manifest-path desktopSshAgent/src/Cargo.toml
 
@@ -65,8 +76,12 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "x86_64-unknown-linux-gnu"
       - name: "Run SSH agent unit tests"
-        run: ./gradlew :common:desktopTest --tests "com.artemchep.keyguard.common.service.sshagent.*" --tests "com.artemchep.keyguard.common.service.crypto.Ssh*"
+        run: ./gradlew :common:checkSshjDependencies :common:desktopTest --tests "com.artemchep.keyguard.common.service.sshagent.*" --tests "com.artemchep.keyguard.common.service.crypto.Ssh*"
 
   ssh-e2e-tests:
     name: "End-to-end (${{ matrix.os }})"
@@ -92,28 +107,25 @@ jobs:
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
       - name: "Setup Rust toolchain"
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
-        with:
-          toolchain: "1.94.0"
-      - name: "Setup Protobuf compiler and OpenSSH (Linux)"
+        uses: ./.github/actions/setup_rust
+      - uses: ./.github/actions/setup_protobuf
+      - name: "Setup OpenSSH (Linux)"
         if: runner.os == 'Linux'
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler openssh-client
+          sudo apt-get install -y openssh-client
           ssh -V
           ssh-keygen -Y sign -h || true
-      - name: "Setup Protobuf compiler and OpenSSH (macOS)"
+      - name: "Verify OpenSSH (macOS)"
         if: runner.os == 'macOS'
+        shell: bash
         run: |
-          brew install protobuf
-          protoc --version
           ssh -V
           ssh-keygen -Y sign -h || true
-      - name: "Setup Protobuf compiler and OpenSSH (Windows)"
+      - name: "Verify OpenSSH (Windows)"
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          choco install protoc --yes --no-progress
-          protoc --version
           ssh -V
           cmd /c "ssh-keygen -Y sign -h || exit /b 0"
       - name: "Run SSH end-to-end tests"

@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    id("keyguard.native-crypto-consumer")
 }
 
 val sshE2eTest by sourceSets.creating {
@@ -18,10 +19,10 @@ val sshE2eTest by sourceSets.creating {
 
 dependencies {
     "sshE2eTestImplementation"(project(":common"))
+    "sshE2eTestImplementation"(project(":util:crypto"))
     "sshE2eTestImplementation"(kotlin("test-junit"))
     "sshE2eTestImplementation"(libs.kotlinx.coroutines.core)
     "sshE2eTestImplementation"(libs.kotlinx.coroutines.test)
-    "sshE2eTestImplementation"(libs.bouncycastle.bcprov)
 }
 
 kotlin {

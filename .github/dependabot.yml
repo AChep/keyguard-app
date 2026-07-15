@@ -12,3 +12,10 @@ updates:
       interval: "daily"
     cooldown:
       default-days: 7
+  - package-ecosystem: "cargo"
+    directory: "/util/crypto/rust"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5

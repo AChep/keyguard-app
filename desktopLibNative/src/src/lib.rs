@@ -7,7 +7,6 @@ mod ffi;
 mod hotkey;
 mod keychain;
 mod notification;
-mod platform;
 
 use ffi::{BiometricsVerifyCallback, HotKeyPressedCallback};
 use std::ffi::c_char;

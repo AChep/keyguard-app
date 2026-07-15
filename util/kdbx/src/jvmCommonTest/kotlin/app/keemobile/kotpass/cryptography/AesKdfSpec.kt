@@ -1,10 +1,11 @@
 package app.keemobile.kotpass.cryptography
 
 import app.keemobile.kotpass.cryptography.format.AesKdf
-import app.keemobile.kotpass.database.Credentials
-import app.keemobile.kotpass.common.runKotpassSpec
-import kotlin.test.Test
 import app.keemobile.kotpass.common.matchers.shouldBe
+import app.keemobile.kotpass.common.runKotpassSpec
+import app.keemobile.kotpass.database.Credentials
+import com.artemchep.keyguard.util.foundation.crypto.sha256
+import kotlin.test.Test
 
 class AesKdfSpec {
     @Test
@@ -43,6 +44,16 @@ class AesKdfSpec {
             ).map(Int::toByte)
 
             result shouldBe expected
+        }
+
+        it("Preserves zero-round semantics") {
+            val key = ByteArray(32) { it.toByte() }
+
+            AesKdf.transformKey(
+                key = key,
+                seed = ByteArray(32) { (it + 32).toByte() },
+                rounds = 0UL,
+            ) shouldBe sha256(key).asList()
         }
     }
     }

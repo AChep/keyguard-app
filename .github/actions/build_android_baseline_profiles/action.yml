@@ -21,10 +21,31 @@ runs:
         disk-size: 4G
         script: |
           adb root
-          ./gradlew :androidApp:generate${{ inputs.build-flavor }}BaselineProfile ; RESULT=$?
+          ./gradlew \
+            :androidApp:generate${{ inputs.build-flavor }}BaselineProfile \
+            -Pkeyguard.nativeCrypto.cargoOffline=true ; RESULT=$?
           mkdir -p artifacts/
           adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
           exit $RESULT
+    - name: "Check retired crypto dependency and profile policy"
+      shell: bash
+      run: |
+        ./gradlew checkBouncyCastleProductionDependencies
+        mapfile -d '' profile_directories < <(
+          find androidApp/src \
+            -type d \
+            -path '*/generated/baselineProfiles' \
+            -print0
+        )
+        if (( ${#profile_directories[@]} == 0 )); then
+          echo "No generated baseline profile directories found" >&2
+          exit 1
+        fi
+        policy_arguments=()
+        for directory in "${profile_directories[@]}"; do
+          policy_arguments+=(--artifact "$directory")
+        done
+        python3 scripts/check_bouncycastle_policy.py "${policy_arguments[@]}"
     - name: 'Upload baseline profile screen recordings'
       uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
       if: always()

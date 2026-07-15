@@ -2,7 +2,8 @@ package app.keemobile.kotpass.cryptography.format
 
 import app.keemobile.kotpass.errors.CryptoError
 import app.keemobile.kotpass.extensions.clear
-import com.artemchep.keyguard.util.foundation.crypto.aesEcbNoPaddingEncrypt
+import com.artemchep.keyguard.util.foundation.crypto.KdfLimits
+import com.artemchep.keyguard.util.foundation.crypto.aesEcbNoPaddingTransform
 import com.artemchep.keyguard.util.foundation.crypto.sha256
 
 internal object AesKdf {
@@ -11,17 +12,21 @@ internal object AesKdf {
         seed: ByteArray,
         rounds: ULong
     ): ByteArray {
-        val bytes = key.copyOf()
-
+        var transformed: ByteArray? = null
         return try {
-            repeat(rounds.toInt()) {
-                aesEcbNoPaddingEncrypt(seed, bytes).copyInto(bytes)
+            require(rounds <= KdfLimits.MaxAesRounds) {
+                "AES-KDF rounds exceed the allowed maximum."
             }
-            sha256(bytes)
+            aesEcbNoPaddingTransform(
+                key = seed,
+                data = key,
+                rounds = rounds.toInt(),
+            ).also { transformed = it }
+                .let(::sha256)
         } catch (_: Throwable) {
             throw CryptoError.InvalidKey("Wrong KDF seed used for decryption.")
         } finally {
-            bytes.clear()
+            transformed?.clear()
         }
     }
 }

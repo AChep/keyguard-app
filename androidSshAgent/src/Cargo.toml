@@ -2,7 +2,11 @@
 name = "keyguard-android-ssh-agent"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.94.0"
 description = "Standalone Android SSH agent bridge for Keyguard"
+license-file = "../../LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+publish = false
 
 [[bin]]
 name = "keyguard-android-ssh-agent"

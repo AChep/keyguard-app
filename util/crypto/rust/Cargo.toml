@@ -1,0 +1,87 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/keyguard-crypto-c",
+    "crates/keyguard-crypto-core",
+    "crates/keyguard-crypto-jni",
+    "crates/keyguard-crypto-sensitive",
+    "fuzz",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94.0"
+license-file = "../../../LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+
+[workspace.dependencies]
+aes = { version = "=0.8.4", features = ["zeroize"] }
+argon2 = { version = "=0.5.3", default-features = false, features = ["alloc", "zeroize"] }
+blake2 = { version = "=0.10.6", default-features = false }
+block-buffer = "=0.10.4"
+blowfish = { version = "=0.9.1", features = ["bcrypt", "zeroize"] }
+aws-lc-rs = { version = "=1.17.0", default-features = false, features = ["non-fips"] }
+aws-lc-sys = { version = "=0.41.0", default-features = false }
+cbc = { version = "=0.1.2", default-features = false, features = ["alloc", "block-padding", "zeroize"] }
+chacha20 = { version = "=0.9.1", default-features = false, features = ["zeroize"] }
+cipher = { version = "=0.4.4", default-features = false, features = ["alloc", "block-padding", "zeroize"] }
+digest = "=0.10.7"
+des = { version = "=0.8.1", features = ["zeroize"] }
+ed25519-dalek = { version = "=2.2.0", default-features = false, features = ["fast", "std", "zeroize"] }
+flate2 = { version = "=1.1.9", default-features = false, features = ["zlib-rs"] }
+hmac = "=0.12.1"
+jni = { version = "=0.21.1", default-features = false }
+k256 = { version = "=0.13.4", default-features = false, features = ["ecdsa"] }
+num-bigint-dig = { version = "=0.8.6", default-features = false, features = ["zeroize"] }
+num-integer = { version = "=0.1.46", default-features = false }
+ocb3 = { version = "=0.1.0", default-features = false, features = ["alloc", "zeroize"] }
+p256 = { version = "=0.13.2", default-features = false, features = ["ecdh", "ecdsa"] }
+p384 = { version = "=0.13.1", default-features = false, features = ["ecdh", "ecdsa"] }
+p521 = { version = "=0.13.3", default-features = false, features = ["ecdh", "ecdsa"] }
+pkcs8 = { version = "=0.10.2", default-features = false }
+pgp = { version = "=0.20.0", default-features = false }
+prost = { version = "=0.13.5", default-features = false, features = ["derive", "std"] }
+rand = { version = "=0.8.7", default-features = false }
+rc2 = { version = "=0.8.1", features = ["zeroize"] }
+salsa20 = { version = "=0.10.2", default-features = false, features = ["zeroize"] }
+thiserror = "=2.0.18"
+twofish = { version = "=0.7.1", default-features = false, features = ["zeroize"] }
+x25519-dalek = { version = "=2.0.1", default-features = false, features = ["alloc", "precomputed-tables", "static_secrets", "zeroize"] }
+zeroize = { version = "=1.9.0", features = ["alloc"] }
+
+[patch.crates-io]
+# Keyguard uses checksum-locked upstream aes-gcm 0.10.3. The ssh-cipher fork
+# explicitly enables zeroization across its AES-GCM dependency graph.
+# These local forks add the remaining reviewed zeroization closures documented
+# in each fork's KEYGUARD-PROVENANCE.md.
+ocb3 = { path = "../../../thirdParty/rust/ocb3-0.1.0-keyguard" }
+polyval = { path = "../../../thirdParty/rust/polyval-0.6.2-keyguard" }
+ssh-cipher = { path = "../../../thirdParty/rust/ssh-cipher-0.2.0-keyguard" }
+# Keyguard backports nested-length validation while remaining wire-compatible
+# with ssh-encoding 0.2.0. Keep this paired with the patched ssh-key below.
+ssh-encoding = { path = "../../../thirdParty/rust/ssh-encoding-0.2.0-keyguard" }
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_op_in_unsafe_fn = "deny"
+unused_lifetimes = "deny"
+unused_qualifications = "warn"
+
+[workspace.lints.clippy]
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+undocumented_unsafe_blocks = "deny"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "unwind"
+strip = true
+
+[profile.dev.package."*"]
+opt-level = 2

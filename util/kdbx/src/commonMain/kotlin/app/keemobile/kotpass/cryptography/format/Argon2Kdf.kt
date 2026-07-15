@@ -1,11 +1,13 @@
 package app.keemobile.kotpass.cryptography.format
 
-import app.keemobile.kotpass.cryptography.engines.Argon2Engine
+import com.artemchep.keyguard.nativecrypto.NativeArgon2Mode
+import com.artemchep.keyguard.nativecrypto.NativeArgon2Version
+import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
 
 internal object Argon2Kdf {
     fun transformKey(
-        variant: Argon2Engine.Variant,
-        version: Argon2Engine.Version,
+        variant: NativeArgon2Mode,
+        version: NativeArgon2Version,
         password: ByteArray,
         secretKey: ByteArray?,
         additional: ByteArray?,
@@ -14,18 +16,17 @@ internal object Argon2Kdf {
         parallelism: UInt,
         memory: ULong
     ): ByteArray {
-        val result = ByteArray(32)
-        Argon2Engine(
-            variant = variant,
+        return NativeCryptoPrimitives.argon2(
+            mode = variant,
+            version = version,
+            seed = password,
             salt = salt,
             secret = secretKey,
-            additional = additional,
+            associatedData = additional,
             iterations = iterations.toInt(),
             parallelism = parallelism.toInt(),
-            memory = memory.toInt() / 1024,
-            version = version
-        ).generateBytes(password, result)
-
-        return result
+            memoryKb = (memory / 1024UL).toInt(),
+            length = 32,
+        )
     }
 }

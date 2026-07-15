@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerification
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationStatus
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationWarning
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyDetachedTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyTextRequest
@@ -81,6 +82,7 @@ fun produceGpgToolsState(
         getCiphers = instance(),
         fileService = instance(),
         openPgpService = instance(),
+        openPgpVerifier = instance(),
     )
 }
 
@@ -90,6 +92,7 @@ fun produceGpgToolsState(
     getCiphers: GetCiphers,
     fileService: FileService,
     openPgpService: GpgOpenPgpService,
+    openPgpVerifier: GpgOpenPgpVerifier,
 ): Loadable<GpgToolsState> = produceScreenState(
     key = "gpg_tools_${operation.key}",
     initial = Loadable.Loading,
@@ -98,6 +101,7 @@ fun produceGpgToolsState(
         getCiphers,
         fileService,
         openPgpService,
+        openPgpVerifier,
     ),
 ) {
     val copyText = copier()
@@ -146,7 +150,7 @@ fun produceGpgToolsState(
     ) { emptySet() }
     val busySink = MutableStateFlow(false)
     val hasArmorOption = operation == GpgToolsOperation.ENCRYPT ||
-            operation == GpgToolsOperation.SIGN
+        operation == GpgToolsOperation.SIGN
 
     fun launchOperation(block: suspend () -> Unit) {
         if (busySink.value) {
@@ -359,8 +363,11 @@ fun produceGpgToolsState(
                             privateKey = privateKey,
                         )
                         when (form.controls.signMode) {
-                            GpgToolsSignMode.CLEAR_TEXT -> openPgpService.clearSignText(request)
-                            GpgToolsSignMode.DETACHED -> openPgpService.signTextDetached(request)
+                            GpgToolsSignMode.CLEAR_TEXT ->
+                                openPgpService.clearSignText(request)
+
+                            GpgToolsSignMode.DETACHED ->
+                                openPgpService.signTextDetached(request)
                         }
                     }
                     showResultDialog(
@@ -397,14 +404,14 @@ fun produceGpgToolsState(
                     val publicKeys = keys.resolveVerificationPublicKeys(customPublicKeys)
                     val verification = withContext(Dispatchers.Default) {
                         when (form.controls.verifyMode) {
-                            GpgToolsVerifyMode.INLINE -> openPgpService.verifyClearSignedText(
+                            GpgToolsVerifyMode.INLINE -> openPgpVerifier.verifyClearSignedText(
                                 GpgOpenPgpVerifyTextRequest(
                                     signedText = text,
                                     publicKeys = publicKeys,
                                 ),
                             )
 
-                            GpgToolsVerifyMode.DETACHED -> openPgpService.verifyDetachedText(
+                            GpgToolsVerifyMode.DETACHED -> openPgpVerifier.verifyDetachedText(
                                 GpgOpenPgpVerifyDetachedTextRequest(
                                     text = text,
                                     signature = requireDetachedSignatureText(form),
@@ -498,7 +505,7 @@ fun produceGpgToolsState(
                     val publicKeys = keys.resolveVerificationPublicKeys(customPublicKeys)
                     launchOperation {
                         val verification = withContext(Dispatchers.Default) {
-                            openPgpService.verifyFile(
+                            openPgpVerifier.verifyFile(
                                 GpgOpenPgpVerifyFileRequest(
                                     input = fileService.readFromFile(input.uri),
                                     signatureInput = fileService.readFromFile(signature.uri),

@@ -2,7 +2,6 @@ package app.keemobile.kotpass.database.header
 
 import app.keemobile.kotpass.constants.Const
 import app.keemobile.kotpass.constants.KdfConst
-import app.keemobile.kotpass.cryptography.engines.Argon2Engine
 import app.keemobile.kotpass.errors.FormatError
 import okio.ByteString
 
@@ -93,7 +92,7 @@ sealed class KdfParameters {
                 parallelism = 2U,
                 memory = 32UL * 1024UL * 1024UL,
                 iterations = 8U,
-                version = Argon2Engine.Version.Ver13.id.toUInt(),
+                version = 0x13U,
                 secretKey = null,
                 associatedData = null
             )

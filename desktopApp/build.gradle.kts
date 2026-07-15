@@ -29,8 +29,8 @@ kotlin {
                 implementation(libs.kdroidfilter.composenativetray)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.stdlib)
-                implementation(libs.bouncycastle.bcprov)
-                implementation(libs.bouncycastle.bctls)
+                implementation(libs.squareup.okhttp)
+                implementation(project(":util:crypto"))
                 implementation(project(":common"))
             }
         }
@@ -68,6 +68,15 @@ dependencies {
         project(
             mapOf(
                 "path" to ":desktopLibNative",
+                "configuration" to "bundledAppResourcesElements",
+            ),
+        ),
+    )
+    add(
+        bundledAppResources.name,
+        project(
+            mapOf(
+                "path" to ":util:crypto",
                 "configuration" to "bundledAppResourcesElements",
             ),
         ),
@@ -228,11 +237,6 @@ compose.desktop {
         buildTypes {
             release {
                 proguard {
-                    // Enabling the proguard would require us to grab the .jar of
-                    // the BouncyCastle library and strip out the signature due to this error:
-                    //
-                    // Exception in thread "main" java.lang.SecurityException:
-                    // SHA-256 digest error for org/bouncycastle/jce/provider/BouncyCastleProvider.class
                     isEnabled = false
                 }
             }

@@ -1,0 +1,686 @@
+name: "✔️ Check Native Crypto"
+
+on:
+  workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: "Cache write only"
+        required: false
+        default: false
+        type: boolean
+      release-readiness:
+        description: "Run release-readiness gates that require external records and a fixed host"
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - master
+    paths:
+      - "util/crypto/**"
+      - "thirdParty/rust/**"
+      - "util/foundation/**"
+      - "util/kdbx/**"
+      - "common/src/**/crypto/**"
+      - "common/src/**/gpg/**"
+      - "common/src/**/ssh/**"
+      - "common/src/**/*Crypto*"
+      - "common/src/**/*Gpg*"
+      - "common/src/**/*Ssh*"
+      - "common/src/desktopTest/**/ssh-import-corpus/**"
+      - "integration/gpgE2eTest/**"
+      - "common/src/androidMain/kotlin/com/artemchep/keyguard/android/BaseApp.kt"
+      - "common/build.gradle.kts"
+      - "androidApp/**"
+      - "wearApp/**"
+      - "desktopApp/**"
+      - "desktopLibJvm/**"
+      - "desktopLibNative/**"
+      - "iosApp/**"
+      - "buildPlugins/**"
+      - "build.gradle.kts"
+      - "gradle/**"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - "gradle/libs.versions.toml"
+      - "settings.gradle*"
+      - "scripts/*native_crypto*.py"
+      - "scripts/*bouncycastle*.py"
+      - "docs/architecture/native-crypto.md"
+      - "docs/security/native-crypto-*.md"
+      - ".github/native-crypto-*"
+      - ".github/actionlint.yaml"
+      - ".github/actions/setup_gradle/**"
+      - ".github/actions/setup_rust/**"
+      - ".github/actions/setup_protobuf/**"
+      - ".github/actions/build_android_licenses/**"
+      - ".github/actions/build_android_baseline_profiles/**"
+      - ".github/workflows/new_apk.yaml"
+      - ".github/workflows/new_daily_tag_play_store_internal_track.yaml"
+      - ".github/workflows/new_flatpak.yaml"
+      - ".github/workflows/new_tag_release.yaml"
+      - ".github/dependabot.yml"
+      - ".github/workflows/check_native_crypto.yml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "util/crypto/**"
+      - "thirdParty/rust/**"
+      - "util/foundation/**"
+      - "util/kdbx/**"
+      - "common/src/**/crypto/**"
+      - "common/src/**/gpg/**"
+      - "common/src/**/ssh/**"
+      - "common/src/**/*Crypto*"
+      - "common/src/**/*Gpg*"
+      - "common/src/**/*Ssh*"
+      - "common/src/desktopTest/**/ssh-import-corpus/**"
+      - "integration/gpgE2eTest/**"
+      - "common/src/androidMain/kotlin/com/artemchep/keyguard/android/BaseApp.kt"
+      - "common/build.gradle.kts"
+      - "androidApp/**"
+      - "wearApp/**"
+      - "desktopApp/**"
+      - "desktopLibJvm/**"
+      - "desktopLibNative/**"
+      - "iosApp/**"
+      - "buildPlugins/**"
+      - "build.gradle.kts"
+      - "gradle/**"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - "gradle/libs.versions.toml"
+      - "settings.gradle*"
+      - "scripts/*native_crypto*.py"
+      - "scripts/*bouncycastle*.py"
+      - "docs/architecture/native-crypto.md"
+      - "docs/security/native-crypto-*.md"
+      - ".github/native-crypto-*"
+      - ".github/actionlint.yaml"
+      - ".github/actions/setup_gradle/**"
+      - ".github/actions/setup_rust/**"
+      - ".github/actions/setup_protobuf/**"
+      - ".github/actions/build_android_licenses/**"
+      - ".github/actions/build_android_baseline_profiles/**"
+      - ".github/workflows/new_apk.yaml"
+      - ".github/workflows/new_daily_tag_play_store_internal_track.yaml"
+      - ".github/workflows/new_flatpak.yaml"
+      - ".github/workflows/new_tag_release.yaml"
+      - ".github/dependabot.yml"
+      - ".github/workflows/check_native_crypto.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-quality:
+    name: "Rust quality and supply chain"
+    runs-on: ubuntu-latest
+    env:
+      CARGO_ABOUT_VERSION: "0.9.1"
+      CARGO_DENY_VERSION: "0.20.2"
+      CARGO_SBOM_VERSION: "0.10.0"
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          components: "rustfmt, clippy"
+      - name: "Setup Protobuf"
+        uses: ./.github/actions/setup_protobuf
+      - name: "Check native crypto protocol drift"
+        run: |
+          cargo fmt \
+            --manifest-path util/crypto/tools/native-crypto-protocol/Cargo.toml \
+            --all -- --check
+          cargo clippy \
+            --manifest-path util/crypto/tools/native-crypto-protocol/Cargo.toml \
+            --all-targets --locked -- -D warnings
+          cargo run \
+            --manifest-path util/crypto/tools/native-crypto-protocol/Cargo.toml \
+            --locked -- check
+      - name: "Check formatting"
+        working-directory: util/crypto/rust
+        run: cargo fmt --all -- --check
+      - name: "Run Clippy"
+        working-directory: util/crypto/rust
+        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+      - name: "Run Rust tests"
+        working-directory: util/crypto/rust
+        run: cargo test --workspace --all-features --locked
+      - name: "Check reviewed Rust forks"
+        working-directory: thirdParty/rust
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy \
+            --workspace --exclude ssh-key \
+            --all-targets --all-features --locked -- -D warnings
+          # Preserve ssh-key 0.6.7's upstream API shape while denying any new
+          # warning outside these known style-only lints.
+          cargo clippy \
+            --package ssh-key --no-default-features \
+            --features keyguard-decryption,std --lib --locked -- \
+            -D warnings \
+            -A clippy::to_string_trait_impl \
+            -A clippy::derivable_impls \
+            -A clippy::useless_conversion
+          cargo test \
+            --workspace --exclude ssh-key --all-features --locked
+          cargo test \
+            --package ssh-key --no-default-features \
+            --features keyguard-decryption,std --lib --locked
+          cargo test \
+            --package ssh-key --no-default-features \
+            --features keyguard-decryption,std \
+            --test encrypted_private_key --locked
+      - name: "Run POLYVAL forced-software backend tests"
+        working-directory: thirdParty/rust
+        env:
+          RUSTFLAGS: "--cfg polyval_force_soft -D warnings"
+        run: cargo test --package polyval --all-features --locked
+      - name: "Run primitive and streaming property tests"
+        working-directory: util/crypto/rust
+        run: >-
+          cargo test
+          --package keyguard-crypto-core
+          --test properties
+          --locked
+      - name: "Check structured native crypto exception policy"
+        run: |
+          cargo fmt \
+            --manifest-path util/crypto/tools/native-crypto-policy/Cargo.toml \
+            --all -- --check
+          cargo test \
+            --manifest-path util/crypto/tools/native-crypto-policy/Cargo.toml \
+            --locked
+          cargo clippy \
+            --manifest-path util/crypto/tools/native-crypto-policy/Cargo.toml \
+            --all-targets --locked -- -D warnings
+          cargo run \
+            --manifest-path util/crypto/tools/native-crypto-policy/Cargo.toml \
+            --locked -- --repository .
+      - name: "Build locked release artifacts offline"
+        working-directory: util/crypto/rust
+        run: cargo build --workspace --all-features --release --locked --offline
+      - name: "Compile release benchmark targets offline"
+        working-directory: util/crypto/rust
+        run: >-
+          cargo bench
+          --package keyguard-crypto-core
+          --bench argon2
+          --bench bulk_primitives
+          --bench small_primitives
+          --no-run
+          --locked
+          --offline
+      - name: "Test retained package inspection policies"
+        run: >-
+          python3 -m unittest
+          scripts/test_check_bouncycastle_policy.py
+          scripts/test_run_native_crypto_desktop_package_smoke.py
+      - name: "Install pinned supply-chain tools"
+        run: |
+          cargo install --locked --features cli cargo-about --version "$CARGO_ABOUT_VERSION"
+          cargo install --locked cargo-deny --version "$CARGO_DENY_VERSION"
+          cargo install --locked cargo-sbom --version "$CARGO_SBOM_VERSION"
+      - name: "Check Rust licenses, bans, and sources"
+        working-directory: util/crypto/rust
+        run: >-
+          cargo deny
+          --config ../../../.github/native-crypto-deny.toml
+          check advisories bans licenses sources
+      - name: "Generate Cargo notices and SPDX SBOMs"
+        shell: bash
+        run: |
+          output=util/crypto/build/reports/supply-chain
+          mkdir -p "$output"
+          for package in keyguard-crypto-core keyguard-crypto-jni keyguard-crypto-c; do
+            cargo sbom \
+              --project-directory util/crypto/rust \
+              --cargo-package "$package" \
+              --output-format spdx_json_2_3 \
+              > "$output/$package.spdx.json"
+            cargo about generate \
+              --manifest-path "util/crypto/rust/crates/$package/Cargo.toml" \
+              --config util/crypto/rust/about.toml \
+              --locked \
+              --offline \
+              --fail \
+              --output-file "$output/$package-licenses.md" \
+              util/crypto/rust/about.hbs
+          done
+      - name: "Upload Cargo notices and SPDX SBOM"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-crypto-supply-chain
+          path: util/crypto/build/reports/supply-chain/
+          retention-days: 21
+
+  rust-fuzz:
+    name: "Rust bounded fuzz smoke"
+    runs-on: ubuntu-24.04
+    env:
+      CARGO_FUZZ_VERSION: "0.13.2"
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - name: "Setup pinned nightly fuzz toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          toolchain: "nightly-2026-03-02"
+      - name: "Install pinned cargo-fuzz"
+        run: cargo install --locked cargo-fuzz --version "$CARGO_FUZZ_VERSION"
+      - name: "Compile all fuzz targets"
+        working-directory: util/crypto/rust
+        run: cargo check --manifest-path fuzz/Cargo.toml --all-targets --locked
+      - name: "Fuzz dispatcher"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run dispatch -- -max_total_time=30
+      - name: "Fuzz session lifecycle"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run session_lifecycle -- -max_total_time=30
+      - name: "Fuzz SSH private-key import"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run ssh_private_key_import -- -max_total_time=30
+      - name: "Fuzz OpenPGP read path"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run openpgp_read -- -max_total_time=30
+      - name: "Fuzz OpenPGP write path"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run openpgp_write -- -max_total_time=30
+
+  native-smoke:
+    name: "Native smoke (${{ matrix.name }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64 and Android
+            os: ubuntu-24.04
+            gradle: ./gradlew
+            rust-targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+            tasks: >-
+              :util:crypto:desktopTest
+              :util:crypto:testAndroidHostTest
+              :util:foundation:checkBouncyCastleProductionDependencies
+              :util:foundation:desktopTest
+              :util:foundation:testAndroidHostTest
+              :util:kdbx:checkBouncyCastleProductionDependencies
+              :util:kdbx:desktopTest
+              :util:kdbx:testAndroidHostTest
+              :common:checkBouncyCastleProductionDependencies
+              :common:checkSshjDependencies
+              :androidApp:checkBouncyCastleProductionDependencies
+              :wearApp:checkBouncyCastleProductionDependencies
+              :desktopApp:checkBouncyCastleProductionDependencies
+              :util:crypto:compileNativeCryptoDesktopLinuxX64
+              :util:crypto:compileNativeCryptoAndroidAll
+              :util:crypto:bundleAndroidMainAar
+              :androidApp:assembleNoneDebug
+              :wearApp:assembleNoneDebug
+              :desktopApp:createDistributable
+            inspect-android: true
+            inspect-apple: false
+          - name: Linux arm64
+            os: ubuntu-24.04-arm
+            gradle: ./gradlew
+            rust-targets: "aarch64-unknown-linux-gnu"
+            tasks: >-
+              :util:crypto:desktopTest
+              :util:foundation:desktopTest
+              :util:kdbx:desktopTest
+              :util:crypto:compileNativeCryptoDesktopLinuxArm64
+              :desktopApp:createDistributable
+            inspect-android: false
+            inspect-apple: false
+          - name: macOS x64
+            os: macos-15-intel
+            gradle: ./gradlew
+            rust-targets: "x86_64-apple-darwin"
+            tasks: >-
+              :util:crypto:desktopTest
+              :util:foundation:desktopTest
+              :util:kdbx:desktopTest
+              :util:crypto:compileNativeCryptoDesktopMacosX64
+              :desktopApp:createDistributable
+            inspect-android: false
+            inspect-apple: false
+          - name: macOS arm64 and Apple
+            os: macos-15
+            gradle: ./gradlew
+            rust-targets: "aarch64-apple-darwin,aarch64-apple-ios,aarch64-apple-ios-sim"
+            tasks: >-
+              :util:crypto:desktopTest
+              :util:crypto:iosSimulatorArm64Test
+              :util:crypto:macosArm64Test
+              :util:foundation:desktopTest
+              :util:foundation:iosSimulatorArm64Test
+              :util:foundation:macosArm64Test
+              :util:kdbx:desktopTest
+              :util:kdbx:iosSimulatorArm64Test
+              :util:kdbx:macosArm64Test
+              :common:iosSimulatorArm64Test
+              :common:macosArm64Test
+              :util:crypto:compileKotlinIosArm64
+              :util:crypto:linkDebugTestIosArm64
+              :util:foundation:compileKotlinIosArm64
+              :util:kdbx:compileKotlinIosArm64
+              :common:compileKotlinIosArm64
+              :iosApp:compileKotlinIosArm64
+              :iosApp:linkDebugFrameworkIosSimulatorArm64
+              :util:crypto:compileNativeCryptoDesktopMacosArm64
+              :util:crypto:compileNativeCryptoAppleAll
+              :desktopApp:createDistributable
+            inspect-android: false
+            inspect-apple: true
+          - name: Windows x64
+            os: windows-2025
+            gradle: ./gradlew.bat
+            rust-targets: "x86_64-pc-windows-msvc"
+            tasks: >-
+              :util:crypto:desktopTest
+              :util:foundation:desktopTest
+              :util:kdbx:desktopTest
+              :util:crypto:compileNativeCryptoDesktopWindowsX64
+              :desktopApp:createDistributable
+            inspect-android: false
+            inspect-apple: false
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_python
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: ${{ matrix.rust-targets }}
+      - name: "Prefetch locked native crypto graph"
+        run: |
+          cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+          cargo fetch --manifest-path thirdParty/rust/Cargo.toml --locked
+      - name: "Run POLYVAL Armv8 PMULL backend tests"
+        if: matrix.name == 'macOS arm64 and Apple'
+        working-directory: thirdParty/rust
+        env:
+          RUSTFLAGS: "--cfg polyval_armv8 -D warnings"
+        run: cargo test --package polyval --all-features --locked --offline
+      - name: "Prepare Android package environment"
+        if: matrix.inspect-android
+        shell: bash
+        env:
+          VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
+        run: |
+          echo "$VARS_GOOGLE_SERVICES" | base64 -d | zcat > androidApp/google-services.json
+          echo "$VARS_GOOGLE_SERVICES" | base64 -d | zcat > wearApp/google-services.json
+      - name: "Run Kotlin/native smoke tests"
+        run: >-
+          ${{ matrix.gradle }}
+          --continue
+          --max-workers=1
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+          ${{ matrix.tasks }}
+      - name: "Run JVM import compatibility corpus"
+        run: >-
+          ${{ matrix.gradle }}
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+          :common:desktopTest
+          --tests "com.artemchep.keyguard.common.service.crypto.SshKeyImportServiceJvmTest"
+          --tests "com.artemchep.keyguard.common.service.crypto.SshImportCompatibilityCorpusTest"
+      - name: "Run JVM OpenPGP compatibility suites"
+        run: >-
+          ${{ matrix.gradle }}
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+          :common:desktopTest
+          --tests "com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserJvmTest"
+          --tests "com.artemchep.keyguard.common.service.crypto.GpgOpenPgpServiceJvmTest"
+          --tests "com.artemchep.keyguard.common.service.crypto.GpgKeyGeneratorJvmTest"
+          --tests "com.artemchep.keyguard.common.service.crypto.GpgKeyImportServiceJvmTest"
+          --tests "com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationServiceJvmTest"
+          --tests "com.artemchep.keyguard.common.service.crypto.GpgRenewalPolicyJvmTest"
+          --tests "com.artemchep.keyguard.common.service.crypto.GpgKeygripCalculatorJvmTest"
+          --tests "com.artemchep.keyguard.common.service.gpgagent.GpgAgentSigningTest"
+          --tests "com.artemchep.keyguard.common.service.gpgagent.GpgAgentDecryptTest"
+          --tests "com.artemchep.keyguard.crypto.GpgCertificateInspectorJvmTest"
+          --tests "com.artemchep.keyguard.crypto.NativeGpgReadTest"
+          --tests "com.artemchep.keyguard.crypto.OpenPgpPlaintextStagingJvmTest"
+          --tests "com.artemchep.keyguard.crypto.OpenPgpReadBouncyCastleDifferentialTest"
+          --tests "com.artemchep.keyguard.crypto.OpenPgpWriteBouncyCastleDifferentialTest"
+          --tests "com.artemchep.keyguard.crypto.OpenPgpMutationAndAgentBouncyCastleDifferentialTest"
+      - name: "Call native crypto through packaged Desktop resources"
+        run: >-
+          python scripts/run_native_crypto_desktop_package_smoke.py
+          desktopApp/build/compose/binaries/main/app
+      - name: "Reject Bouncy Castle and SSHJ from the packaged Desktop image"
+        run: >-
+          python scripts/check_bouncycastle_policy.py
+          --artifact desktopApp/build/compose/binaries/main/app
+      - name: "Inspect Android ABI, alignment, and JNI exports"
+        if: matrix.inspect-android
+        run: python scripts/inspect_native_crypto_android.py util/crypto/build
+      - name: "Inspect packaged Android and Wear artifacts"
+        if: matrix.inspect-android
+        shell: bash
+        run: |
+          inspect_packages() {
+            local label="$1"
+            local root="$2"
+            local pattern="$3"
+            local artifacts=()
+            while IFS= read -r -d '' artifact; do
+              artifacts+=("$artifact")
+            done < <(find "$root" -type f -name "$pattern" -print0)
+            if (( ${#artifacts[@]} == 0 )); then
+              echo "Missing $label package under $root" >&2
+              return 1
+            fi
+            for artifact in "${artifacts[@]}"; do
+              python scripts/inspect_native_crypto_android.py "$artifact"
+              python scripts/check_bouncycastle_policy.py --artifact "$artifact"
+            done
+          }
+          inspect_packages "nativeCrypto AAR" util/crypto/build/outputs/aar '*.aar'
+          inspect_packages "Android None debug APK" androidApp/build/outputs/apk/none/debug '*.apk'
+          inspect_packages "Wear None debug APK" wearApp/build/outputs/apk/none/debug '*.apk'
+      - name: "Inspect desktop JNI exports"
+        run: python scripts/inspect_native_crypto_desktop.py util/crypto/build
+      - name: "Inspect packaged Desktop native libraries"
+        run: >-
+          python scripts/inspect_native_crypto_desktop.py
+          desktopApp/build/compose/binaries/main/app
+      - name: "Inspect Apple static C exports"
+        if: matrix.inspect-apple
+        run: >-
+          python scripts/inspect_native_crypto_desktop.py
+          --export-policy .github/native-crypto-apple-exports.txt
+          --api-prefix keyguard_crypto_
+          --suffix .a
+          util/crypto/build
+
+      - name: "Inspect final linked Apple executables"
+        if: matrix.inspect-apple
+        run: >-
+          python scripts/inspect_native_crypto_apple.py
+          util/crypto/build/bin/macosArm64/debugTest/test.kexe
+          util/crypto/build/bin/iosSimulatorArm64/debugTest/test.kexe
+          util/crypto/build/bin/iosArm64/debugTest/test.kexe
+
+  android-native-load:
+    name: "Android native load (${{ matrix.profile }}, x86_64, API ${{ matrix.api-level }})"
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api-level: 26
+            profile: debug
+            task: ":androidApp:connectedNoneDebugAndroidTest"
+            gradle-arguments: ""
+            inspect-minified: false
+          - api-level: 30
+            profile: debug
+            task: ":androidApp:connectedNoneDebugAndroidTest"
+            gradle-arguments: ""
+            inspect-minified: false
+          - api-level: 30
+            profile: minified-release-rules
+            task: ":androidApp:connectedNoneNativeCryptoSmokeReleaseAndroidTest"
+            gradle-arguments: "-Pkeyguard.nativeCrypto.minifiedSmoke=true"
+            inspect-minified: true
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+      - name: "Prefetch locked native crypto graph"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - uses: ./.github/actions/prepare_kvm
+      - uses: ./.github/actions/prepare_disk_space
+      - name: "Prepare Android package environment"
+        shell: bash
+        env:
+          VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
+        run: echo "$VARS_GOOGLE_SERVICES" | base64 -d | zcat > androidApp/google-services.json
+      - uses: ./.github/actions/build_android_licenses
+        with:
+          build-flavor: "None"
+      - name: "Call native crypto on emulator"
+        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          disable-animations: true
+          disk-size: 4G
+          script: >-
+            ./gradlew
+            ${{ matrix.task }}
+            ${{ matrix.gradle-arguments }}
+            -Pkeyguard.nativeCrypto.cargoOffline=true
+            -Pandroid.testInstrumentationRunnerArguments.class=com.artemchep.keyguard.test.crypto.NativeCryptoLoadSmokeTest
+      - name: "Inspect minified native-load APK"
+        if: matrix.inspect-minified
+        shell: bash
+        run: |
+          mapfile -d '' apks < <(find androidApp/build/outputs/apk/none/nativeCryptoSmokeRelease -type f -name '*.apk' -print0)
+          if (( ${#apks[@]} != 1 )); then
+            echo "Expected one minified native-load APK, found ${#apks[@]}" >&2
+            exit 1
+          fi
+          python scripts/inspect_native_crypto_android.py "${apks[0]}"
+          python scripts/check_bouncycastle_policy.py --artifact "${apks[0]}"
+      - name: "Upload native-load test reports"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-crypto-android-${{ matrix.api-level }}-${{ matrix.profile }}-test-reports
+          path: |
+            androidApp/build/outputs/androidTest-results/
+            androidApp/build/reports/androidTests/
+          if-no-files-found: ignore
+          retention-days: 21
+
+  wear-native-load:
+    name: "Wear native load (x86_64, API 30)"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup nRust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+      - name: "Prefetch locked native crypto graph"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - uses: ./.github/actions/prepare_kvm
+      - uses: ./.github/actions/prepare_disk_space
+      - name: "Prepare Wear package environment"
+        shell: bash
+        env:
+          VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
+        run: echo "$VARS_GOOGLE_SERVICES" | base64 -d | zcat > wearApp/google-services.json
+      - name: "Call native crypto on a Wear emulator"
+        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
+        with:
+          api-level: 30
+          target: android-wear
+          arch: x86_64
+          profile: wearos_square
+          disable-animations: true
+          disk-size: 4G
+          script: >-
+            ./gradlew
+            :wearApp:connectedNoneDebugAndroidTest
+            -Pkeyguard.nativeCrypto.cargoOffline=true
+            -Pandroid.testInstrumentationRunnerArguments.class=com.artemchep.keyguard.wear.crypto.NativeCryptoLoadSmokeTest
+      - name: "Upload Wear native-load test reports"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-crypto-wear-30-test-reports
+          path: |
+            wearApp/build/outputs/androidTest-results/
+            wearApp/build/reports/androidTests/
+          if-no-files-found: ignore
+          retention-days: 21
+
+  fixed-host-performance:
+    name: "Fixed-host Criterion measurements"
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.release-readiness }}
+    runs-on: [self-hosted, macOS, ARM64, native-crypto-benchmark]
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - name: "Setup pinned Rust toolchain"
+        uses: ./.github/actions/setup_rust
+      - name: "Verify release-readiness exception record"
+        run: |
+          cargo fetch --locked --manifest-path util/crypto/rust/Cargo.toml
+          cargo run \
+            --manifest-path util/crypto/tools/native-crypto-policy/Cargo.toml \
+            --locked -- \
+            --repository . \
+            --require-external-tracking-issue
+      - name: "Measure native crypto benchmarks"
+        working-directory: util/crypto/rust
+        run: >-
+          cargo bench
+          --package keyguard-crypto-core
+          --bench argon2
+          --bench bulk_primitives
+          --bench small_primitives
+          --locked
+          --
+          --save-baseline release-candidate
+      - name: "Upload Criterion measurements"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-crypto-fixed-host-performance
+          path: util/crypto/rust/target/criterion/
+          if-no-files-found: ignore
+          retention-days: 21

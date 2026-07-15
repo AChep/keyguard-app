@@ -1,0 +1,17 @@
+# Native crypto Cargo licenses
+
+Generated from the locked production Cargo graph by `cargo-about`.
+
+{{#each licenses}}
+## {{name}}
+
+Used by:
+{{#each used_by}}
+- {{crate.name}} {{crate.version}}
+{{/each}}
+
+```text
+{{text}}
+```
+
+{{/each}}

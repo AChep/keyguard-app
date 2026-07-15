@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.service.crypto
 
-import com.artemchep.keyguard.crypto.GpgPublicKeyParserJvm
+import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import com.artemchep.keyguard.crypto.armored
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -19,15 +19,16 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
- * Tests for [GpgPublicKeyParserJvm], the BouncyCastle-backed parser used to read
- * ASCII-armored public keys fetched from keyservers.
+ * Tests for [NativeGpgPublicKeyParser], the native Rust parser used to read ASCII-armored
+ * public keys fetched from keyservers. Bouncy Castle remains here only as a differential
+ * fixture decoder/re-armorer.
  *
  * The fixture is a real, unprotected Ed25519 cert primary with a CV25519
  * encryption subkey, the public half of which is derived in-test and re-armored
  * exactly the way a keyserver would serve it.
  */
 class GpgPublicKeyParserJvmTest {
-    private val parser = GpgPublicKeyParserJvm()
+    private val parser = NativeGpgPublicKeyParser
 
     @BeforeTest
     fun setup() {

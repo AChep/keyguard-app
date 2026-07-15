@@ -33,9 +33,13 @@ val versionInfo = createVersionInfo(
 
 val qaSigningProps = loadProps("keyguard-qa.properties")
 val releaseSigningProps = loadProps("keyguard-release.properties")
+val nativeCryptoMinifiedSmoke = providers.gradleProperty("keyguard.nativeCrypto.minifiedSmoke")
+    .map(String::toBoolean)
+    .orElse(false)
 
 android {
     compileSdk = libs.versions.androidCompileSdk.get().toInt()
+    ndkVersion = libs.versions.androidNdk.get()
     namespace = "com.artemchep.keyguard"
 
     defaultConfig {
@@ -63,6 +67,9 @@ android {
 
     testOptions {
         execution = "ANDROIDX_TEST_ORCHESTRATOR"
+        if (nativeCryptoMinifiedSmoke.get()) {
+            testBuildType = "nativeCryptoSmokeRelease"
+        }
     }
 
     bundle {
@@ -108,11 +115,22 @@ android {
             signingConfig = signingConfigs.getByName("release")
             applyMinification()
         }
+        val releaseBuildType = getByName("release")
         create("benchmarkRelease") {
             signingConfig = signingConfigs.getByName("debug")
         }
         create("nonMinifiedRelease") {
             signingConfig = signingConfigs.getByName("debug")
+        }
+        if (nativeCryptoMinifiedSmoke.get()) {
+            // Internal instrumentation-only target: leave production release
+            // signing untouched while exercising the same shrinking rules.
+            create("nativeCryptoSmokeRelease") {
+                initWith(releaseBuildType)
+                signingConfig = signingConfigs.getByName("debug")
+                matchingFallbacks += listOf("release")
+                testProguardFiles("native-crypto-smoke-test-rules.pro")
+            }
         }
     }
 
@@ -141,6 +159,7 @@ dependencies {
 
     // Android tests
     androidTestImplementation(project(":androidTest"))
+    androidTestImplementation(project(":util:crypto"))
     androidTestImplementation(libs.androidx.arch.core.testing)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.rules)

@@ -3,6 +3,8 @@ package com.artemchep.keyguard.buildplugins.cargo
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import javax.inject.Inject
 
@@ -20,11 +22,16 @@ abstract class CargoCommonExtension @Inject constructor(
     abstract val platformMacOs: Property<Boolean>
     abstract val platformWindows: Property<Boolean>
     abstract val markExecutable: Property<Boolean>
+    abstract val cargoPackage: Property<String>
+    abstract val cargoArguments: ListProperty<String>
+    abstract val environmentVariables: MapProperty<String, String>
 
     val extraSourceInputs: ConfigurableFileCollection = objects.fileCollection()
 
     init {
         cargoTaskName.convention("cargoBuild")
         markExecutable.convention(true)
+        cargoArguments.convention(emptyList())
+        environmentVariables.convention(emptyMap())
     }
 }

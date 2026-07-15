@@ -1,8 +1,8 @@
 package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.model.GpgKeyConfig
-import com.artemchep.keyguard.crypto.GpgKeyGeneratorJvm
-import com.artemchep.keyguard.crypto.GpgOpenPgpServiceJvm
+import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
 import com.artemchep.keyguard.crypto.GpgUnsupportedKeyVersionException
 import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
@@ -49,7 +49,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GpgOpenPgpServiceJvmTest {
-    private val service = GpgOpenPgpServiceJvm()
+    private val service = NativeGpgOpenPgpService
 
     private val privateKey = GpgOpenPgpPrivateKey(
         armored = CV25519_SECRET_KEY,
@@ -717,7 +717,7 @@ class GpgOpenPgpServiceJvmTest {
 
     @Test
     fun `preferred RSA primary fingerprint selects its authenticated signing subkey`() {
-        val generated = GpgKeyGeneratorJvm().generate(
+        val generated = NativeGpgKeyGenerator.generate(
             GpgKeyConfig.Rsa(
                 userId = "Signing selection <signing-selection@test.invalid>",
                 length = GpgKeyConfig.RsaLength.B3072,

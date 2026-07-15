@@ -1,14 +1,14 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
-import com.artemchep.keyguard.crypto.util.createAesCbc
-import com.artemchep.keyguard.crypto.util.encode
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
 
 class CipherInputStreamDecoderTest {
     private val cryptoGenerator = CryptoGeneratorJvm()
@@ -150,6 +150,43 @@ class CipherInputStreamDecoderTest {
     }
 
     @Test
+    fun `close preserves input failure when cipher finalization also fails`() {
+        val inputFailure = IOException("input close failure")
+        val finalizationFailure = IllegalStateException("cipher finalization failure")
+        val input = CipherInputStream2(
+            object : ByteArrayInputStream(ByteArray(0)) {
+                override fun close() {
+                    throw inputFailure
+                }
+            },
+            object : CipherInputStream2.Decoder {
+                override fun processBytes(
+                    `in`: ByteArray,
+                    inOff: Int,
+                    len: Int,
+                    out: ByteArray,
+                    outOff: Int,
+                ): Int = 0
+
+                override fun doFinal(out: ByteArray, outOff: Int): Int =
+                    throw finalizationFailure
+
+                override fun getOutputSize(length: Int): Int = 0
+
+                override fun getUpdateOutputSize(length: Int): Int = 0
+            },
+        )
+
+        val failure = assertFailsWith<IOException> {
+            input.close()
+        }
+
+        assertSame(finalizationFailure, failure.cause)
+        assertEquals(1, failure.suppressed.size)
+        assertSame(inputFailure, failure.suppressed.single())
+    }
+
+    @Test
     fun `rejects unsupported frame type`() {
         val key = ByteArray(64) { index ->
             index.toByte()
@@ -160,6 +197,51 @@ class CipherInputStreamDecoderTest {
         assertFailsWith<IOException> {
             decode(encryptedBytes, key)
         }
+    }
+
+    @Test
+    fun `zero length read returns immediately without consuming input`() {
+        var reads = 0
+        val key = ByteArray(64) { index -> index.toByte() }
+        val plaintext = "plain text".encodeToByteArray()
+        val encryptedBytes = createAuthenticatedFrame(
+            data = plaintext,
+            key = key,
+            type = CipherEncryptor.Type.AesCbc256_HmacSha256_B64,
+        )
+        val encryptedInput = object : ByteArrayInputStream(encryptedBytes) {
+            override fun read(b: ByteArray, off: Int, len: Int): Int {
+                reads += 1
+                return super.read(b, off, len)
+            }
+        }
+        val input = CipherInputStream2(
+            encryptedInput,
+            CipherInputStreamDecoder(key),
+        )
+
+        assertEquals(0, input.read(ByteArray(1), 0, 0))
+        assertEquals(0, reads)
+        assertContentEquals(plaintext, input.readBytes())
+        input.close()
+    }
+
+    @Test
+    fun `repeated zero progress input is rejected`() {
+        val input = CipherInputStream2(
+            object : InputStream() {
+                override fun read(): Int = 0
+
+                override fun read(b: ByteArray, off: Int, len: Int): Int = 0
+            },
+            CipherInputStreamDecoder(ByteArray(64)),
+        )
+
+        val failure = assertFailsWith<IOException> {
+            input.read()
+        }
+
+        assertEquals("Input stream made no progress while reading", failure.message)
     }
 
     private fun decode(
@@ -192,11 +274,12 @@ class CipherInputStreamDecoderTest {
         val iv = ByteArray(FileEncryptionFormat.IV_LENGTH) { index ->
             (index + 1).toByte()
         }
-        val cipherText = createAesCbc(
-            iv = iv,
+        val cipherText = bouncyCastleAesCbcPkcs7(
             key = keys.encKey,
-            forEncryption = true,
-        ).encode(data)
+            iv = iv,
+            data = data,
+            encrypt = true,
+        )
         val mac = cryptoGenerator.hmacSha256(keys.macKey, iv + cipherText)
         return byteArrayOf(type.byte) + iv + mac + cipherText
     }

@@ -4,6 +4,20 @@ import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlin.time.Instant
 
+interface GpgOpenPgpVerifier {
+    fun verifyClearSignedText(
+        request: GpgOpenPgpVerifyTextRequest,
+    ): GpgOpenPgpVerification
+
+    fun verifyDetachedText(
+        request: GpgOpenPgpVerifyDetachedTextRequest,
+    ): GpgOpenPgpVerification
+
+    fun verifyFile(
+        request: GpgOpenPgpVerifyFileRequest,
+    ): GpgOpenPgpVerification
+}
+
 interface GpgOpenPgpService {
     fun clearSignText(
         request: GpgOpenPgpSignTextRequest,

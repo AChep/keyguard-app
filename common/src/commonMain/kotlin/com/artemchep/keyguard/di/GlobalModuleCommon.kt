@@ -7,6 +7,12 @@ import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
+import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
+import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
@@ -493,6 +499,12 @@ import com.artemchep.keyguard.common.usecase.impl.PutGpgKeyserverLastRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgKeyserverAutoRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgKeyserverRefreshIntervalImpl
 import com.artemchep.keyguard.common.usecase.impl.SearchGpgPublicKeyImpl
+import com.artemchep.keyguard.crypto.NativeCipherEncryptor
+import com.artemchep.keyguard.crypto.NativeCryptoGenerator
+import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
+import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
+import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
+import com.artemchep.keyguard.crypto.NativeSshKeyImportService
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadCoordinatorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
@@ -510,6 +522,28 @@ import org.kodein.di.instance
 fun globalModuleCommon() = DI.Module(
     name = "globalModuleCommon",
 ) {
+    bindSingleton<CryptoGenerator> {
+        NativeCryptoGenerator()
+    }
+    bindSingleton<CipherEncryptor> {
+        NativeCipherEncryptor(
+            directDI = this,
+        )
+    }
+    bindSingleton<KeyPairGenerator> {
+        NativeKeyPairGenerator(
+            directDI = this,
+        )
+    }
+    bindSingleton<SshKeyImportService> {
+        NativeSshKeyImportService
+    }
+    bindSingleton<GpgPublicKeyParser> {
+        NativeGpgPublicKeyParser
+    }
+    bindSingleton<GpgKeyMetadataResolver> {
+        NativeGpgKeyMetadataResolver
+    }
     bindSingleton<LicenseServerConfig> {
         LicenseServerConfig.Default
     }

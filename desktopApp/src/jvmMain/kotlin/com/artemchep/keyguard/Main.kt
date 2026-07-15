@@ -101,6 +101,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.nativecrypto.NativeCryptoDesktopSmoke
+import com.artemchep.keyguard.nativecrypto.NativeCryptoException
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalWindowId
 import com.artemchep.keyguard.platform.WindowId
@@ -119,6 +121,7 @@ import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.util.foundation.crypto.ensurePlatformCryptoReady
 import com.kdroid.composetray.tray.api.Tray
 import com.kdroid.composetray.utils.SingleInstanceManager
 import kotlinx.coroutines.Dispatchers
@@ -139,8 +142,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
+import okhttp3.OkHttpClient
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.DI
@@ -150,18 +152,92 @@ import org.kodein.di.compose.rememberInstance
 import org.kodein.di.compose.withDI
 import org.kodein.di.direct
 import org.kodein.di.instance
-import java.security.Security
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import java.util.Locale
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocket
+import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
 
+private const val NATIVE_CRYPTO_PACKAGED_SMOKE_ARGUMENT = "--native-crypto-packaged-smoke"
+private const val NATIVE_CRYPTO_PACKAGED_SMOKE_RESULT_PATH_ENV =
+    "KEYGUARD_NATIVE_CRYPTO_SMOKE_RESULT_PATH"
+private const val NATIVE_CRYPTO_PACKAGED_SMOKE_NONCE_ENV =
+    "KEYGUARD_NATIVE_CRYPTO_SMOKE_NONCE"
+
+fun main(args: Array<String>) {
+    if (NATIVE_CRYPTO_PACKAGED_SMOKE_ARGUMENT in args) {
+        runNativeCryptoPackagedSmoke()
+        return
+    }
+    runKeyguardApplication()
+}
+
+private fun runNativeCryptoPackagedSmoke() {
+    val (result, tlsRuntime) = try {
+        NativeCryptoDesktopSmoke.runPackaged() to verifyPackagedDesktopTls()
+    } catch (e: NativeCryptoException) {
+        System.err.println(
+            "nativeCrypto packaged smoke failed: operation=${e.operation} code=${e.code}",
+        )
+        exitProcess(1)
+    } catch (_: Throwable) {
+        System.err.println("nativeCrypto packaged smoke failed: operation=packaged_smoke code=INTERNAL")
+        exitProcess(1)
+    }
+
+    val capabilities = result.capabilities.joinToString(",") { capability -> capability.name }
+    val success =
+        "nativeCrypto packaged smoke passed: abi=${result.abiVersion} " +
+            "capabilities=$capabilities sha256=PASS tls=$tlsRuntime"
+    publishNativeCryptoPackagedSmokeResult(success)
+    println(success)
+}
+
+private fun publishNativeCryptoPackagedSmokeResult(success: String) {
+    val resultPath = System.getenv(NATIVE_CRYPTO_PACKAGED_SMOKE_RESULT_PATH_ENV)
+        ?.takeIf(String::isNotBlank)
+        ?: return
+    val nonce = checkNotNull(
+        System.getenv(NATIVE_CRYPTO_PACKAGED_SMOKE_NONCE_ENV)
+            ?.takeIf(String::isNotBlank),
+    ) {
+        "$NATIVE_CRYPTO_PACKAGED_SMOKE_NONCE_ENV is required when publishing smoke evidence"
+    }
+    Files.writeString(
+        Path.of(resultPath),
+        "$nonce\n$success\n",
+        StandardCharsets.UTF_8,
+        StandardOpenOption.CREATE_NEW,
+        StandardOpenOption.WRITE,
+    )
+}
+
+private fun verifyPackagedDesktopTls(): String {
+    val jdkFeature = Runtime.version().feature()
+    check(jdkFeature == 21)
+
+    val defaultContext = SSLContext.getDefault()
+    val providerName = defaultContext.provider.name
+    check(providerName == "SunJSSE")
+
+    val okHttpClient = OkHttpClient.Builder().build()
+    val socketFactory = okHttpClient.sslSocketFactory
+    check(socketFactory.javaClass == defaultContext.socketFactory.javaClass)
+    val tlsSocket = socketFactory.createSocket() as SSLSocket
+    tlsSocket.use { socket ->
+        check("TLSv1.3" in socket.enabledProtocols)
+    }
+
+    return "OkHttp/$providerName/JDK$jdkFeature"
+}
+
 @OptIn(ExperimentalTime::class)
-fun main() {
-    // Add BouncyCastle as the first security provider
-    // to make OkHTTP use its TLS instead of a platform
-    // specific one.
-    // https://github.com/square/okhttp?tab=readme-ov-file#requirements
-    Security.insertProviderAt(BouncyCastleProvider(), 1)
-    Security.insertProviderAt(BouncyCastleJsseProvider(), 2)
+private fun runKeyguardApplication() {
+    ensurePlatformCryptoReady()
 
     // Allow the app to use system default proxies:
     // https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html

@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.util.foundation.crypto
 
+import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
+import com.artemchep.keyguard.nativecrypto.NativeCryptoException
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -97,22 +99,17 @@ class CryptoContractTest {
     }
 
     @Test
-    fun aesCbcPkcs7TamperedCiphertextNeverReturnsOriginal() {
-        // KNOWN DIVERGENCE: JVM (JCE) throws BadPaddingException on a corrupted
-        // ciphertext, but iOS (CommonCrypto one-shot CCCrypt) is lenient about
-        // PKCS#7 validation and may return garbage instead of failing. The
-        // cross-platform contract we CAN rely on is that a tampered ciphertext
-        // must never decrypt back to the original plaintext.
+    fun aesCbcPkcs7TamperedCiphertextFailsAuthentication() {
         val data = "hello world".encodeToByteArray()
         val ct = crypto.aesCbcPkcs7Encrypt(key32, iv16, data)
         val bad = ct.copyOf()
         bad[bad.lastIndex] = (bad[bad.lastIndex].toInt() xor 0xff).toByte()
-        val recovered = try {
+
+        val exception = assertFailsWith<NativeCryptoException> {
             crypto.aesCbcPkcs7Decrypt(key32, iv16, bad)
-        } catch (throwable: Throwable) {
-            null
         }
-        assertTrue(recovered == null || !recovered.contentEquals(data))
+
+        assertEquals(NativeCryptoErrorCode.AUTHENTICATION_FAILED, exception.code)
     }
 
     @Test
@@ -153,6 +150,9 @@ class CryptoContractTest {
         s.doFinal()
         assertFailsWith<IllegalStateException> {
             s.update("c".encodeToByteArray(), 0, 1)
+        }
+        assertFailsWith<IllegalStateException> {
+            s.update(ByteArray(0), 0, 0)
         }
     }
 

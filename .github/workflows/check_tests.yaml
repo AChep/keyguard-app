@@ -23,6 +23,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-build-plugins:
+    name: Check Build Plugins
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Run build plugin tests"
+        run: ./gradlew -p buildPlugins test
+      - name: "Upload build plugin test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: build-plugin-test-reports
+          path: |
+            buildPlugins/build/test-results/**
+            buildPlugins/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21
+
   check-kmp-host-tests:
     name: Check KMP Host Tests (${{ matrix.name }})
     runs-on: ubuntu-latest
@@ -68,6 +91,10 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "x86_64-unknown-linux-gnu"
       - name: "Run KMP host tests"
         run: >-
           ./gradlew --continue --max-workers=${{ matrix.max_workers }}
@@ -93,6 +120,10 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
       - name: "Prepare env"
         run: |
           echo "${VARS_GOOGLE_SERVICES}" | base64 -d | zcat > androidApp/google-services.json
@@ -129,6 +160,10 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-apple-ios-sim"
       - name: "Run iOS simulator tests"
         run: >-
           ./gradlew --continue
@@ -175,6 +210,10 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
       - uses: ./.github/actions/prepare_kvm
       - uses: ./.github/actions/prepare_disk_space
       - name: "Prepare env"

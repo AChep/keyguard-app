@@ -2,9 +2,10 @@ package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.common.model.GpgKeyExpiry
-import com.artemchep.keyguard.crypto.GpgKeyGeneratorJvm
-import com.artemchep.keyguard.crypto.GpgOpenPgpServiceJvm
-import com.artemchep.keyguard.crypto.GpgPublicKeyParserJvm
+import com.artemchep.keyguard.crypto.BcGpgKeyGeneratorTestOracle
+import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
+import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.nio.file.Files
 import java.nio.file.Path
@@ -25,9 +26,9 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
 class GpgKeyGeneratorJvmTest {
-    private val generator = GpgKeyGeneratorJvm()
-    private val parser = GpgPublicKeyParserJvm()
-    private val openPgpService = GpgOpenPgpServiceJvm()
+    private val generator = NativeGpgKeyGenerator
+    private val parser = NativeGpgPublicKeyParser
+    private val openPgpService = NativeGpgOpenPgpService
 
     @BeforeTest
     fun setup() {
@@ -124,7 +125,10 @@ class GpgKeyGeneratorJvmTest {
 
     @Test
     fun `metadata resolution failure aborts generation`() {
-        val generator = GpgKeyGeneratorJvm(
+        // This boundary oracle needs an injected protocol-maximum clock. The
+        // production native generator has no clock seam; its facade bounds are
+        // covered in NativeCryptoOpenPgpValidationTest.
+        val generator = BcGpgKeyGeneratorTestOracle(
             metadataResolver = GpgKeyMetadataResolverUnsupported,
         )
 

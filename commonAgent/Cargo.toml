@@ -2,7 +2,11 @@
 name = "keyguard-agent-identity"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.94.0"
 description = "Shared, protocol-neutral caller identity primitives for Keyguard agents"
+license-file = "../LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+publish = false
 
 [dependencies]
 getrandom = "0.4"

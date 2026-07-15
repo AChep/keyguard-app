@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kmp.library)
+    id("keyguard.native-crypto-consumer")
 }
 
 kotlin {
@@ -19,6 +20,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(project(":util:crypto"))
                 api(libs.kotlinx.io.core)
             }
         }
@@ -28,11 +30,21 @@ kotlin {
             }
         }
 
-        val jvmCommonMain by creating {
-            dependsOn(commonMain)
+        val jvmCommonTest by creating {
+            dependsOn(commonTest)
             dependencies {
                 implementation(libs.bouncycastle.bcprov)
             }
+        }
+        val androidHostTest by getting {
+            dependsOn(jvmCommonTest)
+        }
+        val desktopTest by getting {
+            dependsOn(jvmCommonTest)
+        }
+
+        val jvmCommonMain by creating {
+            dependsOn(commonMain)
         }
         val androidMain by getting {
             dependsOn(jvmCommonMain)
@@ -43,10 +55,6 @@ kotlin {
 
         val appleMain by creating {
             dependsOn(commonMain)
-            dependencies {
-                implementation(libs.diglol.crypto.kdf)
-                implementation(libs.kotlinx.coroutines.core)
-            }
         }
         val iosMain by creating {
             dependsOn(appleMain)

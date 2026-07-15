@@ -1,0 +1,24 @@
+name: "Setup Rust"
+description: "Install the repository's shared Rust toolchain"
+inputs:
+  toolchain:
+    description: "Rust toolchain"
+    required: false
+    default: "beta-2026-07-15"
+  targets:
+    description: "Comma-separated Rust targets"
+    required: false
+    default: ""
+  components:
+    description: "Comma-separated Rust components"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    - name: "Setup Rust toolchain"
+      uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+      with:
+        toolchain: ${{ inputs.toolchain }}
+        targets: ${{ inputs.targets }}
+        components: ${{ inputs.components }}

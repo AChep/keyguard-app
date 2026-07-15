@@ -1,0 +1,23 @@
+[package]
+name = "keyguard-crypto-sensitive"
+description = "Audited sensitive-context backends for Keyguard native crypto"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+aws-lc-sys.workspace = true
+blake2.workspace = true
+blowfish.workspace = true
+# Keep the flat BLAKE2 state audit paired with the exact buffer/digest layout.
+block-buffer.workspace = true
+digest.workspace = true
+num-bigint-dig.workspace = true
+num-integer.workspace = true
+zeroize.workspace = true
+
+[lints]
+workspace = true

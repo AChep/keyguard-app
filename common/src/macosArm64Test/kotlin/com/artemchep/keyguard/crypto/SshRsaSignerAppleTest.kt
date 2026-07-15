@@ -1,15 +1,15 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.util.toHex
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 /**
- * Cross-platform RSA SSH-signing parity for the Apple ([AppleSshRsaSigner], Security
- * framework) signer.
+ * Cross-platform RSA SSH-signing parity through the Apple native-crypto static library.
  *
  * RSA PKCS#1 v1.5 is deterministic, so unlike Ed25519 the Apple output must be
- * byte-for-byte identical to the JVM (BouncyCastle) signer. The expected signatures were
+ * byte-for-byte identical to the historical JVM signer. The expected signatures were
  * generated independently with `openssl dgst -<hash> -sign`, and the JVM side asserts the
  * same values in `common/src/desktopTest/.../SshSigningParityTest.kt`. Keep these constants
  * byte-identical to the Kotlin/JVM and Swift tests.
@@ -35,8 +35,9 @@ class SshRsaSignerAppleTest {
             Triple(0x04, "rsa-sha2-512", RSA_SIG_SHA512_HEX),
         )
         for ((flags, expectedAlgorithm, expectedSigHex) in cases) {
-            val result = AppleSshRsaSigner.sign(
+            val result = NativeCrypto.ssh.sign(
                 privateKeyPem = privateKeyPem,
+                publicKeyOpenSsh = null,
                 data = MESSAGE.encodeToByteArray(),
                 flags = flags,
             )

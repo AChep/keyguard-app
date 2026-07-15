@@ -25,6 +25,7 @@ dependencyResolutionManagement {
 rootProject.name = "keyguard"
 
 include ':common'
+include ':util:crypto'
 include ':util:foundation'
 include ':util:kdbx'
 include ':util:messagepack'

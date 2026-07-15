@@ -3,17 +3,12 @@ package com.artemchep.keyguard.di
 import com.artemchep.keyguard.common.service.backup.BackupRepository
 import com.artemchep.keyguard.common.service.backup.BackupRepositoryZipImpl
 import com.artemchep.keyguard.common.service.backup.BackupRunService
-import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
 import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
-import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
-import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
-import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
-import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandJvm
 import com.artemchep.keyguard.common.service.licensekey.EcdsaP256LicenseSignatureVerifier
@@ -51,17 +46,12 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
-import com.artemchep.keyguard.crypto.CipherEncryptorImpl
-import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptorJvm
-import com.artemchep.keyguard.crypto.GpgKeyImportServiceJvm
-import com.artemchep.keyguard.crypto.GpgKeyGeneratorJvm
-import com.artemchep.keyguard.crypto.GpgKeyExpirationServiceJvm
-import com.artemchep.keyguard.crypto.GpgKeyMetadataResolverJvm
-import com.artemchep.keyguard.crypto.GpgOpenPgpServiceJvm
-import com.artemchep.keyguard.crypto.GpgPublicKeyParserJvm
-import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
-import com.artemchep.keyguard.crypto.SshKeyImportServiceJvm
+import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.NativeGpgKeyExpirationService
+import com.artemchep.keyguard.crypto.NativeGpgKeyImportService
+import com.artemchep.keyguard.crypto.NativeGpgOpenPgpVerifier
+import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
 import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
@@ -163,11 +153,6 @@ fun globalModuleJvm() = DI.Module(
             }
         }
     }
-    bindSingleton<CipherEncryptor> {
-        CipherEncryptorImpl(
-            directDI = this,
-        )
-    }
     bindSingleton<FileEncryptor> {
         FileEncryptorJvm(
             directDI = this,
@@ -228,48 +213,20 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
-    bindSingleton<CryptoGenerator> {
-        CryptoGeneratorJvm()
-    }
-    bindSingleton<KeyPairGenerator> {
-        KeyPairGeneratorJvm(
-            directDI = this,
-        )
-    }
     bindSingleton<GpgKeyGenerator> {
-        GpgKeyGeneratorJvm(
-            directDI = this,
-        )
+        NativeGpgKeyGenerator
     }
     bindSingleton<GpgKeyExpirationService> {
-        GpgKeyExpirationServiceJvm(
-            directDI = this,
-        )
-    }
-    bindSingleton<GpgKeyMetadataResolver> {
-        GpgKeyMetadataResolverJvm(
-            directDI = this,
-        )
+        NativeGpgKeyExpirationService
     }
     bindSingleton<GpgKeyImportService> {
-        GpgKeyImportServiceJvm(
-            directDI = this,
-        )
-    }
-    bindSingleton<SshKeyImportService> {
-        SshKeyImportServiceJvm(
-            directDI = this,
-        )
-    }
-    bindSingleton<GpgPublicKeyParser> {
-        GpgPublicKeyParserJvm(
-            directDI = this,
-        )
+        NativeGpgKeyImportService
     }
     bindSingleton<GpgOpenPgpService> {
-        GpgOpenPgpServiceJvm(
-            directDI = this,
-        )
+        NativeGpgOpenPgpService
+    }
+    bindSingleton<GpgOpenPgpVerifier> {
+        NativeGpgOpenPgpVerifier
     }
     bindSingleton<HttpClient> {
         val json: Json = instance()

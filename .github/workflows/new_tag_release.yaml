@@ -147,8 +147,10 @@ jobs:
         include:
           - runner: macos-15
             arch: apple
+            rust-target: aarch64-apple-darwin
           - runner: macos-15-intel
             arch: intel
+            rust-target: x86_64-apple-darwin
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -158,14 +160,14 @@ jobs:
           lfs: true
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
+      - uses: ./.github/actions/setup_python
       - name: "Setup Rust toolchain"
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        uses: ./.github/actions/setup_rust
         with:
-          toolchain: stable
-      - name: "Setup Protobuf Compiler"
-        run: |
-          brew install protobuf
-          protoc --version
+          targets: ${{ matrix.rust-target }}
+      - name: "Prefetch locked native crypto graph"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - uses: ./.github/actions/setup_protobuf
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Decode signing certificate"
         run: |
@@ -189,7 +191,10 @@ jobs:
           echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}" >> gradle.properties
           echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}" >> gradle.properties
       - name: "Build release app image"
-        run: ./gradlew :desktopApp:createReleaseDistributable
+        run: >-
+          ./gradlew
+          :desktopApp:createReleaseDistributable
+          -Pkeyguard.nativeCrypto.cargoOffline=true
       - name: "Mark bundled helpers executable"
         run: |
           set -euo pipefail
@@ -197,14 +202,56 @@ jobs:
           APP_RESOURCES_DIR="desktopApp/build/compose/binaries/main-release/app/Keyguard.app/Contents/app/resources"
           SSH_AGENT_BINARY="$APP_RESOURCES_DIR/keyguard-ssh-agent"
           DESKTOP_LIB_BINARY="$APP_RESOURCES_DIR/keyguard-lib"
+          NATIVE_CRYPTO_BINARY="$APP_RESOURCES_DIR/libkeyguard_crypto_jni.dylib"
 
           test -f "$SSH_AGENT_BINARY"
           test -f "$DESKTOP_LIB_BINARY"
+          test -f "$NATIVE_CRYPTO_BINARY"
 
           chmod +x "$SSH_AGENT_BINARY" "$DESKTOP_LIB_BINARY"
-          ls -l "$SSH_AGENT_BINARY" "$DESKTOP_LIB_BINARY"
+          ls -l "$SSH_AGENT_BINARY" "$DESKTOP_LIB_BINARY" "$NATIVE_CRYPTO_BINARY"
+          python scripts/inspect_native_crypto_desktop.py "$NATIVE_CRYPTO_BINARY"
+          python scripts/check_bouncycastle_policy.py --artifact desktopApp/build/compose/binaries/main-release/app
+          codesign --verify --strict --verbose=2 "$NATIVE_CRYPTO_BINARY"
+          codesign --display --verbose=2 "$NATIVE_CRYPTO_BINARY"
+      - name: "Call native crypto through release app resources"
+        run: >-
+          python3 scripts/run_native_crypto_desktop_package_smoke.py
+          desktopApp/build/compose/binaries/main-release/app
       - name: "Build and notarize DMG"
-        run: ./gradlew :desktopApp:packageReleaseDmg :desktopApp:notarizeReleaseDmg -x :desktopApp:createReleaseDistributable
+        run: >-
+          ./gradlew
+          :desktopApp:packageReleaseDmg
+          :desktopApp:notarizeReleaseDmg
+          -x :desktopApp:createReleaseDistributable
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+      - name: "Mount DMG and call packaged native crypto"
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          dmgs=(desktopApp/build/compose/binaries/main-release/dmg/*.dmg)
+          test "${#dmgs[@]}" -eq 1
+
+          mount_point="$RUNNER_TEMP/keyguard-dmg-${{ matrix.arch }}"
+          mkdir -p "$mount_point"
+          mounted=false
+          cleanup() {
+            if $mounted; then
+              hdiutil detach "$mount_point"
+            fi
+          }
+          trap cleanup EXIT
+
+          hdiutil attach "${dmgs[0]}" -nobrowse -readonly -mountpoint "$mount_point"
+          mounted=true
+          apps=("$mount_point"/*.app)
+          test "${#apps[@]}" -eq 1
+          native_crypto_binary="${apps[0]}/Contents/app/resources/libkeyguard_crypto_jni.dylib"
+          test -f "$native_crypto_binary"
+          python3 scripts/inspect_native_crypto_desktop.py "$native_crypto_binary"
+          python3 scripts/run_native_crypto_desktop_package_smoke.py "$mount_point"
+          python3 scripts/check_bouncycastle_policy.py --artifact "$mount_point"
       - name: "Upload logs"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
@@ -237,8 +284,10 @@ jobs:
         include:
           - runner: ubuntu-latest
             arch: x86_64
+            rust-target: x86_64-unknown-linux-gnu
           - runner: ubuntu-24.04-arm
             arch: aarch64
+            rust-target: aarch64-unknown-linux-gnu
     steps:
       - name: "Checkout"
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -247,13 +296,14 @@ jobs:
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
       - name: "Setup Rust toolchain"
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        uses: ./.github/actions/setup_rust
         with:
-          toolchain: stable
-      - name: "Setup Protobuf Compiler"
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler libx11-dev
+          targets: ${{ matrix.rust-target }}
+      - name: "Prefetch locked native crypto graph"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - uses: ./.github/actions/setup_protobuf
+      - name: "Install X11 development files"
+        run: sudo apt-get install -y libx11-dev
       - name: "Setup build env"
         run: |
           pwd
@@ -274,7 +324,10 @@ jobs:
           cat desktopApp/flatpak/com.artemchep.keyguard.metainfo.xml
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Build"
-        run: ./gradlew :desktopApp:packageReleaseDistributable
+        run: >-
+          ./gradlew
+          :desktopApp:packageReleaseDistributable
+          -Pkeyguard.nativeCrypto.cargoOffline=true
       - name: 'Upload .tar'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -285,6 +338,17 @@ jobs:
         run: |
           mkdir -p desktopApp/flatpak/app-${{ matrix.arch }}/
           tar -xvzf $(find . -type f -regex '\./desktopApp/build/distributions/.*\.tar.gz') -C desktopApp/flatpak/app-${{ matrix.arch }}/ --strip-components=1
+      - name: "Inspect packaged native crypto"
+        shell: bash
+        run: |
+          mapfile -t libraries < <(find desktopApp/flatpak/app-${{ matrix.arch }} -type f -name 'libkeyguard_crypto_jni.so')
+          test "${#libraries[@]}" -eq 1
+          python scripts/inspect_native_crypto_desktop.py "${libraries[0]}"
+          python scripts/check_bouncycastle_policy.py --artifact desktopApp/flatpak/app-${{ matrix.arch }}
+      - name: "Call native crypto through packaged Desktop resources"
+        run: >-
+          python3 scripts/run_native_crypto_desktop_package_smoke.py
+          desktopApp/flatpak/app-${{ matrix.arch }}
       - name: "Get Flatpak runtime version -install dependencies"
         run: pip install -r .github/get_flatpak_runtime_version.requirements.txt
       - name: "Get Flatpak runtime version"
@@ -323,21 +387,60 @@ jobs:
             11
             21
       - name: "Setup Rust toolchain"
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        uses: ./.github/actions/setup_rust
         with:
-          toolchain: stable
-      - name: "Setup Protobuf Compiler"
-        shell: pwsh
-        run: |
-          choco install protoc --yes
-          protoc --version
+          targets: "x86_64-pc-windows-msvc"
+      - name: "Prefetch locked native crypto graph"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - uses: ./.github/actions/setup_protobuf
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Setup build env"
         shell: pwsh
         run: |
           python .github/setup_gradle_properties_release.py "tag=$env:GITHUB_REF_NAME"
       - name: "Build"
-        run: ./gradlew :desktopApp:packageReleaseMsi
+        run: >-
+          ./gradlew
+          :desktopApp:packageReleaseMsi
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+      - name: "Extract final MSI"
+        shell: pwsh
+        run: |
+          $packages = @(
+            Get-ChildItem "desktopApp/build/compose/binaries/main-release/msi" `
+              -Recurse -File -Filter "*.msi"
+          )
+          if ($packages.Count -ne 1) {
+            throw "Expected one MSI package; found $($packages.Count)."
+          }
+          $target = Join-Path $env:RUNNER_TEMP "keyguard-msi"
+          New-Item -ItemType Directory -Force -Path $target | Out-Null
+          $process = Start-Process `
+            -FilePath "msiexec.exe" `
+            -ArgumentList @("/a", $packages[0].FullName, "/qn", "TARGETDIR=$target") `
+            -Wait `
+            -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "MSI administrative extraction exited $($process.ExitCode)."
+          }
+      - name: "Inspect packaged native crypto"
+        shell: pwsh
+        run: |
+          $libraries = @(
+            Get-ChildItem (Join-Path $env:RUNNER_TEMP "keyguard-msi") `
+              -Recurse -File -Filter "keyguard_crypto_jni.dll"
+          )
+          if ($libraries.Count -ne 1) {
+            throw "Expected one packaged native crypto DLL; found $($libraries.Count)."
+          }
+          python scripts/inspect_native_crypto_desktop.py $libraries[0].FullName
+          python scripts/check_bouncycastle_policy.py --artifact (Join-Path $env:RUNNER_TEMP "keyguard-msi")
+      - name: "Call native crypto from the extracted MSI"
+        shell: pwsh
+        run: >-
+          python scripts/run_native_crypto_desktop_package_smoke.py
+          (Join-Path $env:RUNNER_TEMP "keyguard-msi")
+          --platform windows
       - name: 'Upload .msi'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -364,6 +467,12 @@ jobs:
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/setup_python
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+      - name: "Prefetch locked native crypto graph"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > wearApp/keyguard-release.keystore
@@ -378,7 +487,28 @@ jobs:
         with:
           build-flavor: ${{ matrix.config.flavor }}
       - name: "Build"
-        run: ./gradlew :wearApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
+        run: >-
+          ./gradlew
+          :wearApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+      - name: "Inspect packaged native crypto"
+        shell: bash
+        env:
+          BUILD_FLAVOR: ${{ matrix.config.flavor }}
+          BUILD_TYPE: ${{ matrix.config.build-type }}
+        run: |
+          if [[ "$BUILD_FLAVOR" == "None" ]]; then
+            variant="none"
+          else
+            variant="playStore"
+          fi
+          if [[ "$BUILD_TYPE" == "assemble" ]]; then
+            artifact="wearApp/build/outputs/apk/$variant/release/wearApp-$variant-release.apk"
+          else
+            artifact="wearApp/build/outputs/bundle/${variant}Release/wearApp-$variant-release.aab"
+          fi
+          python scripts/inspect_native_crypto_android.py "$artifact"
+          python scripts/check_bouncycastle_policy.py --artifact "$artifact"
       - name: 'Upload .apk'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: matrix.config.build-type == 'assemble'
@@ -416,6 +546,12 @@ jobs:
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/setup_python
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+      - name: "Prefetch locked native crypto graph"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat > androidApp/keyguard-release.keystore
@@ -434,7 +570,28 @@ jobs:
           build-flavor: ${{ matrix.config.flavor }}
           artifact-prefix: android-${{ matrix.config.flavor }}-
       - name: "Build"
-        run: ./gradlew :androidApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
+        run: >-
+          ./gradlew
+          :androidApp:${{ matrix.config.build-type }}${{ matrix.config.flavor }}Release
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+      - name: "Inspect packaged native crypto"
+        shell: bash
+        env:
+          BUILD_FLAVOR: ${{ matrix.config.flavor }}
+          BUILD_TYPE: ${{ matrix.config.build-type }}
+        run: |
+          if [[ "$BUILD_FLAVOR" == "None" ]]; then
+            variant="none"
+          else
+            variant="playStore"
+          fi
+          if [[ "$BUILD_TYPE" == "assemble" ]]; then
+            artifact="androidApp/build/outputs/apk/$variant/release/androidApp-$variant-release.apk"
+          else
+            artifact="androidApp/build/outputs/bundle/${variant}Release/androidApp-$variant-release.aab"
+          fi
+          python scripts/inspect_native_crypto_android.py "$artifact"
+          python scripts/check_bouncycastle_policy.py --artifact "$artifact"
       - name: 'Upload .apk'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: matrix.config.build-type == 'assemble'
@@ -468,20 +625,20 @@ jobs:
         run: |
           python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Setup Rust toolchain"
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        uses: ./.github/actions/setup_rust
         with:
-          toolchain: stable
           targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
       - name: "Setup Android SDK"
         uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699
       - name: "Install Android NDK"
         run: |
-          yes | sdkmanager "ndk;27.0.12077973"
-      - name: "Install protobuf compiler"
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler
-          protoc --version
+          ndk_version="$(sed -nE 's/^androidNdk = "([^"]+)"$/\1/p' gradle/libs.versions.toml)"
+          if [[ -z "$ndk_version" ]]; then
+            echo "Could not resolve androidNdk from gradle/libs.versions.toml" >&2
+            exit 1
+          fi
+          sdkmanager "ndk;$ndk_version" < <(yes)
+      - uses: ./.github/actions/setup_protobuf
       - name: "Install termux-create-package"
         run: |
           pip install git+https://github.com/termux/termux-create-package.git@1f2f17c7f6971c938a7c644e5cb46e7913960c8f

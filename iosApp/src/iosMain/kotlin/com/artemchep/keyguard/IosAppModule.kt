@@ -18,11 +18,12 @@ import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
-import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
-import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManagerImpl
@@ -92,22 +93,23 @@ import com.artemchep.keyguard.copy.GetAppBuildRefIos
 import com.artemchep.keyguard.copy.GetBarcodeImageIos
 import com.artemchep.keyguard.copy.GetPasswordStrengthIos
 import com.artemchep.keyguard.copy.GetPurchasedIos
-import com.artemchep.keyguard.copy.NumberFormatterIos
+import com.artemchep.keyguard.copy.NumberFormatterApple
 import com.artemchep.keyguard.copy.PermissionServiceIos
 import com.artemchep.keyguard.copy.PowerServiceIos
 import com.artemchep.keyguard.copy.ReviewServiceIos
 import com.artemchep.keyguard.copy.SubscriptionServiceIos
 import com.artemchep.keyguard.copy.ZipServiceIos
-import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileIos
+import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileApple
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
-import com.artemchep.keyguard.crypto.CipherEncryptorIos
-import com.artemchep.keyguard.crypto.CryptoGeneratorIos
-import com.artemchep.keyguard.crypto.FileEncryptorIos
-import com.artemchep.keyguard.crypto.KeyPairGeneratorIos
-import com.artemchep.keyguard.crypto.SshKeyImportServiceIos
+import com.artemchep.keyguard.crypto.NativeFileEncryptor
+import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.NativeGpgKeyExpirationService
+import com.artemchep.keyguard.crypto.NativeGpgKeyImportService
+import com.artemchep.keyguard.crypto.NativeGpgOpenPgpVerifier
+import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleCommon
 import com.artemchep.keyguard.feature.navigation.defaultNavigationModule
@@ -281,26 +283,29 @@ internal fun DI.Builder.installIosAppModule(
     bindSingleton<SubscriptionService> {
         SubscriptionServiceIos
     }
-    bindSingleton<CryptoGenerator> {
-        CryptoGeneratorIos()
-    }
     bindSingleton<LicenseSignatureVerifier> {
         TODO("Implement license signature verifier")
-    }
-    bindSingleton<KeyPairGenerator> {
-        KeyPairGeneratorIos
     }
     bindSingleton<PermissionService> {
         PermissionServiceIos
     }
-    bindSingleton<CipherEncryptor> {
-        CipherEncryptorIos(this)
-    }
     bindSingleton<FileEncryptor> {
-        FileEncryptorIos(this)
+        NativeFileEncryptor(this)
     }
-    bindSingleton<SshKeyImportService> {
-        SshKeyImportServiceIos
+    bindSingleton<GpgKeyGenerator> {
+        NativeGpgKeyGenerator
+    }
+    bindSingleton<GpgKeyExpirationService> {
+        NativeGpgKeyExpirationService
+    }
+    bindSingleton<GpgKeyImportService> {
+        NativeGpgKeyImportService
+    }
+    bindSingleton<GpgOpenPgpService> {
+        NativeGpgOpenPgpService
+    }
+    bindSingleton<GpgOpenPgpVerifier> {
+        NativeGpgOpenPgpVerifier
     }
     bindSingleton<EncryptedFilePendingUploadService> {
         EncryptedFilePendingUploadServiceIos
@@ -318,7 +323,7 @@ internal fun DI.Builder.installIosAppModule(
         GetPasswordStrengthIos
     }
     bindSingleton<NumberFormatter> {
-        NumberFormatterIos(this)
+        NumberFormatterApple(this)
     }
     bindSingleton<DateFormatter> {
         DateFormatterIos
@@ -360,7 +365,7 @@ internal fun DI.Builder.installIosAppModule(
         store
     }
     bindSingleton<ExposedDatabaseManager> {
-        val sqlManager = DatabaseSqlManagerInFileIos<DatabaseExposed>(
+        val sqlManager = DatabaseSqlManagerInFileApple<DatabaseExposed>(
             directory = iosKeyguardDataDirectory().resolve("exposed"),
             fileName = "database_exposed.sqlite",
             onCreate = { _: DatabaseExposed ->

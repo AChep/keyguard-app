@@ -8,7 +8,7 @@ interface CryptoPrimitives {
      *
      * Note on [salt]: when [salt] is `null`, the HKDF *extract* step is skipped and
      * [seed] is used directly as the pseudo-random key
-     * (BouncyCastle `HKDFParameters.skipExtractParameters` semantics).
+     * (the legacy `skipExtract` compatibility semantics).
      */
     fun hkdfSha256(
         seed: ByteArray,

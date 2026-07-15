@@ -1,26 +1,29 @@
 package com.artemchep.keyguard.common.service.crypto
 
-import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
-import com.artemchep.keyguard.crypto.SshKeyImportServiceJvm
-import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
-import net.schmizz.sshj.common.Buffer.PlainBuffer
-import org.bouncycastle.util.encoders.Base64
+import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorJvm
+import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
+import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
+import com.artemchep.keyguard.crypto.NativeSshKeyImportService
+import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
+import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.nativecrypto.NativeCryptoSsh
+import java.io.ByteArrayOutputStream
+import java.math.BigInteger
 import java.security.KeyPairGenerator
 import java.security.SecureRandom
+import java.security.Signature
 import java.security.interfaces.RSAPrivateCrtKey
 import java.security.interfaces.RSAPublicKey
+import java.util.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class SshKeyImportServiceJvmTest {
-    private val keyPairGenerator = KeyPairGeneratorJvm(
-        cryptoGenerator = CryptoGeneratorJvm(),
-    )
-    private val service = SshKeyImportServiceJvm(
-        cryptoGenerator = CryptoGeneratorJvm(),
-    )
+    private val keyPairGenerator = NativeKeyPairGenerator(Base64ServiceImpl())
+    private val service = NativeSshKeyImportService
 
     @Test
     fun `imports unencrypted OpenSSH Ed25519 private key`() {
@@ -184,6 +187,33 @@ class SshKeyImportServiceJvmTest {
     }
 
     @Test
+    fun `imported incomplete PuTTY RSA key signs through native crypto`() {
+        val sourceKeyPair = generateRsaKeyPair()
+        val imported = service.`import`(
+            SshKeyImportRequest(
+                content = toPuTTYRsaPrivateKey(sourceKeyPair),
+                fileName = "id_rsa.ppk",
+                passphrase = null,
+            ),
+        )
+        val keyPair = assertIs<SshKeyImportResult.Success>(imported).keyPair
+        val data = "PuTTY n-e-d compatibility".encodeToByteArray()
+
+        val result = SshAgentRequestProcessorJvm.signWithPrivateKey(
+            privateKeyPem = keyPair.privateKey.ssh,
+            publicKeyOpenSsh = keyPair.publicKey.ssh,
+            data = data,
+            flags = 0x02,
+        )
+
+        assertEquals("rsa-sha2-256", result.algorithm)
+        val verifier = Signature.getInstance("SHA256withRSA")
+        verifier.initVerify(sourceKeyPair.public)
+        verifier.update(data)
+        assertTrue(verifier.verify(result.signature))
+    }
+
+    @Test
     fun `encrypted PuTTY key requests a passphrase first`() {
         assertEquals(
             SshKeyImportResult.NeedsPassphrase("PuTTY"),
@@ -270,6 +300,49 @@ class SshKeyImportServiceJvmTest {
     }
 
     @Test
+    fun `blank input returns the typed unsupported format result`() {
+        assertEquals(
+            SshKeyImportResult.Error(SshKeyImportError.UnsupportedFormat),
+            service.`import`(
+                SshKeyImportRequest(
+                    content = "   ",
+                    fileName = "empty",
+                    passphrase = null,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `oversized import inputs return the stable resource limit error`() {
+        listOf(
+            assertFailsWith<NativeCryptoException> {
+                NativeCryptoSsh.importPrivateKey(content = "x".repeat(1024 * 1024 + 1))
+            },
+            assertFailsWith<NativeCryptoException> {
+                NativeCryptoSsh.importPrivateKey(content = "key", passphrase = "x".repeat(16 * 1024 + 1))
+            },
+        ).forEach { failure ->
+            assertEquals("ssh_private_key_import", failure.operation)
+            assertEquals(NativeCryptoErrorCode.RESOURCE_LIMIT, failure.code)
+        }
+    }
+
+    @Test
+    fun `application adapter enforces the resource limit before trimming`() {
+        val failure = assertFailsWith<NativeCryptoException> {
+            service.`import`(
+                SshKeyImportRequest(
+                    content = " ".repeat(1024 * 1024 + 1),
+                ),
+            )
+        }
+
+        assertEquals("ssh_private_key_import", failure.operation)
+        assertEquals(NativeCryptoErrorCode.RESOURCE_LIMIT, failure.code)
+    }
+
+    @Test
     fun `generated SSH keys round-trip through import`() {
         val generated = keyPairGenerator.populate(
             keyPairGenerator.ed25519(),
@@ -311,17 +384,17 @@ class SshKeyImportServiceJvmTest {
         val publicKey = keyPair.public as RSAPublicKey
         val privateKey = keyPair.private as RSAPrivateCrtKey
 
-        val publicPayload = PlainBuffer()
-            .putString("ssh-rsa")
-            .putMPInt(publicKey.publicExponent)
-            .putMPInt(publicKey.modulus)
-            .getCompactData()
-        val privatePayload = PlainBuffer()
-            .putMPInt(privateKey.privateExponent)
-            .getCompactData()
+        val publicPayload = encodeSshWire(
+            "ssh-rsa".encodeToByteArray(),
+            publicKey.publicExponent.encodeMpint(),
+            publicKey.modulus.encodeMpint(),
+        )
+        val privatePayload = encodeSshWire(
+            privateKey.privateExponent.encodeMpint(),
+        )
 
-        val publicBase64 = Base64.toBase64String(publicPayload)
-        val privateBase64 = Base64.toBase64String(privatePayload)
+        val publicBase64 = Base64.getEncoder().encodeToString(publicPayload)
+        val privateBase64 = Base64.getEncoder().encodeToString(privatePayload)
 
         return buildString {
             appendLine("PuTTY-User-Key-File-2: ssh-rsa")
@@ -333,6 +406,24 @@ class SshKeyImportServiceJvmTest {
             privateBase64.chunked(70).forEach { appendLine(it) }
         }
     }
+
+    private fun encodeSshWire(vararg values: ByteArray): ByteArray =
+        ByteArrayOutputStream().use { output ->
+            values.forEach { value ->
+                output.write(
+                    byteArrayOf(
+                        (value.size ushr 24).toByte(),
+                        (value.size ushr 16).toByte(),
+                        (value.size ushr 8).toByte(),
+                        value.size.toByte(),
+                    ),
+                )
+                output.write(value)
+            }
+            output.toByteArray()
+        }
+
+    private fun BigInteger.encodeMpint(): ByteArray = toByteArray()
 
     private companion object {
         private val OPENSSH_ED25519 = """

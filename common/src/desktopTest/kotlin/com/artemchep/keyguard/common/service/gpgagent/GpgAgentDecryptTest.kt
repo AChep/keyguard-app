@@ -3,7 +3,7 @@ package com.artemchep.keyguard.common.service.gpgagent
 import com.artemchep.keyguard.common.service.crypto.GpgTestKeyFixtures
 import com.artemchep.keyguard.common.util.hexToByteArray
 import com.artemchep.keyguard.common.util.toHex
-import com.artemchep.keyguard.crypto.GpgAgentCryptoJvm
+import com.artemchep.keyguard.crypto.NativeGpgAgentCrypto
 import org.bouncycastle.bcpg.ECDHPublicBCPGKey
 import org.bouncycastle.bcpg.HashAlgorithmTags
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
@@ -33,10 +33,11 @@ import javax.crypto.Cipher
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
- * Round-trip tests for the GPG PKDECRYPT helpers in [GpgAgentCryptoJvm].
+ * Round-trip tests for the production native GPG PKDECRYPT implementation.
  *
  * The fixtures are real, unprotected (passphrase-less) OpenPGP secret keys
  * exported by GnuPG, each carrying an encryption (sub)key — exactly the shape the
@@ -70,6 +71,36 @@ class GpgAgentDecryptTest {
         val nested = node.items[1] as GpgSExpr.Listt
         assertEquals("x", (nested.items[0] as GpgSExpr.Atom).bytes.decodeToString())
         assertEquals("yz", (nested.items[1] as GpgSExpr.Atom).bytes.decodeToString())
+    }
+
+    @Test
+    fun `scoped canonical s-expression parsing clears nested atoms after success`() {
+        val copiedAtoms = mutableListOf<ByteArray>()
+        val formatted = GpgCanonicalSExpr.useParsed(
+            "(6:public(6:secret4:more))".encodeToByteArray(),
+        ) { node ->
+            copiedAtoms += node.atomCopies()
+            copiedAtoms.joinToString(separator = ":") { value -> value.decodeToString() }
+        }
+
+        assertEquals("public:secret:more", formatted)
+        assertTrue(copiedAtoms.all { value -> value.all { byte -> byte == 0.toByte() } })
+    }
+
+    @Test
+    fun `scoped canonical s-expression parsing clears nested atoms after failure`() {
+        val copiedAtoms = mutableListOf<ByteArray>()
+
+        assertFailsWith<IllegalStateException> {
+            GpgCanonicalSExpr.useParsed(
+                "(6:public(6:secret4:more))".encodeToByteArray(),
+            ) { node ->
+                copiedAtoms += node.atomCopies()
+                throw IllegalStateException("formatting failed")
+            }
+        }
+
+        assertTrue(copiedAtoms.all { value -> value.all { byte -> byte == 0.toByte() } })
     }
 
     @Test
@@ -124,7 +155,7 @@ class GpgAgentDecryptTest {
             ),
         )
 
-        val response = GpgAgentCryptoJvm().pkdecrypt(
+        val response = NativeGpgAgentCrypto.pkdecrypt(
             privateKeyArmored = GpgTestKeyFixtures.RSA,
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.RSA)),
             ciphertext = encVal,
@@ -173,7 +204,7 @@ class GpgAgentDecryptTest {
             ),
         )
 
-        val response = GpgAgentCryptoJvm().pkdecrypt(
+        val response = NativeGpgAgentCrypto.pkdecrypt(
             privateKeyArmored = GpgTestKeyFixtures.CV25519,
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.CV25519)),
             ciphertext = encVal,
@@ -219,7 +250,7 @@ class GpgAgentDecryptTest {
             ),
         )
 
-        val response = GpgAgentCryptoJvm().pkdecrypt(
+        val response = NativeGpgAgentCrypto.pkdecrypt(
             privateKeyArmored = GpgTestKeyFixtures.CV25519,
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.CV25519)),
             ciphertext = encVal,
@@ -269,7 +300,7 @@ class GpgAgentDecryptTest {
             ),
         )
 
-        val response = GpgAgentCryptoJvm().pkdecrypt(
+        val response = NativeGpgAgentCrypto.pkdecrypt(
             privateKeyArmored = GpgTestKeyFixtures.NISTP256,
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.NISTP256)),
             ciphertext = encVal,
@@ -315,7 +346,7 @@ class GpgAgentDecryptTest {
             ),
         )
 
-        val response = GpgAgentCryptoJvm().pkdecrypt(
+        val response = NativeGpgAgentCrypto.pkdecrypt(
             privateKeyArmored = GpgTestKeyFixtures.NISTP256,
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.NISTP256)),
             ciphertext = encVal,
@@ -443,6 +474,11 @@ class GpgAgentDecryptTest {
     private fun atom(value: String): GpgSExpr = GpgSExpr.Atom(value.encodeToByteArray())
     private fun atom(value: ByteArray): GpgSExpr = GpgSExpr.Atom(value)
     private fun list(vararg items: GpgSExpr): GpgSExpr = GpgSExpr.Listt(items.toList())
+
+    private fun GpgSExpr.atomCopies(): List<ByteArray> = when (this) {
+        is GpgSExpr.Atom -> listOf(bytes)
+        is GpgSExpr.Listt -> items.flatMap { item -> item.atomCopies() }
+    }
 
     private fun canonicalSExpr(node: GpgSExpr): ByteArray = node.encodeCanonical()
 }

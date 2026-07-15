@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
+import com.artemchep.keyguard.nativecrypto.NATIVE_CRYPTO_STREAM_CHUNK_BYTES
 import com.artemchep.keyguard.util.foundation.constantTimeEquals
 
 internal object FileEncryptionFormat {
@@ -9,7 +10,7 @@ internal object FileEncryptionFormat {
     const val MAC_LENGTH = 32
     const val HEADER_LENGTH = TYPE_LENGTH + IV_LENGTH + MAC_LENGTH
 
-    const val BUFFER_SIZE = 16 * 1024
+    const val BUFFER_SIZE = NATIVE_CRYPTO_STREAM_CHUNK_BYTES
 
     data class AuthenticatedFrame(
         val type: CipherEncryptor.Type,

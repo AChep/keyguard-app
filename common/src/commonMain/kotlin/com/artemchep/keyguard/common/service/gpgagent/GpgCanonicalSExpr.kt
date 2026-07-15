@@ -29,6 +29,14 @@ internal sealed interface GpgSExpr {
     ) : GpgSExpr
 }
 
+/** Erases every atom owned by a parsed S-expression. */
+internal fun GpgSExpr.clearSensitiveData() {
+    when (this) {
+        is GpgSExpr.Atom -> bytes.fill(0)
+        is GpgSExpr.Listt -> items.forEach(GpgSExpr::clearSensitiveData)
+    }
+}
+
 /**
  * Serializes this S-expression back into the canonical ("canonical transport") libgcrypt
  * form — the inverse of [GpgCanonicalSExpr.parse]:
@@ -59,13 +67,34 @@ internal fun GpgSExpr.encodeCanonical(): ByteArray {
 internal object GpgCanonicalSExpr {
     fun parse(bytes: ByteArray): GpgSExpr {
         val cursor = Cursor(bytes)
-        val node = cursor.readElement()
-        // A canonical S-expression is exactly one element; trailing bytes are a
-        // protocol error rather than something to silently ignore.
-        if (!cursor.isAtEnd()) {
-            throw IllegalArgumentException("Trailing bytes after S-expression at offset ${cursor.offset}")
+        return try {
+            val node = cursor.readElement()
+            // A canonical S-expression is exactly one element; trailing bytes are a
+            // protocol error rather than something to silently ignore.
+            if (!cursor.isAtEnd()) {
+                throw IllegalArgumentException("Trailing bytes after S-expression at offset ${cursor.offset}")
+            }
+            node
+        } catch (error: Throwable) {
+            cursor.clearAllocatedAtoms()
+            throw error
         }
-        return node
+    }
+
+    /**
+     * Parses an expression for a bounded operation and erases all atom copies afterward,
+     * including when validation or formatting fails.
+     */
+    fun <T> useParsed(
+        bytes: ByteArray,
+        block: (GpgSExpr) -> T,
+    ): T {
+        val node = parse(bytes)
+        return try {
+            block(node)
+        } finally {
+            node.clearSensitiveData()
+        }
     }
 
     /**
@@ -109,10 +138,16 @@ internal object GpgCanonicalSExpr {
     private class Cursor(
         private val bytes: ByteArray,
     ) {
+        private val allocatedAtoms = mutableListOf<ByteArray>()
+
         var offset = 0
             private set
 
         fun isAtEnd(): Boolean = offset >= bytes.size
+
+        fun clearAllocatedAtoms() {
+            allocatedAtoms.forEach { value -> value.fill(0) }
+        }
 
         fun readElement(): GpgSExpr {
             if (isAtEnd()) {
@@ -168,6 +203,7 @@ internal object GpgCanonicalSExpr {
                 throw IllegalArgumentException("Atom length $length exceeds remaining bytes at offset $offset")
             }
             val value = bytes.copyOfRange(offset, offset + length)
+            allocatedAtoms += value
             offset += length
             return GpgSExpr.Atom(value)
         }

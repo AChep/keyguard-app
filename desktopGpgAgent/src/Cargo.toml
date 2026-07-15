@@ -2,7 +2,11 @@
 name = "keyguard-gpg-agent"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.94.0"
 description = "GPG agent for Keyguard password manager"
+license-file = "../../LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+publish = false
 
 [[bin]]
 name = "keyguard-gpg-agent"

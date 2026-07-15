@@ -1,0 +1,27 @@
+[package]
+name = "native-crypto-policy"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94.0"
+license-file = "../../../../LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+publish = false
+
+[workspace]
+
+[dependencies]
+anyhow = "=1.0.103"
+serde = { version = "=1.0.228", features = ["derive"] }
+time = "=0.3.47"
+toml = "=0.9.12"
+
+[lints.rust]
+unsafe_code = "forbid"
+unused_lifetimes = "deny"
+
+[lints.clippy]
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }

@@ -32,14 +32,18 @@ import com.artemchep.keyguard.ui.ToastMessageHost
 import com.artemchep.keyguard.ui.surface.ProvideSurfaceColor
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.ThemeConfig
+import com.artemchep.keyguard.util.foundation.crypto.ensurePlatformCryptoReady
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.DI
 import org.kodein.di.compose.withDI
 import platform.UIKit.UIViewController
 
-fun MainViewController(): UIViewController = ComposeUIViewController {
-    withDI(iosAppDi) {
-        KeyguardIosApp()
+fun MainViewController(): UIViewController {
+    ensurePlatformCryptoReady()
+    return ComposeUIViewController {
+        withDI(iosAppDi) {
+            KeyguardIosApp()
+        }
     }
 }
 

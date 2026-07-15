@@ -13,6 +13,7 @@ keyguardCargo {
     sourceDir.set(layout.projectDirectory.dir("src"))
     extraSourceInputs.from(rootProject.file("commonSshAgent"))
     extraSourceInputs.from(rootProject.file("commonAgent"))
+    extraSourceInputs.from(rootProject.file("thirdParty/rust"))
     rustTarget.set(hostPlatform.sshAgentRustTarget)
     cargoBinaryName.set(sshAgentBinaryName)
     packagedBinaryName.set(sshAgentBinaryName)

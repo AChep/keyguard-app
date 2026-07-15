@@ -8,6 +8,7 @@ object AndroidCargoEnvironment {
     private val linkerExecutablePrefixes = mapOf(
         "aarch64-linux-android" to "aarch64-linux-android",
         "armv7-linux-androideabi" to "armv7a-linux-androideabi",
+        "i686-linux-android" to "i686-linux-android",
         "x86_64-linux-android" to "x86_64-linux-android",
     )
 
@@ -20,6 +21,14 @@ object AndroidCargoEnvironment {
         val sdkRoot: File,
         val ndkDir: File,
         val toolchainBinDir: File,
+    )
+
+    data class TargetBuildTools(
+        val toolchain: Toolchain,
+        val cCompiler: File,
+        val cxxCompiler: File,
+        val archiver: File,
+        val ranlib: File,
     )
 
     fun resolveAndroidSdkRoot(
@@ -62,18 +71,11 @@ object AndroidCargoEnvironment {
         )
     }
 
-    fun resolveNdkDirectory(sdkRoot: File): File? {
-        val ndkRoot = File(sdkRoot, "ndk")
-        val versionedNdk = ndkRoot.listFiles()
-            ?.filter(File::isDirectory)
-            ?.maxWithOrNull(::compareVersionDirectories)
-        if (versionedNdk != null) {
-            return versionedNdk
-        }
-
-        return File(sdkRoot, "ndk-bundle")
-            .takeIf(File::isDirectory)
-    }
+    fun resolveNdkDirectory(
+        sdkRoot: File,
+        ndkVersion: String,
+    ): File? = File(sdkRoot, "ndk/$ndkVersion")
+        .takeIf(File::isDirectory)
 
     fun hostToolchainBinDir(ndkDir: File): File {
         val candidates = hostToolchainDirectoryCandidates()
@@ -86,6 +88,7 @@ object AndroidCargoEnvironment {
     fun resolveToolchain(
         rootDir: File,
         localPropertiesFile: File?,
+        ndkVersion: String,
     ): Toolchain {
         val sdkResolution = resolveAndroidSdkRoot(
             rootDir = rootDir,
@@ -102,13 +105,14 @@ object AndroidCargoEnvironment {
             },
         )
 
-        val ndkDir = resolveNdkDirectory(sdkRoot) ?: throw GradleException(
+        val ndkDir = resolveNdkDirectory(
+            sdkRoot = sdkRoot,
+            ndkVersion = ndkVersion,
+        ) ?: throw GradleException(
             buildString {
-                appendLine("Android NDK could not be found.")
+                appendLine("Pinned Android NDK $ndkVersion could not be found.")
                 appendLine("Resolved Android SDK root: ${sdkRoot.absolutePath}")
-                appendLine("Checked:")
-                appendLine("  ${File(sdkRoot, "ndk").absolutePath}")
-                append("  ${File(sdkRoot, "ndk-bundle").absolutePath}")
+                append("Expected: ${File(sdkRoot, "ndk/$ndkVersion").absolutePath}")
             },
         )
 
@@ -136,35 +140,106 @@ object AndroidCargoEnvironment {
         localPropertiesFile: File?,
         rustTarget: String,
         androidApiLevel: Int,
+        ndkVersion: String,
     ): File {
+        return resolveTargetBuildTools(
+            rootDir = rootDir,
+            localPropertiesFile = localPropertiesFile,
+            rustTarget = rustTarget,
+            androidApiLevel = androidApiLevel,
+            ndkVersion = ndkVersion,
+        ).cCompiler
+    }
+
+    fun resolveTargetBuildTools(
+        rootDir: File,
+        localPropertiesFile: File?,
+        rustTarget: String,
+        androidApiLevel: Int,
+        ndkVersion: String,
+    ): TargetBuildTools {
         val toolchain = resolveToolchain(
             rootDir = rootDir,
             localPropertiesFile = localPropertiesFile,
+            ndkVersion = ndkVersion,
         )
-        val linker = File(
+        val cCompiler = File(
             toolchain.toolchainBinDir,
-            androidLinkerExecutableName(
+            androidCompilerExecutableName(
                 rustTarget = rustTarget,
                 androidApiLevel = androidApiLevel,
+                cxx = false,
             ),
         )
-        if (!linker.isFile) {
-            throw GradleException(
-                buildString {
-                    appendLine("Android NDK linker binary is missing.")
-                    appendLine("Resolved Android SDK root: ${toolchain.sdkRoot.absolutePath}")
-                    appendLine("Resolved Android NDK: ${toolchain.ndkDir.absolutePath}")
-                    appendLine("Checked directory: ${toolchain.toolchainBinDir.absolutePath}")
-                    append("Expected linker: ${linker.absolutePath}")
-                },
-            )
+        val cxxCompiler = File(
+            toolchain.toolchainBinDir,
+            androidCompilerExecutableName(
+                rustTarget = rustTarget,
+                androidApiLevel = androidApiLevel,
+                cxx = true,
+            ),
+        )
+        val archiver = File(toolchain.toolchainBinDir, llvmToolExecutableName("llvm-ar"))
+        val ranlib = File(toolchain.toolchainBinDir, llvmToolExecutableName("llvm-ranlib"))
+
+        listOf(
+            "C compiler" to cCompiler,
+            "C++ compiler" to cxxCompiler,
+            "archiver" to archiver,
+            "ranlib" to ranlib,
+        ).forEach { (toolName, executable) ->
+            if (!executable.isFile) {
+                throw GradleException(
+                    buildString {
+                        appendLine("Android NDK $toolName binary is missing.")
+                        appendLine("Resolved Android SDK root: ${toolchain.sdkRoot.absolutePath}")
+                        appendLine("Resolved Android NDK: ${toolchain.ndkDir.absolutePath}")
+                        appendLine("Checked directory: ${toolchain.toolchainBinDir.absolutePath}")
+                        append("Expected executable: ${executable.absolutePath}")
+                    },
+                )
+            }
         }
 
-        return linker
+        return TargetBuildTools(
+            toolchain = toolchain,
+            cCompiler = cCompiler,
+            cxxCompiler = cxxCompiler,
+            archiver = archiver,
+            ranlib = ranlib,
+        )
     }
 
     fun linkerEnvironmentName(rustTarget: String): String =
         "CARGO_TARGET_${rustTarget.uppercase().replace('-', '_').replace('.', '_')}_LINKER"
+
+    fun rustFlagsEnvironmentName(rustTarget: String): String =
+        "CARGO_TARGET_${rustTarget.uppercase().replace('-', '_').replace('.', '_')}_RUSTFLAGS"
+
+    fun targetEnvironmentName(
+        variable: String,
+        rustTarget: String,
+    ): String = "${variable}_${rustTarget.lowercase().replace('-', '_').replace('.', '_')}"
+
+    fun resolveReadElfExecutable(
+        rootDir: File,
+        localPropertiesFile: File?,
+        ndkVersion: String,
+    ): File {
+        val toolchain = resolveToolchain(
+            rootDir = rootDir,
+            localPropertiesFile = localPropertiesFile,
+            ndkVersion = ndkVersion,
+        )
+        val executableName = if (isWindowsHost()) "llvm-readelf.exe" else "llvm-readelf"
+        val executable = File(toolchain.toolchainBinDir, executableName)
+        if (!executable.isFile) {
+            throw GradleException(
+                "Android NDK llvm-readelf is missing: ${executable.absolutePath}",
+            )
+        }
+        return executable
+    }
 
     private fun readSdkDirFromLocalProperties(file: File): File? {
         val properties = Properties()
@@ -173,24 +248,6 @@ object AndroidCargoEnvironment {
             ?.takeIf(String::isNotBlank)
             ?.let(::File)
     }
-
-    private fun compareVersionDirectories(left: File, right: File): Int {
-        val leftParts = versionParts(left.name)
-        val rightParts = versionParts(right.name)
-        val maxSize = maxOf(leftParts.size, rightParts.size)
-        for (index in 0 until maxSize) {
-            val leftPart = leftParts.getOrElse(index) { 0 }
-            val rightPart = rightParts.getOrElse(index) { 0 }
-            if (leftPart != rightPart) {
-                return leftPart.compareTo(rightPart)
-            }
-        }
-        return left.name.compareTo(right.name)
-    }
-
-    private fun versionParts(version: String): List<Int> =
-        version.split('.', '-', '_')
-            .mapNotNull { part -> part.toIntOrNull() }
 
     private fun hostToolchainDirectoryCandidates(): List<String> {
         val osName = System.getProperty("os.name")
@@ -212,19 +269,28 @@ object AndroidCargoEnvironment {
         }
     }
 
-    private fun androidLinkerExecutableName(
+    private fun androidCompilerExecutableName(
         rustTarget: String,
         androidApiLevel: Int,
+        cxx: Boolean,
     ): String {
         val executablePrefix = linkerExecutablePrefixes[rustTarget]
             ?: throw GradleException("Unsupported Android target: $rustTarget")
-        val executableName = "$executablePrefix${androidApiLevel}-clang"
+        val executableName = buildString {
+            append(executablePrefix)
+            append(androidApiLevel)
+            append("-clang")
+            if (cxx) append("++")
+        }
         return if (isWindowsHost()) {
             "$executableName.cmd"
         } else {
             executableName
         }
     }
+
+    private fun llvmToolExecutableName(name: String): String =
+        if (isWindowsHost()) "$name.exe" else name
 
     private fun isWindowsHost(): Boolean =
         System.getProperty("os.name").startsWith("Windows", ignoreCase = true)

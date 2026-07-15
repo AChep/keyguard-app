@@ -3,13 +3,13 @@ package com.artemchep.keyguard.gpge2e
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
-import com.artemchep.keyguard.crypto.GpgAgentCryptoJvm
+import com.artemchep.keyguard.crypto.NativeGpgAgentCrypto
 
 class TestGpgAgentRequestProcessor(
     private val keys: List<TestGpgKey>,
 ) : GpgAgentRequestProcessor {
 
-    private val crypto = GpgAgentCryptoJvm()
+    private val crypto = NativeGpgAgentCrypto
 
     private data class KeyMatch(
         val key: TestGpgKey,

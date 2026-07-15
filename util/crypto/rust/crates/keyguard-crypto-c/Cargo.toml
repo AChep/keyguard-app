@@ -1,0 +1,22 @@
+[package]
+name = "keyguard-crypto-c"
+description = "Stable C ABI for Keyguard native cryptography"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+keyguard-crypto-core = { path = "../keyguard-crypto-core" }
+zeroize.workspace = true
+
+[dev-dependencies]
+prost.workspace = true
+
+[lints]
+workspace = true

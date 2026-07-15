@@ -13,6 +13,7 @@ import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSUUID
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
 import kotlin.test.assertFails
 
 class FileEncryptorIosTest {
@@ -49,6 +50,33 @@ class FileEncryptorIosTest {
         )
 
         assertContentEquals(data, decode(encryptedBytes, key))
+    }
+
+    @Test
+    fun `streaming encode writes a native frame on iOS`() {
+        val data = ByteArray(100_000) { index ->
+            (index % 251).toByte()
+        }
+        val key = ByteArray(64) { index ->
+            index.toByte()
+        }
+        val output = tempFile()
+
+        try {
+            val result = encryptor.encode(
+                input = Buffer().apply { write(data) },
+                output = output,
+                key = key,
+            )
+            val encryptedBytes = output.readBytes()
+
+            assertEquals(data.size.toLong(), result.plainSize)
+            assertEquals(encryptedBytes.size.toLong(), result.encryptedSize)
+            assertEquals(CipherEncryptor.Type.AesCbc256_HmacSha256_B64.byte, encryptedBytes.first())
+            assertContentEquals(data, encryptor.decode(encryptedBytes, key))
+        } finally {
+            output.deleteIfExists()
+        }
     }
 
     @Test

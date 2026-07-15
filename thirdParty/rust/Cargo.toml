@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = [
+    "ocb3-0.1.0-keyguard",
+    "polyval-0.6.2-keyguard",
+    "ssh-cipher-0.2.0-keyguard",
+    "ssh-encoding-0.2.0-keyguard",
+    "ssh-key-0.6.7-keyguard",
+]
+
+[patch.crates-io]
+ocb3 = { path = "ocb3-0.1.0-keyguard" }
+polyval = { path = "polyval-0.6.2-keyguard" }
+ssh-cipher = { path = "ssh-cipher-0.2.0-keyguard" }
+ssh-encoding = { path = "ssh-encoding-0.2.0-keyguard" }
+ssh-key = { path = "ssh-key-0.6.7-keyguard" }

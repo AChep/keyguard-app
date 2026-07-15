@@ -40,11 +40,11 @@ class CargoCommonPlugin : Plugin<Project> {
         val sourceDirPath = extension.sourceDir.get().asFile
         val sourceFileTrees = listOf(
             fileTree(sourceDirPath) {
-                exclude("target/**")
+                exclude("target/**", "**/target/**")
             },
         ) + extension.extraSourceInputs.files.map { sourcePath ->
             fileTree(sourcePath) {
-                exclude("target/**")
+                exclude("target/**", "**/target/**")
             }
         }
 
@@ -58,6 +58,9 @@ class CargoCommonPlugin : Plugin<Project> {
             this.cargoTargetDir.set(cargoTargetDir)
             rustTarget.set(extension.rustTarget)
             outputBinary.set(cargoOutputBinary)
+            cargoPackage.set(extension.cargoPackage)
+            cargoArguments.set(extension.cargoArguments)
+            environmentVariables.set(extension.environmentVariables)
         }
 
         val compileTask = tasks.register<SignAndCopyBinaryTask>(extension.compileTaskName.get()) {

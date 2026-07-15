@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicyNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,23 +27,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
-import org.bouncycastle.crypto.params.RSAKeyParameters
-import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters
-import org.bouncycastle.crypto.signers.Ed25519Signer
-import org.bouncycastle.crypto.signers.RSADigestSigner
-import org.bouncycastle.crypto.digests.SHA1Digest
-import org.bouncycastle.crypto.digests.SHA256Digest
-import org.bouncycastle.crypto.digests.SHA512Digest
-import org.bouncycastle.crypto.util.OpenSSHPrivateKeyUtil
-import org.bouncycastle.util.encoders.Base64
 import org.kodein.di.direct
 import org.kodein.di.instance
 import org.kodein.di.instanceOrNull
-import java.security.KeyFactory
-import java.security.PrivateKey
-import java.security.Signature as JcaSignature
-import java.security.spec.PKCS8EncodedKeySpec
 
 class SshAgentRequestProcessorJvm(
     private val logRepository: LogRepository,
@@ -75,97 +62,18 @@ class SshAgentRequestProcessorJvm(
             privateKeyPem: String,
             data: ByteArray,
             flags: Int,
+            publicKeyOpenSsh: String? = null,
         ): SshAgentMessages.SignDataResponse {
-            val encodedPrivateKey = privateKeyPem
-                .replace("-{1,5}(BEGIN|END) (|RSA |OPENSSH )PRIVATE KEY-{1,5}".toRegex(), "")
-                .lineSequence()
-                .map { it.trim() }
-                .joinToString(separator = "")
-                .let { Base64.decode(it) }
-
-            val parsedKey = kotlin.runCatching {
-                OpenSSHPrivateKeyUtil.parsePrivateKeyBlob(encodedPrivateKey)
-            }.getOrNull()
-
-            if (parsedKey != null) {
-                return when (parsedKey) {
-                    is Ed25519PrivateKeyParameters -> signEd25519(parsedKey, data)
-                    is RSAPrivateCrtKeyParameters -> signRsa(parsedKey, data, flags)
-                    is RSAKeyParameters -> signRsa(parsedKey, data, flags)
-                    else -> throw IllegalArgumentException(
-                        "Unsupported key type: ${parsedKey::class.simpleName}",
-                    )
-                }
-            }
-
-            val jcaPrivateKey = parseJcaPrivateKey(encodedPrivateKey)
-            return when (jcaPrivateKey.algorithm) {
-                "RSA" -> signRsaJca(jcaPrivateKey, data, flags)
-                else -> throw IllegalArgumentException(
-                    "Unsupported key type: ${jcaPrivateKey.algorithm}",
-                )
-            }
-        }
-
-        internal fun signEd25519(
-            privateKey: Ed25519PrivateKeyParameters,
-            data: ByteArray,
-        ): SshAgentMessages.SignDataResponse {
-            val signer = Ed25519Signer()
-            signer.init(true, privateKey)
-            signer.update(data, 0, data.size)
-            return SshAgentMessages.SignDataResponse(
-                signature = signer.generateSignature(),
-                algorithm = "ssh-ed25519",
+            val result = NativeCrypto.ssh.sign(
+                privateKeyPem = privateKeyPem,
+                publicKeyOpenSsh = publicKeyOpenSsh,
+                data = data,
+                flags = flags,
             )
-        }
-
-        internal fun signRsa(
-            privateKey: RSAKeyParameters,
-            data: ByteArray,
-            flags: Int,
-        ): SshAgentMessages.SignDataResponse {
-            val (algorithm, digest) = when {
-                flags and 0x04 != 0 -> "rsa-sha2-512" to SHA512Digest()
-                flags and 0x02 != 0 -> "rsa-sha2-256" to SHA256Digest()
-                else -> "ssh-rsa" to SHA1Digest()
-            }
-
-            val signer = RSADigestSigner(digest)
-            signer.init(true, privateKey)
-            signer.update(data, 0, data.size)
             return SshAgentMessages.SignDataResponse(
-                signature = signer.generateSignature(),
-                algorithm = algorithm,
+                signature = result.signature,
+                algorithm = result.algorithm,
             )
-        }
-
-        internal fun signRsaJca(
-            privateKey: PrivateKey,
-            data: ByteArray,
-            flags: Int,
-        ): SshAgentMessages.SignDataResponse {
-            val (algorithm, jcaAlgorithm) = when {
-                flags and 0x04 != 0 -> "rsa-sha2-512" to "SHA512withRSA"
-                flags and 0x02 != 0 -> "rsa-sha2-256" to "SHA256withRSA"
-                else -> "ssh-rsa" to "SHA1withRSA"
-            }
-
-            val signer = JcaSignature.getInstance(jcaAlgorithm)
-            signer.initSign(privateKey)
-            signer.update(data)
-            return SshAgentMessages.SignDataResponse(
-                signature = signer.sign(),
-                algorithm = algorithm,
-            )
-        }
-
-        internal fun parseJcaPrivateKey(
-            encodedPrivateKey: ByteArray,
-        ): PrivateKey {
-            val spec = PKCS8EncodedKeySpec(encodedPrivateKey)
-            return KeyFactory.getInstance("RSA")
-                .generatePrivate(spec)
         }
 
         internal fun extractKeyType(publicKey: String): String? =
@@ -313,6 +221,7 @@ class SshAgentRequestProcessorJvm(
         return try {
             val response = signWithPrivateKey(
                 privateKeyPem = privateKeyPem,
+                publicKeyOpenSsh = sshKey.publicKey,
                 data = request.data,
                 flags = request.flags,
             )
@@ -390,22 +299,6 @@ class SshAgentRequestProcessorJvm(
             addSshUsageHistory = addSshUsageHistory,
             approvalWindowSession = approvalWindowSession,
         )
-    }
-
-    private suspend fun getSshKeysFromVaultOrRequestGetList(
-        caller: SshAgentMessages.CallerIdentity?,
-    ): SshVaultContext? {
-        getSshKeysFromVault()?.let { return it }
-
-        logRepository.post(TAG, "Vault is locked, requesting list-keys unlock from user", LogLevel.INFO)
-        val unlocked = requestVaultUnlock(caller)
-        if (!unlocked) {
-            logRepository.post(TAG, "User did not unlock the vault", LogLevel.INFO)
-            return null
-        }
-
-        logRepository.post(TAG, "Vault unlocked, retrying key retrieval", LogLevel.INFO)
-        return getSshKeysFromVault()
     }
 
     private suspend fun recordSshUsage(

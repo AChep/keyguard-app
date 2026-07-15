@@ -1,0 +1,4 @@
+headers = keyguard_crypto.h
+headerFilter = keyguard_crypto.h
+staticLibraries = libkeyguard_crypto_c.a
+linkerOpts = -framework Security

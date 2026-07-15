@@ -2,7 +2,11 @@
 name = "common-gpg-agent-rust"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.94.0"
 description = "Shared Rust utilities for Keyguard GPG agent binaries"
+license-file = "../LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+publish = false
 
 [dependencies]
 prost = "0.13"

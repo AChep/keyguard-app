@@ -1,0 +1,784 @@
+syntax = "proto3";
+
+package keyguard.nativecrypto.v1;
+
+message NativeRequest {
+  uint32 protocol_version = 1;
+
+  oneof operation {
+    HkdfSha256Request hkdf_sha256 = 10;
+    Pbkdf2Sha256Request pbkdf2_sha256 = 11;
+    Argon2Request argon2 = 12;
+    RandomBytesRequest random_bytes = 13;
+    RandomIntRequest random_int = 14;
+    HmacRequest hmac = 15;
+    DigestRequest digest = 16;
+    AesEcbNoPaddingEncryptRequest aes_ecb_no_padding_encrypt = 17;
+    AesCbcPkcs7Request aes_cbc_pkcs7 = 18;
+    RandomIntsRequest random_ints = 19;
+    AesEcbNoPaddingTransformRequest aes_ecb_no_padding_transform = 20;
+    StreamCipherXorAtOffsetRequest stream_cipher_xor_at_offset = 21;
+    TwofishCbcPkcs7Request twofish_cbc_pkcs7 = 22;
+    RsaOaepEncryptRequest rsa_oaep_encrypt = 23;
+    RsaOaepDecryptRequest rsa_oaep_decrypt = 24;
+    RsaPkcs8ToSpkiRequest rsa_pkcs8_to_spki = 25;
+    SshAgentTcpChaCha20Poly1305Request ssh_agent_tcp_chacha20_poly1305 = 26;
+    SshKeyGenerateRequest ssh_key_generate = 27;
+    SshKeyParseRequest ssh_key_parse = 28;
+    SshKeyDescribeRequest ssh_key_describe = 29;
+    SshPrivateKeyRsaBitsRequest ssh_private_key_rsa_bits = 30;
+    SshPrivateKeyFormatRequest ssh_private_key_format = 31;
+    SshAgentSignRequest ssh_agent_sign = 32;
+    SshPrivateKeyImportRequest ssh_private_key_import = 33;
+    OpenPgpPublicKeyParseRequest open_pgp_public_key_parse = 34;
+    OpenPgpVerifyRequest open_pgp_verify = 35;
+    OpenPgpMetadataResolveRequest open_pgp_metadata_resolve = 36;
+    OpenPgpKeyGenerateRequest open_pgp_key_generate = 37;
+    OpenPgpKeyImportRequest open_pgp_key_import = 38;
+    OpenPgpSignRequest open_pgp_sign = 39;
+    OpenPgpEncryptRequest open_pgp_encrypt = 40;
+    OpenPgpDecryptRequest open_pgp_decrypt = 41;
+    OpenPgpExpirationUpdateRequest open_pgp_expiration_update = 42;
+    OpenPgpAgentSignRequest open_pgp_agent_sign = 43;
+    OpenPgpAgentDecryptRequest open_pgp_agent_decrypt = 44;
+    AesCbcPkcs7HmacSha256EncryptRequest aes_cbc_pkcs7_hmac_sha256_encrypt = 45;
+    AesCbcPkcs7HmacSha256DecryptRequest aes_cbc_pkcs7_hmac_sha256_decrypt = 46;
+  }
+}
+
+message NativeStreamOpenRequest {
+  uint32 protocol_version = 1;
+
+  oneof operation {
+    HmacSha256StreamOpenRequest hmac_sha256 = 10;
+    DigestStreamOpenRequest digest = 11;
+    HmacStreamOpenRequest hmac = 12;
+    AesCbcPkcs7StreamOpenRequest aes_cbc_pkcs7 = 13;
+    TwofishCbcPkcs7StreamOpenRequest twofish_cbc_pkcs7 = 14;
+    OpenPgpDetachedVerifyStreamOpenRequest open_pgp_detached_verify = 15;
+    OpenPgpDetachedSignStreamOpenRequest open_pgp_detached_sign = 16;
+    OpenPgpEncryptStreamOpenRequest open_pgp_encrypt = 17;
+    OpenPgpDecryptStreamOpenRequest open_pgp_decrypt = 18;
+    AesCbcPkcs7HmacSha256EncryptStreamOpenRequest aes_cbc_pkcs7_hmac_sha256_encrypt = 19;
+    AesCbcPkcs7HmacSha256DecryptStreamOpenRequest aes_cbc_pkcs7_hmac_sha256_decrypt = 20;
+  }
+}
+
+message HmacSha256StreamOpenRequest {
+  bytes key = 1;
+}
+
+message DigestStreamOpenRequest {
+  HashAlgorithm algorithm = 1;
+}
+
+message HmacStreamOpenRequest {
+  HashAlgorithm algorithm = 1;
+  bytes key = 2;
+}
+
+message AesCbcPkcs7StreamOpenRequest {
+  CipherDirection direction = 1;
+  bytes key = 2;
+  bytes iv = 3;
+}
+
+message AesCbcPkcs7HmacSha256EncryptStreamOpenRequest {
+  bytes encryption_key = 1;
+  bytes mac_key = 2;
+  bytes iv = 3;
+}
+
+message AesCbcPkcs7HmacSha256DecryptStreamOpenRequest {
+  bytes encryption_key = 1;
+  bytes mac_key = 2;
+  bytes iv = 3;
+  bytes expected_mac = 4;
+}
+
+message TwofishCbcPkcs7StreamOpenRequest {
+  CipherDirection direction = 1;
+  bytes key = 2;
+  bytes iv = 3;
+}
+
+message HkdfSha256Request {
+  bytes seed = 1;
+  // Absent means expand seed directly (BC skip-extract compatibility).
+  optional bytes salt = 2;
+  optional bytes info = 3;
+  uint32 length = 4;
+}
+
+message Pbkdf2Sha256Request {
+  bytes seed = 1;
+  bytes salt = 2;
+  uint32 iterations = 3;
+  uint32 length = 4;
+}
+
+enum Argon2Mode {
+  ARGON2_MODE_UNSPECIFIED = 0;
+  ARGON2_MODE_D = 1;
+  ARGON2_MODE_I = 2;
+  ARGON2_MODE_ID = 3;
+}
+
+message Argon2Request {
+  Argon2Mode mode = 1;
+  bytes seed = 2;
+  bytes salt = 3;
+  uint32 iterations = 4;
+  uint32 memory_kib = 5;
+  uint32 parallelism = 6;
+  uint32 length = 7;
+  // Zero is retained as a wire-compatible alias for v1.3.
+  uint32 version = 8;
+  optional bytes secret = 9;
+  optional bytes associated_data = 10;
+}
+
+message RandomBytesRequest {
+  uint32 length = 1;
+}
+
+message RandomIntRequest {
+  // False returns an arbitrary signed 32-bit value. True returns [0, bound).
+  bool bounded = 1;
+  uint32 exclusive_upper_bound = 2;
+}
+
+message RandomIntsRequest {
+  // False returns arbitrary signed 32-bit values. True returns values in [0, bound).
+  bool bounded = 1;
+  uint32 exclusive_upper_bound = 2;
+  // Batched calls are limited to 1024 values.
+  uint32 count = 3;
+}
+
+enum HashAlgorithm {
+  HASH_ALGORITHM_UNSPECIFIED = 0;
+  HASH_ALGORITHM_SHA1 = 1;
+  HASH_ALGORITHM_SHA256 = 2;
+  HASH_ALGORITHM_SHA512 = 3;
+  HASH_ALGORITHM_MD5 = 4;
+}
+
+message HmacRequest {
+  HashAlgorithm algorithm = 1;
+  bytes key = 2;
+  bytes data = 3;
+}
+
+message DigestRequest {
+  HashAlgorithm algorithm = 1;
+  bytes data = 2;
+}
+
+message AesEcbNoPaddingEncryptRequest {
+  bytes key = 1;
+  bytes data = 2;
+}
+
+message AesEcbNoPaddingTransformRequest {
+  bytes key = 1;
+  bytes data = 2;
+  uint32 rounds = 3;
+}
+
+enum CipherDirection {
+  CIPHER_DIRECTION_UNSPECIFIED = 0;
+  CIPHER_DIRECTION_ENCRYPT = 1;
+  CIPHER_DIRECTION_DECRYPT = 2;
+}
+
+message AesCbcPkcs7Request {
+  CipherDirection direction = 1;
+  bytes key = 2;
+  bytes iv = 3;
+  bytes data = 4;
+}
+
+// Fused Bitwarden-compatible AES-CBC-PKCS#7 and HMAC-SHA256 encryption.
+// The MAC authenticates iv || ciphertext without an intermediate JVM roundtrip.
+message AesCbcPkcs7HmacSha256EncryptRequest {
+  bytes encryption_key = 1;
+  bytes mac_key = 2;
+  bytes iv = 3;
+  bytes plaintext = 4;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message AesCbcPkcs7HmacSha256EncryptResult {
+  bytes ciphertext = 1;
+  bytes mac = 2;
+}
+
+// Fused Bitwarden-compatible authenticated decryption. The expected MAC is
+// verified over iv || ciphertext before CBC decryption is attempted.
+message AesCbcPkcs7HmacSha256DecryptRequest {
+  bytes encryption_key = 1;
+  bytes mac_key = 2;
+  bytes iv = 3;
+  bytes ciphertext = 4;
+  bytes expected_mac = 5;
+}
+
+enum StreamCipherAlgorithm {
+  STREAM_CIPHER_ALGORITHM_UNSPECIFIED = 0;
+  STREAM_CIPHER_ALGORITHM_SALSA20 = 1;
+  STREAM_CIPHER_ALGORITHM_CHACHA20 = 2;
+}
+
+message StreamCipherXorAtOffsetRequest {
+  StreamCipherAlgorithm algorithm = 1;
+  bytes key = 2;
+  bytes nonce = 3;
+  uint64 offset = 4;
+  bytes data = 5;
+}
+
+message TwofishCbcPkcs7Request {
+  CipherDirection direction = 1;
+  bytes key = 2;
+  bytes iv = 3;
+  bytes data = 4;
+}
+
+enum RsaOaepHash {
+  RSA_OAEP_HASH_UNSPECIFIED = 0;
+  RSA_OAEP_HASH_SHA1 = 1;
+  RSA_OAEP_HASH_SHA256 = 2;
+}
+
+message RsaOaepDecryptRequest {
+  RsaOaepHash hash = 1;
+  bytes private_key_pkcs8 = 2;
+  bytes ciphertext = 3;
+}
+
+message RsaOaepEncryptRequest {
+  RsaOaepHash hash = 1;
+  bytes public_key_spki = 2;
+  bytes plaintext = 3;
+}
+
+message RsaPkcs8ToSpkiRequest {
+  bytes private_key_pkcs8 = 1;
+}
+
+message SshAgentTcpChaCha20Poly1305Request {
+  CipherDirection direction = 1;
+  bytes key = 2;
+  bytes nonce = 3;
+  bytes header = 4;
+  bytes payload = 5;
+}
+
+enum SshKeyType {
+  SSH_KEY_TYPE_UNSPECIFIED = 0;
+  SSH_KEY_TYPE_RSA = 1;
+  SSH_KEY_TYPE_ED25519 = 2;
+}
+
+message SshKeyGenerateRequest {
+  SshKeyType type = 1;
+  // Required for RSA and ignored for Ed25519.
+  uint32 rsa_bits = 2;
+}
+
+message SshKeyParseRequest {
+  string private_key_pem = 1;
+  string public_key_openssh = 2;
+}
+
+message SshKeyDescribeRequest {
+  SshKeyType type = 1;
+  bytes private_key = 2;
+  bytes public_key = 3;
+}
+
+message SshPrivateKeyRsaBitsRequest {
+  bytes private_key = 1;
+}
+
+message SshPrivateKeyFormatRequest {
+  SshKeyType type = 1;
+  bytes private_key = 2;
+}
+
+message SshAgentSignRequest {
+  string private_key_pem = 1;
+  // Required to complete legacy n/e/d-only RSA keys.
+  optional string public_key_openssh = 2;
+  bytes data = 3;
+  uint32 flags = 4;
+}
+
+message SshPrivateKeyImportRequest {
+  string content = 1;
+  // UTF-8 bytes are used instead of a protobuf string so both native and
+  // Kotlin callers can erase the owned passphrase buffer after the call.
+  optional bytes passphrase_utf8 = 2;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message SshKeyMaterial {
+  SshKeyType type = 1;
+  bytes private_key = 2;
+  bytes public_key = 3;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message SshKeyDescription {
+  string private_key_pem = 1;
+  string public_key_openssh = 2;
+  string private_fingerprint = 3;
+  string public_fingerprint = 4;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message SshFormattedPrivateKey {
+  string value = 1;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message SshSignature {
+  string algorithm = 1;
+  bytes signature = 2;
+}
+
+enum SshPrivateKeyImportErrorReason {
+  SSH_PRIVATE_KEY_IMPORT_ERROR_REASON_UNSPECIFIED = 0;
+  SSH_PRIVATE_KEY_IMPORT_ERROR_REASON_UNSUPPORTED_FORMAT = 1;
+  SSH_PRIVATE_KEY_IMPORT_ERROR_REASON_UNSUPPORTED_ALGORITHM = 2;
+  SSH_PRIVATE_KEY_IMPORT_ERROR_REASON_INVALID_PASSPHRASE = 3;
+  SSH_PRIVATE_KEY_IMPORT_ERROR_REASON_MALFORMED_KEY = 4;
+}
+
+message SshPrivateKeyImportSuccess {
+  SshKeyMaterial key_material = 1;
+}
+
+message SshPrivateKeyImportNeedsPassphrase {
+  string format_label = 1;
+}
+
+message SshPrivateKeyImportError {
+  SshPrivateKeyImportErrorReason reason = 1;
+}
+
+// Expected parser and authentication failures are typed domain results. They
+// intentionally do not use NativeStatus, which is reserved for ABI/envelope,
+// resource, panic, and unexpected backend failures.
+message SshPrivateKeyImportResult {
+  oneof result {
+    SshPrivateKeyImportSuccess success = 1;
+    SshPrivateKeyImportNeedsPassphrase needs_passphrase = 2;
+    SshPrivateKeyImportError error = 3;
+  }
+}
+
+message OpenPgpPublicKeyParseRequest {
+  // ASCII-armored or binary transferable public keys.
+  bytes key_data = 1;
+  // Supplying the policy time makes expiry decisions deterministic. When
+  // absent, the native library uses the current wall-clock second.
+  optional uint64 reference_time_epoch_seconds = 2;
+}
+
+enum OpenPgpVerifyKind {
+  OPEN_PGP_VERIFY_KIND_UNSPECIFIED = 0;
+  OPEN_PGP_VERIFY_KIND_CLEAR_TEXT = 1;
+  OPEN_PGP_VERIFY_KIND_DETACHED = 2;
+}
+
+message OpenPgpVerifyRequest {
+  OpenPgpVerifyKind kind = 1;
+  // Complete clear-signed document for CLEAR_TEXT, or the exact detached
+  // signature body for DETACHED.
+  bytes content = 2;
+  // ASCII-armored or binary signature. Required only for DETACHED.
+  bytes signature = 3;
+  // Each entry may contain one or more transferable public keys.
+  repeated bytes public_keys = 4;
+  optional uint64 reference_time_epoch_seconds = 5;
+}
+
+message OpenPgpDetachedVerifyStreamOpenRequest {
+  // The large file body is supplied only through streamUpdate calls.
+  bytes signature = 1;
+  repeated bytes public_keys = 2;
+  optional uint64 reference_time_epoch_seconds = 3;
+}
+
+message OpenPgpMetadataResolveRequest {
+  // Secret rings are parsed structurally; private material is never decrypted
+  // by this read-path operation.
+  optional bytes private_key_data = 1;
+  optional bytes public_key_data = 2;
+  // Upper/lower case and ASCII separators are ignored. Blank selects all rings.
+  string normalized_fingerprint = 3;
+  repeated bytes candidate_revocation_keys = 4;
+  optional uint64 reference_time_epoch_seconds = 5;
+}
+
+enum OpenPgpPublicKeyParseErrorReason {
+  OPEN_PGP_PUBLIC_KEY_PARSE_ERROR_REASON_UNSPECIFIED = 0;
+  OPEN_PGP_PUBLIC_KEY_PARSE_ERROR_REASON_EMPTY = 1;
+  OPEN_PGP_PUBLIC_KEY_PARSE_ERROR_REASON_MALFORMED = 2;
+  OPEN_PGP_PUBLIC_KEY_PARSE_ERROR_REASON_UNSUPPORTED_KEY_VERSION = 3;
+}
+
+message OpenPgpPublicSubKeyInfo {
+  string fingerprint = 1;
+  optional string keygrip = 2;
+  string key_id = 3;
+  string algorithm = 4;
+  optional uint32 bit_strength = 5;
+  bool can_sign = 6;
+  bool can_encrypt = 7;
+  bool revoked = 8;
+  optional uint64 created_at_epoch_seconds = 9;
+  optional uint64 expires_at_epoch_seconds = 10;
+}
+
+message OpenPgpPublicKeyInfo {
+  string fingerprint = 1;
+  optional string keygrip = 2;
+  string key_id = 3;
+  string algorithm = 4;
+  optional uint32 bit_strength = 5;
+  repeated string user_ids = 6;
+  repeated string emails = 7;
+  optional uint64 created_at_epoch_seconds = 8;
+  optional uint64 expires_at_epoch_seconds = 9;
+  bool revoked = 10;
+  bool can_sign = 11;
+  bool can_encrypt = 12;
+  string public_key_armored = 13;
+  repeated OpenPgpPublicSubKeyInfo subkeys = 14;
+}
+
+message OpenPgpPublicKeyParseSuccess {
+  repeated OpenPgpPublicKeyInfo keys = 1;
+}
+
+message OpenPgpPublicKeyParseError {
+  OpenPgpPublicKeyParseErrorReason reason = 1;
+}
+
+message OpenPgpPublicKeyParseResult {
+  oneof result {
+    OpenPgpPublicKeyParseSuccess success = 1;
+    OpenPgpPublicKeyParseError error = 2;
+  }
+}
+
+enum OpenPgpVerificationStatus {
+  OPEN_PGP_VERIFICATION_STATUS_UNSPECIFIED = 0;
+  OPEN_PGP_VERIFICATION_STATUS_VALID = 1;
+  OPEN_PGP_VERIFICATION_STATUS_INVALID = 2;
+  OPEN_PGP_VERIFICATION_STATUS_MISSING_PUBLIC_KEY = 3;
+}
+
+enum OpenPgpVerificationWarning {
+  OPEN_PGP_VERIFICATION_WARNING_UNSPECIFIED = 0;
+  OPEN_PGP_VERIFICATION_WARNING_KEY_REVOKED = 1;
+  OPEN_PGP_VERIFICATION_WARNING_KEY_EXPIRED = 2;
+  OPEN_PGP_VERIFICATION_WARNING_SIGNATURE_EXPIRED = 3;
+}
+
+message OpenPgpVerification {
+  OpenPgpVerificationStatus status = 1;
+  string key_id = 2;
+  optional string fingerprint = 3;
+  repeated string user_ids = 4;
+  optional uint64 created_at_epoch_seconds = 5;
+  repeated OpenPgpVerificationWarning warnings = 6;
+}
+
+message OpenPgpKeyMetadataKey {
+  string keygrip = 1;
+  string fingerprint = 2;
+  string algorithm = 3;
+  repeated string capabilities = 4;
+}
+
+message OpenPgpKeyMetadata {
+  uint32 version = 1;
+  repeated OpenPgpKeyMetadataKey keys = 2;
+}
+
+message OpenPgpMetadataResolveResult {
+  optional OpenPgpKeyMetadata metadata = 1;
+}
+
+enum OpenPgpKeyKind {
+  OPEN_PGP_KEY_KIND_UNSPECIFIED = 0;
+  OPEN_PGP_KEY_KIND_LEGACY_ED25519_X25519 = 1;
+  OPEN_PGP_KEY_KIND_RSA = 2;
+}
+
+message OpenPgpKeyGenerateRequest {
+  OpenPgpKeyKind kind = 1;
+  string user_id = 2;
+  // Required for RSA (3072 or 4096) and ignored for the modern layout.
+  uint32 rsa_bits = 3;
+  uint64 creation_time_epoch_seconds = 4;
+  // OpenPGP v4 stores this as an unsigned duration from creation time.
+  optional uint32 expiration_seconds = 5;
+}
+
+message OpenPgpKeyMaterial {
+  bytes private_key_armored = 1;
+  bytes public_key_armored = 2;
+  string fingerprint = 3;
+}
+
+message OpenPgpKeyImportRequest {
+  bytes key_data = 1;
+  // UTF-8 bytes allow both sides to erase the owned passphrase copy.
+  optional bytes passphrase_utf8 = 2;
+  optional uint64 reference_time_epoch_seconds = 3;
+}
+
+enum OpenPgpKeyImportErrorReason {
+  OPEN_PGP_KEY_IMPORT_ERROR_REASON_UNSPECIFIED = 0;
+  OPEN_PGP_KEY_IMPORT_ERROR_REASON_EMPTY = 1;
+  OPEN_PGP_KEY_IMPORT_ERROR_REASON_UNSUPPORTED_FORMAT = 2;
+  OPEN_PGP_KEY_IMPORT_ERROR_REASON_INVALID_PASSPHRASE = 3;
+  OPEN_PGP_KEY_IMPORT_ERROR_REASON_MALFORMED_KEY = 4;
+}
+
+message OpenPgpKeyImportSuccess {
+  OpenPgpKeyMaterial key_material = 1;
+}
+
+message OpenPgpKeyImportNeedsPassphrase {
+  string format_label = 1;
+}
+
+message OpenPgpKeyImportError {
+  OpenPgpKeyImportErrorReason reason = 1;
+}
+
+message OpenPgpKeyImportResult {
+  oneof result {
+    OpenPgpKeyImportSuccess success = 1;
+    OpenPgpKeyImportNeedsPassphrase needs_passphrase = 2;
+    OpenPgpKeyImportError error = 3;
+  }
+}
+
+enum OpenPgpSignKind {
+  OPEN_PGP_SIGN_KIND_UNSPECIFIED = 0;
+  OPEN_PGP_SIGN_KIND_CLEAR_TEXT = 1;
+  OPEN_PGP_SIGN_KIND_DETACHED = 2;
+}
+
+message OpenPgpSignRequest {
+  OpenPgpSignKind kind = 1;
+  bytes content = 2;
+  bytes private_key = 3;
+  string preferred_fingerprint = 4;
+  // Applies to detached signatures. Cleartext signatures are always armored.
+  bool armored = 5;
+  optional uint64 signature_time_epoch_seconds = 6;
+  optional uint64 reference_time_epoch_seconds = 7;
+}
+
+message OpenPgpDetachedSignStreamOpenRequest {
+  bytes private_key = 1;
+  string preferred_fingerprint = 2;
+  bool armored = 3;
+  optional uint64 signature_time_epoch_seconds = 4;
+  optional uint64 reference_time_epoch_seconds = 5;
+}
+
+message OpenPgpEncryptRequest {
+  bytes content = 1;
+  repeated bytes public_keys = 2;
+  optional bytes signing_private_key = 3;
+  string preferred_signing_fingerprint = 4;
+  string file_name = 5;
+  bool armored = 6;
+  optional uint64 literal_time_epoch_seconds = 7;
+  optional uint64 reference_time_epoch_seconds = 8;
+}
+
+message OpenPgpEncryptStreamOpenRequest {
+  repeated bytes public_keys = 1;
+  optional bytes signing_private_key = 2;
+  string preferred_signing_fingerprint = 3;
+  string file_name = 4;
+  bool armored = 5;
+  optional uint64 literal_time_epoch_seconds = 6;
+  optional uint64 reference_time_epoch_seconds = 7;
+}
+
+enum OpenPgpProtectionMode {
+  OPEN_PGP_PROTECTION_MODE_UNSPECIFIED = 0;
+  OPEN_PGP_PROTECTION_MODE_SEIPD_V1_MDC = 1;
+  OPEN_PGP_PROTECTION_MODE_GNUPG_OCB = 2;
+}
+
+message OpenPgpEncryptResult {
+  bytes data = 1;
+  OpenPgpProtectionMode protection_mode = 2;
+}
+
+message OpenPgpEncryptFinal {
+  // Final compression/literal/signature/encryption trailer bytes.
+  bytes data = 1;
+  OpenPgpProtectionMode protection_mode = 2;
+}
+
+message OpenPgpDecryptRequest {
+  bytes content = 1;
+  repeated bytes private_keys = 2;
+  repeated bytes verification_public_keys = 3;
+  optional uint64 reference_time_epoch_seconds = 4;
+}
+
+message OpenPgpDecryptStreamOpenRequest {
+  repeated bytes private_keys = 1;
+  repeated bytes verification_public_keys = 2;
+  optional uint64 reference_time_epoch_seconds = 3;
+}
+
+message OpenPgpDecryptResult {
+  bytes data = 1;
+  optional OpenPgpVerification verification = 2;
+}
+
+message OpenPgpDecryptFinal {
+  // Final provisional plaintext bytes; Kotlin stages these until this
+  // authenticated final payload has decoded successfully.
+  bytes data = 1;
+  optional OpenPgpVerification verification = 2;
+}
+
+message OpenPgpExpirationUpdateRequest {
+  bytes private_key = 1;
+  bytes public_key = 2;
+  string expected_primary_fingerprint = 3;
+  repeated string component_fingerprints = 4;
+  optional uint64 expires_at_epoch_seconds = 5;
+  repeated bytes candidate_revocation_keys = 6;
+  uint64 reference_time_epoch_seconds = 7;
+}
+
+enum OpenPgpExpirationUpdateErrorReason {
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_UNSPECIFIED = 0;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_EMPTY_PRIVATE_KEY = 1;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_MALFORMED_KEY = 2;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_FINGERPRINT_MISMATCH = 3;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_NO_COMPONENTS_SELECTED = 4;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_COMPONENT_NOT_FOUND = 5;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_REVOKED_COMPONENT = 6;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY = 7;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_UNSUPPORTED_KEY_VERSION = 8;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_MISSING_SECRET_KEY = 9;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_PROTECTED_SECRET_KEY = 10;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_MISSING_SELF_SIGNATURE = 11;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_INVALID_EXPIRATION = 12;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_TIME_CONFLICT = 13;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED = 14;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_METADATA_RESOLUTION_FAILED = 15;
+  OPEN_PGP_EXPIRATION_UPDATE_ERROR_REASON_INTERNAL_FAILURE = 16;
+}
+
+message OpenPgpExpirationUpdateSuccess {
+  OpenPgpKeyMaterial key_material = 1;
+  OpenPgpKeyMetadata metadata = 2;
+}
+
+message OpenPgpExpirationUpdateError {
+  OpenPgpExpirationUpdateErrorReason reason = 1;
+}
+
+message OpenPgpExpirationUpdateResult {
+  oneof result {
+    OpenPgpExpirationUpdateSuccess success = 1;
+    OpenPgpExpirationUpdateError error = 2;
+  }
+}
+
+enum OpenPgpAgentErrorReason {
+  OPEN_PGP_AGENT_ERROR_REASON_UNSPECIFIED = 0;
+  OPEN_PGP_AGENT_ERROR_REASON_KEY_NOT_FOUND = 1;
+  OPEN_PGP_AGENT_ERROR_REASON_UNSUPPORTED_ALGORITHM = 2;
+}
+
+message OpenPgpAgentSignRequest {
+  bytes private_key = 1;
+  string preferred_fingerprint = 2;
+  string hash_algorithm = 3;
+  bytes hash = 4;
+}
+
+message OpenPgpAgentSignSuccess {
+  bytes canonical_sexp = 1;
+}
+
+message OpenPgpAgentError {
+  OpenPgpAgentErrorReason reason = 1;
+}
+
+message OpenPgpAgentSignResult {
+  oneof result {
+    OpenPgpAgentSignSuccess success = 1;
+    OpenPgpAgentError error = 2;
+  }
+}
+
+message OpenPgpAgentDecryptRequest {
+  bytes private_key = 1;
+  string preferred_fingerprint = 2;
+  bytes ciphertext = 3;
+  bool unwrap_ecdh = 4;
+}
+
+message OpenPgpAgentDecryptSuccess {
+  bytes canonical_sexp = 1;
+}
+
+message OpenPgpAgentDecryptResult {
+  oneof result {
+    OpenPgpAgentDecryptSuccess success = 1;
+    OpenPgpAgentError error = 2;
+  }
+}
+
+message NativeResponse {
+  uint32 protocol_version = 1;
+  NativeStatus status = 2;
+
+  oneof result {
+    bytes bytes_value = 10;
+    sint32 int32_value = 11;
+    uint64 uint64_value = 12;
+  }
+}
+
+enum NativeErrorCode {
+  NATIVE_ERROR_CODE_OK = 0;
+  NATIVE_ERROR_CODE_INVALID_REQUEST = 1;
+  NATIVE_ERROR_CODE_UNSUPPORTED_PROTOCOL = 2;
+  NATIVE_ERROR_CODE_INVALID_ARGUMENT = 3;
+  NATIVE_ERROR_CODE_RESOURCE_LIMIT = 4;
+  NATIVE_ERROR_CODE_CRYPTO_FAILURE = 5;
+  NATIVE_ERROR_CODE_AUTHENTICATION_FAILED = 6;
+  NATIVE_ERROR_CODE_INVALID_SESSION = 7;
+  NATIVE_ERROR_CODE_PANIC = 8;
+  NATIVE_ERROR_CODE_INTERNAL = 9;
+  NATIVE_ERROR_CODE_UNSUPPORTED_KEY_VERSION = 10;
+  NATIVE_ERROR_CODE_NO_USABLE_KEY = 11;
+}
+
+message NativeStatus {
+  NativeErrorCode code = 1;
+  // Stable, non-secret operation identifier; empty before operation decoding.
+  string operation = 2;
+}

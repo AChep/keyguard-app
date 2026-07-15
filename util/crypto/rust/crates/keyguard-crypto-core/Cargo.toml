@@ -1,0 +1,59 @@
+[package]
+name = "keyguard-crypto-core"
+description = "Memory-safe native cryptographic primitives for Keyguard"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+aes.workspace = true
+argon2.workspace = true
+aws-lc-rs.workspace = true
+base64ct = { version = "=1.8.3", features = ["alloc"] }
+blowfish.workspace = true
+cbc.workspace = true
+chacha20.workspace = true
+cipher.workspace = true
+des.workspace = true
+ed25519-dalek.workspace = true
+flate2.workspace = true
+k256.workspace = true
+keyguard-crypto-sensitive = { path = "../keyguard-crypto-sensitive" }
+ocb3.workspace = true
+p256.workspace = true
+p384.workspace = true
+p521.workspace = true
+pkcs1 = { version = "=0.7.5", default-features = false, features = ["alloc"] }
+pkcs8 = { workspace = true, features = ["alloc"] }
+pgp.workspace = true
+prost.workspace = true
+rand.workspace = true
+rc2.workspace = true
+salsa20.workspace = true
+ssh-key = { path = "../../../../../thirdParty/rust/ssh-key-0.6.7-keyguard", default-features = false, features = ["keyguard-decryption", "std"] }
+thiserror.workspace = true
+twofish.workspace = true
+x25519-dalek.workspace = true
+zeroize.workspace = true
+
+[dev-dependencies]
+criterion = { version = "=0.8.2", default-features = false }
+proptest = "=1.11.0"
+
+[lints]
+workspace = true
+
+[[bench]]
+name = "argon2"
+harness = false
+
+[[bench]]
+name = "bulk_primitives"
+harness = false
+
+[[bench]]
+name = "small_primitives"
+harness = false

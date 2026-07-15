@@ -35,6 +35,7 @@ val releaseSigningProps = loadProps(keystoreFile("keyguard-release.properties"))
 
 android {
     compileSdk = libs.versions.androidCompileSdk.get().toInt()
+    ndkVersion = libs.versions.androidNdk.get()
     namespace = "com.artemchep.keyguard"
 
     defaultConfig {
@@ -44,6 +45,9 @@ android {
 
         versionCode = versionInfo.logicalVersion
         versionName = versionInfo.marketingVersion
+
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments["clearPackageData"] = "true"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -56,6 +60,10 @@ android {
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
+    }
+
+    testOptions {
+        execution = "ANDROIDX_TEST_ORCHESTRATOR"
     }
 
     bundle {
@@ -131,6 +139,11 @@ dependencies {
     debugImplementation(libs.jetbrains.compose.ui.tooling)
     testImplementation(kotlin("test"))
     testImplementation(libs.junit)
+
+    androidTestImplementation(project(":util:crypto"))
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestUtil(libs.androidx.test.orchestrator)
 }
 
 composeCompiler {

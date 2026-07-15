@@ -1,8 +1,9 @@
 package app.keemobile.kotpass.cryptography.format
 
-import app.keemobile.kotpass.cryptography.engines.ChaCha7539Engine
 import app.keemobile.kotpass.errors.CryptoError.AlgorithmUnavailable
 import app.keemobile.kotpass.errors.CryptoError.InvalidKey
+import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
+import com.artemchep.keyguard.nativecrypto.NativeStreamCipherAlgorithm
 import com.artemchep.keyguard.util.foundation.crypto.aesCbcPkcs7Decrypt
 import com.artemchep.keyguard.util.foundation.crypto.aesCbcPkcs7Encrypt
 import kotlin.uuid.Uuid
@@ -65,16 +66,18 @@ enum class BaseCiphers : CipherProvider {
             key: ByteArray,
             iv: ByteArray,
             data: ByteArray
-        ): ByteArray = ChaCha7539Engine()
-            .apply { init(key, iv) }
-            .processBytes(data)
+        ): ByteArray = NativeCryptoPrimitives.streamCipherXorAtOffset(
+            algorithm = NativeStreamCipherAlgorithm.CHACHA20,
+            key = key,
+            nonce = iv,
+            offset = 0,
+            data = data,
+        )
 
         override fun decrypt(
             key: ByteArray,
             iv: ByteArray,
             data: ByteArray
-        ): ByteArray = ChaCha7539Engine()
-            .apply { init(key, iv) }
-            .processBytes(data)
+        ): ByteArray = encrypt(key, iv, data)
     }
 }

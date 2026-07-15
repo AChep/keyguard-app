@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kmp.library)
+    id("keyguard.native-crypto-consumer")
 }
 
 kotlin {
@@ -21,6 +22,7 @@ kotlin {
             dependencies {
                 api(libs.kotlinx.io.core)
                 api(libs.squareup.okio)
+                implementation(project(":util:crypto"))
                 implementation(project(":util:foundation"))
             }
         }
@@ -32,6 +34,9 @@ kotlin {
 
         val jvmCommonTest by creating {
             dependsOn(commonTest)
+            dependencies {
+                implementation(libs.bouncycastle.bcprov)
+            }
         }
         val androidHostTest by getting {
             dependsOn(jvmCommonTest)

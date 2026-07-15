@@ -3,7 +3,7 @@ package com.artemchep.keyguard.common.service.gpgagent
 import com.artemchep.keyguard.common.service.crypto.GpgLegacyKeyFixtures
 import com.artemchep.keyguard.common.service.crypto.GpgTestKeyFixtures
 import com.artemchep.keyguard.common.util.hexToByteArray
-import com.artemchep.keyguard.crypto.GpgAgentCryptoJvm
+import com.artemchep.keyguard.crypto.NativeGpgAgentCrypto
 import com.artemchep.keyguard.crypto.armored
 import org.bouncycastle.asn1.ASN1EncodableVector
 import org.bouncycastle.asn1.ASN1Integer
@@ -46,7 +46,7 @@ class GpgAgentSigningTest {
     fun `legacy V2 and V3 private keys are unsupported`() {
         GpgLegacyKeyFixtures.versions.forEach { version ->
             assertFailsWith<GpgAgentUnsupportedAlgorithmException> {
-                GpgAgentCryptoJvm().signHash(
+                NativeGpgAgentCrypto.signHash(
                     privateKeyArmored = GpgLegacyKeyFixtures.secretRing(version).armored(),
                     metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = ""),
                     hashAlgorithm = "sha256",
@@ -60,7 +60,7 @@ class GpgAgentSigningTest {
     fun `ed25519 sig-val reconstructs a verifiable signature`() {
         val hash = sha256("keyguard ed25519 signing test".toByteArray())
 
-        val response = GpgAgentCryptoJvm().signHash(
+        val response = NativeGpgAgentCrypto.signHash(
             privateKeyArmored = GpgTestKeyFixtures.ED25519,
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = ""),
             hashAlgorithm = "sha256",
@@ -84,7 +84,7 @@ class GpgAgentSigningTest {
     fun `ecdsa sig-val reconstructs a verifiable signature`() {
         val hash = sha256("keyguard ecdsa signing test".toByteArray())
 
-        val response = GpgAgentCryptoJvm().signHash(
+        val response = NativeGpgAgentCrypto.signHash(
             privateKeyArmored = GpgTestKeyFixtures.ECDSA,
             metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = ""),
             hashAlgorithm = "sha256",

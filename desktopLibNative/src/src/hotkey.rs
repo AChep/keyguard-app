@@ -1,8 +1,16 @@
 use crate::ffi::HotKeyPressedCallback;
-use crate::platform;
 use std::sync::mpsc;
 use std::sync::Mutex;
 use std::thread;
+
+#[cfg_attr(target_os = "linux", path = "hotkey/linux.rs")]
+#[cfg_attr(target_os = "macos", path = "hotkey/macos.rs")]
+#[cfg_attr(target_os = "windows", path = "hotkey/windows.rs")]
+#[cfg_attr(
+    not(any(target_os = "macos", target_os = "windows", target_os = "linux")),
+    path = "hotkey/stub.rs"
+)]
+mod imp;
 
 #[allow(dead_code)]
 pub(crate) const REGISTER_STATUS_UNSUPPORTED_PLATFORM: i32 = -1;
@@ -82,11 +90,11 @@ pub(crate) fn with_restartable_thread<T: Clone, R>(
 }
 
 pub(crate) fn register(key_code: u32, modifiers: u32, callback: HotKeyPressedCallback) -> i32 {
-    platform::hotkey::register(key_code, modifiers, callback)
+    imp::register(key_code, modifiers, callback)
 }
 
 pub(crate) fn unregister(id: i32) -> bool {
-    platform::hotkey::unregister(id)
+    imp::unregister(id)
 }
 
 #[cfg(test)]

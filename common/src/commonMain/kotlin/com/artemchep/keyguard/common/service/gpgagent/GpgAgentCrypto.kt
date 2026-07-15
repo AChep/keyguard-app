@@ -2,8 +2,8 @@ package com.artemchep.keyguard.common.service.gpgagent
 
 /**
  * Performs the raw private-key operations a gpg-agent must provide for the
- * PKSIGN and PKDECRYPT Assuan commands. The real implementation relies on
- * BouncyCastle and is only available on JVM platforms (Android + Desktop).
+ * PKSIGN and PKDECRYPT Assuan commands. The production implementation is shared
+ * across platforms and delegates these operations to the native Rust module.
  *
  * Both entry points are pure and stateless: they take an ASCII-armored,
  * passphrase-less OpenPGP secret key, select the matching (sub)key via the

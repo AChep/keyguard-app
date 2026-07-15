@@ -16,6 +16,12 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup_gradle
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+      - name: "Prefetch locked native crypto graph"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
       - name: "Prepare env"
         run: |
           echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
@@ -28,7 +34,18 @@ jobs:
         with:
           build-flavor: "None"
       - name: "Build"
-        run: ./gradlew :androidApp:assembleNoneRelease
+        run: >-
+          ./gradlew
+          :androidApp:assembleNoneRelease
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+      - name: "Inspect packaged native crypto"
+        run: >-
+          python scripts/inspect_native_crypto_android.py
+          androidApp/build/outputs/apk/none/release/androidApp-none-release.apk
+      - name: "Reject Bouncy Castle and SSHJ from packaged APK"
+        run: >-
+          python scripts/check_bouncycastle_policy.py --artifact
+          androidApp/build/outputs/apk/none/release/androidApp-none-release.apk
       - name: 'Upload .apk'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:

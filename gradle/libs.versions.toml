@@ -133,7 +133,7 @@ kotpass = "0.13.0"
 # https://github.com/MohamedRejeb/Ksoup
 ksoup = "0.6.0"
 # https://github.com/java-native-access/jna
-jna = "5.18.1"
+jna = "5.19.1"
 # https://github.com/kdroidFilter/Platform-Tool
 platformtools = "0.7.5"
 # https://github.com/osipxd/encrypted-datastore

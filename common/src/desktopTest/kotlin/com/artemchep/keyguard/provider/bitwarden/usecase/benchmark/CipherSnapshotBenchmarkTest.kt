@@ -39,7 +39,7 @@ class CipherSnapshotBenchmarkTest {
     }
 
     @Test
-    fun `initial load comparison with old loader for ten thousand ciphers`() = runBlocking {
+    fun `initial load comparison with pre snapshot query for ten thousand ciphers`() = runBlocking {
         val currentState = createState(INITIAL_LOAD_COMPARISON_CIPHER_COUNT)
         val oldState = createState(INITIAL_LOAD_COMPARISON_CIPHER_COUNT)
         val currentLoad: suspend () -> CipherSnapshotLoadResult = {
@@ -49,7 +49,7 @@ class CipherSnapshotBenchmarkTest {
             )
         }
         val oldLoad: suspend () -> CipherSnapshotLoadResult = {
-            loadLikeOldImplementation(
+            loadUsingPreSnapshotQuery(
                 db = oldState.db,
                 previousSnapshotsByCipherId = emptyMap(),
             )
@@ -200,7 +200,7 @@ class CipherSnapshotBenchmarkTest {
         }
 
         val oldState = createState()
-        var oldPrevious = loadLikeOldImplementation(
+        var oldPrevious = loadUsingPreSnapshotQuery(
             db = oldState.db,
             previousSnapshotsByCipherId = emptyMap(),
         ).snapshotsByCipherId
@@ -219,7 +219,7 @@ class CipherSnapshotBenchmarkTest {
             },
             onComplete = { medianNs -> oldMedianNs = medianNs },
         ) {
-            loadLikeOldImplementation(
+            loadUsingPreSnapshotQuery(
                 db = oldState.db,
                 previousSnapshotsByCipherId = oldPrevious,
             ).also { load ->
@@ -291,16 +291,16 @@ class CipherSnapshotBenchmarkTest {
     }
 
     /**
-     * Mirrors the implementation immediately before the key-first loader: every payload is
-     * decoded by SQLDelight, while unchanged snapshots and domain objects are still reused.
+     * Uses the full-row query from before the snapshot loader. After the database read it builds
+     * current snapshots so the benchmark keeps the non-SQL work identical between both sides.
      */
-    private suspend fun loadLikeOldImplementation(
+    private suspend fun loadUsingPreSnapshotQuery(
         db: Database,
         previousSnapshotsByCipherId: Map<String, CipherSnapshot>,
     ): CipherSnapshotLoadResult {
         val rows = withContext(Dispatchers.IO) {
             db.cipherQueries
-                .getCipherSnapshots()
+                .get()
                 .executeAsList()
         }
         var changedCipherCount = 0

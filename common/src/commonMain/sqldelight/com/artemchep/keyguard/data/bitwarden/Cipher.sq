@@ -42,8 +42,7 @@ SELECT
   cipherId,
   data,
   dataRevCounter
-FROM cipher
-ORDER BY cipherId;
+FROM cipher;
 
 getCipherSnapshotKeys:
 SELECT

@@ -272,6 +272,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       CARGO_FUZZ_VERSION: "0.13.2"
+      RUSTUP_TOOLCHAIN: "nightly-2026-03-02"
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
         with:
@@ -279,7 +280,11 @@ jobs:
       - name: "Setup pinned nightly fuzz toolchain"
         uses: ./.github/actions/setup_rust
         with:
-          toolchain: "nightly-2026-03-02"
+          toolchain: ${{ env.RUSTUP_TOOLCHAIN }}
+      - name: "Verify pinned nightly fuzz toolchain"
+        run: |
+          rustup show active-toolchain
+          rustup show active-toolchain | grep -q "^${RUSTUP_TOOLCHAIN}-"
       - name: "Install pinned cargo-fuzz"
         run: cargo install --locked cargo-fuzz --version "$CARGO_FUZZ_VERSION"
       - name: "Compile all fuzz targets"

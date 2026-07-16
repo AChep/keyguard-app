@@ -232,13 +232,13 @@ jobs:
           arch: x86_64
           disable-animations: true
           disk-size: 4G
-          script: |
-            adb root || true
-            RESULT=0
-            ./gradlew --continue :androidApp:connected${{ matrix.variant }}AndroidTest || RESULT=$?
-            mkdir -p artifactsScreenRecording/
-            adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
-            exit $RESULT
+          script: >-
+            adb root || true;
+            RESULT=0;
+            ./gradlew --continue :androidApp:connected${{ matrix.variant }}AndroidTest || RESULT=$?;
+            mkdir -p artifactsScreenRecording/ || RESULT=$?;
+            adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true;
+            exit "$RESULT"
       - name: "Upload screen recordings"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()

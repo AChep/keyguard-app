@@ -19,14 +19,15 @@ runs:
         arch: x86_64
         disable-animations: true
         disk-size: 4G
-        script: |
-          adb root
-          ./gradlew \
-            :androidApp:generate${{ inputs.build-flavor }}BaselineProfile \
-            -Pkeyguard.nativeCrypto.cargoOffline=true ; RESULT=$?
-          mkdir -p artifacts/
-          adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
-          exit $RESULT
+        script: >-
+          adb root || exit $?;
+          RESULT=0;
+          ./gradlew
+          :androidApp:generate${{ inputs.build-flavor }}BaselineProfile
+          -Pkeyguard.nativeCrypto.cargoOffline=true || RESULT=$?;
+          mkdir -p artifacts/ || RESULT=$?;
+          adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true;
+          exit "$RESULT"
     - name: "Check retired crypto dependency and profile policy"
       shell: bash
       run: |

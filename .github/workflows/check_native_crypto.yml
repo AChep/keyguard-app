@@ -441,19 +441,19 @@ jobs:
           ${{ matrix.gradle }}
           --continue
           --max-workers=1
-          -Pkeyguard.nativeCrypto.cargoOffline=true
+          "-Pkeyguard.nativeCrypto.cargoOffline=true"
           ${{ matrix.tasks }}
       - name: "Run JVM import compatibility corpus"
         run: >-
           ${{ matrix.gradle }}
-          -Pkeyguard.nativeCrypto.cargoOffline=true
+          "-Pkeyguard.nativeCrypto.cargoOffline=true"
           :common:desktopTest
           --tests "com.artemchep.keyguard.common.service.crypto.SshKeyImportServiceJvmTest"
           --tests "com.artemchep.keyguard.common.service.crypto.SshImportCompatibilityCorpusTest"
       - name: "Run JVM OpenPGP compatibility suites"
         run: >-
           ${{ matrix.gradle }}
-          -Pkeyguard.nativeCrypto.cargoOffline=true
+          "-Pkeyguard.nativeCrypto.cargoOffline=true"
           :common:desktopTest
           --tests "com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserJvmTest"
           --tests "com.artemchep.keyguard.common.service.crypto.GpgOpenPgpServiceJvmTest"

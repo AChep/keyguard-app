@@ -16,6 +16,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup_gradle
+      - uses: ./.github/actions/setup_android_ndk
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
         with:

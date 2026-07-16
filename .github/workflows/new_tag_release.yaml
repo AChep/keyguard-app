@@ -467,6 +467,7 @@ jobs:
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/setup_python
+      - uses: ./.github/actions/setup_android_ndk
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
         with:
@@ -546,6 +547,7 @@ jobs:
           submodules: recursive
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/setup_python
+      - uses: ./.github/actions/setup_android_ndk
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
         with:
@@ -628,16 +630,7 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: aarch64-linux-android, armv7-linux-androideabi, x86_64-linux-android
-      - name: "Setup Android SDK"
-        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699
-      - name: "Install Android NDK"
-        run: |
-          ndk_version="$(sed -nE 's/^androidNdk = "([^"]+)"$/\1/p' gradle/libs.versions.toml)"
-          if [[ -z "$ndk_version" ]]; then
-            echo "Could not resolve androidNdk from gradle/libs.versions.toml" >&2
-            exit 1
-          fi
-          sdkmanager "ndk;$ndk_version" < <(yes)
+      - uses: ./.github/actions/setup_android_ndk
       - uses: ./.github/actions/setup_protobuf
       - name: "Install termux-create-package"
         run: |

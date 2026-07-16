@@ -210,6 +210,7 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_android_ndk
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
         with:

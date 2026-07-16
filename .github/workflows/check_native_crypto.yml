@@ -51,6 +51,7 @@ on:
       - "docs/security/native-crypto-*.md"
       - ".github/native-crypto-*"
       - ".github/actionlint.yaml"
+      - ".github/actions/setup_android_ndk/**"
       - ".github/actions/setup_gradle/**"
       - ".github/actions/setup_rust/**"
       - ".github/actions/setup_protobuf/**"
@@ -100,6 +101,7 @@ on:
       - "docs/security/native-crypto-*.md"
       - ".github/native-crypto-*"
       - ".github/actionlint.yaml"
+      - ".github/actions/setup_android_ndk/**"
       - ".github/actions/setup_gradle/**"
       - ".github/actions/setup_rust/**"
       - ".github/actions/setup_protobuf/**"
@@ -404,6 +406,8 @@ jobs:
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
       - uses: ./.github/actions/setup_python
+      - uses: ./.github/actions/setup_android_ndk
+        if: matrix.inspect-android
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
         with:
@@ -547,6 +551,7 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_android_ndk
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
         with:
@@ -608,6 +613,7 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_android_ndk
       - name: "Setup nRust toolchain"
         uses: ./.github/actions/setup_rust
         with:

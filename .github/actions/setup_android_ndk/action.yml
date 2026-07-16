@@ -1,0 +1,48 @@
+name: "Setup Android NDK"
+description: "Install the Android NDK version pinned in the Gradle version catalog"
+
+outputs:
+  ndk-version:
+    description: "The installed Android NDK version"
+    value: ${{ steps.resolve-ndk-version.outputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Setup Android SDK"
+      uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699
+    - name: "Resolve Android NDK version"
+      id: resolve-ndk-version
+      shell: bash
+      run: |
+        set -euo pipefail
+
+        ndk_version="$(sed -nE 's/^[[:space:]]*androidNdk[[:space:]]*=[[:space:]]*"([^"]+)"[[:space:]]*$/\1/p' gradle/libs.versions.toml)"
+        if [[ -z "$ndk_version" ]]; then
+          echo "Could not resolve androidNdk from gradle/libs.versions.toml" >&2
+          exit 1
+        fi
+
+        echo "version=$ndk_version" >> "$GITHUB_OUTPUT"
+    - name: "Install Android NDK"
+      shell: bash
+      env:
+        NDK_VERSION: ${{ steps.resolve-ndk-version.outputs.version }}
+      run: |
+        set -euo pipefail
+
+        sdkmanager "ndk;$NDK_VERSION" < <(yes)
+
+        android_sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+        if [[ -z "$android_sdk_root" ]]; then
+          echo "Neither ANDROID_SDK_ROOT nor ANDROID_HOME is set" >&2
+          exit 1
+        fi
+
+        ndk_directory="$android_sdk_root/ndk/$NDK_VERSION"
+        if [[ ! -d "$ndk_directory" ]]; then
+          echo "Android NDK installation was not found at $ndk_directory" >&2
+          exit 1
+        fi
+
+        echo "Installed Android NDK $NDK_VERSION at $ndk_directory"

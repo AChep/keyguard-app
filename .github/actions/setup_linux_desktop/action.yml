@@ -1,0 +1,11 @@
+name: "Setup Linux desktop"
+description: "Install system dependencies required to build the Linux desktop app"
+runs:
+  using: "composite"
+  steps:
+    - name: "Install X11 development files"
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libx11-dev
+        dpkg-query --show --showformat='${Version}\n' libx11-dev

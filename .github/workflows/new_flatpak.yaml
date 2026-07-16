@@ -33,8 +33,7 @@ jobs:
       - name: "Prefetch locked native crypto graph"
         run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
       - uses: ./.github/actions/setup_protobuf
-      - name: "Install X11 development files"
-        run: sudo apt-get install -y libx11-dev
+      - uses: ./.github/actions/setup_linux_desktop
       - uses: ./.github/actions/setup_python
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Build"

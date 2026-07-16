@@ -612,7 +612,7 @@ jobs:
           retention-days: 21
 
   wear-native-load:
-    name: "Wear native load (x86_64, API 30)"
+    name: "Wear native load (x86_64, API 33)"
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
@@ -638,7 +638,7 @@ jobs:
       - name: "Call native crypto on a Wear emulator"
         uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
         with:
-          api-level: 30
+          api-level: 33
           target: android-wear
           arch: x86_64
           profile: wearos_square
@@ -653,7 +653,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: native-crypto-wear-30-test-reports
+          name: native-crypto-wear-33-test-reports
           path: |
             wearApp/build/outputs/androidTest-results/
             wearApp/build/reports/androidTests/

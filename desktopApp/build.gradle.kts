@@ -237,7 +237,13 @@ compose.desktop {
         buildTypes {
             release {
                 proguard {
-                    isEnabled = false
+                    isEnabled = true
+                    obfuscate = false
+                    optimize = true
+                    configurationFiles.from(
+                        project.file("../common/proguard-rules.pro"),
+                        project.file("proguard-rules.pro"),
+                    )
                 }
             }
         }

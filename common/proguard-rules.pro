@@ -21,69 +21,6 @@
 #-renamesourcefileattribute SourceFile
 
 ##
-## https://github.com/sqlcipher/sqlcipher-android/issues/18
-##
-
--keep class androidx.room.** extends androidx.sqlite.db.SupportSQLiteOpenHelper
-
--keep,includedescriptorclasses class net.zetetic.database.** { *; }
--keep,includedescriptorclasses interface net.zetetic.database.** { *; }
-
-##
-## https://github.com/Kotlin/kotlinx.serialization#android
-##
-
-# Keep `Companion` object fields of serializable classes.
-# This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
--if @kotlinx.serialization.Serializable class **
--keepclassmembers class <1> {
-    static <1>$Companion Companion;
-}
-
-# Keep `serializer()` on companion objects (both default and named) of serializable classes.
--if @kotlinx.serialization.Serializable class ** {
-    static **$* *;
-}
--keepclassmembers class <2>$<3> {
-    kotlinx.serialization.KSerializer serializer(...);
-}
-
-# Keep `INSTANCE.serializer()` of serializable objects.
--if @kotlinx.serialization.Serializable class ** {
-    public static ** INSTANCE;
-}
--keepclassmembers class <1> {
-    public static <1> INSTANCE;
-    kotlinx.serialization.KSerializer serializer(...);
-}
-
-# @Serializable and @Polymorphic are used at runtime for polymorphic serialization.
--keepattributes RuntimeVisibleAnnotations,AnnotationDefault
-
-# Serializer for classes with named companion objects are retrieved using `getDeclaredClasses`.
-# If you have any, uncomment and replace classes with those containing named companion objects.
-#-keepattributes InnerClasses # Needed for `getDeclaredClasses`.
-#-if @kotlinx.serialization.Serializable class
-#com.example.myapplication.HasNamedCompanion, # <-- List serializable classes with named companions.
-#com.example.myapplication.HasNamedCompanion2
-#{
-#    static **$* *;
-#}
-#-keepnames class <1>$$serializer { # -keepnames suffices; class is kept when serializer() is kept.
-#    static <1>$$serializer INSTANCE;
-#}
-
-##
-## kodein
-##
-
--keep, allowobfuscation, allowoptimization class org.kodein.type.TypeReference
--keep, allowobfuscation, allowoptimization class org.kodein.type.JVMAbstractTypeToken$Companion$WrappingTest
-
--keep, allowobfuscation, allowoptimization class * extends org.kodein.type.TypeReference
--keep, allowobfuscation, allowoptimization class * extends org.kodein.type.JVMAbstractTypeToken$Companion$WrappingTest
-
-##
 ## java rx
 ##
 
@@ -113,31 +50,6 @@
 
 -keep,allowshrinking class * implements com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler {
     <methods>;
-}
-
-#
-# yubikey, can be removed after the next release
-# https://github.com/Yubico/yubikit-android/pull/297
-#
-
-# PIV module (deprecated in 2.4.0)
--dontwarn com.yubico.yubikit.piv.InvalidPinException
--dontwarn com.yubico.yubikit.piv.Padding
-
-# FIDO module (deprecated in 2.x)
--dontwarn com.yubico.yubikit.fido.webauthn.BasicWebAuthnClient
--dontwarn com.yubico.yubikit.fido.client.PinInvalidClientError
-
-# Core module (deprecated in 2.3.0)
--dontwarn com.yubico.yubikit.core.Logger
-
-# All modules
--keepnames class com.yubico.yubikit.**
-
-# YubiKeyPromptActivity reflectively instantiates YubiKeyPromptAction subclasses
-# using getDeclaredConstructor().newInstance().
--keep class * extends com.yubico.yubikit.android.ui.YubiKeyPromptAction {
-    public <init>();
 }
 
 ##

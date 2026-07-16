@@ -125,7 +125,6 @@ kotlin {
                 api(libs.devsrsouza.feather)
                 api(libs.haze.core)
                 api(libs.haze.blur)
-                api(libs.haze.materials)
                 api(libs.ksoup.html)
                 api(libs.snipme.highlights)
                 api(libs.kdroidfilter.platformtools.darkmodedetector)
@@ -239,7 +238,6 @@ kotlin {
                 implementation(libs.halilibo.richtext.markdown)
                 implementation(libs.mm2d.touchicon)
                 implementation(libs.google.zxing.core)
-                implementation(libs.icu4j)
                 implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
                 implementation(libs.squareup.okhttp)
                 implementation(libs.squareup.logging.interceptor)
@@ -250,6 +248,7 @@ kotlin {
         val desktopMain by getting {
             dependsOn(jvmMain)
             dependencies {
+                implementation(libs.icu4j)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.google.zxing.javase)

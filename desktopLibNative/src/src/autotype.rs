@@ -17,6 +17,7 @@ struct KeyEvent {
 }
 
 impl KeyEvent {
+    #[cfg(test)]
     fn down(key_code: u16) -> Self {
         Self {
             key_code,
@@ -25,6 +26,7 @@ impl KeyEvent {
         }
     }
 
+    #[cfg(test)]
     fn up(key_code: u16) -> Self {
         Self {
             key_code,

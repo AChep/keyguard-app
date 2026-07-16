@@ -440,7 +440,7 @@ impl CbcPkcs7Session {
         };
         let process_bytes = process_blocks * AES_BLOCK_BYTES;
         let mut output = Zeroizing::new(Vec::with_capacity(process_bytes));
-        for chunk in combined[..process_bytes].chunks_exact(AES_BLOCK_BYTES) {
+        for chunk in combined[..process_bytes].as_chunks::<AES_BLOCK_BYTES>().0 {
             self.transform_block(chunk, &mut output);
         }
         self.pending.extend_from_slice(&combined[process_bytes..]);

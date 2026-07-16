@@ -81,10 +81,8 @@ pub(super) fn parse_keyinfo_args(args: &str) -> Result<(bool, Option<String>)> {
                     list = true;
                 }
             }
-            other if !other.starts_with("--") => {
-                if keygrip_arg.is_none() {
-                    keygrip_arg = Some(other);
-                }
+            other if !other.starts_with("--") && keygrip_arg.is_none() => {
+                keygrip_arg = Some(other);
             }
             _ => {}
         }

@@ -153,7 +153,7 @@ jobs:
         run: cargo fmt --all -- --check
       - name: "Run Clippy"
         working-directory: util/crypto/rust
-        run: cargo clippy --workspace --all-targets --all-features --locked -- -D warnings
+        run: cargo clippy --workspace --all-targets --all-features --locked --no-deps -- -D warnings
       - name: "Run Rust tests"
         working-directory: util/crypto/rust
         run: cargo test --workspace --all-features --locked

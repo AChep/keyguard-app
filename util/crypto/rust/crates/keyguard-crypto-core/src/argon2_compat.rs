@@ -201,14 +201,14 @@ fn fill_blocks(
                     0
                 };
 
-                let mut current_index = lane * lane_length + slice * segment_length + first_block;
+                let first_index = lane * lane_length + slice * segment_length + first_block;
                 let mut previous_index = if slice == 0 && first_block == 0 {
-                    current_index + lane_length - 1
+                    first_index + lane_length - 1
                 } else {
-                    current_index - 1
+                    first_index - 1
                 };
 
-                for block in first_block..segment_length {
+                for (current_index, block) in (first_index..).zip(first_block..segment_length) {
                     let random = if data_independent_addressing {
                         let address_index = block % ADDRESSES_IN_BLOCK;
                         if address_index == 0 {
@@ -260,7 +260,6 @@ fn fill_blocks(
                         memory[current_index] ^= &*result;
                     }
                     previous_index = current_index;
-                    current_index += 1;
                 }
             }
         }
@@ -294,12 +293,8 @@ fn update_address_block(address: &mut Block, input: &mut Block, zero: &Block) {
 }
 
 fn load_block(block: &mut Block, input: &[u8; Block::SIZE]) {
-    for (word, chunk) in block.as_mut().iter_mut().zip(input.chunks_exact(8)) {
-        *word = u64::from_le_bytes(
-            chunk
-                .try_into()
-                .expect("chunks_exact guarantees an eight-byte block word"),
-        );
+    for (word, chunk) in block.as_mut().iter_mut().zip(input.as_chunks::<8>().0) {
+        *word = u64::from_le_bytes(*chunk);
     }
 }
 
@@ -348,7 +343,7 @@ fn compress(right: &Block, left: &Block) -> Zeroizing<Block> {
     }
 
     let mut result = Zeroizing::new(*xor);
-    for chunk in result.as_mut().chunks_exact_mut(16) {
+    for chunk in result.as_mut().as_chunks_mut::<16>().0 {
         permute!(
             chunk[0], chunk[1], chunk[2], chunk[3], chunk[4], chunk[5], chunk[6], chunk[7],
             chunk[8], chunk[9], chunk[10], chunk[11], chunk[12], chunk[13], chunk[14], chunk[15],

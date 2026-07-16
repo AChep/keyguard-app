@@ -541,13 +541,8 @@ pub(crate) fn random_ints(
             output.zeroize();
             return Err(PrimitiveError::CryptoFailure);
         }
-        for candidate in candidates.chunks_exact(size_of::<u32>()) {
-            let value = u64::from(u32::from_le_bytes([
-                candidate[0],
-                candidate[1],
-                candidate[2],
-                candidate[3],
-            ]));
+        for candidate in candidates.as_slice().as_chunks::<{ size_of::<u32>() }>().0 {
+            let value = u64::from(u32::from_le_bytes(*candidate));
             if value < limit {
                 let bounded_value =
                     u32::try_from(value % bound).map_err(|_| PrimitiveError::CryptoFailure)?;
@@ -880,7 +875,7 @@ where
 {
     let cipher = C::new_from_slice(key).map_err(|_| PrimitiveError::InvalidArgument)?;
     for _ in 0..rounds {
-        for chunk in data.chunks_exact_mut(AES_BLOCK_BYTES) {
+        for chunk in data.as_chunks_mut::<AES_BLOCK_BYTES>().0 {
             cipher.encrypt_block(Block::<C>::from_mut_slice(chunk));
         }
     }

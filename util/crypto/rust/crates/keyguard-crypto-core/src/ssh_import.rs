@@ -797,7 +797,9 @@ fn decode_hex(value: &str) -> Result<Vec<u8>, ImportError> {
     }
     value
         .as_bytes()
-        .chunks_exact(2)
+        .as_chunks::<2>()
+        .0
+        .iter()
         .map(|pair| {
             let high = hex_digit(pair[0]).ok_or(ImportError::MalformedKey)?;
             let low = hex_digit(pair[1]).ok_or(ImportError::MalformedKey)?;
@@ -1312,7 +1314,6 @@ fn decode_bounded_base64_secret(value: &str) -> Result<Zeroizing<Vec<u8>>, Impor
 #[cfg(test)]
 mod tests {
     use keyguard_crypto_sensitive::generate_rsa_pkcs1_der;
-    use pkcs8::der::{Decode as _, Encode as _};
     use ssh_key::{
         LineEnding, Mpint,
         private::{KeypairData, RsaKeypair, RsaPrivateKey as SshRsaPrivateKey},

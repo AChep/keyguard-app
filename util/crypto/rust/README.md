@@ -47,7 +47,7 @@ the wire schema before running the workspace checks:
 ```sh
 cargo run --manifest-path ../tools/native-crypto-protocol/Cargo.toml --locked -- check
 cargo fmt --all -- --check
-cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo clippy --workspace --all-targets --locked --no-deps -- -D warnings
 cargo test --workspace --all-targets --locked
 cargo check --manifest-path fuzz/Cargo.toml --all-targets
 cargo deny --config ../../../.github/native-crypto-deny.toml check

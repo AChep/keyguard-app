@@ -1153,10 +1153,10 @@ fn validate_public_key_parameter_values(params: &PublicParams) -> Result<(), Par
                 return Err(ParseFailure::ResourceLimit);
             }
         }
-        PublicParams::ECDSA(_) | PublicParams::ECDH(_) | PublicParams::EdDSALegacy(_) => {
-            if serialized_len > MAX_ECC_PUBLIC_PARAMETER_BYTES {
-                return Err(ParseFailure::ResourceLimit);
-            }
+        PublicParams::ECDSA(_) | PublicParams::ECDH(_) | PublicParams::EdDSALegacy(_)
+            if serialized_len > MAX_ECC_PUBLIC_PARAMETER_BYTES =>
+        {
+            return Err(ParseFailure::ResourceLimit);
         }
         _ => {}
     }
@@ -2247,7 +2247,9 @@ fn decode_hex(value: &str) -> Option<Vec<u8>> {
     }
     value
         .as_bytes()
-        .chunks_exact(2)
+        .as_chunks::<2>()
+        .0
+        .iter()
         .map(|pair| {
             let high = hex_nibble(pair[0])?;
             let low = hex_nibble(pair[1])?;

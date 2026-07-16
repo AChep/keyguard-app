@@ -346,10 +346,7 @@ mod tests {
     fn connection_cap_preserves_fd_reserve_and_never_reaches_zero() {
         assert_eq!(max_connections_for_soft_limit(0), 1);
         assert_eq!(max_connections_for_soft_limit(NON_AGENT_FD_RESERVE), 1);
-        assert_eq!(
-            max_connections_for_soft_limit(NON_AGENT_FD_RESERVE + 2),
-            (2 / AGENT_FDS_PER_CONNECTION).max(1),
-        );
+        assert_eq!(max_connections_for_soft_limit(NON_AGENT_FD_RESERVE + 2), 1);
         assert_eq!(max_connections_for_soft_limit(usize::MAX), 32);
         assert!((1..=MAX_CONCURRENT_CONNECTIONS).contains(&default_max_connections()));
         assert_eq!(

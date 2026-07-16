@@ -1061,7 +1061,9 @@ mod tests {
     fn decode_hex(value: &str) -> Vec<u8> {
         value
             .as_bytes()
-            .chunks_exact(2)
+            .as_chunks::<2>()
+            .0
+            .iter()
             .map(|pair| {
                 let pair = std::str::from_utf8(pair).expect("test hex must be UTF-8");
                 u8::from_str_radix(pair, 16).expect("test hex must decode")
@@ -2529,11 +2531,11 @@ mod tests {
             },
         )));
         assert_eq!(bytes.len(), 17 * size_of::<i32>());
-        for encoded in bytes.chunks_exact(size_of::<i32>()) {
+        for encoded in bytes.as_chunks::<{ size_of::<i32>() }>().0 {
             assert_eq!(&encoded[1..], &[0, 0, 0]);
-            let value = i32::from_le_bytes([encoded[0], encoded[1], encoded[2], encoded[3]]);
+            let value = i32::from_le_bytes(*encoded);
             assert!((0..256).contains(&value));
-            assert_eq!(value.to_le_bytes(), encoded);
+            assert_eq!(value.to_le_bytes(), *encoded);
         }
     }
 
@@ -2557,8 +2559,8 @@ mod tests {
                 },
             )));
             assert_eq!(bytes.len(), 256 * size_of::<i32>());
-            for encoded in bytes.chunks_exact(size_of::<i32>()) {
-                let value = i32::from_le_bytes([encoded[0], encoded[1], encoded[2], encoded[3]]);
+            for encoded in bytes.as_chunks::<{ size_of::<i32>() }>().0 {
+                let value = i32::from_le_bytes(*encoded);
                 assert!(value >= 0);
                 assert!(u32::try_from(value).is_ok_and(|value| value < bound));
             }

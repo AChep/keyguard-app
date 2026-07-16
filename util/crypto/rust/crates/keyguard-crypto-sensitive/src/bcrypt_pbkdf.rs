@@ -49,7 +49,12 @@ pub fn bcrypt_pbkdf(
         let mut current = Zeroizing::new([0_u8; BCRYPT_HASH_BYTES]);
         let mut accumulator = Zeroizing::new([0_u8; BCRYPT_HASH_BYTES]);
 
-        for (index, chunk) in generated.chunks_exact_mut(BCRYPT_HASH_BYTES).enumerate() {
+        for (index, chunk) in generated
+            .as_chunks_mut::<BCRYPT_HASH_BYTES>()
+            .0
+            .iter_mut()
+            .enumerate()
+        {
             // `stride` is at most 32 under MAX_OUTPUT_BYTES, so this conversion
             // cannot fail. Keep it checked to preserve the local proof if the
             // output policy changes later.
@@ -112,12 +117,12 @@ fn bcrypt_hash(
     }
 
     let mut words = Zeroizing::new([0_u32; BCRYPT_HASH_WORDS]);
-    for (word, seed) in words.iter_mut().zip(BCRYPT_HASH_SEED.chunks_exact(4)) {
-        *word = u32::from_be_bytes([seed[0], seed[1], seed[2], seed[3]]);
+    for (word, seed) in words.iter_mut().zip(BCRYPT_HASH_SEED.as_chunks::<4>().0) {
+        *word = u32::from_be_bytes(*seed);
     }
 
     for _ in 0..64 {
-        for pair in words.chunks_exact_mut(2) {
+        for pair in words.as_chunks_mut::<2>().0 {
             let encrypted = Zeroizing::new(blowfish.bc_encrypt([pair[0], pair[1]]));
             pair.copy_from_slice(&*encrypted);
         }

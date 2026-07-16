@@ -417,6 +417,7 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: ${{ matrix.rust-targets }}
+      - uses: ./.github/actions/setup_protobuf
       - name: "Prefetch locked native crypto graph"
         run: |
           cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked

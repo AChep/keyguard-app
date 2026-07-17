@@ -97,14 +97,16 @@ internal fun createItem(
     favourite = source.favorite,
     attachments = source.attachments.isNotEmpty(),
     action = VaultItem2.Item.Action.None,
-    localStateFlow = MutableStateFlow(
-        VaultItem2.Item.LocalState(
-            openedState = VaultItem2.Item.OpenedState(isOpened = false),
-            selectableItemState = SelectableItemState(
-                selecting = false,
-                selected = false,
-                onClick = null,
-                onLongClick = null,
+    localStateSource = VaultItem2.Item.LocalStateSource.PerItem(
+        MutableStateFlow(
+            VaultItem2.Item.LocalState(
+                openedState = VaultItem2.Item.OpenedState(isOpened = false),
+                selectableItemState = SelectableItemState(
+                    selecting = false,
+                    selected = false,
+                    onClick = null,
+                    onLongClick = null,
+                ),
             ),
         ),
     ),

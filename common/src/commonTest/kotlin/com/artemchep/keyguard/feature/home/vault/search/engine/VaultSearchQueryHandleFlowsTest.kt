@@ -131,6 +131,57 @@ class VaultSearchQueryHandleFlowsTest {
     }
 
     @Test
+    fun `empty query presentation bypasses the qualifier catalog`() = runTest {
+        val qualifierCatalogFlow = MutableSharedFlow<VaultSearchQualifierCatalog>()
+        val highlighter = RecordingQueryHighlighter()
+
+        val highlighting = flowOf(TextCell(""))
+            .vaultSearchQueryHighlightingFlow(
+                qualifierCatalogFlow = qualifierCatalogFlow,
+                searchBy = VaultRoute.Args.SearchBy.ALL,
+                queryHighlighter = highlighter,
+            )
+            .first()
+        val suggestion = flowOf(TextCell("   "))
+            .vaultSearchQualifierSuggestionFlow(
+                qualifierCatalogFlow = qualifierCatalogFlow,
+            )
+            .first()
+
+        assertEquals(QueryHighlighting.Empty, highlighting)
+        assertNull(suggestion)
+        assertEquals(0, qualifierCatalogFlow.subscriptionCount.value)
+        assertEquals(emptyList(), highlighter.calls)
+    }
+
+    @Test
+    fun `non-empty query presentation waits for the qualifier catalog`() = runTest {
+        val qualifierCatalogFlow = MutableSharedFlow<VaultSearchQualifierCatalog>()
+        val highlighter = RecordingQueryHighlighter()
+        val result = async {
+            flowOf(TextCell("alice"))
+                .vaultSearchQueryHighlightingFlow(
+                    qualifierCatalogFlow = qualifierCatalogFlow,
+                    searchBy = VaultRoute.Args.SearchBy.ALL,
+                    queryHighlighter = highlighter,
+                )
+                .first()
+        }
+
+        runCurrent()
+        assertEquals(1, qualifierCatalogFlow.subscriptionCount.value)
+        assertFalse(result.isCompleted)
+
+        qualifierCatalogFlow.emit(defaultVaultSearchQualifierCatalog)
+
+        assertNotNull(result.await())
+        assertEquals(
+            listOf("alice" to VaultRoute.Args.SearchBy.ALL),
+            highlighter.calls,
+        )
+    }
+
+    @Test
     fun `non-empty query subscribes and compiles once the index is available`() = runTest {
         val searchIndexFlow = MutableSharedFlow<TestVaultSearchIndex>()
         val index = TestVaultSearchIndex()

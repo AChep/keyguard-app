@@ -86,6 +86,7 @@ import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.feature.EmptyView
+import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
@@ -127,6 +128,8 @@ import com.artemchep.keyguard.ui.util.DividerColor
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.painterResource
 import kotlin.math.ln
 
@@ -303,20 +306,53 @@ fun VaultListItemText(
         dropdownExpandedState.value = false
     }
 
-    val localState by item.localStateFlow.collectAsState()
+    val localStateSource = item.localStateSource
+    val (opened, selectableItemState) = when (localStateSource) {
+        is VaultItem2.Item.LocalStateSource.PerItem -> {
+            val localState by localStateSource.stateFlow.collectAsState()
+            localState.openedState.isOpened to localState.selectableItemState
+        }
 
-    val onClick = localState.selectableItemState.onClick
+        is VaultItem2.Item.LocalStateSource.Shared -> {
+            val interactionId = item.interactionId
+            val itemStateFlow = remember(localStateSource, interactionId) {
+                localStateSource.stateFlow
+                    .map { it.forItem(interactionId) }
+                    .distinctUntilChanged()
+            }
+            val itemState by itemStateFlow.collectAsState(
+                initial = localStateSource.stateFlow.value.forItem(interactionId),
+            )
+            val onToggleSelection = remember(localStateSource, interactionId) {
+                {
+                    localStateSource.onToggleSelection(interactionId)
+                }
+            }
+            val selectableItemState = SelectableItemState(
+                selecting = itemState.selecting,
+                selected = itemState.selected,
+                can = localStateSource.canSelect,
+                onClick = onToggleSelection.takeIf { itemState.selecting },
+                onLongClick = onToggleSelection.takeIf {
+                    !itemState.selecting && localStateSource.canSelect
+                },
+            )
+            itemState.opened to selectableItemState
+        }
+    }
+
+    val onClick = selectableItemState.onClick
     // fallback to default
         ?: when (item.action) {
             VaultItem2.Item.Action.None -> null
             is VaultItem2.Item.Action.Dropdown -> dropdownExpand
             is VaultItem2.Item.Action.Go -> item.action.onClick
-        }.takeIf { localState.selectableItemState.can }
-    val onLongClick = localState.selectableItemState.onLongClick
+        }.takeIf { selectableItemState.can }
+    val onLongClick = selectableItemState.onLongClick
 
     val backgroundColor = when {
-        localState.selectableItemState.selected -> MaterialTheme.colorScheme.primaryContainer
-        localState.openedState.isOpened ->
+        selectableItemState.selected -> MaterialTheme.colorScheme.primaryContainer
+        opened ->
             MaterialTheme.colorScheme.selectedContainer
                 .takeIf { LocalHasDetailPane.current }
                 ?: Color.Unspecified
@@ -536,7 +572,7 @@ fun VaultListItemText(
             Spacer(modifier = Modifier.width(8.dp))
 
             val tqry = when {
-                localState.selectableItemState.selecting -> Try.CHECKBOX
+                selectableItemState.selecting -> Try.CHECKBOX
                 item.action is VaultItem2.Item.Action.Go -> Try.CHEVRON
                 else -> Try.NONE
             }
@@ -556,7 +592,7 @@ fun VaultListItemText(
                     when (it) {
                         Try.CHECKBOX -> {
                             Checkbox(
-                                checked = localState.selectableItemState.selected,
+                                checked = selectableItemState.selected,
                                 onCheckedChange = null,
                             )
                         }

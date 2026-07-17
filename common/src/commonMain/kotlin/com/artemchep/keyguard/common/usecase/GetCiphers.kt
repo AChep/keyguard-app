@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.usecase
 
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
+import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.DSendFilter
@@ -21,6 +22,16 @@ fun filterHiddenProfiles(
     getCiphers: GetCiphers,
     getProfiles: GetProfiles,
     filter: DFilter? = null,
+): Flow<List<DSecret>> = filterHiddenProfiles(
+    ciphersFlow = getCiphers(),
+    profilesFlow = getProfiles(),
+    filter = filter,
+)
+
+fun filterHiddenProfiles(
+    ciphersFlow: Flow<List<DSecret>>,
+    profilesFlow: Flow<List<DProfile>>,
+    filter: DFilter? = null,
 ): Flow<List<DSecret>> {
     val shouldFilter = filter
         ?.let { f ->
@@ -31,13 +42,22 @@ fun filterHiddenProfiles(
         }
         ?: true
     return if (shouldFilter) {
-        _filterHiddenProfiles(
-            getItems = getCiphers,
-            getProfiles = getProfiles,
-            getAccount = { it.accountId },
-        )
+        val hiddenAccountIdsFlow = profilesFlow
+            .map { profiles ->
+                profiles
+                    .asSequence()
+                    .filter { it.hidden }
+                    .map { it.accountId }
+                    .toPersistentSet()
+            }
+            .distinctUntilChanged()
+        ciphersFlow.combine(hiddenAccountIdsFlow) { ciphers, hiddenAccountIds ->
+            ciphers.filter { cipher ->
+                cipher.accountId !in hiddenAccountIds
+            }
+        }
     } else {
-        getCiphers()
+        ciphersFlow
     }
 }
 

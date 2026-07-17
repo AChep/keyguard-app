@@ -19,6 +19,7 @@ import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.AccentColors
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentSet
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -93,6 +94,7 @@ sealed interface VaultItem2 {
     data class Item(
         override val id: String,
         val source: DSecret,
+        val interactionId: String = source.id,
         val accentLight: Color,
         val accentDark: Color,
         val tag: String? = source.accountId,
@@ -123,7 +125,7 @@ sealed interface VaultItem2 {
         val shapeState: Int = ShapeState.ALL,
         //
         val action: Action,
-        val localStateFlow: StateFlow<LocalState>,
+        val localStateSource: LocalStateSource,
     ) : VaultItem2, GroupableShapeItem<Item> {
         companion object;
 
@@ -140,6 +142,40 @@ sealed interface VaultItem2 {
         @Immutable
         data class OpenedState(
             val isOpened: Boolean,
+        )
+
+        @Immutable
+        sealed interface LocalStateSource {
+            @Immutable
+            data class PerItem(
+                val stateFlow: StateFlow<LocalState>,
+            ) : LocalStateSource
+
+            @Immutable
+            data class Shared(
+                val stateFlow: StateFlow<SharedState>,
+                val canSelect: Boolean = true,
+                val onToggleSelection: (String) -> Unit,
+            ) : LocalStateSource
+        }
+
+        @Immutable
+        data class SharedState(
+            val selectedIds: PersistentSet<String>,
+            val openedId: String?,
+        ) {
+            fun forItem(itemId: String) = SharedItemState(
+                selecting = selectedIds.isNotEmpty(),
+                selected = itemId in selectedIds,
+                opened = itemId == openedId,
+            )
+        }
+
+        @Immutable
+        data class SharedItemState(
+            val selecting: Boolean,
+            val selected: Boolean,
+            val opened: Boolean,
         )
 
         @Immutable

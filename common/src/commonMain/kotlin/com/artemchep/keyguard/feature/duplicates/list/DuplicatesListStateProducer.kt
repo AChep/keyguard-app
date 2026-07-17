@@ -79,6 +79,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
@@ -439,16 +441,35 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     confirmationRouteFactory: ConfirmationRouteFactory,
     //
     toolbox: CipherToolbox,
-) = combine(
-    ciphersFlow,
-    selectionHandle.idsFlow,
-    collectionsFlow,
-    canWriteFlow,
-) { ciphers, selectedCipherIds, collections, canWrite ->
+) = selectionHandle.idsFlow.flatMapLatest { selectedCipherIds ->
     if (selectedCipherIds.isEmpty()) {
-        return@combine null
+        return@flatMapLatest flowOf<Selection?>(null)
     }
 
+    createCipherSelectionFlow(
+        selectionHandle = selectionHandle,
+        ciphersFlow = ciphersFlow,
+        collectionsFlow = collectionsFlow,
+        canWriteFlow = canWriteFlow,
+        confirmationRouteFactory = confirmationRouteFactory,
+        toolbox = toolbox,
+        selectedCipherIds = selectedCipherIds,
+    )
+}
+
+private fun RememberStateFlowScope.createCipherSelectionFlow(
+    selectionHandle: SelectionHandle,
+    ciphersFlow: Flow<List<DSecret>>,
+    collectionsFlow: Flow<List<DCollection>>,
+    canWriteFlow: Flow<Boolean>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    toolbox: CipherToolbox,
+    selectedCipherIds: Set<String>,
+) = combine(
+    ciphersFlow,
+    collectionsFlow,
+    canWriteFlow,
+) { ciphers, collections, canWrite ->
     val selectedCiphers = ciphers
         .filter { it.id in selectedCipherIds }
     val selectedCiphersByAccount = selectedCiphers

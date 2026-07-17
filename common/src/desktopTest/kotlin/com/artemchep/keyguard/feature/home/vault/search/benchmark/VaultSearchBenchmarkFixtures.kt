@@ -515,8 +515,8 @@ internal object VaultSearchBenchmarkFixtures {
         favourite = source.favorite,
         attachments = source.attachments.isNotEmpty(),
         action = VaultItem2.Item.Action.None,
-        localStateFlow =
-            MutableStateFlow(
+        localStateSource =
+            VaultItem2.Item.LocalStateSource.PerItem(MutableStateFlow(
                 VaultItem2.Item.LocalState(
                     openedState = VaultItem2.Item.OpenedState(isOpened = false),
                     selectableItemState =
@@ -527,7 +527,7 @@ internal object VaultSearchBenchmarkFixtures {
                             onLongClick = null,
                         ),
                 ),
-            ),
+            )),
     )
 
     private fun createCopyText(): CopyText = CopyText(

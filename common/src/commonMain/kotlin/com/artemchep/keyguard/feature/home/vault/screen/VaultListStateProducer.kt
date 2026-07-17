@@ -72,8 +72,6 @@ import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.AttachmentsRoute
-import com.artemchep.keyguard.feature.attachments.SelectableItemState
-import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.common.TextCell
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
@@ -88,7 +86,6 @@ import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
 import com.artemchep.keyguard.feature.duplicates.list.createCipherSelectionFlow
 import com.artemchep.keyguard.feature.filter.CipherFiltersRoute
-import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.settings.subscriptions.SubscriptionsSettingsRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
@@ -148,21 +145,25 @@ import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import org.jetbrains.compose.resources.StringResource
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.take
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
@@ -433,6 +434,53 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
 ): Flow<VaultListState> {
     val confirmationRouteFactory: ConfirmationRouteFactory = directDI.instance()
+    // Start all repository-backed session sources before the disk restore. The
+    // hub invokes each use case once and owns replay only for this screen/session
+    // scope, so the persisted-state read can overlap repository readiness.
+    val sessionInputs = VaultSessionInputs(
+        scope = this,
+        getCiphers = getCiphers,
+        getProfiles = getProfiles,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getAccounts = getAccounts,
+        getCanWrite = getCanWrite,
+        getConcealFields = getConcealFields,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+    )
+    val writeCapabilityFlow = vaultListWriteCapabilityFlow(
+        hasAccountsFlow = sessionInputs.accounts
+            .map { accounts ->
+                accounts.isNotEmpty()
+            }
+            .distinctUntilChanged(),
+        capabilityFlow = sessionInputs.canWrite,
+    )
+        .stateIn(
+            scope = this,
+            started = SharingStarted.Eagerly,
+            initialValue = WriteCapability.Unknown,
+        )
+    val canWriteFlow = writeCapabilityFlow
+        .map { capability ->
+            capability == WriteCapability.Allowed
+        }
+        .distinctUntilChanged()
+    // These deferred metadata/action sources
+    // are also invoked once locally.
+    val foldersFlow = getFolders()
+        .shareIn(
+            scope = this,
+            started = SharingStarted.WhileSubscribed(5_000L),
+            replay = 1,
+        )
+    val tagsFlow = getTags()
+        .shareIn(
+            scope = this,
+            started = SharingStarted.WhileSubscribed(5_000L),
+            replay = 1,
+        )
     val storage = kotlin.run {
         val disk = loadDiskHandle("vault.list")
         PersistedStorage.InDisk(disk)
@@ -498,10 +546,15 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     val copy = copier()
 
     val ciphersRawFlow = filterHiddenProfiles(
-        getProfiles = getProfiles,
-        getCiphers = getCiphers,
+        profilesFlow = sessionInputs.profiles,
+        ciphersFlow = sessionInputs.ciphers,
         filter = args.filter,
     )
+        .shareIn(
+            scope = this,
+            started = SharingStarted.WhileSubscribed(5000L),
+            replay = 1,
+        )
 
     val queryHandle = vaultSearchQueryHandle(
         key = "query",
@@ -560,11 +613,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         KeyShortcut(
             key = Key.N,
             isCtrlPressed = true,
-        ) to combine(
-            getAccounts()
-                .map { it.isNotEmpty() },
-            getCanWrite(),
-        ) { hasAccounts, canWrite -> hasAccounts && canWrite }
+        ) to canWriteFlow
             .map { enabled ->
                 if (enabled) {
                     // lambda
@@ -604,6 +653,25 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     val itemSink = mutablePersistedFlow("lole") { "" }
 
     val selectionHandle = selectionHandle("selection")
+    val itemLocalStateSource = VaultItem2.Item.LocalStateSource.Shared(
+        stateFlow = combine(
+            selectionHandle.idsFlow,
+            itemSink,
+        ) { selectedIds, openedId ->
+            VaultItem2.Item.SharedState(
+                selectedIds = selectedIds.toPersistentSet(),
+                openedId = openedId.takeIf { it.isNotEmpty() },
+            )
+        }.stateIn(
+            scope = this,
+            started = SharingStarted.Eagerly,
+            initialValue = VaultItem2.Item.SharedState(
+                selectedIds = selectionHandle.idsFlow.value.toPersistentSet(),
+                openedId = itemSink.value.takeIf { it.isNotEmpty() },
+            ),
+        ),
+        onToggleSelection = selectionHandle::toggleSelection,
+    )
     // Automatically remove selection from ciphers
     // that do not exist anymore.
     ciphersRawFlow
@@ -870,7 +938,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                 }
             }
         }
-        val actionFolderRenameFlow = getFolders()
+        val actionFolderRenameFlow = foldersFlow
             .map { folders ->
                 val folder = folders.firstOrNull { it.id == fffFolderId }
                 if (folder != null) {
@@ -927,76 +995,70 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         }
     }
 
-    val recentState = MutableStateFlow(
-        VaultItem2.Item.LocalState(
-            openedState = VaultItem2.Item.OpenedState(false),
-            selectableItemState = SelectableItemState(
-                selected = false,
-                selecting = false,
-                can = true,
-                onClick = null,
-                onLongClick = null,
-            ),
-        ),
-    )
-
     data class ConfigMapper(
         val concealFields: Boolean,
         val appIcons: Boolean,
         val websiteIcons: Boolean,
-        val canWrite: Boolean,
+        val writeCapability: WriteCapability,
+    )
+
+    data class AccountAvailability(
+        val value: Boolean?,
     )
 
     val configFlow = combine(
-        getConcealFields(),
-        getAppIcons(),
-        getWebsiteIcons(),
-        getCanWrite(),
-    ) { concealFields, appIcons, websiteIcons, canWrite ->
+        sessionInputs.concealFields,
+        sessionInputs.appIcons,
+        sessionInputs.websiteIcons,
+        writeCapabilityFlow,
+    ) { concealFields, appIcons, websiteIcons, writeCapability ->
         ConfigMapper(
             concealFields = concealFields,
             appIcons = appIcons,
             websiteIcons = websiteIcons,
-            canWrite = canWrite,
+            writeCapability = writeCapability,
         )
     }.distinctUntilChanged()
-    val organizationsByIdFlow = getOrganizations()
+    val organizationsByIdFlow = sessionInputs.organizations
         .map { organizations ->
             organizations
                 .associateBy { it.id }
         }
+        .onStart {
+            emit(emptyMap())
+        }
+        .distinctUntilChanged()
 
     val ciphersFlow = combine(
         ciphersRawFlow,
         organizationsByIdFlow,
         configFlow,
     ) { secrets, organizationsById, cfg -> Triple(secrets, organizationsById, cfg) }
-        .mapLatestScoped { (secrets, organizationsById, cfg) ->
-            val items = secrets
-                .run {
-                    if (mode is AppMode.PickPasskey) {
-                        return@run this
-                            .filter { cipher ->
-                                val credentials = cipher.login?.fido2Credentials.orEmpty()
-                                credentials
-                                    .any { credential ->
-                                        passkeyTargetCheck(credential, mode.target)
-                                            .attempt()
-                                            .bind()
-                                            .isRight { it }
-                                    }
-                            }
-                    }
-                    if (mode is AppMode.HasType) {
-                        val type = mode.type
-                        if (type != null) {
-                            return@run this
-                                .filter { it.type == type }
+        .mapLatest { (secrets, organizationsById, cfg) ->
+            val items = secrets.run {
+                if (mode is AppMode.PickPasskey) {
+                    return@run this
+                        .filter { cipher ->
+                            val credentials = cipher.login?.fido2Credentials.orEmpty()
+                            credentials
+                                .any { credential ->
+                                    passkeyTargetCheck(credential, mode.target)
+                                        .attempt()
+                                        .bind()
+                                        .isRight { it }
+                                }
                         }
-                    }
-
-                    this
                 }
+                if (mode is AppMode.HasType) {
+                    val type = mode.type
+                    if (type != null) {
+                        return@run this
+                            .filter { it.type == type }
+                    }
+                }
+
+                this
+            }
                 .filter {
                     val passesTrashFilter = when (args.trash) {
                         true -> it.deletedDate != null
@@ -1011,44 +1073,6 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                     passesTrashFilter && passesArchiveFilter
                 }
                 .map { secret ->
-                    val selectableFlow = selectionHandle
-                        .idsFlow
-                        .map { ids ->
-                            SelectableItemStateRaw(
-                                selecting = ids.isNotEmpty(),
-                                selected = secret.id in ids,
-                            )
-                        }
-                        .distinctUntilChanged()
-                        .map { raw ->
-                            val toggle = selectionHandle::toggleSelection
-                                .partially1(secret.id)
-                            val onClick = toggle.takeIf { raw.selecting }
-                            val onLongClick = toggle
-                                .takeIf { !raw.selecting && raw.canSelect }
-                            SelectableItemState(
-                                selecting = raw.selecting,
-                                selected = raw.selected,
-                                can = raw.canSelect,
-                                onClick = onClick,
-                                onLongClick = onLongClick,
-                            )
-                        }
-                    val openedStateFlow = itemSink
-                        .map {
-                            val isOpened = it == secret.id
-                            VaultItem2.Item.OpenedState(isOpened)
-                        }
-                    val sharing = SharingStarted.WhileSubscribed(1000L)
-                    val localStateFlow = combine(
-                        selectableFlow,
-                        openedStateFlow,
-                    ) { selectableState, openedState ->
-                        VaultItem2.Item.LocalState(
-                            openedState,
-                            selectableState,
-                        )
-                    }.persistingStateIn(this, sharing)
                     val item = secret.toVaultListItem(
                         copy = copy,
                         translator = this@vaultListScreenStateProducer,
@@ -1057,7 +1081,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                         appIcons = cfg.appIcons,
                         websiteIcons = cfg.websiteIcons,
                         organizationsById = organizationsById,
-                        localStateFlow = localStateFlow,
+                        localStateSource = itemLocalStateSource,
                         onClick = { actions ->
                             fun buildContextItemsForSaveAction(
                                 block: ContextItemBuilder.() -> Unit,
@@ -1092,7 +1116,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                                                 mode.onAutofill(secret, extra)
                                             },
                                         )
-                                        if (cfg.canWrite) {
+                                        if (cfg.writeCapability == WriteCapability.Allowed) {
                                             this += FlatItemAction(
                                                 id = "vaultList.pick.autofillAndSave",
                                                 leading = iconSmall(
@@ -1507,34 +1531,13 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                     // If a user is in the pick a password mode,
                     // then we want to always show it in the items.
                     mode is AppMode.SavePassword
-            val l = if (keepOtp && keepPasskey && keepPassword) {
-                it.list
-            } else {
-                it.list
-                    .mapIndexed { index, item ->
-                        when (item) {
-                            is VaultItem2.Item -> {
-                                val shapeState = getShapeState(
-                                    list = it.list,
-                                    index = index,
-                                    predicate = { el, _ -> el is VaultItem2.Item },
-                                )
-                                item.copy(
-                                    shapeState = shapeState,
-                                    token = item.token.takeIf { keepOtp },
-                                    passwords = item.passwords.takeIf { keepPassword }
-                                        ?: persistentListOf(),
-                                    passkeys = item.passkeys.takeIf { keepPasskey }
-                                        ?: persistentListOf(),
-                                    attachments2 = item.attachments2.takeIf { keepAttachment }
-                                        ?: persistentListOf(),
-                                )
-                            }
-
-                            else -> item
-                        }
-                    }
-            }
+            val l = pruneVaultListItemPresentation(
+                list = it.list,
+                keepOtp = keepOtp,
+                keepPasskey = keepPasskey,
+                keepPassword = keepPassword,
+                keepAttachment = keepAttachment,
+            )
 
             Rev(
                 count = it.count,
@@ -1580,40 +1583,47 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     } else {
         null
     }
-    val filterListFlow = createFilterItemsFlow(
-        directDI = directDI,
-        outputGetter = { it.source },
-        outputFlow = ciphersFilteredFlow
-            .map { state ->
-                state.list.mapNotNull { it as? VaultItem2.Item }
-            },
-        accountGetter = ::identity,
-        accountFlow = getAccounts(),
-        profileFlow = getProfiles(),
-        cipherGetter = {
-            it.source
-        },
-        cipherFlow = ciphersFlow,
-        folderGetter = ::identity,
-        folderFlow = getFolders(),
-        tagGetter = ::identity,
-        tagFlow = getTags(),
-        collectionGetter = ::identity,
-        collectionFlow = getCollections(),
-        organizationGetter = ::identity,
-        organizationFlow = getOrganizations(),
-        input = filterResult,
-        params = FilterParams(
-            deeplinkCustomFilterFlow = deeplinkCustomFilterFlow,
-        ),
-    )
+    // Defer lazy filter-metadata subscriptions (folders, tags, collections,
+    // custom filters, and section state) until the privacy-filtered cipher
+    // source emits once, so they do not compete with the critical cipher load.
+    val filterListFlow = ciphersRawFlow
+        .take(1)
+        .flatMapLatest {
+            createFilterItemsFlow(
+                directDI = directDI,
+                outputGetter = { it.source },
+                outputFlow = ciphersFilteredFlow
+                    .map { state ->
+                        state.list.mapNotNull { it as? VaultItem2.Item }
+                },
+                accountGetter = ::identity,
+                accountFlow = sessionInputs.accounts,
+                profileFlow = sessionInputs.profiles,
+                cipherGetter = {
+                    it.source
+                },
+                cipherFlow = ciphersFlow,
+                folderGetter = ::identity,
+                folderFlow = foldersFlow,
+                tagGetter = ::identity,
+                tagFlow = tagsFlow,
+                collectionGetter = ::identity,
+                collectionFlow = sessionInputs.collections,
+                organizationGetter = ::identity,
+                organizationFlow = sessionInputs.organizations,
+                input = filterResult,
+                params = FilterParams(
+                    deeplinkCustomFilterFlow = deeplinkCustomFilterFlow,
+                ),
+            )
+        }
         .stateIn(this, SharingStarted.WhileSubscribed(), OurFilterResult())
 
     val selectionFlow = createCipherSelectionFlow(
         selectionHandle = selectionHandle,
         ciphersFlow = ciphersRawFlow,
-        collectionsFlow = getCollections(),
-        canWriteFlow = getCanWrite(),
+        collectionsFlow = sessionInputs.collections,
+        canWriteFlow = canWriteFlow,
         confirmationRouteFactory = confirmationRouteFactory,
         toolbox = toolbox,
     )
@@ -1722,16 +1732,42 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
             queryQualifierSuggestion = queryQualifierSuggestion,
         )
     }
+    val comparatorStateFlow = comparatorsListFlow
+        .combine(sortSink) { a, b -> a to b }
+    val hasAccountsFlow = sessionInputs.accounts
+        .map { accounts ->
+            AccountAvailability(accounts.isNotEmpty())
+        }
+        .distinctUntilChanged()
+        .onStart {
+            emit(AccountAvailability(null))
+        }
+    val writeActionsFlow = combine(
+        writeCapabilityFlow,
+        selectionHandle.idsFlow,
+    ) { capability, itemIds ->
+        vaultListWriteActionPolicy(
+            capability = capability,
+            selectionActive = itemIds.isNotEmpty(),
+        )
+    }
+    val finalActionsFlow = ciphersRawFlow
+        .take(1)
+        .flatMapLatest {
+            actionsFlow
+        }
+        .onStart {
+            emit(persistentListOf())
+        }
+    val finalShowKeyboardFlow = showKeyboardSink
     return combine(
         itemsNullableFlow,
         filterListFlow,
-        comparatorsListFlow
-            .combine(sortSink) { a, b -> a to b },
+        comparatorStateFlow,
         queryStateFlow,
-        getAccounts()
-            .map { it.isNotEmpty() }
-            .distinctUntilChanged(),
-    ) { itemsContent, filters, comparatorState, queryStateData, hasAccounts ->
+        hasAccountsFlow,
+    ) { itemsContent, filters, comparatorState, queryStateData, accountAvailability ->
+        val hasAccounts = accountAvailability.value
         val (comparators, sort) = comparatorState
         val queryPair = queryStateData.queryPair
         val queryRevision = queryStateData.queryRevision
@@ -1740,11 +1776,8 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         val (queryCell, queryTrimmed) = queryPair
         val query = queryCell.text
         val revision = filters.rev xor queryRevision xor sort.hashCode()
-        val content = if (hasAccounts) {
-            itemsContent
-                ?: VaultListState.Content.Skeleton
-        } else {
-            VaultListState.Content.AddAccount(
+        val content = when {
+            hasAccounts == false -> VaultListState.Content.AddAccount(
                 onAddAccount = { type ->
                     val routeMain = when (type) {
                         AccountType.BITWARDEN -> bitwardenLoginRouteFactory.create()
@@ -1757,6 +1790,11 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                     navigate(NavigationIntent.NavigateToRoute(route))
                 },
             )
+
+            itemsContent is VaultListState.Content.Items || hasAccounts == true ->
+                itemsContent ?: VaultListState.Content.Skeleton
+
+            else -> VaultListState.Content.Skeleton
         }
         val queryField = if (content !is VaultListState.Content.AddAccount) {
             // We want to let the user search while the items
@@ -1846,6 +1884,11 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
                 ),
             )
         }
+        val hasRenderableItems =
+            hasAccounts == true ||
+                itemsContent is VaultListState.Content.Items
+        val shouldShowPrimaryActions =
+            content !is VaultListState.Content.AddAccount && hasRenderableItems
         VaultListState(
             revision = revision,
             query = queryField,
@@ -1868,7 +1911,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
             sort = comparators
                 .takeIf { queryTrimmed.isEmpty() }
                 .orEmpty(),
-            primaryActions = if (hasAccounts) {
+            primaryActions = if (shouldShowPrimaryActions) {
                 primaryActions
             } else {
                 emptyList()
@@ -1886,14 +1929,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
             content = content,
             sideEffects = VaultListState.SideEffects(cipherSink),
         )
-    }.combine(
-        combine(
-            getCanWrite(),
-            selectionHandle.idsFlow,
-        ) { canWrite, itemIds ->
-            canWrite && itemIds.isEmpty()
-        },
-    ) { state, canWrite ->
+    }.combine(writeActionsFlow) { state, writeActionPolicy ->
         // If the paywall is active, then replace actions with
         // a link to the paywall. This is needed because too
         // many users think that the app doesn't support adding
@@ -1902,29 +1938,40 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         // That's a bit unfortunate tho, because I'd like to
         // keep the interface clean and hide stuff that is not
         // active.
-        if (!canWrite && state.primaryActions.isNotEmpty()) {
-            val primaryActions = listOf(
-                FlatItemAction(
-                    id = "vaultList.subscriptions",
-                    title = TextHolder.Res(Res.string.settings_subscriptions_header_title),
-                    onClick = {
-                        val intent = NavigationIntent.NavigateToRoute(SubscriptionsSettingsRoute)
-                        navigate(intent)
-                    },
+        when (writeActionPolicy) {
+            VaultListWriteActionPolicy.Hide -> state.copy(
+                primaryActions = emptyList(),
+            )
+
+            VaultListWriteActionPolicy.Allow -> state
+            VaultListWriteActionPolicy.ShowSubscription -> {
+                if (state.primaryActions.isEmpty()) {
+                    return@combine state
+                }
+                val primaryActions = listOf(
+                    FlatItemAction(
+                        id = "vaultList.subscriptions",
+                        title = TextHolder.Res(
+                            Res.string.settings_subscriptions_header_title,
+                        ),
+                        onClick = {
+                            val intent = NavigationIntent.NavigateToRoute(
+                                SubscriptionsSettingsRoute,
+                            )
+                            navigate(intent)
+                        },
+                    ),
                 )
-            )
-            return@combine state.copy(
-                primaryActions = primaryActions,
-            )
+                state.copy(
+                    primaryActions = primaryActions,
+                )
+            }
         }
-        state.copy(
-            primaryActions = state.primaryActions,
-        )
-    }.combine(actionsFlow) { state, actions ->
+    }.combine(finalActionsFlow) { state, actions ->
         state.copy(
             actions = actions,
         )
-    }.combine(showKeyboardSink) { state, showKeyboard ->
+    }.combine(finalShowKeyboardFlow) { state, showKeyboard ->
         state.copy(
             showKeyboard = showKeyboard && state.query.onChange != null,
         )
@@ -2225,6 +2272,47 @@ private fun createFilteredCiphersFlow(
     }
 
 private typealias Decorator = ItemDecorator<VaultItem2, VaultItem2.Item>
+
+internal fun pruneVaultListItemPresentation(
+    list: List<VaultItem2>,
+    keepOtp: Boolean,
+    keepPasskey: Boolean,
+    keepPassword: Boolean,
+    keepAttachment: Boolean,
+): List<VaultItem2> {
+    if (
+        keepOtp &&
+        keepPasskey &&
+        keepPassword &&
+        keepAttachment
+    ) {
+        return list
+    }
+
+    return list.mapIndexed { index, item ->
+        when (item) {
+            is VaultItem2.Item -> {
+                val shapeState = getShapeState(
+                    list = list,
+                    index = index,
+                    predicate = { element, _ -> element is VaultItem2.Item },
+                )
+                item.copy(
+                    shapeState = shapeState,
+                    token = item.token.takeIf { keepOtp },
+                    passwords = item.passwords.takeIf { keepPassword }
+                        ?: persistentListOf(),
+                    passkeys = item.passkeys.takeIf { keepPasskey }
+                        ?: persistentListOf(),
+                    attachments2 = item.attachments2.takeIf { keepAttachment }
+                        ?: persistentListOf(),
+                )
+            }
+
+            else -> item
+        }
+    }
+}
 
 private class PasswordDecorator : Decorator {
     /**

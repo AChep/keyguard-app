@@ -72,26 +72,18 @@ internal fun RememberStateFlowScope.vaultSearchQueryHandle(
         .shareIn(this, sharingStarted, replay = 1)
     val qualifierCatalogFlow = getVaultSearchQualifierCatalog()
         .shareIn(this, sharingStarted, replay = 1)
-    val queryHighlightingFlow = combine(
-        queryField.sink,
-        qualifierCatalogFlow,
-    ) { cell, qualifierCatalog ->
-        vaultSearchQueryHighlighting(
-            query = cell.text,
+    val queryHighlightingFlow = queryField.sink
+        .vaultSearchQueryHighlightingFlow(
+            qualifierCatalogFlow = qualifierCatalogFlow,
             searchBy = searchBy,
             queryHighlighter = queryHighlighter,
-            qualifierCatalog = qualifierCatalog,
         )
-    }.shareIn(this, sharingStarted, replay = 1)
-    val queryQualifierSuggestionFlow = combine(
-        queryField.sink,
-        qualifierCatalogFlow,
-    ) { cell, qualifierCatalog ->
-        bestVaultSearchQualifierSuggestion(
-            query = cell.text,
-            catalog = qualifierCatalog,
+        .shareIn(this, sharingStarted, replay = 1)
+    val queryQualifierSuggestionFlow = queryField.sink
+        .vaultSearchQualifierSuggestionFlow(
+            qualifierCatalogFlow = qualifierCatalogFlow,
         )
-    }.shareIn(this, sharingStarted, replay = 1)
+        .shareIn(this, sharingStarted, replay = 1)
     val debouncedQueryFlow = queryPairFlow
         .vaultSearchDebouncedQueryFlow()
         .shareIn(this, sharingStarted, replay = 1)
@@ -129,6 +121,45 @@ internal fun vaultSearchQueryHighlighting(
     searchBy = searchBy,
     qualifierCatalog = qualifierCatalog,
 )
+
+/**
+ * An empty query has no qualifier-dependent presentation. Keep that path
+ * independent from catalog readiness so a cold vault screen can publish its
+ * base state while the catalog is still loading.
+ */
+internal fun Flow<TextCell>.vaultSearchQueryHighlightingFlow(
+    qualifierCatalogFlow: Flow<VaultSearchQualifierCatalog>,
+    searchBy: VaultRoute.Args.SearchBy,
+    queryHighlighter: VaultSearchQueryHighlighter,
+): Flow<QueryHighlighting> = flatMapLatest { cell ->
+    if (cell.text.isBlank()) {
+        flowOf(QueryHighlighting.Empty)
+    } else {
+        qualifierCatalogFlow.map { qualifierCatalog ->
+            vaultSearchQueryHighlighting(
+                query = cell.text,
+                searchBy = searchBy,
+                queryHighlighter = queryHighlighter,
+                qualifierCatalog = qualifierCatalog,
+            )
+        }
+    }
+}
+
+internal fun Flow<TextCell>.vaultSearchQualifierSuggestionFlow(
+    qualifierCatalogFlow: Flow<VaultSearchQualifierCatalog>,
+): Flow<VaultSearchQualifierSuggestion?> = flatMapLatest { cell ->
+    if (cell.text.isBlank()) {
+        flowOf(null)
+    } else {
+        qualifierCatalogFlow.map { qualifierCatalog ->
+            bestVaultSearchQualifierSuggestion(
+                query = cell.text,
+                catalog = qualifierCatalog,
+            )
+        }
+    }
+}
 
 internal fun Flow<String>.mapVaultSearchQueryHighlighting(
     searchBy: VaultRoute.Args.SearchBy,

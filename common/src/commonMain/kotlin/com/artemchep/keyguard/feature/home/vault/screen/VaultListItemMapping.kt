@@ -48,7 +48,9 @@ suspend fun DSecret.toVaultListItem(
     onClickAttachment: suspend (DSecret.Attachment) -> (() -> Unit)?,
     onClickPasskey: suspend (DSecret.Login.Fido2Credentials) -> (() -> Unit)?,
     onClickPassword: suspend (DSecret.Login) -> (() -> Unit)?,
-    localStateFlow: StateFlow<VaultItem2.Item.LocalState>,
+    localStateFlow: StateFlow<VaultItem2.Item.LocalState>? = null,
+    localStateSource: VaultItem2.Item.LocalStateSource =
+        VaultItem2.Item.LocalStateSource.PerItem(requireNotNull(localStateFlow)),
 ): VaultItem2.Item {
     val cf = concealFields || reprompt
     val d = when (type) {
@@ -172,7 +174,7 @@ suspend fun DSecret.toVaultListItem(
         title = AnnotatedString(name.trim()),
         text = d.text.trim(),
         action = onClick(d.actions),
-        localStateFlow = localStateFlow,
+        localStateSource = localStateSource,
     )
 }
 

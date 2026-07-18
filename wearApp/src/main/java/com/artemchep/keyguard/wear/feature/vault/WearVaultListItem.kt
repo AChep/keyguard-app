@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -25,6 +26,7 @@ import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.feature.EmptyView
+import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.component.AccountListItemTextIcon
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
@@ -165,16 +167,41 @@ fun VaultListItemText(
     content: (@Composable ColumnScope.() -> Unit)? = null,
     transformation: SurfaceTransformation? = null,
 ) {
-    val localState by item.localStateFlow.collectAsStateWithLifecycle()
+    val selectableItemState = when (val localStateSource = item.localStateSource) {
+        is VaultItem2.Item.LocalStateSource.PerItem -> {
+            val localState by localStateSource.stateFlow.collectAsStateWithLifecycle()
+            localState.selectableItemState
+        }
 
-    val onClick = localState.selectableItemState.onClick
+        is VaultItem2.Item.LocalStateSource.Shared -> {
+            val interactionId = item.interactionId
+            val sharedState by localStateSource.stateFlow.collectAsStateWithLifecycle()
+            val itemState = sharedState.forItem(interactionId)
+            val onToggleSelection = remember(localStateSource, interactionId) {
+                {
+                    localStateSource.onToggleSelection(interactionId)
+                }
+            }
+            SelectableItemState(
+                selecting = itemState.selecting,
+                selected = itemState.selected,
+                can = localStateSource.canSelect,
+                onClick = onToggleSelection.takeIf { itemState.selecting },
+                onLongClick = onToggleSelection.takeIf {
+                    !itemState.selecting && localStateSource.canSelect
+                },
+            )
+        }
+    }
+
+    val onClick = selectableItemState.onClick
     // fallback to default
         ?: when (val action = item.action) {
             VaultItem2.Item.Action.None -> null
             is VaultItem2.Item.Action.Dropdown -> null
             is VaultItem2.Item.Action.Go -> action.onClick
-        }.takeIf { localState.selectableItemState.can }
-    val onLongClick = localState.selectableItemState.onLongClick
+        }.takeIf { selectableItemState.can }
+    val onLongClick = selectableItemState.onLongClick
     val updatedOnClick by rememberUpdatedState(onClick)
     FilledTonalButton(
         modifier = modifier,

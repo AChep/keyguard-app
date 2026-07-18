@@ -78,10 +78,28 @@ internal class OkioInOutBuffer(
         return input.concatToString(start - inputBase, actualEnd - inputBase)
     }
 
+    override fun peek(): Int {
+        var local = currentOffset - inputBase
+        if (local !in 0 until inputLength) {
+            ensureAvailable(currentOffset)
+            local = currentOffset - inputBase
+            if (local !in 0 until inputLength) return -1
+        }
+        return when (val char = input[local]) {
+            '\r', '\u0085', '\u2028' -> '\n'.code
+            else -> char.code
+        }
+    }
+
     override fun peek(offset: Int): Int {
         val index = currentOffset + offset
-        ensureAvailable(index)
-        return when (val char = charAt(index) ?: return -1) {
+        var local = index - inputBase
+        if (local !in 0 until inputLength) {
+            ensureAvailable(index)
+            local = index - inputBase
+            if (local !in 0 until inputLength) return -1
+        }
+        return when (val char = input[local]) {
             '\r', '\u0085', '\u2028' -> '\n'.code
             else -> char.code
         }
@@ -99,11 +117,27 @@ internal class OkioInOutBuffer(
     }
 
     override fun read(): Int {
-        val char = charAt(currentOffset) ?: return -1
-        return when (char) {
+        var local = currentOffset - inputBase
+        if (local !in 0 until inputLength) {
+            ensureAvailable(currentOffset)
+            local = currentOffset - inputBase
+            if (local !in 0 until inputLength) return -1
+        }
+        val char = input[local]
+        if (char != '\r' && char != '\n' && char != '\u0085' && char != '\u2028') {
+            if (copyState == InOutBuffer.State.ACTIVE) copyBuilder!!.append(char)
+            currentOffset++
+            if (currentOffset - inputBase >= COMPACT_THRESHOLD) compact()
+            return char.code
+        }
+        return readLineBreak(char)
+    }
+
+    private fun readLineBreak(char: Char): Int =
+        when (char) {
             '\r' -> {
-                val hasSecond = charAt(currentOffset + 1) == '\n' ||
-                    charAt(currentOffset + 1) == '\u0085'
+                val next = charAt(currentOffset + 1)
+                val hasSecond = next == '\n' || next == '\u0085'
                 appendCopied('\n')
                 currentOffset += if (hasSecond) 2 else 1
                 lineBreak()
@@ -121,14 +155,8 @@ internal class OkioInOutBuffer(
                 lineBreak()
                 char.code
             }
-            else -> {
-                appendCopied(char)
-                currentOffset++
-                compact()
-                char.code
-            }
+            else -> error("Expected an XML line break")
         }
-    }
 
     override fun readToCopyBuffer() {
         check(read() >= 0) { "End of stream while adding character to copy buffer" }
@@ -291,7 +319,7 @@ internal class OkioInOutBuffer(
     }
 
     private fun compact() {
-        if (currentOffset - inputBase < 16_384) return
+        if (currentOffset - inputBase < COMPACT_THRESHOLD) return
         val consumed = currentOffset - inputBase
         input.copyInto(
             destination = input,
@@ -305,6 +333,7 @@ internal class OkioInOutBuffer(
 
     private companion object {
         const val INPUT_CHUNK_SIZE = 16 * 1024
+        const val COMPACT_THRESHOLD = 16 * 1024
         const val MAX_UTF8_BYTES = 4
     }
 }

@@ -83,12 +83,89 @@ class OkioInOutBufferTest {
         assertEquals(expected, decode(expected.encodeToByteArray()))
     }
 
+    @Test
+    fun peekNormalizesLineEndingsAcrossRefillsWithoutConsumingInput() {
+        val value = "a\r\nb\u0085c\u2028\uD83D\uDE00z"
+        val input = createInput(value.encodeToByteArray(), firstReadSize = 2)
+        input.startCopySequence()
+
+        assertEquals(0, input.offset)
+        assertEquals(1, input.line)
+        assertEquals(1, input.column)
+        assertEquals('a'.code, input.peek())
+        assertEquals('\n'.code, input.peek(1))
+        assertEquals('\n'.code, input.peek(2))
+        assertEquals('b'.code, input.peek(3))
+        assertEquals('\n'.code, input.peek(4))
+        assertEquals('c'.code, input.peek(5))
+        assertEquals('\n'.code, input.peek(6))
+        assertEquals('\uD83D'.code, input.peek(7))
+        assertEquals('\uDE00'.code, input.peek(8))
+        assertEquals('z'.code, input.peek(9))
+        assertEquals(-1, input.peek(10))
+        assertEquals(0, input.offset)
+        assertEquals(1, input.line)
+        assertEquals(1, input.column)
+        assertEquals("", input.finalizeCopySequence())
+    }
+
+    @Test
+    fun largePeekCrossesDecodeChunksAndPreservesPosition() {
+        val value = "a".repeat(20_000) + "\uD83D\uDE00z"
+        val input = createInput(value.encodeToByteArray(), firstReadSize = 1)
+
+        assertEquals('\uD83D'.code, input.peek(20_000))
+        assertEquals('\uDE00'.code, input.peek(20_001))
+        assertEquals('z'.code, input.peek(20_002))
+        assertEquals(-1, input.peek(20_003))
+        assertEquals(0, input.offset)
+        assertEquals(1, input.line)
+        assertEquals(1, input.column)
+        assertEquals('a'.code, input.read())
+    }
+
+    @Test
+    fun readNormalizesSplitXmlLineEndings() {
+        val cases = listOf(
+            "\r\nx" to "\nx",
+            "\r\u0085x" to "\nx",
+            "\rx" to "\nx",
+            "\u0085x" to "\nx",
+            "\u2028x" to "\nx",
+        )
+
+        cases.forEach { (value, expected) ->
+            assertEquals(
+                expected,
+                decode(value.encodeToByteArray(), firstReadSize = 1),
+                "value=${value.encodeToByteArray().toHex()}",
+            )
+        }
+    }
+
+    @Test
+    fun readPreservesCopyAndLocationStateAcrossFastAndLineBreakPaths() {
+        val input = createInput("a\r\nb".encodeToByteArray(), firstReadSize = 2)
+        input.startCopySequence()
+
+        assertEquals('a'.code, input.read())
+        assertEquals(1, input.line)
+        assertEquals(2, input.column)
+        assertEquals('\n'.code, input.read())
+        assertEquals(2, input.line)
+        assertEquals(1, input.column)
+        assertEquals('b'.code, input.read())
+        assertEquals(2, input.line)
+        assertEquals(2, input.column)
+        assertEquals(-1, input.read())
+        assertEquals("a\nb", input.finalizeCopySequence())
+    }
+
     private fun decode(
         bytes: ByteArray,
         firstReadSize: Int = bytes.size.coerceAtLeast(1),
     ): String {
-        val source = FirstReadLimitedSource(bytes, firstReadSize).buffer()
-        val input = OkioInOutBuffer(source, bytes.size.toLong())
+        val input = createInput(bytes, firstReadSize)
         return buildString {
             while (true) {
                 val char = input.read()
@@ -96,6 +173,11 @@ class OkioInOutBufferTest {
                 append(char.toChar())
             }
         }
+    }
+
+    private fun createInput(bytes: ByteArray, firstReadSize: Int): OkioInOutBuffer {
+        val source = FirstReadLimitedSource(bytes, firstReadSize).buffer()
+        return OkioInOutBuffer(source, bytes.size.toLong())
     }
 
     private fun ByteArray.toHex(): String =

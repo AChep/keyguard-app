@@ -9,6 +9,7 @@ import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -161,6 +162,8 @@ import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachme
 import com.artemchep.keyguard.feature.home.vault.add.attachment.toSkeletonAttachmentOrNull
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
+import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerResult
+import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -788,9 +791,20 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         }
         .foldAsList()
 
+    val fieldAccountIdFlow = ownershipFlow
+        .map { it.data.accountId }
+        .distinctUntilChanged()
     val fieldsFactories = kotlin.run {
-        val plainTextFactory = AddStateItemFieldTextFactory(false)
-        val concealedTextFactory = AddStateItemFieldTextFactory(true)
+        val plainTextFactory = AddStateItemFieldTextFactory(
+            defaultConcealed = false,
+            accountIdFlow = fieldAccountIdFlow,
+            excludedCipherId = args.initialValue?.id,
+        )
+        val concealedTextFactory = AddStateItemFieldTextFactory(
+            defaultConcealed = true,
+            accountIdFlow = fieldAccountIdFlow,
+            excludedCipherId = args.initialValue?.id,
+        )
         val booleanFactory = AddStateItemFieldBooleanFactory()
         val linkedIdFactory = AddStateItemFieldLinkedIdFactory(
             typeFlow = typeFlow,
@@ -1623,6 +1637,8 @@ abstract class AddStateItemFieldFactory : Foo2Factory<AddStateItem.Field<*>, DSe
 
 class AddStateItemFieldTextFactory(
     private val defaultConcealed: Boolean = false,
+    private val accountIdFlow: Flow<String?>,
+    private val excludedCipherId: String?,
 ) : AddStateItemFieldFactory() {
     override val type: String = if (defaultConcealed) {
         "field.text_concealed"
@@ -1685,40 +1701,64 @@ class AddStateItemFieldTextFactory(
                 ?: defaultConcealed
         }
 
-        val actionsConcealItemFlow = concealSink
-            .map { conceal ->
-                FlatItemAction(
-                    id = "addItem.field.concealValue",
-                    leading = {
-                        val imageVector = if (conceal) {
-                            Icons.Outlined.VisibilityOff
-                        } else {
-                            Icons.Outlined.Visibility
-                        }
-                        Crossfade(targetState = imageVector) { iv ->
-                            IconBox(
-                                main = iv,
-                            )
-                        }
-                    },
-                    title = TextHolder.Res(Res.string.conceal_value),
-                    trailing = {
-                        Checkbox(
-                            checked = conceal,
-                            onCheckedChange = null,
+        val actionsFlow = combine(
+            concealSink,
+            accountIdFlow,
+        ) { conceal, accountId ->
+            val concealItem = FlatItemAction(
+                id = "addItem.field.concealValue",
+                leading = {
+                    val imageVector = if (conceal) {
+                        Icons.Outlined.VisibilityOff
+                    } else {
+                        Icons.Outlined.Visibility
+                    }
+                    Crossfade(targetState = imageVector) { iv ->
+                        IconBox(
+                            main = iv,
                         )
-                    },
-                    onClick = {
-                        concealSink.value = !conceal
-                    },
-                )
-            }
-        val actionsFlow = actionsConcealItemFlow
-            .map { concealItem ->
-                buildContextItems {
-                    this += concealItem
+                    }
+                },
+                title = TextHolder.Res(Res.string.conceal_value),
+                trailing = {
+                    Checkbox(
+                        checked = conceal,
+                        onCheckedChange = null,
+                    )
+                },
+                onClick = {
+                    concealSink.value = !conceal
+                },
+            )
+
+            buildContextItems {
+                if (!conceal && accountId != null) {
+                    this += FlatItemAction(
+                        id = "addItem.field.linkCipher",
+                        leading = icon(Icons.Outlined.Link),
+                        title = TextHolder.Res(Res.string.cipher_link_picker_action),
+                        trailing = {
+                            ChevronIcon()
+                        },
+                        onClick = {
+                            val pickerRoute = CipherLinkPickerRoute(
+                                args = CipherLinkPickerRoute.Args(
+                                    accountId = accountId,
+                                    excludedCipherId = excludedCipherId,
+                                ),
+                            )
+                            val route = registerRouteResultReceiver(pickerRoute) { result ->
+                                if (result is CipherLinkPickerResult.Confirm) {
+                                    textHandle.setText(result.link.toString())
+                                }
+                            }
+                            navigate(NavigationIntent.NavigateToRoute(route))
+                        },
+                    )
                 }
+                this += concealItem
             }
+        }
 
         val stateFlow = combine(
             labelFlow,

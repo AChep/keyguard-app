@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.io
 
 import arrow.core.Either
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineStart
@@ -44,18 +45,20 @@ private fun <T> IO<T>.sharedRef(
     wrap: (Either<Throwable, T>) -> Ref<Either<Throwable, T>>,
 ): IO<T> {
     val mutex = Mutex()
-    var result: Ref<Either<Throwable, T>>? = null
+    val result = atomic<Ref<Either<Throwable, T>>?>(null)
     var future: Deferred<Either<Throwable, T>>? = null
+
+    fun getCachedResult(): Either<Throwable, T>? = result.value?.get()
 
     suspend fun getOrStart(): Deferred<Either<Throwable, T>> =
         mutex.withLock {
-            when (val r = result?.get()) {
+            when (val r = getCachedResult()) {
                 is Either.Left -> {
                     if (!ifFailedRetryOnNextBind) {
                         return@withLock CompletableDeferred(r)
                     }
 
-                    result = null
+                    result.value = null
                 }
 
                 is Either.Right -> {
@@ -63,8 +66,8 @@ private fun <T> IO<T>.sharedRef(
                 }
 
                 null -> {
-                    if (result != null) {
-                        result = null
+                    if (result.value != null) {
+                        result.value = null
                     }
                 }
             }
@@ -81,7 +84,7 @@ private fun <T> IO<T>.sharedRef(
                             // Save the result.
                             mutex.withLock {
                                 if (future === created) {
-                                    result = wrap(value)
+                                    result.value = wrap(value)
                                     future = null
                                 }
                             }
@@ -105,7 +108,18 @@ private fun <T> IO<T>.sharedRef(
         }
 
     return ioEffect {
-        getOrStart().await()
+        when (val cached = getCachedResult()) {
+            is Either.Left -> {
+                if (ifFailedRetryOnNextBind) {
+                    getOrStart().await()
+                } else {
+                    cached
+                }
+            }
+
+            is Either.Right -> cached
+            null -> getOrStart().await()
+        }
     }.flattenMap()
 }
 

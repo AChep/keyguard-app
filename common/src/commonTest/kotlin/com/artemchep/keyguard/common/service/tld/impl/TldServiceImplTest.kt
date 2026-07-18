@@ -75,6 +75,52 @@ class TldServiceImplTest {
         assertEquals("test.foo.ck", service.getDomainName("test.foo.ck").bind())
     }
 
+    @Test
+    fun `getDomainName preserves normalization and fallback behavior`() = runTest {
+        val service = createService(
+            """
+            com
+            co.uk
+            """.trimIndent(),
+        )
+
+        assertEquals("example.com", service.getDomainName("  WWW.Example.COM\t").bind())
+        assertEquals("example.co.uk", service.getDomainName("LOGIN.EXAMPLE.CO.UK").bind())
+
+        val unknownHost = "  WWW.Example.KEYGUARD-INVALID\t"
+        assertEquals(unknownHost, service.getDomainName(unknownHost).bind())
+    }
+
+    @Test
+    fun `getDomainName falls back to the deepest matching leaf`() = runTest {
+        val service = createService(
+            """
+            com
+            special.foo.com
+            """.trimIndent(),
+        )
+
+        assertEquals("foo.com", service.getDomainName("a.other.foo.com").bind())
+        assertEquals("a.special.foo.com", service.getDomainName("a.special.foo.com").bind())
+    }
+
+    @Test
+    fun `getDomainName preserves empty label behavior`() = runTest {
+        val service = createService("com")
+
+        assertEquals("www.example.com.", service.getDomainName("www.example.com.").bind())
+        assertEquals("example.com", service.getDomainName(".example.com").bind())
+        assertEquals(".com", service.getDomainName("www.example..com").bind())
+        assertEquals("example.com", service.getDomainName("www..example.com").bind())
+    }
+
+    @Test
+    fun `getDomainName computes offsets after unicode lowercasing`() = runTest {
+        val service = createService("com")
+
+        assertEquals("example.com", service.getDomainName("\u0130.WWW.EXAMPLE.COM").bind())
+    }
+
     private fun createService(
         publicSuffixList: String,
     ) = TldServiceImpl(

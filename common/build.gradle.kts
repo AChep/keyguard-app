@@ -371,6 +371,7 @@ desktopTestTask.configure {
         excludeTestsMatching("com.artemchep.keyguard.feature.home.vault.search.benchmark.*")
         excludeTestsMatching("com.artemchep.keyguard.crypto.benchmark.*")
         excludeTestsMatching("com.artemchep.keyguard.provider.bitwarden.usecase.benchmark.*")
+        excludeTestsMatching("com.artemchep.keyguard.common.service.tld.impl.benchmark.*")
     }
 }
 
@@ -465,6 +466,43 @@ tasks.register<Test>("cipherSnapshotBenchmark") {
 
     filter {
         includeTestsMatching("com.artemchep.keyguard.provider.bitwarden.usecase.benchmark.*")
+        isFailOnNoMatchingTests = true
+    }
+
+    testLogging {
+        events =
+            setOf(
+                TestLogEvent.FAILED,
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_ERROR,
+                TestLogEvent.STANDARD_OUT,
+            )
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showStackTraces = true
+        showStandardStreams = true
+    }
+}
+
+tasks.register<Test>("tldServiceBenchmark") {
+    group = "verification"
+    description = "Runs the TLD service JVM benchmark suite from desktopTest."
+
+    dependsOn(desktopTestClassesTask)
+
+    testClassesDirs = desktopTestTask.get().testClassesDirs
+    classpath = desktopTestTask.get().classpath
+
+    maxParallelForks = 1
+    forkEvery = 0L
+    outputs.upToDateWhen { false }
+
+    systemProperty("user.language", "en")
+    systemProperty("user.country", "US")
+
+    filter {
+        includeTestsMatching("com.artemchep.keyguard.common.service.tld.impl.benchmark.*")
         isFailOnNoMatchingTests = true
     }
 

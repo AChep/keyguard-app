@@ -29,6 +29,14 @@ internal fun createPrivateTemporaryStorageJvm(
 
 internal fun createPrivateTemporaryFile(
     directory: File? = null,
+): File = createPrivateTemporaryFilePlatform(directory)
+
+internal expect fun createPrivateTemporaryFilePlatform(
+    directory: File?,
+): File
+
+internal fun createPrivateTemporaryFileJvm(
+    directory: File? = null,
 ): File {
     if ("posix" in FileSystems.getDefault().supportedFileAttributeViews()) {
         val permissions = PosixFilePermissions.asFileAttribute(OWNER_ONLY_FILE_PERMISSIONS)

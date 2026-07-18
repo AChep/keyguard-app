@@ -472,6 +472,14 @@ jobs:
           --tests "com.artemchep.keyguard.crypto.OpenPgpReadBouncyCastleDifferentialTest"
           --tests "com.artemchep.keyguard.crypto.OpenPgpWriteBouncyCastleDifferentialTest"
           --tests "com.artemchep.keyguard.crypto.OpenPgpMutationAndAgentBouncyCastleDifferentialTest"
+      - name: "Run Windows private staging regressions"
+        if: runner.os == 'Windows'
+        run: >-
+          ${{ matrix.gradle }}
+          "-Pkeyguard.nativeCrypto.cargoOffline=true"
+          :common:desktopTest
+          --tests "com.artemchep.keyguard.crypto.WindowsPrivateTemporaryStorageTest"
+          --tests "com.artemchep.keyguard.common.service.keepass.KeePassDatabaseWindowsSpillTest"
       - name: "Call native crypto through packaged Desktop resources"
         run: >-
           python scripts/run_native_crypto_desktop_package_smoke.py

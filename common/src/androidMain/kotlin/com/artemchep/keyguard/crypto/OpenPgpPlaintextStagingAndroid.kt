@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.android.BaseApp
+import java.io.File
 
 internal actual fun createPrivateTemporaryStorage(): PrivateTemporaryStorage {
     val context = checkNotNull(BaseApp.context) {
@@ -10,3 +11,7 @@ internal actual fun createPrivateTemporaryStorage(): PrivateTemporaryStorage {
         directory = context.cacheDir,
     )
 }
+
+internal actual fun createPrivateTemporaryFilePlatform(
+    directory: File?,
+): File = createPrivateTemporaryFileJvm(directory)

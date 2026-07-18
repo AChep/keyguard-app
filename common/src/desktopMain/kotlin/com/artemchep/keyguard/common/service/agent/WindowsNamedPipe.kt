@@ -1,12 +1,12 @@
 package com.artemchep.keyguard.common.service.agent
 
-import com.sun.jna.Memory
+import com.artemchep.keyguard.platform.windows.WindowsOwnerOnlySecurityAttributes
+import com.artemchep.keyguard.platform.windows.currentWindowsUserSidString
+import com.artemchep.keyguard.platform.windows.windowsProcessUserSidString
 import com.sun.jna.Native
 import com.sun.jna.Pointer
-import com.sun.jna.Structure
 import com.sun.jna.WString
 import com.sun.jna.ptr.IntByReference
-import com.sun.jna.ptr.PointerByReference
 import com.sun.jna.win32.StdCallLibrary
 import java.io.EOFException
 import java.io.IOException
@@ -35,11 +35,6 @@ private const val ERROR_OPERATION_ABORTED = 995
 
 private const val INVALID_HANDLE_VALUE = -1L
 
-private const val TOKEN_QUERY = 0x0008
-private const val TOKEN_USER_INFORMATION_CLASS = 1
-private const val SDDL_REVISION_1 = 1
-private const val PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
-
 internal class WindowsNamedPipeServer(
     private val pipeName: String,
 ) : AutoCloseable {
@@ -53,9 +48,8 @@ internal class WindowsNamedPipeServer(
     // the owner-only (0600) permissions used for the Unix domain socket.
     // Without this the pipe would be created with the default security
     // descriptor, which grants read access to Everyone.
-    private var securityDescriptor: Pointer? = buildOwnerOnlySecurityDescriptor()
-    private val securityAttributes: WindowsSecurityAttributes =
-        WindowsSecurityAttributes(requireNotNull(securityDescriptor))
+    private var securityAttributes: WindowsOwnerOnlySecurityAttributes? =
+        WindowsOwnerOnlySecurityAttributes.create()
 
     /**
      * Creates and registers the first owner-only pipe instance before callers
@@ -116,18 +110,16 @@ internal class WindowsNamedPipeServer(
             val activeHandles = handles.toList()
             handles.clear()
             preparedHandle = null
-            val descriptor = securityDescriptor
-            securityDescriptor = null
-            activeHandles to descriptor
+            val attributes = securityAttributes
+            securityAttributes = null
+            activeHandles to attributes
         }
 
         resources.first.forEach { handle ->
             handle.close()
         }
 
-        // Release the security descriptor allocated by
-        // ConvertStringSecurityDescriptorToSecurityDescriptorW.
-        resources.second?.let(Kernel32.INSTANCE::LocalFree)
+        resources.second?.close()
     }
 
     private fun takePreparedOrCreatePipeInstance(): WindowsNamedPipeHandle = synchronized(lifecycleLock) {
@@ -162,7 +154,7 @@ internal class WindowsNamedPipeServer(
             PIPE_BUFFER_SIZE,
             PIPE_BUFFER_SIZE,
             0,
-            securityAttributes.pointer,
+            requireNotNull(securityAttributes).pointer,
         )
 
         if (Pointer.nativeValue(rawHandle) == INVALID_HANDLE_VALUE) {
@@ -238,8 +230,8 @@ internal class WindowsNamedPipeConnection(
             "IPC peer PID mismatch: expected $expectedPid, got $actualPid"
         }
 
-        val expectedSid = currentUserSidString()
-        val actualSid = processUserSidString(clientPid.value)
+        val expectedSid = currentWindowsUserSidString()
+        val actualSid = windowsProcessUserSidString(clientPid.value)
         check(actualSid == expectedSid) {
             "IPC peer user SID mismatch"
         }
@@ -463,139 +455,6 @@ private fun pipeException(
     error: Int,
 ): IOException = IOException("$functionName failed with Windows error $error")
 
-/**
- * Builds a self-relative security descriptor whose DACL grants full control
- * to the current user only, and returns its native pointer (allocated by
- * [Advapi32.ConvertStringSecurityDescriptorToSecurityDescriptorW], to be freed
- * with [Kernel32.LocalFree]).
- *
- * The SDDL `O:<sid>D:P(A;;GA;;;<sid>)` assigns ownership to the current user
- * and installs a protected DACL (`P`, no inherited ACEs) with one `GENERIC_ALL`
- * (`GA`) allow ACE for that same SID. Explicit ownership matters for elevated
- * administrator tokens, whose default owner may otherwise be the Administrators
- * group even though the DACL names only the user.
- */
-private fun buildOwnerOnlySecurityDescriptor(): Pointer {
-    val sid = currentUserSidString()
-    val sddl = "O:${sid}D:P(A;;GA;;;$sid)"
-    val securityDescriptor = PointerByReference()
-    val ok = Advapi32.INSTANCE.ConvertStringSecurityDescriptorToSecurityDescriptorW(
-        WString(sddl),
-        SDDL_REVISION_1,
-        securityDescriptor,
-        null,
-    )
-    if (!ok) {
-        throw pipeException(
-            "ConvertStringSecurityDescriptorToSecurityDescriptorW",
-            Native.getLastError(),
-        )
-    }
-    return securityDescriptor.value
-}
-
-/**
- * Returns the current process user's SID in string form (e.g. `S-1-5-21-...`).
- */
-private fun currentUserSidString(): String = processUserSidString(
-    Kernel32.INSTANCE.GetCurrentProcess(),
-)
-
-private fun processUserSidString(pid: Int): String {
-    val processHandle = Kernel32.INSTANCE.OpenProcess(
-        PROCESS_QUERY_LIMITED_INFORMATION,
-        false,
-        pid,
-    )
-    if (Pointer.nativeValue(processHandle) == 0L) {
-        throw pipeException("OpenProcess", Native.getLastError())
-    }
-    try {
-        return processUserSidString(processHandle)
-    } finally {
-        Kernel32.INSTANCE.CloseHandle(processHandle)
-    }
-}
-
-private fun processUserSidString(processHandle: Pointer): String {
-    val token = PointerByReference()
-    val opened = Advapi32.INSTANCE.OpenProcessToken(
-        processHandle,
-        TOKEN_QUERY,
-        token,
-    )
-    if (!opened) {
-        throw pipeException("OpenProcessToken", Native.getLastError())
-    }
-
-    val tokenHandle = token.value
-    try {
-        // First call to determine the required buffer size.
-        val size = IntByReference()
-        Advapi32.INSTANCE.GetTokenInformation(
-            tokenHandle,
-            TOKEN_USER_INFORMATION_CLASS,
-            null,
-            0,
-            size,
-        )
-        val sizeError = Native.getLastError()
-        if (size.value <= 0) {
-            throw pipeException("GetTokenInformation", sizeError)
-        }
-
-        // TOKEN_USER { SID_AND_ATTRIBUTES User { PSID Sid; DWORD Attributes } }.
-        // The SID pointer occupies the first machine word of the buffer.
-        val buffer = Memory(size.value.toLong())
-        val ok = Advapi32.INSTANCE.GetTokenInformation(
-            tokenHandle,
-            TOKEN_USER_INFORMATION_CLASS,
-            buffer,
-            size.value,
-            size,
-        )
-        if (!ok) {
-            throw pipeException("GetTokenInformation", Native.getLastError())
-        }
-
-        val sidPointer = buffer.getPointer(0)
-        val stringSid = PointerByReference()
-        if (!Advapi32.INSTANCE.ConvertSidToStringSidW(sidPointer, stringSid)) {
-            throw pipeException("ConvertSidToStringSidW", Native.getLastError())
-        }
-
-        val stringSidPointer = stringSid.value
-        try {
-            return stringSidPointer.getWideString(0)
-        } finally {
-            Kernel32.INSTANCE.LocalFree(stringSidPointer)
-        }
-    } finally {
-        Kernel32.INSTANCE.CloseHandle(tokenHandle)
-    }
-}
-
-@Structure.FieldOrder("nLength", "lpSecurityDescriptor", "bInheritHandle")
-internal class WindowsSecurityAttributes(
-    securityDescriptor: Pointer,
-) : Structure() {
-    @JvmField
-    var nLength: Int = 0
-
-    @JvmField
-    var lpSecurityDescriptor: Pointer? = null
-
-    @JvmField
-    var bInheritHandle: Int = 0
-
-    init {
-        lpSecurityDescriptor = securityDescriptor
-        bInheritHandle = 0
-        nLength = size()
-        write()
-    }
-}
-
 @Suppress("FunctionName")
 private interface Kernel32 : StdCallLibrary {
     companion object {
@@ -654,55 +513,5 @@ private interface Kernel32 : StdCallLibrary {
     fun GetNamedPipeClientProcessId(
         Pipe: Pointer,
         ClientProcessId: IntByReference,
-    ): Boolean
-
-    fun OpenProcess(
-        ProcessAccess: Int,
-        InheritHandle: Boolean,
-        ProcessId: Int,
-    ): Pointer
-
-    fun GetCurrentProcess(): Pointer
-
-    fun LocalFree(
-        hMem: Pointer,
-    ): Pointer?
-}
-
-@Suppress("FunctionName")
-private interface Advapi32 : StdCallLibrary {
-    companion object {
-        val INSTANCE: Advapi32 by lazy {
-            Native.load(
-                "advapi32",
-                Advapi32::class.java,
-            ) as Advapi32
-        }
-    }
-
-    fun OpenProcessToken(
-        ProcessHandle: Pointer,
-        DesiredAccess: Int,
-        TokenHandle: PointerByReference,
-    ): Boolean
-
-    fun GetTokenInformation(
-        TokenHandle: Pointer,
-        TokenInformationClass: Int,
-        TokenInformation: Pointer?,
-        TokenInformationLength: Int,
-        ReturnLength: IntByReference,
-    ): Boolean
-
-    fun ConvertSidToStringSidW(
-        Sid: Pointer,
-        StringSid: PointerByReference,
-    ): Boolean
-
-    fun ConvertStringSecurityDescriptorToSecurityDescriptorW(
-        StringSecurityDescriptor: WString,
-        StringSDRevision: Int,
-        SecurityDescriptor: PointerByReference,
-        SecurityDescriptorSize: IntByReference?,
     ): Boolean
 }

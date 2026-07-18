@@ -19,6 +19,7 @@ import app.keemobile.kotpass.extensions.teeBufferStream
 import app.keemobile.kotpass.io.KotlinxSourceAdapter
 import app.keemobile.kotpass.io.LimitedSource
 import app.keemobile.kotpass.io.STREAM_BUFFER_SIZE
+import app.keemobile.kotpass.io.closeOnFailure
 import app.keemobile.kotpass.io.gunzipSource
 import app.keemobile.kotpass.models.XmlContext
 import app.keemobile.kotpass.xml.DefaultXmlContentParser
@@ -249,10 +250,13 @@ private fun decodeVer4x(
             transformedKey = transformedKey,
             maximumBlockSize = limits.maximumBlockSize,
         )
+    val decryptor = blocks.closeOnFailure {
+        cipher.createDecryptor(masterKey, header.encryptionIV.toByteArray())
+    }
     val decrypted =
         CipherSource(
             upstream = blocks,
-            session = cipher.createDecryptor(masterKey, header.encryptionIV.toByteArray()),
+            session = decryptor,
         )
     val contentSource = decrypted.decodeCompression(header.compression, limits).buffer()
     return try {

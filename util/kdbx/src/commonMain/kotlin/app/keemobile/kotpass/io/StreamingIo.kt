@@ -91,6 +91,18 @@ internal class NonClosingSink(
     override fun close() = delegate.flush()
 }
 
+internal inline fun <T> Source.closeOnFailure(block: () -> T): T =
+    try {
+        block()
+    } catch (error: Throwable) {
+        try {
+            close()
+        } catch (closeError: Throwable) {
+            error.addSuppressed(closeError)
+        }
+        throw error
+    }
+
 internal class LimitedSource(
     private val delegate: Source,
     private val maximumBytes: Long,

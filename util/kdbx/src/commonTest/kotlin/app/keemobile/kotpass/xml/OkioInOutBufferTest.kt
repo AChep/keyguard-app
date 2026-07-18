@@ -135,11 +135,19 @@ class OkioInOutBufferTest {
         )
 
         cases.forEach { (value, expected) ->
+            val bytes = value.encodeToByteArray()
             assertEquals(
                 expected,
-                decode(value.encodeToByteArray(), firstReadSize = 1),
-                "value=${value.encodeToByteArray().toHex()}",
+                decode(bytes, firstReadSize = 1),
+                "value=${bytes.toHex()}",
             )
+
+            val input = createInput(bytes, firstReadSize = 1)
+            input.startCopySequence()
+            while (input.read() >= 0) {
+                // Consume the complete value into the active copy sequence.
+            }
+            assertEquals(expected, input.finalizeCopySequence(), "copied value=${bytes.toHex()}")
         }
     }
 
@@ -159,6 +167,45 @@ class OkioInOutBufferTest {
         assertEquals(2, input.column)
         assertEquals(-1, input.read())
         assertEquals("a\nb", input.finalizeCopySequence())
+    }
+
+    @Test
+    fun copySequenceCapturesContiguousTextAcrossCompaction() {
+        val value = "a".repeat(20_000) + " — \uD83D\uDE00"
+        val input = createInput(value.encodeToByteArray(), firstReadSize = 1)
+        input.startCopySequence()
+
+        while (input.read() >= 0) {
+            // Consume the complete value so compaction occurs while copying.
+        }
+
+        assertEquals(value, input.finalizeCopySequence())
+    }
+
+    @Test
+    fun copySequencePreservesOrderingAcrossFlushPauseAndResume() {
+        val input = createInput("ab--cd".encodeToByteArray(), firstReadSize = 2)
+        input.startCopySequence()
+        input.skip(1)
+        input.flushCopySequence()
+        input.skip(1)
+        input.pauseCopySequence()
+        input.skip(2)
+        input.addToCopySequence('X')
+        input.addToCopySequence("YZ")
+        input.resumeCopySequence()
+        input.skip(2)
+
+        assertEquals("abXYZcd", input.finalizeCopySequence())
+    }
+
+    @Test
+    fun emptyPausedCopySequenceCanBeFinalized() {
+        val input = createInput("x".encodeToByteArray(), firstReadSize = 1)
+        input.startCopySequence()
+        input.pauseCopySequence()
+
+        assertEquals("", input.finalizeCopySequence())
     }
 
     private fun decode(

@@ -25,6 +25,7 @@ internal class OkioInOutBuffer(
     private var currentLine = 1
     private var lastColumnStart = 0
     private var copyState = InOutBuffer.State.INACTIVE
+    private var copyStartOffset = 0
     private var copyBuilder: StringBuilder? = null
 
     init {
@@ -42,25 +43,39 @@ internal class OkioInOutBuffer(
 
     override fun startCopySequence() {
         check(copyState == InOutBuffer.State.INACTIVE) { "Copy sequence already started" }
-        copyBuilder = StringBuilder()
+        copyStartOffset = currentOffset
         copyState = InOutBuffer.State.ACTIVE
     }
 
-    override fun flushCopySequence() = Unit
+    override fun flushCopySequence() {
+        flushActiveCopySegment()
+    }
 
     override fun pauseCopySequence() {
         check(copyState == InOutBuffer.State.ACTIVE) { "Copy sequence is not active" }
+        flushActiveCopySegment()
         copyState = InOutBuffer.State.PAUSED
     }
 
     override fun resumeCopySequence() {
         check(copyState == InOutBuffer.State.PAUSED) { "Copy sequence is not paused" }
+        copyStartOffset = currentOffset
         copyState = InOutBuffer.State.ACTIVE
     }
 
     override fun finalizeCopySequence(): CharSequence {
         check(copyState != InOutBuffer.State.INACTIVE) { "No copy sequence started" }
-        val result = copyBuilder?.toString().orEmpty()
+        val builder = copyBuilder
+        val result = when {
+            builder == null && copyState == InOutBuffer.State.ACTIVE ->
+                inputRangeToString(copyStartOffset, currentOffset)
+            builder == null -> ""
+            copyState == InOutBuffer.State.ACTIVE -> {
+                appendInputRange(builder, copyStartOffset, currentOffset)
+                builder.toString()
+            }
+            else -> builder.toString()
+        }
         copyBuilder = null
         copyState = InOutBuffer.State.INACTIVE
         return result
@@ -68,7 +83,12 @@ internal class OkioInOutBuffer(
 
     override fun addToCopySequence(char: Char) {
         check(copyState != InOutBuffer.State.INACTIVE) { "Copy sequence is not active" }
-        copyBuilder!!.append(char)
+        ensureCopyBuilder().append(char)
+    }
+
+    override fun addToCopySequence(seq: CharSequence) {
+        check(copyState != InOutBuffer.State.INACTIVE) { "Copy sequence is not active" }
+        ensureCopyBuilder(seq.length).append(seq)
     }
 
     override fun readSubRange(start: Int, end: Int): CharSequence {
@@ -107,10 +127,7 @@ internal class OkioInOutBuffer(
 
     override fun skip(count: Int) {
         repeat(count) {
-            val char = charAt(currentOffset).also {
-                if (it == null) error("End of file while skipping")
-            }!!
-            appendCopied(char)
+            if (charAt(currentOffset) == null) error("End of file while skipping")
             currentOffset++
         }
         compact()
@@ -125,7 +142,6 @@ internal class OkioInOutBuffer(
         }
         val char = input[local]
         if (char != '\r' && char != '\n' && char != '\u0085' && char != '\u2028') {
-            if (copyState == InOutBuffer.State.ACTIVE) copyBuilder!!.append(char)
             currentOffset++
             if (currentOffset - inputBase >= COMPACT_THRESHOLD) compact()
             return char.code
@@ -138,19 +154,14 @@ internal class OkioInOutBuffer(
             '\r' -> {
                 val next = charAt(currentOffset + 1)
                 val hasSecond = next == '\n' || next == '\u0085'
-                appendCopied('\n')
-                currentOffset += if (hasSecond) 2 else 1
-                lineBreak()
+                normalizedLineBreak(currentOffset + if (hasSecond) 2 else 1)
                 '\n'.code
             }
             '\u0085', '\u2028' -> {
-                appendCopied('\n')
-                currentOffset++
-                lineBreak()
+                normalizedLineBreak(currentOffset + 1)
                 '\n'.code
             }
             '\n' -> {
-                appendCopied(char)
                 currentOffset++
                 lineBreak()
                 char.code
@@ -162,14 +173,57 @@ internal class OkioInOutBuffer(
         check(read() >= 0) { "End of stream while adding character to copy buffer" }
     }
 
+    private fun normalizedLineBreak(newOffset: Int) {
+        val copying = copyState == InOutBuffer.State.ACTIVE
+        if (copying) ensureCopyBuilder(1).append('\n')
+        currentOffset = newOffset
+        if (copying) copyStartOffset = currentOffset
+        lineBreak()
+    }
+
     private fun lineBreak() {
         lastColumnStart = currentOffset
         currentLine++
         compact()
     }
 
-    private fun appendCopied(char: Char) {
-        if (copyState == InOutBuffer.State.ACTIVE) copyBuilder!!.append(char)
+    private fun ensureCopyBuilder(sizeHint: Int = 16): StringBuilder {
+        val pending = if (copyState == InOutBuffer.State.ACTIVE) {
+            currentOffset - copyStartOffset
+        } else {
+            0
+        }
+        val builder = copyBuilder ?: StringBuilder(pending + sizeHint).also {
+            copyBuilder = it
+        }
+        if (pending > 0) {
+            appendInputRange(builder, copyStartOffset, currentOffset)
+            copyStartOffset = currentOffset
+        }
+        return builder
+    }
+
+    private fun flushActiveCopySegment() {
+        if (copyState != InOutBuffer.State.ACTIVE) return
+        if (copyStartOffset < currentOffset) {
+            val builder = copyBuilder ?: StringBuilder(currentOffset - copyStartOffset).also {
+                copyBuilder = it
+            }
+            appendInputRange(builder, copyStartOffset, currentOffset)
+        }
+        copyStartOffset = currentOffset
+    }
+
+    private fun appendInputRange(builder: StringBuilder, start: Int, end: Int) {
+        check(start >= inputBase && end <= inputBase + inputLength)
+        var local = start - inputBase
+        val localEnd = end - inputBase
+        while (local < localEnd) builder.append(input[local++])
+    }
+
+    private fun inputRangeToString(start: Int, end: Int): String {
+        check(start >= inputBase && end <= inputBase + inputLength)
+        return input.concatToString(start - inputBase, end - inputBase)
     }
 
     private fun charAt(index: Int): Char? {
@@ -320,6 +374,7 @@ internal class OkioInOutBuffer(
 
     private fun compact() {
         if (currentOffset - inputBase < COMPACT_THRESHOLD) return
+        flushActiveCopySegment()
         val consumed = currentOffset - inputBase
         input.copyInto(
             destination = input,

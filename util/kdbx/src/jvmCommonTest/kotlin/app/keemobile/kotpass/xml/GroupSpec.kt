@@ -1,14 +1,15 @@
 package app.keemobile.kotpass.xml
 
+import app.keemobile.kotpass.common.matchers.shouldBe
+import app.keemobile.kotpass.common.matchers.shouldNotBeEmpty
+import app.keemobile.kotpass.common.readResourceText
 import app.keemobile.kotpass.common.renderTestXmlString
+import app.keemobile.kotpass.common.runKotpassSpec
 import app.keemobile.kotpass.cryptography.EncryptionSaltGenerator
+import app.keemobile.kotpass.extensions.parseAsXmlReader
 import app.keemobile.kotpass.models.FormatVersion
 import app.keemobile.kotpass.models.XmlContext
-import app.keemobile.kotpass.common.runKotpassSpec
 import kotlin.test.Test
-import app.keemobile.kotpass.common.matchers.shouldNotBeEmpty
-import app.keemobile.kotpass.common.matchers.shouldBe
-import org.redundent.kotlin.xml.parse
 
 class GroupSpec {
     @Test
@@ -21,9 +22,8 @@ class GroupSpec {
                 encryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
                 binaries = linkedMapOf()
             )
-            val document = ClassLoader
-                .getSystemResourceAsStream("xml/group.xml")!!
-                .use(::parse)
+            val document = readResourceText("xml/group.xml")
+                .parseAsXmlReader()
             val group = unmarshalGroup(context, document)
 
             group.groups.shouldNotBeEmpty()
@@ -35,12 +35,11 @@ class GroupSpec {
             val encryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf())
             val encodeCtx = XmlContext.Encode.Plain(version, linkedMapOf(), emptySet())
             val decodeCtx = XmlContext.Decode(version, encryption, linkedMapOf())
-            val resourceStream = { ClassLoader.getSystemResourceAsStream("xml/group.xml")!! }
-            val document = resourceStream().use(::parse)
-            val rawData = resourceStream().readAllBytes().decodeToString()
+            val rawData = readResourceText("xml/group.xml")
+            val document = rawData.parseAsXmlReader()
             val group = unmarshalGroup(decodeCtx, document)
 
-            renderTestXmlString(group.marshal(encodeCtx)) shouldBe rawData
+            renderTestXmlString { group.marshalTo(encodeCtx, it) } shouldBe rawData
         }
     }
     }

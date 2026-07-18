@@ -11,7 +11,7 @@ internal interface KeePassDatabaseStorage {
     suspend fun read(): Source
 
     /**
-     * Installs the already-verified [staged] bytes at the destination,
+     * Installs the already-verified [staged] stream at the destination,
      * atomically where the backend supports it.
      *
      * @return the destination metadata after publishing (best effort).

@@ -1,9 +1,8 @@
 package com.artemchep.keyguard.crypto
 
+import com.artemchep.keyguard.util.foundation.io.copyTo
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
 import kotlinx.io.readByteArray
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -14,14 +13,13 @@ import kotlin.test.assertSame
 class EncryptedTemporarySpillStorageJvmTest {
     @Test
     fun emptyPayloadRoundTrips() {
-        val output = Buffer()
-
-        EncryptedTemporarySpillStorage.create(TestStorage()).use { spill ->
-            spill.seal()
-            spill.replayTo(output)
+        val snapshot = EncryptedTemporarySpillStorage.create(TestPrivateTemporaryStorage()).use { writer ->
+            writer.seal()
         }
 
-        assertContentEquals(byteArrayOf(), output.readByteArray())
+        snapshot.use {
+            assertContentEquals(byteArrayOf(), snapshot.readBytes())
+        }
     }
 
     @Test
@@ -32,71 +30,72 @@ class EncryptedTemporarySpillStorageJvmTest {
         }
         val source = ByteArray(padding + plaintext.size + padding)
         plaintext.copyInto(source, destinationOffset = padding)
-        val output = Buffer()
 
-        EncryptedTemporarySpillStorage.create(TestStorage()).use { spill ->
-            spill.write(source, padding, padding + plaintext.size / 2)
-            spill.write(source, padding + plaintext.size / 2, padding + plaintext.size)
-            spill.seal()
-            spill.replayTo(output)
+        val snapshot = EncryptedTemporarySpillStorage.create(TestPrivateTemporaryStorage()).use { writer ->
+            writer.sink().use { sink ->
+                sink.write(source, padding, padding + plaintext.size / 2)
+                sink.write(source, padding + plaintext.size / 2, padding + plaintext.size)
+            }
+            writer.seal()
         }
 
-        assertContentEquals(plaintext, output.readByteArray())
+        snapshot.use {
+            assertEquals(plaintext.size.toLong(), snapshot.size)
+            assertContentEquals(plaintext, snapshot.readBytes())
+        }
     }
 
     @Test
-    fun invalidWriteRangesAreRejectedWithoutPoisoningStorage() {
-        val plaintext = byteArrayOf(1, 2, 3)
-        val output = Buffer()
-
-        EncryptedTemporarySpillStorage.create(TestStorage()).use { spill ->
-            assertFailsWith<IllegalArgumentException> { spill.write(plaintext, -1, 1) }
-            assertFailsWith<IllegalArgumentException> { spill.write(plaintext, 2, 1) }
-            assertFailsWith<IllegalArgumentException> { spill.write(plaintext, 0, 4) }
-
-            spill.write(plaintext, 0, plaintext.size)
-            spill.seal()
-            spill.replayTo(output)
+    fun encryptedSnapshotCanBeReadMoreThanOnce() {
+        val plaintext = ByteArray(EncryptedTemporarySpillStorage.STAGING_BUFFER_BYTES + 17) {
+            (it % 251).toByte()
         }
+        val snapshot = encryptedSnapshot(plaintext)
 
-        assertContentEquals(plaintext, output.readByteArray())
-    }
-
-    @Test
-    fun replayRequiresSealAndCanOnlyHappenOnce() {
-        EncryptedTemporarySpillStorage.create(TestStorage()).use { spill ->
-            assertFailsWith<IllegalStateException> { spill.replayTo(Buffer()) }
-            spill.write(byteArrayOf(1), 0, 1)
-            spill.seal()
-            spill.replayTo(Buffer())
-
-            assertFailsWith<IllegalStateException> { spill.replayTo(Buffer()) }
+        snapshot.use {
+            assertContentEquals(plaintext, snapshot.readBytes())
+            assertContentEquals(plaintext, snapshot.readBytes())
         }
     }
 
     @Test
     fun sealingPreventsMoreWritesAndResealing() {
-        EncryptedTemporarySpillStorage.create(TestStorage()).use { spill ->
-            spill.seal()
-
-            assertFailsWith<IllegalStateException> { spill.write(byteArrayOf(1), 0, 1) }
-            assertFailsWith<IllegalStateException> { spill.seal() }
+        val writer = EncryptedTemporarySpillStorage.create(TestPrivateTemporaryStorage())
+        val sink = writer.sink()
+        sink.close()
+        val snapshot = writer.seal()
+        try {
+            assertFailsWith<IllegalStateException> { writer.sink() }
+            assertFailsWith<IllegalStateException> { writer.seal() }
+        } finally {
+            writer.close()
+            snapshot.close()
         }
     }
 
     @Test
-    fun closedStorageRejectsOperationsAndCloseIsIdempotent() {
-        val storage = TestStorage()
-        val spill = EncryptedTemporarySpillStorage.create(storage)
+    fun closedWriterRejectsOperationsAndCloseIsIdempotent() {
+        val storage = TestPrivateTemporaryStorage()
+        val writer = EncryptedTemporarySpillStorage.create(storage)
 
-        spill.close()
-        spill.close()
+        writer.close()
+        writer.close()
 
         assertEquals(1, storage.sinkCloseCount)
         assertEquals(1, storage.closeCount)
-        assertFailsWith<IllegalStateException> { spill.write(byteArrayOf(1), 0, 1) }
-        assertFailsWith<IllegalStateException> { spill.seal() }
-        assertFailsWith<IllegalStateException> { spill.replayTo(Buffer()) }
+        assertFailsWith<IllegalStateException> { writer.sink() }
+        assertFailsWith<IllegalStateException> { writer.seal() }
+    }
+
+    @Test
+    fun closeDiscardsBufferedPlaintextWithoutThrowing() {
+        val storage = TestPrivateTemporaryStorage()
+        val writer = EncryptedTemporarySpillStorage.create(storage)
+        writer.sink().write(byteArrayOf(1, 2, 3))
+
+        writer.close()
+
+        assertEquals(1, storage.closeCount)
     }
 
     @Test
@@ -121,27 +120,27 @@ class EncryptedTemporarySpillStorageJvmTest {
     fun closePreservesPrimaryFailureAndSuppressesLaterFailure() {
         val sinkFailure = IOException("sink close failed")
         val storageFailure = IOException("storage close failed")
-        val storage = TestStorage(
+        val storage = TestPrivateTemporaryStorage(
             sinkCloseFailure = sinkFailure,
             closeFailure = storageFailure,
         )
-        val spill = EncryptedTemporarySpillStorage.create(storage)
+        val writer = EncryptedTemporarySpillStorage.create(storage)
 
-        val actual = assertFailsWith<IOException> { spill.close() }
+        val actual = assertFailsWith<IOException> { writer.close() }
 
         assertSame(sinkFailure, actual)
         assertEquals(listOf(storageFailure), actual.suppressedExceptions)
-        spill.close()
+        writer.close()
     }
 
     @Test
     fun closePropagatesStorageFailureWhenItIsTheOnlyFailure() {
         val storageFailure = IOException("storage close failed")
-        val spill = EncryptedTemporarySpillStorage.create(
-            TestStorage(closeFailure = storageFailure),
+        val writer = EncryptedTemporarySpillStorage.create(
+            TestPrivateTemporaryStorage(closeFailure = storageFailure),
         )
 
-        val actual = assertFailsWith<IOException> { spill.close() }
+        val actual = assertFailsWith<IOException> { writer.close() }
 
         assertSame(storageFailure, actual)
     }
@@ -150,7 +149,7 @@ class EncryptedTemporarySpillStorageJvmTest {
     fun creationClosesStorageWhenOpeningSinkFails() {
         val sinkFailure = IOException("sink open failed")
         val closeFailure = IOException("storage close failed")
-        val storage = TestStorage(
+        val storage = TestPrivateTemporaryStorage(
             sinkOpenFailure = sinkFailure,
             closeFailure = closeFailure,
         )
@@ -168,7 +167,7 @@ class EncryptedTemporarySpillStorageJvmTest {
     fun creationClosesStorageWhenInitialKeyGenerationFails() {
         val randomFailure = IOException("key generation failed")
         val closeFailure = IOException("storage close failed")
-        val storage = TestStorage(closeFailure = closeFailure)
+        val storage = TestPrivateTemporaryStorage(closeFailure = closeFailure)
 
         val actual = assertFailsWith<IOException> {
             EncryptedTemporarySpillStorage.create(
@@ -185,7 +184,7 @@ class EncryptedTemporarySpillStorageJvmTest {
     @Test
     fun creationClosesStorageAndClearsKeyMaterialWhenIvGenerationFails() {
         val ivFailure = IOException("IV generation failed")
-        val storage = TestStorage()
+        val storage = TestPrivateTemporaryStorage()
         val keyMaterial = ByteArray(EncryptedTemporarySpillStorage.STAGING_KEY_BYTES) { index ->
             (index + 1).toByte()
         }
@@ -216,90 +215,24 @@ class EncryptedTemporarySpillStorageJvmTest {
         assertEquals(1, storage.closeCount)
     }
 
+    private fun encryptedSnapshot(plaintext: ByteArray) =
+        EncryptedTemporarySpillStorage.create(TestPrivateTemporaryStorage()).use { writer ->
+            writer.sink().use { sink -> sink.write(plaintext) }
+            writer.seal()
+        }
+
     private fun assertTamperingRejected(transform: (ByteArray) -> ByteArray) {
-        val storage = TestStorage(tamperOnFirstRewind = transform)
+        val storage = TestPrivateTemporaryStorage(tamperOnFirstSource = transform)
+        val snapshot = EncryptedTemporarySpillStorage.create(storage).use { writer ->
+            writer.sink().use { sink -> sink.write(byteArrayOf(1, 2, 3, 4)) }
+            writer.seal()
+        }
         val output = Buffer()
 
-        EncryptedTemporarySpillStorage.create(storage).use { spill ->
-            spill.write(byteArrayOf(1, 2, 3, 4), 0, 4)
-            spill.seal()
-
-            assertFailsWith<IOException> { spill.replayTo(output) }
-            assertFailsWith<IllegalStateException> { spill.replayTo(output) }
+        snapshot.use {
+            assertFailsWith<IOException> { snapshot.copyTo(output) }
         }
 
         assertContentEquals(byteArrayOf(), output.readByteArray())
-    }
-
-    private class TestStorage(
-        private val tamperOnFirstRewind: ((ByteArray) -> ByteArray)? = null,
-        private val sinkOpenFailure: Throwable? = null,
-        private val sinkCloseFailure: Throwable? = null,
-        private val closeFailure: Throwable? = null,
-    ) : PrivateTemporaryStorage {
-        private var bytes = ByteArray(0)
-        private var rewindCount = 0
-        private var sinkClaimed = false
-        private var sinkClosed = false
-        private var sealed = false
-        private var closed = false
-        var sinkCloseCount = 0
-            private set
-        var closeCount = 0
-            private set
-
-        private val writableSink = object : RawSink {
-            override fun write(source: Buffer, byteCount: Long) {
-                check(!sinkClosed)
-                bytes += source.readByteArray(byteCount.toInt())
-            }
-
-            override fun flush() = Unit
-
-            override fun close() {
-                if (sinkClosed) return
-                sinkClosed = true
-                sinkCloseCount++
-                sinkCloseFailure?.let { throw it }
-            }
-        }
-
-        override fun sink(): RawSink {
-            sinkOpenFailure?.let { throw it }
-            check(!closed)
-            check(!sealed)
-            check(!sinkClaimed)
-            sinkClaimed = true
-            return writableSink
-        }
-
-        override fun sealForReading() {
-            check(!closed)
-            check(!sealed)
-            writableSink.close()
-            sealed = true
-        }
-
-        override fun source(): RawSource {
-            check(!closed)
-            check(sealed)
-            return Buffer().apply { write(bytes) }
-        }
-
-        override fun rewind() {
-            check(!closed)
-            check(sealed)
-            if (rewindCount++ == 0) {
-                tamperOnFirstRewind?.let { bytes = it(bytes) }
-            }
-        }
-
-        override fun close() {
-            if (closed) return
-            closed = true
-            writableSink.close()
-            closeCount++
-            closeFailure?.let { throw it }
-        }
     }
 }

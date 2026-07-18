@@ -13,21 +13,13 @@ interface CipherProvider {
      */
     val ivLength: UInt
 
-    /**
-     * Encrypt the [data] using provided [key] and [iv].
-     */
-    fun encrypt(
+    fun createEncryptor(
         key: ByteArray,
         iv: ByteArray,
-        data: ByteArray
-    ): ByteArray
+    ): CipherSession
 
-    /**
-     * Decrypt the [data] using provided [key] and [iv].
-     */
-    fun decrypt(
+    fun createDecryptor(
         key: ByteArray,
         iv: ByteArray,
-        data: ByteArray
-    ): ByteArray
+    ): CipherSession
 }

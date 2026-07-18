@@ -2,22 +2,30 @@ package app.keemobile.kotpass.database
 
 import app.keemobile.kotpass.constants.BasicField
 import app.keemobile.kotpass.cryptography.EncryptedValue
+import app.keemobile.kotpass.database.header.DatabaseHeader
 import app.keemobile.kotpass.database.header.KdfParameters
+import app.keemobile.kotpass.models.DatabaseContent
 import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.Meta
+import app.keemobile.kotpass.models.XmlContext
+import app.keemobile.kotpass.xml.DefaultXmlContentParser
+import app.keemobile.kotpass.xml.XmlContentParser
 import kotlinx.io.Buffer
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
 import kotlinx.io.write
+import okio.BufferedSink
 import okio.ByteString.Companion.toByteString
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlin.uuid.Uuid
 
@@ -75,6 +83,45 @@ class KeePassDatabaseIoTest {
         assertTrue(rawSink.bytes().isNotEmpty())
     }
 
+    @Test
+    fun encodeFailureClosesGzipLayerWithoutClosingCallerOwnedSink() {
+        val credentials = Credentials.from(EncryptedValue.fromString("test-password"))
+        val writeFailure = IllegalStateException("XML write failed")
+        val closeFailure = IllegalArgumentException("Gzip close failed")
+        val rawSink = TrackingRawSink(flushFailure = closeFailure)
+        val contentParser =
+            object : XmlContentParser by DefaultXmlContentParser {
+                override fun marshalContentTo(
+                    context: XmlContext.Encode,
+                    content: DatabaseContent,
+                    sink: BufferedSink,
+                    pretty: Boolean,
+                ) {
+                    sink.writeUtf8("<partial>")
+                    throw writeFailure
+                }
+            }
+        val database = buildDatabase(credentials).let { database ->
+            database.copy(
+                header = database.header.copy(
+                    compression = DatabaseHeader.Compression.GZip,
+                ),
+            )
+        }
+
+        val actual = assertFailsWith<IllegalStateException> {
+            database.encodeTo(
+                sink = rawSink.buffered(),
+                contentParser = contentParser,
+            )
+        }
+
+        assertSame(writeFailure, actual)
+        assertEquals(listOf(closeFailure), actual.suppressedExceptions)
+        assertTrue(rawSink.flushCalls > 0)
+        assertFalse(rawSink.closed)
+    }
+
     private fun buildDatabase(
         credentials: Credentials,
     ): KeePassDatabase.Ver4x {
@@ -125,9 +172,12 @@ private class TrackingRawSource(
     }
 }
 
-private class TrackingRawSink : RawSink {
+private class TrackingRawSink(
+    private val flushFailure: Throwable? = null,
+) : RawSink {
     private val buffer = Buffer()
     var closed = false
+    var flushCalls = 0
 
     override fun write(
         source: Buffer,
@@ -136,7 +186,10 @@ private class TrackingRawSink : RawSink {
         buffer.write(source, byteCount)
     }
 
-    override fun flush() = Unit
+    override fun flush() {
+        flushCalls++
+        flushFailure?.let { throw it }
+    }
 
     override fun close() {
         closed = true

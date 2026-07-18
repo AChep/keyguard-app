@@ -187,7 +187,7 @@ sealed class DatabaseHeader {
                 val fieldId = HeaderFieldId
                     .entries
                     .getOrNull(id)
-                    ?: throw FormatError.InvalidHeader("Unsupported header field ID.")
+                    ?: continue
 
                 when (fieldId) {
                     HeaderFieldId.EndOfHeader -> break
@@ -275,7 +275,10 @@ sealed class DatabaseHeader {
             val length = if (version.major >= 4) {
                 source.readIntLe().toLong()
             } else {
-                source.readShortLe().toLong()
+                source.readShortLe().toUShort().toLong()
+            }
+            if (length < 0) {
+                throw FormatError.InvalidHeader("Invalid header field length: $length.")
             }
             val data = if (length > 0) {
                 source.readByteString(length)

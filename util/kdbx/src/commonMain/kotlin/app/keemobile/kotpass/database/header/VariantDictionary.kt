@@ -4,23 +4,22 @@ import app.keemobile.kotpass.constants.VariantTypeId
 import app.keemobile.kotpass.errors.FormatError
 import okio.Buffer
 import okio.ByteString
-import kotlin.experimental.and
 
 internal object VariantDictionary {
-    private const val Version: Short = 0x0100
-    private const val VersionFilter: Short = 0xFF00.toShort()
+    private const val Version = 0x0100
+    private const val VersionFilter = 0xFF00
 
     fun readFrom(data: ByteString): Map<String, VariantItem> {
         val result = mutableMapOf<String, VariantItem>()
         val buffer = Buffer().write(data)
-        val version = buffer.readShortLe()
+        val version = buffer.readShortLe().toUShort().toInt()
 
         if ((version and VersionFilter) > (Version and VersionFilter)) {
             throw FormatError.InvalidHeader("Variant dictionary version exceeds expected value.")
         }
 
         while (true) {
-            val type = buffer.readByte().toInt()
+            val type = buffer.readByte().toUByte().toInt()
 
             if (type != VariantTypeId.None) {
                 val keyLength: Int = buffer.readIntLe()
@@ -34,48 +33,52 @@ internal object VariantDictionary {
                 if (valueLength < 0) {
                     throw FormatError.InvalidHeader("Variant dictionary item's value has invalid length.")
                 }
+                val value = Buffer().write(buffer.readByteString(valueLength.toLong()))
 
                 when (type) {
                     VariantTypeId.UInt32 -> {
                         if (valueLength != UInt.SIZE_BYTES) {
                             throw FormatError.InvalidHeader("Invalid item's value length for type: UInt32.")
                         }
-                        result[key] = VariantItem.UInt32(buffer.readIntLe().toUInt())
+                        result[key] = VariantItem.UInt32(value.readIntLe().toUInt())
                     }
                     VariantTypeId.UInt64 -> {
                         if (valueLength != ULong.SIZE_BYTES) {
                             throw FormatError.InvalidHeader("Invalid item's value length for type: UInt64.")
                         }
-                        result[key] = VariantItem.UInt64(buffer.readLongLe().toULong())
+                        result[key] = VariantItem.UInt64(value.readLongLe().toULong())
                     }
                     VariantTypeId.Bool -> {
                         if (valueLength != Byte.SIZE_BYTES) {
                             throw FormatError.InvalidHeader("Invalid item's value length for type: Bool.")
                         }
-                        result[key] = VariantItem.Bool(buffer.readByte() != 0x0.toByte())
+                        result[key] = VariantItem.Bool(value.readByte() != 0x0.toByte())
                     }
                     VariantTypeId.Int32 -> {
                         if (valueLength != Int.SIZE_BYTES) {
                             throw FormatError.InvalidHeader("Invalid item's value length for type: Int32.")
                         }
-                        result[key] = VariantItem.Int32(buffer.readIntLe())
+                        result[key] = VariantItem.Int32(value.readIntLe())
                     }
                     VariantTypeId.Int64 -> {
                         if (valueLength != Long.SIZE_BYTES) {
                             throw FormatError.InvalidHeader("Invalid item's value length for type: Int64.")
                         }
-                        result[key] = VariantItem.Int64(buffer.readLongLe())
+                        result[key] = VariantItem.Int64(value.readLongLe())
                     }
                     VariantTypeId.StringUtf8 -> {
                         result[key] = VariantItem.StringUtf8(
-                            buffer.readUtf8(valueLength.toLong())
+                            value.readUtf8()
                         )
                     }
                     VariantTypeId.Bytes -> {
                         result[key] = VariantItem.Bytes(
-                            buffer.readByteString(valueLength.toLong())
+                            value.readByteString()
                         )
                     }
+                    else -> throw FormatError.InvalidHeader(
+                        "Unsupported variant dictionary item type: $type."
+                    )
                 }
             } else {
                 break
@@ -86,7 +89,7 @@ internal object VariantDictionary {
     }
 
     fun writeToByteString(items: Map<String, VariantItem>) = with(Buffer()) {
-        writeShortLe(Version.toInt())
+        writeShortLe(Version)
 
         for ((key, item) in items) {
             writeByte(item.typeId)

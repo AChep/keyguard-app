@@ -8,6 +8,8 @@ import kotlinx.io.writeString
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class KotlinxIoExtTest {
@@ -129,5 +131,43 @@ class KotlinxIoExtTest {
             "hi there".encodeToByteArray(),
             "hi there".toSource().readByteArrayAndClose(),
         )
+    }
+
+    @Test
+    fun consumeWithErasedBufferReusesAndClearsItsTransferBuffer() {
+        val chunks = mutableListOf<ByteArray>()
+        var transferBuffer: ByteArray? = null
+
+        byteArrayOf(1, 2, 3, 4, 5).toSource().consumeWithErasedBuffer(
+            bufferSize = 2,
+        ) { buffer, length ->
+            transferBuffer?.let { assertSame(it, buffer) }
+            transferBuffer = buffer
+            chunks += buffer.copyOf(length)
+        }
+
+        assertEquals(3, chunks.size)
+        assertContentEquals(byteArrayOf(1, 2), chunks[0])
+        assertContentEquals(byteArrayOf(3, 4), chunks[1])
+        assertContentEquals(byteArrayOf(5), chunks[2])
+        assertContentEquals(ByteArray(2), transferBuffer)
+    }
+
+    @Test
+    fun consumeWithErasedBufferClearsItsTransferBufferAfterFailure() {
+        val failure = IllegalStateException("consume failed")
+        var transferBuffer: ByteArray? = null
+
+        val actual = assertFailsWith<IllegalStateException> {
+            byteArrayOf(1, 2, 3).toSource().consumeWithErasedBuffer(
+                bufferSize = 4,
+            ) { buffer, _ ->
+                transferBuffer = buffer
+                throw failure
+            }
+        }
+
+        assertSame(failure, actual)
+        assertContentEquals(ByteArray(4), transferBuffer)
     }
 }

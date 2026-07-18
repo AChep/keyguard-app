@@ -6,6 +6,10 @@ import app.keemobile.kotpass.database.decode
 import app.keemobile.kotpass.xml.DefaultXmlContentParser
 import app.keemobile.kotpass.xml.XmlContentParser
 
+internal fun readResourceText(path: String): String = ClassLoader
+    .getSystemResourceAsStream(path)!!
+    .use { stream -> stream.readAllBytes().decodeToString() }
+
 internal fun decodeFromResources(
     path: String,
     credentials: Credentials,

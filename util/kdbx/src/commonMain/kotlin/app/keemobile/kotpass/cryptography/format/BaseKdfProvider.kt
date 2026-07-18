@@ -42,11 +42,12 @@ internal object BaseKdfProvider : KdfProvider {
                         Argon2.Variant.Argon2d -> NativeArgon2Mode.ARGON2_D
                         Argon2.Variant.Argon2id -> NativeArgon2Mode.ARGON2_ID
                     },
-                    // Preserve the historical parser behavior: only 0x13 is
-                    // treated as v1.3; every other stored value selects v1.0.
                     version = when (kdfParameters.version) {
+                        0x10U -> NativeArgon2Version.VERSION_1_0
                         0x13U -> NativeArgon2Version.VERSION_1_3
-                        else -> NativeArgon2Version.VERSION_1_0
+                        else -> throw FormatError.InvalidHeader(
+                            "Unsupported Argon2 version: ${kdfParameters.version}."
+                        )
                     },
                     password = compositeKey,
                     salt = ownedSalt,

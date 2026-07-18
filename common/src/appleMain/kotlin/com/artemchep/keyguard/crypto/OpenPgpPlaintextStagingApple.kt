@@ -15,13 +15,11 @@ import kotlinx.io.RawSink
 import kotlinx.io.RawSource
 import platform.Foundation.NSTemporaryDirectory
 import platform.posix.EINTR
-import platform.posix.SEEK_SET
 import platform.posix.close
 import platform.posix.errno
 import platform.posix.fstat
-import platform.posix.lseek
 import platform.posix.mkstemp
-import platform.posix.read as posixRead
+import platform.posix.pread as posixPread
 import platform.posix.unlink
 import platform.posix.write as posixWrite
 
@@ -91,14 +89,6 @@ private class ApplePrivateTemporaryStorage(
         return FileDescriptorRawSource(descriptor)
     }
 
-    override fun rewind() {
-        check(!closed) { "Staging file is closed" }
-        check(sealed) { "Staging file must be sealed before rewinding" }
-        if (lseek(descriptor, 0, SEEK_SET) < 0) {
-            throw IOException("Could not rewind staging file")
-        }
-    }
-
     override fun close() {
         if (closed) return
         closed = true
@@ -156,6 +146,7 @@ private class FileDescriptorRawSource(
     private val descriptor: Int,
 ) : RawSource {
     private val buffer = ByteArray(STAGING_BUFFER_BYTES)
+    private var position = 0L
     private var closed = false
 
     override fun readAtMostTo(
@@ -167,8 +158,14 @@ private class FileDescriptorRawSource(
         if (byteCount == 0L) return 0
 
         val requested = minOf(byteCount, buffer.size.toLong()).toInt()
-        val read = readAtMost(descriptor, buffer, requested)
+        val read = readAtMost(
+            descriptor = descriptor,
+            buffer = buffer,
+            byteCount = requested,
+            position = position,
+        )
         if (read == 0) return -1
+        position += read
         try {
             sink.write(buffer, startIndex = 0, endIndex = read)
         } finally {
@@ -215,14 +212,16 @@ private fun readAtMost(
     descriptor: Int,
     buffer: ByteArray,
     byteCount: Int,
+    position: Long,
 ): Int {
     val read = buffer.usePinned { pinned ->
         var result: Long
         do {
-            result = posixRead(
+            result = posixPread(
                 descriptor,
                 pinned.addressOf(0),
                 byteCount.convert(),
+                position,
             )
         } while (result < 0 && errno == EINTR)
         result

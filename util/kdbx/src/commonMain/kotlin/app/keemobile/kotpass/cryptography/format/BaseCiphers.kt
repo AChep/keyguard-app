@@ -3,9 +3,8 @@ package app.keemobile.kotpass.cryptography.format
 import app.keemobile.kotpass.errors.CryptoError.AlgorithmUnavailable
 import app.keemobile.kotpass.errors.CryptoError.InvalidKey
 import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
+import com.artemchep.keyguard.nativecrypto.NativeCryptoSession
 import com.artemchep.keyguard.nativecrypto.NativeStreamCipherAlgorithm
-import com.artemchep.keyguard.util.foundation.crypto.aesCbcPkcs7Decrypt
-import com.artemchep.keyguard.util.foundation.crypto.aesCbcPkcs7Encrypt
 import kotlin.uuid.Uuid
 
 /**
@@ -22,30 +21,40 @@ enum class BaseCiphers : CipherProvider {
         override val uuid: Uuid = Uuid.parse("31c1f2e6-bf71-4350-be58-05216afc5aff")
         override val ivLength = 16U
 
-        override fun encrypt(
+        override fun createEncryptor(
             key: ByteArray,
             iv: ByteArray,
-            data: ByteArray
-        ): ByteArray = processBytes(encrypt = true, key, iv, data)
+        ): CipherSession = createAesSession(encrypt = true, key, iv)
 
-        override fun decrypt(
+        override fun createDecryptor(
             key: ByteArray,
             iv: ByteArray,
-            data: ByteArray
-        ): ByteArray = processBytes(encrypt = false, key, iv, data)
+        ): CipherSession = createAesSession(encrypt = false, key, iv)
 
-        private fun processBytes(
+        private fun createAesSession(
             encrypt: Boolean,
             key: ByteArray,
             iv: ByteArray,
-            data: ByteArray
-        ): ByteArray = try {
-            if (encrypt) {
-                aesCbcPkcs7Encrypt(key, iv, data)
+        ): CipherSession = try {
+            val delegate = if (encrypt) {
+                NativeCryptoPrimitives.createAesCbcPkcs7Encryptor(key, iv)
             } else {
-                aesCbcPkcs7Decrypt(key, iv, data)
+                NativeCryptoPrimitives.createAesCbcPkcs7Decryptor(key, iv)
             }
-        } catch (e: UnsupportedOperationException) {
+            NativeCipherSession(delegate) { error ->
+                when (error) {
+                    is UnsupportedOperationException -> {
+                        AlgorithmUnavailable(
+                            "AES/CBC encryption is not supported in current environment.",
+                        )
+                    }
+
+                    else -> {
+                        InvalidKey("Wrong key used for decryption.")
+                    }
+                }
+            }
+        } catch (error: UnsupportedOperationException) {
             throw AlgorithmUnavailable("AES/CBC encryption is not supported in current environment.")
         } catch (_: Throwable) {
             throw InvalidKey("Wrong key used for decryption.")
@@ -62,22 +71,100 @@ enum class BaseCiphers : CipherProvider {
         override val uuid: Uuid = Uuid.parse("d6038a2b-8b6f-4cb5-a524-339a31dbb59a")
         override val ivLength = 12U
 
-        override fun encrypt(
+        override fun createEncryptor(
             key: ByteArray,
             iv: ByteArray,
-            data: ByteArray
-        ): ByteArray = NativeCryptoPrimitives.streamCipherXorAtOffset(
-            algorithm = NativeStreamCipherAlgorithm.CHACHA20,
-            key = key,
-            nonce = iv,
-            offset = 0,
-            data = data,
-        )
+        ): CipherSession = ChaCha20CipherSession(key, iv)
 
-        override fun decrypt(
+        override fun createDecryptor(
             key: ByteArray,
             iv: ByteArray,
-            data: ByteArray
-        ): ByteArray = encrypt(key, iv, data)
+        ): CipherSession = ChaCha20CipherSession(key, iv)
+    },
+}
+
+internal class NativeCipherSession(
+    private val delegate: NativeCryptoSession,
+    private val mapFailure: (Throwable) -> Throwable = { it },
+) : CipherSession {
+    override fun update(
+        data: ByteArray,
+        offset: Int,
+        length: Int,
+    ): ByteArray = try {
+        delegate.update(data, offset, length)
+    } catch (error: Throwable) {
+        throw mapFailure(error)
+    }
+
+    override fun finish(): ByteArray = try {
+        delegate.finish()
+    } catch (error: Throwable) {
+        throw mapFailure(error)
+    }
+
+    override fun close() = delegate.close()
+}
+
+private class ChaCha20CipherSession(
+    key: ByteArray,
+    nonce: ByteArray,
+) : CipherSession {
+    private val key = key.copyOf()
+    private val nonce = nonce.copyOf()
+    private var offset = 0L
+    private var consumed = false
+
+    override fun update(
+        data: ByteArray,
+        offset: Int,
+        length: Int,
+    ): ByteArray {
+        check(!consumed) { "Cipher session is already consumed" }
+        require(offset >= 0 && length >= 0 && offset <= data.size - length) {
+            "Invalid cipher input range"
+        }
+        if (length == 0) return ByteArray(0)
+        val input = if (offset == 0 && length == data.size) {
+            data
+        } else {
+            data.copyOfRange(offset, offset + length)
+        }
+        return try {
+            NativeCryptoPrimitives
+                .streamCipherXorAtOffset(
+                    algorithm = NativeStreamCipherAlgorithm.CHACHA20,
+                    key = key,
+                    nonce = nonce,
+                    offset = this.offset,
+                    data = input,
+                ).also {
+                    check(this.offset <= Long.MAX_VALUE - length) {
+                        "Cipher stream offset overflow"
+                    }
+                    this.offset += length
+                }
+        } finally {
+            if (input !== data) input.fill(0)
+        }
+    }
+
+    override fun finish(): ByteArray {
+        check(!consumed) { "Cipher session is already consumed" }
+        consumed = true
+        clear()
+        return ByteArray(0)
+    }
+
+    override fun close() {
+        if (!consumed) {
+            consumed = true
+            clear()
+        }
+    }
+
+    private fun clear() {
+        key.fill(0)
+        nonce.fill(0)
     }
 }

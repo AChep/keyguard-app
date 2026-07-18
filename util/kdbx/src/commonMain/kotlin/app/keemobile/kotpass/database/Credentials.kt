@@ -2,19 +2,22 @@ package app.keemobile.kotpass.database
 
 import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.errors.KeyfileError
-import app.keemobile.kotpass.extensions.getText
 import app.keemobile.kotpass.io.decodeBase64ToArray
 import app.keemobile.kotpass.io.decodeHexToArray
 import app.keemobile.kotpass.io.encodeHex
 import app.keemobile.kotpass.xml.KeyfileXml
+import app.keemobile.kotpass.xml.attribute
+import app.keemobile.kotpass.xml.attributeOrNull
+import app.keemobile.kotpass.xml.buildXmlString
+import app.keemobile.kotpass.xml.element
+import app.keemobile.kotpass.xml.enterDocumentRoot
+import app.keemobile.kotpass.xml.forEachChildElement
+import app.keemobile.kotpass.xml.isUnqualifiedElement
+import app.keemobile.kotpass.xml.readElementTextOrNull
+import app.keemobile.kotpass.xml.skipElement
+import app.keemobile.kotpass.xml.xmlReader
 import com.artemchep.keyguard.util.foundation.crypto.sha256
-import org.redundent.kotlin.xml.Node
-import org.redundent.kotlin.xml.PrintOptions
-import org.redundent.kotlin.xml.XmlVersion
-import org.redundent.kotlin.xml.parse
-import org.redundent.kotlin.xml.xml
 
-private const val XmlEncoding = "utf-8"
 private const val DefaultVersion = "2.0"
 
 private val SpacesPattern = Regex("\\s+")
@@ -45,7 +48,7 @@ class Credentials private constructor(
                 .encodeHex()
                 .uppercase()
 
-            return xml(KeyfileXml.Tags.Document, XmlEncoding, XmlVersion.V10) {
+            return buildXmlString(KeyfileXml.Tags.Document, pretty = true) {
                 element(KeyfileXml.Tags.Meta) {
                     element(KeyfileXml.Tags.Version) {
                         text(DefaultVersion)
@@ -57,55 +60,93 @@ class Credentials private constructor(
                         text(key.encodeHex().uppercase())
                     }
                 }
-            }.toString(PrintOptions(singleLineTextElements = true))
-        }
-
-        private fun parseKeyfile(keyData: ByteArray): ByteArray {
-            return when (keyData.size) {
-                32 -> keyData
-                64 -> {
-                    keyData
-                        .decodeToString()
-                        .lowercase()
-                        .decodeHexToArray()
-                }
-                else -> {
-                    parseXmlKeyfile(keyData)
-                        ?.let(::findXmlKeyData)
-                        ?: sha256(keyData) // Use raw binary data as keyfile
-                }
             }
         }
 
-        private fun parseXmlKeyfile(keyData: ByteArray): Node? = try {
-            parse(keyData)
+        private fun parseKeyfile(keyData: ByteArray): ByteArray {
+            if (keyData.size == 32) {
+                return keyData.copyOf()
+            }
+            if (keyData.size == 64 && keyData.all(::isAsciiHexDigit)) {
+                return keyData
+                    .decodeToString()
+                    .decodeHexToArray()
+            }
+
+            return parseXmlKeyfile(keyData)
+                ?.let(::findXmlKeyData)
+                ?: sha256(keyData) // Use raw binary data as keyfile
+        }
+
+        private fun isAsciiHexDigit(value: Byte): Boolean = when (value.toInt()) {
+            in '0'.code..'9'.code,
+            in 'A'.code..'F'.code,
+            in 'a'.code..'f'.code -> true
+            else -> false
+        }
+
+        private fun parseXmlKeyfile(keyData: ByteArray): XmlKeyfile? = try {
+            val reader = xmlReader(keyData)
+            if (
+                reader.enterDocumentRoot() == null ||
+                !reader.isUnqualifiedElement(KeyfileXml.Tags.Document)
+            ) {
+                null
+            } else {
+                var version: Float? = null
+                var hasKeyData = false
+                var hash: String? = null
+                var data: String? = null
+
+                reader.forEachChildElement {
+                    when {
+                        reader.isUnqualifiedElement(KeyfileXml.Tags.Meta) ->
+                            reader.forEachChildElement {
+                                if (reader.isUnqualifiedElement(KeyfileXml.Tags.Version)) {
+                                    version = reader.readElementTextOrNull()
+                                        ?.trim()
+                                        ?.toFloatOrNull()
+                                } else {
+                                    reader.skipElement()
+                                }
+                            }
+                        reader.isUnqualifiedElement(KeyfileXml.Tags.Key) ->
+                            reader.forEachChildElement {
+                                if (reader.isUnqualifiedElement(KeyfileXml.Tags.Data)) {
+                                    hasKeyData = true
+                                    hash = reader.attributeOrNull(KeyfileXml.Attributes.Hash)
+                                    data = reader.readElementTextOrNull()?.trim()
+                                } else {
+                                    reader.skipElement()
+                                }
+                            }
+                        else -> reader.skipElement()
+                    }
+                }
+                XmlKeyfile(version, hasKeyData, hash, data)
+            }
         } catch (e: Exception) {
             null
         }
 
-        private fun findXmlKeyData(node: Node): ByteArray {
-            val version = node
-                .firstOrNull(KeyfileXml.Tags.Meta)
-                ?.firstOrNull(KeyfileXml.Tags.Version)
-                ?.getText()
-                ?.toFloatOrNull()
+        private fun findXmlKeyData(keyfile: XmlKeyfile): ByteArray {
+            val version = keyfile.version
                 ?: throw KeyfileError.InvalidVersion()
-            val dataNode = node
-                .firstOrNull(KeyfileXml.Tags.Key)
-                ?.firstOrNull(KeyfileXml.Tags.Data)
-                ?: throw KeyfileError.NoKeyData()
+            if (!keyfile.hasKeyData) {
+                throw KeyfileError.NoKeyData()
+            }
 
             return when (version) {
                 1.0f -> {
-                    dataNode.getText()
+                    keyfile.data
                         ?.decodeBase64ToArray()
                         ?: throw KeyfileError.NoKeyData()
                 }
                 2.0f -> {
-                    val hash = dataNode.get<String?>(KeyfileXml.Attributes.Hash)
+                    val hash = keyfile.hash
                         ?.decodeHexToArray()
                         ?: throw KeyfileError.InvalidHash()
-                    dataNode.getText()
+                    keyfile.data
                         ?.replace(SpacesPattern, "")
                         ?.decodeHexToArray()
                         ?.also { data ->
@@ -119,4 +160,11 @@ class Credentials private constructor(
             }
         }
     }
+
+    private class XmlKeyfile(
+        val version: Float?,
+        val hasKeyData: Boolean,
+        val hash: String?,
+        val data: String?
+    )
 }

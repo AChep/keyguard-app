@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.file.FileMetadata
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keepass.StagedDatabase
 import kotlinx.io.Source
+import kotlinx.io.readByteArray
 
 internal class KeePassDatabaseStorageLocalFile(
     private val fileService: FileService,
@@ -44,20 +45,28 @@ internal class KeePassDatabaseStorageLocalFile(
         val published = fileService.atomicWriteToFile(
             uri = uri,
             accessToken = accessToken,
-            bytes = staged.bytes,
+            write = staged::replayTo,
         )
         if (!published) {
-            writeBytes(uri, staged.bytes)
+            // The direct-write fallback truncates the destination on open, so
+            // materialize the staged payload first: a staging read failure
+            // must not be able to tear the database once the destination has
+            // been opened.
+            val bytes = staged.source().use { source ->
+                source.readByteArray()
+            }
+            try {
+                fileService.writeToFile(
+                    uri = uri,
+                    accessToken = accessToken,
+                ).use { sink ->
+                    sink.write(bytes)
+                }
+            } finally {
+                bytes.fill(0)
+            }
         }
         return stat()
-    }
-
-    private fun writeBytes(targetUri: String, bytes: ByteArray) {
-        val sink = fileService.writeToFile(
-            uri = targetUri,
-            accessToken = accessToken,
-        )
-        sink.use { it.write(bytes) }
     }
 }
 

@@ -4,9 +4,11 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use aes::{Aes128, Aes192, Aes256};
 use aws_lc_rs::constant_time;
+use cbc::{Decryptor, Encryptor};
 use cipher::{
-    Block, BlockDecrypt, BlockEncrypt, KeyInit,
-    block_padding::{Pkcs7, RawPadding},
+    Block, BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyInit, KeyIvInit,
+    block_padding::{NoPadding, Pkcs7, RawPadding},
+    consts::U16,
 };
 use keyguard_crypto_sensitive::{
     DigestAlgorithm, DigestContext, HmacContext, SensitiveBackendError,
@@ -83,6 +85,7 @@ enum CbcCipher {
 struct CbcPkcs7Session {
     direction: CipherDirection,
     cipher: CbcCipher,
+    bulk_aes_key: Option<Zeroizing<Vec<u8>>>,
     chain: Zeroizing<[u8; AES_BLOCK_BYTES]>,
     pending: Zeroizing<Vec<u8>>,
 }
@@ -386,13 +389,68 @@ fn sensitive_algorithm(algorithm: HashAlgorithm) -> Result<DigestAlgorithm, Sess
     }
 }
 
+fn transform_aes_cbc_blocks(
+    direction: CipherDirection,
+    key: &[u8],
+    iv: &[u8],
+    data: &mut [u8],
+) -> Result<[u8; AES_BLOCK_BYTES], SessionError> {
+    debug_assert!(!data.is_empty() && data.len().is_multiple_of(AES_BLOCK_BYTES));
+    let mut next_chain = [0_u8; AES_BLOCK_BYTES];
+    if direction == CipherDirection::Decrypt {
+        next_chain.copy_from_slice(&data[data.len() - AES_BLOCK_BYTES..]);
+    }
+
+    match (direction, key.len()) {
+        (CipherDirection::Encrypt, 16) => encrypt_aes_cbc_blocks::<Aes128>(key, iv, data)?,
+        (CipherDirection::Encrypt, 24) => encrypt_aes_cbc_blocks::<Aes192>(key, iv, data)?,
+        (CipherDirection::Encrypt, 32) => encrypt_aes_cbc_blocks::<Aes256>(key, iv, data)?,
+        (CipherDirection::Decrypt, 16) => decrypt_aes_cbc_blocks::<Aes128>(key, iv, data)?,
+        (CipherDirection::Decrypt, 24) => decrypt_aes_cbc_blocks::<Aes192>(key, iv, data)?,
+        (CipherDirection::Decrypt, 32) => decrypt_aes_cbc_blocks::<Aes256>(key, iv, data)?,
+        _ => return Err(SessionError::InvalidArgument),
+    }
+
+    if direction == CipherDirection::Encrypt {
+        next_chain.copy_from_slice(&data[data.len() - AES_BLOCK_BYTES..]);
+    }
+    Ok(next_chain)
+}
+
+fn encrypt_aes_cbc_blocks<C>(key: &[u8], iv: &[u8], data: &mut [u8]) -> Result<(), SessionError>
+where
+    C: BlockEncrypt + KeyInit + cipher::BlockCipher + cipher::BlockSizeUser<BlockSize = U16>,
+{
+    let message_length = data.len();
+    Encryptor::<C>::new_from_slices(key, iv)
+        .map_err(|_| SessionError::InvalidArgument)?
+        .encrypt_padded_mut::<NoPadding>(data, message_length)
+        .map(|_| ())
+        .map_err(|_| SessionError::CryptoFailure)
+}
+
+fn decrypt_aes_cbc_blocks<C>(key: &[u8], iv: &[u8], data: &mut [u8]) -> Result<(), SessionError>
+where
+    C: BlockDecrypt + KeyInit + cipher::BlockCipher + cipher::BlockSizeUser<BlockSize = U16>,
+{
+    Decryptor::<C>::new_from_slices(key, iv)
+        .map_err(|_| SessionError::InvalidArgument)?
+        .decrypt_padded_mut::<NoPadding>(data)
+        .map(|_| ())
+        .map_err(|_| SessionError::CryptoFailure)
+}
+
 impl CbcPkcs7Session {
     fn new_aes(
         direction: CipherDirection,
         key: Vec<u8>,
         iv: Vec<u8>,
     ) -> Result<Self, SessionError> {
-        Self::new(direction, CbcCipher::new_aes, key, iv)
+        let bulk_aes_key = Zeroizing::new(key.clone());
+        Self::new(direction, CbcCipher::new_aes, key, iv).map(|mut session| {
+            session.bulk_aes_key = Some(bulk_aes_key);
+            session
+        })
     }
 
     fn new_twofish(
@@ -420,6 +478,7 @@ impl CbcPkcs7Session {
         Ok(Self {
             direction,
             cipher,
+            bulk_aes_key: None,
             chain,
             pending: Zeroizing::new(Vec::with_capacity(AES_BLOCK_BYTES * 2 - 1)),
         })
@@ -440,8 +499,21 @@ impl CbcPkcs7Session {
         };
         let process_bytes = process_blocks * AES_BLOCK_BYTES;
         let mut output = Zeroizing::new(Vec::with_capacity(process_bytes));
-        for chunk in combined[..process_bytes].as_chunks::<AES_BLOCK_BYTES>().0 {
-            self.transform_block(chunk, &mut output);
+        if let Some(key) = self.bulk_aes_key.as_deref() {
+            if process_bytes > 0 {
+                let next_chain = transform_aes_cbc_blocks(
+                    self.direction,
+                    key,
+                    self.chain.as_slice(),
+                    &mut combined[..process_bytes],
+                )?;
+                self.chain.copy_from_slice(&next_chain);
+                output.extend_from_slice(&combined[..process_bytes]);
+            }
+        } else {
+            for chunk in combined[..process_bytes].as_chunks::<AES_BLOCK_BYTES>().0 {
+                self.transform_block(chunk, &mut output);
+            }
         }
         self.pending.extend_from_slice(&combined[process_bytes..]);
         Ok(output.to_vec())

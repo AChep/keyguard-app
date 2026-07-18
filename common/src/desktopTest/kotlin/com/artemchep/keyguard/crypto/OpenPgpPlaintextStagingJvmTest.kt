@@ -4,8 +4,6 @@ import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 import kotlinx.io.Buffer
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
 import kotlin.test.Test
@@ -65,7 +63,7 @@ class OpenPgpPlaintextStagingJvmTest {
 
     @Test
     fun spilledBytesDoNotContainPlaintext() {
-        val storage = RecordingPrivateTemporaryStorage()
+        val storage = TestPrivateTemporaryStorage()
         val plaintext = "highly recognizable OpenPGP plaintext".encodeToByteArray()
 
         withStagedOpenPgpPlaintextUsing(
@@ -77,12 +75,18 @@ class OpenPgpPlaintextStagingJvmTest {
             staging.write(plaintext)
         }
 
-        assertFalse(storage.bytes().containsSubsequence(plaintext))
+        assertFalse(storage.storedBytes().containsSubsequence(plaintext))
     }
 
     @Test
     fun corruptedEncryptedSpillIsRejectedBeforePublication() {
-        val storage = RecordingPrivateTemporaryStorage(tamperOnFirstRewind = true)
+        val storage = TestPrivateTemporaryStorage(
+            tamperOnFirstSource = { bytes ->
+                bytes.apply {
+                    if (isNotEmpty()) this[0] = (this[0].toInt() xor 1).toByte()
+                }
+            },
+        )
         val output = Buffer()
 
         assertFailsWith<kotlinx.io.IOException> {
@@ -138,7 +142,6 @@ class OpenPgpPlaintextStagingJvmTest {
                 val sink = storage.sink()
                 assertFailsWith<IllegalStateException> { storage.sink() }
                 assertFailsWith<IllegalStateException> { storage.source() }
-                assertFailsWith<IllegalStateException> { storage.rewind() }
 
                 val plaintext = byteArrayOf(1, 2, 3)
                 sink.write(Buffer().apply { write(plaintext) }, plaintext.size.toLong())
@@ -151,11 +154,14 @@ class OpenPgpPlaintextStagingJvmTest {
                     sink.write(Buffer().apply { writeByte(4) }, 1L)
                 }
 
-                storage.rewind()
                 val actual = storage.source().buffered().use { source ->
                     source.readByteArray()
                 }
                 assertContentEquals(plaintext, actual)
+                val replayed = storage.source().buffered().use { source ->
+                    source.readByteArray()
+                }
+                assertContentEquals(plaintext, replayed)
             }
         } finally {
             directory.deleteRecursively()
@@ -187,63 +193,6 @@ class OpenPgpPlaintextStagingJvmTest {
     }
 
     private class AuthenticationFailure : RuntimeException("authentication failed")
-
-    private class RecordingPrivateTemporaryStorage(
-        private val tamperOnFirstRewind: Boolean = false,
-    ) : PrivateTemporaryStorage {
-        private val chunks = mutableListOf<ByteArray>()
-        private var rewinds = 0
-        private var sinkClosed = false
-        private var sealed = false
-
-        override fun sink(): RawSink = object : RawSink {
-            override fun write(source: Buffer, byteCount: Long) {
-                check(!sinkClosed)
-                var remaining = byteCount
-                while (remaining > 0L) {
-                    val chunk = ByteArray(minOf(remaining, 64 * 1024L).toInt())
-                    val read = source.readAtMostTo(chunk)
-                    check(read == chunk.size)
-                    chunks += chunk
-                    remaining -= read
-                }
-            }
-
-            override fun flush() = Unit
-
-            override fun close() {
-                sinkClosed = true
-            }
-        }
-
-        override fun sealForReading() {
-            check(!sealed)
-            sinkClosed = true
-            sealed = true
-        }
-
-        override fun source(): RawSource {
-            check(sealed)
-            return Buffer().apply {
-                chunks.forEach { chunk -> write(chunk) }
-            }
-        }
-
-        override fun rewind() {
-            check(sealed)
-            if (tamperOnFirstRewind && rewinds++ == 0 && chunks.isNotEmpty()) {
-                chunks[0][0] = (chunks[0][0].toInt() xor 1).toByte()
-            }
-        }
-
-        fun bytes(): ByteArray = chunks
-            .fold(Buffer()) { buffer, chunk -> buffer.apply { write(chunk) } }
-            .readByteArray()
-
-        override fun close() {
-            sinkClosed = true
-        }
-    }
 }
 
 private fun ByteArray.containsSubsequence(candidate: ByteArray): Boolean {

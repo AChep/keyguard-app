@@ -1,10 +1,7 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
-import com.artemchep.keyguard.nativecrypto.NATIVE_CRYPTO_STREAM_CHUNK_BYTES
 import com.artemchep.keyguard.nativecrypto.NativeCryptoOpenPgp
-import kotlinx.io.IOException
-import kotlinx.io.Source
 
 internal inline fun <T> List<GpgOpenPgpPublicKey>.withEncodedPublicKeys(
     block: (List<ByteArray>) -> T,
@@ -32,34 +29,6 @@ internal fun List<ByteArray>.eraseAll() {
  */
 internal fun <T> List<T>.clampToNativeOpenPgpKeyLimit(): List<T> =
     take(NativeCryptoOpenPgp.MAX_KEY_DOCUMENTS_PER_REQUEST)
-
-internal inline fun Source.consumeWithErasedBuffer(
-    bufferSize: Int = NATIVE_CRYPTO_STREAM_CHUNK_BYTES,
-    consume: (ByteArray, Int) -> Unit,
-) {
-    require(bufferSize > 0) { "Buffer size must be positive" }
-    val buffer = ByteArray(bufferSize)
-    var consecutiveZeroReads = 0
-    try {
-        while (true) {
-            val read = readAtMostTo(buffer)
-            if (read < 0) break
-            if (read == 0) {
-                consecutiveZeroReads += 1
-                if (consecutiveZeroReads > MAX_CONSECUTIVE_ZERO_READS) {
-                    throw IOException("Source made no progress while reading")
-                }
-                continue
-            }
-            consecutiveZeroReads = 0
-            consume(buffer, read)
-        }
-    } finally {
-        buffer.fill(0)
-    }
-}
-
-private const val MAX_CONSECUTIVE_ZERO_READS = 16
 
 internal fun throwLegacyAesUnsupported(): Nothing {
     throw IllegalArgumentException(

@@ -75,7 +75,6 @@ class OpenPgpPlaintextStagingAppleTest {
             val sink = storage.sink()
             assertFailsWith<IllegalStateException> { storage.sink() }
             assertFailsWith<IllegalStateException> { storage.source() }
-            assertFailsWith<IllegalStateException> { storage.rewind() }
 
             val plaintext = byteArrayOf(1, 2, 3)
             sink.write(Buffer().apply { write(plaintext) }, plaintext.size.toLong())
@@ -88,11 +87,14 @@ class OpenPgpPlaintextStagingAppleTest {
                 sink.write(Buffer().apply { writeByte(4) }, 1L)
             }
 
-            storage.rewind()
             val actual = storage.source().buffered().use { source ->
                 source.readByteArray()
             }
             assertContentEquals(plaintext, actual)
+            val replayed = storage.source().buffered().use { source ->
+                source.readByteArray()
+            }
+            assertContentEquals(plaintext, replayed)
         }
     }
 

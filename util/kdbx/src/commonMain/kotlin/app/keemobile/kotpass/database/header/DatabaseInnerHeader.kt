@@ -1,13 +1,16 @@
 package app.keemobile.kotpass.database.header
 
 import app.keemobile.kotpass.constants.CrsAlgorithm
+import app.keemobile.kotpass.cryptography.SecureRandom
+import app.keemobile.kotpass.database.BinaryPool
+import app.keemobile.kotpass.database.BinaryWritePlan
 import app.keemobile.kotpass.errors.FormatError
 import app.keemobile.kotpass.extensions.nextByteString
 import app.keemobile.kotpass.models.BinaryData
+import okio.Buffer
 import okio.BufferedSink
 import okio.BufferedSource
 import okio.ByteString
-import app.keemobile.kotpass.cryptography.SecureRandom
 
 private object InnerHeaderFieldId {
     const val Terminator = 0x00
@@ -24,7 +27,10 @@ data class DatabaseInnerHeader(
     @PublishedApi
     internal val binaries: Map<ByteString, BinaryData> = linkedMapOf()
 ) {
-    internal fun writeTo(sink: BufferedSink) = with(sink) {
+    internal fun writeTo(
+        sink: BufferedSink,
+        binaryWritePlan: BinaryWritePlan,
+    ) = with(sink) {
         writeByte(InnerHeaderFieldId.StreamId)
         writeIntLe(Int.SIZE_BYTES)
         writeIntLe(randomStreamId.ordinal)
@@ -33,7 +39,7 @@ data class DatabaseInnerHeader(
         writeIntLe(randomStreamKey.size)
         write(randomStreamKey)
 
-        for ((_, binary) in binaries) {
+        for ((_, _, binary) in binaryWritePlan.entries) {
             val data = binary.getContent()
             writeByte(InnerHeaderFieldId.Binary)
             writeIntLe(data.size + BinaryFlagsSize)
@@ -53,12 +59,13 @@ data class DatabaseInnerHeader(
         )
 
         internal fun readFrom(source: BufferedSource): DatabaseInnerHeader {
-            val binaries = linkedMapOf<ByteString, BinaryData>()
+            val binaries = BinaryPool()
+            var binaryRef = 0
             var randomStreamId: CrsAlgorithm? = null
             var randomStreamKey: ByteString? = null
 
             while (true) {
-                val id = source.readByte()
+                val id = source.readByte().toUByte().toInt()
                 // The length is a signed little-endian int in the format, so a
                 // declared payload >= 2 GiB wraps to a negative value; guard it
                 // before it reaches any read call.
@@ -66,19 +73,22 @@ data class DatabaseInnerHeader(
                 if (length < 0) {
                     throw FormatError.InvalidContent("Invalid inner header field length: $length.")
                 }
+                val data = Buffer().write(source.readByteString(length))
 
-                when (id.toInt()) {
-                    InnerHeaderFieldId.Terminator -> {
-                        source.readByteArray(length)
-                        break
-                    }
+                when (id) {
+                    InnerHeaderFieldId.Terminator -> break
                     InnerHeaderFieldId.StreamId -> {
-                        val ordinal = source.readIntLe()
+                        if (length != Int.SIZE_BYTES.toLong()) {
+                            throw FormatError.InvalidContent(
+                                "Invalid inner random stream id field length: $length."
+                            )
+                        }
+                        val ordinal = data.readIntLe()
                         randomStreamId = CrsAlgorithm.entries.getOrNull(ordinal)
                             ?: throw FormatError.InvalidContent("Unknown inner random stream id: $ordinal.")
                     }
                     InnerHeaderFieldId.StreamKey -> {
-                        randomStreamKey = source.readByteString(length)
+                        randomStreamKey = data.readByteString()
                     }
                     InnerHeaderFieldId.Binary -> {
                         if (length < BinaryFlagsSize) {
@@ -86,12 +96,13 @@ data class DatabaseInnerHeader(
                             throw FormatError.InvalidContent(msg)
                         }
 
-                        val memoryProtection = source.readByte() != 0x0.toByte()
-                        val content = source.readByteArray(length - BinaryFlagsSize)
+                        val flags = data.readByte().toInt()
+                        val memoryProtection = flags and 0x01 != 0
+                        val content = data.readByteArray()
                         val binary = BinaryData.Uncompressed(memoryProtection, content)
-                        binaries[binary.hash] = binary
+                        binaries.add(binaryRef++, binary)
                     }
-                    else -> throw FormatError.InvalidContent("Unknown inner header id: $id.")
+                    else -> Unit
                 }
             }
 

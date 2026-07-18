@@ -163,7 +163,7 @@ class FileServiceAndroid(
     override fun atomicWriteToFile(
         uri: String,
         accessToken: FileAccessToken?,
-        bytes: ByteArray,
+        write: (Sink) -> Unit,
     ): Boolean {
         val destination = uri.toUri()
         // SAF content:// documents cannot be renamed into place. Keep their
@@ -171,11 +171,10 @@ class FileServiceAndroid(
         if (destination.scheme != "file") {
             return false
         }
-
         return localFileService.atomicWriteToFile(
             uri = uri,
             accessToken = accessToken,
-            bytes = bytes,
+            write = write,
         )
     }
 

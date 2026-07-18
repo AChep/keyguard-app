@@ -1,16 +1,17 @@
 package app.keemobile.kotpass.xml
 
+import app.keemobile.kotpass.common.matchers.shouldBe
+import app.keemobile.kotpass.common.readResourceText
 import app.keemobile.kotpass.common.renderTestXmlString
+import app.keemobile.kotpass.common.runKotpassSpec
 import app.keemobile.kotpass.constants.BasicField
 import app.keemobile.kotpass.constants.MemoryProtectionFlag
 import app.keemobile.kotpass.cryptography.EncryptionSaltGenerator
+import app.keemobile.kotpass.extensions.parseAsXmlReader
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.FormatVersion
 import app.keemobile.kotpass.models.XmlContext
-import app.keemobile.kotpass.common.runKotpassSpec
 import kotlin.test.Test
-import app.keemobile.kotpass.common.matchers.shouldBe
-import org.redundent.kotlin.xml.parse
 
 class EntrySpec {
     @Test
@@ -23,9 +24,8 @@ class EntrySpec {
                 encryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
                 binaries = linkedMapOf()
             )
-            val document = ClassLoader
-                .getSystemResourceAsStream("xml/entry.xml")!!
-                .use(::parse)
+            val document = readResourceText("xml/entry.xml")
+                .parseAsXmlReader()
             val entry = unmarshalEntry(context, document)
 
             entry[BasicField.UserName] shouldBe EntryValue.Plain("Test User")
@@ -40,12 +40,11 @@ class EntrySpec {
                 memoryProtectionFlags = setOf(MemoryProtectionFlag.Password)
             )
             val decodeCtx = XmlContext.Decode(version, encryption, linkedMapOf())
-            val resourceStream = { ClassLoader.getSystemResourceAsStream("xml/entry.xml")!! }
-            val document = resourceStream().use(::parse)
-            val rawData = resourceStream().readAllBytes().decodeToString()
+            val rawData = readResourceText("xml/entry.xml")
+            val document = rawData.parseAsXmlReader()
             val autoTypeData = unmarshalEntry(decodeCtx, document)
 
-            renderTestXmlString(autoTypeData.marshal(encodeCtx)) shouldBe rawData
+            renderTestXmlString { autoTypeData.marshalTo(encodeCtx, it) } shouldBe rawData
         }
     }
     }

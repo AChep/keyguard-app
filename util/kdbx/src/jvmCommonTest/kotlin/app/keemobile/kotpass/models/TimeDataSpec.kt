@@ -1,15 +1,15 @@
 package app.keemobile.kotpass.models
 
 import app.keemobile.kotpass.cryptography.EncryptionSaltGenerator
-import app.keemobile.kotpass.extensions.parseAsXml
+import app.keemobile.kotpass.extensions.parseAsXmlReader
 import app.keemobile.kotpass.resources.TimeDataRes
-import app.keemobile.kotpass.xml.marshal
+import app.keemobile.kotpass.common.renderTestXmlString
+import app.keemobile.kotpass.xml.marshalTo
 import app.keemobile.kotpass.xml.unmarshalTimeData
 import app.keemobile.kotpass.common.runKotpassSpec
 import kotlin.test.Test
 import app.keemobile.kotpass.common.matchers.shouldBe
 import app.keemobile.kotpass.common.matchers.shouldNotBe
-import org.redundent.kotlin.xml.PrintOptions
 
 class TimeDataSpec {
     @Test
@@ -19,8 +19,11 @@ class TimeDataSpec {
         it("Date time in ISO text format") {
             val root = TimeDataRes
                 .getBaseXml(TimeDataRes.DateTimeText)
-                .parseAsXml()
-            val times = unmarshalTimeData(root)
+                .parseAsXmlReader()
+            val times = unmarshalTimeData(
+                root,
+                EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
+            )
 
             times.creationTime shouldBe TimeDataRes.ParsedDateTime
             times.lastAccessTime shouldBe TimeDataRes.ParsedDateTime
@@ -30,8 +33,11 @@ class TimeDataSpec {
         it("Date time in binary timestamp") {
             val root = TimeDataRes
                 .getBaseXml(TimeDataRes.Base64BinaryDateTimeText)
-                .parseAsXml()
-            val times = unmarshalTimeData(root)
+                .parseAsXmlReader()
+            val times = unmarshalTimeData(
+                root,
+                EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
+            )
 
             times.creationTime?.toString() shouldBe TimeDataRes.DateTimeText
             times.lastAccessTime?.toString() shouldBe TimeDataRes.DateTimeText
@@ -54,8 +60,7 @@ class TimeDataSpec {
                 expiryTime = TimeDataRes.ParsedDateTime
             )
 
-            times.marshal(context)
-                .toString(PrintOptions(singleLineTextElements = true))
+            renderTestXmlString { times.marshalTo(context, it) }
                 .indexOf(TimeDataRes.DateTimeText) shouldNotBe -1
         }
 
@@ -73,8 +78,7 @@ class TimeDataSpec {
                 expiryTime = TimeDataRes.ParsedDateTime
             )
 
-            times.marshal(context)
-                .toString(PrintOptions(singleLineTextElements = true))
+            renderTestXmlString { times.marshalTo(context, it) }
                 .indexOf(TimeDataRes.Base64BinaryDateTimeText) shouldNotBe -1
         }
     }

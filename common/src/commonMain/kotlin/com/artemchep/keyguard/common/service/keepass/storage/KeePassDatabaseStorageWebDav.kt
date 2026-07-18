@@ -56,11 +56,12 @@ internal class KeePassDatabaseStorageWebDav(
                     KeePassDatabaseWriteMode.Create -> WebDavWriteMode.Create
                     KeePassDatabaseWriteMode.CreateOrReplace -> WebDavWriteMode.CreateOrReplace
                 },
-                bytes = staged.bytes,
+                contentLength = staged.size,
                 precondition = expected
                     ?.etag
                     ?.takeUnless { it.isBlank() }
                     ?.let(::WebDavWritePrecondition),
+                write = staged::replayTo,
             ).toKeePassDatabaseMetadata()
         } catch (e: WebDavException.PreconditionFailed) {
             throw KeePassDatabaseModifiedExternallyException(

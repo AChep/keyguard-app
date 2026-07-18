@@ -16,13 +16,15 @@ class DefaultXmlContentParserSpec {
 
     describe("Default Xml content parser") {
         it("Is able to deserialize xml database") {
+            val innerEncryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf())
             val content = DefaultXmlContentParser.unmarshalContent(
-                xmlData = DefaultXmlContentParserRes.BasicXml.toByteArray()
+                xmlData = DefaultXmlContentParserRes.BasicXml.toByteArray(),
+                innerEncryption = innerEncryption,
             ) {
                 XmlContext.Decode(
                     version = FormatVersion(4, 1),
-                    encryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
-                    binaries = linkedMapOf()
+                    encryption = innerEncryption,
+                    binaries = linkedMapOf(),
                 )
             }
             content.meta.generator shouldBe MetaRes.DummyText

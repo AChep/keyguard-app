@@ -11,6 +11,10 @@ import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
 import com.artemchep.keyguard.nativecrypto.NativeCryptoSession
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.util.foundation.io.AdaptiveSpool
+import com.artemchep.keyguard.util.foundation.io.ByteSnapshot
+import com.artemchep.keyguard.util.foundation.io.buildSnapshot
+import com.artemchep.keyguard.util.foundation.io.consumeWithErasedBuffer
+import com.artemchep.keyguard.util.foundation.io.copyTo
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
 import kotlinx.io.RawSink
@@ -46,15 +50,12 @@ open class NativeFileEncryptor(
             try {
                 val keys = NativeFileCrypto.keys(header.type, key)
                 try {
-                    createFileCiphertextSpool().use { ciphertext ->
-                        stageAndAuthenticateCiphertext(
-                            input = source,
-                            ciphertext = ciphertext,
-                            iv = header.iv,
-                            expectedMac = header.mac,
-                            macKey = keys.macKey,
-                        )
-
+                    stageAndAuthenticateCiphertext(
+                        input = source,
+                        iv = header.iv,
+                        expectedMac = header.mac,
+                        macKey = keys.macKey,
+                    ).use { ciphertext ->
                         createPrivateAtomicOutput(output).use { stagedOutput ->
                             decryptAuthenticatedCiphertext(
                                 ciphertext = ciphertext,
@@ -98,50 +99,49 @@ open class NativeFileEncryptor(
         var mac: ByteArray? = null
         var plainSize = 0L
         try {
-            createFileCiphertextSpool().use { ciphertext ->
+            val ciphertext = createFileCiphertextSpool().buildSnapshot { ciphertextSink ->
                 NativeCryptoPrimitives.createAesCbcPkcs7HmacSha256Encryptor(
                     encryptionKey = keys.encKey,
                     macKey = keys.macKey,
                     iv = iv,
                 ).use { authenticatedCipher ->
-                    ciphertext.sink().use { ciphertextSink ->
-                        input.use { source ->
-                            source.consumeWithErasedBuffer(bufferSize = BUFFER_SIZE) { buffer, length ->
-                                if (length.toLong() > MAX_STAGED_FILE_PLAINTEXT_BYTES - plainSize) {
-                                    throw fileSizeLimitExceeded()
-                                }
-                                plainSize += length
-                                val encrypted = authenticatedCipher.update(
-                                    data = buffer,
-                                    length = length,
-                                )
-                                try {
-                                    ciphertextSink.write(encrypted)
-                                } finally {
-                                    encrypted.fill(0)
-                                }
+                    input.use { source ->
+                        source.consumeWithErasedBuffer(bufferSize = BUFFER_SIZE) { buffer, length ->
+                            if (length.toLong() > MAX_STAGED_FILE_PLAINTEXT_BYTES - plainSize) {
+                                throw fileSizeLimitExceeded()
+                            }
+                            plainSize += length
+                            val encrypted = authenticatedCipher.update(
+                                data = buffer,
+                                length = length,
+                            )
+                            try {
+                                ciphertextSink.write(encrypted)
+                            } finally {
+                                encrypted.fill(0)
                             }
                         }
+                    }
 
-                        val result = authenticatedCipher.finish()
-                        try {
-                            ciphertextSink.write(result.ciphertext)
-                            mac = result.mac.copyOf()
-                        } finally {
-                            result.ciphertext.fill(0)
-                            result.mac.fill(0)
-                        }
+                    val result = authenticatedCipher.finish()
+                    try {
+                        ciphertextSink.write(result.ciphertext)
+                        mac = result.mac.copyOf()
+                    } finally {
+                        result.ciphertext.fill(0)
+                        result.mac.fill(0)
                     }
                 }
-                ciphertext.seal()
+            }
 
+            ciphertext.use {
                 val finalMac = checkNotNull(mac)
                 createPrivateAtomicOutput(output).use { stagedOutput ->
                     val sink = stagedOutput.sink()
                     sink.writeByte(CipherEncryptor.Type.AesCbc256_HmacSha256_B64.byte)
                     sink.write(iv)
                     sink.write(finalMac)
-                    ciphertext.replayTo(sink)
+                    ciphertext.copyTo(sink)
                     sink.flush()
                     stagedOutput.commit()
                 }
@@ -160,23 +160,21 @@ open class NativeFileEncryptor(
 
     private fun stageAndAuthenticateCiphertext(
         input: Source,
-        ciphertext: AdaptiveSpool,
         iv: ByteArray,
         expectedMac: ByteArray,
         macKey: ByteArray,
-    ) {
+    ): ByteSnapshot = createFileCiphertextSpool().buildSnapshot { ciphertextSink ->
         val actualMac = NativeCryptoPrimitives.createHmacSha256(macKey).use { hmac ->
             updateHmac(hmac, iv, iv.size)
-            ciphertext.sink().use { ciphertextSink ->
-                input.consumeWithErasedBuffer(bufferSize = BUFFER_SIZE) { buffer, length ->
-                    updateHmac(hmac, buffer, length)
-                    ciphertextSink.write(buffer, 0, length)
-                }
+            input.consumeWithErasedBuffer(bufferSize = BUFFER_SIZE) { buffer, length ->
+                updateHmac(hmac, buffer, length)
+                ciphertextSink.write(buffer, 0, length)
             }
-            ciphertext.seal()
             hmac.finish()
         }
         try {
+            // A mismatch throws before the spool seals, so unauthenticated
+            // ciphertext never escapes as a snapshot.
             FileEncryptionFormat.verifyMac(
                 expectedMac = expectedMac,
                 actualMac = actualMac,
@@ -187,7 +185,7 @@ open class NativeFileEncryptor(
     }
 
     private fun decryptAuthenticatedCiphertext(
-        ciphertext: AdaptiveSpool,
+        ciphertext: ByteSnapshot,
         output: Sink,
         encryptionKey: ByteArray,
         iv: ByteArray,
@@ -200,7 +198,7 @@ open class NativeFileEncryptor(
                 session = decryptor,
                 output = output,
             ).buffered().use { decryptingSink ->
-                ciphertext.replayTo(decryptingSink)
+                ciphertext.copyTo(decryptingSink)
             }
 
             val finalPlaintext = decryptor.finish()

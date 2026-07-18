@@ -132,6 +132,8 @@ ktor = "3.5.1"
 kotpass = "0.13.0"
 # https://github.com/MohamedRejeb/Ksoup
 ksoup = "0.6.0"
+# https://github.com/pdvrieze/xmlutil
+xmlutil = "1.0.1"
 # https://github.com/java-native-access/jna
 jna = "5.18.1"
 # https://github.com/kdroidFilter/Platform-Tool
@@ -345,6 +347,7 @@ willena-sqlite-jdbc = { module = "io.github.willena:sqlite-jdbc", version.ref = 
 vinceglb-filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
 vinceglb-filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekit" }
 vinceglb-filekit-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
+xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil" }
 yubico-yubikit-android = { module = "com.yubico.yubikit:android", version.ref = "yubiKit" }
 yubico-yubikit-yubiotp = { module = "com.yubico.yubikit:yubiotp", version.ref = "yubiKit" }
 

@@ -1,8 +1,7 @@
 package com.artemchep.keyguard.util.foundation.io
 
-import kotlinx.io.Buffer
 import kotlinx.io.Sink
-import kotlinx.io.readByteArray
+import kotlinx.io.buffered
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -14,80 +13,76 @@ class AdaptiveSpoolTest {
     @Test
     fun keepsPayloadAtOrBelowThresholdInMemory() {
         var spillCreated = false
-        val output = Buffer()
-        AdaptiveSpool(
+        val snapshot = AdaptiveSpool(
             memoryLimitBytes = 4L,
             maximumBytes = 8L,
             spillFactory = {
                 spillCreated = true
-                FakeSpillStorage()
+                FakeByteStoreWriter()
             },
         ).use { spool ->
             spool.sink().use { sink -> sink.write(byteArrayOf(1, 2, 3, 4)) }
-            spool.seal()
             assertFalse(spool.spilled)
-            spool.replayTo(output)
+            spool.seal()
         }
 
+        snapshot.use {
+            assertEquals(4L, snapshot.size)
+            assertContentEquals(byteArrayOf(1, 2, 3, 4), snapshot.readBytes())
+        }
         assertFalse(spillCreated)
-        assertContentEquals(byteArrayOf(1, 2, 3, 4), output.readByteArray())
     }
 
     @Test
-    fun keepsMultiSegmentPayloadInMemory() {
+    fun memorySnapshotCanBeReadMoreThanOnce() {
         val payload = ByteArray(80_000) { index -> (index % 251).toByte() }
-        var spillCreated = false
-        val output = Buffer()
-        AdaptiveSpool(
+        val snapshot = AdaptiveSpool(
             memoryLimitBytes = payload.size.toLong(),
             maximumBytes = payload.size.toLong(),
-            spillFactory = {
-                spillCreated = true
-                FakeSpillStorage()
-            },
+            spillFactory = ::FakeByteStoreWriter,
         ).use { spool ->
             spool.sink().use { sink -> sink.write(payload) }
             spool.seal()
-            assertFalse(spool.spilled)
-            assertEquals(payload.size.toLong(), spool.size)
-            spool.replayTo(output)
         }
 
-        assertFalse(spillCreated)
-        assertContentEquals(payload, output.readByteArray())
+        snapshot.use {
+            assertContentEquals(payload, snapshot.readBytes())
+            assertContentEquals(payload, snapshot.readBytes())
+        }
     }
 
     @Test
     fun migratesExistingBytesWhenThresholdIsExceeded() {
-        val storage = FakeSpillStorage()
-        val output = Buffer()
-        AdaptiveSpool(
+        val writer = FakeByteStoreWriter()
+        val snapshot = AdaptiveSpool(
             memoryLimitBytes = 4L,
             maximumBytes = 16L,
-            spillFactory = { storage },
+            spillFactory = { writer },
         ).use { spool ->
             val sink = spool.sink()
             sink.write(byteArrayOf(1, 2, 3, 4))
             sink.write(byteArrayOf(5))
             sink.close()
-            spool.seal()
             assertTrue(spool.spilled)
             assertEquals(5L, spool.size)
-            spool.replayTo(output)
+            spool.seal()
         }
 
-        assertTrue(storage.sealed)
-        assertTrue(storage.closed)
-        assertContentEquals(byteArrayOf(1, 2, 3, 4, 5), output.readByteArray())
+        snapshot.use {
+            assertContentEquals(byteArrayOf(1, 2, 3, 4, 5), snapshot.readBytes())
+            assertContentEquals(byteArrayOf(1, 2, 3, 4, 5), snapshot.readBytes())
+        }
+        assertTrue(writer.sealed)
+        assertTrue(writer.closed)
+        assertTrue(writer.snapshotClosed)
     }
 
     @Test
     fun rejectsBytesBeyondMaximumBeforeAcceptingThem() {
-        val output = Buffer()
         AdaptiveSpool(
             memoryLimitBytes = 2L,
             maximumBytes = 4L,
-            spillFactory = ::FakeSpillStorage,
+            spillFactory = ::FakeByteStoreWriter,
             limitExceeded = { SpoolLimitFailure() },
         ).use { spool ->
             val sink = spool.sink()
@@ -101,52 +96,160 @@ class AdaptiveSpoolTest {
             }
             assertEquals(4L, spool.size)
         }
-        assertContentEquals(byteArrayOf(), output.readByteArray())
     }
 
     @Test
-    fun requiresSealAndAllowsOnlyOneReplay() {
+    fun sizeLimitFailurePoisonsTheSpool() {
         val spool = AdaptiveSpool(
             memoryLimitBytes = 4L,
             maximumBytes = 4L,
-            spillFactory = ::FakeSpillStorage,
+            spillFactory = ::FakeByteStoreWriter,
+            limitExceeded = { SpoolLimitFailure() },
         )
+        var unexpectedSnapshot: ByteSnapshot? = null
         try {
-            spool.sink().use { sink -> sink.write(byteArrayOf(1)) }
-            assertFailsWith<IllegalStateException> { spool.replayTo(Buffer()) }
-            spool.seal()
-            spool.replayTo(Buffer())
-            assertFailsWith<IllegalStateException> { spool.replayTo(Buffer()) }
+            val sink = spool.sink()
+            sink.write(byteArrayOf(1, 2, 3, 4))
+            sink.flush()
+            assertFailsWith<SpoolLimitFailure> {
+                sink.use {
+                    it.write(byteArrayOf(5))
+                    it.flush()
+                }
+            }
+
+            try {
+                assertFailsWith<IllegalStateException> {
+                    unexpectedSnapshot = spool.seal()
+                }
+            } finally {
+                unexpectedSnapshot?.close()
+            }
         } finally {
             spool.close()
         }
     }
 
-    private class FakeSpillStorage : SpillStorage {
-        private val buffer = Buffer()
-        var sealed = false
-        var closed = false
-
-        override fun write(source: ByteArray, startIndex: Int, endIndex: Int) {
-            check(!sealed)
-            buffer.write(source, startIndex, endIndex)
+    @Test
+    fun sealingTransfersSnapshotOwnershipAndPreventsResealing() {
+        val spool = AdaptiveSpool(
+            memoryLimitBytes = 4L,
+            maximumBytes = 4L,
+            spillFactory = ::FakeByteStoreWriter,
+        )
+        val snapshot = try {
+            spool.sink().use { sink -> sink.write(byteArrayOf(1)) }
+            val result = spool.seal()
+            assertFailsWith<IllegalStateException> { spool.seal() }
+            result
+        } finally {
+            spool.close()
         }
 
-        override fun seal() {
-            check(!sealed)
-            sealed = true
+        snapshot.use {
+            assertContentEquals(byteArrayOf(1), snapshot.readBytes())
         }
+        assertFailsWith<IllegalStateException> { snapshot.openSource() }
+    }
 
-        override fun replayTo(output: Sink) {
-            check(sealed)
-            output.write(buffer.readByteArray())
+    @Test
+    fun exposesOnlyOneWritableView() {
+        AdaptiveSpool(
+            memoryLimitBytes = 4L,
+            maximumBytes = 4L,
+            spillFactory = ::FakeByteStoreWriter,
+        ).use { spool ->
+            spool.sink()
+            assertFailsWith<IllegalStateException> { spool.sink() }
         }
+    }
 
-        override fun close() {
-            closed = true
-            val bytes = buffer.readByteArray()
-            bytes.fill(0)
+    @Test
+    fun failsSealWhenSpillSnapshotSizeMismatches() {
+        var snapshotClosed = false
+        AdaptiveSpool(
+            memoryLimitBytes = 2L,
+            maximumBytes = 16L,
+            spillFactory = {
+                val delegate = FakeByteStoreWriter()
+                object : ByteStoreWriter by delegate {
+                    override fun seal(): ByteSnapshot {
+                        val snapshot = delegate.seal()
+                        return object : ByteSnapshot by snapshot {
+                            override val size: Long get() = snapshot.size + 1
+
+                            override fun close() {
+                                snapshotClosed = true
+                                snapshot.close()
+                            }
+                        }
+                    }
+                }
+            },
+        ).use { spool ->
+            spool.sink().use { sink -> sink.write(byteArrayOf(1, 2, 3, 4)) }
+            assertFailsWith<IllegalStateException> { spool.seal() }
+            assertTrue(snapshotClosed)
+            assertFailsWith<IllegalStateException> { spool.seal() }
         }
+    }
+
+    @Test
+    fun rejectsWritesAfterSeal() {
+        AdaptiveSpool(
+            memoryLimitBytes = 8L,
+            maximumBytes = 8L,
+            spillFactory = ::FakeByteStoreWriter,
+        ).use { spool ->
+            val sink = spool.sink()
+            sink.write(byteArrayOf(1, 2))
+            spool.seal().use { snapshot ->
+                assertFailsWith<IllegalStateException> { sink.write(byteArrayOf(3)) }
+                assertContentEquals(byteArrayOf(1, 2), snapshot.readBytes())
+            }
+        }
+    }
+
+    @Test
+    fun spillWriteFailurePoisonsTheSpool() {
+        val spool = AdaptiveSpool(
+            memoryLimitBytes = 0L,
+            maximumBytes = 1_000_000L,
+            spillFactory = {
+                object : ByteStoreWriter {
+                    override fun sink(): Sink = FailingRawSink().buffered()
+
+                    override fun seal(): ByteSnapshot = throw AssertionError()
+
+                    override fun close() = Unit
+                }
+            },
+        )
+        val sink = spool.sink()
+        assertFailsWith<FakeIoFailure> {
+            sink.write(ByteArray(100_000))
+            sink.flush()
+        }
+        assertFailsWith<IllegalStateException> { spool.seal() }
+        // Bytes are still buffered in the input sink, yet closing the failed
+        // spool must discard them instead of throwing.
+        spool.close()
+    }
+
+    @Test
+    fun closingAnAbandonedSpoolDiscardsBufferedBytes() {
+        var writerCreated = false
+        val spool = AdaptiveSpool(
+            memoryLimitBytes = 2L,
+            maximumBytes = 1_000_000L,
+            spillFactory = {
+                writerCreated = true
+                FakeByteStoreWriter()
+            },
+        )
+        spool.sink().write(ByteArray(5_000))
+        spool.close()
+        assertFalse(writerCreated)
     }
 
     private class SpoolLimitFailure : RuntimeException()

@@ -1,7 +1,8 @@
 package app.keemobile.kotpass.models
 
 import app.keemobile.kotpass.constants.MemoryProtectionFlag
-import app.keemobile.kotpass.extensions.parseAsXml
+import app.keemobile.kotpass.cryptography.EncryptionSaltGenerator
+import app.keemobile.kotpass.extensions.parseAsXmlReader
 import app.keemobile.kotpass.resources.MetaRes
 import app.keemobile.kotpass.resources.TimeDataRes
 import app.keemobile.kotpass.xml.unmarshalMeta
@@ -16,7 +17,10 @@ class MetaSpec {
 
     describe("Metadata") {
         it("Properly deserialized from Xml") {
-            val meta = unmarshalMeta(MetaRes.BasicXml.parseAsXml())
+            val meta = unmarshalMeta(
+                MetaRes.BasicXml.parseAsXmlReader(),
+                EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
+            )
 
             meta.generator shouldBe MetaRes.DummyText
             meta.description shouldBe MetaRes.DummyText

@@ -6,6 +6,7 @@ import app.keemobile.kotpass.cryptography.KeyTransform
 import app.keemobile.kotpass.cryptography.format.BaseCiphers
 import app.keemobile.kotpass.cryptography.format.BaseKdfProvider
 import app.keemobile.kotpass.cryptography.format.CipherProvider
+import app.keemobile.kotpass.cryptography.format.CipherSource
 import app.keemobile.kotpass.cryptography.format.KdfProvider
 import app.keemobile.kotpass.database.header.DatabaseHeader
 import app.keemobile.kotpass.database.header.DatabaseHeader.Compression
@@ -15,33 +16,40 @@ import app.keemobile.kotpass.errors.CryptoError
 import app.keemobile.kotpass.errors.FormatError
 import app.keemobile.kotpass.errors.KeyfileError
 import app.keemobile.kotpass.extensions.teeBufferStream
-import app.keemobile.kotpass.io.BufferedStream
-import app.keemobile.kotpass.io.gunzip
+import app.keemobile.kotpass.io.KotlinxSourceAdapter
+import app.keemobile.kotpass.io.LimitedSource
+import app.keemobile.kotpass.io.STREAM_BUFFER_SIZE
+import app.keemobile.kotpass.io.gunzipSource
 import app.keemobile.kotpass.models.XmlContext
 import app.keemobile.kotpass.xml.DefaultXmlContentParser
 import app.keemobile.kotpass.xml.XmlContentParser
-import kotlinx.io.Source
-import kotlinx.io.readByteArray
 import okio.Buffer
+import okio.BufferedSource
 import okio.ByteString.Companion.toByteString
+import okio.Source
+import okio.buffer
+import okio.use
+import kotlinx.io.Source as KotlinxSource
 
 fun KeePassDatabase.Companion.decode(
-    source: Source,
+    source: KotlinxSource,
     credentials: Credentials,
     validateHashes: Boolean = true,
     contentParser: XmlContentParser = DefaultXmlContentParser,
     cipherProviders: List<CipherProvider> = BaseCiphers.entries,
     kdfProvider: KdfProvider = BaseKdfProvider,
-    untitledLabel: String = Defaults.UntitledLabel
+    untitledLabel: String = Defaults.UntitledLabel,
+    limits: KdbxReadLimits = KdbxReadLimits.Default,
 ): KeePassDatabase =
-    decode(
-        data = source.readByteArray(),
+    decodeSource(
+        input = KotlinxSourceAdapter(source),
         credentials = credentials,
         validateHashes = validateHashes,
         contentParser = contentParser,
         cipherProviders = cipherProviders,
         kdfProvider = kdfProvider,
         untitledLabel = untitledLabel,
+        limits = limits,
     )
 
 fun KeePassDatabase.Companion.decode(
@@ -51,90 +59,80 @@ fun KeePassDatabase.Companion.decode(
     contentParser: XmlContentParser = DefaultXmlContentParser,
     cipherProviders: List<CipherProvider> = BaseCiphers.entries,
     kdfProvider: KdfProvider = BaseKdfProvider,
-    untitledLabel: String = Defaults.UntitledLabel
+    untitledLabel: String = Defaults.UntitledLabel,
+    limits: KdbxReadLimits = KdbxReadLimits.Default,
+): KeePassDatabase = decodeSource(
+    input = Buffer().write(data),
+    credentials = credentials,
+    validateHashes = validateHashes,
+    contentParser = contentParser,
+    cipherProviders = cipherProviders,
+    kdfProvider = kdfProvider,
+    untitledLabel = untitledLabel,
+    limits = limits,
+)
+
+private fun KeePassDatabase.Companion.decodeSource(
+    input: Source,
+    credentials: Credentials,
+    validateHashes: Boolean,
+    contentParser: XmlContentParser,
+    cipherProviders: List<CipherProvider>,
+    kdfProvider: KdfProvider,
+    untitledLabel: String,
+    limits: KdbxReadLimits,
 ): KeePassDatabase {
     val headerBuffer = Buffer()
-    val source = Buffer().write(data).teeBufferStream(headerBuffer)
+    val source = input.teeBufferStream(headerBuffer)
 
     try {
         val header = DatabaseHeader.readFrom(source)
+        validateHeader(header)
 
-        if (header.signature.base != Signature.Base) {
-            throw FormatError.UnknownFormat("File has unexpected signature.")
-        }
-        if (header.signature.secondary != Signature.Secondary ||
-            header.version.major < MinSupportedVersion ||
-            header.version.major > MaxSupportedVersion
-        ) {
-            throw FormatError.UnsupportedVersion("File version is not supported.")
-        }
         val rawHeaderData = headerBuffer.snapshot()
         val transformedKey = KeyTransform.transformedKey(kdfProvider, header, credentials)
+        val cipher = resolveCipher(header, cipherProviders)
+        val masterSeed = header.masterSeed.toByteArray()
+        val masterKey = KeyTransform.masterKey(masterSeed, transformedKey)
 
-        return when (header) {
-            is DatabaseHeader.Ver3x -> {
-                val saltGenerator = with(header) {
-                    EncryptionSaltGenerator.create(innerRandomStreamId, innerRandomStreamKey)
-                }
-                val content = decryptRawContent(header, source, transformedKey, cipherProviders)
-                    .let {
-                        contentParser.unmarshalContent(it) { meta ->
-                            XmlContext.Decode(
-                                version = header.version,
-                                encryption = saltGenerator,
-                                binaries = meta.binaries,
-                                untitledLabel = untitledLabel
-                            )
-                        }
-                    }
-                val headerHash = content.meta.headerHash
-
-                if (validateHashes && headerHash != null && headerHash != rawHeaderData.sha256()) {
-                    throw FormatError.InvalidHeader("HeaderHash value does not match Sha256 of the header.")
-                }
-                KeePassDatabase.Ver3x(credentials, header, content)
-            }
-            is DatabaseHeader.Ver4x -> {
-                val expectedSha256 = source.readByteString(32)
-                val expectedHmacSha256 = source.readByteString(32)
-
-                if (validateHashes) {
-                    if (rawHeaderData.sha256() != expectedSha256) {
-                        throw FormatError.InvalidHeader("Header's Sha256 does not match.")
-                    }
-
-                    val hmacKey = KeyTransform.hmacKey(
-                        masterSeed = header.masterSeed.toByteArray(),
-                        transformedKey = transformedKey
+        return try {
+            when (header) {
+                is DatabaseHeader.Ver3x -> {
+                    decodeVer3x(
+                        header = header,
+                        source = source,
+                        rawHeaderData = rawHeaderData,
+                        credentials = credentials,
+                        validateHashes = validateHashes,
+                        contentParser = contentParser,
+                        cipher = cipher,
+                        masterKey = masterKey,
+                        untitledLabel = untitledLabel,
+                        limits = limits,
                     )
-                    val hmacSha256 = rawHeaderData.hmacSha256(hmacKey.toByteString())
-                    if (hmacSha256 != expectedHmacSha256) {
-                        throw CryptoError.InvalidKey("Wrong key used for decryption.")
-                    }
                 }
 
-                val rawContentBuffer = Buffer()
-                    .write(decryptRawContent(header, source, transformedKey, cipherProviders))
-                val innerHeader = DatabaseInnerHeader.readFrom(rawContentBuffer)
-                val saltGenerator = EncryptionSaltGenerator.create(
-                    id = innerHeader.randomStreamId,
-                    key = innerHeader.randomStreamKey
-                )
-                val content = rawContentBuffer
-                    .readByteArray()
-                    .let {
-                        contentParser.unmarshalContent(it) {
-                            XmlContext.Decode(
-                                version = header.version,
-                                encryption = saltGenerator,
-                                binaries = innerHeader.binaries,
-                                untitledLabel = untitledLabel
-                            )
-                        }
-                    }
-
-                KeePassDatabase.Ver4x(credentials, header, content, innerHeader)
+                is DatabaseHeader.Ver4x -> {
+                    decodeVer4x(
+                        header = header,
+                        source = source,
+                        rawHeaderData = rawHeaderData,
+                        credentials = credentials,
+                        validateHashes = validateHashes,
+                        contentParser = contentParser,
+                        cipher = cipher,
+                        transformedKey = transformedKey,
+                        masterSeed = masterSeed,
+                        masterKey = masterKey,
+                        untitledLabel = untitledLabel,
+                        limits = limits,
+                    )
+                }
             }
+        } finally {
+            masterKey.fill(0)
+            transformedKey.fill(0)
+            masterSeed.fill(0)
         }
     } catch (error: FormatError) {
         throw error
@@ -143,15 +141,187 @@ fun KeePassDatabase.Companion.decode(
     } catch (error: KeyfileError) {
         throw error
     } catch (error: Exception) {
-        // Any other exception originates from malformed, attacker-controlled
-        // input reaching a lower-level parser or cipher (e.g. an out-of-bounds
-        // read from a truncated field). Surface it as a format error rather than
-        // letting a raw runtime exception escape the decode boundary.
+        // Malformed, attacker-controlled data may reach lower-level parsers or
+        // ciphers. Do not leak raw runtime exceptions across the decode API.
         throw FormatError.InvalidContent(
-            "Failed to decode the database: ${error.message ?: error::class.simpleName}"
+            "Failed to decode the database: ${error.message ?: error::class.simpleName}",
         )
     } finally {
         source.close()
+    }
+}
+
+private fun decodeVer3x(
+    header: DatabaseHeader.Ver3x,
+    source: Source,
+    rawHeaderData: okio.ByteString,
+    credentials: Credentials,
+    validateHashes: Boolean,
+    contentParser: XmlContentParser,
+    cipher: CipherProvider,
+    masterKey: ByteArray,
+    untitledLabel: String,
+    limits: KdbxReadLimits,
+): KeePassDatabase.Ver3x {
+    val decrypted = CipherSource(
+        upstream = source,
+        session = cipher.createDecryptor(masterKey, header.encryptionIV.toByteArray()),
+    ).buffer()
+    return decrypted.use { decryptedSource ->
+        val streamStartBytes =
+            decryptedSource.readByteString(header.streamStartBytes.size.toLong())
+        if (streamStartBytes != header.streamStartBytes) {
+            throw FormatError.InvalidContent(
+                "Database content could be corrupted or cannot be decrypted.",
+            )
+        }
+
+        val blocks = ContentBlocks.ver3Source(
+            source = decryptedSource,
+            maximumBlockSize = limits.maximumBlockSize,
+        )
+        val contentSource = blocks.decodeCompression(header.compression, limits).buffer()
+        val saltGenerator = EncryptionSaltGenerator.create(
+            header.innerRandomStreamId,
+            header.innerRandomStreamKey,
+        )
+        val content =
+            try {
+                val plaintext = contentSource
+                val parsed =
+                    contentParser.unmarshalContent(plaintext, saltGenerator) { meta ->
+                        XmlContext.Decode(
+                            version = header.version,
+                            encryption = saltGenerator,
+                            binaries = meta.binaries,
+                            untitledLabel = untitledLabel,
+                        )
+                    }
+                plaintext.drainAndVerify()
+                parsed
+            } finally {
+                contentSource.close()
+            }
+
+        val headerHash = content.meta.headerHash
+        if (validateHashes && headerHash != null && headerHash != rawHeaderData.sha256()) {
+            throw FormatError.InvalidHeader("HeaderHash value does not match Sha256 of the header.")
+        }
+        KeePassDatabase.Ver3x(credentials, header, content)
+    }
+}
+
+private fun decodeVer4x(
+    header: DatabaseHeader.Ver4x,
+    source: app.keemobile.kotpass.io.BufferedStream,
+    rawHeaderData: okio.ByteString,
+    credentials: Credentials,
+    validateHashes: Boolean,
+    contentParser: XmlContentParser,
+    cipher: CipherProvider,
+    transformedKey: ByteArray,
+    masterSeed: ByteArray,
+    masterKey: ByteArray,
+    untitledLabel: String,
+    limits: KdbxReadLimits,
+): KeePassDatabase.Ver4x {
+    val expectedSha256 = source.readByteString(32)
+    val expectedHmacSha256 = source.readByteString(32)
+
+    if (validateHashes) {
+        if (rawHeaderData.sha256() != expectedSha256) {
+            throw FormatError.InvalidHeader("Header's Sha256 does not match.")
+        }
+        val hmacKey = KeyTransform.hmacKey(masterSeed, transformedKey)
+        try {
+            if (rawHeaderData.hmacSha256(hmacKey.toByteString()) != expectedHmacSha256) {
+                throw CryptoError.InvalidKey("Wrong key used for decryption.")
+            }
+        } finally {
+            hmacKey.fill(0)
+        }
+    }
+
+    val blocks =
+        ContentBlocks.ver4Source(
+            source = source,
+            masterSeed = masterSeed,
+            transformedKey = transformedKey,
+            maximumBlockSize = limits.maximumBlockSize,
+        )
+    val decrypted =
+        CipherSource(
+            upstream = blocks,
+            session = cipher.createDecryptor(masterKey, header.encryptionIV.toByteArray()),
+        )
+    val contentSource = decrypted.decodeCompression(header.compression, limits).buffer()
+    return try {
+        val plaintext = contentSource
+        val innerHeader = DatabaseInnerHeader.readFrom(plaintext)
+        val saltGenerator =
+            EncryptionSaltGenerator.create(
+                id = innerHeader.randomStreamId,
+                key = innerHeader.randomStreamKey,
+            )
+        val content =
+            contentParser.unmarshalContent(plaintext, saltGenerator) {
+                XmlContext.Decode(
+                    version = header.version,
+                    encryption = saltGenerator,
+                    binaries = innerHeader.binaries,
+                    untitledLabel = untitledLabel,
+                )
+            }
+        plaintext.drainAndVerify()
+        KeePassDatabase.Ver4x(credentials, header, content, innerHeader)
+    } finally {
+        contentSource.close()
+    }
+}
+
+private fun validateHeader(header: DatabaseHeader) {
+    if (header.signature.base != Signature.Base) {
+        throw FormatError.UnknownFormat("File has unexpected signature.")
+    }
+    if (header.signature.secondary != Signature.Secondary ||
+        header.version.major < KeePassDatabase.MinSupportedVersion ||
+        header.version.major > KeePassDatabase.MaxSupportedVersion
+    ) {
+        throw FormatError.UnsupportedVersion("File version is not supported.")
+    }
+}
+
+internal fun resolveCipher(
+    header: DatabaseHeader,
+    cipherProviders: List<CipherProvider>,
+): CipherProvider {
+    val cipher =
+        cipherProviders.firstOrNull { it.uuid == header.cipherId }
+            ?: throw FormatError.InvalidHeader("Unsupported cipher ID (${header.cipherId}).")
+    if (header.encryptionIV.size != cipher.ivLength.toInt()) {
+        throw FormatError.InvalidHeader(
+            "Encryption IV length (${header.encryptionIV.size}) does not match " +
+                    "the cipher's expected length (${cipher.ivLength}).",
+        )
+    }
+    return cipher
+}
+
+private fun Source.decodeCompression(
+    compression: Compression,
+    limits: KdbxReadLimits,
+): Source =
+    when (compression) {
+        Compression.None -> LimitedSource(this, limits.maximumContentBytes)
+        Compression.GZip -> gunzipSource(limits.maximumContentBytes)
+    }
+
+private fun BufferedSource.drainAndVerify() {
+    val discard = Buffer()
+    while (true) {
+        val read = read(discard, STREAM_BUFFER_SIZE.toLong())
+        if (read == -1L) break
+        discard.clear()
     }
 }
 
@@ -159,87 +329,39 @@ fun KeePassDatabase.Companion.decodeFromXml(
     xmlData: ByteArray,
     credentials: Credentials,
     contentParser: XmlContentParser = DefaultXmlContentParser,
-    untitledLabel: String = Defaults.UntitledLabel
+    untitledLabel: String = Defaults.UntitledLabel,
+): KeePassDatabase =
+    decodeFromXml(
+        source = Buffer().write(xmlData),
+        credentials = credentials,
+        contentParser = contentParser,
+        untitledLabel = untitledLabel,
+    )
+
+fun KeePassDatabase.Companion.decodeFromXml(
+    source: BufferedSource,
+    credentials: Credentials,
+    contentParser: XmlContentParser = DefaultXmlContentParser,
+    untitledLabel: String = Defaults.UntitledLabel,
 ): KeePassDatabase {
     val header = DatabaseHeader.Ver4x.create()
     var innerHeader = DatabaseInnerHeader.create()
-    val saltGenerator = EncryptionSaltGenerator.create(
-        id = innerHeader.randomStreamId,
-        key = innerHeader.randomStreamKey
-    )
-    var content = contentParser.unmarshalContent(xmlData) { meta ->
-        XmlContext.Decode(
-            version = header.version,
-            encryption = saltGenerator,
-            binaries = meta.binaries,
-            untitledLabel = untitledLabel
+    val saltGenerator =
+        EncryptionSaltGenerator.create(
+            id = innerHeader.randomStreamId,
+            key = innerHeader.randomStreamKey,
         )
-    }
-    innerHeader = innerHeader.copy(
-        binaries = content.meta.binaries
-    )
-    content = content.copy(
-        meta = content.meta.copy(binaries = linkedMapOf())
-    )
+    var content =
+        contentParser.unmarshalContent(source, saltGenerator) { meta ->
+            XmlContext.Decode(
+                version = header.version,
+                encryption = saltGenerator,
+                binaries = meta.binaries,
+                untitledLabel = untitledLabel,
+            )
+        }
+    innerHeader = innerHeader.copy(binaries = content.meta.binaries)
+    content = content.copy(meta = content.meta.copy(binaries = linkedMapOf()))
 
     return KeePassDatabase.Ver4x(credentials, header, content, innerHeader)
-}
-
-private fun decryptRawContent(
-    header: DatabaseHeader,
-    source: BufferedStream,
-    transformedKey: ByteArray,
-    cipherProviders: List<CipherProvider>
-): ByteArray {
-    val cipher = cipherProviders
-        .firstOrNull { it.uuid == header.cipherId }
-        ?: throw FormatError.InvalidHeader("Unsupported cipher ID (${header.cipherId}).")
-    // The EncryptionIV header field is attacker-controlled and stored verbatim,
-    // with no length check at parse time. For KDBX3 the content is decrypted
-    // before any authentication, so an IV shorter than the cipher expects would
-    // otherwise reach the engine and throw a raw out-of-bounds exception. Reject
-    // a mismatched IV length here, at the trust boundary, before any engine runs.
-    if (header.encryptionIV.size != cipher.ivLength.toInt()) {
-        throw FormatError.InvalidHeader(
-            "Encryption IV length (${header.encryptionIV.size}) does not match " +
-                "the cipher's expected length (${cipher.ivLength})."
-        )
-    }
-    val masterSeed = header.masterSeed.toByteArray()
-    val decryptedContent = when (header) {
-        is DatabaseHeader.Ver3x -> {
-            val contentBlocks = cipher.decrypt(
-                key = KeyTransform.masterKey(masterSeed, transformedKey),
-                iv = header.encryptionIV.toByteArray(),
-                data = source.readByteArray()
-            )
-            val streamStartBytes = header.streamStartBytes
-            if (!streamStartBytes.rangeEquals(0, contentBlocks, 0, streamStartBytes.size)) {
-                throw FormatError.InvalidContent("Database content could be corrupted or cannot be decrypted.")
-            }
-
-            ContentBlocks.readContentBlocksVer3x(
-                Buffer().write(
-                    contentBlocks,
-                    streamStartBytes.size,
-                    contentBlocks.size - streamStartBytes.size
-                )
-            )
-        }
-        is DatabaseHeader.Ver4x -> {
-            val encryptedContent = ContentBlocks
-                .readContentBlocksVer4x(source, masterSeed, transformedKey)
-
-            cipher.decrypt(
-                key = KeyTransform.masterKey(masterSeed, transformedKey),
-                iv = header.encryptionIV.toByteArray(),
-                data = encryptedContent
-            )
-        }
-    }
-
-    return when (header.compression) {
-        Compression.None -> decryptedContent
-        Compression.GZip -> decryptedContent.gunzip()
-    }
 }

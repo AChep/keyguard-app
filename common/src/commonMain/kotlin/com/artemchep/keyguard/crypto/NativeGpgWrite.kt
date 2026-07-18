@@ -36,6 +36,7 @@ import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyImportError
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyImportResult
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyKind
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyMaterial
+import com.artemchep.keyguard.util.foundation.io.consumeWithErasedBuffer
 import kotlinx.datetime.TimeZone
 import kotlinx.io.Sink
 import kotlin.time.Clock

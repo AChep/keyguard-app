@@ -1,6 +1,12 @@
 package app.keemobile.kotpass.extensions
 
-import org.redundent.kotlin.xml.parse
-import java.io.ByteArrayInputStream
+import app.keemobile.kotpass.xml.enterDocumentRoot
+import app.keemobile.kotpass.xml.xmlReader
+import nl.adaptivity.xmlutil.XmlReader
 
-internal fun String.parseAsXml() = parse(ByteArrayInputStream(toByteArray()))
+/**
+ * Returns a streaming reader positioned at the document's root element,
+ * ready to be passed to the `unmarshal*` functions.
+ */
+internal fun String.parseAsXmlReader(): XmlReader = xmlReader(this)
+    .apply { enterDocumentRoot() }

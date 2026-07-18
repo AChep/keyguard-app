@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.util.foundation.io.AdaptiveSpool
+import com.artemchep.keyguard.util.foundation.io.stageTo
 import kotlinx.io.IOException
 import kotlinx.io.Sink
 
@@ -39,13 +40,7 @@ internal fun <T> withStagedOpenPgpPlaintextUsing(
                 "Decrypted OpenPGP file exceeds the supported staging limit of $limit bytes",
             )
         },
-    ).use { spool ->
-        val result = spool.sink().use(block)
-        spool.seal()
-        spool.replayTo(destination)
-        destination.flush()
-        result
-    }
+    ).stageTo(destination, block)
 }
 
 // Four native OpenPGP workers may run concurrently, bounding retained plaintext near 32 MiB.

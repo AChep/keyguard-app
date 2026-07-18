@@ -2,11 +2,6 @@ package com.artemchep.keyguard.common.service.file
 
 import kotlinx.io.Sink
 import kotlinx.io.Source
-import kotlinx.io.buffered
-import kotlinx.io.files.Path
-import kotlinx.io.files.SystemFileSystem
-import kotlin.random.Random
-import kotlin.time.Instant
 
 interface FileService {
     fun exists(uri: String): Boolean
@@ -36,19 +31,37 @@ interface FileService {
     ): Sink = writeToFile(uri)
 
     /**
-     * Atomically publishes [bytes] at [uri] when the backend can stage bytes
-     * and replace the destination without ever truncating it in place.
-     *
-     * Returns `true` when the destination was replaced atomically. Returns
-     * `false` only when the backend knows before touching the destination that
-     * it cannot provide an atomic publish. If the backend starts an atomic
-     * publish and then fails, it should throw so callers do not silently
-     * degrade to an in-place overwrite after a partially-failed safe-save.
+     * Atomically publishes [bytes] at [uri]. A convenience for the streaming
+     * [atomicWriteToFile] overload, which defines the contract.
      */
     fun atomicWriteToFile(
         uri: String,
         accessToken: FileAccessToken? = null,
         bytes: ByteArray,
+    ): Boolean = atomicWriteToFile(
+        uri = uri,
+        accessToken = accessToken,
+    ) { sink ->
+        sink.write(bytes)
+    }
+
+    /**
+     * Atomically publishes streamed content at [uri] when the backend can
+     * stage it and replace the destination without ever truncating it in
+     * place. The backend must invoke [write] only after it has secured an
+     * atomic staging destination.
+     *
+     * Returns `true` when the destination was replaced atomically. Returns
+     * `false` only when the backend knows before touching the destination
+     * that it cannot provide an atomic publish; [write] was not invoked and
+     * the destination was untouched in that case. If the backend starts an
+     * atomic publish and then fails, it throws so callers do not silently
+     * degrade to an in-place overwrite after a partially-failed safe-save.
+     */
+    fun atomicWriteToFile(
+        uri: String,
+        accessToken: FileAccessToken? = null,
+        write: (Sink) -> Unit,
     ): Boolean = false
 
     /**
@@ -76,4 +89,3 @@ interface FileService {
         accessToken: FileAccessToken? = null,
     ): Boolean = false
 }
-

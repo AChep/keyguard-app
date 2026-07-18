@@ -61,21 +61,35 @@ class BaseKdfProviderSpec {
         }
 
         describe("Argon2 compatibility forwarding") {
-            it("maps every non-1.3 header version to 1.0 and forwards secret and associated data") {
-                val parameters = KdfParameters.Argon2(
-                    variant = KdfParameters.Argon2.Variant.Argon2id,
-                    salt = Argon2Res.TestSalt.toByteString(),
-                    parallelism = 4U,
-                    memory = 32UL * 1024UL,
-                    iterations = 3UL,
-                    version = 0x11U,
-                    secretKey = Argon2Res.TestSecret.toByteString(),
-                    associatedData = Argon2Res.TestAdditional.toByteString(),
-                )
+            fun parameters(version: UInt) = KdfParameters.Argon2(
+                variant = KdfParameters.Argon2.Variant.Argon2id,
+                salt = Argon2Res.TestSalt.toByteString(),
+                parallelism = 4U,
+                memory = 32UL * 1024UL,
+                iterations = 3UL,
+                version = version,
+                secretKey = Argon2Res.TestSecret.toByteString(),
+                associatedData = Argon2Res.TestAdditional.toByteString(),
+            )
 
-                BaseKdfProvider.transformKey(parameters, Argon2Res.TestPassword) shouldBe
+            it("forwards Argon2 version 1.0 with secret and associated data") {
+                BaseKdfProvider.transformKey(parameters(0x10U), Argon2Res.TestPassword) shouldBe
                     "b64615f07789b66b645b67ee9ed3b377ae350b6bfcbb0fc95141ea8f322613c0"
                         .decodeHexToArray()
+            }
+
+            it("forwards Argon2 version 1.3 with secret and associated data") {
+                BaseKdfProvider.transformKey(parameters(0x13U), Argon2Res.TestPassword) shouldBe
+                    "0d640df58d78766c08c037a34a8b53c9d01ef0452d75b65eb52520e96b01e659"
+                        .decodeHexToArray()
+            }
+
+            it("rejects unsupported Argon2 header versions") {
+                listOf(0x00U, 0x11U, 0x12U, 0x14U).forEach { version ->
+                    assertFailsWith<FormatError.InvalidHeader> {
+                        BaseKdfProvider.transformKey(parameters(version), Argon2Res.TestPassword)
+                    }
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.file
 
+import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
@@ -54,26 +55,27 @@ class FileServiceImpl : FileService {
     override fun atomicWriteToFile(
         uri: String,
         accessToken: FileAccessToken?,
-        bytes: ByteArray,
+        write: (Sink) -> Unit,
     ): Boolean {
         val tempUri = atomicTempSiblingUriOrNull(uri) ?: return false
-        var moved = false
-        return try {
-            writeToFile(tempUri)
-                .use { sink ->
-                    sink.write(bytes)
-                    sink.flush()
-                }
-            moved = atomicMove(
+        try {
+            writeToFile(tempUri).use(write)
+            val moved = atomicMove(
                 sourceUri = tempUri,
                 destinationUri = uri,
                 accessToken = accessToken,
             )
-            moved
-        } finally {
             if (!moved) {
-                delete(tempUri)
+                // The payload is already staged, so per the interface contract
+                // this must throw rather than return false: a false result
+                // would let callers degrade to an in-place overwrite.
+                throw IOException("Could not atomically replace '$uri'.")
             }
+            return true
+        } finally {
+            // A no-op when the move already consumed the temp sibling;
+            // delete() never throws for a missing file.
+            delete(tempUri)
         }
     }
 

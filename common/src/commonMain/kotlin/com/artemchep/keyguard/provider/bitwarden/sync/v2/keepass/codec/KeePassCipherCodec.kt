@@ -308,6 +308,7 @@ class KeePassCipherCodec(
                 customData = customData,
                 previousParentGroup = previousParentGroup,
                 qualityCheck = qualityCheck,
+                extensions = remote?.extensions.orEmpty(),
             ),
             attachments = encodedAttachments.attachments,
             binaryAdditions = encodedAttachments.additions,

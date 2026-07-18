@@ -544,6 +544,24 @@ public object NativeCryptoPrimitives {
         iv = iv,
     )
 
+    public fun createTwofishCbcPkcs7Encryptor(
+        key: ByteArray,
+        iv: ByteArray,
+    ): NativeCryptoSession = openTwofishCbcPkcs7(
+        direction = CipherDirectionProto.ENCRYPT,
+        key = key,
+        iv = iv,
+    )
+
+    public fun createTwofishCbcPkcs7Decryptor(
+        key: ByteArray,
+        iv: ByteArray,
+    ): NativeCryptoSession = openTwofishCbcPkcs7(
+        direction = CipherDirectionProto.DECRYPT,
+        key = key,
+        iv = iv,
+    )
+
     public fun createAesCbcPkcs7HmacSha256Encryptor(
         encryptionKey: ByteArray,
         macKey: ByteArray,
@@ -905,6 +923,18 @@ public object NativeCryptoPrimitives {
         requireValidAesKey(key)
         require(iv.size == AES_BLOCK_BYTES) { "AES-CBC IV must be 16 bytes" }
         return NativeCrypto.openAesCbcPkcs7(direction, key, iv)
+    }
+
+    private fun openTwofishCbcPkcs7(
+        direction: CipherDirectionProto,
+        key: ByteArray,
+        iv: ByteArray,
+    ): NativeCryptoSession {
+        require(key.size == 16 || key.size == 24 || key.size == 32) {
+            "Twofish key must contain 16, 24, or 32 bytes"
+        }
+        require(iv.size == AES_BLOCK_BYTES) { "Twofish-CBC IV must be 16 bytes" }
+        return NativeCrypto.openTwofishCbcPkcs7(direction, key, iv)
     }
 
     private fun NativeRsaOaepHash.toProto(): RsaOaepHashProto = when (this) {

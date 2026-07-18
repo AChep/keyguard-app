@@ -1,3 +1,7 @@
+import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kmp.library)
@@ -22,6 +26,7 @@ kotlin {
             dependencies {
                 api(libs.kotlinx.io.core)
                 api(libs.squareup.okio)
+                implementation(libs.xmlutil.core)
                 implementation(project(":util:crypto"))
                 implementation(project(":util:foundation"))
             }
@@ -81,3 +86,64 @@ kotlin {
 kotlin {
     jvmToolchain(libs.versions.jdk.get().toInt())
 }
+
+val desktopTestTask = tasks.named<Test>("desktopTest")
+val desktopTestClassesTask = tasks.named("desktopTestClasses")
+
+desktopTestTask.configure {
+    filter {
+        excludeTestsMatching("app.keemobile.kotpass.xml.benchmark.*")
+        excludeTestsMatching("app.keemobile.kotpass.database.benchmark.*")
+    }
+}
+
+val kdbxJfrRecording = providers.gradleProperty("kdbxJfr").orNull
+
+fun registerKdbxBenchmark(
+    name: String,
+    taskDescription: String,
+    testPattern: String,
+) {
+    tasks.register<Test>(name) {
+        group = "verification"
+        description = taskDescription
+        dependsOn(desktopTestClassesTask)
+        testClassesDirs = desktopTestTask.get().testClassesDirs
+        classpath = desktopTestTask.get().classpath
+        maxParallelForks = 1
+        forkEvery = 0L
+        outputs.upToDateWhen { false }
+        kdbxJfrRecording?.let { recording ->
+            jvmArgs(
+                "-XX:StartFlightRecording=" +
+                    "filename=$recording,settings=profile,dumponexit=true",
+            )
+        }
+        filter {
+            includeTestsMatching(testPattern)
+            isFailOnNoMatchingTests = true
+        }
+        testLogging {
+            events = setOf(
+                TestLogEvent.FAILED,
+                TestLogEvent.PASSED,
+                TestLogEvent.STANDARD_ERROR,
+                TestLogEvent.STANDARD_OUT,
+            )
+            exceptionFormat = TestExceptionFormat.FULL
+            showStandardStreams = true
+        }
+    }
+}
+
+registerKdbxBenchmark(
+    name = "kdbxXmlBenchmark",
+    taskDescription = "Runs streaming KDBX XML benchmarks for realistic vault sizes.",
+    testPattern = "app.keemobile.kotpass.xml.benchmark.*",
+)
+
+registerKdbxBenchmark(
+    name = "kdbxDecodeBenchmark",
+    taskDescription = "Runs the end-to-end streaming KDBX decode benchmark.",
+    testPattern = "app.keemobile.kotpass.database.benchmark.*",
+)

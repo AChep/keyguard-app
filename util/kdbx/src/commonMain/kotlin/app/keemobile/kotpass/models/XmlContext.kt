@@ -4,7 +4,10 @@ import app.keemobile.kotpass.constants.BasicField
 import app.keemobile.kotpass.constants.Defaults
 import app.keemobile.kotpass.constants.MemoryProtectionFlag
 import app.keemobile.kotpass.cryptography.EncryptionSaltGenerator
+import app.keemobile.kotpass.database.BinaryPool
 import app.keemobile.kotpass.database.BinaryIndex
+import app.keemobile.kotpass.database.BinaryWritePlan
+import app.keemobile.kotpass.errors.FormatError
 import okio.ByteString
 
 /**
@@ -21,9 +24,15 @@ sealed class XmlContext {
      */
     sealed class Encode : XmlContext() {
         /**
-         * Supports encoding references to binary data.
+         * Defines the exact binary order and references used by this encoding.
          */
-        abstract val binaries: Map<ByteString, BinaryData>
+        internal abstract val binaryWritePlan: BinaryWritePlan
+
+        /**
+         * Binaries in the normalized order used by this encoding.
+         */
+        val binaries: Map<ByteString, BinaryData>
+            get() = binaryWritePlan.binaries
 
         val binaryIndex: BinaryIndex by lazy {
             BinaryIndex(binaries)
@@ -36,11 +45,21 @@ sealed class XmlContext {
          * * `protected` fields are additionally encrypted using [innerEncryption].
          * * timestamps are encoded as `BASE64(i64)` when [version] is `4.x`.
          */
-        class Encrypted(
+        class Encrypted internal constructor(
             override val version: FormatVersion,
-            override val binaries: Map<ByteString, BinaryData>,
-            val innerEncryption: EncryptionSaltGenerator
-        ) : Encode()
+            val innerEncryption: EncryptionSaltGenerator,
+            internal override val binaryWritePlan: BinaryWritePlan,
+        ) : Encode() {
+            constructor(
+                version: FormatVersion,
+                binaries: Map<ByteString, BinaryData>,
+                innerEncryption: EncryptionSaltGenerator,
+            ) : this(
+                version = version,
+                innerEncryption = innerEncryption,
+                binaryWritePlan = BinaryWritePlan.create(binaries),
+            )
+        }
 
         /**
          * Used when XML file is supposed to be saved as plain text.
@@ -50,11 +69,21 @@ sealed class XmlContext {
          * * timestamps are encoded as ISO-8601 instant text.
          * * binaries are stored as `BASE64(u8..)` in [Meta].
          */
-        class Plain(
+        class Plain internal constructor(
             override val version: FormatVersion,
-            override val binaries: Map<ByteString, BinaryData>,
-            val memoryProtectionFlags: Set<MemoryProtectionFlag>
+            val memoryProtectionFlags: Set<MemoryProtectionFlag>,
+            internal override val binaryWritePlan: BinaryWritePlan,
         ) : Encode() {
+            constructor(
+                version: FormatVersion,
+                binaries: Map<ByteString, BinaryData>,
+                memoryProtectionFlags: Set<MemoryProtectionFlag>,
+            ) : this(
+                version = version,
+                memoryProtectionFlags = memoryProtectionFlags,
+                binaryWritePlan = BinaryWritePlan.create(binaries),
+            )
+
             val memoryProtectionKeys = memoryProtectionFlags
                 .map(MemoryProtectionFlag::toBasicField)
                 .map(BasicField::key)
@@ -73,6 +102,19 @@ sealed class XmlContext {
     ) : XmlContext() {
         val binaryIndex: BinaryIndex by lazy {
             BinaryIndex(binaries)
+        }
+
+        internal fun addBinary(binary: BinaryData): ByteString = when (binaries) {
+            is BinaryPool -> binaries.add(binary)
+            is MutableMap<*, *> -> {
+                @Suppress("UNCHECKED_CAST")
+                val mutableBinaries = binaries as MutableMap<ByteString, BinaryData>
+                if (binary.hash !in mutableBinaries) {
+                    mutableBinaries[binary.hash] = binary
+                }
+                binary.hash
+            }
+            else -> throw FormatError.InvalidContent("Binary pool is not mutable.")
         }
     }
 }

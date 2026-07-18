@@ -1,7 +1,0 @@
-<root xmlns="https://someurl.org" xmlns:t="https://t.org">
-	<t:element>
-		Test
-	</t:element>
-	<p xmlns="https://t.co"/>
-	<d:p xmlns:d="https://b.co"/>
-</root>

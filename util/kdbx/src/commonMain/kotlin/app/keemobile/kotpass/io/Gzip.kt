@@ -4,6 +4,8 @@ import app.keemobile.kotpass.errors.FormatError
 import okio.Buffer
 import okio.GzipSink
 import okio.GzipSource
+import okio.Sink
+import okio.Source
 import okio.buffer
 
 /**
@@ -31,7 +33,7 @@ internal fun ByteArray.gzip(): ByteArray {
  * produce more than [maxSize] bytes.
  */
 internal fun ByteArray.gunzip(
-    maxSize: Long = MAX_DECOMPRESSED_SIZE
+    maxSize: Long = MAX_DECOMPRESSED_SIZE,
 ): ByteArray {
     val output = Buffer()
     val source = GzipSource(Buffer().write(this))
@@ -41,7 +43,7 @@ internal fun ByteArray.gunzip(
             if (read == -1L) break
             if (output.size > maxSize) {
                 throw FormatError.FailedCompression(
-                    "Decompressed data exceeds the maximum allowed size ($maxSize bytes)."
+                    "Decompressed data exceeds the maximum allowed size ($maxSize bytes).",
                 )
             }
         }
@@ -50,3 +52,18 @@ internal fun ByteArray.gunzip(
     }
     return output.readByteArray()
 }
+
+internal fun Source.gunzipSource(
+    maxSize: Long = MAX_DECOMPRESSED_SIZE,
+): Source = LimitedSource(
+    delegate = GzipSource(this),
+    maximumBytes = maxSize,
+    limitExceeded = {
+        FormatError.FailedCompression(
+            "Decompressed data exceeds the maximum allowed size ($maxSize bytes).",
+        )
+    },
+)
+
+/** Closing this gzip sink finishes the stream but leaves [this] open. */
+internal fun Sink.gzipSink(): GzipSink = GzipSink(NonClosingSink(this))

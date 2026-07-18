@@ -2,7 +2,9 @@ package app.keemobile.kotpass.database.header
 
 import app.keemobile.kotpass.extensions.bufferStream
 import app.keemobile.kotpass.common.runKotpassSpec
+import app.keemobile.kotpass.errors.FormatError
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 import app.keemobile.kotpass.common.matchers.shouldBe
 import app.keemobile.kotpass.common.matchers.shouldBeInstanceOf
 import okio.Buffer
@@ -48,9 +50,45 @@ class DatabaseHeaderSpec {
                 kdfParameters.shouldBeInstanceOf<KdfParameters.Argon2>()
             }
         }
+
+        it("Consumes and skips an unknown outer-header field") {
+            val original = DatabaseHeader.Ver4x.create()
+            val encoded = Buffer().apply(original::writeTo)
+            val modified = Buffer().apply {
+                write(encoded, 12) // Signatures and version
+                writeByte(0x7F)
+                writeIntLe(3)
+                writeUtf8("ext")
+                writeAll(encoded)
+            }
+
+            val decoded = DatabaseHeader.readFrom(modified.asBufferedStream())
+
+            decoded.version shouldBe original.version
+            decoded.cipherId shouldBe original.cipherId
+            decoded.compression shouldBe original.compression
+            decoded.masterSeed shouldBe original.masterSeed
+            decoded.encryptionIV shouldBe original.encryptionIV
+        }
+
+        it("Rejects a negative KDBX4 outer-header field length") {
+            val encoded = Buffer().apply(DatabaseHeader.Ver4x.create()::writeTo)
+            val modified = Buffer().apply {
+                write(encoded, 12) // Signatures and version
+                writeByte(1) // Comment
+                writeIntLe(-1)
+                writeAll(encoded)
+            }
+
+            assertFailsWith<FormatError.InvalidHeader> {
+                DatabaseHeader.readFrom(modified.asBufferedStream())
+            }
+        }
     }
     }
 }
+
+private fun Buffer.asBufferedStream() = inputStream().source().bufferStream()
 
 private fun decodeHeader(fileName: String) = ClassLoader
     .getSystemResourceAsStream(fileName)!!

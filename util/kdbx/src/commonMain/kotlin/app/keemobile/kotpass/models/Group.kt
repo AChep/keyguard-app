@@ -20,7 +20,8 @@ data class Group(
     override val tags: List<String> = listOf(),
     val groups: List<Group> = listOf(),
     val entries: List<Entry> = listOf(),
-    val customData: Map<String, CustomDataValue> = mapOf()
+    val customData: Map<String, CustomDataValue> = mapOf(),
+    val extensions: List<XmlExtension> = emptyList(),
 ) : DatabaseElement {
     fun traverse(
         block: (DatabaseElement) -> Unit

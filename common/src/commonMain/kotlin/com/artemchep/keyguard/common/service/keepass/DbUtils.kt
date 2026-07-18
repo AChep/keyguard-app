@@ -9,7 +9,6 @@ import app.keemobile.kotpass.database.decode
 import app.keemobile.kotpass.database.encodeTo
 import app.keemobile.kotpass.models.Meta
 import com.artemchep.keyguard.common.exception.KeePassFileAlreadyExistsException
-import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseMetadata
@@ -25,13 +24,21 @@ import com.artemchep.keyguard.common.service.webdav.webDavAuthorizationOf
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
+import com.artemchep.keyguard.crypto.PrivateTemporarySpillStorage
+import com.artemchep.keyguard.crypto.createPrivateTemporaryStorage
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
 import com.artemchep.keyguard.ui.icons.generateAccentColors
+import com.artemchep.keyguard.util.foundation.io.AdaptiveSpool
+import com.artemchep.keyguard.util.foundation.io.ByteSnapshot
+import com.artemchep.keyguard.util.foundation.io.buildSnapshot
+import com.artemchep.keyguard.util.foundation.io.copyTo
+import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
-import kotlinx.io.Buffer
-import kotlinx.io.readByteArray
+import kotlinx.io.IOException
+import kotlinx.io.Sink
 import kotlin.random.Random
 
 data class PreparedKeePassDatabase(
@@ -136,9 +143,18 @@ suspend fun prepareKeePassDatabase(
  * (re-decoded successfully with the same credentials) and is ready to be
  * published to its destination.
  */
-class StagedDatabase(
-    val bytes: ByteArray,
-)
+internal class StagedDatabase(
+    private val snapshot: ByteSnapshot,
+) : AutoCloseable {
+    val size: Long
+        get() = snapshot.size
+
+    fun source() = snapshot.openSource()
+
+    fun replayTo(output: Sink) = snapshot.copyTo(output)
+
+    override fun close() = snapshot.close()
+}
 
 /**
  * Saves [database] durably using a stage -> verify -> publish sequence.
@@ -190,22 +206,33 @@ internal suspend fun stageVerifyAndPublish(
     credentials: Credentials,
     mode: KeePassDatabaseWriteMode,
     expectedMetadata: KeePassDatabaseMetadata? = null,
-): KeePassDatabaseMetadata? = withContext(Dispatchers.Default) {
-    // Encode into memory first and immediately decode the result. This catches
-    // corrupt, truncated, or credential-incompatible output before any existing
-    // local/WebDAV database is touched.
+): KeePassDatabaseMetadata? = withContext(Dispatchers.IO) {
+    // Encode into private replayable storage and immediately decode the result.
+    // This catches corrupt, truncated, or credential-incompatible output before
+    // any existing local/WebDAV database is touched. Staging may perform blocking
+    // file I/O after crossing the adaptive memory threshold, so the whole
+    // stage -> verify -> publish sequence runs on the IO dispatcher. The stage
+    // call deliberately has no withContext of its own: a context-switch boundary
+    // would discard the staged storage if the caller got cancelled mid-stage,
+    // leaking it with no one left to close it.
     val staged = stageAndVerify(
         database = database,
         credentials = credentials,
     )
-
-    withContext(Dispatchers.IO) {
-        // Publish the verified bytes as the final step.
+    try {
+        // The blocking stage cannot observe a cancellation; do not start
+        // the publish if the caller is already gone.
+        ensureActive()
+        // Publish the verified stage as the final step.
         storage.publish(
             mode = mode,
             staged = staged,
             expected = expectedMetadata,
         )
+    } finally {
+        // Release the memory or delete-on-close spill stage. A close failure
+        // must not replace the publish outcome.
+        runCatching { staged.close() }
     }
 }
 
@@ -214,30 +241,48 @@ internal suspend fun stageVerifyAndPublish(
  * published. The re-decode guards against a truncated or otherwise corrupt
  * encode reaching the destination.
  */
-private suspend fun stageAndVerify(
+private fun stageAndVerify(
     database: KeePassDatabase,
     credentials: Credentials,
-): StagedDatabase = withContext(Dispatchers.Default) {
-    val sink = Buffer()
-    database.encodeTo(
-        sink = sink,
-        cipherProviders = keePassCipherProviders,
-    )
-    val bytes = sink.readByteArray()
-    // Verify the encoded payload round-trips before we trust it.
-    Buffer()
-        .apply { write(bytes) }
-        .use { source ->
+): StagedDatabase {
+    val snapshot = AdaptiveSpool(
+        memoryLimitBytes = MAX_IN_MEMORY_STAGED_DATABASE_BYTES,
+        maximumBytes = MAX_STAGED_DATABASE_BYTES,
+        spillFactory = {
+            PrivateTemporarySpillStorage(createPrivateTemporaryStorage())
+        },
+        limitExceeded = { limit ->
+            IOException(
+                "Encoded KeePass database exceeds the supported staging limit of $limit bytes",
+            )
+        },
+    ).buildSnapshot { sink ->
+        database.encodeTo(
+            sink = sink,
+            cipherProviders = keePassCipherProviders,
+        )
+    }
+    val staged = StagedDatabase(snapshot)
+    try {
+        // Verify the encoded payload round-trips before we trust it.
+        staged.source().use { source ->
             KeePassDatabase.decode(
                 source = source,
                 credentials = credentials,
                 cipherProviders = keePassCipherProviders,
             )
         }
-    StagedDatabase(
-        bytes = bytes,
-    )
+        return staged
+    } catch (error: Throwable) {
+        runCatching { staged.close() }
+            .exceptionOrNull()
+            ?.let(error::addSuppressed)
+        throw error
+    }
 }
+
+internal const val MAX_IN_MEMORY_STAGED_DATABASE_BYTES = 8L * 1024L * 1024L
+private const val MAX_STAGED_DATABASE_BYTES = 2_147_483_647L
 
 suspend fun getKeePassDatabaseMetadata(
     fileService: FileService,

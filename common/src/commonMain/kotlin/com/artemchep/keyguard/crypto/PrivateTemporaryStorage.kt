@@ -13,9 +13,8 @@ internal interface PrivateTemporaryStorage : AutoCloseable {
      */
     fun sealForReading()
 
+    /** Returns a new source positioned at byte zero. */
     fun source(): RawSource
-
-    fun rewind()
 }
 
 internal expect fun createPrivateTemporaryStorage(): PrivateTemporaryStorage

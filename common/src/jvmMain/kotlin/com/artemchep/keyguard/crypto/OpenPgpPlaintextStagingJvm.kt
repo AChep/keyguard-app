@@ -83,12 +83,6 @@ private class JvmPrivateTemporaryStorage(
         return FileChannelRawSource(channel)
     }
 
-    override fun rewind() {
-        check(!closed) { "Staging file is closed" }
-        check(sealed) { "Staging file must be sealed before rewinding" }
-        channel.position(0L)
-    }
-
     override fun close() {
         if (closed) return
         closed = true
@@ -160,6 +154,7 @@ private class FileChannelRawSource(
     private val channel: FileChannel,
 ) : RawSource {
     private val buffer = ByteArray(STAGING_BUFFER_BYTES)
+    private var position = 0L
     private var closed = false
 
     override fun readAtMostTo(
@@ -171,9 +166,10 @@ private class FileChannelRawSource(
         if (byteCount == 0L) return 0L
 
         val requested = minOf(byteCount, buffer.size.toLong()).toInt()
-        val read = channel.read(ByteBuffer.wrap(buffer, 0, requested))
+        val read = channel.read(ByteBuffer.wrap(buffer, 0, requested), position)
         if (read < 0) return -1L
         if (read == 0) return 0L
+        position += read
         try {
             sink.write(buffer, startIndex = 0, endIndex = read)
         } finally {

@@ -3,7 +3,7 @@ package app.keemobile.kotpass.models
 import app.keemobile.kotpass.constants.GroupOverride
 import app.keemobile.kotpass.constants.PredefinedIcon
 import app.keemobile.kotpass.cryptography.EncryptionSaltGenerator
-import app.keemobile.kotpass.extensions.parseAsXml
+import app.keemobile.kotpass.extensions.parseAsXmlReader
 import app.keemobile.kotpass.resources.GroupRes
 import app.keemobile.kotpass.xml.unmarshalGroup
 import app.keemobile.kotpass.common.runKotpassSpec
@@ -22,7 +22,7 @@ class GroupSpec {
                 encryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
                 binaries = linkedMapOf()
             )
-            val group = unmarshalGroup(context, GroupRes.BasicXml.parseAsXml())
+            val group = unmarshalGroup(context, GroupRes.BasicXml.parseAsXmlReader())
 
             group.name shouldBe "Lorem"
             group.icon shouldBe PredefinedIcon.Folder
@@ -40,7 +40,7 @@ class GroupSpec {
                 encryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
                 binaries = linkedMapOf()
             )
-            val group = unmarshalGroup(context, GroupRes.BasicXml.parseAsXml())
+            val group = unmarshalGroup(context, GroupRes.BasicXml.parseAsXmlReader())
 
             group.findChildGroup { it.name == "Ipsum" } shouldNotBe null
         }
@@ -51,7 +51,7 @@ class GroupSpec {
                 encryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
                 binaries = linkedMapOf()
             )
-            val group = unmarshalGroup(context, GroupRes.BasicXml.parseAsXml())
+            val group = unmarshalGroup(context, GroupRes.BasicXml.parseAsXmlReader())
 
             group.findChildEntry {
                 it.fields.title?.content == "Lorem"

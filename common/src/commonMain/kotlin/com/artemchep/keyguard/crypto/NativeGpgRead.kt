@@ -26,6 +26,7 @@ import com.artemchep.keyguard.nativecrypto.NativeOpenPgpPublicSubKeyInfo
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpVerification
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpVerificationStatus
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpVerificationWarning
+import com.artemchep.keyguard.util.foundation.io.consumeWithErasedBuffer
 import kotlinx.io.Buffer
 import kotlinx.io.Source
 import kotlinx.io.readByteArray

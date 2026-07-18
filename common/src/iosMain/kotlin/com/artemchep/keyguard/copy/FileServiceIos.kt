@@ -89,17 +89,20 @@ class FileServiceIos(
     override fun atomicWriteToFile(
         uri: String,
         accessToken: FileAccessToken?,
-        bytes: ByteArray,
+        write: (Sink) -> Unit,
     ): Boolean {
         accessToken ?: return delegate.atomicWriteToFile(
             uri = uri,
             accessToken = null,
-            bytes = bytes,
+            write = write,
         )
         // A security-scoped bookmark grants access to the resolved resource. It
         // does not guarantee that we can create a sibling temp file and rename it
         // over the picked document, so scoped destinations use the caller's
-        // direct-write fallback instead of promising atomic replacement.
+        // direct-write fallback instead of promising atomic replacement. Note
+        // that the scoped fallback sink buffers the whole payload in memory
+        // before writing it out, so scoped saves get neither the streaming nor
+        // the atomic-replacement benefits of this API.
         return false
     }
 

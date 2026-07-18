@@ -19,44 +19,48 @@ object TwofishCipher : CipherProvider {
     override val uuid: Uuid = Uuid.parse("ad68f29f-576f-4bb9-a36a-d47af965346c")
     override val ivLength = 16U
 
-    override fun encrypt(
+    override fun createEncryptor(
         key: ByteArray,
         iv: ByteArray,
-        data: ByteArray
-    ): ByteArray = processBytes(encrypt = true, key, iv, data)
+    ): CipherSession = createSession(encrypt = true, key, iv)
 
-    override fun decrypt(
+    override fun createDecryptor(
         key: ByteArray,
         iv: ByteArray,
-        data: ByteArray
-    ): ByteArray = processBytes(encrypt = false, key, iv, data)
+    ): CipherSession = createSession(encrypt = false, key, iv)
 
-    private fun processBytes(
+    private fun createSession(
         encrypt: Boolean,
         key: ByteArray,
         iv: ByteArray,
-        data: ByteArray,
-    ): ByteArray {
+    ): CipherSession {
+        validateParameters(key, iv)
+        val delegate = if (encrypt) {
+            NativeCryptoPrimitives.createTwofishCbcPkcs7Encryptor(key, iv)
+        } else {
+            NativeCryptoPrimitives.createTwofishCbcPkcs7Decryptor(key, iv)
+        }
+        return NativeCipherSession(delegate) { error ->
+            if (
+                error is NativeCryptoException &&
+                error.code == NativeCryptoErrorCode.AUTHENTICATION_FAILED
+            ) {
+                InvalidCipherText("Pad block is corrupted")
+            } else {
+                error
+            }
+        }
+    }
+
+    private fun validateParameters(
+        key: ByteArray,
+        iv: ByteArray,
+    ) {
         if (key.size !in setOf(16, 24, 32)) {
             throw InvalidDataLength("Twofish key length must be 128/192/256 bits")
         }
         if (iv.size != 16) {
             throw InvalidDataLength("Twofish IV length must be 128 bits")
-        }
-        if (!encrypt && (data.isEmpty() || data.size % 16 != 0)) {
-            throw InvalidDataLength("Last block incomplete in decryption")
-        }
-        return try {
-            if (encrypt) {
-                NativeCryptoPrimitives.twofishCbcPkcs7Encrypt(key, iv, data)
-            } else {
-                NativeCryptoPrimitives.twofishCbcPkcs7Decrypt(key, iv, data)
-            }
-        } catch (e: NativeCryptoException) {
-            if (e.code == NativeCryptoErrorCode.AUTHENTICATION_FAILED) {
-                throw InvalidCipherText("Pad block is corrupted")
-            }
-            throw e
         }
     }
 }

@@ -1,12 +1,14 @@
 package app.keemobile.kotpass.xml
 
-import app.keemobile.kotpass.common.renderTestXmlString
-import app.keemobile.kotpass.constants.AutoTypeObfuscation
-import app.keemobile.kotpass.common.runKotpassSpec
-import kotlin.test.Test
-import app.keemobile.kotpass.common.matchers.shouldNotBeZero
 import app.keemobile.kotpass.common.matchers.shouldBe
-import org.redundent.kotlin.xml.parse
+import app.keemobile.kotpass.common.matchers.shouldNotBeZero
+import app.keemobile.kotpass.common.readResourceText
+import app.keemobile.kotpass.common.renderTestXmlString
+import app.keemobile.kotpass.common.runKotpassSpec
+import app.keemobile.kotpass.constants.AutoTypeObfuscation
+import app.keemobile.kotpass.cryptography.EncryptionSaltGenerator
+import app.keemobile.kotpass.extensions.parseAsXmlReader
+import kotlin.test.Test
 
 class AutoTypeDataSpec {
     @Test
@@ -14,10 +16,12 @@ class AutoTypeDataSpec {
 
     describe("AutoType Data") {
         it("Deserialize XML") {
-            val document = ClassLoader
-                .getSystemResourceAsStream("xml/autotype.xml")!!
-                .use(::parse)
-            val autoTypeData = unmarshalAutoTypeData(document)
+            val document = readResourceText("xml/autotype.xml")
+                .parseAsXmlReader()
+            val autoTypeData = unmarshalAutoTypeData(
+                document,
+                EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
+            )
 
             autoTypeData.enabled shouldBe true
             autoTypeData.obfuscation shouldBe AutoTypeObfuscation.UseClipboard
@@ -25,12 +29,14 @@ class AutoTypeDataSpec {
         }
 
         it("Serialize XML") {
-            val resourceStream = { ClassLoader.getSystemResourceAsStream("xml/autotype.xml")!! }
-            val document = resourceStream().use(::parse)
-            val rawData = resourceStream().readAllBytes().decodeToString()
-            val autoTypeData = unmarshalAutoTypeData(document)
+            val rawData = readResourceText("xml/autotype.xml")
+            val document = rawData.parseAsXmlReader()
+            val autoTypeData = unmarshalAutoTypeData(
+                document,
+                EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
+            )
 
-            renderTestXmlString(autoTypeData.marshal()) shouldBe rawData
+            renderTestXmlString { autoTypeData.marshalTo(it) } shouldBe rawData
         }
     }
     }

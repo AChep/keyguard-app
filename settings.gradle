@@ -48,5 +48,6 @@ include ':integration:wearCredentialProviderApp'
 include ':integration:webdavE2eTest'
 include ':integration:gpgE2eTest'
 include ':integration:sshE2eTest'
+include ':integration:kdbxE2eTest'
 
 project(':integration:wearCredentialProviderApp').projectDir = file('integration/wearCredentialProviderApp')

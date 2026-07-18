@@ -1,6 +1,0 @@
-<a:root xmlns="https://ns2.org" xmlns:a="https://ns1.org">
-	<b:node xmlns:b="https://ns3.org" xmlns:c="https://ns4.org" attr1="value" c:attr2="value"/>
-	<child xmlns:d="https://ns5.org" xmlns:e="https://ns6.org" d:key1="value1" d:key2="value2" e:key3="value3" a:key4="value4">
-		<d:sub e:key5="value5"/>
-	</child>
-</a:root>

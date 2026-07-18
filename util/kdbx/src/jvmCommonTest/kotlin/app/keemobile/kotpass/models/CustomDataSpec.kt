@@ -1,13 +1,14 @@
 package app.keemobile.kotpass.models
 
-import app.keemobile.kotpass.extensions.parseAsXml
+import app.keemobile.kotpass.cryptography.EncryptionSaltGenerator
+import app.keemobile.kotpass.extensions.parseAsXmlReader
 import app.keemobile.kotpass.resources.CustomDataRes
 import app.keemobile.kotpass.xml.CustomData
+import app.keemobile.kotpass.common.renderTestXmlString
 import app.keemobile.kotpass.common.runKotpassSpec
 import kotlin.test.Test
 import app.keemobile.kotpass.common.matchers.shouldBe
 import app.keemobile.kotpass.common.matchers.shouldNotBe
-import org.redundent.kotlin.xml.PrintOptions
 
 class CustomDataSpec {
     @Test
@@ -16,7 +17,10 @@ class CustomDataSpec {
     describe("Parsing CustomData from Xml string") {
         it("Basic custom data") {
             val customData = CustomData
-                .unmarshal(CustomDataRes.BasicXml.parseAsXml())
+                .unmarshal(
+                    CustomDataRes.BasicXml.parseAsXmlReader(),
+                    EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
+                )
 
             customData["k1"] shouldBe CustomDataValue("v1")
             customData["k2"] shouldBe CustomDataValue("v2")
@@ -24,13 +28,19 @@ class CustomDataSpec {
 
         it("Empty custom data") {
             CustomData
-                .unmarshal(CustomDataRes.EmptyTagXml.parseAsXml())
+                .unmarshal(
+                    CustomDataRes.EmptyTagXml.parseAsXmlReader(),
+                    EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
+                )
                 .isEmpty() shouldBe true
         }
 
         it("Skips unknown tags") {
             val customData = CustomData
-                .unmarshal(CustomDataRes.UnknownTagsXml.parseAsXml())
+                .unmarshal(
+                    CustomDataRes.UnknownTagsXml.parseAsXmlReader(),
+                    EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
+                )
 
             customData.size shouldBe 1
             customData["k1"] shouldBe CustomDataValue("v1")
@@ -38,7 +48,10 @@ class CustomDataSpec {
 
         it("Skips empty keys") {
             CustomData
-                .unmarshal(CustomDataRes.EmptyKeysXml.parseAsXml())
+                .unmarshal(
+                    CustomDataRes.EmptyKeysXml.parseAsXmlReader(),
+                    EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
+                )
                 .isEmpty() shouldBe true
         }
     }
@@ -55,8 +68,7 @@ class CustomDataSpec {
                 "k2" to CustomDataValue("v2")
             )
 
-            CustomData.marshal(context, customData)
-                .toString(PrintOptions(singleLineTextElements = true))
+            renderTestXmlString { CustomData.marshalTo(context, customData, it) }
                 .indexOf("<Key>k1</Key>") shouldNotBe -1
         }
     }

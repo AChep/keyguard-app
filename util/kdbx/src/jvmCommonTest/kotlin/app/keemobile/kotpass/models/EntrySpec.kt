@@ -9,7 +9,7 @@ import app.keemobile.kotpass.cryptography.EncryptionSaltGenerator
 import app.keemobile.kotpass.database.Credentials
 import app.keemobile.kotpass.database.modifiers.binaries
 import app.keemobile.kotpass.database.traverse
-import app.keemobile.kotpass.extensions.parseAsXml
+import app.keemobile.kotpass.extensions.parseAsXmlReader
 import app.keemobile.kotpass.models.EntryValue.Plain
 import app.keemobile.kotpass.resources.EntryRes
 import app.keemobile.kotpass.resources.TimeDataRes
@@ -34,7 +34,7 @@ class EntrySpec {
                 encryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf()),
                 binaries = linkedMapOf()
             )
-            val entry = unmarshalEntry(context, EntryRes.BasicXml.parseAsXml())
+            val entry = unmarshalEntry(context, EntryRes.BasicXml.parseAsXmlReader())
 
             entry.tags.size shouldBe 3
             entry.tags.first() shouldBe "lorem"

@@ -4,6 +4,7 @@ import app.keemobile.kotpass.cryptography.KeyTransform
 import app.keemobile.kotpass.io.encodeHex
 import app.keemobile.kotpass.resources.CredentialsRes
 import app.keemobile.kotpass.common.runKotpassSpec
+import com.artemchep.keyguard.util.foundation.crypto.sha256
 import kotlin.test.Test
 import app.keemobile.kotpass.common.matchers.shouldBe
 
@@ -28,6 +29,16 @@ class CredentialsSpec {
                 .key!!
                 .getBinary()
                 .encodeHex() shouldBe key.encodeHex()
+        }
+
+        it("Hashes a 64-byte key file when its contents are not hexadecimal") {
+            val keyfile = ByteArray(64) { index -> (index + 0x80).toByte() }
+            val expected = sha256(keyfile)
+
+            Credentials
+                .from(keyfile.copyOf())
+                .key!!
+                .getBinary() shouldBe expected
         }
     }
     }

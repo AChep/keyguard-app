@@ -1,19 +1,29 @@
 package app.keemobile.kotpass.xml
 
 import app.keemobile.kotpass.extensions.fromByteArray
-import app.keemobile.kotpass.extensions.getText
 import app.keemobile.kotpass.extensions.toByteArray
+import app.keemobile.kotpass.errors.FormatError
 import app.keemobile.kotpass.io.decodeBase64ToArray
 import app.keemobile.kotpass.io.encodeBase64
 import app.keemobile.kotpass.models.XmlContext
-import org.redundent.kotlin.xml.Node
+import nl.adaptivity.xmlutil.XmlReader
 import kotlin.time.Instant
 
 private const val EpochSecondsFromAD = 62135596800
 
-internal fun Node.getInstant(): Instant? = getText()?.let { text ->
+internal fun XmlReader.readInstantOrNull(): Instant? {
+    val name = localName
+    val value = readTrimmedElementTextOrNull() ?: return null
+    return try {
+        parseInstant(value)
+    } catch (_: Exception) {
+        throw FormatError.InvalidXml("Element '$name' contains an invalid timestamp.")
+    }
+}
+
+private fun parseInstant(text: String): Instant {
     // Check if ISO text or binary timestamp
-    if (text.indexOf(':') > 0) {
+    return if (text.indexOf(':') > 0) {
         Instant.parse(text)
     } else {
         val seconds = Long.fromByteArray(text.decodeBase64ToArray())

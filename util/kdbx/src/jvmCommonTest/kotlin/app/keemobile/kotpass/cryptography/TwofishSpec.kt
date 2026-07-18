@@ -5,6 +5,7 @@ package app.keemobile.kotpass.cryptography
 import app.keemobile.kotpass.common.matchers.shouldBe
 import app.keemobile.kotpass.common.runKotpassSpec
 import app.keemobile.kotpass.cryptography.format.BaseCiphers
+import app.keemobile.kotpass.cryptography.format.CipherSession
 import app.keemobile.kotpass.cryptography.format.TwofishCipher
 import app.keemobile.kotpass.database.Credentials
 import app.keemobile.kotpass.database.KeePassDatabase
@@ -36,37 +37,37 @@ class TwofishSpec {
 
                 it("encrypts published vectors for a ${key.size * 8}-bit key") {
                     for ((plainText, cipherText) in answers) {
-                        TwofishCipher.encrypt(key, TwofishCbcPaddedRes.IV, plainText) shouldBe cipherText
+                        transformTwofish(true, key, TwofishCbcPaddedRes.IV, plainText) shouldBe cipherText
                     }
                 }
 
                 it("decrypts published vectors for a ${key.size * 8}-bit key") {
                     for ((plainText, cipherText) in answers) {
-                        TwofishCipher.decrypt(key, TwofishCbcPaddedRes.IV, cipherText) shouldBe plainText
+                        transformTwofish(false, key, TwofishCbcPaddedRes.IV, cipherText) shouldBe plainText
                     }
                 }
 
                 it("matches the permanent BC test oracle for a ${key.size * 8}-bit key") {
                     val plainText = answers.last().first
-                    TwofishCipher.encrypt(key, TwofishCbcPaddedRes.IV, plainText) shouldBe
+                    transformTwofish(true, key, TwofishCbcPaddedRes.IV, plainText) shouldBe
                         processWithBouncyCastle(true, key, TwofishCbcPaddedRes.IV, plainText)
                 }
             }
 
             it("rejects corrupted PKCS7 padding") {
                 val key = TwofishCbcPaddedRes.Items.first().key.decodeHexToArray()
-                val ciphertext = TwofishCipher.encrypt(key, TwofishCbcPaddedRes.IV, byteArrayOf(1, 2, 3))
+                val ciphertext = transformTwofish(true, key, TwofishCbcPaddedRes.IV, byteArrayOf(1, 2, 3))
                 ciphertext[ciphertext.lastIndex] = 0
                 assertFailsWith<InvalidCipherText> {
-                    TwofishCipher.decrypt(key, TwofishCbcPaddedRes.IV, ciphertext)
+                    transformTwofish(false, key, TwofishCbcPaddedRes.IV, ciphertext)
                 }
             }
 
             it("streams bodies larger than the control envelope") {
                 val key = ByteArray(32) { index -> index.toByte() }
                 val input = ByteArray(15 * 1024 * 1024 + 1) { index -> (index * 31).toByte() }
-                val encrypted = TwofishCipher.encrypt(key, TwofishCbcPaddedRes.IV, input)
-                TwofishCipher.decrypt(key, TwofishCbcPaddedRes.IV, encrypted) shouldBe input
+                val encrypted = transformTwofish(true, key, TwofishCbcPaddedRes.IV, input)
+                transformTwofish(false, key, TwofishCbcPaddedRes.IV, encrypted) shouldBe input
             }
 
             it("decodes and encodes a KeePass 4.x Twofish file") {
@@ -91,6 +92,38 @@ class TwofishSpec {
             }
         }
     }
+
+    private fun transformTwofish(
+        encrypt: Boolean,
+        key: ByteArray,
+        iv: ByteArray,
+        input: ByteArray,
+    ): ByteArray {
+        val session =
+            if (encrypt) {
+                TwofishCipher.createEncryptor(key, iv)
+            } else {
+                TwofishCipher.createDecryptor(key, iv)
+            }
+        return session.use { transform ->
+            transformInChunks(transform, input)
+        }
+    }
+
+    private fun transformInChunks(
+        session: CipherSession,
+        input: ByteArray,
+    ): ByteArray =
+        ByteArrayOutputStream().use { output ->
+            var offset = 0
+            while (offset < input.size) {
+                val length = minOf(64 * 1024, input.size - offset)
+                output.write(session.update(input, offset, length))
+                offset += length
+            }
+            output.write(session.finish())
+            output.toByteArray()
+        }
 
     private fun processWithBouncyCastle(
         encrypt: Boolean,

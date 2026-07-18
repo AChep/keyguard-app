@@ -70,5 +70,6 @@ data class Meta(
     val customIcons: Map<Uuid, CustomIcon> = mapOf(),
     val customData: Map<String, CustomDataValue> = mapOf(),
     @PublishedApi
-    internal val binaries: Map<ByteString, BinaryData> = linkedMapOf()
+    internal val binaries: Map<ByteString, BinaryData> = linkedMapOf(),
+    val extensions: List<XmlExtension> = emptyList(),
 )

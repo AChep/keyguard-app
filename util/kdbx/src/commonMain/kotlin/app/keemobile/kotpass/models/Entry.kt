@@ -19,7 +19,8 @@ data class Entry(
     val history: List<Entry> = listOf(),
     val customData: Map<String, CustomDataValue> = mapOf(),
     val previousParentGroup: Uuid? = null,
-    val qualityCheck: Boolean = true
+    val qualityCheck: Boolean = true,
+    val extensions: List<XmlExtension> = emptyList(),
 ) : DatabaseElement {
     operator fun get(field: BasicField): EntryValue? = fields[field()]
 }

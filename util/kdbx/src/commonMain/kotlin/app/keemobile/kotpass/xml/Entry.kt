@@ -1,107 +1,231 @@
 package app.keemobile.kotpass.xml
 
-import app.keemobile.kotpass.builders.MutableEntry
-import app.keemobile.kotpass.builders.buildEntry
 import app.keemobile.kotpass.constants.Const
 import app.keemobile.kotpass.constants.PredefinedIcon
-import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.errors.FormatError
 import app.keemobile.kotpass.extensions.addBoolean
-import app.keemobile.kotpass.extensions.addBytes
 import app.keemobile.kotpass.extensions.addUuid
-import app.keemobile.kotpass.extensions.childNodes
-import app.keemobile.kotpass.extensions.getBytes
-import app.keemobile.kotpass.extensions.getText
-import app.keemobile.kotpass.extensions.getUuid
+import app.keemobile.kotpass.extensions.readUuidOrNull
+import app.keemobile.kotpass.models.AutoTypeData
+import app.keemobile.kotpass.models.BinaryReference
+import app.keemobile.kotpass.models.CustomDataValue
 import app.keemobile.kotpass.models.Entry
+import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.EntryValue
+import app.keemobile.kotpass.models.TimeData
 import app.keemobile.kotpass.models.XmlContext
+import app.keemobile.kotpass.models.XmlExtension
 import app.keemobile.kotpass.xml.FormatXml.Tags
-import org.redundent.kotlin.xml.Node
-import org.redundent.kotlin.xml.node
+import nl.adaptivity.xmlutil.EventType
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.XmlWriter
+import kotlin.uuid.Uuid
 
 internal fun unmarshalEntry(
     context: XmlContext.Decode,
-    node: Node
+    reader: XmlReader,
 ): Entry {
-    val untitledFields = mutableListOf<EntryValue>()
-    val uuid = node
-        .firstOrNull(Tags.Uuid)
-        ?.getUuid()
-        ?: throw FormatError.InvalidXml("Invalid entry without Uuid.")
+    val stack = ArrayDeque<EntryReadFrame>()
+    stack.addLast(EntryReadFrame.EntryNode(EntryBuilder()))
 
-    return buildEntry(uuid) {
-        for (childNode in node.childNodes()) {
-            when (childNode.nodeName) {
-                Tags.Entry.IconId -> {
-                    icon = childNode
-                        .getText()
-                        ?.toInt()
-                        ?.let(PredefinedIcon.entries::getOrNull)
-                        ?: PredefinedIcon.Key
-                }
-                Tags.Entry.CustomIconId -> {
-                    customIconUuid = childNode.getUuid()
-                }
-                Tags.Entry.ForegroundColor -> {
-                    foregroundColor = childNode.getText()
-                }
-                Tags.Entry.BackgroundColor -> {
-                    backgroundColor = childNode.getText()
-                }
-                Tags.Entry.OverrideUrl -> {
-                    overrideUrl = childNode.getText() ?: ""
-                }
-                Tags.TimeData.TagName -> {
-                    times = unmarshalTimeData(childNode)
-                }
-                Tags.Entry.AutoType.TagName -> {
-                    autoType = unmarshalAutoTypeData(childNode)
-                }
-                Tags.Entry.Fields.TagName -> {
-                    val (name, value) = unmarshalField(context, childNode)
+    while (true) {
+        when (reader.next()) {
+            EventType.START_ELEMENT -> {
+                when (val frame = stack.last()) {
+                    is EntryReadFrame.EntryNode -> {
+                        if (reader.isUnqualifiedElement(Tags.Entry.History)) {
+                            stack.addLast(EntryReadFrame.History())
+                        } else {
+                            frame.builder.readChild(context, reader)
+                        }
+                    }
 
-                    if (name != null) {
-                        fields[name] = value
-                    } else {
-                        untitledFields += value
+                    is EntryReadFrame.History -> {
+                        if (reader.isUnqualifiedElement(Tags.Entry.TagName)) {
+                            stack.addLast(EntryReadFrame.EntryNode(EntryBuilder()))
+                        } else {
+                            reader.discardKdbxElement(context.encryption)
+                        }
                     }
                 }
-                Tags.Entry.Tags -> {
-                    childNode
-                        .getText()
-                        ?.split(Const.TagsSeparatorsRegex)
-                        ?.forEach(tags::add)
-                }
-                Tags.Entry.BinaryReferences.TagName -> {
-                    unmarshalBinaryReference(context, childNode)?.let(binaries::add)
-                }
-                Tags.Entry.History -> {
-                    history = unmarshalEntries(context, childNode).toMutableList()
-                }
-                Tags.CustomData.TagName -> {
-                    customData = CustomData.unmarshal(childNode).toMutableMap()
-                }
-                Tags.Entry.PreviousParentGroup -> {
-                    previousParentGroup = childNode.getUuid()
-                }
-                Tags.Entry.QualityCheck -> {
-                    qualityCheck = childNode.getText()?.toBoolean() ?: true
+            }
+
+            EventType.END_ELEMENT -> {
+                when (val frame = stack.last()) {
+                    is EntryReadFrame.EntryNode -> {
+                        if (!reader.isUnqualifiedElement(Tags.Entry.TagName)) {
+                            throw FormatError.InvalidXml(
+                                "Unexpected closing element '${reader.localName}' in entry.",
+                            )
+                        }
+                        stack.removeLast()
+                        val entry = frame.builder.build(context)
+                        if (stack.isEmpty()) return entry
+                        val history = stack.last() as? EntryReadFrame.History
+                            ?: throw FormatError.InvalidXml(
+                                "Entry element is only allowed inside a History element.",
+                            )
+                        history.entries += entry
+                    }
+
+                    is EntryReadFrame.History -> {
+                        if (!reader.isUnqualifiedElement(Tags.Entry.History)) {
+                            throw FormatError.InvalidXml(
+                                "Unexpected closing element '${reader.localName}' in history.",
+                            )
+                        }
+                        stack.removeLast()
+                        val entry = stack.lastOrNull() as? EntryReadFrame.EntryNode
+                            ?: throw FormatError.InvalidXml(
+                                "History element is only allowed inside an Entry element.",
+                            )
+                        entry.builder.history = frame.entries
+                    }
                 }
             }
-        }
 
-        if (untitledFields.isNotEmpty()) {
-            recoverUntitledFields(context, untitledFields)
+            EventType.END_DOCUMENT ->
+                throw FormatError.InvalidXml("Unexpected end of document.")
+
+            else -> Unit
         }
+    }
+}
+
+private sealed interface EntryReadFrame {
+    data class EntryNode(
+        val builder: EntryBuilder,
+    ) : EntryReadFrame
+
+    data class History(
+        val entries: MutableList<Entry> = mutableListOf(),
+    ) : EntryReadFrame
+}
+
+private class EntryBuilder {
+    private var uuid: Uuid? = null
+    private var icon = PredefinedIcon.Key
+    private var customIconUuid: Uuid? = null
+    private var foregroundColor: String? = null
+    private var backgroundColor: String? = null
+    private var overrideUrl = ""
+    private var times: TimeData? = null
+    private var autoType: AutoTypeData? = null
+    private val fields = mutableMapOf<String, EntryValue>()
+    private val untitledFields = mutableListOf<EntryValue>()
+    private val tags = mutableListOf<String>()
+    private val binaries = mutableListOf<BinaryReference>()
+    var history: List<Entry> = emptyList()
+    private var customData: Map<String, CustomDataValue> = emptyMap()
+    private var previousParentGroup: Uuid? = null
+    private var qualityCheck = true
+    private val extensions = mutableListOf<XmlExtension>()
+
+    fun readChild(
+        context: XmlContext.Decode,
+        reader: XmlReader,
+    ) {
+        when {
+            reader.isUnqualifiedElement(Tags.Uuid) -> {
+                uuid = reader.readUuidOrNull()
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.IconId) -> {
+                icon = reader.readIntOrNull()
+                    ?.let(PredefinedIcon.entries::getOrNull)
+                    ?: PredefinedIcon.Key
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.CustomIconId) -> {
+                customIconUuid = reader.readUuidOrNull()
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.ForegroundColor) -> {
+                foregroundColor = reader.readElementTextOrNull()
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.BackgroundColor) -> {
+                backgroundColor = reader.readElementTextOrNull()
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.OverrideUrl) -> {
+                overrideUrl = reader.readElementTextOrNull() ?: ""
+            }
+
+            reader.isUnqualifiedElement(Tags.TimeData.TagName) -> {
+                times = unmarshalTimeData(reader, context.encryption)
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.AutoType.TagName) -> {
+                autoType = unmarshalAutoTypeData(reader, context.encryption)
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.Fields.TagName) -> {
+                val (fieldName, value) = unmarshalField(context, reader)
+                if (fieldName != null) {
+                    fields[fieldName] = value
+                } else {
+                    untitledFields += value
+                }
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.Tags) -> {
+                reader.readElementTextOrNull()
+                    ?.split(Const.TagsSeparatorsRegex)
+                    ?.forEach(tags::add)
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.BinaryReferences.TagName) -> {
+                unmarshalBinaryReference(context, reader)?.let(binaries::add)
+            }
+
+            reader.isUnqualifiedElement(Tags.CustomData.TagName) -> {
+                customData = CustomData.unmarshal(reader, context.encryption)
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.PreviousParentGroup) -> {
+                previousParentGroup = reader.readUuidOrNull()
+            }
+
+            reader.isUnqualifiedElement(Tags.Entry.QualityCheck) -> {
+                qualityCheck = reader.readBooleanOrNull() ?: true
+            }
+
+            else -> extensions += reader.readExtension(context.encryption)
+        }
+    }
+
+    fun build(context: XmlContext.Decode): Entry {
+        if (untitledFields.isNotEmpty()) {
+            recoverUntitledFields(context, fields, untitledFields)
+        }
+        return Entry(
+            uuid = uuid ?: throw FormatError.InvalidXml("Invalid entry without Uuid."),
+            icon = icon,
+            customIconUuid = customIconUuid,
+            foregroundColor = foregroundColor,
+            backgroundColor = backgroundColor,
+            overrideUrl = overrideUrl,
+            times = times,
+            autoType = autoType,
+            fields = EntryFields(fields),
+            tags = tags,
+            binaries = binaries,
+            history = history,
+            customData = customData,
+            previousParentGroup = previousParentGroup,
+            qualityCheck = qualityCheck,
+            extensions = extensions,
+        )
     }
 }
 
 /**
  * Recovers up to [UInt.MAX_VALUE] untitled fields.
  */
-private fun MutableEntry.recoverUntitledFields(
+private fun recoverUntitledFields(
     context: XmlContext.Decode,
+    fields: MutableMap<String, EntryValue>,
     untitledFields: List<EntryValue>
 ) {
     for (value in untitledFields) {
@@ -119,65 +243,90 @@ private fun MutableEntry.recoverUntitledFields(
     }
 }
 
-internal fun unmarshalEntries(
-    context: XmlContext.Decode,
-    node: Node
-): List<Entry> = node
-    .childNodes()
-    .filter { it.nodeName == Tags.Entry.TagName }
-    .map { unmarshalEntry(context, it) }
-
 private fun unmarshalField(
     context: XmlContext.Decode,
-    node: Node
+    reader: XmlReader
 ): Pair<String?, EntryValue> {
-    val key = node
-        .firstOrNull(Tags.Entry.Fields.ItemKey)
-        ?.getText()
-    val protected = node
-        .firstOrNull(Tags.Entry.Fields.ItemValue)
-        ?.get<String?>(FormatXml.Attributes.Protected)
-        .toBoolean()
-    // Important when importing raw XML file
-    val protectInMemory = node
-        .firstOrNull(Tags.Entry.Fields.ItemValue)
-        ?.get<String?>(FormatXml.Attributes.ProtectedInMemPlainXml)
-        .toBoolean()
+    var key: String? = null
+    var value: EntryValue? = null
 
-    return if (protected || protectInMemory) {
-        val bytes = node
-            .firstOrNull(Tags.Entry.Fields.ItemValue)
-            ?.getBytes()
-            ?: ByteArray(0)
-        val salt = context.encryption.getSalt(bytes.size)
+    reader.forEachChildElement {
+        when {
+            reader.isUnqualifiedElement(Tags.Entry.Fields.ItemKey) -> {
+                key = reader.readElementTextOrNull()
+            }
+            reader.isUnqualifiedElement(Tags.Entry.Fields.ItemValue) -> {
+                value = reader.readProtectedXmlValue(context.encryption)
+            }
+            else -> reader.discardKdbxElement(context.encryption)
+        }
+    }
+    return key to (value ?: EntryValue.Plain(""))
+}
 
-        key to EntryValue.Encrypted(EncryptedValue(bytes, salt))
-    } else {
-        val text = node
-            .firstOrNull(Tags.Entry.Fields.ItemValue)
-            ?.getText()
-            ?: ""
-
-        key to EntryValue.Plain(text)
+internal fun Entry.marshalTo(
+    context: XmlContext.Encode,
+    writer: XmlWriter
+): Unit {
+    val stack = ArrayDeque<EntryWriteTask>()
+    stack.addLast(EntryWriteTask.Start(this))
+    while (stack.isNotEmpty()) {
+        when (val task = stack.removeLast()) {
+            is EntryWriteTask.Start -> {
+                val entry = task.entry
+                writer.startTag("", Tags.Entry.TagName, "")
+                entry.marshalOwnFields(context, writer)
+                stack.addLast(EntryWriteTask.Finish(entry))
+                if (entry.history.isNotEmpty()) {
+                    writer.startTag("", Tags.Entry.History, "")
+                    stack.addLast(EntryWriteTask.History(entry.history))
+                }
+            }
+            is EntryWriteTask.History -> {
+                val entry = task.entries[task.index++]
+                if (task.index < task.entries.size) {
+                    stack.addLast(task)
+                } else {
+                    stack.addLast(EntryWriteTask.FinishHistory)
+                }
+                stack.addLast(EntryWriteTask.Start(entry))
+            }
+            EntryWriteTask.FinishHistory -> writer.endTag("", Tags.Entry.History, "")
+            is EntryWriteTask.Finish -> {
+                task.entry.extensions.forEach { it.marshalTo(context, writer) }
+                writer.endTag("", Tags.Entry.TagName, "")
+            }
+        }
     }
 }
 
-internal fun Entry.marshal(
-    context: XmlContext.Encode
-): Node = node(Tags.Entry.TagName) {
+private sealed interface EntryWriteTask {
+    data class Start(val entry: Entry) : EntryWriteTask
+    data class Finish(val entry: Entry) : EntryWriteTask
+    class History(
+        val entries: List<Entry>,
+        var index: Int = 0,
+    ) : EntryWriteTask
+    data object FinishHistory : EntryWriteTask
+}
+
+private fun Entry.marshalOwnFields(
+    context: XmlContext.Encode,
+    writer: XmlWriter,
+) = with(writer) {
     element(Tags.Uuid) { addUuid(uuid) }
     element(Tags.Entry.IconId) { text(icon.ordinal.toString()) }
     if (customIconUuid != null) {
         element(Tags.Entry.CustomIconId) { addUuid(customIconUuid) }
     }
     element(Tags.Entry.ForegroundColor) {
-        if (foregroundColor != null) text(foregroundColor)
+        if (foregroundColor != null) verbatimText(foregroundColor)
     }
     element(Tags.Entry.BackgroundColor) {
-        if (backgroundColor != null) text(backgroundColor)
+        if (backgroundColor != null) verbatimText(backgroundColor)
     }
-    element(Tags.Entry.OverrideUrl) { text(overrideUrl) }
-    element(Tags.Entry.Tags) { text(tags.joinToString(Const.TagsSeparator)) }
+    element(Tags.Entry.OverrideUrl) { verbatimText(overrideUrl) }
+    element(Tags.Entry.Tags) { verbatimText(tags.joinToString(Const.TagsSeparator)) }
     if (context.version.isAtLeast(4, 1)) {
         element(Tags.Entry.QualityCheck) { addBoolean(qualityCheck) }
     }
@@ -185,63 +334,36 @@ internal fun Entry.marshal(
         element(Tags.Entry.PreviousParentGroup) { addUuid(previousParentGroup) }
     }
     if (times != null) {
-        addElement(times.marshal(context))
+        times.marshalTo(context, this)
     }
-    marshalFields(context, fields).forEach {
-        addElement(it)
-    }
+    marshalFields(context, fields, this)
     binaries.forEach {
-        addElement(it.marshal(context))
+        it.marshalTo(context, this)
     }
     if (customData.isNotEmpty()) {
-        addElement(CustomData.marshal(context, customData))
+        CustomData.marshalTo(context, customData, this)
     }
     if (autoType != null) {
-        addElement(autoType.marshal())
-    }
-    if (history.isNotEmpty()) {
-        element(Tags.Entry.History) {
-            history.forEach { addElement(it.marshal(context)) }
-        }
+        autoType.marshalTo(this)
     }
 }
 
 private fun marshalFields(
     context: XmlContext.Encode,
-    fields: Map<String, EntryValue>
-): List<Node> {
-    return fields.map { (key, value) ->
-        node(Tags.Entry.Fields.TagName) {
-            element(Tags.Entry.Fields.ItemKey) { text(key) }
+    fields: Map<String, EntryValue>,
+    writer: XmlWriter
+) {
+    fields.forEach { (key, value) ->
+        writer.element(Tags.Entry.Fields.TagName) {
+            element(Tags.Entry.Fields.ItemKey) { verbatimText(key) }
             element(Tags.Entry.Fields.ItemValue) {
-                val isProtected = value is EntryValue.Encrypted
-
-                when (context) {
-                    is XmlContext.Encode.Encrypted -> {
-                        if (isProtected) {
-                            val encryptedContent = context
-                                .innerEncryption
-                                .processBytes(value.content.encodeToByteArray())
-
-                            attribute(
-                                FormatXml.Attributes.Protected,
-                                FormatXml.Values.True
-                            )
-                            addBytes(encryptedContent)
-                        } else {
-                            text(value.content)
-                        }
-                    }
-                    is XmlContext.Encode.Plain -> {
-                        if (isProtected || key in context.memoryProtectionKeys) {
-                            attribute(
-                                FormatXml.Attributes.ProtectedInMemPlainXml,
-                                FormatXml.Values.True
-                            )
-                        }
-                        text(value.content)
-                    }
-                }
+                writeProtectedXmlValue(
+                    context = context,
+                    value = value,
+                    protectInMemory = value is EntryValue.Encrypted ||
+                        (context is XmlContext.Encode.Plain &&
+                            key in context.memoryProtectionKeys),
+                )
             }
         }
     }

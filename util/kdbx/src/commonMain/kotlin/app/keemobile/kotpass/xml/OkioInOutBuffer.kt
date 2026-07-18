@@ -210,20 +210,32 @@ internal class OkioInOutBuffer(
 
     private fun decodeAvailableBytes() {
         ensureInputCapacity(inputLength + encodedEnd - encodedStart)
-        while (encodedStart < encodedEnd) {
-            val first = encodedInput[encodedStart].toInt() and 0xFF
+        var sourceIndex = encodedStart
+        var outputIndex = inputLength
+        while (sourceIndex < encodedEnd) {
+            // XML is overwhelmingly ASCII. Consume each contiguous run without
+            // re-entering the general UTF-8 validation path for every byte.
+            while (sourceIndex < encodedEnd && encodedInput[sourceIndex] >= 0) {
+                input[outputIndex++] = encodedInput[sourceIndex++].toInt().toChar()
+            }
+            if (sourceIndex == encodedEnd) break
+
+            val first = encodedInput[sourceIndex].toInt() and 0xFF
             val length = when (first) {
-                in 0x00..0x7F -> 1
                 in 0xC2..0xDF -> 2
                 in 0xE0..0xEF -> 3
                 in 0xF0..0xF4 -> 4
                 else -> malformedUtf8()
             }
-            if (encodedEnd - encodedStart < length) return
+            if (encodedEnd - sourceIndex < length) {
+                encodedStart = sourceIndex
+                inputLength = outputIndex
+                return
+            }
 
-            val second = if (length >= 2) continuationByte(1) else 0
-            val third = if (length >= 3) continuationByte(2) else 0
-            val fourth = if (length == 4) continuationByte(3) else 0
+            val second = continuationByte(sourceIndex, 1)
+            val third = if (length >= 3) continuationByte(sourceIndex, 2) else 0
+            val fourth = if (length == 4) continuationByte(sourceIndex, 3) else 0
 
             // Reject overlong encodings, UTF-16 surrogate code points and
             // values above U+10FFFF.
@@ -237,7 +249,6 @@ internal class OkioInOutBuffer(
             }
 
             val codePoint = when (length) {
-                1 -> first
                 2 -> ((first and 0x1F) shl 6) or (second and 0x3F)
                 3 ->
                     ((first and 0x0F) shl 12) or
@@ -249,21 +260,22 @@ internal class OkioInOutBuffer(
                         ((third and 0x3F) shl 6) or
                         (fourth and 0x3F)
             }
-            encodedStart += length
+            sourceIndex += length
             if (codePoint <= 0xFFFF) {
-                input[inputLength++] = codePoint.toChar()
+                input[outputIndex++] = codePoint.toChar()
             } else {
                 val supplementary = codePoint - 0x10000
-                input[inputLength++] = ((supplementary ushr 10) + 0xD800).toChar()
-                input[inputLength++] = ((supplementary and 0x3FF) + 0xDC00).toChar()
+                input[outputIndex++] = ((supplementary ushr 10) + 0xD800).toChar()
+                input[outputIndex++] = ((supplementary and 0x3FF) + 0xDC00).toChar()
             }
         }
+        inputLength = outputIndex
         encodedStart = 0
         encodedEnd = 0
     }
 
-    private fun continuationByte(offset: Int): Int {
-        val byte = encodedInput[encodedStart + offset].toInt() and 0xFF
+    private fun continuationByte(sourceIndex: Int, offset: Int): Int {
+        val byte = encodedInput[sourceIndex + offset].toInt() and 0xFF
         if (byte !in 0x80..0xBF) malformedUtf8()
         return byte
     }

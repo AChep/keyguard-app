@@ -545,7 +545,7 @@ private fun UsernameTextField(
                     addScope
                         .obtainUriContext()
                 },
-                onValueChange = field.onChange,
+                onValueChange = field.onSetText,
             )
         },
     )
@@ -607,7 +607,7 @@ private fun PasswordTextField(
                     addScope
                         .obtainUriContext()
                 },
-                onValueChange = field.onChange,
+                onValueChange = field.onSetText,
             )
         },
         content = {
@@ -1377,7 +1377,7 @@ private fun FieldTextField(
                     addScope
                         .obtainUriContext()
                 },
-                onValueChange = state.text.onChange,
+                onValueChange = state.text.onSetText,
             )
             OptionsButton(
                 actions = actions,

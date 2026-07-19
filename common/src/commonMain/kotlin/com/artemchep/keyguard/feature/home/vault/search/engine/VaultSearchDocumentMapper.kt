@@ -257,19 +257,25 @@ internal fun coldFieldValues(
 
 internal fun searchFingerprint(
     source: DSecret,
-): Int = buildList<String> {
+): Int {
+    var hash = 1
+
+    fun add(value: String) {
+        hash = 31 * hash + value.hashCode()
+    }
+
     add(source.id)
     add(source.accountId)
     add(source.folderId.orEmpty())
     add(source.organizationId.orEmpty())
-    addAll(source.collectionIds.sorted())
+    source.collectionIds.sorted().forEach(::add)
     add(source.revisionDate.toString())
     add(source.name)
     add(source.notes)
     add(source.favorite.toString())
     add(source.reprompt.toString())
     add(source.type.name)
-    addAll(source.tags)
+    source.tags.forEach(::add)
     source.uris.forEach { uri ->
         add(uri.uri)
     }
@@ -335,7 +341,8 @@ internal fun searchFingerprint(
             add(key.fingerprint)
         }
     }
-}.hashCode()
+    return hash
+}
 
 private fun joinSearchParts(
     vararg parts: String?,

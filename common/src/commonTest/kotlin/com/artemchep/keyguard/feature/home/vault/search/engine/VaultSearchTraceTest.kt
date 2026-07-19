@@ -85,6 +85,45 @@ class VaultSearchTraceTest {
     }
 
     @Test
+    fun `negative match does not hide a positive cold field miss in trace`() = runTest {
+        val traceSink = RecordingVaultSearchTraceSink()
+        val builder = createBuilder(traceSink)
+        val item = createItem(
+            createSecret(
+                id = "alpha",
+                name = "Bank",
+                login = DSecret.Login(
+                    username = "alice",
+                    password = "wrong-password",
+                ),
+            ),
+        )
+        val index = builder.build(
+            items = listOf(item.source),
+            surface = VAULT_SEARCH_SURFACE_VAULT_LIST,
+        )
+
+        val plan = index.compile(
+            query = "password:expected -username:alice",
+            searchBy = VaultRoute.Args.SearchBy.ALL,
+        )
+        assertNotNull(plan)
+        val out = index.evaluate(
+            plan = plan,
+            candidates = listOf(item),
+            highlightBackgroundColor = Color.Unspecified,
+            highlightContentColor = Color.Unspecified,
+        )
+
+        assertTrue(out.isEmpty())
+        assertEquals(0, traceSink.evaluationEvents.single().afterColdCount)
+        assertEquals(
+            ItemTraceDisposition.DroppedByTextMiss,
+            traceSink.itemEvents.single().disposition,
+        )
+    }
+
+    @Test
     fun `password trace keeps raw query but masks stored secret values`() = runTest {
         val traceSink = RecordingVaultSearchTraceSink()
         val builder = createBuilder(traceSink)

@@ -213,6 +213,7 @@ class VaultSearchBenchmarkTest {
     }
 
     private suspend fun prepareIndices(): Map<BenchmarkCorpusSize, VaultSearchIndex> = mapOf(
+        BenchmarkCorpusSize.Small to buildIndex(BenchmarkCorpusSize.Small),
         BenchmarkCorpusSize.Medium to buildIndex(BenchmarkCorpusSize.Medium),
         BenchmarkCorpusSize.Large to buildIndex(BenchmarkCorpusSize.Large),
     )

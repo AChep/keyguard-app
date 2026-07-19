@@ -155,41 +155,100 @@ private class DefaultVaultSearchIndex(
             } else {
                 null
             }
-        val candidateEntries =
-            candidates.mapIndexedNotNull { order, item ->
-                val docId =
-                    docIdsBySourceId[item.source.id]
-                        ?: return@mapIndexedNotNull null
-                docId to (order to item)
+        val traceEnabled = traceSink.isEnabled
+        val candidateEntries = ArrayList<IndexedCandidate>(candidates.size)
+        val initialDocIds = HashSet<Int>(collectionCapacity(candidates.size))
+        candidates.forEachIndexed { order, item ->
+            val docId = docIdsBySourceId[item.source.id] ?: return@forEachIndexed
+            candidateEntries += IndexedCandidate(
+                docId = docId,
+                order = order,
+                item = item,
+            )
+            initialDocIds += docId
+        }
+        val resolvedNegativeDocs = plan.negativeClauses.map { clause ->
+            when (clause) {
+                is CompiledFacetClause -> resolveFacetDocs(clause)
+                is CompiledBooleanClause -> resolveBooleanDocs(clause, initialDocIds)
+                is CompiledHotTextClause,
+                is CompiledColdTextClause,
+                -> null
             }
-        val initialDocIds = candidateEntries.map { it.first }.toSet()
-        var facetDocIds = initialDocIds
-        plan.positiveClauses.filterIsInstance<CompiledFacetClause>().forEach { clause ->
-            facetDocIds = facetDocIds intersect resolveFacetDocs(clause)
-        }
-        var booleanDocIds = facetDocIds
-        plan.positiveClauses.filterIsInstance<CompiledBooleanClause>().forEach { clause ->
-            booleanDocIds = booleanDocIds intersect
-                resolveBooleanDocs(
-                    clause = clause,
-                    universe = booleanDocIds,
-                )
-        }
-        var hotDocIds = booleanDocIds
-        plan.positiveClauses.filterIsInstance<CompiledHotTextClause>().forEach { clause ->
-            hotDocIds = hotDocIds intersect resolveHotClauseDocs(clause)
         }
 
-        val activeCandidates = candidateEntries.filter { it.first in hotDocIds }
+        val activeDocIds = initialDocIds
+        plan.positiveClauses.forEach { clause ->
+            if (clause is CompiledFacetClause) {
+                activeDocIds.retainAll(resolveFacetDocs(clause))
+            }
+        }
+        val facetDocIds = activeDocIds.stageSnapshot(traceEnabled)
+        plan.positiveClauses.forEach { clause ->
+            if (clause is CompiledBooleanClause) {
+                activeDocIds.retainAll(
+                    resolveBooleanDocs(
+                        clause = clause,
+                        universe = activeDocIds,
+                    ),
+                )
+            }
+        }
+        val booleanDocIds = activeDocIds.stageSnapshot(traceEnabled)
+        plan.positiveClauses.forEach { clause ->
+            if (clause is CompiledHotTextClause) {
+                activeDocIds.retainAll(resolveHotClauseDocs(clause))
+            }
+        }
+        val hotDocIds = activeDocIds.stageSnapshot(traceEnabled)
+
+        val activeCandidates = candidateEntries.filter { it.docId in hotDocIds }
         val evaluations =
             executor
-                .map(activeCandidates) { (docId, pair) ->
-                    val (order, candidate) = pair
+                .map(activeCandidates) { entry ->
+                    val docId = entry.docId
                     val document =
                         documents[docId]
                             ?: return@map null
 
-                    val positiveMatches = mutableListOf<ClauseMatch>()
+                    val negativeMatched =
+                        plan.negativeClauses.indices.any { index ->
+                            when (val clause = plan.negativeClauses[index]) {
+                                is CompiledFacetClause,
+                                is CompiledBooleanClause,
+                                -> docId in requireNotNull(resolvedNegativeDocs[index])
+
+                                is CompiledHotTextClause -> evaluateHotClause(document, clause) != null
+                                is CompiledColdTextClause -> evaluateColdClause(document, clause) != null
+                            }
+                        }
+                    if (negativeMatched) {
+                        if (!traceEnabled) {
+                            return@map null
+                        }
+                        val passedColdStage = plan.positiveClauses.all { clause ->
+                            clause !is CompiledColdTextClause ||
+                                evaluateColdClause(document, clause) != null
+                        }
+                        if (!passedColdStage) {
+                            return@map null
+                        }
+                        return@map EvaluatedResult(
+                            docId = docId,
+                            item = entry.item,
+                            score = 0.0,
+                            exactMatchCount = 0,
+                            order = entry.order,
+                            titleTerms = emptySet(),
+                            context = null,
+                            negativeMatched = true,
+                        )
+                    }
+
+                    var score = 0.0
+                    var exactMatchCount = 0
+                    var titleTerms: Set<String> = emptySet()
+                    var context: MatchContext? = null
                     plan.positiveClauses.forEach { clause ->
                         val match =
                             when (clause) {
@@ -203,88 +262,52 @@ private class DefaultVaultSearchIndex(
                                 return@map null
                             }
                         if (match != null) {
-                            positiveMatches += match
-                        }
-                    }
-
-                    val negativeMatched =
-                        plan.negativeClauses.any { clause ->
-                            when (clause) {
-                                is CompiledFacetClause -> {
-                                    docId in resolveFacetDocs(clause)
-                                }
-
-                                is CompiledBooleanClause -> {
-                                    docId in
-                                        resolveBooleanDocs(
-                                            clause = clause,
-                                            universe = setOf(docId),
-                                        )
-                                }
-
-                                is CompiledHotTextClause -> {
-                                    evaluateHotClause(document, clause) != null
-                                }
-
-                                is CompiledColdTextClause -> {
-                                    evaluateColdClause(document, clause) != null
+                            score += match.score
+                            exactMatchCount += match.exactMatchCount
+                            if (match.titleTerms.isNotEmpty()) {
+                                titleTerms = if (titleTerms.isEmpty()) {
+                                    match.titleTerms
+                                } else {
+                                    titleTerms + match.titleTerms
                                 }
                             }
+                            val matchContext = match.context
+                            if (matchContext != null && (context == null || matchContext.score > context.score)) {
+                                context = matchContext
+                            }
                         }
-                    if (negativeMatched) {
-                        return@map EvaluatedResult(
-                            docId = docId,
-                            item = candidate,
-                            score = 0.0,
-                            exactMatchCount = 0,
-                            order = order,
-                            titleTerms = emptySet(),
-                            context = null,
-                            negativeMatched = true,
-                        )
                     }
-
-                    val score = positiveMatches.sumOf(ClauseMatch::score)
-                    val exactMatchCount = positiveMatches.sumOf(ClauseMatch::exactMatchCount)
-                    val titleTerms =
-                        positiveMatches
-                            .flatMap { it.titleTerms }
-                            .toSet()
-                    val context =
-                        positiveMatches
-                            .mapNotNull { it.context }
-                            .maxByOrNull { it.score }
                     EvaluatedResult(
                         docId = docId,
-                        item = candidate,
+                        item = entry.item,
                         score = score,
                         exactMatchCount = exactMatchCount,
-                        order = order,
+                        order = entry.order,
                         titleTerms = titleTerms,
                         context = context,
                         negativeMatched = false,
                     )
                 }.filterNotNull()
 
-        val coldDocIds = evaluations.map(EvaluatedResult::docId).toSet()
-        val survivedNegativeDocIds =
+        val survivingEvaluations = if (traceEnabled) {
+            evaluations.filterNot(EvaluatedResult::negativeMatched)
+        } else {
             evaluations
-                .mapNotNull { evaluation ->
-                    evaluation.docId.takeIf { !evaluation.negativeMatched }
-                }.toSet()
-
+        }
         val ordered =
             if (plan.hasScoringClauses) {
-                evaluations.sortedWith(
+                survivingEvaluations.sortedWith(
                     compareByDescending<EvaluatedResult> { it.score }
                         .thenByDescending { it.exactMatchCount }
                         .thenBy { it.order },
                 )
             } else {
-                evaluations.sortedBy(EvaluatedResult::order)
-            }.filterNot(EvaluatedResult::negativeMatched)
+                survivingEvaluations.sortedBy(EvaluatedResult::order)
+            }
 
-        if (traceSink.isEnabled) {
+        if (traceEnabled) {
+            val coldDocIds = evaluations.map(EvaluatedResult::docId).toSet()
+            val survivedNegativeDocIds = survivingEvaluations.map(EvaluatedResult::docId).toSet()
             traceSink.evaluation(
                 EvaluationTraceEvent(
                     surface = surface,
@@ -301,8 +324,9 @@ private class DefaultVaultSearchIndex(
                     durationMs = evaluationStart?.elapsedNow()?.inWholeMilliseconds ?: 0L,
                 ),
             )
-            candidateEntries.forEach { (docId, pair) ->
-                val candidate = pair.second
+            candidateEntries.forEach { entry ->
+                val docId = entry.docId
+                val candidate = entry.item
                 val document = documents[docId] ?: return@forEach
                 val disposition =
                     when {
@@ -535,37 +559,44 @@ private class DefaultVaultSearchIndex(
     }
 
     private fun resolveHotClauseDocs(clause: CompiledHotTextClause): Set<Int> {
-        val clauseDocs = mutableSetOf<Int>()
+        val clauseDocs = HashSet<Int>()
         clause.fields.forEach { field ->
             val tokenization = clause.tokenizationFor(field)
             if (tokenization.terms.isEmpty()) {
                 return@forEach
             }
             val fieldPostings = postings[field].orEmpty()
-            val docsForField =
-                tokenization.terms
-                    .distinct()
-                    .map { term ->
-                        fieldPostings
-                            .matchingPostings(term)
-                            .map(SearchPosting::docId)
-                            .toSet()
-                    }.reduceOrNull { acc, set -> acc intersect set }
-                    .orEmpty()
-                    .filterTo(mutableSetOf()) { docId ->
-                        if (clause.rawPhrase == null) {
-                            true
-                        } else {
-                            documents[docId]
-                                ?.hotFields
-                                ?.get(field)
-                                ?.values
-                                ?.any { value ->
-                                    value.normalized.contains(tokenization.normalizedText)
-                                } == true
+            var docsForField: HashSet<Int>? = null
+            for (queryTerm in tokenization.terms) {
+                val termDocIds = HashSet<Int>()
+                fieldPostings.forEach { (indexedTerm, termPostings) ->
+                    if (indexedTerm.contains(queryTerm)) {
+                        termPostings.forEach { posting ->
+                            termDocIds += posting.docId
                         }
                     }
-            clauseDocs += docsForField
+                }
+                docsForField = docsForField
+                    ?.apply { retainAll(termDocIds) }
+                    ?: termDocIds
+                if (docsForField.isEmpty()) {
+                    break
+                }
+            }
+            docsForField?.forEach { docId ->
+                val phraseMatched =
+                    clause.rawPhrase == null ||
+                        documents[docId]
+                            ?.hotFields
+                            ?.get(field)
+                            ?.values
+                            ?.any { value ->
+                                value.normalized.contains(tokenization.normalizedText)
+                            } == true
+                if (phraseMatched) {
+                    clauseDocs += docId
+                }
+            }
         }
         return clauseDocs
     }
@@ -584,125 +615,120 @@ private class DefaultVaultSearchIndex(
         document: VaultSearchDocument,
         clause: CompiledHotTextClause,
     ): ClauseProbe {
-        val matches =
-            clause.fields
-                .mapNotNull { field ->
-                    val tokenization = clause.tokenizationFor(field)
-                    val queryTerms = tokenization.terms.distinct()
-                    val exactQueryTerms = tokenization.exactTerms.distinct()
-                    if (queryTerms.isEmpty()) {
-                        return@mapNotNull null
+        var bestMatch: ClauseProbe? = null
+        var titleMatched = false
+        fieldLoop@ for (field in clause.fields) {
+            val tokenization = clause.tokenizationFor(field)
+            val queryTerms = tokenization.terms
+            if (queryTerms.isEmpty()) {
+                continue
+            }
+            val fieldData = document.hotFields[field] ?: continue
+            val phraseMatched =
+                clause.rawPhrase == null ||
+                    fieldData.values.any { value ->
+                        value.normalized.contains(tokenization.normalizedText)
                     }
-                    val fieldData =
-                        document.hotFields[field]
-                            ?: return@mapNotNull null
-                    val phraseMatched =
-                        clause.rawPhrase == null ||
-                            fieldData.values.any { value ->
-                                value.normalized.contains(tokenization.normalizedText)
-                            }
-                    val matchedTerms =
-                        queryTerms
-                            .associateWith { term ->
-                                fieldData.termFrequencies
-                                    .keys
-                                    .matchingTerms(term)
-                            }
-                    val exactMatchedTerms =
-                        exactQueryTerms
-                            .associateWith { term ->
-                                fieldData.exactTermFrequencies
-                                    .keys
-                                    .matchingTerms(term)
-                            }
-                    if (matchedTerms.any { (_, terms) -> terms.isEmpty() } || !phraseMatched) {
-                        return@mapNotNull null
-                    }
-                    val exactPhraseMatched =
-                        clause.rawPhrase != null &&
-                            tokenization.exactNormalizedText.isNotBlank() &&
-                            fieldData.values.any { value ->
-                                value.exactNormalized.contains(tokenization.exactNormalizedText)
-                            }
-                    val exactMatchCount =
-                        exactMatchedTerms.count { (_, terms) -> terms.isNotEmpty() } +
-                            if (exactPhraseMatched) 1 else 0
-                    val score =
-                        tokenization.terms
-                            .distinct()
-                            .sumOf { term ->
-                                val stats = fieldStats[field] ?: return@sumOf 0.0
-                                matchedTerms
-                                    .getValue(term)
-                                    .sumOf { matchedTerm ->
-                                        scorer.score(
-                                            SearchScoreParams(
-                                                termFrequency = fieldData.termFrequencies[matchedTerm] ?: 0,
-                                                documentFrequency = stats.documentFrequency[matchedTerm] ?: 0,
-                                                documentLength = fieldData.totalTerms,
-                                                averageDocumentLength = stats.averageLength,
-                                                documentCount = documents.size,
-                                                fieldBoost = field.boost(),
-                                            ),
-                                        )
-                                    }
-                            } + if (clause.rawPhrase != null) field.boost() * 0.5 else 0.0
-                    +exactMatchBonus(
-                        field = field,
-                        exactMatchedTerms = exactMatchedTerms,
-                        exactPhraseMatched = exactPhraseMatched,
-                    )
-                    val context =
-                        if (field != VaultTextField.Title) {
-                            fieldData.values
-                                .firstOrNull { value ->
-                                    queryTerms.all { term ->
-                                        value.normalized.contains(term)
-                                    }
-                                }?.raw
-                                ?.let { rawValue ->
-                                    MatchContext(
-                                        field = field,
-                                        snippet =
-                                            snippetForField(
-                                                field = field,
-                                                source = document.source,
-                                                value = rawValue,
-                                            ),
-                                        score = score,
-                                    )
-                                }
-                        } else {
-                            null
+            if (!phraseMatched) {
+                continue
+            }
+
+            val fieldBoost = field.boost()
+            val stats = fieldStats[field]
+            var score = 0.0
+            for (queryTerm in queryTerms) {
+                var termMatched = false
+                fieldData.termFrequencies.forEach { (indexedTerm, frequency) ->
+                    if (indexedTerm.contains(queryTerm)) {
+                        termMatched = true
+                        if (stats != null) {
+                            score += scorer.score(
+                                SearchScoreParams(
+                                    termFrequency = frequency,
+                                    documentFrequency = stats.documentFrequency[indexedTerm] ?: 0,
+                                    documentLength = fieldData.totalTerms,
+                                    averageDocumentLength = stats.averageLength,
+                                    documentCount = documents.size,
+                                    fieldBoost = fieldBoost,
+                                ),
+                            )
                         }
-                    ClauseProbe(
-                        matched = true,
-                        matchedField = field,
-                        matchedTermCount = matchedTerms.size,
-                        exactMatchCount = exactMatchCount,
-                        phraseMatched = phraseMatched,
-                        score = score,
-                        fieldPresence = true,
-                        fieldTokenCount = fieldData.totalTerms,
-                        titleTerms =
-                            if (field == VaultTextField.Title) {
-                                matchedTerms
-                                    .filterValues { terms -> terms.isNotEmpty() }
-                                    .keys
-                                    .toSet()
-                            } else {
-                                emptySet()
-                            },
-                        context = context,
-                    )
+                    }
                 }
-        val titleTerms = matches
-            .flatMap(ClauseProbe::titleTerms)
-            .toSet()
-        val bestMatch = matches
-            .maxByOrNull(ClauseProbe::score)
-            ?.copy(titleTerms = titleTerms)
-        return bestMatch ?: ClauseProbe(
+                if (!termMatched) {
+                    continue@fieldLoop
+                }
+            }
+
+            var exactTermCount = 0
+            tokenization.exactTerms.forEach { queryTerm ->
+                if (fieldData.exactTermFrequencies.keys.any { indexedTerm ->
+                        indexedTerm.contains(queryTerm)
+                    }
+                ) {
+                    exactTermCount += 1
+                }
+            }
+            val exactPhraseMatched =
+                clause.rawPhrase != null &&
+                    tokenization.exactNormalizedText.isNotBlank() &&
+                    fieldData.values.any { value ->
+                        value.exactNormalized.contains(tokenization.exactNormalizedText)
+                    }
+            val exactMatchCount = exactTermCount + if (exactPhraseMatched) 1 else 0
+            if (clause.rawPhrase != null) {
+                score += fieldBoost * 0.5
+            }
+            score += exactMatchBonus(
+                field = field,
+                exactTermCount = exactTermCount,
+                exactPhraseMatched = exactPhraseMatched,
+            )
+            val context =
+                if (field != VaultTextField.Title) {
+                    fieldData.values
+                        .firstOrNull { value ->
+                            queryTerms.all { term -> value.normalized.contains(term) }
+                        }?.raw
+                        ?.let { rawValue ->
+                            MatchContext(
+                                field = field,
+                                snippet =
+                                    snippetForField(
+                                        field = field,
+                                        source = document.source,
+                                        value = rawValue,
+                                    ),
+                                score = score,
+                            )
+                        }
+                } else {
+                    null
+                }
+            val match = ClauseProbe(
+                matched = true,
+                matchedField = field,
+                matchedTermCount = queryTerms.size,
+                exactMatchCount = exactMatchCount,
+                phraseMatched = phraseMatched,
+                score = score,
+                fieldPresence = true,
+                fieldTokenCount = fieldData.totalTerms,
+                context = context,
+            )
+            if (field == VaultTextField.Title) {
+                titleMatched = true
+            }
+            if (bestMatch == null || match.score > bestMatch.score) {
+                bestMatch = match
+            }
+        }
+        bestMatch?.let { match ->
+            return match.copy(
+                titleTerms = clause.titleHighlightTerms.takeIf { titleMatched }.orEmpty(),
+            )
+        }
+        return ClauseProbe(
             matched = false,
             matchedField = null,
             matchedTermCount = 0,
@@ -742,96 +768,102 @@ private class DefaultVaultSearchIndex(
                     fieldPresence = false,
                     fieldTokenCount = null,
                 )
-        val queryTerms = clause.tokenization.terms.distinct()
-        val exactQueryTerms = clause.tokenization.exactTerms.distinct()
+        val queryTerms = clause.tokenization.terms
+        val exactQueryTerms = clause.tokenization.exactTerms
         val phraseMatched =
             clause.rawPhrase == null ||
                 fieldData.values.any { value ->
                     value.normalized.contains(clause.tokenization.normalizedText)
                 }
-        val bestMatch =
-            fieldData.values
-                .mapNotNull { value ->
-                    val normalizedTerms =
-                        value.normalizedTerms
-                            ?: value.normalized
-                                .split(' ')
-                                .filter(String::isNotBlank)
-                                .distinct()
-                    val exactNormalizedTerms =
-                        value.exactNormalizedTerms
-                            ?: value.exactNormalized
-                                .split(' ')
-                                .filter(String::isNotBlank)
-                                .distinct()
-                    val matchedTerms =
-                        queryTerms
-                            .associateWith { term ->
-                                normalizedTerms.matchingTerms(term)
-                            }
-                    val exactMatchedTerms =
-                        exactQueryTerms
-                            .associateWith { term ->
-                                exactNormalizedTerms.matchingTerms(term)
-                            }
-                    if (matchedTerms.any { (_, terms) -> terms.isEmpty() } || !phraseMatched) {
-                        return@mapNotNull null
-                    }
-                    val stats = fieldStats[clause.field]
-                    val exactPhraseMatched =
-                        clause.rawPhrase != null &&
-                            clause.tokenization.exactNormalizedText.isNotBlank() &&
-                            value.exactNormalized.contains(clause.tokenization.exactNormalizedText)
-                    val exactMatchCount =
-                        exactMatchedTerms.count { (_, terms) -> terms.isNotEmpty() } +
-                            if (exactPhraseMatched) 1 else 0
-                    val score =
-                        clause.tokenization.terms
-                            .distinct()
-                            .sumOf { term ->
-                                matchedTerms
-                                    .getValue(term)
-                                    .distinct()
-                                    .sumOf { matchedTerm ->
-                                        scorer.score(
-                                            SearchScoreParams(
-                                                termFrequency = fieldData.termFrequencies[matchedTerm] ?: 0,
-                                                documentFrequency = stats?.documentFrequency?.get(matchedTerm) ?: 0,
-                                                documentLength = fieldData.totalTerms,
-                                                averageDocumentLength = stats?.averageLength ?: 0.0,
-                                                documentCount = documents.size,
-                                                fieldBoost = clause.field.boost(),
-                                            ),
-                                        )
-                                    }
-                            } + if (clause.rawPhrase != null) clause.field.boost() * 0.5 else 0.0
-                    +exactMatchBonus(
-                        field = clause.field,
-                        exactMatchedTerms = exactMatchedTerms,
-                        exactPhraseMatched = exactPhraseMatched,
-                    )
-                    ClauseProbe(
-                        matched = true,
-                        matchedField = clause.field,
-                        matchedTermCount = matchedTerms.size,
-                        exactMatchCount = exactMatchCount,
-                        phraseMatched = phraseMatched,
-                        score = score,
-                        fieldPresence = true,
-                        fieldTokenCount = fieldData.totalTerms,
-                        context =
-                            MatchContext(
-                                field = clause.field,
-                                snippet =
-                                    snippetForField(
-                                        field = clause.field,
-                                        source = document.source,
-                                        value = value.raw,
-                                    ),
-                                score = score,
+        if (!phraseMatched) {
+            return ClauseProbe(
+                matched = false,
+                fieldPresence = true,
+                fieldTokenCount = fieldData.totalTerms.takeIf { it > 0 },
+            )
+        }
+        val stats = fieldStats[clause.field]
+        val fieldBoost = clause.field.boost()
+        var bestMatch: ClauseProbe? = null
+        valueLoop@ for (value in fieldData.values) {
+            val normalizedTerms =
+                value.normalizedTerms
+                    ?: value.normalized
+                        .split(' ')
+                        .filter(String::isNotBlank)
+                        .distinct()
+            val exactNormalizedTerms =
+                value.exactNormalizedTerms
+                    ?: value.exactNormalized
+                        .split(' ')
+                        .filter(String::isNotBlank)
+                        .distinct()
+            var score = 0.0
+            for (queryTerm in queryTerms) {
+                var termMatched = false
+                normalizedTerms.forEach { indexedTerm ->
+                    if (indexedTerm.contains(queryTerm)) {
+                        termMatched = true
+                        score += scorer.score(
+                            SearchScoreParams(
+                                termFrequency = fieldData.termFrequencies[indexedTerm] ?: 0,
+                                documentFrequency = stats?.documentFrequency?.get(indexedTerm) ?: 0,
+                                documentLength = fieldData.totalTerms,
+                                averageDocumentLength = stats?.averageLength ?: 0.0,
+                                documentCount = documents.size,
+                                fieldBoost = fieldBoost,
                             ),
-                    )
-                }.maxByOrNull(ClauseProbe::score)
+                        )
+                    }
+                }
+                if (!termMatched) {
+                    continue@valueLoop
+                }
+            }
+            var exactTermCount = 0
+            exactQueryTerms.forEach { queryTerm ->
+                if (exactNormalizedTerms.any { indexedTerm -> indexedTerm.contains(queryTerm) }) {
+                    exactTermCount += 1
+                }
+            }
+            val exactPhraseMatched =
+                clause.rawPhrase != null &&
+                    clause.tokenization.exactNormalizedText.isNotBlank() &&
+                    value.exactNormalized.contains(clause.tokenization.exactNormalizedText)
+            val exactMatchCount = exactTermCount + if (exactPhraseMatched) 1 else 0
+            if (clause.rawPhrase != null) {
+                score += fieldBoost * 0.5
+            }
+            score += exactMatchBonus(
+                field = clause.field,
+                exactTermCount = exactTermCount,
+                exactPhraseMatched = exactPhraseMatched,
+            )
+            val match = ClauseProbe(
+                matched = true,
+                matchedField = clause.field,
+                matchedTermCount = queryTerms.size,
+                exactMatchCount = exactMatchCount,
+                phraseMatched = phraseMatched,
+                score = score,
+                fieldPresence = true,
+                fieldTokenCount = fieldData.totalTerms,
+                context =
+                    MatchContext(
+                        field = clause.field,
+                        snippet =
+                            snippetForField(
+                                field = clause.field,
+                                source = document.source,
+                                value = value.raw,
+                            ),
+                        score = score,
+                    ),
+            )
+            if (bestMatch == null || match.score > bestMatch.score) {
+                bestMatch = match
+            }
+        }
         return bestMatch ?: ClauseProbe(
             matched = false,
             matchedField = null,
@@ -852,24 +884,11 @@ private class DefaultVaultSearchIndex(
             trace = this,
         )
 
-    private fun Map<String, List<SearchPosting>>.matchingPostings(queryTerm: String): List<SearchPosting> =
-        entries
-            .asSequence()
-            .filter { (indexedTerm, _) -> indexedTerm.contains(queryTerm) }
-            .flatMap { (_, postings) -> postings.asSequence() }
-            .toList()
-
-    private fun Collection<String>.matchingTerms(queryTerm: String): Set<String> =
-        asSequence()
-            .filter { indexedTerm -> indexedTerm.contains(queryTerm) }
-            .toSet()
-
     private fun exactMatchBonus(
         field: VaultTextField,
-        exactMatchedTerms: Map<String, Set<String>>,
+        exactTermCount: Int,
         exactPhraseMatched: Boolean,
     ): Double {
-        val exactTermCount = exactMatchedTerms.count { (_, terms) -> terms.isNotEmpty() }
         if (exactTermCount == 0 && !exactPhraseMatched) {
             return 0.0
         }
@@ -884,6 +903,13 @@ private class DefaultVaultSearchIndex(
         highlightBackgroundColor: Color,
         highlightContentColor: Color,
     ): VaultItem2.Item {
+        if (
+            titleTerms.isEmpty() &&
+            context == null &&
+            item.searchContextBadge == null
+        ) {
+            return item
+        }
         val newTitle =
             if (titleTerms.isNotEmpty()) {
                 highlightTitle(
@@ -911,3 +937,19 @@ private class DefaultVaultSearchIndex(
         )
     }
 }
+
+private data class IndexedCandidate(
+    val docId: Int,
+    val order: Int,
+    val item: VaultItem2.Item,
+)
+
+private fun collectionCapacity(size: Int): Int =
+    if (size < 3) {
+        size + 1
+    } else {
+        (size / 0.75f + 1.0f).toInt()
+    }
+
+private fun MutableSet<Int>.stageSnapshot(enabled: Boolean): Set<Int> =
+    if (enabled) toSet() else this

@@ -125,6 +125,30 @@ internal object VaultSearchBenchmarkFixtures {
 
     fun buildQueries(): List<BenchmarkQueryCase> = listOf(
         BenchmarkQueryCase(
+            name = "small-hot-title",
+            query = "bank portal 48",
+            searchBy = VaultRoute.Args.SearchBy.ALL,
+            corpusSize = BenchmarkCorpusSize.Small,
+        ),
+        BenchmarkQueryCase(
+            name = "small-username",
+            query = "username:alice42",
+            searchBy = VaultRoute.Args.SearchBy.ALL,
+            corpusSize = BenchmarkCorpusSize.Small,
+        ),
+        BenchmarkQueryCase(
+            name = "small-facet-mixed",
+            query = "type:card tag:billing",
+            searchBy = VaultRoute.Args.SearchBy.ALL,
+            corpusSize = BenchmarkCorpusSize.Small,
+        ),
+        BenchmarkQueryCase(
+            name = "small-cold-note",
+            query = "note:\"temp pin 24\"",
+            searchBy = VaultRoute.Args.SearchBy.ALL,
+            corpusSize = BenchmarkCorpusSize.Small,
+        ),
+        BenchmarkQueryCase(
             name = "hot-text-alice",
             query = "alice",
             searchBy = VaultRoute.Args.SearchBy.ALL,

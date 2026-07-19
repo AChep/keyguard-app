@@ -13,7 +13,11 @@ data class SearchTokenizerConfig(
     val minimumTokenLength: Int = 1,
     val stopWords: Set<String> = emptySet(),
     val dropStopWords: Boolean = true,
-)
+) {
+    companion object {
+        val Default = SearchTokenizerConfig()
+    }
+}
 
 data class SearchTokenization(
     val normalizedText: String,
@@ -26,13 +30,13 @@ interface SearchTokenizer {
     fun tokenize(
         value: String,
         profile: SearchTokenizerProfile,
-        config: SearchTokenizerConfig = SearchTokenizerConfig(),
+        config: SearchTokenizerConfig = SearchTokenizerConfig.Default,
     ): SearchTokenization
 
     fun normalize(
         value: String,
         profile: SearchTokenizerProfile,
-        config: SearchTokenizerConfig = SearchTokenizerConfig(),
+        config: SearchTokenizerConfig = SearchTokenizerConfig.Default,
     ): String =
         tokenize(
             value = value,

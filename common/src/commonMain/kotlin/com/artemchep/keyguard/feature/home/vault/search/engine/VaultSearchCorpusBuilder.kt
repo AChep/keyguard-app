@@ -6,15 +6,18 @@ internal fun buildSearchCorpus(
     buildResults: Collection<DocumentBuildResult>,
     tokenizer: SearchTokenizer,
 ): SearchCorpus {
-    val documents = buildResults.associate { it.document.docId to it.document }
-    val docIdsBySourceId =
-        buildResults.associate { it.document.sourceId to it.document.docId }
+    val capacity = collectionCapacity(buildResults.size)
+    val documents = LinkedHashMap<Int, VaultSearchDocument>(capacity)
+    val docIdsBySourceId = LinkedHashMap<String, Int>(capacity)
     val postings =
         mutableMapOf<VaultTextField, MutableMap<String, MutableList<SearchPosting>>>()
-    val fieldLengths = mutableMapOf<VaultTextField, MutableList<Int>>()
+    val fieldLengthTotals = mutableMapOf<VaultTextField, Long>()
+    val fieldDocumentCounts = mutableMapOf<VaultTextField, Int>()
     val fieldDocFrequencies =
         mutableMapOf<VaultTextField, MutableMap<String, Int>>()
     buildResults.forEach { result ->
+        documents[result.document.docId] = result.document
+        docIdsBySourceId[result.document.sourceId] = result.document.docId
         result.hotPostings.forEach { (field, terms) ->
             val fieldPostings = postings.getOrPut(field) { mutableMapOf() }
             terms.forEach { (term, frequency) ->
@@ -24,7 +27,8 @@ internal fun buildSearchCorpus(
             }
         }
         result.fieldLengths.forEach { (field, length) ->
-            fieldLengths.getOrPut(field) { mutableListOf() } += length
+            fieldLengthTotals[field] = fieldLengthTotals.getOrElse(field) { 0L } + length
+            fieldDocumentCounts[field] = fieldDocumentCounts.getOrElse(field) { 0 } + 1
         }
         result.fieldDocFrequencies.forEach { (field, terms) ->
             val fieldFrequencies =
@@ -38,14 +42,12 @@ internal fun buildSearchCorpus(
     return SearchCorpus(
         documents = documents,
         docIdsBySourceId = docIdsBySourceId,
-        postings =
-            postings.mapValues { entry ->
-                entry.value.mapValues { it.value.toList() }
-            },
+        postings = postings,
         fieldStats =
-            fieldLengths.mapValues { (field, lengths) ->
+            fieldLengthTotals.mapValues { (field, totalLength) ->
+                val documentCount = fieldDocumentCounts.getValue(field)
                 SearchFieldStats(
-                    averageLength = lengths.average().takeIf { !it.isNaN() } ?: 0.0,
+                    averageLength = totalLength.toDouble() / documentCount,
                     documentFrequency = fieldDocFrequencies[field].orEmpty(),
                 )
             },
@@ -56,3 +58,10 @@ internal fun buildSearchCorpus(
             ),
     )
 }
+
+private fun collectionCapacity(size: Int): Int =
+    if (size < 3) {
+        size + 1
+    } else {
+        (size / 0.75f + 1.0f).toInt()
+    }

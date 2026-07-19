@@ -41,12 +41,17 @@ internal fun normalizeSearchValue(
     value: String,
     foldAliases: Boolean,
 ): SearchNormalizedValue {
+    val isAscii = value.all(Char::isAscii)
     val exact =
-        value
-            .compatibilityNormalize()
-            .lowercase()
+        if (isAscii) {
+            value.lowercase()
+        } else {
+            value
+                .compatibilityNormalize()
+                .lowercase()
+        }
     val folded =
-        if (foldAliases) {
+        if (foldAliases && !isAscii) {
             exact.foldSearchAliases()
         } else {
             exact
@@ -56,6 +61,8 @@ internal fun normalizeSearchValue(
         folded = folded,
     )
 }
+
+private fun Char.isAscii(): Boolean = code < 128
 
 internal data class SearchNormalizedValue(
     val exact: String,

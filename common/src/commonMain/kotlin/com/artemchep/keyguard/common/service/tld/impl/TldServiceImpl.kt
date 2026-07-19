@@ -3,8 +3,8 @@ package com.artemchep.keyguard.common.service.tld.impl
 import arrow.core.partially1
 import com.artemchep.keyguard.build.FileHashes
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.map
+import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.sharedSoftRef
 import com.artemchep.keyguard.util.foundation.io.useLines
@@ -18,6 +18,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import kotlin.time.measureTimedValue
 
 private const val PREFIX_EXCEPTION = "!"
 
@@ -51,33 +52,37 @@ class TldServiceImpl(
 
     override fun getDomainName(
         host: String,
-    ): IO<String> = dataIo
-        .effectMap { node ->
-            val normalizedHost = host.trim().lowercase()
-            val domainStart = node.findDomainStart(normalizedHost)
-            if (domainStart >= 0) {
-                normalizedHost.substring(domainStart)
-            } else {
-                ""
+    ): IO<String> = ioEffect {
+        val timedValue = measureTimedValue {
+            val node = dataIo.bind()
+            val domain = kotlin.run {
+                val normalizedHost = host.trim().lowercase()
+                val start = node
+                    .findDomainStart(normalizedHost)
+                if (start >= 0) {
+                    normalizedHost.substring(start)
+                } else {
+                    ""
+                }
             }
-        }
-        .map { domain ->
             // We could not find an appropriate domain
             // for the host. This means that the host is
             // most likely not valid. For the sake of ease
             // of use - report back the original host as
             // the domain.
             if (domain.isEmpty()) {
-                return@map host
+                host
+            } else {
+                domain
             }
+        }
 
-            domain
+        logRepository.postDebug(TAG) {
+            "Found '${timedValue.value}' from the host '$host' " +
+                    "in ${timedValue.duration}"
         }
-        .measure { duration, result ->
-            logRepository.postDebug(TAG) {
-                "Found '$result' from the host '$host' in $duration"
-            }
-        }
+        timedValue.value
+    }
 }
 
 private class Node(

@@ -1,17 +1,19 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSecretBroadUrlGroup
+import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilder
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.CipherUrlBroadCheck
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.common.util.PROTOCOL_IOS_APP
 import com.artemchep.keyguard.common.util.ensureUrlScheme
+import com.artemchep.keyguard.common.util.parseHttpUrlHostOrNull
 import io.ktor.http.Url
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -40,6 +42,7 @@ class CipherUrlBroadCheckImpl(
         // that uses host detection, then the base domain URL
         // is likely too broad.
         val domainsWithHostDetection = mutableSetOf<String>()
+        val equivalentDomainsByAccount = mutableMapOf<String, EquivalentDomains>()
         ciphers.forEach { cipher ->
             cipher.uris.forEach uriForEach@{ uri ->
                 val matchDetection = uri.match
@@ -56,11 +59,17 @@ class CipherUrlBroadCheckImpl(
 
                 // Extract top level domain from the
                 // given URI.
-                val domain = getDomainName(uri.uri)
-                    .attempt()
-                    .bind()
-                    .getOrNull()
-                    ?: return@uriForEach
+                val domain = try {
+                    val host = parseHttpUrlHostOrNull(
+                        url = uri.uri,
+                        removeWww = true,
+                    )
+                        ?: Url(ensureUrlScheme(uri.uri)).host
+                    tldService.getDomainName(host).bind()
+                } catch (e: Throwable) {
+                    e.throwIfFatalOrCancellation()
+                    return@uriForEach
+                }
                 domainsWithHostDetection += domain
             }
         }
@@ -83,16 +92,22 @@ class CipherUrlBroadCheckImpl(
 
                         // Extract top level domain from the
                         // given URI.
-                        val domain = getDomainName(uri.uri)
-                            .attempt()
-                            .bind()
-                            .getOrNull()
-                            ?: return@uriMap null
-                        val domainEq = kotlin.run {
-                            val equivalentDomains = equivalentDomainsBuilder
-                                .getAndCache(cipher.accountId)
-                            equivalentDomains.findEqDomains(domain)
+                        val domain = try {
+                            val host = parseHttpUrlHostOrNull(
+                                url = uri.uri,
+                                removeWww = true,
+                            )
+                                ?: Url(ensureUrlScheme(uri.uri)).host
+                            tldService.getDomainName(host).bind()
+                        } catch (e: Throwable) {
+                            e.throwIfFatalOrCancellation()
+                            return@uriMap null
                         }
+                        val equivalentDomains = equivalentDomainsByAccount[cipher.accountId]
+                            ?: equivalentDomainsBuilder
+                                .getAndCache(cipher.accountId)
+                                .also { equivalentDomainsByAccount[cipher.accountId] = it }
+                        val domainEq = equivalentDomains.findEqDomains(domain)
                         val match = domainEq.any { d -> d in domainsWithHostDetection }
                         if (!match) {
                             return@uriMap null
@@ -105,12 +120,5 @@ class CipherUrlBroadCheckImpl(
                         )
                     }
             }
-    }
-
-    private fun getDomainName(uri: String): IO<String> = ioEffect {
-        val url = Url(ensureUrlScheme(uri))
-        tldService
-            .getDomainName(url.host)
-            .bind()
     }
 }

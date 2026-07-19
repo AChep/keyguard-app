@@ -5,7 +5,7 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeService
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeServiceInfo
 import com.artemchep.keyguard.common.usecase.GetJustDeleteMeByUrl
-import io.ktor.http.Url
+import com.artemchep.keyguard.common.util.parseHttpUrlHostOrNull
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -31,24 +31,11 @@ class GetJustDeleteMeByUrlImpl(
         result
     }
 
-    private fun parseHost(url: String) = if (
-        url.startsWith("http://", ignoreCase = true) ||
-        url.startsWith("https://", ignoreCase = true)
-    ) {
-        val parsedUri = kotlin.runCatching {
-            Url(url)
-        }.getOrElse {
-            // can not get the domain
-            null
-        }
-        parsedUri
-            ?.host
-            // The "www" subdomain is ignored in the database, however
-            // it's only "www". Other subdomains, such as "photos",
-            // should be respected.
-            ?.removePrefix("www.")
-    } else {
-        // can not get the domain
-        null
-    }
+    // The "www" subdomain is ignored in the database, however
+    // it's only "www". Other subdomains, such as "photos",
+    // should be respected.
+    private fun parseHost(url: String) = parseHttpUrlHostOrNull(
+        url = url,
+        removeWww = true,
+    )
 }

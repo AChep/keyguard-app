@@ -29,6 +29,7 @@ class CipherDuplicatesCheckImpl(
     private val base64Service: Base64Service,
     private val similarityService: SimilarityService,
     private val logRepository: LogRepository,
+    private val includeDebugSummary: Boolean = !isRelease,
 ) : CipherDuplicatesCheck {
     companion object {
         private const val TAG = "CipherDuplicatesCheck"
@@ -82,6 +83,12 @@ class CipherDuplicatesCheckImpl(
     data class ProcessedSecret(
         val source: DSecret,
         val processed: DSecret,
+        val uris: List<ProcessedUri>,
+    )
+
+    data class ProcessedUri(
+        val value: DSecret.Uri,
+        val domain: String,
     )
 
     constructor(directDI: DirectDI) : this(
@@ -111,6 +118,7 @@ class CipherDuplicatesCheckImpl(
             .mapValues { (_, pCiphersGroup) ->
                 val out = mutableListOf<DSecretDuplicateGroup>()
                 val src = pCiphersGroup.toMutableList()
+                val comparison = FuzzyComparisonAccumulator(includeDebugSummary)
                 for (i in src.lastIndex downTo 0) {
                     var avg: MutableList<Float>? = null
                     var summary: MutableList<String>? = null
@@ -122,20 +130,23 @@ class CipherDuplicatesCheckImpl(
                     for (j in src.lastIndex downTo 0) {
                         val candidate = src.getOrNull(j)
                             ?: continue
-                        val eval = compare2(
+                        comparison.reset()
+                        compare2(
                             a = target,
                             b = candidate,
-                        ).eval()
-                        if (eval.value > sensitivity.threshold) {
+                            result = comparison,
+                        )
+                        val comparisonValue = comparison.value()
+                        if (comparisonValue > sensitivity.threshold) {
                             if (avg == null) {
                                 avg = mutableListOf<Float>()
                             }
-                            avg.add(eval.value)
-                            if (!isRelease) {
+                            avg.add(comparisonValue)
+                            if (includeDebugSummary) {
                                 if (summary == null) {
                                     summary = mutableListOf<String>()
                                 }
-                                summary.add(eval.summary)
+                                summary.add(comparison.summary())
                             }
                             if (group == null) {
                                 group = mutableListOf()
@@ -185,31 +196,39 @@ class CipherDuplicatesCheckImpl(
         timedValue.value
     }
 
-    private fun Sequence<FuzzyComparisonEvent>.eval() = kotlin.run {
-        val summary = StringBuilder()
+    private class FuzzyComparisonAccumulator(
+        includeDebugSummary: Boolean,
+    ) {
+        private val summary = if (includeDebugSummary) StringBuilder() else null
+        private var sum = 0.0f
+        private var count = 0
 
-        var sum = 0.0f
-        var count = 0
-        for (element in this) {
-            if (!isRelease) {
-                summary.append("${element.type}=${element.value}, ")
-            }
+        fun reset() {
+            summary?.setLength(0)
+            sum = 0f
+            count = 0
+        }
 
-            sum += element.value
+        fun add(
+            value: Float,
+            type: String,
+        ) {
+            summary?.append("$type=$value, ")
+            sum += value
             count += 1
         }
 
-        val value = if (count == 0) Float.NaN else sum / count
-        FuzzyComparisonResult(
-            summary = summary.toString(),
-            value = value,
-        )
-    }
+        fun add(event: FuzzyComparisonEvent) {
+            add(
+                value = event.value,
+                type = event.type,
+            )
+        }
 
-    private data class FuzzyComparisonResult(
-        val summary: String,
-        val value: Float,
-    )
+        fun summary(): String = summary?.toString().orEmpty()
+
+        fun value(): Float = if (count == 0) Float.NaN else sum / count
+    }
 
     private data class FuzzyComparisonEvent(
         val type: String,
@@ -219,18 +238,8 @@ class CipherDuplicatesCheckImpl(
     private fun compare2(
         a: ProcessedSecret,
         b: ProcessedSecret,
-    ): Sequence<FuzzyComparisonEvent> = sequence {
-        suspend fun SequenceScope<FuzzyComparisonEvent>.yieldEvent(
-            value: Float,
-            type: String,
-        ) {
-            val event = FuzzyComparisonEvent(
-                type = type,
-                value = value,
-            )
-            yield(event)
-        }
-
+        result: FuzzyComparisonAccumulator,
+    ) {
         // GPG key
         if (
             a.processed.gpgKey != null &&
@@ -247,7 +256,7 @@ class CipherDuplicatesCheckImpl(
                         b = bGpgKey.fingerprint,
                         type = "gpg_fingerprint",
                         weight = 8f,
-                    )?.let { yield(it) }
+                    )?.let(result::add)
                 }
 
                 !aGpgKey.publicKeyArmored.isNullOrBlank() &&
@@ -257,7 +266,7 @@ class CipherDuplicatesCheckImpl(
                         b = bGpgKey.publicKeyArmored,
                         type = "gpg_public_key",
                         weight = 5f,
-                    )?.let { yield(it) }
+                    )?.let(result::add)
                 }
 
                 !aGpgKey.privateKeyArmored.isNullOrBlank() &&
@@ -267,7 +276,7 @@ class CipherDuplicatesCheckImpl(
                         b = bGpgKey.privateKeyArmored,
                         type = "gpg_private_key",
                         weight = 5f,
-                    )?.let { yield(it) }
+                    )?.let(result::add)
                 }
 
                 else -> {
@@ -279,11 +288,11 @@ class CipherDuplicatesCheckImpl(
                         } else {
                             -5f
                         }
-                        yieldEvent(value, type = "gpg_key_identity")
+                        result.add(value, type = "gpg_key_identity")
                     }
                 }
             }
-            return@sequence
+            return
         }
 
         compareStringsFuzzy(
@@ -291,41 +300,39 @@ class CipherDuplicatesCheckImpl(
             b = b.processed.name,
             strategy = ComparisonStrategy.Fuzzy.TH,
             weight = 1f,
-        ).let { yieldEvent(it, type = "name") }
+        ).let { result.add(it, type = "name") }
         compareStringsFuzzy(
             a = a.processed.notes,
             b = b.processed.notes,
             strategy = ComparisonStrategy.Fuzzy.TH,
             weight = if (a.processed.type == DSecret.Type.SecureNote) 2f else 0.6f,
             ifOneEmpty = if (a.processed.type == DSecret.Type.SecureNote) -2f else -0.2f,
-        ).let { yieldEvent(it, type = "notes") }
+        ).let { result.add(it, type = "notes") }
 
         // Urls
         compareListsFuzzy(
-            a = a.processed.uris,
-            b = b.processed.uris,
+            a = a.uris,
+            b = b.uris,
         ) { a, b ->
             val scoreMax = 1f
             val scoreMin = -1f
             if (
-                a.match == DSecret.Uri.MatchType.RegularExpression ||
-                b.match == DSecret.Uri.MatchType.RegularExpression
+                a.value.match == DSecret.Uri.MatchType.RegularExpression ||
+                b.value.match == DSecret.Uri.MatchType.RegularExpression
             ) {
-                if (a.uri == b.uri) scoreMax else scoreMin
+                if (a.value.uri == b.value.uri) scoreMax else scoreMin
             } else {
-                if (a.uri == b.uri) {
+                if (a.value.uri == b.value.uri) {
                     scoreMax
                 } else {
-                    val aDomain = a.uri.substringAfter('.')
-                    val bDomain = b.uri.substringAfter('.')
-                    if (aDomain == bDomain) {
+                    if (a.domain == b.domain) {
                         scoreMin / 2f
                     } else {
                         scoreMin
                     }
                 }
             }
-        }.times(3f).let { yieldEvent(it, type = "uris") }
+        }.times(3f).let { result.add(it, type = "uris") }
 
         // Fields
         compareListsFuzzy(
@@ -333,7 +340,7 @@ class CipherDuplicatesCheckImpl(
             b = b.processed.fields,
         ) { a, b ->
             if (a == b) 1f else -1f
-        }.times(3f).let { yieldEvent(it, type = "fields") }
+        }.times(3f).let { result.add(it, type = "fields") }
 
         // Attachments
         compareListsFuzzy(
@@ -346,7 +353,7 @@ class CipherDuplicatesCheckImpl(
             val bFileSize = b.fileSize()
             if (aFileName == bFileName && aFileSize == bFileSize) 1f else -1f
         }.times(2f).let {
-            yieldEvent(it, type = "attachments")
+            result.add(it, type = "attachments")
         }
 
         // Login
@@ -365,29 +372,29 @@ class CipherDuplicatesCheckImpl(
                 min = -6f,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.5f,
-            ).let { yieldEvent(it, type = "username") }
+            ).let { result.add(it, type = "username") }
             compareStringsFuzzy(
                 a = aLogin.password,
                 b = bLogin.password,
                 min = -3f,
                 strategy = ComparisonStrategy.Exact,
                 weight = 1f,
-            ).let { yieldEvent(it, type = "password") }
+            ).let { result.add(it, type = "password") }
             compareStringsFuzzy(
                 a = aLogin.totp?.raw,
                 b = bLogin.totp?.raw,
                 min = -4f,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,
-            ).let { yieldEvent(it, type = "totp") }
+            ).let { result.add(it, type = "totp") }
             // Passkeys
             compareListsFuzzy(
                 a = aLogin.fido2Credentials.map { it.credentialId },
                 b = bLogin.fido2Credentials.map { it.credentialId },
             ) { a, b ->
                 if (a == b) 1f else -3f
-            }.times(3f).let { yieldEvent(it, type = "passkeys") }
-            return@sequence
+            }.times(3f).let { result.add(it, type = "passkeys") }
+            return
         }
 
         // Card
@@ -403,8 +410,8 @@ class CipherDuplicatesCheckImpl(
                 b = bCard.number,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,
-            ).let { yieldEvent(it, type = "number") }
-            return@sequence
+            ).let { result.add(it, type = "number") }
+            return
         }
 
         // Identity
@@ -420,44 +427,44 @@ class CipherDuplicatesCheckImpl(
                 b = bIdentity.title,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yieldEvent(it, "title") }
+            ).let { result.add(it, "title") }
             compareStringsFuzzy(
                 a = aIdentity.firstName,
                 b = bIdentity.firstName,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yieldEvent(it, "first_name") }
+            ).let { result.add(it, "first_name") }
             compareStringsFuzzy(
                 a = aIdentity.middleName,
                 b = bIdentity.middleName,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yieldEvent(it, type = "middle_name") }
+            ).let { result.add(it, type = "middle_name") }
             compareStringsFuzzy(
                 a = aIdentity.lastName,
                 b = bIdentity.lastName,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yieldEvent(it, type = "last_name") }
+            ).let { result.add(it, type = "last_name") }
             compareStringsFuzzy(
                 a = aIdentity.email,
                 b = bIdentity.email,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yieldEvent(it, type = "email") }
+            ).let { result.add(it, type = "email") }
             compareStringsFuzzy(
                 a = aIdentity.phone,
                 b = bIdentity.phone,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yieldEvent(it, type = "phone") }
+            ).let { result.add(it, type = "phone") }
             compareStringsFuzzy(
                 a = aIdentity.username,
                 b = bIdentity.username,
                 strategy = ComparisonStrategy.Exact,
                 weight = 0.7f,
-            ).let { yieldEvent(it, type = "username") }
-            return@sequence
+            ).let { result.add(it, type = "username") }
+            return
         }
 
         // SSH key
@@ -473,20 +480,20 @@ class CipherDuplicatesCheckImpl(
                 b = bSshKey.privateKey,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,
-            ).let { yieldEvent(it, type = "private_key") }
+            ).let { result.add(it, type = "private_key") }
             compareStringsFuzzy(
                 a = aSshKey.publicKey,
                 b = bSshKey.publicKey,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,
-            ).let { yieldEvent(it, type = "public_key") }
+            ).let { result.add(it, type = "public_key") }
             compareStringsFuzzy(
                 a = aSshKey.fingerprint,
                 b = bSshKey.fingerprint,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,
-            ).let { yieldEvent(it, type = "fingerprint") }
-            return@sequence
+            ).let { result.add(it, type = "fingerprint") }
+            return
         }
     }
 
@@ -508,21 +515,34 @@ class CipherDuplicatesCheckImpl(
         areEqual: (T, T) -> Float,
     ): Float {
         val sizeScore = -(a.size - b.size).toFloat().absoluteValue * 0.2f / 3f
-        // We want to start from a smaller list.
-        val (s, l) = if (a.size > b.size) {
-            b to a.toMutableList()
-        } else {
-            a to b.toMutableList()
-        }
-        if (s.isEmpty()) {
+        if (a.isEmpty() || b.isEmpty()) {
             return sizeScore
         }
-        val contentScore = s
-            .mapNotNull { x ->
+        if (a.size == 1 && b.size == 1) {
+            return areEqual(a[0], b[0])
+        }
+        // We want to start from a smaller list.
+        val s: List<T>
+        val l: List<T>
+        if (a.size > b.size) {
+            s = b
+            l = a
+        } else {
+            s = a
+            l = b
+        }
+        if (l.size <= 64) {
+            var matched = 0L
+            var contentScore = 0f
+            for (x in s) {
                 var index = -1
                 var max = Float.MIN_VALUE
-                l.forEachIndexed { i, y ->
-                    val score = areEqual(x, y)
+                for (i in l.indices) {
+                    val bit = 1L shl i
+                    if (matched and bit != 0L) {
+                        continue
+                    }
+                    val score = areEqual(x, l[i])
                     if (score > max || index == -1) {
                         index = i
                         max = score
@@ -532,15 +552,35 @@ class CipherDuplicatesCheckImpl(
                     // Do not remove urls that did not match
                     // to the current url.
                     if (max > 0f) {
-                        l.removeAt(index)
+                        matched = matched or (1L shl index)
                     }
-                    max
-                } else {
-                    null
+                    contentScore += max
                 }
             }
-            .sum()
-            .toFloat()
+            return sizeScore + contentScore
+        }
+
+        val remaining = l.toMutableList()
+        var contentScore = 0f
+        for (x in s) {
+            var index = -1
+            var max = Float.MIN_VALUE
+            for (i in remaining.indices) {
+                val score = areEqual(x, remaining[i])
+                if (score > max || index == -1) {
+                    index = i
+                    max = score
+                }
+            }
+            if (index != -1) {
+                // Do not remove urls that did not match
+                // to the current url.
+                if (max > 0f) {
+                    remaining.removeAt(index)
+                }
+                contentScore += max
+            }
+        }
         return sizeScore + contentScore
     }
 
@@ -600,6 +640,19 @@ class CipherDuplicatesCheckImpl(
     //
 
     private fun processCipher(cipher: DSecret): ProcessedSecret {
+        val processedUris = cipher.uris
+            .map { uri ->
+                val isRegex = uri.match == DSecret.Uri.MatchType.RegularExpression
+                if (isRegex) return@map uri
+
+                // Leave only the host name
+                val processedUri = uri.uri
+                    .replace(REGEX_SCHEMA, "")
+                    .substringBefore(":")
+                    .substringBefore("/")
+                    .trim()
+                uri.copy(uri = processedUri)
+            }
         val processed = cipher.copy(
             name = processString(cipher.name)
                 .replace("copy", "")
@@ -610,19 +663,7 @@ class CipherDuplicatesCheckImpl(
                 // "Hello world".
                 .replace(REGEX_DIGITS, ""),
             notes = processString(cipher.notes),
-            uris = cipher.uris
-                .map { uri ->
-                    val isRegex = uri.match == DSecret.Uri.MatchType.RegularExpression
-                    if (isRegex) return@map uri
-
-                    // Leave only the host name
-                    val processedUri = uri.uri
-                        .replace(REGEX_SCHEMA, "")
-                        .substringBefore(":")
-                        .substringBefore("/")
-                        .trim()
-                    uri.copy(uri = processedUri)
-                },
+            uris = processedUris,
             fields = cipher.fields
                 .map { field ->
                     val processedName = field.name?.let(::processString)
@@ -642,6 +683,12 @@ class CipherDuplicatesCheckImpl(
         return ProcessedSecret(
             source = cipher,
             processed = processed,
+            uris = processedUris.map { uri ->
+                ProcessedUri(
+                    value = uri,
+                    domain = uri.uri.substringAfter('.'),
+                )
+            },
         )
     }
 

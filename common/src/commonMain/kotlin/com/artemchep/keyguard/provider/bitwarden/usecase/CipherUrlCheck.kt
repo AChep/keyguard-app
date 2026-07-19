@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.common.util.PROTOCOL_IOS_APP
 import com.artemchep.keyguard.common.util.ensureUrlScheme
+import com.artemchep.keyguard.common.util.parseHttpUrlHostOrNull
 import io.ktor.http.DEFAULT_PORT
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
@@ -24,6 +25,8 @@ import org.kodein.di.instance
 class CipherUrlCheckImpl(
     private val tldService: TldService,
 ) : CipherUrlCheck {
+    private val neverMatchResult = io(false)
+
     constructor(directDI: DirectDI) : this(
         tldService = directDI.instance(),
     )
@@ -41,18 +44,21 @@ class CipherUrlCheckImpl(
                         uri.uri.startsWith(PROTOCOL_IOS_APP) ||
                         url.startsWith(PROTOCOL_IOS_APP)
                 if (shouldUseHostMatchInstead) {
-                    ::checkUrlMatchByHost
+                    checkUrlMatchByHost(uri.uri, url, equivalentDomains)
                 } else {
-                    ::checkUrlMatchByDomain
+                    checkUrlMatchByDomain(uri.uri, url, equivalentDomains)
                 }
             }
 
-            DSecret.Uri.MatchType.Host -> ::checkUrlMatchByHost
-            DSecret.Uri.MatchType.StartsWith -> ::checkUrlMatchByStartsWith
-            DSecret.Uri.MatchType.Exact -> ::checkUrlMatchByExact
-            DSecret.Uri.MatchType.RegularExpression -> ::checkUrlMatchByRegularExpression
-            DSecret.Uri.MatchType.Never -> ::checkUrlMatchByNever
-        }.invoke(uri.uri, url, equivalentDomains)
+            DSecret.Uri.MatchType.Host -> checkUrlMatchByHost(uri.uri, url, equivalentDomains)
+            DSecret.Uri.MatchType.StartsWith -> checkUrlMatchByStartsWith(uri.uri, url, equivalentDomains)
+            DSecret.Uri.MatchType.Exact -> checkUrlMatchByExact(uri.uri, url, equivalentDomains)
+            DSecret.Uri.MatchType.RegularExpression -> {
+                checkUrlMatchByRegularExpression(uri.uri, url, equivalentDomains)
+            }
+
+            DSecret.Uri.MatchType.Never -> checkUrlMatchByNever(uri.uri, url, equivalentDomains)
+        }
     }
 
     private fun checkUrlMatchByDomain(
@@ -60,8 +66,8 @@ class CipherUrlCheckImpl(
         b: String,
         equivalentDomains: EquivalentDomains,
     ): IO<Boolean> = ioEffect {
-        val aHost = urlOf(a).host
-        val bHost = urlOf(b).host
+        val aHost = hostOf(a)
+        val bHost = hostOf(b)
         // Find the actual domain name from the host name. This
         // is quite tricky as there are quite a lot of very different
         // company owned names.
@@ -78,6 +84,22 @@ class CipherUrlCheckImpl(
         b: String,
         equivalentDomains: EquivalentDomains,
     ): IO<Boolean> = ioEffect {
+        val simpleAHost = simpleHostOf(a)
+        val simpleBHost = simpleHostOf(b)
+        if (simpleAHost != null && simpleBHost != null) {
+            val bDomain = tldService
+                .getDomainName(simpleBHost)
+                .bind()
+            val bDomainEq = equivalentDomains.findEqDomains(bDomain)
+            return@ioEffect bDomainEq.any {
+                val bHost = simpleBHost.replaceDomainSuffix(
+                    domain = bDomain,
+                    replacement = it,
+                )
+                compareIgnoreCase(simpleAHost, bHost)
+            }
+        }
+
         val aUrl = urlOf(a)
         val bUrl = urlOf(b)
 
@@ -122,13 +144,13 @@ class CipherUrlCheckImpl(
                 .getDomainName(bUrl.host)
                 .bind()
             val bDomainEq = equivalentDomains.findEqDomains(bDomain)
+            val originalHost = bUrl.host
             bDomainEq.any { domain ->
-                val url = URLBuilder(bUrl).apply {
-                    host = host.replaceDomainSuffix(
-                        domain = bDomain,
-                        replacement = domain,
-                    )
-                }.buildString()
+                bUrl.host = originalHost.replaceDomainSuffix(
+                    domain = bDomain,
+                    replacement = domain,
+                )
+                val url = bUrl.buildString()
                 url.startsWith(aFiltered)
             }
         }.getOrElse {
@@ -146,9 +168,7 @@ class CipherUrlCheckImpl(
         // https://bitwarden.com/help/uri-match-detection/#equivalent-domains
         equivalentDomains: EquivalentDomains,
     ): IO<Boolean> = ioEffect {
-        val aFiltered = a.trim().removeSuffix("/")
-        val bFiltered = b.trim().removeSuffix("/")
-        aFiltered == bFiltered
+        a.equalsTrimmedWithoutTrailingSlash(b)
     }
 
     private fun checkUrlMatchByRegularExpression(
@@ -166,13 +186,13 @@ class CipherUrlCheckImpl(
                 .getDomainName(bUrl.host)
                 .bind()
             val bDomainEq = equivalentDomains.findEqDomains(bDomain)
+            val originalHost = bUrl.host
             bDomainEq.any { domain ->
-                val url = URLBuilder(bUrl).apply {
-                    host = host.replaceDomainSuffix(
-                        domain = bDomain,
-                        replacement = domain,
-                    )
-                }.buildString()
+                bUrl.host = originalHost.replaceDomainSuffix(
+                    domain = bDomain,
+                    replacement = domain,
+                )
+                val url = bUrl.buildString()
                 url.matches(aRegex)
             }
         }.getOrElse {
@@ -185,14 +205,74 @@ class CipherUrlCheckImpl(
         a: String,
         b: String,
         equivalentDomains: EquivalentDomains,
-    ): IO<Boolean> = io(false)
+    ): IO<Boolean> = neverMatchResult
 
     private fun urlOf(url: String): Url {
         val newUrl = ensureUrlScheme(url)
         return Url(newUrl)
     }
 
+    private fun hostOf(url: String): String = simpleHostOf(url) ?: urlOf(url).host
+
+    private fun simpleHostOf(url: String): String? {
+        parseHttpUrlHostOrNull(url)?.let { host ->
+            return host
+        }
+        if (url.isEmpty() || url.first() == '.' || url.last() == '.') {
+            return null
+        }
+        var previousWasDot = false
+        url.forEach { char ->
+            val isHostCharacter = char in 'a'..'z' ||
+                    char in '0'..'9' ||
+                    char == '.' ||
+                    char == '-'
+            if (!isHostCharacter || char == '.' && previousWasDot) {
+                return null
+            }
+            previousWasDot = char == '.'
+        }
+        return url
+    }
+
     private fun compareIgnoreCase(a: String, b: String) = a.contentEquals(b, ignoreCase = true)
+
+    private fun String.equalsTrimmedWithoutTrailingSlash(other: String): Boolean {
+        var start = 0
+        while (start < length && this[start].isWhitespace()) {
+            start += 1
+        }
+        var end = length
+        while (end > start && this[end - 1].isWhitespace()) {
+            end -= 1
+        }
+        if (end > start && this[end - 1] == '/') {
+            end -= 1
+        }
+
+        var otherStart = 0
+        while (otherStart < other.length && other[otherStart].isWhitespace()) {
+            otherStart += 1
+        }
+        var otherEnd = other.length
+        while (otherEnd > otherStart && other[otherEnd - 1].isWhitespace()) {
+            otherEnd -= 1
+        }
+        if (otherEnd > otherStart && other[otherEnd - 1] == '/') {
+            otherEnd -= 1
+        }
+
+        val contentLength = end - start
+        if (contentLength != otherEnd - otherStart) {
+            return false
+        }
+        repeat(contentLength) { offset ->
+            if (this[start + offset] != other[otherStart + offset]) {
+                return false
+            }
+        }
+        return true
+    }
 
     private fun String.replaceDomainSuffix(
         domain: String,

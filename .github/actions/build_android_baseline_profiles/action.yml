@@ -13,14 +13,13 @@ runs:
     - uses: ./.github/actions/prepare_kvm
     - name: "Generate baseline profiles"
       id: baseline-profiles
-      uses: reactivecircus/android-emulator-runner@b530d96654c385303d652368551fb075bc2f0b6b
+      uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
       with:
-        api-level: 30
+        api-level: 33
         arch: x86_64
         disable-animations: true
         disk-size: 4G
         script: >-
-          adb root || exit $?;
           RESULT=0;
           ./gradlew
           :androidApp:generate${{ inputs.build-flavor }}BaselineProfile
@@ -62,6 +61,7 @@ runs:
         name: ${{ inputs.artifact-prefix }}baselineprofile-logs
         path: |
           androidBenchmark/build/outputs/androidTest-results/
+          androidBenchmark/build/outputs/connected_android_test_additional_output/
         retention-days: 7
     - name: 'Remove baseline profile apks'
       shell: bash

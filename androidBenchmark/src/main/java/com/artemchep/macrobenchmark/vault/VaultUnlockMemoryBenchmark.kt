@@ -1,6 +1,7 @@
 package com.artemchep.macrobenchmark.vault
 
 import android.os.Build
+import android.os.SystemClock
 import android.os.Trace
 import androidx.annotation.RequiresApi
 import androidx.benchmark.macro.CompilationMode
@@ -10,15 +11,14 @@ import androidx.benchmark.macro.Metric
 import androidx.benchmark.macro.TraceMetric
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.benchmark.traceprocessor.TraceProcessor
-import androidx.test.uiautomator.By
 import androidx.test.uiautomator.UiObject2
-import androidx.test.uiautomator.Until
 import com.artemchep.macrobenchmark.PACKAGE_NAME
+import com.artemchep.macrobenchmark.enableBenchmarkScreenRecording
 import com.artemchep.test.feature.RootScreen
 import com.artemchep.test.feature.coreFeature
+import com.artemchep.test.feature.enterPasswordAndFindButton
 import com.artemchep.test.feature.resourceName
 import com.artemchep.test.feature.waitForRootScreen
-import com.artemchep.test.util.wait
 import org.junit.Rule
 import org.junit.Test
 
@@ -30,7 +30,6 @@ private const val SEED_ACTIVITY =
     "com.artemchep.keyguard.benchmark.VaultBenchmarkSeedActivity"
 private const val SEED_STATUS_FAILED_PREFIX = "benchmark:vault-seed-failed:"
 private const val SEED_TIMEOUT_MS = 300_000L
-private const val SCREEN_CONTENT_TIMEOUT_MS = 30_000L
 
 /**
  * Measures the real app process from the unlock action through ten seconds after main appears.
@@ -69,6 +68,7 @@ class VaultUnlockMemoryBenchmark {
             killProcess()
             if (!corpusPrepared) {
                 clearTargetApplicationData()
+                enableBenchmarkScreenRecording()
             }
             startActivityAndWait()
             prepareUnlockScreen()
@@ -76,13 +76,13 @@ class VaultUnlockMemoryBenchmark {
     ) {
         unlockButton.click()
 
-        val mainScreen = device.coreFeature.waitForRootScreen(RootScreen.MAIN)
+        val mainScreen = coreFeature.waitForRootScreen(RootScreen.MAIN)
         requireNotNull(mainScreen) {
             "Vault did not reach the main screen after unlock."
         }
         Trace.beginSection(POST_UNLOCK_OBSERVATION_TRACE_SECTION)
         try {
-            device.wait(POST_UNLOCK_OBSERVATION_MS)
+            SystemClock.sleep(POST_UNLOCK_OBSERVATION_MS)
         } finally {
             Trace.endSection()
         }
@@ -90,7 +90,7 @@ class VaultUnlockMemoryBenchmark {
 
     private fun androidx.benchmark.macro.MacrobenchmarkScope.prepareUnlockScreen() {
         var rootScreen = requireNotNull(
-            device.coreFeature.waitForRootScreen(
+            coreFeature.waitForRootScreen(
                 RootScreen.SETUP,
                 RootScreen.UNLOCK,
                 RootScreen.MAIN,
@@ -104,9 +104,9 @@ class VaultUnlockMemoryBenchmark {
                 rootScreen.resourceName == RootScreen.SETUP.resourceName() ||
                 rootScreen.resourceName == RootScreen.UNLOCK.resourceName()
             ) {
-                enterPasswordAndFindButton(rootScreen).click()
+                coreFeature.enterPasswordAndFindButton(MASTER_PASSWORD).click()
                 rootScreen = requireNotNull(
-                    device.coreFeature.waitForRootScreen(RootScreen.MAIN),
+                    coreFeature.waitForRootScreen(RootScreen.MAIN),
                 ) {
                     "Vault preparation did not reach the main screen."
                 }
@@ -122,7 +122,7 @@ class VaultUnlockMemoryBenchmark {
             killProcess()
             startActivityAndWait()
             rootScreen = requireNotNull(
-                device.coreFeature.waitForRootScreen(RootScreen.UNLOCK),
+                coreFeature.waitForRootScreen(RootScreen.UNLOCK),
             ) {
                 "Fresh vault did not return to the unlock screen after process death."
             }
@@ -132,7 +132,7 @@ class VaultUnlockMemoryBenchmark {
             "Expected a locked vault, but found '${rootScreen.resourceName}'. " +
                 "Disable any device-specific automatic unlock before benchmarking."
         }
-        unlockButton = enterPasswordAndFindButton(rootScreen)
+        unlockButton = coreFeature.enterPasswordAndFindButton(MASTER_PASSWORD)
     }
 
     private fun androidx.benchmark.macro.MacrobenchmarkScope.seedTestVault() {
@@ -145,12 +145,13 @@ class VaultUnlockMemoryBenchmark {
         }
 
         val completeDescription = "benchmark:vault-seed-complete:$TEST_VAULT_ENTRY_COUNT"
-        val completed = device.wait(
-            Until.hasObject(By.desc(completeDescription)),
-            SEED_TIMEOUT_MS,
-        )
-        if (!completed) {
-            val failure = device.findObject(By.descContains(SEED_STATUS_FAILED_PREFIX))
+        val completed = onElementOrNull(timeoutMs = SEED_TIMEOUT_MS) {
+            contentDescription?.toString() == completeDescription
+        }
+        if (completed == null) {
+            val failure = onElementOrNull(timeoutMs = 0L) {
+                contentDescription?.toString()?.startsWith(SEED_STATUS_FAILED_PREFIX) == true
+            }
                 ?.contentDescription
             error(failure ?: "Benchmark vault seeding timed out after $SEED_TIMEOUT_MS ms.")
         }
@@ -161,33 +162,6 @@ class VaultUnlockMemoryBenchmark {
         require(result == "Success") {
             "Could not clear stale benchmark application data: $result"
         }
-    }
-
-    private fun enterPasswordAndFindButton(rootScreen: UiObject2): UiObject2 {
-        val passwordField = requireNotNull(
-            rootScreen.wait(
-                Until.findObject(By.res("field:password")),
-                SCREEN_CONTENT_TIMEOUT_MS,
-            ),
-        ) {
-            "Master-password field did not appear within $SCREEN_CONTENT_TIMEOUT_MS ms."
-        }
-        passwordField.text = MASTER_PASSWORD
-
-        val button = requireNotNull(
-            rootScreen.wait(
-                Until.findObject(By.res("btn:go")),
-                SCREEN_CONTENT_TIMEOUT_MS,
-            ),
-        ) {
-            "Unlock button did not appear within $SCREEN_CONTENT_TIMEOUT_MS ms."
-        }
-        button.wait(Until.enabled(true), 10_000L)
-        button.wait(Until.clickable(true), 10_000L)
-        require(button.isEnabled && button.isClickable) {
-            "Unlock button did not become actionable."
-        }
-        return button
     }
 
     private companion object {

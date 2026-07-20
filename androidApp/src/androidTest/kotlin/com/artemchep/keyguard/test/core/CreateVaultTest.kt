@@ -2,6 +2,7 @@ package com.artemchep.keyguard.test.core
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
+import androidx.test.uiautomator.uiAutomator
 import com.artemchep.keyguard.test.BaseTest
 import com.artemchep.keyguard.test.PACKAGE_NAME
 import com.artemchep.test.feature.coreFeature
@@ -15,8 +16,8 @@ import org.junit.runner.RunWith
 class CreateVaultTest : BaseTest() {
     @Test
     @Throws(Exception::class)
-    fun createVaultTest() {
-        device.coreFeature.launchDefaultActivityAndWait(PACKAGE_NAME)
-        device.coreFeature.ensureMainScreen()
+    fun createVaultTest() = uiAutomator {
+        coreFeature.launchDefaultActivityAndWait(PACKAGE_NAME)
+        coreFeature.ensureMainScreen()
     }
 }

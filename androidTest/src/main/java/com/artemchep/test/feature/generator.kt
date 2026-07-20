@@ -1,15 +1,15 @@
 package com.artemchep.test.feature
 
-import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiAutomatorTestScope
 
 @JvmInline
 value class FeatureGenerator(
-    val device: UiDevice,
+    val scope: UiAutomatorTestScope,
 )
 
-val UiDevice.generatorFeature get() = FeatureGenerator(this)
+val UiAutomatorTestScope.generatorFeature get() = FeatureGenerator(this)
 
 fun FeatureGenerator.ensureGeneratorScreen() =
-    device.coreFeature.launchScreen(
+    scope.coreFeature.launchScreen(
         actionButtonResource = "nav_bar:generator",
     )

@@ -149,6 +149,19 @@ android {
 }
 
 androidComponents {
+    listOf(
+        "benchmarkRelease",
+        "nonMinifiedRelease",
+    ).forEach { buildType ->
+        onVariants(selector().withBuildType(buildType)) { variant ->
+            variant.sources.kotlin?.addStaticSourceDirectory(
+                "src/benchmarkShared/kotlin",
+            )
+            variant.sources.manifests.addStaticManifestFile(
+                "src/benchmarkShared/AndroidManifest.xml",
+            )
+        }
+    }
     onVariants(selector().withBuildType("benchmarkRelease")) { variant ->
         variant.sources.manifests.addStaticManifestFile(
             "src/benchmarkRelease/AndroidManifest.xml",

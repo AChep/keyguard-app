@@ -7,14 +7,44 @@ import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.NavItemsConfigDefaults
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 class HomeNavigationItemTest {
+    @Test
+    fun `built-in home routes have stable descriptors`() {
+        assertEquals(RouteDescriptor.SendList(), homeSendsRoute.descriptor)
+        assertEquals(
+            RouteDescriptor.Generator(
+                username = true,
+                password = true,
+                sshKey = true,
+                gpgKey = true,
+            ),
+            homeGeneratorRoute.descriptor,
+        )
+        assertEquals(RouteDescriptor.GpgTools, homeGpgToolsRoute.descriptor)
+        assertEquals(RouteDescriptor.Watchtower(), homeWatchtowerRoute.descriptor)
+        assertEquals(RouteDescriptor.Settings, homeSettingsRoute.descriptor)
+
+        val items = resolveHomeNavigationItems(
+            config = NavItemsConfigDefaults.defaultConfig(),
+            cipherFilters = emptyList(),
+        )
+        items.forEach { item ->
+            assertFalse(
+                item.route.descriptor is RouteDescriptor.Unmapped,
+                "${item.key} must have a stable route descriptor",
+            )
+        }
+    }
+
     @Test
     fun `resolver maps built-ins in configured order`() {
         val config = NavItemsConfigDefaults.defaultConfig()

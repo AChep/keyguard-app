@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.navigation
 
 import com.artemchep.keyguard.common.model.DFilter
+import com.artemchep.keyguard.common.model.DSendFilter
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -35,6 +36,20 @@ sealed interface RouteDescriptor {
     ) : RouteDescriptor
 
     @Serializable
+    @SerialName("send.list")
+    data class SendList(
+        val title: String? = null,
+        val filter: DSendFilter? = null,
+        val sortId: String? = null,
+        val main: Boolean = false,
+        // SendRoute.Args.SearchBy enum name (defaults to ALL on an unknown value).
+        val searchBy: String = "ALL",
+        val trash: Boolean? = false,
+        val preselect: Boolean = true,
+        val canAddSecrets: Boolean = true,
+    ) : RouteDescriptor
+
+    @Serializable
     @SerialName("send.view")
     data class SendView(
         val sendId: String,
@@ -45,6 +60,17 @@ sealed interface RouteDescriptor {
     @SerialName("vault.cipher.password_history")
     data class PasswordHistory(
         val itemId: String,
+    ) : RouteDescriptor
+
+    @Serializable
+    @SerialName("generator")
+    data class Generator(
+        val uris: List<String> = emptyList(),
+        val username: Boolean = false,
+        val password: Boolean = false,
+        val sshKey: Boolean = false,
+        val gpgKey: Boolean = false,
+        val storageKey: String? = null,
     ) : RouteDescriptor
 
     @Serializable
@@ -104,6 +130,12 @@ sealed interface RouteDescriptor {
     data object Downloads : RouteDescriptor
 
     @Serializable
+    @SerialName("watchtower")
+    data class Watchtower(
+        val filter: DFilter? = null,
+    ) : RouteDescriptor
+
+    @Serializable
     @SerialName("watchtower.alerts")
     data object WatchtowerAlerts : RouteDescriptor
 
@@ -122,6 +154,14 @@ sealed interface RouteDescriptor {
     @Serializable
     @SerialName("generator.wordlist.list")
     data object WordlistList : RouteDescriptor
+
+    @Serializable
+    @SerialName("gpg.tools")
+    data object GpgTools : RouteDescriptor
+
+    @Serializable
+    @SerialName("settings")
+    data object Settings : RouteDescriptor
 
     @Serializable
     @SerialName("feedback")

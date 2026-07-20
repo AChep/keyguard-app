@@ -148,6 +148,14 @@ android {
     }
 }
 
+androidComponents {
+    onVariants(selector().withBuildType("benchmarkRelease")) { variant ->
+        variant.sources.manifests.addStaticManifestFile(
+            "src/benchmarkRelease/AndroidManifest.xml",
+        )
+    }
+}
+
 dependencies {
     implementation(project(":common"))
     baselineProfile(project(":androidBenchmark"))

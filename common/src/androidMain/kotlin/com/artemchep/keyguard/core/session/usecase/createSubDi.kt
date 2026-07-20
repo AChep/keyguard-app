@@ -108,7 +108,12 @@ class DatabaseSqlManagerInFileAndroid<Database>(
                 .noBackupDirectory(true)
                 .build(),
         )
-        val driver: SqlDriver = AndroidSqliteDriver(openHelper)
+        // Opening SQLCipher through AndroidSqliteDriver is otherwise deferred until the first
+        // query. Session repositories start together, so they can all block dispatcher threads on
+        // the driver's synchronized database lazy while one thread performs the expensive open.
+        // Open once while creating the shared helper, before those repository flows are released.
+        val writableDatabase = openHelper.writableDatabase
+        val driver: SqlDriver = AndroidSqliteDriver(writableDatabase)
         val database = databaseFactory(driver)
         onCreate(database)
             .bind()

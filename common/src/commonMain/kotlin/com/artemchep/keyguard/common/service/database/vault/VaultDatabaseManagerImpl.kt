@@ -93,7 +93,7 @@ class VaultDatabaseManagerImpl(
     private val hibpAccountBreachToStringAdapter = HibpAccountBreachToStringAdapter(json)
 
     private val dbIo = io(masterKey)
-        .effectMap { masterKey ->
+        .effectMap(Dispatchers.IO) { masterKey ->
             val databaseFactory = { driver: SqlDriver ->
                 Database(
                     driver = driver,

@@ -14,7 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.graphicsLayer
 import kotlin.math.absoluteValue
 
 @Composable
@@ -42,7 +42,7 @@ fun AnimatedRotation(
     var lastRotation by remember { mutableStateOf(0f) }
     var targetRotation by remember { mutableStateOf(0f) }
 
-    val rotation by animateFloatAsState(
+    val rotation = animateFloatAsState(
         targetValue = targetRotation,
         animationSpec = spring(
             stiffness = Spring.StiffnessVeryLow,
@@ -63,7 +63,11 @@ fun AnimatedRotation(
 
     Box(
         modifier = modifier
-            .rotate(rotation),
+            .graphicsLayer {
+                // Read the animated value during the layer update so each frame does not
+                // recompose the icon and its parent UI.
+                rotationZ = rotation.value
+            },
     ) {
         content()
     }

@@ -9,6 +9,7 @@ import app.keemobile.kotpass.xml.XmlContentParser
 internal fun readResourceText(path: String): String = ClassLoader
     .getSystemResourceAsStream(path)!!
     .use { stream -> stream.readAllBytes().decodeToString() }
+    .replace("\r\n", "\n")
 
 internal fun decodeFromResources(
     path: String,

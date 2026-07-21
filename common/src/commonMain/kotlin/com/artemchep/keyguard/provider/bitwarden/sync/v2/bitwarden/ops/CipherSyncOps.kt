@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.util.causeChain
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.fields
@@ -1223,7 +1224,7 @@ class CipherSyncOps(
 private fun Throwable.safeCipherPushFailureSummary(): String {
     val type = this::class.simpleName ?: "Throwable"
     val httpException =
-        generateSequence(this) { it.cause }
+        causeChain()
             .filterIsInstance<HttpException>()
             .firstOrNull()
     return buildString {

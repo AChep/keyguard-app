@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.Watchdog
+import com.artemchep.keyguard.common.util.causeChain
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
@@ -964,7 +965,7 @@ internal fun shouldSkipFullSyncForRevision(
 }
 
 internal fun requiresAuthenticationForSyncFailure(e: Throwable): Boolean =
-    generateSequence(e) { it.cause }
+    e.causeChain()
         .any {
             it.hasHttpStatusCode(
                 HttpStatusCode.Unauthorized,

@@ -7,6 +7,7 @@
 overrides:
   vite: ^7.3.2
   esbuild: ^0.28.1
+  js-yaml: ^4.3.0
   yaml: ^2.8.3
 
 # Dependencies whose install/build scripts are allowed to run.

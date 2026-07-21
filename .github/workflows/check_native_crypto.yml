@@ -272,6 +272,9 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       CARGO_FUZZ_VERSION: "0.13.2"
+      # LLVM sanitizer coverage used by cargo-fuzz
+      # is incompatible with fat LTO.
+      CARGO_PROFILE_RELEASE_LTO: "false"
       RUSTUP_TOOLCHAIN: "nightly-2026-03-02"
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10

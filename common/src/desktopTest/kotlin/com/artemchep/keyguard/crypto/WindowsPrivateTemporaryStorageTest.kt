@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.crypto
 
+import com.artemchep.keyguard.platform.windows.WindowsSecurityAttributes
 import com.artemchep.keyguard.platform.windows.ownerOnlySecurityDescriptorSddl
+import com.sun.jna.Memory
 import com.sun.jna.Platform
 import kotlinx.io.Buffer
 import kotlinx.io.buffered
@@ -22,6 +24,17 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class WindowsPrivateTemporaryStorageTest {
+    @Test
+    fun securityAttributesHaveJnaReadableLayout() {
+        Memory(1).use { securityDescriptor ->
+            val securityAttributes = WindowsSecurityAttributes(securityDescriptor)
+
+            assertEquals(securityAttributes.size(), securityAttributes.nLength)
+            assertEquals(securityDescriptor, securityAttributes.lpSecurityDescriptor)
+            assertEquals(0, securityAttributes.bInheritHandle)
+        }
+    }
+
     @Test
     fun ownerOnlySddlHasExplicitOwnerAndProtectedDacl() {
         val sid = "S-1-5-21-123-456-789-1001"

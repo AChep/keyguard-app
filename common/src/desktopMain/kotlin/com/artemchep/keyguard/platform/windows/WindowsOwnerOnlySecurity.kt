@@ -160,7 +160,7 @@ private fun windowsSecurityException(
 ): IOException = IOException("$functionName failed with Windows error $error")
 
 @Structure.FieldOrder("nLength", "lpSecurityDescriptor", "bInheritHandle")
-private class WindowsSecurityAttributes(
+internal class WindowsSecurityAttributes(
     securityDescriptor: Pointer,
 ) : Structure() {
     @JvmField

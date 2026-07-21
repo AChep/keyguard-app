@@ -194,7 +194,11 @@ import com.artemchep.keyguard.feature.home.vault.by
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRouteFactory
 import com.artemchep.keyguard.feature.home.vault.component.UrlAppStoreListings
+import com.artemchep.keyguard.feature.home.vault.component.VaultItemIcon2
 import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
+import com.artemchep.keyguard.feature.home.vault.link.CipherRelation
+import com.artemchep.keyguard.feature.home.vault.link.CipherRelations
+import com.artemchep.keyguard.feature.home.vault.link.resolveCipherRelations
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.model.transformShapes
@@ -276,6 +280,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -1519,6 +1524,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         executeCommand = executeCommand,
                         markdown = markdown,
                         concealFields = concealFields || secretOrNull.reprompt,
+                        appIcons = appIcons,
                         websiteIcons = websiteIcons,
                         getGravatarUrl = getGravatarUrl,
                         copy = copy,
@@ -1589,6 +1595,7 @@ private fun RememberStateFlowScope.oh(
     executeCommand: ExecuteCommand,
     markdown: Boolean,
     concealFields: Boolean,
+    appIcons: Boolean,
     websiteIcons: Boolean,
     getGravatarUrl: GetGravatarUrl,
     copy: CopyText,
@@ -1614,6 +1621,13 @@ private fun RememberStateFlowScope.oh(
     androidAppFDroidParser: AndroidAppFDroidParser,
     verify: ((() -> Unit) -> Unit)?,
 ) = flow<VaultViewItem> {
+    val cipherRelations = resolveCipherRelations(
+        cipher = cipher,
+        ciphers = ciphers,
+    )
+    val linkedFieldIndexes = cipherRelations.outgoing
+        .mapTo(mutableSetOf(), CipherRelation::fieldIndex)
+
     val hasWiFi = kotlin.run {
         val ssid = cipher.login?.username
             ?: cipher.fields
@@ -2687,8 +2701,10 @@ private fun RememberStateFlowScope.oh(
                 emit(item)
             }
     }
-    if (cipher.fields.isNotEmpty()) {
-        val sectionText = if (cipher.fields.size > 1) {
+    val regularFields = cipher.fields
+        .filterIndexed { index, _ -> index !in linkedFieldIndexes }
+    if (regularFields.isNotEmpty()) {
+        val sectionText = if (regularFields.size > 1) {
             translate(Res.string.custom_fields)
         } else translate(Res.string.custom_field)
         val section = VaultViewItem.Section(
@@ -2698,6 +2714,9 @@ private fun RememberStateFlowScope.oh(
         emit(section)
         // items
         cipher.fields.forEachIndexed { index, field ->
+            if (index in linkedFieldIndexes) {
+                return@forEachIndexed
+            }
             if (field.type == DSecret.Field.Type.Boolean) {
                 fun createAction(
                     value: Boolean,
@@ -2809,6 +2828,14 @@ private fun RememberStateFlowScope.oh(
             emit(m)
         }
     }
+    emitAll(
+        cipherRelationItems(
+            cipherRelations = cipherRelations,
+            vaultViewRouteFactory = vaultViewRouteFactory,
+            appIcons = appIcons,
+            websiteIcons = websiteIcons,
+        ),
+    )
     if (cipher.type != DSecret.Type.SecureNote && cipher.notes.isNotEmpty()) {
         val section = VaultViewItem.Section(
             id = "note",
@@ -3131,6 +3158,107 @@ private fun RememberStateFlowScope.oh(
                 .orEmpty(),
         )
         emit(remoteRevDate)
+    }
+}
+
+private fun RememberStateFlowScope.cipherRelationItems(
+    cipherRelations: CipherRelations,
+    vaultViewRouteFactory: VaultViewRouteFactory,
+    appIcons: Boolean,
+    websiteIcons: Boolean,
+) = flow<VaultViewItem> {
+    if (cipherRelations.outgoing.isNotEmpty()) {
+        emit(
+            VaultViewItem.Section(
+                id = "cipher_links.outgoing",
+                text = translate(Res.string.cipher_links_outgoing_title),
+            ),
+        )
+        cipherRelations.outgoing.forEach { relation ->
+            val target = relation.cipher
+            emit(
+                VaultViewItem.Action(
+                    id = "cipher_links.outgoing.${relation.fieldIndex}",
+                    title = relation.label.ifBlank {
+                        translate(Res.string.cipher_link_default_label)
+                    },
+                    text = target?.name
+                        ?: translate(Res.string.cipher_link_unavailable_title),
+                    leading = {
+                        if (target != null) {
+                            Box(
+                                modifier = Modifier.size(24.dp),
+                            ) {
+                                VaultItemIcon2(
+                                    icon = target.toVaultItemIcon(
+                                        appIcons = appIcons,
+                                        websiteIcons = websiteIcons,
+                                    ),
+                                )
+                            }
+                        } else {
+                            IconBox(main = Icons.Outlined.ErrorOutline)
+                        }
+                    },
+                    trailing = target?.let {
+                        {
+                            ChevronIcon()
+                        }
+                    },
+                    onClick = target?.let {
+                        {
+                            val route = vaultViewRouteFactory.create(
+                                itemId = target.id,
+                                accountId = target.accountId,
+                            )
+                            navigate(NavigationIntent.NavigateToRoute(route))
+                        }
+                    },
+                ),
+            )
+        }
+    }
+    if (cipherRelations.incoming.isNotEmpty()) {
+        emit(
+            VaultViewItem.Section(
+                id = "cipher_links.incoming",
+                text = translate(Res.string.cipher_links_incoming_title),
+            ),
+        )
+        cipherRelations.incoming.forEach { relation ->
+            val source = requireNotNull(relation.cipher)
+            emit(
+                VaultViewItem.Action(
+                    id = "cipher_links.incoming.${source.id}.${relation.fieldIndex}",
+                    title = relation.label.ifBlank {
+                        translate(Res.string.cipher_link_default_label)
+                    },
+                    text = source.name,
+                    leading = {
+                        Box(
+                            modifier = Modifier.size(24.dp),
+                        ) {
+                            VaultItemIcon2(
+                                icon = source.toVaultItemIcon(
+                                    appIcons = appIcons,
+                                    websiteIcons = websiteIcons,
+                                ),
+                            )
+                        }
+                    },
+                    trailing = {
+                        ChevronIcon()
+                    },
+                    onClick = {
+                        val route = vaultViewRouteFactory.create(
+                            itemId = source.id,
+                            accountId = source.accountId,
+                        )
+                        navigate(NavigationIntent.NavigateToRoute(route))
+                    },
+                ),
+            )
+        }
     }
 }
 

@@ -5,11 +5,13 @@ import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.service.keyvalue.RealKeyValuePreference
+import db_key_value.datastore.encrypted.exception.SecureStorageInitializationException
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 import kotlin.reflect.KClass
 
 class DataStoreKeyValuePreference<T : Any>(
@@ -56,23 +58,40 @@ class DataStoreKeyValuePreference<T : Any>(
     }
 
     override suspend fun collect(collector: FlowCollector<T>) {
-        val flow = flow<T> {
-            val dataStore = dataStoreProvider()
+        flow {
+            val dataStore = try {
+                dataStoreProvider()
+            } catch (throwable: Throwable) {
+                when (throwable) {
+                    is IOException,
+                    is SecureStorageInitializationException,
+                        -> {
+                        // Expected storage initialization failures degrade to the
+                        // default for this collection. A later collection retries
+                        // the provider from scratch.
+                        emit(defaultValue)
+                        return@flow
+                    }
+
+                    else -> {
+                        throw throwable
+                    }
+                }
+            }
             dataStore
                 .data
                 .map { preferences ->
                     preferences[dataStoreKey]
                         ?: defaultValue
                 }
-                // This should never happen. If it does it would crash the
-                // app, so instead we just fall back to the default value.
+                // Preserve the existing read-time fallback. Provider/setup failures are
+                // handled separately above so unexpected configuration errors still escape.
                 .catch {
                     emit(defaultValue)
                 }
-                .distinctUntilChanged()
                 .collect(this)
         }
-        return flow
+            .distinctUntilChanged()
             .collect(collector)
     }
 }

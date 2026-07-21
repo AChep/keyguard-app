@@ -92,10 +92,11 @@ import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.toLocalPath
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderAndroid
-import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
-import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import db_key_value.datastore.DataStoreKeyValueStore
+import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
+import db_key_value.datastore.encrypted.SecureStorageCoordinator
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
+import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -340,6 +341,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
             context = instance<Application>(),
             file = arg.key.filename,
             logRepository = instance(),
+            secureStorageCoordinator = instance(),
             backingStore = arg.store,
         )
     }
@@ -359,6 +361,12 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindProvider<SharedPreferencesStoreFactory> {
         instance<SharedPreferencesStoreFactoryV2>()
+    }
+    bindSingleton<SecureStorageCoordinator> {
+        SecureStorageCoordinator.create(
+            context = instance<Application>(),
+            logRepository = instance(),
+        )
     }
     bindSingleton<DownloadDatabaseManager> {
         DownloadDatabaseManager(

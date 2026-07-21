@@ -15,6 +15,21 @@ class SharedPreferencesStoreFactoryV2(
 ) : SharedPreferencesStoreFactory {
     companion object {
         private const val VERSION = 2
+
+        /**
+         * The [Files] stored as plaintext DataStores. Every other entry is routed to an
+         * encrypted DataStore; this is the single source of truth for that decision (see
+         * `AndroidSecureStorageArtifacts.SECURE_STORE_NAMES`).
+         */
+        val PLAINTEXT_FILES: Set<Files> =
+            setOf(
+                Files.SESSION_METADATA,
+                Files.WINDOW_STATE,
+                Files.DEVICE_ID,
+                Files.UI_STATE,
+                Files.REVIEW,
+                Files.NOTIFICATIONS,
+            )
     }
 
     constructor(directDI: DirectDI) : this(
@@ -28,16 +43,10 @@ class SharedPreferencesStoreFactoryV2(
             store = factoryV1.getStore(di, key),
         )
         di.direct.instance(
-            tag = when (key) {
-                Files.SESSION_METADATA,
-                Files.WINDOW_STATE,
-                Files.DEVICE_ID,
-                Files.UI_STATE,
-                Files.REVIEW,
-                Files.NOTIFICATIONS,
-                    -> SharedPreferencesTypes.DATA_STORE
-
-                else -> SharedPreferencesTypes.DATA_STORE_ENCRYPTED
+            tag = if (key in PLAINTEXT_FILES) {
+                SharedPreferencesTypes.DATA_STORE
+            } else {
+                SharedPreferencesTypes.DATA_STORE_ENCRYPTED
             },
             arg = arg,
         )

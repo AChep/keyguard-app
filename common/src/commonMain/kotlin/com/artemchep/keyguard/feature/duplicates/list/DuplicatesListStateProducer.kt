@@ -472,6 +472,14 @@ private fun RememberStateFlowScope.createCipherSelectionFlow(
 ) { ciphers, collections, canWrite ->
     val selectedCiphers = ciphers
         .filter { it.id in selectedCipherIds }
+    val existingSelectedCipherIds = selectedCiphers
+        .mapTo(mutableSetOf()) { it.id }
+    if (existingSelectedCipherIds.size < selectedCipherIds.size) {
+        selectionHandle.setSelection(existingSelectedCipherIds)
+    }
+    if (selectedCiphers.isEmpty()) {
+        return@combine null
+    }
     val selectedCiphersByAccount = selectedCiphers
         .groupBy { it.accountId }
 

@@ -974,6 +974,8 @@ private fun GpgKeyField(
             )
             if (expiration != null) {
                 FlatItemSimpleExpressive(
+                    modifier = Modifier
+                        .padding(top = 3.dp),
                     backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                     shapeState = shapeState and ShapeState.START.inv(),
                     padding = PaddingValues(0.dp),

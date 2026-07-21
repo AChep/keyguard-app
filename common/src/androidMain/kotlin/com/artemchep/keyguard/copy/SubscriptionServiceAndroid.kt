@@ -10,6 +10,8 @@ import com.android.billingclient.api.QueryPurchasesParams
 import com.artemchep.keyguard.android.closestActivityOrNull
 import com.artemchep.keyguard.billing.BillingConnection
 import com.artemchep.keyguard.billing.BillingManager
+import com.artemchep.keyguard.billing.shouldRefreshPurchasesAfterLaunch
+import com.artemchep.keyguard.billing.throwIfPurchaseFailed
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.effectMap
@@ -83,11 +85,11 @@ class SubscriptionServiceAndroid(
             .filter { it !is RichResult.Loading },
         getProductDetailsFlow(ProductType.SUBS)
             .filter { it !is RichResult.Loading },
-    ) { receiptsResult, skuDetailsResult ->
+    ) { receiptsResult, productDetailsResult ->
         val receipts = receiptsResult.orNull()
-        val skuDetails = skuDetailsResult.orNull()
+        val productDetails = productDetailsResult.orNull()
 
-        skuDetails?.mapNotNull {
+        productDetails?.mapNotNull {
             val bestOffer = it.subscriptionOfferDetails
                 ?.filter { it.offerId != null }
                 ?.minByOrNull {
@@ -179,11 +181,11 @@ class SubscriptionServiceAndroid(
             .filter { it !is RichResult.Loading },
         getProductDetailsFlow(ProductType.INAPP)
             .filter { it !is RichResult.Loading },
-    ) { receiptsResult, skuDetailsResult ->
+    ) { receiptsResult, productDetailsResult ->
         val receipts = receiptsResult.orNull()
-        val skuDetails = skuDetailsResult.orNull()
+        val productDetails = productDetailsResult.orNull()
 
-        skuDetails?.mapNotNull {
+        productDetails?.mapNotNull {
             val status = kotlin.run {
                 receipts?.firstOrNull { purchase -> it.productId in purchase.products }
                     ?: return@run Product.Status.Inactive
@@ -262,14 +264,19 @@ class SubscriptionServiceAndroid(
                 .clientLiveFlow
                 .mapNotNull { result ->
                     result.orNull()
+                        ?.let { client -> connection to client }
                 }
         }
         .toIO()
         .timeout(1000L)
         // Launch the purchase dialog using
         // obtained billing client.
-        .effectMap(Dispatchers.Main) { client ->
-            client.launchBillingFlow(activity, params)
+        .effectMap(Dispatchers.Main) { (connection, client) ->
+            val billingResult = client.launchBillingFlow(activity, params)
+            if (billingResult.shouldRefreshPurchasesAfterLaunch()) {
+                connection.requestPurchasesRefresh()
+            }
+            billingResult.throwIfPurchaseFailed()
         }
 
     private fun getReceiptFlow() = billingManager
@@ -309,7 +316,12 @@ class SubscriptionServiceAndroid(
     private fun List<Purchase>.acknowledge(
         connection: BillingConnection,
     ) = this
-        .filter { !it.isAcknowledged }
+        .filter {
+            shouldAcknowledgePurchase(
+                purchaseState = it.purchaseState,
+                isAcknowledged = it.isAcknowledged,
+            )
+        }
         .forEach { purchase ->
             val acknowledgePurchaseParams = AcknowledgePurchaseParams.newBuilder()
                 .setPurchaseToken(purchase.purchaseToken)
@@ -357,7 +369,7 @@ class SubscriptionServiceAndroid(
             val productIdList = when (productType) {
                 ProductType.SUBS -> GooglePlayBillingCatalog.subscriptionProductIds
                 ProductType.INAPP -> GooglePlayBillingCatalog.lifetimeProductIds
-                else -> error("Unknown SKU type!")
+                else -> error("Unknown product type!")
             }
             val productList = productIdList
                 .map {
@@ -366,10 +378,10 @@ class SubscriptionServiceAndroid(
                         .setProductType(productType)
                         .build()
                 }
-            val skuDetailsParams = QueryProductDetailsParams.newBuilder()
+            val productDetailsParams = QueryProductDetailsParams.newBuilder()
                 .setProductList(productList)
                 .build()
-            connection.productDetailsFlow(skuDetailsParams)
+            connection.productDetailsFlow(productDetailsParams)
         }
 
     private data class GooglePlayLicensePurchase(
@@ -378,3 +390,8 @@ class SubscriptionServiceAndroid(
         @param:ProductType val productType: String,
     )
 }
+
+internal fun shouldAcknowledgePurchase(
+    @Purchase.PurchaseState purchaseState: Int,
+    isAcknowledged: Boolean,
+) = purchaseState == Purchase.PurchaseState.PURCHASED && !isAcknowledged

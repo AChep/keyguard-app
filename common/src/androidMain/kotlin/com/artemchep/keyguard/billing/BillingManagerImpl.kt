@@ -57,8 +57,12 @@ class BillingManagerImpl(
                     .enableOneTimeProducts()
                     .build()
             )
-            .setListener { _, _ ->
-                dataChangedEventFlow.emit(Unit)
+            .setListener { billingResult, _ ->
+                if (billingResult.shouldRefreshPurchases()) {
+                    dataChangedEventFlow.emit(Unit)
+                } else {
+                    billingResult.recordIfPurchaseFailed()
+                }
             }
             .build()
         val liveFlow = MutableStateFlow<RichResult<BillingClient>>(RichResult.Loading())
@@ -71,27 +75,19 @@ class BillingManagerImpl(
             val listener = object : BillingClientStateListener {
                 override fun onBillingSetupFinished(billingResult: BillingResult) {
                     val event: RichResult<BillingClient> =
-                        when (val code = billingResult.responseCode) {
+                        when (billingResult.responseCode) {
                             BillingClient.BillingResponseCode.OK -> {
                                 RichResult.Success(billingClient)
                             }
 
-                            BillingClient.BillingResponseCode.SERVICE_TIMEOUT,
-                            BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE,
-                            BillingClient.BillingResponseCode.BILLING_UNAVAILABLE,
-                            BillingClient.BillingResponseCode.DEVELOPER_ERROR,
-                            BillingClient.BillingResponseCode.ERROR,
-                            -> {
-                                when (code) {
-                                    BillingClient.BillingResponseCode.SERVICE_TIMEOUT,
-                                    BillingClient.BillingResponseCode.SERVICE_UNAVAILABLE,
-                                    BillingClient.BillingResponseCode.BILLING_UNAVAILABLE,
-                                    -> requestConnect()
+                            else -> {
+                                if (billingResult.shouldRetryConnection()) {
+                                    requestConnect()
                                 }
-                                RichResult.Failure(BillingClientApiException(code))
-                            }
 
-                            else -> return
+                                val e = BillingClientApiException(billingResult)
+                                RichResult.Failure(e)
+                            }
                         }
                     liveFlow.value = event
                 }

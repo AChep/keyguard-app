@@ -157,8 +157,6 @@ class NativeCryptoOpenPgpGnuPgInteropTest {
                 ),
             )
         }
-        val launched = runGpgConf(home, "--launch", "gpg-agent")
-        assertEquals(0, launched.exitCode, launched.stderr)
         return home
     }
 

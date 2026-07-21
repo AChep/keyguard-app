@@ -129,6 +129,7 @@ android {
                 initWith(releaseBuildType)
                 signingConfig = signingConfigs.getByName("debug")
                 matchingFallbacks += listOf("release")
+                proguardFile("native-crypto-smoke-app-rules.pro")
                 testProguardFiles("native-crypto-smoke-test-rules.pro")
             }
         }

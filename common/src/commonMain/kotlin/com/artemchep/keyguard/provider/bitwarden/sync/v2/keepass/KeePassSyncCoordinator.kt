@@ -1,27 +1,20 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass
 
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassCipherCodec
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassFolderCodec
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.readSoftDeletedDate
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops.KeePassCipherSyncOps
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops.KeePassFolderSyncOps
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy.KeePassCipherSyncStrategy
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy.KeePassFolderSyncStrategy
-
 import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.getEntries
 import app.keemobile.kotpass.models.Group
-import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.exception.KeePassDatabaseModifiedExternallyException
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.file.FileService
-import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseMetadata
 import com.artemchep.keyguard.common.service.keepass.getKeePassDatabaseMetadata
 import com.artemchep.keyguard.common.service.keepass.getPublicCustomDataStringOrNull
 import com.artemchep.keyguard.common.service.keepass.getVersionString
 import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
 import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
+import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseMetadata
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
@@ -30,18 +23,27 @@ import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.api.merge
+import com.artemchep.keyguard.provider.bitwarden.sync.SyncRetryPolicy
+import com.artemchep.keyguard.provider.bitwarden.sync.retrySync
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.buildFolderIdMappings
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncResult
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassCipherCodec
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassFolderCodec
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.readSoftDeletedDate
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassFolder
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops.KeePassCipherSyncOps
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops.KeePassFolderSyncOps
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy.KeePassCipherSyncStrategy
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy.KeePassFolderSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 import kotlinx.serialization.json.Json
-import kotlin.uuid.Uuid
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 class KeePassSyncCoordinator(
     logRepository: LogRepository,
@@ -57,6 +59,14 @@ class KeePassSyncCoordinator(
 ) {
     companion object {
         private const val TAG = "SyncById.keepass"
+
+        private const val MAX_EXTERNAL_MODIFICATION_RETRIES = 3
+
+        private val externalModificationRetryPolicy = SyncRetryPolicy(
+            maxAttempts = MAX_EXTERNAL_MODIFICATION_RETRIES + 1,
+            delayBeforeRetry = { 1.seconds },
+            shouldRetry = { it is KeePassDatabaseModifiedExternallyException },
+        )
     }
 
     private val diagnostics = KeePassSyncDiagnostics(
@@ -65,10 +75,36 @@ class KeePassSyncCoordinator(
 
     suspend fun sync(token: KeePassToken) {
         val now = Clock.System.now()
+        var retriesScheduled = 0
         try {
-            syncOrThrow(token, now = now)
+            retrySync(
+                policy = externalModificationRetryPolicy,
+                onRetry = { event ->
+                    retriesScheduled = event.nextAttempt - 1
+                    diagnostics.externalModificationRetryScheduled(
+                        retry = retriesScheduled,
+                        maxRetries = MAX_EXTERNAL_MODIFICATION_RETRIES,
+                        delayMillis = event.delay.inWholeMilliseconds,
+                    )
+                },
+            ) {
+                syncOrThrow(token, now = now)
+            }
+            if (retriesScheduled > 0) {
+                diagnostics.externalModificationRetryRecovered(
+                    retries = retriesScheduled,
+                )
+            }
         } catch (e: Throwable) {
             e.throwIfCancellation()
+            if (
+                e is KeePassDatabaseModifiedExternallyException &&
+                retriesScheduled == MAX_EXTERNAL_MODIFICATION_RETRIES
+            ) {
+                diagnostics.externalModificationRetriesExhausted(
+                    attempts = retriesScheduled + 1,
+                )
+            }
             // Any abort before the metadata is written — a corrupt or
             // unauthorized open, an external-modification abort, or a
             // file/WebDAV write or commit failure — would otherwise leave a
@@ -275,8 +311,7 @@ class KeePassSyncCoordinator(
             )
 
             val msg = "KeePass database was modified externally during sync: " +
-                    "$metadataBeforeForLog -> $metadataAfterForLog), " +
-                    "will retry on next sync."
+                    "$metadataBeforeForLog -> $metadataAfterForLog."
             throw KeePassDatabaseModifiedExternallyException(msg)
         }
 
@@ -297,7 +332,7 @@ class KeePassSyncCoordinator(
         } catch (e: Throwable) {
             e.throwIfCancellation()
             // The file write failed: the staged local writes will not be
-            // committed, so they are dropped and re-derived on the next sync.
+            // committed, so they are dropped and re-derived by the next attempt.
             diagnostics.writeBackDiscarded(e)
             throw e
         }

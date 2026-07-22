@@ -12,6 +12,7 @@ import com.artemchep.keyguard.util.webdav.WebDavOpenResult
 import com.artemchep.keyguard.util.webdav.WebDavResource
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
 import com.artemchep.keyguard.util.webdav.WebDavWritePrecondition
+import com.artemchep.keyguard.util.webdav.WebDavWriteStrategy
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -49,6 +50,7 @@ class CheckWebDavConnectionImplTest {
                     username = "alice",
                     password = "secret",
                 ),
+                writeStrategy = WebDavWriteStrategy.RequireAtomic,
             ),
             capturedConfig,
         )
@@ -87,6 +89,7 @@ class CheckWebDavConnectionImplTest {
             WebDavClientConfig(
                 baseUrl = "https://example.com/dav/",
                 authorization = null,
+                writeStrategy = WebDavWriteStrategy.RequireAtomic,
             ),
             capturedConfig,
         )

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.keepass.storage
 
 import com.artemchep.keyguard.common.exception.KeePassDatabaseModifiedExternallyException
+import com.artemchep.keyguard.common.exception.KeePassFileAlreadyExistsException
 import com.artemchep.keyguard.common.service.keepass.StagedDatabase
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavKeePassFileUrl
@@ -11,6 +12,7 @@ import com.artemchep.keyguard.util.webdav.WebDavException
 import com.artemchep.keyguard.util.webdav.WebDavResource
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
 import com.artemchep.keyguard.util.webdav.WebDavWritePrecondition
+import com.artemchep.keyguard.util.webdav.WebDavWriteStrategy
 import kotlinx.io.Source
 
 internal class KeePassDatabaseStorageWebDav(
@@ -18,11 +20,14 @@ internal class KeePassDatabaseStorageWebDav(
     authorization: WebDavAuthorization?,
     webDavClientFactory: WebDavClientFactory,
 ) : KeePassDatabaseStorage {
+    override val decodeReadAttempts: Int = 2
+
     private val client = webDavClientFactory.create(
         WebDavClientConfig(
             baseUrl = location.baseUrl,
             authorization = authorization,
             noCache = true,
+            writeStrategy = WebDavWriteStrategy.AllowLossy,
         ),
     )
     private var opened = false
@@ -47,8 +52,9 @@ internal class KeePassDatabaseStorageWebDav(
         expected: KeePassDatabaseMetadata?,
     ): KeePassDatabaseMetadata? {
         ensureOpen()
-        // KtorWebDavClient.write performs a temp-path PUT followed by an
-        // atomic server-side MOVE, so the destination is never left torn.
+        // Prefer verified temp upload followed by MOVE. Some KeePass WebDAV
+        // servers do not implement MOVE, so this client may fall back to a
+        // direct PUT; the staged database is replayable for that second upload.
         return try {
             client.write(
                 path = location.path,
@@ -68,6 +74,11 @@ internal class KeePassDatabaseStorageWebDav(
                 message = "KeePass database was modified externally while publishing.",
                 cause = e,
             )
+        } catch (e: WebDavException.AlreadyExists) {
+            if (mode == KeePassDatabaseWriteMode.Create) {
+                throw KeePassFileAlreadyExistsException(e)
+            }
+            throw e
         }
     }
 

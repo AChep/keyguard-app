@@ -11,6 +11,10 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.Buffer
+import kotlinx.io.RawSource
+import kotlinx.io.Source
+import kotlinx.io.buffered
 import kotlinx.serialization.json.Json
 import net.lingala.zip4j.ZipFile
 import com.artemchep.keyguard.platform.toLocalPath
@@ -368,6 +372,33 @@ class BackupRepositoryZipTest {
     }
 
     @Test
+    fun `readSnapshotManifest reopens object after midstream transient failure`() = runTest {
+        val root = createTempDirectory("keyguard-backup-repository-stream-retry").toLocalPath()
+        val localStore = LocalFolderBackupObjectStore(root)
+        val expected = manifest("snapshot-1")
+        repository.writeSnapshot(
+            store = localStore,
+            objectPassword = null,
+            snapshotId = expected.snapshotId,
+            manifest = expected,
+            vaultJson = "{}",
+        )
+        val store = MidstreamTransientBackupObjectStore(
+            delegate = localStore,
+            transientKey = BackupObjectKey("snapshots/${expected.snapshotId}.zip"),
+        )
+
+        val actual = repository.readSnapshotManifest(
+            store = store,
+            objectPassword = null,
+            snapshotId = expected.snapshotId,
+        )
+
+        assertEquals(expected, actual)
+        assertEquals(2, store.reads)
+    }
+
+    @Test
     fun `writeBlob reuses existing readable blob instead of replacing it`() = runTest {
         val root = createTempDirectory("keyguard-backup-repository-blob-reuse").toLocalPath()
         val store = LocalFolderBackupObjectStore(root)
@@ -662,6 +693,48 @@ private class TransientReadBackupObjectStore(
             )
         }
         return delegate.read(key, range)
+    }
+}
+
+private class MidstreamTransientBackupObjectStore(
+    private val delegate: BackupObjectStore,
+    private val transientKey: BackupObjectKey,
+) : BackupObjectStore by delegate {
+    var reads = 0
+
+    override suspend fun read(
+        key: BackupObjectKey,
+        range: BackupByteRange?,
+    ): Source {
+        val source = delegate.read(key, range)
+        if (key != transientKey) {
+            return source
+        }
+        reads += 1
+        if (reads != 1) {
+            return source
+        }
+        return object : RawSource {
+            private var emittedPrefix = false
+
+            override fun readAtMostTo(
+                sink: Buffer,
+                byteCount: Long,
+            ): Long {
+                if (!emittedPrefix) {
+                    emittedPrefix = true
+                    return source.readAtMostTo(sink, minOf(byteCount, 32L))
+                }
+                throw BackupObjectStoreException.Transient(
+                    operation = BackupObjectStoreOperation.Read,
+                    key = key,
+                )
+            }
+
+            override fun close() {
+                source.close()
+            }
+        }.buffered()
     }
 }
 

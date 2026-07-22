@@ -11,6 +11,7 @@ import com.artemchep.keyguard.util.webdav.WebDavClientConfig
 import com.artemchep.keyguard.util.webdav.WebDavException
 import com.artemchep.keyguard.util.webdav.WebDavResource
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
+import com.artemchep.keyguard.util.webdav.WebDavWriteStrategy
 import io.ktor.client.HttpClient
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
@@ -161,6 +162,11 @@ class WebDavBackupObjectStore(
             operation = operation,
             cause = e,
         )
+    } catch (e: WebDavException.AtomicWriteUnsupported) {
+        throw BackupObjectStoreException.AtomicWriteUnsupported(
+            key = key,
+            cause = e,
+        )
     } catch (e: WebDavException.Transient) {
         throw BackupObjectStoreException.Transient(
             operation = operation,
@@ -254,6 +260,7 @@ class WebDavBackupObjectStoreFactory(
                     password = webDavStore.password,
                 ),
                 userAgent = userAgent,
+                writeStrategy = WebDavWriteStrategy.RequireAtomic,
             ),
         )
         try {

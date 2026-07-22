@@ -22,6 +22,11 @@ interface WebDavClient {
         precondition: WebDavWritePrecondition? = null,
     ): WebDavResource
 
+    /**
+     * The [write] callback may be invoked more than once when the client
+     * has to retry or degrade the upload flow, so it must be able to
+     * produce the same payload again on every invocation.
+     */
     suspend fun write(
         path: String,
         mode: WebDavWriteMode = WebDavWriteMode.CreateOrReplace,

@@ -7,7 +7,13 @@ data class WebDavClientConfig(
     val authorization: WebDavAuthorization? = null,
     val userAgent: String? = null,
     val noCache: Boolean = false,
+    val writeStrategy: WebDavWriteStrategy = WebDavWriteStrategy.RequireAtomic,
 )
+
+enum class WebDavWriteStrategy {
+    RequireAtomic,
+    AllowLossy,
+}
 
 sealed interface WebDavAuthorization {
     data class Basic(
@@ -184,6 +190,24 @@ sealed class WebDavException(
         cause = cause,
     )
 
+    class AtomicWriteUnsupported(
+        path: String?,
+        statusCode: Int? = null,
+        cause: Throwable? = null,
+    ) : WebDavException(
+        operation = WebDavOperation.Write,
+        path = path,
+        statusCode = statusCode,
+        retryable = false,
+        message = webDavMessage(
+            WebDavOperation.Write,
+            path,
+            statusCode,
+            "server does not support atomic writes",
+        ),
+        cause = cause,
+    )
+
     class Transient(
         operation: WebDavOperation,
         path: String?,
@@ -204,11 +228,12 @@ sealed class WebDavException(
         statusCode: Int? = null,
         message: String,
         cause: Throwable? = null,
+        retryable: Boolean = false,
     ) : WebDavException(
         operation = operation,
         path = path,
         statusCode = statusCode,
-        retryable = false,
+        retryable = retryable,
         message = webDavMessage(operation, path, statusCode, message),
         cause = cause,
     )

@@ -46,6 +46,27 @@ class KeePassSyncDiagnostics(
         "external_modification_aborted before=$before after=$after"
     }
 
+    suspend fun externalModificationRetryScheduled(
+        retry: Int,
+        maxRetries: Int,
+        delayMillis: Long,
+    ) = info {
+        "external_modification_retry_scheduled " +
+            "retry=$retry/$maxRetries delay_ms=$delayMillis"
+    }
+
+    suspend fun externalModificationRetryRecovered(
+        retries: Int,
+    ) = info {
+        "external_modification_retry_recovered retries=$retries"
+    }
+
+    suspend fun externalModificationRetriesExhausted(
+        attempts: Int,
+    ) = warning {
+        "external_modification_retries_exhausted attempts=$attempts"
+    }
+
     suspend fun databaseFlushed(mutationCount: Int) = info {
         "database_flushed mutation_count=$mutationCount"
     }

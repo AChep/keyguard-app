@@ -201,6 +201,17 @@ sealed class BackupObjectStoreException(
         cause = cause,
     )
 
+    class AtomicWriteUnsupported(
+        key: BackupObjectKey? = null,
+        cause: Throwable? = null,
+    ) : BackupObjectStoreException(
+        operation = BackupObjectStoreOperation.Write,
+        key = key,
+        retryable = false,
+        message = "Backup object store does not support atomic writes.",
+        cause = cause,
+    )
+
     class Transient(
         operation: BackupObjectStoreOperation,
         key: BackupObjectKey? = null,

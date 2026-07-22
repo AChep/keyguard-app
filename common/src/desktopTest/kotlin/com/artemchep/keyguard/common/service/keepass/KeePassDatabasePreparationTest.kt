@@ -1,19 +1,24 @@
 package com.artemchep.keyguard.common.service.keepass
 
-import com.artemchep.keyguard.common.service.file.FileServiceImpl
+import com.artemchep.keyguard.common.exception.KeePassFileAlreadyExistsException
 import com.artemchep.keyguard.common.model.WebDavCredentials
 import com.artemchep.keyguard.common.model.WebDavLocation
+import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseMetadata
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
+import com.artemchep.keyguard.util.webdav.WebDavException
+import com.artemchep.keyguard.util.webdav.WebDavOperation
+import com.artemchep.keyguard.util.webdav.WebDavWriteStrategy
 import java.nio.file.Files
 import kotlin.io.path.writeBytes
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
@@ -382,7 +387,32 @@ class KeePassDatabasePreparationTest {
         val config = webDavClientFactory.configs.single()
         assertEquals("https://example.com/dav/folder/", config.baseUrl)
         assertTrue(config.noCache)
+        assertEquals(WebDavWriteStrategy.AllowLossy, config.writeStrategy)
         assertNotNull(webDavClientFactory.client.readObjectBytes("vault file.kdbx"))
+    }
+
+    @Test
+    fun `webdav create race maps to keepass file already exists`() = runTest {
+        val webDavClientFactory = FakeKeePassWebDavClientFactory()
+        val dbUri = "https://example.com/dav/vault.kdbx"
+        webDavClientFactory.client.writeError = WebDavException.AlreadyExists(
+            operation = WebDavOperation.Write,
+            path = "vault.kdbx",
+            statusCode = 412,
+        )
+
+        assertFailsWith<KeePassFileAlreadyExistsException> {
+            prepareKeePassDatabase(
+                fileService = fileService,
+                params = params(
+                    mode = AddKeePassAccountParams.Mode.New(allowOverwrite = false),
+                    dbUri = dbUri,
+                    password = "secret",
+                    webDav = webDavFile(dbUri),
+                ),
+                webDavClientFactory = webDavClientFactory,
+            )
+        }
     }
 
     @Test

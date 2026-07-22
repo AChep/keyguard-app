@@ -7,6 +7,8 @@ import app.keemobile.kotpass.database.Credentials
 import app.keemobile.kotpass.database.KeePassDatabase
 import app.keemobile.kotpass.database.decode
 import app.keemobile.kotpass.database.encodeTo
+import app.keemobile.kotpass.errors.CryptoError
+import app.keemobile.kotpass.errors.FormatError
 import app.keemobile.kotpass.models.Meta
 import com.artemchep.keyguard.common.exception.KeePassFileAlreadyExistsException
 import com.artemchep.keyguard.common.service.file.FileAccessToken
@@ -33,12 +35,16 @@ import com.artemchep.keyguard.util.foundation.io.ByteSnapshot
 import com.artemchep.keyguard.util.foundation.io.buildSnapshot
 import com.artemchep.keyguard.util.foundation.io.copyTo
 import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
+import com.artemchep.keyguard.util.webdav.WebDavException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import kotlinx.io.Sink
+import kotlinx.io.Source
 import kotlin.random.Random
 
 data class PreparedKeePassDatabase(
@@ -310,14 +316,46 @@ private fun createKeePassCredentials(
 private suspend fun openKeePassDatabase(
     storage: KeePassDatabaseStorage,
     credentials: Credentials,
-): KeePassDatabase = storage.read()
-    .use { source ->
-        KeePassDatabase.decode(
-            source = source,
-            credentials = credentials,
-            cipherProviders = keePassCipherProviders,
-        )
+): KeePassDatabase = storage.readWithDecodeRetry { source ->
+    KeePassDatabase.decode(
+        source = source,
+        credentials = credentials,
+        cipherProviders = keePassCipherProviders,
+    )
+}
+
+internal suspend fun <T> KeePassDatabaseStorage.readWithDecodeRetry(
+    decode: (Source) -> T,
+): T {
+    val attempts = decodeReadAttempts.coerceAtLeast(1)
+    repeat(attempts) { attempt ->
+        try {
+            return read().use(decode)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            if (!e.isRetryableRemoteReadFailure() || attempt == attempts - 1) {
+                throw e
+            }
+            delay(KEEPASS_REMOTE_READ_RETRY_DELAY_MILLIS)
+        }
     }
+    error("Unreachable.")
+}
+
+private fun Exception.isRetryableRemoteReadFailure(): Boolean = when (this) {
+    is WebDavException -> retryable || this is WebDavException.Protocol || this is WebDavException.NotFound
+    is FormatError.InvalidXml,
+    is FormatError.InvalidContent,
+    is FormatError.InvalidHeader,
+    is FormatError.FailedCompression,
+    is CryptoError.InvalidDataLength,
+    is CryptoError.InvalidCipherText,
+    -> true
+    else -> false
+}
+
+private const val KEEPASS_REMOTE_READ_RETRY_DELAY_MILLIS = 750L
 
 private fun createKeePassDatabase(
     credentials: Credentials,

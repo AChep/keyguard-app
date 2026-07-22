@@ -207,6 +207,56 @@ class WebDavBackupObjectStoreTest {
             ).read(key).readByteArrayAndClose()
         }
     }
+
+    @Test
+    fun `atomic write unsupported is mapped to backup store error`() = runTest {
+        val key = BackupObjectKey("object.zip")
+        val store = WebDavBackupObjectStore(
+            FakeWebDavClient(
+                writeError = WebDavException.AtomicWriteUnsupported(
+                    path = key.value,
+                    statusCode = 405,
+                ),
+            ),
+        )
+
+        val error = assertFailsWith<BackupObjectStoreException.AtomicWriteUnsupported> {
+            store.write(
+                key = key,
+                mode = BackupWriteMode.Create,
+            ) { sink ->
+                sink.write("payload".encodeToByteArray())
+            }
+        }
+
+        assertEquals(key, error.key)
+        assertEquals(false, error.retryable)
+    }
+
+    @Test
+    fun `write collision is mapped to already exists`() = runTest {
+        val key = BackupObjectKey("object.zip")
+        val store = WebDavBackupObjectStore(
+            FakeWebDavClient(
+                writeError = WebDavException.AlreadyExists(
+                    operation = WebDavOperation.Write,
+                    path = key.value,
+                    statusCode = 412,
+                ),
+            ),
+        )
+
+        val error = assertFailsWith<BackupObjectStoreException.AlreadyExists> {
+            store.write(
+                key = key,
+                mode = BackupWriteMode.Create,
+            ) { sink ->
+                sink.write("payload".encodeToByteArray())
+            }
+        }
+
+        assertEquals(key, error.key)
+    }
 }
 
 private class FakeWebDavClient(
@@ -214,6 +264,7 @@ private class FakeWebDavClient(
     private val listResources: List<WebDavResource>? = null,
     private val readError: WebDavException? = null,
     private val readSourceError: WebDavException? = null,
+    private val writeError: WebDavException? = null,
 ) : WebDavClient {
     val objects = mutableMapOf<String, ByteArray>()
     var writtenPath: String? = null
@@ -262,6 +313,7 @@ private class FakeWebDavClient(
         bytes: ByteArray,
         precondition: WebDavWritePrecondition?,
     ): WebDavResource {
+        writeError?.let { throw it }
         writtenContentLength = bytes.size.toLong()
         return writeBytes(
             path = path,
@@ -277,6 +329,7 @@ private class FakeWebDavClient(
         precondition: WebDavWritePrecondition?,
         write: suspend (Sink) -> Unit,
     ): WebDavResource {
+        writeError?.let { throw it }
         val buffer = Buffer()
         write(buffer)
         writtenContentLength = contentLength

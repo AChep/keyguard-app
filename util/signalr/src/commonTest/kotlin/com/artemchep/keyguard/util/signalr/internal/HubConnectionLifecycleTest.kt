@@ -6,6 +6,7 @@ import com.artemchep.keyguard.util.signalr.HubConnectionCloseReason
 import com.artemchep.keyguard.util.signalr.HubConnectionEvent
 import com.artemchep.keyguard.util.signalr.HubConnectionState
 import com.artemchep.keyguard.util.signalr.HubMessage
+import com.artemchep.keyguard.util.signalr.internal.util.EstablishedConnection
 import com.artemchep.keyguard.util.signalr.logger.Logger
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -16,13 +17,16 @@ import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
@@ -87,6 +91,82 @@ class HubConnectionLifecycleTest {
     }
 
     @Test
+    fun `independent cancellation while connecting emits transport closed`() = runTest {
+        val session = FakeWebSocketSession(handshakePayload = null)
+        val client = testHttpClient()
+        val connection = testConnection(client, session)
+
+        try {
+            val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
+            val job = launchConnection(
+                connection = connection,
+                events = events,
+            )
+
+            session.connected.await()
+            session.fail(CancellationException("transport owner cancelled"))
+
+            withTimeout(5.seconds) {
+                val disconnecting = events.awaitState(HubConnectionState.DISCONNECTING)
+                assertEquals(HubConnectionCloseReason.TransportClosed, disconnecting.reason)
+                val disconnected = events.awaitState(HubConnectionState.DISCONNECTED)
+                assertEquals(HubConnectionCloseReason.TransportClosed, disconnected.reason)
+                session.awaitCloseFrame()
+                job.join()
+            }
+        } finally {
+            close(client, session)
+        }
+    }
+
+    @Test
+    fun `cancelling controller before accepting established transport stops it`() = runTest {
+        val session = FakeWebSocketSession()
+        val client = testHttpClient()
+        val options = testOptions(
+            client = client,
+            session = session,
+            closeTimeout = 50.milliseconds,
+        )
+        val stopStarted = CompletableDeferred<Unit>()
+        val transport = RecordingTransport {
+            stopStarted.complete(Unit)
+            awaitCancellation()
+        }
+        val established = CompletableDeferred<Unit>()
+
+        try {
+            val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
+            val job = launch {
+                runHubConnectionController(
+                    scope = this,
+                    events = events,
+                    options = options,
+                    connectConnection = {
+                        established.complete(Unit)
+                        EstablishedConnection(
+                            transport = transport,
+                            connectionId = null,
+                            initialPayload = null,
+                        )
+                    },
+                )
+            }
+
+            events.awaitState(HubConnectionState.CONNECTING)
+            established.await()
+
+            withTimeout(5.seconds) {
+                job.cancelAndJoin()
+            }
+            assertEquals(1, transport.stopCalls)
+            assertTrue(stopStarted.isCompleted)
+        } finally {
+            close(client, session)
+        }
+    }
+
+    @Test
     fun `handshake timeout emits failed disconnected event`() = runTest {
         val session = FakeWebSocketSession(handshakePayload = null)
         val client = testHttpClient()
@@ -139,6 +219,35 @@ class HubConnectionLifecycleTest {
             assertEquals(HubConnectionState.DISCONNECTED, disconnected.state)
             session.awaitCloseFrame()
             job.join()
+        } finally {
+            close(client, session)
+        }
+    }
+
+    @Test
+    fun `transport cancellation emits transport closed and completes`() = runTest {
+        val session = FakeWebSocketSession()
+        val client = testHttpClient()
+        val connection = testConnection(client, session)
+
+        try {
+            val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
+            val job = launchConnection(
+                connection = connection,
+                events = events,
+            )
+            events.awaitState(HubConnectionState.CONNECTED)
+
+            session.fail(CancellationException("transport owner cancelled"))
+
+            withTimeout(5.seconds) {
+                val disconnecting = events.awaitState(HubConnectionState.DISCONNECTING)
+                assertEquals(HubConnectionCloseReason.TransportClosed, disconnecting.reason)
+                val disconnected = events.awaitState(HubConnectionState.DISCONNECTED)
+                assertEquals(HubConnectionCloseReason.TransportClosed, disconnected.reason)
+                session.awaitCloseFrame()
+                job.join()
+            }
         } finally {
             close(client, session)
         }
@@ -258,6 +367,40 @@ class HubConnectionLifecycleTest {
         }
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Test
+    fun `keep alive transport cancellation emits transport closed`() = runTest {
+        val session = FakeWebSocketSession()
+        val client = testHttpClient()
+        val connection = testConnection(
+            client = client,
+            session = session,
+            keepAliveInterval = 10.milliseconds,
+        )
+
+        try {
+            val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
+            val job = launchConnection(
+                connection = connection,
+                events = events,
+            )
+            events.awaitState(HubConnectionState.CONNECTED)
+
+            session.failOutgoing(CancellationException("transport owner cancelled"))
+            advanceTimeBy(11.milliseconds)
+
+            withTimeout(5.seconds) {
+                val disconnecting = events.awaitState(HubConnectionState.DISCONNECTING)
+                assertEquals(HubConnectionCloseReason.TransportClosed, disconnecting.reason)
+                val disconnected = events.awaitState(HubConnectionState.DISCONNECTED)
+                assertEquals(HubConnectionCloseReason.TransportClosed, disconnected.reason)
+                job.join()
+            }
+        } finally {
+            close(client, session)
+        }
+    }
+
     @Test
     fun `cancelling job does not close injected http client`() = runTest {
         val session = FakeWebSocketSession()
@@ -321,15 +464,33 @@ class HubConnectionLifecycleTest {
         logger: Logger = Logger.Empty,
         keepAliveInterval: Duration = 1.minutes,
         handshakeResponseTimeout: Duration = 5.seconds,
-    ): HubConnection {
+    ): HubConnection = DefaultHubConnection(
+        testOptions(
+            client = client,
+            session = session,
+            logger = logger,
+            keepAliveInterval = keepAliveInterval,
+            handshakeResponseTimeout = handshakeResponseTimeout,
+        ),
+    )
+
+    private fun testOptions(
+        client: HttpClient,
+        session: FakeWebSocketSession,
+        logger: Logger = Logger.Empty,
+        keepAliveInterval: Duration = 1.minutes,
+        handshakeResponseTimeout: Duration = 5.seconds,
+        closeTimeout: Duration = 5.seconds,
+    ): HubConnectionOptions {
         val config = HubConnectionConfig().apply {
             this.skipNegotiate = true
             this.handshakeResponseTimeout = handshakeResponseTimeout
             this.serverTimeout = 1.minutes
             this.keepAliveInterval = keepAliveInterval
+            this.closeTimeout = closeTimeout
             this.logger = logger
         }
-        val options = HubConnectionOptions
+        return HubConnectionOptions
             .create(
                 url = "https://example.com/hub",
                 httpClient = client,
@@ -341,7 +502,6 @@ class HubConnectionLifecycleTest {
                     session
                 },
             )
-        return DefaultHubConnection(options)
     }
 
     private fun testHttpClient() = HttpClient(
@@ -435,6 +595,12 @@ private class FakeWebSocketSession(
         incomingFrames.close(cause)
     }
 
+    fun failOutgoing(
+        cause: Throwable,
+    ) {
+        outgoingFrames.close(cause)
+    }
+
     fun receiveInvocation(
         target: String,
     ) {
@@ -449,5 +615,29 @@ private class FakeWebSocketSession(
         incomingFrames.close()
         outgoingFrames.close()
         job.cancel()
+    }
+}
+
+private class RecordingTransport(
+    private val onStop: suspend () -> Unit = {},
+) : Transport {
+    var stopCalls: Int = 0
+        private set
+
+    override suspend fun send(
+        message: ByteArray,
+    ) = Unit
+
+    override suspend fun sendText(
+        message: String,
+    ) = Unit
+
+    override fun receive(): Flow<ByteArray> = kotlinx.coroutines.flow.flow {
+        awaitCancellation()
+    }
+
+    override suspend fun stop() {
+        stopCalls += 1
+        onStop()
     }
 }

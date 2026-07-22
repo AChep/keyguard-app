@@ -7,12 +7,7 @@ import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters
 import org.bouncycastle.crypto.signers.Ed25519Signer
 import org.bouncycastle.crypto.util.OpenSSHPrivateKeyUtil
 import org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
-import java.math.BigInteger
 import java.security.KeyFactory
-import java.security.KeyPairGenerator
-import java.security.PrivateKey
 import java.security.SecureRandom
 import java.security.Signature
 import java.security.interfaces.RSAPrivateCrtKey
@@ -104,6 +99,33 @@ class SshAgentSigningTest {
     }
 
     @Test
+    fun `native signing rejects a supplied public key from another identity`() {
+        val edGenerator = Ed25519KeyPairGenerator()
+        edGenerator.init(Ed25519KeyGenerationParameters(SecureRandom()))
+        val firstEd = edGenerator.generateKeyPair()
+        val secondEd = edGenerator.generateKeyPair()
+        assertFailsWith<Exception> {
+            SshAgentRequestProcessorJvm.signWithPrivateKey(
+                privateKeyPem = toOpenSshPrivateKeyPem(firstEd.private as Ed25519PrivateKeyParameters),
+                publicKeyOpenSsh = toOpenSshPublicKey(secondEd.public as Ed25519PublicKeyParameters),
+                data = "mismatched Ed25519 identity".encodeToByteArray(),
+                flags = 0,
+            )
+        }
+
+        val firstRsa = generateJcaRsaKeyPair()
+        val secondRsa = generateJcaRsaKeyPair()
+        assertFailsWith<Exception> {
+            SshAgentRequestProcessorJvm.signWithPrivateKey(
+                privateKeyPem = toPkcs8PrivateKeyPem(firstRsa.private),
+                publicKeyOpenSsh = toOpenSshPublicKey(secondRsa.public as RSAPublicKey),
+                data = "mismatched RSA identity".encodeToByteArray(),
+                flags = 0x02,
+            )
+        }
+    }
+
+    @Test
     fun `native signing rejects invalid PEM`() {
         assertFailsWith<Exception> {
             SshAgentRequestProcessorJvm.signWithPrivateKey(
@@ -142,12 +164,6 @@ class SshAgentSigningTest {
         )
     }
 
-    private fun generateJcaRsaKeyPair(): java.security.KeyPair {
-        val generator = KeyPairGenerator.getInstance("RSA")
-        generator.initialize(2048, SecureRandom())
-        return generator.generateKeyPair()
-    }
-
     private fun toOpenSshPrivateKeyPem(key: Ed25519PrivateKeyParameters): String {
         val body = Base64.getEncoder().encodeToString(OpenSSHPrivateKeyUtil.encodePrivateKey(key))
         return buildString {
@@ -159,33 +175,4 @@ class SshAgentSigningTest {
 
     private fun toOpenSshPublicKey(key: Ed25519PublicKeyParameters): String =
         "ssh-ed25519 ${Base64.getEncoder().encodeToString(OpenSSHPublicKeyUtil.encodePublicKey(key))}"
-
-    private fun toOpenSshPublicKey(key: RSAPublicKey): String {
-        val blob = ByteArrayOutputStream().use { bytes ->
-            DataOutputStream(bytes).use { output ->
-                output.writeSshString("ssh-rsa".encodeToByteArray())
-                output.writeSshMpint(key.publicExponent)
-                output.writeSshMpint(key.modulus)
-            }
-            bytes.toByteArray()
-        }
-        return "ssh-rsa ${Base64.getEncoder().encodeToString(blob)}"
-    }
-
-    private fun DataOutputStream.writeSshMpint(value: BigInteger) =
-        writeSshString(value.toByteArray())
-
-    private fun DataOutputStream.writeSshString(value: ByteArray) {
-        writeInt(value.size)
-        write(value)
-    }
-
-    private fun toPkcs8PrivateKeyPem(privateKey: PrivateKey): String {
-        val body = Base64.getEncoder().encodeToString(privateKey.encoded)
-        return buildString {
-            appendLine("-----BEGIN PRIVATE KEY-----")
-            body.chunked(64).forEach(::appendLine)
-            appendLine("-----END PRIVATE KEY-----")
-        }
-    }
 }

@@ -251,6 +251,10 @@ fn import_openssh(content: &str, passphrase: Option<&[u8]>) -> Result<ImportOutc
     }
     validate_openssh_container_algorithms(&decoded)?;
     let outer_public = parse_openssh_outer_public(&decoded)?;
+    // The compatibility decoder accepts SSHJ's extended sequential padding,
+    // so it cannot enforce the upstream outer/inner public-key check itself.
+    // `normalize_openssh_key` performs that identity check immediately after
+    // the private record is available.
     let private_key =
         PrivateKey::from_bytes_without_public_key_check(&decoded).map_err(map_ssh_parse_error)?;
     validate_openssh_kdf(private_key.kdf())?;
@@ -283,12 +287,7 @@ fn validate_openssh_container_algorithms(decoded: &[u8]) -> Result<(), ImportErr
     Ok(())
 }
 
-enum OpenSshOuterPublic {
-    Rsa(Vec<u8>),
-    Ed25519,
-}
-
-fn parse_openssh_outer_public(decoded: &[u8]) -> Result<OpenSshOuterPublic, ImportError> {
+fn parse_openssh_outer_public(decoded: &[u8]) -> Result<Vec<u8>, ImportError> {
     const AUTH_MAGIC: &[u8] = b"openssh-key-v1\0";
     let mut reader = WireReader::new(
         decoded
@@ -308,14 +307,11 @@ fn parse_openssh_outer_public(decoded: &[u8]) -> Result<OpenSshOuterPublic, Impo
             let modulus = positive_mpint(&key.n)?;
             let public_exponent = positive_mpint(&key.e)?;
             validate_rsa_public_components(&modulus, &public_exponent)?;
-            public
-                .to_bytes()
-                .map(OpenSshOuterPublic::Rsa)
-                .map_err(map_ssh_parse_error)
         }
-        ssh_key::public::KeyData::Ed25519(_) => Ok(OpenSshOuterPublic::Ed25519),
-        _ => Err(ImportError::UnsupportedAlgorithm),
-    }
+        ssh_key::public::KeyData::Ed25519(_) => {}
+        _ => return Err(ImportError::UnsupportedAlgorithm),
+    };
+    public.to_bytes().map_err(map_ssh_parse_error)
 }
 
 fn validate_openssh_kdf(kdf: &Kdf) -> Result<(), ImportError> {
@@ -356,23 +352,10 @@ fn map_ssh_decrypt_error(error: SshKeyError) -> ImportError {
 
 fn normalize_openssh_key(
     private_key: &PrivateKey,
-    outer_public: &OpenSshOuterPublic,
+    outer_public: &[u8],
 ) -> Result<SshKeyMaterial, ImportError> {
-    match private_key.key_data() {
-        KeypairData::Rsa(keypair) => {
-            let mut material = rsa_material_from_openssh(keypair)?;
-            match outer_public {
-                OpenSshOuterPublic::Rsa(public_key) => {
-                    material.public_key.clone_from(public_key);
-                    Ok(material)
-                }
-                // SSHJ built RSA KeyPair.public from the outer record. An
-                // Ed25519/RSA cross-pair cannot be represented coherently by
-                // the typed native result, so retain acceptance only for the
-                // structurally valid RSA case.
-                OpenSshOuterPublic::Ed25519 => Err(ImportError::MalformedKey),
-            }
-        }
+    let material = match private_key.key_data() {
+        KeypairData::Rsa(keypair) => rsa_material_from_openssh(keypair)?,
         KeypairData::Ed25519(keypair) => {
             let seed = Zeroizing::new(keypair.private.to_bytes());
             let material = ssh_keys::encode_ed25519_material(&seed, random_checkint()?)
@@ -385,15 +368,19 @@ fn normalize_openssh_key(
             {
                 return Err(ImportError::MalformedKey);
             }
-            Ok(material)
+            material
         }
         KeypairData::Dsa(_)
         | KeypairData::Other(_)
         | KeypairData::SkEd25519(_)
-        | KeypairData::Encrypted(_) => Err(ImportError::UnsupportedAlgorithm),
+        | KeypairData::Encrypted(_) => return Err(ImportError::UnsupportedAlgorithm),
         #[allow(unreachable_patterns)]
-        _ => Err(ImportError::UnsupportedAlgorithm),
+        _ => return Err(ImportError::UnsupportedAlgorithm),
+    };
+    if material.public_key != outer_public {
+        return Err(ImportError::MalformedKey);
     }
+    Ok(material)
 }
 
 fn rsa_material_from_openssh(keypair: &RsaKeypair) -> Result<SshKeyMaterial, ImportError> {
@@ -1426,20 +1413,22 @@ mod tests {
     }
 
     #[test]
-    fn openssh_import_ignores_mismatched_outer_public_record_like_sshj() {
+    fn openssh_import_rejects_mismatched_outer_ed25519_public_record() {
         let unencrypted = mutate_openssh_outer_public(OPENSSH_NONE);
         assert!(PrivateKey::from_openssh(&unencrypted).is_err());
-        assert_eq!(
-            success(&unencrypted, None).r#type,
-            SshKeyType::Ed25519 as i32,
+        assert_error(
+            &unencrypted,
+            None,
+            SshPrivateKeyImportErrorReason::MalformedKey,
         );
 
         let encrypted = mutate_openssh_outer_public(OPENSSH_ENCRYPTED[6]);
         let strict = PrivateKey::from_openssh(&encrypted).expect("encrypted container parses");
         assert!(strict.decrypt(b"hunter42").is_err());
-        assert_eq!(
-            success(&encrypted, Some(b"hunter42")).r#type,
-            SshKeyType::Ed25519 as i32,
+        assert_error(
+            &encrypted,
+            Some(b"hunter42"),
+            SshPrivateKeyImportErrorReason::MalformedKey,
         );
     }
 
@@ -1497,7 +1486,7 @@ mod tests {
     }
 
     #[test]
-    fn openssh_rsa_retains_structurally_valid_outer_public_record_like_sshj() {
+    fn openssh_import_rejects_mismatched_outer_rsa_public_record() {
         let fixtures = [
             (
                 include_str!(
@@ -1516,17 +1505,15 @@ mod tests {
         for (fixture, passphrase) in fixtures {
             let inner_public = success(fixture, passphrase).public_key.clone();
             let mutated = mutate_openssh_outer_public(fixture);
-            let expected_outer = match parse_openssh_outer_public(&decode_openssh_fixture(&mutated))
-                .expect("valid mutated outer RSA")
-            {
-                OpenSshOuterPublic::Rsa(public) => public,
-                OpenSshOuterPublic::Ed25519 => panic!("expected outer RSA"),
-            };
-            let imported = success(&mutated, passphrase);
+            let mutated_outer = parse_openssh_outer_public(&decode_openssh_fixture(&mutated))
+                .expect("valid mutated outer RSA");
 
-            assert_ne!(expected_outer, inner_public);
-            assert_eq!(imported.r#type, SshKeyType::Rsa as i32);
-            assert_eq!(imported.public_key, expected_outer);
+            assert_ne!(mutated_outer, inner_public);
+            assert_error(
+                &mutated,
+                passphrase,
+                SshPrivateKeyImportErrorReason::MalformedKey,
+            );
         }
     }
 

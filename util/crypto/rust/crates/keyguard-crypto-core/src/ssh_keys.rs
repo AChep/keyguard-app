@@ -21,7 +21,7 @@ use pkcs8::{
 use prost::Message;
 use ssh_key::{
     Mpint, PrivateKey, PublicKey,
-    private::{Ed25519Keypair, Ed25519PrivateKey, KeypairData},
+    private::{Ed25519Keypair, Ed25519PrivateKey, KeypairData, RsaKeypair},
     public::{Ed25519PublicKey, KeyData, RsaPublicKey},
 };
 use zeroize::{Zeroize, Zeroizing};
@@ -60,15 +60,10 @@ pub(crate) fn parse(
     bound_text(&private_key_pem)?;
     bound_text(&public_key_openssh)?;
     let private_key = decode_private_pem(&private_key_pem)?;
-    validate_private_key(&private_key)?;
 
     let parsed_public = PublicKey::from_openssh(&public_key_openssh)
         .map_err(|_| PrimitiveError::InvalidArgument)?;
-    let key_type = match parsed_public.key_data() {
-        KeyData::Rsa(_) => SshKeyType::Rsa,
-        KeyData::Ed25519(_) => SshKeyType::Ed25519,
-        _ => return Err(PrimitiveError::InvalidArgument),
-    };
+    let key_type = validate_key_pair(&private_key, &parsed_public)?;
     let public_key = parsed_public
         .to_bytes()
         .map_err(|_| PrimitiveError::InvalidArgument)?;
@@ -115,7 +110,7 @@ pub(crate) fn private_key_rsa_bits(private_key: Vec<u8>) -> i32 {
         return 0;
     }
     rsa_parts_from_openssh(&private_key)
-        .or_else(|| rsa_parts_from_der(&private_key).map(|value| value.parts))
+        .or_else(|| rsa_parts_from_der(&private_key))
         .and_then(|parts| modulus_bits(&parts.modulus))
         .and_then(|bits| i32::try_from(bits).ok())
         .unwrap_or(0)
@@ -150,27 +145,16 @@ pub(crate) fn sign(
     if data.len() > MAX_SIGN_DATA_BYTES {
         return Err(PrimitiveError::ResourceLimit);
     }
+    let parsed_public = public_key_openssh
+        .as_deref()
+        .map(PublicKey::from_openssh)
+        .transpose()
+        .map_err(|_| PrimitiveError::InvalidArgument)?;
 
     let private_key = decode_private_pem(&private_key_pem)?;
-    let signature = if let Ok(open_ssh_key) = PrivateKey::from_bytes(&private_key) {
-        match open_ssh_key.key_data() {
-            KeypairData::Ed25519(keypair) => sign_ed25519(keypair, &data)?,
-            KeypairData::Rsa(keypair) => {
-                let parts = RsaParts {
-                    modulus: positive_mpint(&keypair.public.n)?,
-                    public_exponent: positive_mpint(&keypair.public.e)?,
-                    private_exponent: positive_mpint(&keypair.private.d)?,
-                    crt: None,
-                };
-                sign_rsa(parts, public_key_openssh.as_deref(), &data, flags)?
-            }
-            _ => return Err(PrimitiveError::InvalidArgument),
-        }
-    } else {
-        let parts = rsa_parts_from_der(&private_key)
-            .ok_or(PrimitiveError::InvalidArgument)?
-            .parts;
-        sign_rsa(parts, public_key_openssh.as_deref(), &data, flags)?
+    let signature = match decode_private_key(&private_key)? {
+        DecodedPrivateKey::Ed25519(key) => sign_ed25519(&key, parsed_public.as_ref(), &data)?,
+        DecodedPrivateKey::Rsa(parts) => sign_rsa(parts, parsed_public.as_ref(), &data, flags)?,
     };
     Ok(signature.encode_to_vec())
 }
@@ -231,10 +215,14 @@ pub(super) fn encode_ed25519_material(
     })
 }
 
-fn sign_ed25519(keypair: &Ed25519Keypair, data: &[u8]) -> Result<SshSignature, PrimitiveError> {
-    let key =
-        Ed25519KeyPair::from_seed_and_public_key(keypair.private.as_ref(), keypair.public.as_ref())
-            .map_err(|_| PrimitiveError::InvalidArgument)?;
+fn sign_ed25519(
+    key: &Ed25519KeyPair,
+    public_key: Option<&PublicKey>,
+    data: &[u8],
+) -> Result<SshSignature, PrimitiveError> {
+    if let Some(public_key) = public_key {
+        validate_ed25519_public(key, public_key)?;
+    }
     let signature = key
         .try_sign(data)
         .map_err(|_| PrimitiveError::CryptoFailure)?;
@@ -246,24 +234,11 @@ fn sign_ed25519(keypair: &Ed25519Keypair, data: &[u8]) -> Result<SshSignature, P
 
 fn sign_rsa(
     mut parts: RsaParts,
-    public_key_openssh: Option<&str>,
+    public_key: Option<&PublicKey>,
     data: &[u8],
     flags: u32,
 ) -> Result<SshSignature, PrimitiveError> {
-    if parts.public_exponent.iter().all(|byte| *byte == 0) {
-        let public_key = public_key_openssh.ok_or(PrimitiveError::InvalidArgument)?;
-        let parsed =
-            PublicKey::from_openssh(public_key).map_err(|_| PrimitiveError::InvalidArgument)?;
-        let rsa = parsed
-            .key_data()
-            .rsa()
-            .ok_or(PrimitiveError::InvalidArgument)?;
-        let public_modulus = positive_mpint(&rsa.n)?;
-        if strip_leading_zeroes(&public_modulus) != strip_leading_zeroes(&parts.modulus) {
-            return Err(PrimitiveError::InvalidArgument);
-        }
-        parts.public_exponent = positive_mpint(&rsa.e)?;
-    }
+    resolve_rsa_public(&mut parts, public_key)?;
     let (algorithm, hash) = if flags & 0x04 != 0 {
         ("rsa-sha2-512", RsaSignatureHash::Sha512)
     } else if flags & 0x02 != 0 {
@@ -294,40 +269,134 @@ fn sign_rsa(
     })
 }
 
-fn validate_private_key(private_key: &[u8]) -> Result<(), PrimitiveError> {
+fn validate_key_pair(
+    private_key: &[u8],
+    public_key: &PublicKey,
+) -> Result<SshKeyType, PrimitiveError> {
+    match decode_private_key(private_key)? {
+        DecodedPrivateKey::Rsa(mut parts) => {
+            resolve_rsa_public(&mut parts, Some(public_key))?;
+            Ok(SshKeyType::Rsa)
+        }
+        DecodedPrivateKey::Ed25519(key) => {
+            validate_ed25519_public(&key, public_key)?;
+            Ok(SshKeyType::Ed25519)
+        }
+    }
+}
+
+enum DecodedPrivateKey {
+    Rsa(RsaParts),
+    Ed25519(Ed25519KeyPair),
+}
+
+/// Decodes an OpenSSH, PKCS#8, or PKCS#1 private key into its signing
+/// material, verifying any public identity embedded in the document itself.
+fn decode_private_key(private_key: &[u8]) -> Result<DecodedPrivateKey, PrimitiveError> {
     if let Ok(key) = PrivateKey::from_bytes(private_key) {
         return match key.key_data() {
-            KeypairData::Rsa(_) | KeypairData::Ed25519(_) => Ok(()),
+            KeypairData::Rsa(keypair) => {
+                Ok(DecodedPrivateKey::Rsa(rsa_parts_from_keypair(keypair)?))
+            }
+            KeypairData::Ed25519(keypair) => {
+                let key = Ed25519KeyPair::from_seed_and_public_key(
+                    keypair.private.as_ref(),
+                    keypair.public.as_ref(),
+                )
+                .map_err(|_| PrimitiveError::InvalidArgument)?;
+                Ok(DecodedPrivateKey::Ed25519(key))
+            }
             _ => Err(PrimitiveError::InvalidArgument),
         };
     }
-    if rsa_parts_from_der(private_key).is_some() || is_ed25519_pkcs8(private_key) {
-        Ok(())
-    } else {
-        Err(PrimitiveError::InvalidArgument)
+
+    if let Some(parts) = rsa_parts_from_der(private_key) {
+        return Ok(DecodedPrivateKey::Rsa(parts));
     }
+
+    let parsed = parse_ed25519_pkcs8(private_key).ok_or(PrimitiveError::InvalidArgument)?;
+    let key = Ed25519KeyPair::from_seed_unchecked(parsed.seed)
+        .map_err(|_| PrimitiveError::InvalidArgument)?;
+    if parsed
+        .public_key
+        .is_some_and(|embedded| embedded != key.public_key().as_ref())
+    {
+        return Err(PrimitiveError::InvalidArgument);
+    }
+    Ok(DecodedPrivateKey::Ed25519(key))
+}
+
+fn validate_ed25519_public(
+    key: &Ed25519KeyPair,
+    public_key: &PublicKey,
+) -> Result<(), PrimitiveError> {
+    let supplied = public_key
+        .key_data()
+        .ed25519()
+        .ok_or(PrimitiveError::InvalidArgument)?;
+    if supplied.as_ref() != key.public_key().as_ref() {
+        return Err(PrimitiveError::InvalidArgument);
+    }
+    Ok(())
+}
+
+fn resolve_rsa_public(
+    parts: &mut RsaParts,
+    public_key: Option<&PublicKey>,
+) -> Result<(), PrimitiveError> {
+    if let Some(public_key) = public_key {
+        let supplied = public_key
+            .key_data()
+            .rsa()
+            .ok_or(PrimitiveError::InvalidArgument)?;
+        let supplied_modulus = positive_mpint(&supplied.n)?;
+        if strip_leading_zeroes(&supplied_modulus) != strip_leading_zeroes(&parts.modulus) {
+            return Err(PrimitiveError::InvalidArgument);
+        }
+
+        let supplied_exponent = positive_mpint(&supplied.e)?;
+        if parts.public_exponent.iter().all(|byte| *byte == 0) {
+            // Historical SSHJ/Keyguard RSA records persist n/d with a zero
+            // exponent. Recover e only from a same-modulus public record; the
+            // sensitive signing backend then validates the reconstructed
+            // n/e/d key with RSA_check_key before producing a signature.
+            parts.public_exponent = supplied_exponent;
+        } else if strip_leading_zeroes(&supplied_exponent)
+            != strip_leading_zeroes(&parts.public_exponent)
+        {
+            return Err(PrimitiveError::InvalidArgument);
+        }
+    }
+
+    if parts.public_exponent.iter().all(|byte| *byte == 0) {
+        return Err(PrimitiveError::InvalidArgument);
+    }
+    Ok(())
+}
+
+fn rsa_parts_from_keypair(keypair: &RsaKeypair) -> Result<RsaParts, PrimitiveError> {
+    Ok(RsaParts {
+        modulus: positive_mpint(&keypair.public.n)?,
+        public_exponent: positive_mpint(&keypair.public.e)?,
+        private_exponent: positive_mpint(&keypair.private.d)?,
+        crt: None,
+    })
 }
 
 fn rsa_parts_from_openssh(private_key: &[u8]) -> Option<RsaParts> {
     let key = PrivateKey::from_bytes(private_key).ok()?;
     let keypair = key.key_data().rsa()?;
-    Some(RsaParts {
-        modulus: positive_mpint(&keypair.public.n).ok()?,
-        public_exponent: positive_mpint(&keypair.public.e).ok()?,
-        private_exponent: positive_mpint(&keypair.private.d).ok()?,
-        crt: None,
-    })
+    rsa_parts_from_keypair(keypair).ok()
 }
 
-fn rsa_parts_from_der(private_key: &[u8]) -> Option<ParsedRsaParts> {
+fn rsa_parts_from_der(private_key: &[u8]) -> Option<RsaParts> {
     if let Ok(info) = PrivateKeyInfo::from_der(private_key) {
         if info.algorithm.oid != RSA_ENCRYPTION_OID {
             return None;
         }
-        let parts = rsa_parts_from_pkcs1(info.private_key)?;
-        return Some(ParsedRsaParts { parts });
+        return rsa_parts_from_pkcs1(info.private_key);
     }
-    rsa_parts_from_pkcs1(private_key).map(|parts| ParsedRsaParts { parts })
+    rsa_parts_from_pkcs1(private_key)
 }
 
 fn rsa_parts_from_pkcs1(private_key: &[u8]) -> Option<RsaParts> {
@@ -360,24 +429,32 @@ fn rsa_parts_from_pkcs1(private_key: &[u8]) -> Option<RsaParts> {
     })
 }
 
-fn is_ed25519_pkcs8(private_key: &[u8]) -> bool {
+fn parse_ed25519_pkcs8(private_key: &[u8]) -> Option<ParsedEd25519Pkcs8<'_>> {
     let Ok(info) = PrivateKeyInfo::from_der(private_key) else {
-        return false;
+        return None;
     };
     if info.algorithm.oid != ED25519_OID || info.algorithm.parameters.is_some() {
-        return false;
+        return None;
     }
 
     // RFC 8410 wraps the 32-byte CurvePrivateKey in a second OCTET STRING.
     // `from_der` consumes the complete inner document, rejecting trailing or
     // malformed data instead of merely accepting a matching algorithm OID.
     let Ok(seed) = OctetStringRef::from_der(info.private_key) else {
-        return false;
+        return None;
     };
-    seed.as_bytes().len() == 32
+    (seed.as_bytes().len() == 32
         && info
             .public_key
-            .is_none_or(|public_key| public_key.len() == 32)
+            .is_none_or(|public_key| public_key.len() == 32))
+    .then_some(ParsedEd25519Pkcs8 {
+        seed: seed.as_bytes(),
+        public_key: info.public_key,
+    })
+}
+
+fn is_ed25519_pkcs8(private_key: &[u8]) -> bool {
+    parse_ed25519_pkcs8(private_key).is_some()
 }
 
 fn is_supported_pkcs8(private_key: &[u8]) -> bool {
@@ -563,8 +640,9 @@ fn sensitive_rsa_error(error: SensitiveRsaError) -> PrimitiveError {
     }
 }
 
-struct ParsedRsaParts {
-    parts: RsaParts,
+struct ParsedEd25519Pkcs8<'a> {
+    seed: &'a [u8],
+    public_key: Option<&'a [u8]>,
 }
 
 struct RsaParts {
@@ -769,7 +847,7 @@ mod tests {
         let signed = signature(
             sign(
                 pem.clone(),
-                Some(public_text),
+                Some(public_text.clone()),
                 b"incomplete-rsa".to_vec(),
                 0x02,
             )
@@ -792,7 +870,27 @@ mod tests {
         let other_public = format_public_key_text(SshKeyType::Rsa, &other.public_key)
             .expect("other RSA public text");
         assert_eq!(
-            sign(pem, Some(other_public), b"incomplete-rsa".to_vec(), 0x02,),
+            sign(
+                pem.clone(),
+                Some(other_public),
+                b"incomplete-rsa".to_vec(),
+                0x02,
+            ),
+            Err(PrimitiveError::InvalidArgument),
+        );
+
+        let wrong_exponent_public =
+            encode_rsa_public(rsa.n.as_positive_bytes().expect("positive modulus"), &[3])
+                .expect("same-modulus RSA public key");
+        let wrong_exponent_text = format_public_key_text(SshKeyType::Rsa, &wrong_exponent_public)
+            .expect("same-modulus RSA public text");
+        assert_eq!(
+            sign(
+                pem,
+                Some(wrong_exponent_text),
+                b"incomplete-rsa".to_vec(),
+                0x02,
+            ),
             Err(PrimitiveError::InvalidArgument),
         );
     }
@@ -802,7 +900,7 @@ mod tests {
         let seed = [0x42_u8; 32];
         let valid = ed25519_pkcs8(&seed, None, None);
         assert!(is_ed25519_pkcs8(&valid));
-        assert!(validate_private_key(&valid).is_ok());
+        assert!(parse_ed25519_pkcs8(&valid).is_some());
 
         // Persisted public/private types were historically classified
         // independently, so a valid PKCS#8 document keeps the generic label.
@@ -855,17 +953,87 @@ mod tests {
     }
 
     #[test]
-    fn persisted_parse_preserves_independently_valid_mismatched_inputs() {
+    fn persisted_parse_and_signing_reject_mismatched_ed25519_identity() {
         let first = material(generate(SshKeyType::Ed25519, 0).expect("first Ed25519 key"));
         let second = material(generate(SshKeyType::Ed25519, 0).expect("second Ed25519 key"));
         let private_pem =
             format_private_key_text(SshKeyType::Ed25519, &first.private_key).expect("private PEM");
-        let public_text =
+        let matching_public =
+            format_public_key_text(SshKeyType::Ed25519, &first.public_key).expect("public text");
+        let mismatched_public =
             format_public_key_text(SshKeyType::Ed25519, &second.public_key).expect("public text");
 
-        let parsed = material(parse(private_pem, public_text).expect("compatibility parse"));
+        let parsed = material(
+            parse(private_pem.clone(), matching_public).expect("matching identity parses"),
+        );
         assert_eq!(parsed.private_key, first.private_key);
-        assert_eq!(parsed.public_key, second.public_key);
+        assert_eq!(parsed.public_key, first.public_key);
+        assert_eq!(
+            parse(private_pem.clone(), mismatched_public.clone()),
+            Err(PrimitiveError::InvalidArgument),
+        );
+        assert_eq!(
+            sign(
+                private_pem,
+                Some(mismatched_public),
+                b"mismatched-ed25519".to_vec(),
+                0,
+            ),
+            Err(PrimitiveError::InvalidArgument),
+        );
+    }
+
+    #[test]
+    fn persisted_parse_and_signing_reject_mismatched_complete_rsa_identity() {
+        let first = material(generate(SshKeyType::Rsa, 1024).expect("first RSA key"));
+        let second = material(generate(SshKeyType::Rsa, 1024).expect("second RSA key"));
+        let private_pem =
+            format_private_key_text(SshKeyType::Rsa, &first.private_key).expect("private PEM");
+        let matching_public =
+            format_public_key_text(SshKeyType::Rsa, &first.public_key).expect("public text");
+        let mismatched_public =
+            format_public_key_text(SshKeyType::Rsa, &second.public_key).expect("public text");
+
+        assert!(parse(private_pem.clone(), matching_public).is_ok());
+        assert_eq!(
+            parse(private_pem.clone(), mismatched_public.clone()),
+            Err(PrimitiveError::InvalidArgument),
+        );
+        assert_eq!(
+            sign(
+                private_pem.clone(),
+                Some(mismatched_public),
+                b"mismatched-rsa".to_vec(),
+                0x02,
+            ),
+            Err(PrimitiveError::InvalidArgument),
+        );
+
+        let first_public = PublicKey::from_bytes(&first.public_key).expect("RSA public key");
+        let first_rsa = first_public
+            .key_data()
+            .rsa()
+            .expect("RSA public components");
+        let wrong_exponent_public = encode_rsa_public(
+            first_rsa.n.as_positive_bytes().expect("positive modulus"),
+            &[3],
+        )
+        .expect("same-modulus RSA public key");
+        let wrong_exponent_text = format_public_key_text(SshKeyType::Rsa, &wrong_exponent_public)
+            .expect("same-modulus RSA public text");
+        assert_eq!(
+            parse(private_pem.clone(), wrong_exponent_text.clone()),
+            Err(PrimitiveError::InvalidArgument),
+        );
+        assert_eq!(
+            sign(
+                private_pem,
+                Some(wrong_exponent_text),
+                b"mismatched-rsa-exponent".to_vec(),
+                0x02,
+            ),
+            Err(PrimitiveError::InvalidArgument),
+        );
     }
 
     #[test]
@@ -903,10 +1071,7 @@ mod tests {
         let mut trailing_der = rsa.private_key.clone();
         trailing_der.push(0);
         assert_eq!(private_key_rsa_bits(trailing_der.clone()), 0);
-        assert_eq!(
-            validate_private_key(&trailing_der),
-            Err(PrimitiveError::InvalidArgument),
-        );
+        assert!(rsa_parts_from_der(&trailing_der).is_none());
     }
 
     #[test]

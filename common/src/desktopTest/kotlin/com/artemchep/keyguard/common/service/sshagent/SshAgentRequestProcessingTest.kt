@@ -23,8 +23,6 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
-import java.security.KeyPairGenerator
-import java.security.PrivateKey
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -949,10 +947,46 @@ class SshAgentRequestProcessingTest {
     }
 
     @Test
+    fun `handleSignData rejects an approved public key backed by another private identity`() = runTest {
+        val history = mutableListOf<AddSshUsageHistoryRequest>()
+        val privateIdentity = generateRsaSshKeyPair()
+        val approvedIdentity = generateRsaSshKeyPair()
+        val server = createServer(
+            vaultSession = MutableVaultSession(
+                createUnlockedSessionWithHistory(
+                    history,
+                    createSshSecret(
+                        name = "Mismatched signer",
+                        publicKey = approvedIdentity.publicKeyOpenSsh,
+                        fingerprint = "SHA256:approved",
+                        privateKey = privateIdentity.privateKeyPem,
+                    ),
+                ),
+            ),
+            onApprovalRequest = { _, _, _ -> true },
+        )
+
+        val response = server.handleSignData(
+            requestId = 58L,
+            req = SshAgentMessages.SignDataRequest(
+                publicKey = approvedIdentity.publicKeyOpenSsh,
+                data = byteArrayOf(1, 2, 3),
+                flags = 0x02,
+            ),
+        )
+
+        assertEquals(SshAgentMessages.ErrorCode.UNSPECIFIED, response.error?.code)
+        assertNull(response.signData)
+        val event = history.single()
+        assertEquals(SshUsageHistoryRequestType.AGENT_SIGN_DATA, event.request)
+        assertEquals(SshUsageHistoryResponseType.FAILURE, event.response)
+    }
+
+    @Test
     fun `handleSignData records successful signing after matching ssh key`() = runTest {
         val history = mutableListOf<AddSshUsageHistoryRequest>()
-        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
-        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val keyPair = signerKeyPair
+        val publicKey = keyPair.publicKeyOpenSsh
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSessionWithHistory(
@@ -961,7 +995,7 @@ class SshAgentRequestProcessingTest {
                         name = "Signer",
                         publicKey = "$publicKey signer@example",
                         fingerprint = "SHA256:signer",
-                        privateKey = generatePkcs8RsaPrivateKeyPem(),
+                        privateKey = keyPair.privateKeyPem,
                     ),
                 ),
             ),
@@ -991,8 +1025,8 @@ class SshAgentRequestProcessingTest {
     @Test
     fun `handleSignData remembers approval within configured window`() = runTest {
         var approvalPromptCount = 0
-        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
-        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val keyPair = signerKeyPair
+        val publicKey = keyPair.publicKeyOpenSsh
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSession(
@@ -1000,7 +1034,7 @@ class SshAgentRequestProcessingTest {
                         name = "Signer",
                         publicKey = "$publicKey signer@example",
                         fingerprint = "SHA256:signer",
-                        privateKey = generatePkcs8RsaPrivateKeyPem(),
+                        privateKey = keyPair.privateKeyPem,
                     ),
                 ),
             ),
@@ -1028,8 +1062,8 @@ class SshAgentRequestProcessingTest {
     @Test
     fun `handleSignData never remembers legacy callers with the same app name`() = runTest {
         var approvalPromptCount = 0
-        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
-        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val keyPair = signerKeyPair
+        val publicKey = keyPair.publicKeyOpenSsh
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSession(
@@ -1037,7 +1071,7 @@ class SshAgentRequestProcessingTest {
                         name = "Signer",
                         publicKey = "$publicKey signer@example",
                         fingerprint = "SHA256:signer",
-                        privateKey = generatePkcs8RsaPrivateKeyPem(),
+                        privateKey = keyPair.privateKeyPem,
                     ),
                 ),
             ),
@@ -1065,8 +1099,8 @@ class SshAgentRequestProcessingTest {
     @Test
     fun `handleSignData separates identical app names with different principals`() = runTest {
         var approvalPromptCount = 0
-        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
-        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val keyPair = signerKeyPair
+        val publicKey = keyPair.publicKeyOpenSsh
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSession(
@@ -1074,7 +1108,7 @@ class SshAgentRequestProcessingTest {
                         name = "Signer",
                         publicKey = "$publicKey signer@example",
                         fingerprint = "SHA256:signer",
-                        privateKey = generatePkcs8RsaPrivateKeyPem(),
+                        privateKey = keyPair.privateKeyPem,
                     ),
                 ),
             ),
@@ -1108,8 +1142,8 @@ class SshAgentRequestProcessingTest {
     fun `handleSignData forgets approval when approval window is disabled and re-enabled`() = runTest {
         var approvalPromptCount = 0
         val approvalWindow = MutableStateFlow(5.minutes)
-        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
-        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val keyPair = signerKeyPair
+        val publicKey = keyPair.publicKeyOpenSsh
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSession(
@@ -1117,7 +1151,7 @@ class SshAgentRequestProcessingTest {
                         name = "Signer",
                         publicKey = "$publicKey signer@example",
                         fingerprint = "SHA256:signer",
-                        privateKey = generatePkcs8RsaPrivateKeyPem(),
+                        privateKey = keyPair.privateKeyPem,
                     ),
                 ),
             ),
@@ -1148,8 +1182,8 @@ class SshAgentRequestProcessingTest {
     fun `handleSignData forgets approval when approval window changes`() = runTest {
         var approvalPromptCount = 0
         val approvalWindow = MutableStateFlow(5.minutes)
-        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
-        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val keyPair = signerKeyPair
+        val publicKey = keyPair.publicKeyOpenSsh
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSession(
@@ -1157,7 +1191,7 @@ class SshAgentRequestProcessingTest {
                         name = "Signer",
                         publicKey = "$publicKey signer@example",
                         fingerprint = "SHA256:signer",
-                        privateKey = generatePkcs8RsaPrivateKeyPem(),
+                        privateKey = keyPair.privateKeyPem,
                     ),
                 ),
             ),
@@ -1187,8 +1221,8 @@ class SshAgentRequestProcessingTest {
     fun `handleSignData never resurrects approvals across cache policy changes`() = runTest {
         var approvalPromptCount = 0
         val approvalCachePolicy = MutableStateFlow(AgentApprovalCachePolicy.Default)
-        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
-        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val keyPair = signerKeyPair
+        val publicKey = keyPair.publicKeyOpenSsh
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSession(
@@ -1196,7 +1230,7 @@ class SshAgentRequestProcessingTest {
                         name = "Signer",
                         publicKey = "$publicKey signer@example",
                         fingerprint = "SHA256:signer",
-                        privateKey = generatePkcs8RsaPrivateKeyPem(),
+                        privateKey = keyPair.privateKeyPem,
                     ),
                 ),
             ),
@@ -1230,8 +1264,8 @@ class SshAgentRequestProcessingTest {
         val approvalStarted = CompletableDeferred<Unit>()
         val finishFirstApproval = CompletableDeferred<Unit>()
         val approvalCachePolicy = MutableStateFlow(AgentApprovalCachePolicy.Default)
-        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
-        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        val keyPair = signerKeyPair
+        val publicKey = keyPair.publicKeyOpenSsh
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSession(
@@ -1239,7 +1273,7 @@ class SshAgentRequestProcessingTest {
                         name = "Signer",
                         publicKey = "$publicKey signer@example",
                         fingerprint = "SHA256:signer",
-                        privateKey = generatePkcs8RsaPrivateKeyPem(),
+                        privateKey = keyPair.privateKeyPem,
                     ),
                 ),
             ),
@@ -1280,9 +1314,9 @@ class SshAgentRequestProcessingTest {
     @Test
     fun `handleSignData forgets approval when unlocked vault session changes`() = runTest {
         var approvalPromptCount = 0
-        val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
-        val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
-        val privateKey = generatePkcs8RsaPrivateKeyPem()
+        val keyPair = signerKeyPair
+        val publicKey = keyPair.publicKeyOpenSsh
+        val privateKey = keyPair.privateKeyPem
         val vaultSession = MutableVaultSession(
             createUnlockedSession(
                 createSshSecret(
@@ -1521,18 +1555,10 @@ class SshAgentRequestProcessingTest {
         output.toByteArray()
     }
 
-    private fun generatePkcs8RsaPrivateKeyPem(): String {
-        val generator = KeyPairGenerator.getInstance("RSA")
-        generator.initialize(2048)
-        return toPkcs8PrivateKeyPem(generator.generateKeyPair().private)
-    }
-
-    private fun toPkcs8PrivateKeyPem(privateKey: PrivateKey): String {
-        val encoded = Base64.getEncoder().encodeToString(privateKey.encoded)
-        return buildString {
-            appendLine("-----BEGIN PRIVATE KEY-----")
-            encoded.chunked(70).forEach(::appendLine)
-            appendLine("-----END PRIVATE KEY-----")
-        }
+    companion object {
+        // Generated once for the whole suite: the signing tests only need a
+        // consistent identity, not a fresh key, and RSA-2048 generation is
+        // expensive.
+        private val signerKeyPair by lazy { generateRsaSshKeyPair() }
     }
 }

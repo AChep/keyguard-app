@@ -9,6 +9,7 @@ import app.keemobile.kotpass.cryptography.format.CipherSession
 import app.keemobile.kotpass.cryptography.format.TwofishCipher
 import app.keemobile.kotpass.database.header.DatabaseHeader
 import app.keemobile.kotpass.database.header.KdfParameters
+import app.keemobile.kotpass.errors.CryptoError
 import app.keemobile.kotpass.errors.FormatError
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.Meta
@@ -28,6 +29,26 @@ import kotlin.test.assertFailsWith
 class KeePassDatabaseStreamingTest {
     private val credentials = Credentials.from(EncryptedValue.fromString("streaming-password"))
     private val cipherProviders = BaseCiphers.entries + TwofishCipher
+
+    @Test
+    fun wrongCredentialsForV3FailAsInvalidKey() {
+        val database = database(
+            version = 3,
+            cipher = BaseCiphers.Aes,
+            compression = DatabaseHeader.Compression.GZip,
+        )
+        val encoded = Buffer()
+        database.encodeTo(encoded, cipherProviders = cipherProviders)
+        val wrongCredentials = Credentials.from(EncryptedValue.fromString("wrong-password"))
+
+        assertFailsWith<CryptoError.InvalidKey> {
+            KeePassDatabase.decode(
+                source = encoded,
+                credentials = wrongCredentials,
+                cipherProviders = cipherProviders,
+            )
+        }
+    }
 
     @Test
     fun allVersionsCiphersAndCompressionModesRoundTripFromChunkedSources() {

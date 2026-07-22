@@ -172,8 +172,8 @@ private fun decodeVer3x(
         val streamStartBytes =
             decryptedSource.readByteString(header.streamStartBytes.size.toLong())
         if (streamStartBytes != header.streamStartBytes) {
-            throw FormatError.InvalidContent(
-                "Database content could be corrupted or cannot be decrypted.",
+            throw CryptoError.InvalidKey(
+                "Wrong key used for decryption or database is corrupted.",
             )
         }
 

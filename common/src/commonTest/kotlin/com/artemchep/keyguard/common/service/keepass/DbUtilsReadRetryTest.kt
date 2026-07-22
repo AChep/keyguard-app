@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.keepass
 
+import app.keemobile.kotpass.errors.CryptoError
 import app.keemobile.kotpass.errors.FormatError
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseMetadata
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseStorage
@@ -42,6 +43,19 @@ class DbUtilsReadRetryTest {
         assertFailsWith<FormatError.UnsupportedVersion> {
             storage.readWithDecodeRetry {
                 throw FormatError.UnsupportedVersion("unsupported")
+            }
+        }
+
+        assertEquals(1, storage.reads)
+    }
+
+    @Test
+    fun `invalid database key is not retried`() = runTest {
+        val storage = TestStorage(decodeReadAttempts = 2)
+
+        assertFailsWith<CryptoError.InvalidKey> {
+            storage.readWithDecodeRetry {
+                throw CryptoError.InvalidKey("wrong key")
             }
         }
 

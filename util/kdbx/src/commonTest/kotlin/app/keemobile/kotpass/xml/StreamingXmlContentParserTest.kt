@@ -11,9 +11,11 @@ import okio.Buffer
 import okio.Source
 import okio.Timeout
 import okio.buffer
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class StreamingXmlContentParserTest {
@@ -225,6 +227,21 @@ class StreamingXmlContentParserTest {
         }
     }
 
+    @Test
+    fun sourceCancellationIsRethrownUnchanged() {
+        val expected = CancellationException("cancelled")
+        val source = ThrowingSource(expected).buffer()
+        val innerEncryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf())
+
+        val actual = assertFailsWith<CancellationException> {
+            DefaultXmlContentParser.unmarshalContent(source, innerEncryption) {
+                decodeContext(innerEncryption)
+            }
+        }
+
+        assertSame(expected, actual)
+    }
+
     private fun parse(xml: String): DatabaseContent {
         val innerEncryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf())
         return DefaultXmlContentParser.unmarshalContent(
@@ -283,6 +300,19 @@ class StreamingXmlContentParserTest {
 
         override fun read(sink: Buffer, byteCount: Long): Long =
             source.read(sink, minOf(byteCount, 1L))
+
+        override fun timeout(): Timeout = Timeout.NONE
+
+        override fun close() = Unit
+    }
+
+    private class ThrowingSource(
+        private val failure: Throwable,
+    ) : Source {
+        override fun read(
+            sink: Buffer,
+            byteCount: Long,
+        ): Long = throw failure
 
         override fun timeout(): Timeout = Timeout.NONE
 

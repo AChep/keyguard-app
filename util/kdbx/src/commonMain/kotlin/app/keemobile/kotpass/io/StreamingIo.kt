@@ -14,6 +14,9 @@ internal class KotlinxSourceAdapter(
 ) : Source {
     private val transfer = ByteArray(STREAM_BUFFER_SIZE)
 
+    var readFailure: Throwable? = null
+        private set
+
     override fun read(
         sink: Buffer,
         byteCount: Long,
@@ -21,7 +24,15 @@ internal class KotlinxSourceAdapter(
         require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
         if (byteCount == 0L) return 0L
         val requested = minOf(byteCount, transfer.size.toLong()).toInt()
-        val read = source.readAtMostTo(transfer, startIndex = 0, endIndex = requested)
+        val read =
+            try {
+                source.readAtMostTo(transfer, startIndex = 0, endIndex = requested)
+            } catch (error: Throwable) {
+                if (readFailure == null) {
+                    readFailure = error
+                }
+                throw error
+            }
         if (read <= 0) return read.toLong()
         try {
             sink.write(transfer, 0, read)

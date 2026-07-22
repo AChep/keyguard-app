@@ -30,6 +30,7 @@ import okio.ByteString.Companion.toByteString
 import okio.Source
 import okio.buffer
 import okio.use
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.io.Source as KotlinxSource
 
 fun KeePassDatabase.Companion.decode(
@@ -41,17 +42,23 @@ fun KeePassDatabase.Companion.decode(
     kdfProvider: KdfProvider = BaseKdfProvider,
     untitledLabel: String = Defaults.UntitledLabel,
     limits: KdbxReadLimits = KdbxReadLimits.Default,
-): KeePassDatabase =
-    decodeSource(
-        input = KotlinxSourceAdapter(source),
-        credentials = credentials,
-        validateHashes = validateHashes,
-        contentParser = contentParser,
-        cipherProviders = cipherProviders,
-        kdfProvider = kdfProvider,
-        untitledLabel = untitledLabel,
-        limits = limits,
-    )
+): KeePassDatabase {
+    val adapter = KotlinxSourceAdapter(source)
+    return try {
+        decodeSource(
+            input = adapter,
+            credentials = credentials,
+            validateHashes = validateHashes,
+            contentParser = contentParser,
+            cipherProviders = cipherProviders,
+            kdfProvider = kdfProvider,
+            untitledLabel = untitledLabel,
+            limits = limits,
+        )
+    } catch (error: Throwable) {
+        throw adapter.readFailure ?: error
+    }
+}
 
 fun KeePassDatabase.Companion.decode(
     data: ByteArray,
@@ -135,6 +142,8 @@ private fun KeePassDatabase.Companion.decodeSource(
             transformedKey.fill(0)
             masterSeed.fill(0)
         }
+    } catch (error: CancellationException) {
+        throw error
     } catch (error: FormatError) {
         throw error
     } catch (error: CryptoError) {

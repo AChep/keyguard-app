@@ -12,6 +12,7 @@ import app.keemobile.kotpass.xml.FormatXml.Tags
 import nl.adaptivity.xmlutil.XmlException
 import okio.BufferedSink
 import okio.BufferedSource
+import kotlin.coroutines.cancellation.CancellationException
 
 class StreamingXmlContentParser(
     private val limits: XmlReadLimits = XmlReadLimits.Default,
@@ -72,6 +73,8 @@ class StreamingXmlContentParser(
             }
             reader.finishDocument()
         } catch (e: FormatError) {
+            throw e
+        } catch (e: CancellationException) {
             throw e
         } catch (e: XmlException) {
             throw FormatError.InvalidXml(e.message ?: "Malformed XML document.")

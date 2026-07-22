@@ -19,10 +19,10 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
-private const val HTTP = "http"
-private const val HTTPS = "https"
-private const val WS = "ws"
-private const val WSS = "wss"
+private const val HTTP = "http:"
+private const val HTTPS = "https:"
+private const val WS = "ws:"
+private const val WSS = "wss:"
 
 internal typealias WebSocketSessionConnector = suspend (
     httpClient: HttpClient,
@@ -101,7 +101,7 @@ internal suspend fun HttpClient.connectTransport(
 private fun autoFixWebSocketUrl(
     url: String,
 ): String = when {
-    url.startsWith(HTTPS) -> WSS + url.substring(HTTPS.length)
-    url.startsWith(HTTP) -> WS + url.substring(HTTP.length)
+    url.startsWith(HTTPS, ignoreCase = true) -> WSS + url.substring(HTTPS.length)
+    url.startsWith(HTTP, ignoreCase = true) -> WS + url.substring(HTTP.length)
     else -> url
 }

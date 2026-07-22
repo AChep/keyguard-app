@@ -29,6 +29,26 @@ import kotlin.time.Duration.Companion.seconds
 
 class KtorTransportTest {
     @Test
+    fun `uppercase HTTP schemes are converted to websocket schemes`() = runTest {
+        assertWebSocketUrl(
+            url = "HTTPS://example.com/hub",
+            expectedUrl = "wss://example.com/hub",
+        )
+        assertWebSocketUrl(
+            url = "HTTP://example.com/hub",
+            expectedUrl = "ws://example.com/hub",
+        )
+    }
+
+    @Test
+    fun `HTTP prefix without scheme delimiter is not converted`() = runTest {
+        assertWebSocketUrl(
+            url = "https-example.com/hub",
+            expectedUrl = "https-example.com/hub",
+        )
+    }
+
+    @Test
     fun `websocket upgrade opens transport`() = runTest {
         val session = FakeWebSocketSession()
         val client = HttpClient(
@@ -87,6 +107,36 @@ class KtorTransportTest {
         } finally {
             client.close()
         }
+    }
+}
+
+private suspend fun assertWebSocketUrl(
+    url: String,
+    expectedUrl: String,
+) {
+    val session = FakeWebSocketSession()
+    val client = HttpClient(
+        MockEngine { error("Unexpected HTTP request.") },
+    )
+
+    try {
+        var connectedUrl: String? = null
+        val transport = client.connectTransport(
+            url = url,
+            headers = emptyMap(),
+            webSocketSessionConnector = { _, actualUrl, _ ->
+                connectedUrl = actualUrl
+                session
+            },
+        )
+
+        assertEquals(expectedUrl, connectedUrl)
+        withTimeout(5.seconds) {
+            transport.stop()
+        }
+    } finally {
+        client.close()
+        session.dispose()
     }
 }
 

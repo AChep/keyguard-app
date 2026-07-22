@@ -3,10 +3,12 @@ package com.artemchep.keyguard.common.service.backup
 import com.artemchep.keyguard.common.io.withBufferedSink
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.common.util.RetryPolicy
+import com.artemchep.keyguard.common.util.retryWithPolicy
 import java.io.FilterOutputStream
 import java.io.OutputStream
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
-import kotlinx.coroutines.delay
 import kotlinx.io.Sink
 import kotlinx.io.asInputStream
 import kotlinx.io.asOutputStream
@@ -34,8 +36,11 @@ class BackupRepositoryZipImpl(
         private const val VAULT_ENTRY = "vault.json"
         private const val BLOB_ENTRY = "attachment.bin"
 
-        private const val OBJECT_READ_ATTEMPTS = 2
-        private const val OBJECT_READ_RETRY_DELAY_MILLIS = 350L
+        private val objectReadRetryPolicy = RetryPolicy(
+            maxAttempts = 2,
+            delayBeforeRetry = { 350.milliseconds },
+            shouldRetry = { it is BackupObjectStoreException.Transient },
+        )
 
         private val INDEX_GENERATION_FILE_REGEX = Regex("""(\d{20})-(.+)\.zip""")
     }
@@ -532,23 +537,11 @@ class BackupRepositoryZipImpl(
         }
     }
 
+    // A streaming source cannot be replayed after exposing bytes. Reopen
+    // the object and restart the complete ZIP operation.
     private suspend fun <T> retryTransientObjectRead(
         block: suspend () -> T,
-    ): T {
-        repeat(OBJECT_READ_ATTEMPTS) { attempt ->
-            try {
-                return block()
-            } catch (e: BackupObjectStoreException.Transient) {
-                if (attempt == OBJECT_READ_ATTEMPTS - 1) {
-                    throw e
-                }
-                // A streaming source cannot be replayed after exposing bytes.
-                // Reopen the object and restart the complete ZIP operation.
-                delay(OBJECT_READ_RETRY_DELAY_MILLIS)
-            }
-        }
-        error("Unreachable.")
-    }
+    ): T = retryWithPolicy(objectReadRetryPolicy) { block() }
 
     private fun java.io.InputStream.drain() {
         val buffer = ByteArray(8192)

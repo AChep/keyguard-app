@@ -177,7 +177,6 @@ internal suspend fun runHubConnectionController(
         command: HubConnectionCommand.ConnectSucceeded,
     ) {
         val connection = command.connection
-        var ownershipAccepted = false
         try {
             if (!isCurrentConnectAttempt(command.sessionId)) {
                 return
@@ -200,7 +199,6 @@ internal suspend fun runHubConnectionController(
                 connectionId = connection.connectionId,
                 sessionJob = sessionJob,
             )
-            ownershipAccepted = true
             command.ownershipAccepted.complete(true)
             emitEvent(
                 HubConnectionEvent.StateChanged(
@@ -210,9 +208,9 @@ internal suspend fun runHubConnectionController(
             )
             sessionJob.start()
         } finally {
-            if (!ownershipAccepted) {
-                command.ownershipAccepted.complete(false)
-            }
+            // A no-op when ownership was accepted above: only the first
+            // complete() call wins on a CompletableDeferred.
+            command.ownershipAccepted.complete(false)
         }
     }
 

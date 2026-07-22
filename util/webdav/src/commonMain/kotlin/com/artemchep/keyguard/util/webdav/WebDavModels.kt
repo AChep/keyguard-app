@@ -239,6 +239,17 @@ sealed class WebDavException(
     )
 }
 
+/**
+ * Whether a failed read is worth retrying from scratch after a short delay:
+ * transient failures, protocol inconsistencies from a stale or torn remote
+ * representation, and a not-found race right after a write can all heal on
+ * a fresh attempt.
+ */
+val WebDavException.isRetryableRead: Boolean
+    get() = retryable ||
+        this is WebDavException.Protocol ||
+        this is WebDavException.NotFound
+
 private fun webDavMessage(
     operation: WebDavOperation,
     path: String?,

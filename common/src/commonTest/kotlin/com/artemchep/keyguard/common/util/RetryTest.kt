@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.provider.bitwarden.sync
+package com.artemchep.keyguard.common.util
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -14,13 +14,13 @@ import kotlin.test.assertSame
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class SyncRetryTest {
+class RetryTest {
     @Test
     fun `retry waits for the configured delay before the next attempt`() = runTest {
         val attempts = mutableListOf<Long>()
 
         val result = async {
-            retrySync(testPolicy()) { attempt ->
+            retryWithPolicy(testPolicy()) { attempt ->
                 attempts += currentTime
                 if (attempt == 1) throw RetryableTestException(attempt)
                 "success"
@@ -44,7 +44,7 @@ class SyncRetryTest {
         val attempts = mutableListOf<Long>()
 
         val error = assertFailsWith<RetryableTestException> {
-            retrySync(testPolicy()) { attempt ->
+            retryWithPolicy(testPolicy()) { attempt ->
                 attempts += currentTime
                 throw RetryableTestException(attempt)
             }
@@ -60,7 +60,7 @@ class SyncRetryTest {
         var attempts = 0
 
         val error = assertFailsWith<IllegalArgumentException> {
-            retrySync(testPolicy()) {
+            retryWithPolicy(testPolicy()) {
                 attempts += 1
                 throw expected
             }
@@ -75,7 +75,7 @@ class SyncRetryTest {
     fun `cancellation during retry delay prevents another attempt`() = runTest {
         var attempts = 0
         val result = async {
-            retrySync(testPolicy()) { attempt ->
+            retryWithPolicy(testPolicy()) { attempt ->
                 attempts += 1
                 throw RetryableTestException(attempt)
             }
@@ -93,7 +93,7 @@ class SyncRetryTest {
         assertEquals(1, attempts)
     }
 
-    private fun testPolicy() = SyncRetryPolicy(
+    private fun testPolicy() = RetryPolicy(
         maxAttempts = 4,
         delayBeforeRetry = { 1.seconds },
         shouldRetry = { it is RetryableTestException },

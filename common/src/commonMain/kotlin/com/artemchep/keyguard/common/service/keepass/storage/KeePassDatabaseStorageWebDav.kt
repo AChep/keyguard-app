@@ -13,6 +13,7 @@ import com.artemchep.keyguard.util.webdav.WebDavResource
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
 import com.artemchep.keyguard.util.webdav.WebDavWritePrecondition
 import com.artemchep.keyguard.util.webdav.WebDavWriteStrategy
+import com.artemchep.keyguard.util.webdav.isRetryableRead
 import kotlinx.io.Source
 
 internal class KeePassDatabaseStorageWebDav(
@@ -21,6 +22,9 @@ internal class KeePassDatabaseStorageWebDav(
     webDavClientFactory: WebDavClientFactory,
 ) : KeePassDatabaseStorage {
     override val decodeReadAttempts: Int = 2
+
+    override fun isRetryableReadFailure(e: Exception): Boolean =
+        e is WebDavException && e.isRetryableRead
 
     private val client = webDavClientFactory.create(
         WebDavClientConfig(

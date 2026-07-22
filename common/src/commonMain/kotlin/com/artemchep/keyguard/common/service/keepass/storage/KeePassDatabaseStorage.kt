@@ -13,6 +13,14 @@ internal interface KeePassDatabaseStorage {
     val decodeReadAttempts: Int
         get() = 1
 
+    /**
+     * Classifies a failure thrown while reading or streaming this storage's
+     * bytes as retryable for another complete [read] attempt. Remote backends
+     * override this for their transport failures; local files never benefit
+     * from a retry.
+     */
+    fun isRetryableReadFailure(e: Exception): Boolean = false
+
     suspend fun exists(): Boolean
 
     suspend fun stat(): KeePassDatabaseMetadata?

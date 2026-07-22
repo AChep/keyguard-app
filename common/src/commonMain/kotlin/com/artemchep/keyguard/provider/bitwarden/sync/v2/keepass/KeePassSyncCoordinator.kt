@@ -24,8 +24,8 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.provider.bitwarden.api.merge
-import com.artemchep.keyguard.provider.bitwarden.sync.SyncRetryPolicy
-import com.artemchep.keyguard.provider.bitwarden.sync.retrySync
+import com.artemchep.keyguard.common.util.RetryPolicy
+import com.artemchep.keyguard.common.util.retryWithPolicy
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.buildFolderIdMappings
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncResult
@@ -62,7 +62,7 @@ class KeePassSyncCoordinator(
 
         private const val MAX_EXTERNAL_MODIFICATION_RETRIES = 3
 
-        private val externalModificationRetryPolicy = SyncRetryPolicy(
+        private val externalModificationRetryPolicy = RetryPolicy(
             maxAttempts = MAX_EXTERNAL_MODIFICATION_RETRIES + 1,
             delayBeforeRetry = { 1.seconds },
             shouldRetry = { it is KeePassDatabaseModifiedExternallyException },
@@ -77,10 +77,10 @@ class KeePassSyncCoordinator(
         val now = Clock.System.now()
         var retriesScheduled = 0
         try {
-            retrySync(
+            retryWithPolicy(
                 policy = externalModificationRetryPolicy,
                 onRetry = { event ->
-                    retriesScheduled = event.nextAttempt - 1
+                    retriesScheduled = event.failedAttempt
                     diagnostics.externalModificationRetryScheduled(
                         retry = retriesScheduled,
                         maxRetries = MAX_EXTERNAL_MODIFICATION_RETRIES,
@@ -97,12 +97,11 @@ class KeePassSyncCoordinator(
             }
         } catch (e: Throwable) {
             e.throwIfCancellation()
-            if (
-                e is KeePassDatabaseModifiedExternallyException &&
-                retriesScheduled == MAX_EXTERNAL_MODIFICATION_RETRIES
-            ) {
+            if (e is KeePassDatabaseModifiedExternallyException) {
+                // The policy retries every external-modification abort, so the
+                // exception can only escape after exhausting all attempts.
                 diagnostics.externalModificationRetriesExhausted(
-                    attempts = retriesScheduled + 1,
+                    attempts = MAX_EXTERNAL_MODIFICATION_RETRIES + 1,
                 )
             }
             // Any abort before the metadata is written — a corrupt or

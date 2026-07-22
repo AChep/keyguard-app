@@ -118,13 +118,12 @@ class KtorWebDavClient(
         range: WebDavByteRange?,
     ): Source {
         val objectPath = validateObjectPath(path)
-        var lastFailure: WebDavException? = null
         var useConditionalGet = true
         repeat(READ_ATTEMPTS) { attempt ->
             try {
                 return readOnce(objectPath, range, useConditionalGet)
             } catch (e: WebDavException) {
-                if (!e.isRetryableReadFailure() || attempt == READ_ATTEMPTS - 1) {
+                if (!e.isRetryableRead || attempt == READ_ATTEMPTS - 1) {
                     throw e
                 }
                 if (e.statusCode == STATUS_PRECONDITION_FAILED) {
@@ -132,11 +131,10 @@ class KtorWebDavClient(
                     // read on servers that mishandle If-Match on GET.
                     useConditionalGet = false
                 }
-                lastFailure = e
                 delay(READ_RETRY_DELAY_MILLIS)
             }
         }
-        throw checkNotNull(lastFailure)
+        error("Unreachable.")
     }
 
     private suspend fun readOnce(
@@ -460,9 +458,6 @@ class KtorWebDavClient(
         message = message,
         retryable = true,
     )
-
-    private fun WebDavException.isRetryableReadFailure(): Boolean =
-        retryable || this is WebDavException.Protocol || this is WebDavException.NotFound
 
     private fun String.isStrongEtag(): Boolean {
         val value = trim()

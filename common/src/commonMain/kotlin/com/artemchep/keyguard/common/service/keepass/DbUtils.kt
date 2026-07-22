@@ -23,6 +23,8 @@ import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.parseWebDavKeePassFileUrl
 import com.artemchep.keyguard.common.service.webdav.toWebDavAuthorization
 import com.artemchep.keyguard.common.service.webdav.webDavAuthorizationOf
+import com.artemchep.keyguard.common.util.RetryPolicy
+import com.artemchep.keyguard.common.util.retryWithPolicy
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -35,17 +37,15 @@ import com.artemchep.keyguard.util.foundation.io.ByteSnapshot
 import com.artemchep.keyguard.util.foundation.io.buildSnapshot
 import com.artemchep.keyguard.util.foundation.io.copyTo
 import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
-import com.artemchep.keyguard.util.webdav.WebDavException
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 
 data class PreparedKeePassDatabase(
     val keyData: ByteArray?,
@@ -326,25 +326,23 @@ private suspend fun openKeePassDatabase(
 
 internal suspend fun <T> KeePassDatabaseStorage.readWithDecodeRetry(
     decode: (Source) -> T,
-): T {
-    val attempts = decodeReadAttempts.coerceAtLeast(1)
-    repeat(attempts) { attempt ->
-        try {
-            return read().use(decode)
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            if (!e.isRetryableRemoteReadFailure() || attempt == attempts - 1) {
-                throw e
-            }
-            delay(KEEPASS_REMOTE_READ_RETRY_DELAY_MILLIS)
-        }
-    }
-    error("Unreachable.")
-}
+): T = retryWithPolicy(
+    policy = RetryPolicy(
+        maxAttempts = decodeReadAttempts.coerceAtLeast(1),
+        delayBeforeRetry = { KEEPASS_REMOTE_READ_RETRY_DELAY },
+        shouldRetry = { e ->
+            e is Exception &&
+                (isRetryableReadFailure(e) || e.isRetryableStaleDecodeFailure())
+        },
+    ),
+) { read().use(decode) }
 
-private fun Exception.isRetryableRemoteReadFailure(): Boolean = when (this) {
-    is WebDavException -> retryable || this is WebDavException.Protocol || this is WebDavException.NotFound
+/**
+ * A decode failure that can be caused by a remote backend briefly exposing
+ * a stale or torn representation of the database, rather than by the file
+ * itself being unreadable.
+ */
+private fun Exception.isRetryableStaleDecodeFailure(): Boolean = when (this) {
     is FormatError.InvalidXml,
     is FormatError.InvalidContent,
     is FormatError.InvalidHeader,
@@ -355,7 +353,7 @@ private fun Exception.isRetryableRemoteReadFailure(): Boolean = when (this) {
     else -> false
 }
 
-private const val KEEPASS_REMOTE_READ_RETRY_DELAY_MILLIS = 750L
+private val KEEPASS_REMOTE_READ_RETRY_DELAY = 750.milliseconds
 
 private fun createKeePassDatabase(
     credentials: Credentials,

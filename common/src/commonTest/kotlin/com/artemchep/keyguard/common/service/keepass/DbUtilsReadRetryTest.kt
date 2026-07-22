@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseStor
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseWriteMode
 import com.artemchep.keyguard.util.webdav.WebDavException
 import com.artemchep.keyguard.util.webdav.WebDavOperation
+import com.artemchep.keyguard.util.webdav.isRetryableRead
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
@@ -166,6 +167,10 @@ private class TestStorage(
     private val sourceFactory: (read: Int) -> Source = { Buffer() },
 ) : KeePassDatabaseStorage {
     var reads: Int = 0
+
+    // Mirrors the classification of the remote WebDAV storage.
+    override fun isRetryableReadFailure(e: Exception): Boolean =
+        e is WebDavException && e.isRetryableRead
 
     override suspend fun exists(): Boolean = true
 

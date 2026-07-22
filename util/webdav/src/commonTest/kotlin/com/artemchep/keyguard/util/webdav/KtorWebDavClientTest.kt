@@ -2,7 +2,9 @@ package com.artemchep.keyguard.util.webdav
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockRequestHandleScope
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.request.HttpResponseData
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -106,13 +108,7 @@ class KtorWebDavClientTest {
                     assertContentEquals(payload, request.body.asBytes())
                     respond("", status = HttpStatusCode.Created)
                 }
-                method == "PROPFIND" && path.isTempPathOf(objectPath) -> respond(
-                    content = singleMultistatus(
-                        href = path,
-                        properties = "<D:resourcetype/>",
-                    ),
-                    status = MULTI_STATUS,
-                )
+                method == "PROPFIND" && path.isTempPathOf(objectPath) -> respondFileStat(path)
                 method == "MOVE" && path.isTempPathOf(objectPath) -> {
                     assertEquals("F", request.headers["Overwrite"])
                     assertEquals(null, request.headers["If"])
@@ -157,30 +153,11 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
-                    respond(
-                        content = singleMultistatus(
-                            href = path,
-                            properties = """
-                                <D:resourcetype/>
-                                <D:getcontentlength>${payload.size}</D:getcontentlength>
-                            """.trimIndent(),
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondFileStat(path, size = payload.size.toLong())
                 } else {
                     objectStatRequests += 1
                     val etag = if (objectStatRequests <= 2) "v1" else "v2"
-                    respond(
-                        content = singleMultistatus(
-                            href = objectPath,
-                            properties = """
-                                <D:resourcetype/>
-                                <D:getcontentlength>${payload.size}</D:getcontentlength>
-                                <D:getetag>&quot;$etag&quot;</D:getetag>
-                            """.trimIndent(),
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondEtagStat(objectPath, etag, size = payload.size.toLong())
                 }
                 "PUT" -> {
                     assertTrue(path.isTempPathOf(objectPath))
@@ -228,23 +205,11 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
-                    respond(
-                        content = singleMultistatus(
-                            href = path,
-                            properties = "<D:resourcetype/>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondFileStat(path)
                 } else {
                     objectStatRequests += 1
                     val etag = if (objectStatRequests <= 2) "v1" else "v2"
-                    respond(
-                        content = singleMultistatus(
-                            href = objectPath,
-                            properties = "<D:getetag>W/&quot;$etag&quot;</D:getetag>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondEtagStat(objectPath, etag, weak = true)
                 }
                 "PUT" -> respond("", status = HttpStatusCode.Created)
                 "MOVE" -> {
@@ -281,25 +246,13 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
-                    respond(
-                        content = singleMultistatus(
-                            href = path,
-                            properties = "<D:resourcetype/>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondFileStat(path)
                 } else {
                     objectStatRequests += 1
                     // The destination changes between the pre-MOVE re-check
                     // and the 412 disambiguation stat.
                     val etag = if (objectStatRequests <= 2) "v1" else "v2"
-                    respond(
-                        content = singleMultistatus(
-                            href = objectPath,
-                            properties = "<D:getetag>&quot;$etag&quot;</D:getetag>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondEtagStat(objectPath, etag)
                 }
                 "PUT" -> respond("", status = HttpStatusCode.Created)
                 "MOVE" -> respond("", status = HttpStatusCode.PreconditionFailed)
@@ -335,21 +288,9 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
-                    respond(
-                        content = singleMultistatus(
-                            href = path,
-                            properties = "<D:resourcetype/>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondFileStat(path)
                 } else {
-                    respond(
-                        content = singleMultistatus(
-                            href = objectPath,
-                            properties = "<D:getetag>&quot;$etag&quot;</D:getetag>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondEtagStat(objectPath, etag)
                 }
                 "PUT" -> respond("", status = HttpStatusCode.Created)
                 "MOVE" -> {
@@ -471,13 +412,7 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
-                    respond(
-                        content = singleMultistatus(
-                            href = path,
-                            properties = "<D:resourcetype/>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondFileStat(path)
                 } else {
                     destinationStatCalls += 1
                     respond("", status = HttpStatusCode.NotFound)
@@ -516,21 +451,9 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
-                    respond(
-                        content = singleMultistatus(
-                            href = path,
-                            properties = "<D:resourcetype/>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondFileStat(path)
                 } else {
-                    respond(
-                        content = singleMultistatus(
-                            href = objectPath,
-                            properties = "<D:getetag>&quot;$etag&quot;</D:getetag>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondEtagStat(objectPath, etag)
                 }
                 "PUT" -> if (path.isTempPathOf(objectPath)) {
                     respond("", status = HttpStatusCode.Created)
@@ -644,13 +567,7 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
-                    respond(
-                        content = singleMultistatus(
-                            href = path,
-                            properties = "<D:resourcetype/>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondFileStat(path)
                 } else {
                     destinationStatCalls += 1
                     respond("", status = HttpStatusCode.NotFound)
@@ -696,13 +613,7 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> when {
-                    path.isTempPathOf(objectPath) -> respond(
-                        content = singleMultistatus(
-                            href = path,
-                            properties = "<D:resourcetype/>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    path.isTempPathOf(objectPath) -> respondFileStat(path)
                     path == createPath && !createExists -> respond(
                         "",
                         status = HttpStatusCode.NotFound,
@@ -714,13 +625,7 @@ class KtorWebDavClientTest {
                         ),
                         status = MULTI_STATUS,
                     )
-                    else -> respond(
-                        content = singleMultistatus(
-                            href = objectPath,
-                            properties = "<D:getetag>&quot;$etag&quot;</D:getetag>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    else -> respondEtagStat(objectPath, etag)
                 }
                 "PUT" -> when {
                     path.isTempPathOf(objectPath) -> respond("", status = HttpStatusCode.Created)
@@ -780,25 +685,13 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
-                    respond(
-                        content = singleMultistatus(
-                            href = path,
-                            properties = "<D:resourcetype/>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondFileStat(path)
                 } else {
                     objectStatRequests += 1
                     // The destination changes between the pre-PUT checks and
                     // the 412 disambiguation stat.
                     val etag = if (objectStatRequests <= 2) "v1" else "v2"
-                    respond(
-                        content = singleMultistatus(
-                            href = objectPath,
-                            properties = "<D:getetag>&quot;$etag&quot;</D:getetag>",
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondEtagStat(objectPath, etag)
                 }
                 "PUT" -> if (path.isTempPathOf(objectPath)) {
                     respond("", status = HttpStatusCode.Created)
@@ -1352,16 +1245,7 @@ class KtorWebDavClientTest {
                 "PUT" -> respond("", status = HttpStatusCode.Created)
                 "MOVE" -> respond("", status = HttpStatusCode.Created)
                 "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
-                    respond(
-                        content = singleMultistatus(
-                            href = path,
-                            properties = """
-                                <D:resourcetype/>
-                                <D:getcontentlength>${payload.size}</D:getcontentlength>
-                            """.trimIndent(),
-                        ),
-                        status = MULTI_STATUS,
-                    )
+                    respondFileStat(path, size = payload.size.toLong())
                 } else {
                     finalStatAttempts += 1
                     val size = if (finalStatAttempts == 1) payload.size - 1 else payload.size
@@ -1469,6 +1353,49 @@ class KtorWebDavClientTest {
             writeStrategy = writeStrategy,
         ),
     )
+
+    /**
+     * Responds to a PROPFIND with a minimal single-file multistatus: an empty
+     * resource type plus an optional size. The shape every uploaded temp
+     * sibling reports back.
+     */
+    private fun MockRequestHandleScope.respondFileStat(
+        href: String,
+        size: Long? = null,
+    ): HttpResponseData = respond(
+        content = singleMultistatus(
+            href = href,
+            properties = listOfNotNull(
+                "<D:resourcetype/>",
+                size?.let { "<D:getcontentlength>$it</D:getcontentlength>" },
+            ).joinToString("\n"),
+        ),
+        status = MULTI_STATUS,
+    )
+
+    /**
+     * Responds to a destination PROPFIND with a stat carrying the given ETag
+     * value, entity-quoted, optionally weak.
+     */
+    private fun MockRequestHandleScope.respondEtagStat(
+        href: String,
+        etag: String,
+        size: Long? = null,
+        weak: Boolean = false,
+    ): HttpResponseData {
+        val quoted = "&quot;$etag&quot;"
+        return respond(
+            content = singleMultistatus(
+                href = href,
+                properties = listOfNotNull(
+                    "<D:resourcetype/>",
+                    size?.let { "<D:getcontentlength>$it</D:getcontentlength>" },
+                    "<D:getetag>${if (weak) "W/$quoted" else quoted}</D:getetag>",
+                ).joinToString("\n"),
+            ),
+            status = MULTI_STATUS,
+        )
+    }
 
     private fun singleMultistatus(
         href: String,

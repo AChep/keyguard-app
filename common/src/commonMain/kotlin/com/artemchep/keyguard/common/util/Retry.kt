@@ -1,38 +1,36 @@
-package com.artemchep.keyguard.provider.bitwarden.sync
+package com.artemchep.keyguard.common.util
 
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import kotlinx.coroutines.delay
 import kotlin.time.Duration
 
-internal data class SyncRetryPolicy(
+internal data class RetryPolicy(
     val maxAttempts: Int,
     val delayBeforeRetry: (failedAttempt: Int) -> Duration,
     val shouldRetry: (Throwable) -> Boolean,
 ) {
     init {
         require(maxAttempts >= 1) {
-            "A sync retry policy must allow at least one attempt."
+            "A retry policy must allow at least one attempt."
         }
     }
 }
 
-internal data class SyncRetryEvent(
+internal data class RetryEvent(
     val failedAttempt: Int,
-    val nextAttempt: Int,
-    val maxAttempts: Int,
     val delay: Duration,
     val error: Throwable,
 )
 
 /**
- * Executes a logical sync operation with a bounded, cancellation-safe retry policy.
+ * Executes a logical operation with a bounded, cancellation-safe retry policy.
  *
  * The caller owns the retry boundary and error classification. This helper only
  * provides common attempt counting, delay, cancellation, and notification mechanics.
  */
-internal suspend fun <T> retrySync(
-    policy: SyncRetryPolicy,
-    onRetry: suspend (SyncRetryEvent) -> Unit = {},
+internal suspend fun <T> retryWithPolicy(
+    policy: RetryPolicy,
+    onRetry: suspend (RetryEvent) -> Unit = {},
     block: suspend (attempt: Int) -> T,
 ): T {
     var attempt = 1
@@ -47,12 +45,10 @@ internal suspend fun <T> retrySync(
 
             val retryDelay = policy.delayBeforeRetry(attempt)
             require(!retryDelay.isNegative()) {
-                "A sync retry delay must not be negative."
+                "A retry delay must not be negative."
             }
-            val event = SyncRetryEvent(
+            val event = RetryEvent(
                 failedAttempt = attempt,
-                nextAttempt = attempt + 1,
-                maxAttempts = policy.maxAttempts,
                 delay = retryDelay,
                 error = e,
             )

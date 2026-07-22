@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.util.signalr.internal
 
 import com.artemchep.keyguard.util.signalr.HubConnectionConfig
+import com.artemchep.keyguard.util.signalr.HubConnectionHttpException
 import com.artemchep.keyguard.util.signalr.HubMessage
 import com.artemchep.keyguard.util.signalr.HubProtocol
 import com.artemchep.keyguard.util.signalr.TransferFormat
@@ -344,10 +345,11 @@ class HubNegotiateTest {
         val options = testOptions(client = client)
 
         try {
-            val exception = assertFailsWith<RuntimeException> {
+            val exception = assertFailsWith<HubConnectionHttpException> {
                 negotiate(options)
             }
 
+            assertEquals(HttpStatusCode.InternalServerError, exception.statusCode)
             assertTrue(exception.message?.contains("Unexpected status code returned from negotiate") == true)
         } finally {
             client.close()

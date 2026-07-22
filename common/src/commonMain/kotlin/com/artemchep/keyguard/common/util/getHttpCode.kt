@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.exception.isProtocolException
 import com.artemchep.keyguard.common.exception.isSocketTimeoutException
 import com.artemchep.keyguard.common.exception.isUnknownHostException
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.util.signalr.HubConnectionHttpException
 import io.ktor.http.HttpStatusCode
 import kotlinx.io.IOException
 
@@ -19,6 +20,9 @@ fun Throwable.getHttpCode(): Int {
     }
     if (this is CodeException) {
         return this.code
+    }
+    if (this is HubConnectionHttpException) {
+        return this.statusCode.value
     }
     if (isUnknownHostException()) {
         return BitwardenService.Error.CODE_UNKNOWN_HOST

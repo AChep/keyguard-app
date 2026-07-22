@@ -161,7 +161,7 @@ richtext = "1.0.0-alpha05"
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
 slf4j = "2.0.18"
 # https://github.com/bcgit/bc-java
-bouncycastle = "1.84"
+bouncycastle = "1.85"
 # https://github.com/sqlcipher/sqlcipher-android
 sqlcipherAndroid = "4.17.0"
 # https://github.com/cashapp/sqldelight

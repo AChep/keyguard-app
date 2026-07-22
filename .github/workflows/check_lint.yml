@@ -37,7 +37,7 @@ jobs:
         env:
           VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
       - name: "Check lint"
-        run: ./gradlew lint
+        run: ./gradlew --continue lint detekt
       - name: "Create lint summary"
         if: always()
         shell: bash
@@ -69,4 +69,12 @@ jobs:
         with:
           name: reports
           path: "${{ steps.read-glob.outputs.paths }}"
+          retention-days: 21
+      - name: "Upload Detekt reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: detekt-reports
+          path: "**/build/reports/detekt/**"
+          if-no-files-found: ignore
           retention-days: 21

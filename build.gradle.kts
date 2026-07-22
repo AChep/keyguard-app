@@ -1,3 +1,5 @@
+import dev.detekt.gradle.extensions.DetektExtension
+import dev.detekt.gradle.extensions.FailOnSeverity
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmVendorSpec
@@ -27,6 +29,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.parcelize) apply false
     alias(libs.plugins.kotlin.plugin.serialization) apply false
     alias(libs.plugins.compose) apply false
+    alias(libs.plugins.detekt) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.google.services) apply false
@@ -48,6 +51,28 @@ tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
 }
 
 subprojects {
+    apply(plugin = rootProject.libs.plugins.detekt.get().pluginId)
+
+    configure<DetektExtension> {
+        toolVersion.set(rootProject.libs.versions.detekt)
+        source.setFrom(
+            fileTree("src") {
+                include("**/*.kt")
+                include("**/*.kts")
+            },
+        )
+        config.setFrom(rootProject.layout.projectDirectory.file("config/detekt/detekt.yml"))
+        buildUponDefaultConfig.set(true)
+        baseline.set(
+            rootProject.layout.projectDirectory.file(
+                "config/detekt/baseline/${path.removePrefix(":").replace(':', '-')}.xml",
+            ),
+        )
+        basePath.set(rootProject.layout.projectDirectory)
+        ignoreFailures.set(false)
+        failOnSeverity.set(FailOnSeverity.Error)
+    }
+
     if (
         name == "androidApp" ||
         name == "wearApp" ||

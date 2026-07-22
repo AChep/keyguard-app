@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `client works with non root webdav prefix`</ID>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `conditional write replaces matching etag and rejects already stale etag`</ID>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `list recursively filters sorts and handles empty prefixes`</ID>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `open maps unreachable server to transient failure`</ID>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `open validates auth no auth and client close`</ID>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `per user directories isolate client roots`</ID>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `read supports full and ranged reads and maps failures`</ID>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `stat reads files collections missing paths and encoded path segments`</ID>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `user rules deny configured paths`</ID>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `write and delete honor read only permissions`</ID>
+    <ID>FunctionNaming:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$@Test fun `write creates replaces reports conflicts and cleans temp files`</ID>
+    <ID>MagicNumber:HacdiasWebDavServer.kt:HacdiasWebDavServer$200</ID>
+    <ID>MagicNumber:HacdiasWebDavServer.kt:HacdiasWebDavServer$499</ID>
+    <ID>MagicNumber:HacdiasWebDavServer.kt:HacdiasWebDavServer$5</ID>
+    <ID>MagicNumber:HacdiasWebDavServer.kt:HacdiasWebDavServer$50</ID>
+    <ID>TooGenericExceptionCaught:HacdiasWebDavServer.kt:HacdiasWebDavServer$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HacdiasWebDavServer.kt:HacdiasWebDavServer.Companion$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest$e: Throwable</ID>
+    <ID>TooManyFunctions:KtorWebDavClientHacdiasE2eTest.kt:KtorWebDavClientHacdiasE2eTest</ID>
+  </CurrentIssues>
+</SmellBaseline>

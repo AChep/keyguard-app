@@ -119,6 +119,9 @@ kotlinDsl = "4.3.0"
 kotlinSerialization = "1.11.0"
 # https://github.com/esensar/kotlinx-serialization-msgpack/releases
 kotlinSerializationMsgpack = "0.6.1"
+# https://github.com/detekt/detekt/releases
+# @keep
+detekt = "2.0.0-alpha.5"
 # https://github.com/google/ksp/releases
 kspPlugin = "2.3.9"
 # https://github.com/pinterest/ktlint/releases
@@ -360,6 +363,7 @@ baseline-profile = { id = "androidx.baselineprofile", version.ref = "androidxBas
 buildkonfig = { id = "com.codingfeline.buildkonfig", version.ref = "buildkonfigPlugin" }
 compose = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "crashlyticsPlugin" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServicesPlugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

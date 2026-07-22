@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ThrowsCount:PythonKdbxOracle.kt:PythonKdbxOracle$private fun run</ID>
+    <ID>TooGenericExceptionCaught:KdbxInteroperabilityTest.kt:KdbxInteroperabilityTest$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:PythonKdbxOracle.kt:PythonKdbxOracle$error: Exception</ID>
+    <ID>TooManyFunctions:KdbxCanonicalManifest.kt:com.artemchep.keyguard.integration.kdbx.KdbxCanonicalManifest.kt</ID>
+  </CurrentIssues>
+</SmellBaseline>

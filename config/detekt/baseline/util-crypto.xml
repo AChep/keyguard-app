@@ -1,0 +1,358 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:NativeCrypto.kt:NativeCryptoClient$outputLength &lt; 0 || outputLength &gt; outputCapacity || (exactOutputLength != null &amp;&amp; outputLength != exactOutputLength)</ID>
+    <ID>ComplexCondition:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform$!validStatus || length !in 0L..maximumOutputLength.toLong() || status != FAST_OK &amp;&amp; length != 0L</ID>
+    <ID>ComplexCondition:NativeCryptoSsh.kt:NativeCryptoSsh$value.privateKey.isEmpty() || value.privateKey.size &gt; MAX_KEY_BYTES || value.publicKey.isEmpty() || value.publicKey.size &gt; MAX_KEY_BYTES</ID>
+    <ID>ComplexCondition:NativeCryptoSsh.kt:NativeCryptoSsh$value.privateKeyPem.isEmpty() || value.publicKeyOpenSsh.isEmpty() || value.privateFingerprint.isEmpty() || value.publicFingerprint.isEmpty()</ID>
+    <ID>CyclomaticComplexMethod:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun canonicalValue: ByteArray</ID>
+    <ID>CyclomaticComplexMethod:NativeCryptoOpenPgp.kt:private fun OpenPgpExpirationUpdateErrorReasonProto.toPublic: NativeOpenPgpExpirationUpdateError</ID>
+    <ID>CyclomaticComplexMethod:NativeCryptoOpenPgp.kt:private fun OpenPgpVerificationProto.toPublic: NativeOpenPgpVerification</ID>
+    <ID>CyclomaticComplexMethod:NativeCryptoSsh.kt:NativeCryptoSsh$public fun importPrivateKey: NativeSshPrivateKeyImportResult</ID>
+    <ID>FunctionNaming:NativeCryptoLayerBenchmarkTest.kt:NativeCryptoLayerBenchmarkTest$@Test fun `measure Native Crypto boundary layers`</ID>
+    <ID>LargeClass:NativeCryptoClientTest.kt:NativeCryptoClientTest</ID>
+    <ID>LargeClass:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke</ID>
+    <ID>LargeClass:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp</ID>
+    <ID>LargeClass:NativeCryptoPrimitives.kt:NativeCryptoPrimitives</ID>
+    <ID>LongMethod:NativeCryptoClientTest.kt:NativeCryptoClientTest$@Test fun roundTripsTypedOpenPgpOperationsAndResults</ID>
+    <ID>LongMethod:NativeCryptoClientTest.kt:NativeCryptoClientTest$@Test fun roundTripsTypedOpenPgpWriteOperationsAndFinalDtos</ID>
+    <ID>LongMethod:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpAgentRsaDecrypt</ID>
+    <ID>LongMethod:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpMutationAndAgent</ID>
+    <ID>LongMethod:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpWrite</ID>
+    <ID>LongMethod:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$public fun runPackaged: NativeCryptoDesktopSmokeResult</ID>
+    <ID>LongMethod:NativeCryptoLayerBenchmarkTest.kt:NativeCryptoLayerBenchmarkTest$private fun MutableList&lt;NativeCryptoLayerBenchmarkRun&gt;.addBitwardenCompositionBenchmarks</ID>
+    <ID>LongMethod:NativeCryptoPrimitivesInputTest.kt:NativeCryptoPrimitivesInputTest$@Test fun rejectsInvalidKdbxCipherParametersBeforeCallingNativeCode</ID>
+    <ID>LongMethod:NativeCryptoSmokeTest.kt:NativeCryptoSmokeTest$@Test fun fusedBitwardenFastAndProtobufPathsMatchGoldenAndAuthenticateBeforeDecrypt</ID>
+    <ID>LongMethod:NativeCryptoSmokeTest.kt:NativeCryptoSmokeTest$@Test fun fusedBitwardenStreamsMatchOneShotAcross64KiBChunksAndRejectTampering</ID>
+    <ID>LongMethod:NativeCryptoSmokeTest.kt:NativeCryptoSmokeTest$@Test fun generatesParsesFormatsAndSignsSshKeysThroughTheRealNativeLibrary</ID>
+    <ID>LongMethod:NativeCryptoSsh.kt:NativeCryptoSsh$public fun importPrivateKey: NativeSshPrivateKeyImportResult</ID>
+    <ID>LoopWithTooManyJumpStatements:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$while</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.AES$6</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.AES_CBC_HMAC_SHA256$20</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.AES_CBC_HMAC_SHA256_FAST_PATH$21</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.AES_CBC_HMAC_SHA256_STREAMING$22</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.DIGEST$5</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.HMAC$4</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.KDBX_ARGON2$8</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.OPENPGP_MUTATION_AGENT$19</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.OPENPGP_READ$17</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.OPENPGP_WRITE$18</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.RNG$3</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.RNG_FAST_PATH$23</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.RSA_KEY_FORMATS$12</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.RSA_OAEP$11</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.SSH_AGENT_SIGNING$15</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.SSH_AGENT_TCP_CHACHA20_POLY1305$13</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.SSH_KEYS$14</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.SSH_PRIVATE_KEY_IMPORT$16</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.STREAMING$7</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.STREAM_CIPHER_XOR_AT_OFFSET$9</ID>
+    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.TWOFISH_CBC_PKCS7$10</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$0x03</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$0x3f</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$0x40</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$0x80</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$0xff</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$16</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$192</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$224</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$255</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$32</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$4</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$5</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$64</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$8</ID>
+    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$9</ID>
+    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.AUTHENTICATION_FAILED$6</ID>
+    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.CRYPTO_FAILURE$5</ID>
+    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.INTERNAL$9</ID>
+    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.INVALID_ARGUMENT$3</ID>
+    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.INVALID_SESSION$7</ID>
+    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.NO_USABLE_KEY$11</ID>
+    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.PANIC$8</ID>
+    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.RESOURCE_LIMIT$4</ID>
+    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.UNSUPPORTED_KEY_VERSION$10</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:0xffL</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:17L</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:3L</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:7L</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:NativeCryptoLayerBenchmarkHarness$31L</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:0xff</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:1024</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:16</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:1_000</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:2_000</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:31L</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:32</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:37</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:4</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:5</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:50</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:500</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:5_000</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgp.kt:128</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgp.kt:16</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgp.kt:32</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgp.kt:40</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp$3072</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp$4096</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest$3</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest$30</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgpLargeTextTest.kt:NativeCryptoOpenPgpLargeTextTest$13</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgpLargeTextTest.kt:NativeCryptoOpenPgpLargeTextTest$17</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgpLargeTextTest.kt:NativeCryptoOpenPgpLargeTextTest$5</ID>
+    <ID>MagicNumber:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform$2</ID>
+    <ID>MagicNumber:NativeCryptoPrimitives.kt:16</ID>
+    <ID>MagicNumber:NativeCryptoPrimitives.kt:20</ID>
+    <ID>MagicNumber:NativeCryptoPrimitives.kt:32</ID>
+    <ID>MagicNumber:NativeCryptoPrimitives.kt:64</ID>
+    <ID>MagicNumber:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$16</ID>
+    <ID>MagicNumber:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$24</ID>
+    <ID>MagicNumber:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$32</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256DecryptOperationProto$46</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256DecryptRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256DecryptRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256DecryptRequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256DecryptStreamOpenOperationProto$20</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256DecryptStreamOpenRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256DecryptStreamOpenRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256EncryptOperationProto$45</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256EncryptRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256EncryptRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256EncryptStreamOpenOperationProto$19</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7HmacSha256EncryptStreamOpenRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7OperationProto$18</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7RequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7RequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7StreamOpenOperationProto$13</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesCbcPkcs7StreamOpenRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesEcbNoPaddingEncryptOperationProto$17</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesEcbNoPaddingTransformOperationProto$20</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:AesEcbNoPaddingTransformRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Argon2ModeProto.ID$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Argon2OperationProto$12</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Argon2RequestProto$10</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Argon2RequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Argon2RequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Argon2RequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Argon2RequestProto$6</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Argon2RequestProto$7</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Argon2RequestProto$8</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Argon2RequestProto$9</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:BytesResultProto$10</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:DigestOperationProto$16</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:DigestStreamOpenOperationProto$11</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:HashAlgorithmProto.MD5$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:HashAlgorithmProto.SHA512$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:HkdfSha256OperationProto$10</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:HkdfSha256RequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:HkdfSha256RequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:HmacOperationProto$15</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:HmacRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:HmacSha256StreamOpenOperationProto$10</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:HmacStreamOpenOperationProto$12</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Int32ResultProto$11</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:NativeErrorCodeProto.AUTHENTICATION_FAILED$6</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:NativeErrorCodeProto.CRYPTO_FAILURE$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:NativeErrorCodeProto.INTERNAL$9</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:NativeErrorCodeProto.INVALID_ARGUMENT$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:NativeErrorCodeProto.INVALID_SESSION$7</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:NativeErrorCodeProto.NO_USABLE_KEY$11</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:NativeErrorCodeProto.PANIC$8</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:NativeErrorCodeProto.RESOURCE_LIMIT$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:NativeErrorCodeProto.UNSUPPORTED_KEY_VERSION$10</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpAgentDecryptOperationProto$44</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpAgentDecryptRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpAgentDecryptRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpAgentSignOperationProto$43</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpAgentSignRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpAgentSignRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDecryptOperationProto$41</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDecryptRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDecryptRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDecryptStreamOpenOperationProto$18</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDecryptStreamOpenRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDetachedSignStreamOpenOperationProto$16</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDetachedSignStreamOpenRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDetachedSignStreamOpenRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDetachedSignStreamOpenRequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDetachedVerifyStreamOpenOperationProto$15</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpDetachedVerifyStreamOpenRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptOperationProto$40</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptRequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptRequestProto$6</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptRequestProto$7</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptRequestProto$8</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptStreamOpenOperationProto$17</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptStreamOpenRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptStreamOpenRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptStreamOpenRequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptStreamOpenRequestProto$6</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpEncryptStreamOpenRequestProto$7</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.COMPONENT_NOT_FOUND$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.FINGERPRINT_MISMATCH$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.INTERNAL_FAILURE$16</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.INVALID_EXPIRATION$12</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.METADATA_RESOLUTION_FAILED$15</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.MISSING_SECRET_KEY$9</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.MISSING_SELF_SIGNATURE$11</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.NO_COMPONENTS_SELECTED$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.PROTECTED_SECRET_KEY$10</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.REVOKED_COMPONENT$6</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.SIGNATURE_VERIFICATION_FAILED$14</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.TIME_CONFLICT$13</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.UNRESOLVED_REVOCATION_AUTHORITY$7</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateErrorReasonProto.UNSUPPORTED_KEY_VERSION$8</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateOperationProto$42</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateRequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateRequestProto$6</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpExpirationUpdateRequestProto$7</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyGenerateOperationProto$37</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyGenerateRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyGenerateRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyGenerateRequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyImportErrorOutcomeProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyImportErrorReasonProto.INVALID_PASSPHRASE$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyImportErrorReasonProto.MALFORMED_KEY$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyImportOperationProto$38</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyImportRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyMaterialProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyMetadataKeyProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpKeyMetadataKeyProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpMetadataResolveOperationProto$36</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpMetadataResolveRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpMetadataResolveRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpMetadataResolveRequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$10</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$11</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$12</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$13</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$14</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$6</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$7</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$8</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyInfoProto$9</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyParseErrorReasonProto.UNSUPPORTED_KEY_VERSION$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicKeyParseOperationProto$34</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicSubKeyInfoProto$10</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicSubKeyInfoProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicSubKeyInfoProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicSubKeyInfoProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicSubKeyInfoProto$6</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicSubKeyInfoProto$7</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicSubKeyInfoProto$8</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpPublicSubKeyInfoProto$9</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpSignOperationProto$39</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpSignRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpSignRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpSignRequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpSignRequestProto$6</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpSignRequestProto$7</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerificationProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerificationProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerificationProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerificationProto$6</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerificationStatusProto.MISSING_PUBLIC_KEY$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerificationWarningProto.SIGNATURE_EXPIRED$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerifyOperationProto$35</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerifyRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerifyRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerifyRequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Pbkdf2Sha256OperationProto$11</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Pbkdf2Sha256RequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:Pbkdf2Sha256RequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:RandomBytesOperationProto$13</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:RandomIntOperationProto$14</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:RandomIntsOperationProto$19</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:RandomIntsRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:RsaOaepDecryptOperationProto$24</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:RsaOaepDecryptRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:RsaOaepEncryptOperationProto$23</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:RsaOaepEncryptRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:RsaPkcs8ToSpkiOperationProto$25</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshAgentSignOperationProto$32</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshAgentSignRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshAgentSignRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshAgentTcpChaCha20Poly1305OperationProto$26</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshAgentTcpChaCha20Poly1305RequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshAgentTcpChaCha20Poly1305RequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshAgentTcpChaCha20Poly1305RequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshKeyDescribeOperationProto$29</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshKeyDescribeRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshKeyDescriptionProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshKeyDescriptionProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshKeyGenerateOperationProto$27</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshKeyMaterialProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshKeyParseOperationProto$28</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshPrivateKeyFormatOperationProto$31</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshPrivateKeyImportErrorOutcomeProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshPrivateKeyImportErrorReasonProto.INVALID_PASSPHRASE$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshPrivateKeyImportErrorReasonProto.MALFORMED_KEY$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshPrivateKeyImportOperationProto$33</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:SshPrivateKeyRsaBitsOperationProto$30</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:StreamCipherXorAtOffsetOperationProto$21</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:StreamCipherXorAtOffsetRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:StreamCipherXorAtOffsetRequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:StreamCipherXorAtOffsetRequestProto$5</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:TwofishCbcPkcs7OperationProto$22</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:TwofishCbcPkcs7RequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:TwofishCbcPkcs7RequestProto$4</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:TwofishCbcPkcs7StreamOpenOperationProto$14</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:TwofishCbcPkcs7StreamOpenRequestProto$3</ID>
+    <ID>MagicNumber:NativeCryptoProtocol.kt:UInt64ResultProto$12</ID>
+    <ID>MagicNumber:NativeCryptoSsh.kt:NativeCryptoSsh$1024</ID>
+    <ID>MagicNumber:NativeCryptoSsh.kt:NativeCryptoSsh$2048</ID>
+    <ID>MagicNumber:NativeCryptoSsh.kt:NativeCryptoSsh$3072</ID>
+    <ID>MagicNumber:NativeCryptoSsh.kt:NativeCryptoSsh$4096</ID>
+    <ID>MatchingDeclarationName:NativeCryptoLibraryLoader.desktop.kt:NativeCryptoLibraryLoader</ID>
+    <ID>MatchingDeclarationName:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform : NativeCryptoBridge</ID>
+    <ID>NestedBlockDepth:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpAgentEcdhDecrypt</ID>
+    <ID>NestedBlockDepth:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpAgentRsaDecrypt</ID>
+    <ID>ReturnCount:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest$private fun gpgSupportsOcb: Boolean</ID>
+    <ID>ReturnCount:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform$private inline fun normalizeFastResult: Long</ID>
+    <ID>SwallowedException:NativeCrypto.kt:NativeCryptoClient$e: NativeCryptoPlatformException</ID>
+    <ID>SwallowedException:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$e: NativeCryptoPlatformException</ID>
+    <ID>ThrowingExceptionFromFinally:NativeCrypto.kt:NativeCryptoSessionImpl$throw closeFailure</ID>
+    <ID>ThrowingExceptionFromFinally:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp$throw closeFailure</ID>
+    <ID>ThrowingExceptionFromFinally:NativeCryptoStreaming.kt:throw closeFailure</ID>
+    <ID>ThrowsCount:NativeCrypto.kt:NativeCryptoClient$internal fun decodeResponse: NativeResponseResultProto?</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$fun atom: ByteArray</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun firstPkeskBody: ByteArray</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun readNewPacketLength: Pair&lt;Int, Int&gt;</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyEncryptedSshImport</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpAgentRsaDecrypt</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpMutationAndAgent</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$public fun runPackaged: NativeCryptoDesktopSmokeResult</ID>
+    <ID>ThrowsCount:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$private fun processAesEcbChunks: ByteArray</ID>
+    <ID>ThrowsCount:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$private fun sshAgentTcpChaCha20Poly1305: ByteArray</ID>
+    <ID>ThrowsCount:NativeCryptoStreaming.kt:internal fun collectNativeStreamToExpectedSize: ByteArray</ID>
+    <ID>TooGenericExceptionCaught:NativeCrypto.kt:NativeCryptoClient$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCrypto.kt:NativeCryptoSessionImpl$closeFailure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCrypto.kt:NativeCryptoSessionImpl$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoOpenPgp.kt:BoundedOpenPgpPlaintextAccumulator$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp$closeFailure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoSsh.kt:NativeCryptoSsh$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoStreaming.kt:closeFailure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoStreaming.kt:failure: Throwable</ID>
+    <ID>TooManyFunctions:NativeCrypto.kt:NativeCrypto</ID>
+    <ID>TooManyFunctions:NativeCrypto.kt:NativeCryptoClient</ID>
+    <ID>TooManyFunctions:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke</ID>
+    <ID>TooManyFunctions:NativeCryptoLayerBenchmarkTest.kt:NativeCryptoLayerBenchmarkTest</ID>
+    <ID>TooManyFunctions:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp</ID>
+    <ID>TooManyFunctions:NativeCryptoOpenPgp.kt:com.artemchep.keyguard.nativecrypto.NativeCryptoOpenPgp.kt</ID>
+    <ID>TooManyFunctions:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest</ID>
+    <ID>TooManyFunctions:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform : NativeCryptoBridge</ID>
+    <ID>TooManyFunctions:NativeCryptoPrimitives.kt:NativeCryptoPrimitives</ID>
+    <ID>TooManyFunctions:NativeCryptoSsh.kt:NativeCryptoSsh</ID>
+  </CurrentIssues>
+</SmellBaseline>

@@ -1,0 +1,98 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FunctionNaming:Planeta.kt:@Composable fun Planeta</ID>
+    <ID>LongMethod:PlanetaBodyRenderer.kt:internal fun DrawScope.drawPlanetBody</ID>
+    <ID>LongMethod:PlanetaPaletteGenerator.kt:internal fun paletteFor: PlanetaPalette</ID>
+    <ID>LongMethod:PlanetaSceneRenderer.kt:internal fun DrawScope.drawPlanetaScene</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0.02f</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0.04f</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0.14f</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0.18f</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0.25f</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0.28f</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0.2f</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0.34f</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0.42f</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0.45f</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:0xFF2E4057</ID>
+    <ID>MagicNumber:PlanetaBodyRenderer.kt:4</ID>
+    <ID>MagicNumber:PlanetaGeometry.kt:0.001f</ID>
+    <ID>MagicNumber:PlanetaGeometry.kt:180f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.035f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.05f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.085f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.18f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.1f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.22f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.24f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.26f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.34f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.36f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.42f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.45f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.56f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.58f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:0.62f</ID>
+    <ID>MagicNumber:PlanetaOrbitGenerator.kt:18f</ID>
+    <ID>MagicNumber:PlanetaOrbitRenderer.kt:0.12f</ID>
+    <ID>MagicNumber:PlanetaOrbitRenderer.kt:0.18f</ID>
+    <ID>MagicNumber:PlanetaOrbitRenderer.kt:0.28f</ID>
+    <ID>MagicNumber:PlanetaOrbitRenderer.kt:0.32f</ID>
+    <ID>MagicNumber:PlanetaOrbitRenderer.kt:0.3f</ID>
+    <ID>MagicNumber:PlanetaOrbitRenderer.kt:0xFF233247</ID>
+    <ID>MagicNumber:PlanetaPaletteGenerator.kt:0.5f</ID>
+    <ID>MagicNumber:PlanetaPaletteGenerator.kt:0.6f</ID>
+    <ID>MagicNumber:PlanetaRandom.kt:PlanetaRandom$24</ID>
+    <ID>MagicNumber:PlanetaRandom.kt:PlanetaRandom$27</ID>
+    <ID>MagicNumber:PlanetaRandom.kt:PlanetaRandom$30</ID>
+    <ID>MagicNumber:PlanetaRandom.kt:PlanetaRandom$31</ID>
+    <ID>MagicNumber:PlanetaRandom.kt:PlanetaRandom$40</ID>
+    <ID>MagicNumber:PlanetaRandom.kt:PlanetaRandom$4658895280553007687L</ID>
+    <ID>MagicNumber:PlanetaRandom.kt:PlanetaRandom$7046029254386353131L</ID>
+    <ID>MagicNumber:PlanetaRandom.kt:PlanetaRandom$7723592293110705685L</ID>
+    <ID>MagicNumber:PlanetaRenderTheme.kt:0.72f</ID>
+    <ID>MagicNumber:PlanetaRenderTheme.kt:0xFF26384C</ID>
+    <ID>MagicNumber:PlanetaSeed.kt:0x100000001B3L</ID>
+    <ID>MagicNumber:PlanetaSeed.kt:0x5DEECE66DL</ID>
+    <ID>MagicNumber:PlanetaSeed.kt:0xffL</ID>
+    <ID>MagicNumber:PlanetaStarfieldRenderer.kt:0.88f</ID>
+    <ID>MagicNumber:PlanetaStarfieldRenderer.kt:7</ID>
+    <ID>MagicNumber:PlanetaStarfieldRenderer.kt:72</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.01f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.025f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.032f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.035f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.045f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.055f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.06f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.115f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.11f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.12f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.16f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.17f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.18f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.28f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.34f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.46f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.55f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.65f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.72f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.85f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:0.96f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:1.05f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:1.2f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:1.4f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:1.85f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:15</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:3.4f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:3.8f</ID>
+    <ID>MagicNumber:PlanetaTerrainGenerator.kt:7</ID>
+    <ID>MaxLineLength:PlanetaRingRenderer.kt:ring.accentColor.forLightSurface(theme, amount = 0.2f).copy(alpha = 0.58f * ring.alpha * theme.ringAlphaMultiplier)</ID>
+    <ID>MaxLineLength:PlanetaRingRenderer.kt:ring.color.forLightSurface(theme, amount = 0.16f).copy(alpha = 0.82f * ring.alpha * theme.ringAlphaMultiplier)</ID>
+    <ID>MaxLineLength:PlanetaRingRenderer.kt:ring.color.forLightSurface(theme, amount = 0.22f).copy(alpha = 0.1f * ring.alpha * theme.ringAlphaMultiplier)</ID>
+    <ID>MaxLineLength:PlanetaRingRenderer.kt:ring.color.forLightSurface(theme, amount = 0.2f).copy(alpha = 0.18f * ring.alpha * theme.ringAlphaMultiplier)</ID>
+    <ID>TopLevelPropertyNaming:PlanetaGeometry.kt:internal const val TwoPi = 6.2831855f</ID>
+  </CurrentIssues>
+</SmellBaseline>

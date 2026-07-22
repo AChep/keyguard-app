@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MagicNumber:MessagePackFrameCodec.kt:MessagePackFrameCodec$0x07</ID>
+    <ID>MagicNumber:MessagePackFrameCodec.kt:MessagePackFrameCodec$0x7f</ID>
+    <ID>MagicNumber:MessagePackFrameCodec.kt:MessagePackFrameCodec$0x80</ID>
+    <ID>MagicNumber:MessagePackFrameCodec.kt:MessagePackFrameCodec$0xff</ID>
+    <ID>MagicNumber:MessagePackFrameCodec.kt:MessagePackFrameCodec$7</ID>
+  </CurrentIssues>
+</SmellBaseline>

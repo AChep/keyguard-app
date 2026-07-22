@@ -29,13 +29,16 @@ use prost::Message;
 use thiserror::Error;
 use zeroize::Zeroizing;
 
-use crate::protocol::{
-    OpenPgpDetachedVerifyStreamOpenRequest, OpenPgpKeyMetadata, OpenPgpKeyMetadataKey,
-    OpenPgpMetadataResolveRequest, OpenPgpMetadataResolveResult, OpenPgpPublicKeyInfo,
-    OpenPgpPublicKeyParseError, OpenPgpPublicKeyParseErrorReason, OpenPgpPublicKeyParseRequest,
-    OpenPgpPublicKeyParseResult, OpenPgpPublicKeyParseSuccess, OpenPgpPublicSubKeyInfo,
-    OpenPgpVerification, OpenPgpVerificationStatus, OpenPgpVerificationWarning, OpenPgpVerifyKind,
-    OpenPgpVerifyRequest, open_pgp_public_key_parse_result,
+use crate::{
+    openpgp_packets::{RawPacketError, RawPacketStream},
+    protocol::{
+        OpenPgpDetachedVerifyStreamOpenRequest, OpenPgpKeyMetadata, OpenPgpKeyMetadataKey,
+        OpenPgpMetadataResolveRequest, OpenPgpMetadataResolveResult, OpenPgpPublicKeyInfo,
+        OpenPgpPublicKeyParseError, OpenPgpPublicKeyParseErrorReason, OpenPgpPublicKeyParseRequest,
+        OpenPgpPublicKeyParseResult, OpenPgpPublicKeyParseSuccess, OpenPgpPublicSubKeyInfo,
+        OpenPgpVerification, OpenPgpVerificationStatus, OpenPgpVerificationWarning,
+        OpenPgpVerifyKind, OpenPgpVerifyRequest, open_pgp_public_key_parse_result,
+    },
 };
 
 const METADATA_VERSION: u32 = 1;
@@ -111,6 +114,28 @@ pub(super) struct CertificatePolicy<'a> {
     pub(super) primary: ComponentPolicy<'a, PublicKey>,
     pub(super) subkeys: Vec<ComponentPolicy<'a, PublicSubkey>>,
     pub(super) verified_user_ids: Vec<String>,
+}
+
+pub(super) struct SubkeyAuthentication<'a> {
+    verified_bindings: Vec<&'a Signature>,
+}
+
+/// Cryptographic ownership evidence without expiry or revocation policy.
+///
+/// Third-party and invalid ancillary signatures are intentionally absent from
+/// this summary but remain untouched in the parsed certificate.
+pub(super) struct CertificateAuthentication<'a> {
+    pub(super) subkeys: Vec<SubkeyAuthentication<'a>>,
+    verified_direct: Vec<&'a Signature>,
+    primary_self_revoked: bool,
+    user_ids: Vec<IdentityAuthentication<'a>>,
+    user_attributes: Vec<IdentityAuthentication<'a>>,
+    subkey_self_revoked: Vec<bool>,
+}
+
+struct IdentityAuthentication<'a> {
+    effective_signature: Option<&'a Signature>,
+    self_revoked: bool,
 }
 
 struct SelectedSigner {
@@ -298,7 +323,7 @@ pub(crate) fn parse_public_key_request(
             reference_time,
             &mut budget,
         )?;
-        if let Some(key) = public_key_info(&policy, &parsed.packets) {
+        if let Some(key) = public_key_info(&policy, &parsed.packets, reference_time) {
             keys.push(key);
         }
     }
@@ -435,7 +460,7 @@ fn resolve_metadata_certificates(
             continue;
         }
         let policy = inspect_certificate(certificate, &candidates, reference_time, budget)?;
-        keys.extend(metadata_keys(&policy));
+        keys.extend(metadata_keys(&policy, reference_time));
     }
     Ok((!keys.is_empty()).then_some(OpenPgpKeyMetadata {
         version: METADATA_VERSION,
@@ -760,18 +785,20 @@ fn parse_public_certificates_preserving_packets(
     data: &[u8],
     budget: &mut OpenPgpReadBudget,
 ) -> Result<Vec<ParsedPublicCertificate>, ParseFailure> {
-    // Account every packet in the original document, including markers and
-    // padding outside a transferable certificate, before splitting rings.
-    preflight_openpgp_packets(data, budget)?;
     let binary = decode_openpgp_packets(data)?;
     let rings = split_public_certificate_packets(&binary)?;
+    let semantic = semantic_key_packets(data, budget)?;
+    let semantic_rings = split_public_certificate_packets(&semantic)?;
+    if semantic_rings.len() != rings.len() {
+        return Err(ParseFailure::Malformed);
+    }
     if rings.len() > MAX_CERTIFICATES_PER_REQUEST {
         return Err(ParseFailure::ResourceLimit);
     }
 
     let mut parsed = Vec::with_capacity(rings.len());
-    for packets in rings {
-        let mut certificates = parse_public_certificates_composed(&packets, budget)?;
+    for (packets, semantic_packets) in rings.into_iter().zip(semantic_rings) {
+        let mut certificates = parse_public_certificates_composed(&semantic_packets, budget)?;
         if certificates.len() != 1 {
             return Err(ParseFailure::Malformed);
         }
@@ -786,75 +813,20 @@ fn parse_public_certificates_preserving_packets(
 }
 
 fn decode_openpgp_packets(data: &[u8]) -> Result<Vec<u8>, ParseFailure> {
-    if data.len() > crate::MAX_CONTROL_ENVELOPE_BYTES {
-        return Err(ParseFailure::ResourceLimit);
-    }
-    let mut input = BufReader::new(Cursor::new(data));
-    let first = input
-        .fill_buf()
-        .map_err(|_| ParseFailure::Malformed)?
-        .first()
-        .copied()
-        .ok_or(ParseFailure::Malformed)?;
-    if first & 0x80 != 0 {
-        return Ok(data.to_vec());
-    }
-
-    let mut dearmor = Dearmor::with_options(
-        input,
-        DearmorOptions::default().set_limit(crate::MAX_CONTROL_ENVELOPE_BYTES),
-    );
-    dearmor.read_header().map_err(|_| ParseFailure::Malformed)?;
-    let mut binary = Vec::new();
-    dearmor
-        .take((crate::MAX_CONTROL_ENVELOPE_BYTES + 1) as u64)
-        .read_to_end(&mut binary)
-        .map_err(|_| ParseFailure::Malformed)?;
-    if binary.len() > crate::MAX_CONTROL_ENVELOPE_BYTES {
-        return Err(ParseFailure::ResourceLimit);
-    }
-    Ok(binary)
+    RawPacketStream::parse(data, MAX_PACKETS_PER_REQUEST)
+        .map(|stream| stream.bytes().to_vec())
+        .map_err(map_raw_packet_error)
 }
 
 fn split_public_certificate_packets(data: &[u8]) -> Result<Vec<Vec<u8>>, ParseFailure> {
+    let stream =
+        RawPacketStream::parse(data, MAX_PACKETS_PER_REQUEST).map_err(map_raw_packet_error)?;
     let mut primary_starts = Vec::new();
-    let mut index = 0usize;
-    let mut packet_count = 0usize;
-    while index < data.len() {
-        packet_count = packet_count
-            .checked_add(1)
-            .filter(|count| *count <= MAX_PACKETS_PER_REQUEST)
-            .ok_or(ParseFailure::ResourceLimit)?;
-        let start = index;
-        let header = *data.get(index).ok_or(ParseFailure::Malformed)?;
-        index += 1;
-        if header & 0x80 == 0 {
-            return Err(ParseFailure::Malformed);
+    for (index, packet) in stream.packets().iter().enumerate() {
+        if packet.tag() == u8::from(Tag::PublicKey) {
+            primary_starts.push(index);
         }
-
-        let (tag, body_length) = if header & 0x40 != 0 {
-            (header & 0x3f, read_new_packet_length(data, &mut index)?)
-        } else {
-            let tag = (header >> 2) & 0x0f;
-            let length = match header & 0x03 {
-                0 => RawPacketLength::Fixed(usize::from(read_packet_u8(data, &mut index)?)),
-                1 => RawPacketLength::Fixed(usize::from(read_packet_u16(data, &mut index)?)),
-                2 => RawPacketLength::Fixed(
-                    usize::try_from(read_packet_u32(data, &mut index)?)
-                        .map_err(|_| ParseFailure::ResourceLimit)?,
-                ),
-                3 => RawPacketLength::Indeterminate,
-                _ => unreachable!("two-bit old packet length"),
-            };
-            (tag, length)
-        };
-
-        if tag == u8::from(Tag::PublicKey) {
-            primary_starts.push(start);
-        }
-        advance_raw_packet_body(data, &mut index, body_length)?;
     }
-
     if primary_starts.is_empty() {
         return Err(ParseFailure::Malformed);
     }
@@ -865,96 +837,44 @@ fn split_public_certificate_packets(data: &[u8]) -> Result<Vec<Vec<u8>>, ParseFa
             let end = primary_starts
                 .get(position + 1)
                 .copied()
-                .unwrap_or(data.len());
-            data[*start..end].to_vec()
+                .unwrap_or(stream.packets().len());
+            let mut certificate = Vec::new();
+            for packet in &stream.packets()[*start..end] {
+                certificate.extend_from_slice(stream.raw(packet));
+            }
+            certificate
         })
         .collect())
 }
 
-#[derive(Clone, Copy)]
-enum RawPacketLength {
-    Fixed(usize),
-    Partial(usize),
-    Indeterminate,
-}
-
-fn read_new_packet_length(data: &[u8], index: &mut usize) -> Result<RawPacketLength, ParseFailure> {
-    let first = read_packet_u8(data, index)?;
-    match first {
-        0..=191 => Ok(RawPacketLength::Fixed(usize::from(first))),
-        192..=223 => {
-            let second = read_packet_u8(data, index)?;
-            Ok(RawPacketLength::Fixed(
-                ((usize::from(first) - 192) << 8) + usize::from(second) + 192,
-            ))
-        }
-        224..=254 => Ok(RawPacketLength::Partial(
-            1usize
-                .checked_shl(u32::from(first & 0x1f))
-                .ok_or(ParseFailure::ResourceLimit)?,
-        )),
-        255 => Ok(RawPacketLength::Fixed(
-            usize::try_from(read_packet_u32(data, index)?)
-                .map_err(|_| ParseFailure::ResourceLimit)?,
-        )),
+fn map_raw_packet_error(error: RawPacketError) -> ParseFailure {
+    match error {
+        RawPacketError::Malformed => ParseFailure::Malformed,
+        RawPacketError::ResourceLimit => ParseFailure::ResourceLimit,
     }
 }
 
-fn advance_raw_packet_body(
+fn semantic_key_packets(
     data: &[u8],
-    index: &mut usize,
-    mut length: RawPacketLength,
-) -> Result<(), ParseFailure> {
-    let mut body_bytes = 0usize;
-    loop {
-        let chunk = match length {
-            RawPacketLength::Fixed(length) => length,
-            RawPacketLength::Partial(length) => length,
-            RawPacketLength::Indeterminate => data.len().saturating_sub(*index),
-        };
-        body_bytes = body_bytes
-            .checked_add(chunk)
-            .filter(|bytes| *bytes <= MAX_PACKET_BODY_BYTES)
-            .ok_or(ParseFailure::ResourceLimit)?;
-        *index = index
-            .checked_add(chunk)
-            .filter(|end| *end <= data.len())
-            .ok_or(ParseFailure::Malformed)?;
-        match length {
-            RawPacketLength::Partial(_) => length = read_new_packet_length(data, index)?,
-            RawPacketLength::Fixed(_) | RawPacketLength::Indeterminate => return Ok(()),
+    budget: &mut OpenPgpReadBudget,
+) -> Result<Zeroizing<Vec<u8>>, ParseFailure> {
+    let stream =
+        RawPacketStream::parse(data, MAX_PACKETS_PER_REQUEST).map_err(map_raw_packet_error)?;
+    for packet in stream.packets() {
+        budget.charge_packets(1)?;
+        if packet.body_len() > MAX_PACKET_BODY_BYTES {
+            return Err(ParseFailure::ResourceLimit);
         }
     }
-}
-
-fn read_packet_u8(data: &[u8], index: &mut usize) -> Result<u8, ParseFailure> {
-    let value = *data.get(*index).ok_or(ParseFailure::Malformed)?;
-    *index += 1;
-    Ok(value)
-}
-
-fn read_packet_u16(data: &[u8], index: &mut usize) -> Result<u16, ParseFailure> {
-    let bytes = data
-        .get(*index..index.checked_add(2).ok_or(ParseFailure::Malformed)?)
-        .ok_or(ParseFailure::Malformed)?;
-    *index += 2;
-    Ok(u16::from_be_bytes([bytes[0], bytes[1]]))
-}
-
-fn read_packet_u32(data: &[u8], index: &mut usize) -> Result<u32, ParseFailure> {
-    let bytes = data
-        .get(*index..index.checked_add(4).ok_or(ParseFailure::Malformed)?)
-        .ok_or(ParseFailure::Malformed)?;
-    *index += 4;
-    Ok(u32::from_be_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]))
+    Ok(stream.semantic_bytes())
 }
 
 fn parse_public_certificates(
     data: &[u8],
     budget: &mut OpenPgpReadBudget,
 ) -> Result<Vec<SignedPublicKey>, ParseFailure> {
-    preflight_openpgp_packets(data, budget)?;
-    parse_public_certificates_composed(data, budget)
+    let semantic = semantic_key_packets(data, budget)?;
+    parse_public_certificates_composed(&semantic, budget)
 }
 
 fn parse_public_certificates_composed(
@@ -981,9 +901,9 @@ fn parse_any_certificates(
     data: &[u8],
     budget: &mut OpenPgpReadBudget,
 ) -> Result<Vec<SignedPublicKey>, ParseFailure> {
-    preflight_openpgp_packets(data, budget)?;
-    let (iterator, _) =
-        PublicOrSecret::from_reader_many(Cursor::new(data)).map_err(|_| ParseFailure::Malformed)?;
+    let semantic = semantic_key_packets(data, budget)?;
+    let (iterator, _) = PublicOrSecret::from_reader_many(Cursor::new(semantic.as_slice()))
+        .map_err(|_| ParseFailure::Malformed)?;
     let certificates = iterator
         .take(MAX_CERTIFICATES_PER_REQUEST + 1)
         .map(|entry| {
@@ -1204,151 +1124,96 @@ pub(super) fn inspect_certificate<'a>(
     reference_time: u64,
     budget: &mut OpenPgpReadBudget,
 ) -> Result<CertificatePolicy<'a>, OpenPgpReadError> {
-    let mut verified_direct = Vec::new();
-    for signature in &certificate.details.direct_signatures {
-        budget.charge_public_key_verification()?;
-        if signature.verify_key(&certificate.primary_key).is_ok() {
-            verified_direct.push(signature);
-        }
-    }
-    let authorized_revokers = authorized_revokers(&verified_direct, candidates, budget)?;
-    let mut primary_revoked = false;
-    'primary_revocations: for signature in &certificate.details.revocation_signatures {
-        budget.charge_public_key_verification()?;
-        if signature.verify_key(&certificate.primary_key).is_ok() {
-            primary_revoked = true;
-            break;
-        }
-        for candidate in &authorized_revokers {
-            if candidate.verifies_key_revocation(signature, &certificate.primary_key, budget)? {
-                primary_revoked = true;
-                break 'primary_revocations;
+    let authentication = authenticate_certificate_bindings(certificate, budget)?;
+    let authorized_revokers =
+        authorized_revokers(&authentication.verified_direct, candidates, budget)?;
+    let mut primary_revoked = authentication.primary_self_revoked;
+    if !primary_revoked {
+        'primary_revocations: for signature in &certificate.details.revocation_signatures {
+            for candidate in &authorized_revokers {
+                if candidate.verifies_key_revocation(signature, &certificate.primary_key, budget)? {
+                    primary_revoked = true;
+                    break 'primary_revocations;
+                }
             }
         }
     }
 
-    let mut primary_effective = verified_direct
+    let mut primary_effective = authentication
+        .verified_direct
         .iter()
         .copied()
         .filter(|signature| !signature_expired(signature, reference_time))
         .collect::<Vec<_>>();
     let mut verified_user_ids = Vec::new();
-    for user in &certificate.details.users {
-        let mut certifications = Vec::new();
-        for signature in &user.signatures {
-            if matches!(
-                signature.typ(),
-                Some(
-                    SignatureType::CertGeneric
-                        | SignatureType::CertPersona
-                        | SignatureType::CertCasual
-                        | SignatureType::CertPositive
-                )
-            ) {
-                budget.charge_public_key_verification()?;
-                if signature
-                    .verify_certification(&certificate.primary_key, Tag::UserId, &user.id)
-                    .is_ok()
-                {
-                    certifications.push(signature);
+    for (user, identity) in certificate
+        .details
+        .users
+        .iter()
+        .zip(&authentication.user_ids)
+    {
+        let mut revoked = identity.self_revoked;
+        if !revoked {
+            'user_revocations: for signature in &user.signatures {
+                if signature.typ() != Some(SignatureType::CertRevocation) {
+                    continue;
+                }
+                for candidate in &authorized_revokers {
+                    if candidate.verifies_certification_revocation(
+                        signature,
+                        &certificate.primary_key,
+                        Tag::UserId,
+                        &user.id,
+                        budget,
+                    )? {
+                        revoked = true;
+                        break 'user_revocations;
+                    }
                 }
             }
         }
-        let mut revoked = false;
-        'user_revocations: for signature in &user.signatures {
-            if signature.typ() != Some(SignatureType::CertRevocation) {
-                continue;
-            }
-            budget.charge_public_key_verification()?;
-            if signature
-                .verify_certification(&certificate.primary_key, Tag::UserId, &user.id)
-                .is_ok()
-            {
-                revoked = true;
-                break;
-            }
-            for candidate in &authorized_revokers {
-                if candidate.verifies_certification_revocation(
-                    signature,
-                    &certificate.primary_key,
-                    Tag::UserId,
-                    &user.id,
-                    budget,
-                )? {
-                    revoked = true;
-                    break 'user_revocations;
-                }
-            }
-        }
-        let effective = newest_signature(certifications.into_iter());
         if !revoked
-            && let Some(signature) = effective
+            && let Some(signature) = identity.effective_signature
             && !signature_expired(signature, reference_time)
         {
-            primary_effective.push(signature);
+            if certificate.primary_key.version() != KeyVersion::V6 {
+                primary_effective.push(signature);
+            }
             if let Some(user_id) = user.id.as_str() {
                 verified_user_ids.push(user_id.to_owned());
             }
         }
     }
-    for attribute in &certificate.details.user_attributes {
-        let mut certifications = Vec::new();
-        for signature in &attribute.signatures {
-            if matches!(
-                signature.typ(),
-                Some(
-                    SignatureType::CertGeneric
-                        | SignatureType::CertPersona
-                        | SignatureType::CertCasual
-                        | SignatureType::CertPositive
-                )
-            ) {
-                budget.charge_public_key_verification()?;
-                if signature
-                    .verify_certification(
+    for (attribute, identity) in certificate
+        .details
+        .user_attributes
+        .iter()
+        .zip(&authentication.user_attributes)
+    {
+        let mut revoked = identity.self_revoked;
+        if !revoked {
+            'attribute_revocations: for signature in &attribute.signatures {
+                if signature.typ() != Some(SignatureType::CertRevocation) {
+                    continue;
+                }
+                for candidate in &authorized_revokers {
+                    if candidate.verifies_certification_revocation(
+                        signature,
                         &certificate.primary_key,
                         Tag::UserAttribute,
                         &attribute.attr,
-                    )
-                    .is_ok()
-                {
-                    certifications.push(signature);
-                }
-            }
-        }
-        let mut revoked = false;
-        'attribute_revocations: for signature in &attribute.signatures {
-            if signature.typ() != Some(SignatureType::CertRevocation) {
-                continue;
-            }
-            budget.charge_public_key_verification()?;
-            if signature
-                .verify_certification(
-                    &certificate.primary_key,
-                    Tag::UserAttribute,
-                    &attribute.attr,
-                )
-                .is_ok()
-            {
-                revoked = true;
-                break;
-            }
-            for candidate in &authorized_revokers {
-                if candidate.verifies_certification_revocation(
-                    signature,
-                    &certificate.primary_key,
-                    Tag::UserAttribute,
-                    &attribute.attr,
-                    budget,
-                )? {
-                    revoked = true;
-                    break 'attribute_revocations;
+                        budget,
+                    )? {
+                        revoked = true;
+                        break 'attribute_revocations;
+                    }
                 }
             }
         }
         if !revoked
-            && let Some(signature) = newest_signature(certifications.into_iter())
+            && let Some(signature) = identity.effective_signature
             && !signature_expired(signature, reference_time)
+            && certificate.primary_key.version() != KeyVersion::V6
         {
             primary_effective.push(signature);
         }
@@ -1364,46 +1229,19 @@ pub(super) fn inspect_certificate<'a>(
     };
 
     let mut subkeys = Vec::with_capacity(certificate.public_subkeys.len());
-    for subkey in &certificate.public_subkeys {
-        let mut bindings = Vec::new();
-        for signature in &subkey.signatures {
-            if signature.typ() == Some(SignatureType::SubkeyBinding) {
-                budget.charge_public_key_verification()?;
-                if signature
-                    .verify_subkey_binding(&certificate.primary_key, &subkey.key)
-                    .is_ok()
-                    && !signature_expired(signature, reference_time)
-                {
-                    bindings.push(signature);
-                }
-            }
-        }
-        let binding = newest_signature(bindings.into_iter());
-        let mut revoked = false;
-        'subkey_revocations: for signature in &subkey.signatures {
-            if signature.typ() != Some(SignatureType::SubkeyRevocation) {
-                continue;
-            }
-            budget.charge_public_key_verification()?;
-            if signature
-                .verify_subkey_binding(&certificate.primary_key, &subkey.key)
-                .is_ok()
-            {
-                revoked = true;
-                break;
-            }
-            for candidate in &authorized_revokers {
-                if candidate.verifies_subkey_revocation(
-                    signature,
-                    &certificate.primary_key,
-                    &subkey.key,
-                    budget,
-                )? {
-                    revoked = true;
-                    break 'subkey_revocations;
-                }
-            }
-        }
+    for ((subkey, component), self_revoked) in certificate
+        .public_subkeys
+        .iter()
+        .zip(&authentication.subkeys)
+        .zip(&authentication.subkey_self_revoked)
+    {
+        let binding = newest_signature(
+            component
+                .verified_bindings
+                .iter()
+                .copied()
+                .filter(|signature| !signature_expired(signature, reference_time)),
+        );
         let signing_cross_certified =
             if let Some(signature) = binding.and_then(Signature::embedded_signature) {
                 budget.charge_public_key_verification()?;
@@ -1413,6 +1251,25 @@ pub(super) fn inspect_certificate<'a>(
             } else {
                 false
             };
+        let mut revoked = *self_revoked;
+        if !revoked {
+            'subkey_revocations: for signature in &subkey.signatures {
+                if signature.typ() != Some(SignatureType::SubkeyRevocation) {
+                    continue;
+                }
+                for candidate in &authorized_revokers {
+                    if candidate.verifies_subkey_revocation(
+                        signature,
+                        &certificate.primary_key,
+                        &subkey.key,
+                        budget,
+                    )? {
+                        revoked = true;
+                        break 'subkey_revocations;
+                    }
+                }
+            }
+        }
         subkeys.push(ComponentPolicy {
             key: &subkey.key,
             authenticated: binding.is_some(),
@@ -1428,6 +1285,137 @@ pub(super) fn inspect_certificate<'a>(
         subkeys,
         verified_user_ids,
     })
+}
+
+/// Authenticates primary ownership and subkey bindings independently of time.
+pub(super) fn authenticate_certificate_bindings<'a>(
+    certificate: &'a SignedPublicKey,
+    budget: &mut OpenPgpReadBudget,
+) -> Result<CertificateAuthentication<'a>, OpenPgpReadError> {
+    let mut verified_direct = Vec::new();
+    for signature in &certificate.details.direct_signatures {
+        if signature.typ() != Some(SignatureType::Key) {
+            continue;
+        }
+        budget.charge_public_key_verification()?;
+        if signature.verify_key(&certificate.primary_key).is_ok() {
+            verified_direct.push(signature);
+        }
+    }
+
+    let mut primary_self_revoked = false;
+    for signature in &certificate.details.revocation_signatures {
+        budget.charge_public_key_verification()?;
+        primary_self_revoked |= signature.verify_key(&certificate.primary_key).is_ok();
+    }
+
+    let mut user_ids = Vec::with_capacity(certificate.details.users.len());
+    for user in &certificate.details.users {
+        let mut certifications = Vec::new();
+        let mut self_revoked = false;
+        for signature in &user.signatures {
+            if is_certification(signature.typ()) {
+                budget.charge_public_key_verification()?;
+                if signature
+                    .verify_certification(&certificate.primary_key, Tag::UserId, &user.id)
+                    .is_ok()
+                {
+                    certifications.push(signature);
+                }
+            } else if signature.typ() == Some(SignatureType::CertRevocation) {
+                budget.charge_public_key_verification()?;
+                self_revoked |= signature
+                    .verify_certification(&certificate.primary_key, Tag::UserId, &user.id)
+                    .is_ok();
+            }
+        }
+        user_ids.push(IdentityAuthentication {
+            effective_signature: newest_signature(certifications.into_iter()),
+            self_revoked,
+        });
+    }
+
+    let mut user_attributes = Vec::with_capacity(certificate.details.user_attributes.len());
+    for attribute in &certificate.details.user_attributes {
+        let mut certifications = Vec::new();
+        let mut self_revoked = false;
+        for signature in &attribute.signatures {
+            if is_certification(signature.typ()) {
+                budget.charge_public_key_verification()?;
+                if signature
+                    .verify_certification(
+                        &certificate.primary_key,
+                        Tag::UserAttribute,
+                        &attribute.attr,
+                    )
+                    .is_ok()
+                {
+                    certifications.push(signature);
+                }
+            } else if signature.typ() == Some(SignatureType::CertRevocation) {
+                budget.charge_public_key_verification()?;
+                self_revoked |= signature
+                    .verify_certification(
+                        &certificate.primary_key,
+                        Tag::UserAttribute,
+                        &attribute.attr,
+                    )
+                    .is_ok();
+            }
+        }
+        user_attributes.push(IdentityAuthentication {
+            effective_signature: newest_signature(certifications.into_iter()),
+            self_revoked,
+        });
+    }
+
+    let mut subkeys = Vec::with_capacity(certificate.public_subkeys.len());
+    let mut subkey_self_revoked = Vec::with_capacity(certificate.public_subkeys.len());
+    for subkey in &certificate.public_subkeys {
+        let mut bindings = Vec::new();
+        let mut self_revoked = false;
+        for signature in &subkey.signatures {
+            if signature.typ() == Some(SignatureType::SubkeyBinding) {
+                budget.charge_public_key_verification()?;
+                if signature
+                    .verify_subkey_binding(&certificate.primary_key, &subkey.key)
+                    .is_ok()
+                {
+                    bindings.push(signature);
+                }
+            } else if signature.typ() == Some(SignatureType::SubkeyRevocation) {
+                budget.charge_public_key_verification()?;
+                self_revoked |= signature
+                    .verify_subkey_binding(&certificate.primary_key, &subkey.key)
+                    .is_ok();
+            }
+        }
+        subkeys.push(SubkeyAuthentication {
+            verified_bindings: bindings,
+        });
+        subkey_self_revoked.push(self_revoked);
+    }
+
+    Ok(CertificateAuthentication {
+        subkeys,
+        verified_direct,
+        primary_self_revoked,
+        user_ids,
+        user_attributes,
+        subkey_self_revoked,
+    })
+}
+
+fn is_certification(signature_type: Option<SignatureType>) -> bool {
+    matches!(
+        signature_type,
+        Some(
+            SignatureType::CertGeneric
+                | SignatureType::CertPersona
+                | SignatureType::CertCasual
+                | SignatureType::CertPositive
+        )
+    )
 }
 
 fn authorized_revokers<'a>(
@@ -1532,9 +1520,13 @@ fn signature_expired_at(created: Option<u64>, duration: u64, reference_time: u64
 fn public_key_info(
     policy: &CertificatePolicy<'_>,
     original_packets: &[u8],
+    reference_time: u64,
 ) -> Option<OpenPgpPublicKeyInfo> {
     let primary = &policy.primary;
     let certificate_revoked = primary.revoked;
+    let primary_available = primary.authenticated
+        && !certificate_revoked
+        && !component_is_expired(primary, reference_time);
     let subkeys = policy
         .subkeys
         .iter()
@@ -1545,28 +1537,25 @@ fn public_key_info(
             key_id: key_id_hex(subkey.key),
             algorithm: algorithm_name(subkey.key.algorithm()),
             bit_strength: bit_strength(subkey.key.public_params()),
-            can_sign: !certificate_revoked
+            can_sign: primary_available && signing_component_usable(subkey, reference_time, true),
+            can_encrypt: primary_available
+                && subkey.authenticated
                 && !subkey.revoked
-                && can_sign(subkey.key.algorithm(), subkey.key_flags.as_ref())
-                && subkey.signing_cross_certified,
-            can_encrypt: !certificate_revoked
-                && !subkey.revoked
+                && !component_is_expired(subkey, reference_time)
                 && can_encrypt(subkey.key.algorithm(), subkey.key_flags.as_ref()),
             revoked: subkey.revoked,
             created_at_epoch_seconds: Some(u64::from(subkey.key.created_at().as_secs())),
             expires_at_epoch_seconds: component_expiration(subkey),
         })
         .collect::<Vec<_>>();
-    let primary_can_sign = primary.authenticated
-        && !primary.revoked
-        && can_sign(primary.key.algorithm(), primary.key_flags.as_ref());
-    let certificate_can_encrypt = !certificate_revoked
-        && (primary.authenticated
-            && !primary.revoked
-            && can_encrypt(primary.key.algorithm(), primary.key_flags.as_ref())
+    let primary_can_sign =
+        primary_available && signing_component_usable(primary, reference_time, false);
+    let certificate_can_encrypt = primary_available
+        && (can_encrypt(primary.key.algorithm(), primary.key_flags.as_ref())
             || policy.subkeys.iter().any(|subkey| {
                 subkey.authenticated
                     && !subkey.revoked
+                    && !component_is_expired(subkey, reference_time)
                     && can_encrypt(subkey.key.algorithm(), subkey.key_flags.as_ref())
             }));
     let public_key_armored = armor_public_key_packets(original_packets)?;
@@ -1601,41 +1590,41 @@ fn armor_public_key_packets(packets: &[u8]) -> Option<String> {
     String::from_utf8(output).ok()
 }
 
-fn metadata_keys(policy: &CertificatePolicy<'_>) -> Vec<OpenPgpKeyMetadataKey> {
+fn metadata_keys(
+    policy: &CertificatePolicy<'_>,
+    reference_time: u64,
+) -> Vec<OpenPgpKeyMetadataKey> {
     let mut result = Vec::new();
-    if policy.primary.authenticated
-        && let Some(metadata) = metadata_key(&policy.primary, true, policy.primary.revoked)
+    let primary_available = policy.primary.authenticated
+        && !policy.primary.revoked
+        && !component_is_expired(&policy.primary, reference_time);
+    if primary_available
+        && let Some(metadata) = metadata_key(&policy.primary, true, reference_time, true)
     {
         result.push(metadata);
     }
-    result.extend(policy.subkeys.iter().filter_map(|subkey| {
-        subkey
-            .authenticated
-            .then(|| metadata_key(subkey, false, policy.primary.revoked))
-            .flatten()
-    }));
+    result.extend(
+        policy
+            .subkeys
+            .iter()
+            .filter_map(|subkey| metadata_key(subkey, false, reference_time, primary_available)),
+    );
     result
 }
 
 fn metadata_key<K: KeyDetails>(
     component: &ComponentPolicy<'_, K>,
     is_primary: bool,
-    certificate_revoked: bool,
+    reference_time: u64,
+    primary_available: bool,
 ) -> Option<OpenPgpKeyMetadataKey> {
-    let capabilities = if certificate_revoked || component.revoked {
-        Vec::new()
-    } else {
-        let mut capabilities = Vec::new();
-        if can_sign(component.key.algorithm(), component.key_flags.as_ref())
-            && (is_primary || component.signing_cross_certified)
-        {
-            capabilities.push("sign".to_owned());
-        }
-        if can_encrypt(component.key.algorithm(), component.key_flags.as_ref()) {
-            capabilities.push("decrypt".to_owned());
-        }
-        capabilities
-    };
+    let mut capabilities = Vec::new();
+    if primary_available && signing_component_usable(component, reference_time, !is_primary) {
+        capabilities.push("sign".to_owned());
+    }
+    if primary_available && encryption_component_usable(component, reference_time) {
+        capabilities.push("decrypt".to_owned());
+    }
     if !is_primary && capabilities.is_empty() {
         return None;
     }
@@ -1665,6 +1654,34 @@ pub(super) fn can_encrypt(algorithm: PublicKeyAlgorithm, flags: Option<&KeyFlags
         || algorithm.can_encrypt(),
         |flags| flags.encrypt_comms() || flags.encrypt_storage(),
     )
+}
+
+pub(super) fn signing_component_usable<K>(
+    component: &ComponentPolicy<'_, K>,
+    reference_time: u64,
+    require_cross_certification: bool,
+) -> bool
+where
+    K: KeyDetails,
+{
+    component.authenticated
+        && !component.revoked
+        && !component_is_expired(component, reference_time)
+        && (!require_cross_certification || component.signing_cross_certified)
+        && can_sign(component.key.algorithm(), component.key_flags.as_ref())
+}
+
+pub(super) fn encryption_component_usable<K>(
+    component: &ComponentPolicy<'_, K>,
+    reference_time: u64,
+) -> bool
+where
+    K: KeyDetails,
+{
+    component.authenticated
+        && !component.revoked
+        && !component_is_expired(component, reference_time)
+        && can_encrypt(component.key.algorithm(), component.key_flags.as_ref())
 }
 
 fn parse_detached_signatures(

@@ -50,9 +50,18 @@ class GpgAgentPublicKeySyncerImplTest {
             fingerprint = "ABCDEF0123456789ABCDEF0123456789ABCDEF02",
             keygrip = "1123456789ABCDEF0123456789ABCDEF01234567",
         )
+        val decryptOnly = createGpgSecret(
+            id = "decrypt-only",
+            name = "Decrypt only",
+            privateKeyArmored = "decrypt-only-private-key",
+            publicKeyArmored = "decrypt-only-public-key",
+            fingerprint = "ABCDEF0123456789ABCDEF0123456789ABCDEF03",
+            keygrip = "2123456789ABCDEF0123456789ABCDEF01234567",
+            capabilities = setOf("decrypt"),
+        )
         val syncer = createSyncer(
             repository = repository,
-            ciphers = MutableStateFlow(listOf(publicOnly, privateBacked)),
+            ciphers = MutableStateFlow(listOf(publicOnly, privateBacked, decryptOnly)),
             gpgAgentEnabled = MutableStateFlow(true),
             displayKeyNames = MutableStateFlow(true),
             filter = MutableStateFlow(GpgAgentFilter()),
@@ -83,6 +92,15 @@ class GpgAgentPublicKeySyncerImplTest {
                         canDecrypt = true,
                         publicKeyArmored = "public-private-key",
                         name = "Private backed",
+                    ),
+                    GpgAgentPublicKeyRow(
+                        keygrip = "2123456789ABCDEF0123456789ABCDEF01234567",
+                        fingerprint = "ABCDEF0123456789ABCDEF0123456789ABCDEF03",
+                        algorithm = "ED25519",
+                        canSign = false,
+                        canDecrypt = true,
+                        publicKeyArmored = "decrypt-only-public-key",
+                        name = "Decrypt only",
                     ),
                 ),
                 repository.keys,
@@ -167,6 +185,7 @@ class GpgAgentPublicKeySyncerImplTest {
         publicKeyArmored: String,
         fingerprint: String,
         keygrip: String,
+        capabilities: Set<String> = setOf("sign", "decrypt"),
     ): DSecret = DSecret(
         id = id,
         accountId = "account",
@@ -194,7 +213,7 @@ class GpgAgentPublicKeySyncerImplTest {
                         keygrip = keygrip,
                         fingerprint = fingerprint,
                         algorithm = "ED25519",
-                        capabilities = setOf("sign", "decrypt"),
+                        capabilities = capabilities,
                     ),
                 ),
             ),

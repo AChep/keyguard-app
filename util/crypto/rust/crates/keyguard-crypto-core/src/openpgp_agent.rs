@@ -31,6 +31,11 @@ use keyguard_crypto_sensitive::{
 
 use crate::{
     MAX_CONTROL_ENVELOPE_BYTES,
+    openpgp_packets::{RawPacketError, RawPacketStream},
+    openpgp_read::{
+        OpenPgpReadBudget, all_components, component_is_expired, encryption_component_usable,
+        inspect_certificate, reference_time, signing_component_usable,
+    },
     protocol::{
         OpenPgpAgentDecryptRequest, OpenPgpAgentDecryptResult, OpenPgpAgentDecryptSuccess,
         OpenPgpAgentError as ProtocolAgentError, OpenPgpAgentErrorReason, OpenPgpAgentSignRequest,
@@ -41,6 +46,7 @@ use crate::{
 
 const MAX_AGENT_KEYS: usize = 64;
 const MAX_AGENT_COMPONENTS: usize = 64;
+const MAX_AGENT_PACKETS: usize = 4 * 1024;
 const MAX_SEXPR_DEPTH: usize = 16;
 const MAX_SEXPR_ITEMS: usize = 64;
 const MAX_AGENT_OUTPUT_BYTES: usize = 4 * 1024;
@@ -96,7 +102,7 @@ pub(crate) fn sign_request(
         Err(KeyParseError::ResourceLimit) => return Err(OpenPgpAgentError::ResourceLimit),
         Err(KeyParseError::Malformed) => return Err(OpenPgpAgentError::InvalidArgument),
     };
-    let Some(packet) = select_packet(&keys, &request.preferred_fingerprint, AgentUse::Sign) else {
+    let Some(packet) = select_packet(&keys, &request.preferred_fingerprint, AgentUse::Sign)? else {
         return Ok(encoded_sign_error(OpenPgpAgentErrorReason::KeyNotFound));
     };
 
@@ -168,7 +174,7 @@ pub(crate) fn decrypt_request(
         Err(KeyParseError::ResourceLimit) => return Err(OpenPgpAgentError::ResourceLimit),
         Err(KeyParseError::Malformed) => return Err(OpenPgpAgentError::InvalidArgument),
     };
-    let Some(packet) = select_packet(&keys, &request.preferred_fingerprint, AgentUse::Decrypt)
+    let Some(packet) = select_packet(&keys, &request.preferred_fingerprint, AgentUse::Decrypt)?
     else {
         // Preserve the JVM implementation's fail-closed ordering: an
         // authoritative selector fails before attacker-controlled ciphertext
@@ -286,7 +292,13 @@ enum KeyParseError {
 }
 
 fn parse_secret_keys(input: &[u8]) -> Result<Vec<SignedSecretKey>, KeyParseError> {
-    let (items, _) = PublicOrSecret::from_reader_many(Cursor::new(input))
+    let packets =
+        RawPacketStream::parse(input, MAX_AGENT_PACKETS).map_err(|error| match error {
+            RawPacketError::Malformed => KeyParseError::Malformed,
+            RawPacketError::ResourceLimit => KeyParseError::ResourceLimit,
+        })?;
+    let semantic = packets.semantic_bytes();
+    let (items, _) = PublicOrSecret::from_reader_many(Cursor::new(semantic.as_slice()))
         .map_err(|_| KeyParseError::Malformed)?;
     let mut keys = Vec::new();
     for item in items.take(MAX_AGENT_KEYS + 1) {
@@ -326,41 +338,84 @@ fn select_packet<'a>(
     keys: &'a [SignedSecretKey],
     preferred_fingerprint: &str,
     usage: AgentUse,
-) -> Option<SecretPacketRef<'a>> {
+) -> Result<Option<SecretPacketRef<'a>>, OpenPgpAgentError> {
+    if usage == AgentUse::Decrypt && preferred_fingerprint.is_blank() {
+        return Ok(None);
+    }
     let preferred =
         (!preferred_fingerprint.is_blank()).then(|| normalize_fingerprint(preferred_fingerprint));
-    let mut fallback = None;
-    let mut fallback_count = 0_usize;
+    let public_keys = keys
+        .iter()
+        .map(SignedSecretKey::to_public_key)
+        .collect::<Vec<_>>();
+    let candidates = all_components(&public_keys);
+    let mut budget = OpenPgpReadBudget::default();
+    let mut eligible = Vec::new();
+    let now = reference_time(None);
 
-    for packet in keys.iter().flat_map(|key| {
-        std::iter::once(SecretPacketRef::Primary(&key.primary_key)).chain(
-            key.secret_subkeys
-                .iter()
-                .map(|subkey| SecretPacketRef::Subkey(&subkey.key)),
-        )
-    }) {
-        let usable = match usage {
-            AgentUse::Sign => packet.algorithm().can_sign(),
-            AgentUse::Decrypt => packet.algorithm().can_encrypt(),
-        };
-        if !usable {
-            continue;
+    for (secret, public) in keys.iter().zip(&public_keys) {
+        let public_offset = secret.public_subkeys.len();
+        match usage {
+            AgentUse::Sign => {
+                let policy = inspect_certificate(public, &candidates, now, &mut budget)
+                    .map_err(map_read_error)?;
+                let primary_available = policy.primary.authenticated
+                    && !policy.primary.revoked
+                    && !component_is_expired(&policy.primary, now);
+                if primary_available && signing_component_usable(&policy.primary, now, false) {
+                    eligible.push(SecretPacketRef::Primary(&secret.primary_key));
+                }
+                if primary_available {
+                    eligible.extend(secret.secret_subkeys.iter().enumerate().filter_map(
+                        |(index, subkey)| {
+                            let component = policy.subkeys.get(public_offset + index)?;
+                            signing_component_usable(component, now, true)
+                                .then_some(SecretPacketRef::Subkey(&subkey.key))
+                        },
+                    ));
+                }
+            }
+            AgentUse::Decrypt => {
+                let policy = inspect_certificate(public, &candidates, now, &mut budget)
+                    .map_err(map_read_error)?;
+                let primary_available = policy.primary.authenticated
+                    && !policy.primary.revoked
+                    && !component_is_expired(&policy.primary, now);
+                if !primary_available {
+                    continue;
+                }
+                if encryption_component_usable(&policy.primary, now) {
+                    eligible.push(SecretPacketRef::Primary(&secret.primary_key));
+                }
+                eligible.extend(secret.secret_subkeys.iter().enumerate().filter_map(
+                    |(index, subkey)| {
+                        let component = policy.subkeys.get(public_offset + index)?;
+                        encryption_component_usable(component, now)
+                            .then_some(SecretPacketRef::Subkey(&subkey.key))
+                    },
+                ));
+            }
         }
-        let fingerprint = format!("{:X}", packet.fingerprint());
-        if preferred
-            .as_ref()
-            .is_some_and(|value| value == &fingerprint)
-        {
-            return Some(packet);
-        }
-        fallback_count = fallback_count.saturating_add(1);
-        fallback = Some(packet);
     }
 
-    if preferred.is_none() && fallback_count == 1 {
-        fallback
+    if let Some(preferred) = preferred {
+        Ok(eligible
+            .into_iter()
+            .find(|packet| format!("{:X}", packet.fingerprint()) == preferred))
+    } else if eligible.len() == 1 {
+        Ok(eligible.pop())
     } else {
-        None
+        Ok(None)
+    }
+}
+
+fn map_read_error(error: crate::openpgp_read::OpenPgpReadError) -> OpenPgpAgentError {
+    match error {
+        crate::openpgp_read::OpenPgpReadError::InvalidArgument => {
+            OpenPgpAgentError::InvalidArgument
+        }
+        crate::openpgp_read::OpenPgpReadError::ResourceLimit => OpenPgpAgentError::ResourceLimit,
+        crate::openpgp_read::OpenPgpReadError::Internal => OpenPgpAgentError::Internal,
     }
 }
 
@@ -1008,10 +1063,17 @@ mod tests {
         openpgp_write::generate_key_request,
         protocol::{
             OpenPgpKeyGenerateRequest, OpenPgpKeyKind, OpenPgpKeyMaterial,
+            OpenPgpMetadataResolveRequest, OpenPgpMetadataResolveResult,
+            OpenPgpPublicKeyParseRequest, OpenPgpPublicKeyParseResult,
             open_pgp_agent_decrypt_result, open_pgp_agent_sign_result,
+            open_pgp_public_key_parse_result,
         },
     };
-    use pgp::types::{Mpi, SignatureBytes, VerifyingKey};
+    use pgp::{
+        composed::{ArmorOptions, Deserializable},
+        packet::{KeyFlags, SignatureConfig, SignatureType, Subpacket, SubpacketData},
+        types::{Duration, Mpi, SignatureBytes, Timestamp, VerifyingKey},
+    };
     use proptest::prelude::*;
 
     const TEST_TIME: u64 = 1_700_000_000;
@@ -1081,7 +1143,11 @@ mod tests {
         let keys = parse_secret_keys(&material.private_key_armored).expect("parse generated RSA");
         let packet = keys
             .iter()
-            .flat_map(secret_packets)
+            .flat_map(|key| {
+                key.secret_subkeys
+                    .iter()
+                    .map(|subkey| SecretPacketRef::Subkey(&subkey.key))
+            })
             .find(|packet| {
                 matches!(
                     packet.algorithm(),
@@ -1123,7 +1189,11 @@ mod tests {
             parse_secret_keys(&material.private_key_armored).expect("parse generated Ed25519");
         let packet = keys
             .iter()
-            .flat_map(secret_packets)
+            .flat_map(|key| {
+                key.secret_subkeys
+                    .iter()
+                    .map(|subkey| SecretPacketRef::Subkey(&subkey.key))
+            })
             .find(|packet| {
                 matches!(
                     packet.algorithm(),
@@ -1255,6 +1325,308 @@ mod tests {
             Some(open_pgp_agent_decrypt_result::Result::Error(error))
                 if error.reason == OpenPgpAgentErrorReason::KeyNotFound as i32
         ));
+
+        let blank = OpenPgpAgentDecryptResult::decode(
+            decrypt_request(OpenPgpAgentDecryptRequest {
+                private_key: material.private_key_armored.clone(),
+                preferred_fingerprint: String::new(),
+                ciphertext: Vec::new(),
+                unwrap_ecdh: false,
+            })
+            .expect("blank selector is a typed result")
+            .as_slice(),
+        )
+        .expect("decode blank-selector result");
+        assert!(matches!(
+            blank.result,
+            Some(open_pgp_agent_decrypt_result::Result::Error(error))
+                if error.reason == OpenPgpAgentErrorReason::KeyNotFound as i32
+        ));
+    }
+
+    #[test]
+    fn expired_or_revoked_components_are_not_routable() {
+        let material = generated_material(OpenPgpKeyKind::Rsa, 3_072);
+        let (mut secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse generated RSA key");
+        let primary = &secret.primary_key;
+        let target = secret.secret_subkeys[1].key.public_key().clone();
+        let fingerprint = format!("{:X}", target.fingerprint());
+        let mut flags = KeyFlags::default();
+        flags.set_sign(true);
+        let mut config = SignatureConfig::v4(
+            SignatureType::SubkeyBinding,
+            primary.algorithm(),
+            HashAlgorithm::Sha256,
+        );
+        config.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                TEST_TIME as u32,
+            )))
+            .expect("signature creation subpacket"),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint()))
+                .expect("issuer fingerprint subpacket"),
+            Subpacket::regular(SubpacketData::SignatureExpirationTime(Duration::from_secs(
+                1,
+            )))
+            .expect("signature expiration subpacket"),
+            Subpacket::regular(SubpacketData::KeyFlags(flags)).expect("key flags subpacket"),
+        ];
+        config.unhashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::IssuerKeyId(primary.legacy_key_id()))
+                .expect("issuer key ID subpacket"),
+        ];
+        let binding = config
+            .sign_subkey_binding(primary, primary.public_key(), &Password::empty(), &target)
+            .expect("create sign-only binding");
+        secret.secret_subkeys[1].signatures = vec![binding];
+        let mut revocation = SignatureConfig::v4(
+            SignatureType::KeyRevocation,
+            primary.algorithm(),
+            HashAlgorithm::Sha256,
+        );
+        revocation.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                (TEST_TIME + 2) as u32,
+            )))
+            .expect("revocation creation subpacket"),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint()))
+                .expect("revocation issuer fingerprint"),
+        ];
+        revocation.unhashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::IssuerKeyId(primary.legacy_key_id()))
+                .expect("revocation issuer key ID"),
+        ];
+        let revocation = revocation
+            .sign_key(primary, &Password::empty(), primary.public_key())
+            .expect("create primary revocation");
+        secret.details.revocation_signatures.push(revocation);
+
+        let public = secret.to_public_key();
+        let candidates = all_components(std::slice::from_ref(&public));
+        let mut budget = OpenPgpReadBudget::default();
+        let policy = inspect_certificate(&public, &candidates, TEST_TIME + 1, &mut budget)
+            .expect("inspect sign-only certificate");
+        let component = &policy.subkeys[secret.public_subkeys.len() + 1];
+        assert!(!component.authenticated);
+        assert!(!encryption_component_usable(component, TEST_TIME + 1));
+        let public_info = OpenPgpPublicKeyParseResult::decode(
+            crate::openpgp_read::parse_public_key_request(OpenPgpPublicKeyParseRequest {
+                key_data: public
+                    .to_armored_bytes(ArmorOptions::default())
+                    .expect("armor sign-only public key"),
+                reference_time_epoch_seconds: Some(TEST_TIME + 1),
+            })
+            .expect("parse current public policy")
+            .as_slice(),
+        )
+        .expect("decode current public policy");
+        let Some(open_pgp_public_key_parse_result::Result::Success(success)) = public_info.result
+        else {
+            panic!("expected current public-key information");
+        };
+        assert!(success.keys[0].revoked);
+        assert!(!success.keys[0].can_encrypt);
+
+        let private_key = secret
+            .to_armored_bytes(ArmorOptions::default())
+            .expect("armor sign-only key");
+        let decrypt_result = OpenPgpAgentDecryptResult::decode(
+            decrypt_request(OpenPgpAgentDecryptRequest {
+                private_key: private_key.clone(),
+                preferred_fingerprint: fingerprint.clone(),
+                ciphertext: Vec::new(),
+                unwrap_ecdh: false,
+            })
+            .expect("expired component must return a typed result")
+            .as_slice(),
+        )
+        .expect("decode expired-component result");
+        assert!(matches!(
+            decrypt_result.result,
+            Some(open_pgp_agent_decrypt_result::Result::Error(error))
+                if error.reason == OpenPgpAgentErrorReason::KeyNotFound as i32
+        ));
+
+        let metadata = OpenPgpMetadataResolveResult::decode(
+            crate::openpgp_read::resolve_metadata(OpenPgpMetadataResolveRequest {
+                private_key_data: Some(private_key),
+                public_key_data: None,
+                normalized_fingerprint: material.fingerprint.clone(),
+                candidate_revocation_keys: Vec::new(),
+                reference_time_epoch_seconds: Some(TEST_TIME + 1),
+            })
+            .expect("resolve current metadata")
+            .as_slice(),
+        )
+        .expect("decode current metadata");
+        assert_eq!(metadata.metadata, None);
+    }
+
+    #[test]
+    fn current_rsa_metadata_respects_key_flags() {
+        let material = generated_material(OpenPgpKeyKind::Rsa, 3_072);
+        let (secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse generated RSA key");
+        let primary_fingerprint = format!("{:X}", secret.primary_key.fingerprint());
+        let signing_fingerprint = format!("{:X}", secret.secret_subkeys[0].key.fingerprint());
+        let encryption_fingerprint = format!("{:X}", secret.secret_subkeys[1].key.fingerprint());
+        let metadata = OpenPgpMetadataResolveResult::decode(
+            crate::openpgp_read::resolve_metadata(OpenPgpMetadataResolveRequest {
+                private_key_data: Some(material.private_key_armored.clone()),
+                public_key_data: None,
+                normalized_fingerprint: primary_fingerprint.clone(),
+                candidate_revocation_keys: Vec::new(),
+                reference_time_epoch_seconds: Some(TEST_TIME),
+            })
+            .expect("resolve current RSA metadata")
+            .as_slice(),
+        )
+        .expect("decode current RSA metadata")
+        .metadata
+        .expect("current RSA metadata");
+
+        let key = |fingerprint: &str| {
+            metadata
+                .keys
+                .iter()
+                .find(|key| key.fingerprint == fingerprint)
+                .unwrap_or_else(|| panic!("missing metadata for {fingerprint}"))
+        };
+        assert!(key(&primary_fingerprint).capabilities.is_empty());
+        assert_eq!(key(&signing_fingerprint).capabilities, ["sign"]);
+        assert_eq!(key(&encryption_fingerprint).capabilities, ["decrypt"]);
+
+        let decrypt_result = OpenPgpAgentDecryptResult::decode(
+            decrypt_request(OpenPgpAgentDecryptRequest {
+                private_key: secret
+                    .to_armored_bytes(ArmorOptions::default())
+                    .expect("armor generated RSA key"),
+                preferred_fingerprint: signing_fingerprint,
+                ciphertext: Vec::new(),
+                unwrap_ecdh: false,
+            })
+            .expect("sign-only RSA selection must return a typed result")
+            .as_slice(),
+        )
+        .expect("decode sign-only RSA result");
+        assert!(matches!(
+            decrypt_result.result,
+            Some(open_pgp_agent_decrypt_result::Result::Error(error))
+                if error.reason == OpenPgpAgentErrorReason::KeyNotFound as i32
+        ));
+    }
+
+    #[test]
+    fn agent_rejects_unbound_signing_and_decryption_subkeys() {
+        let material = generated_material(OpenPgpKeyKind::LegacyEd25519X25519, 0);
+        let (mut signing_unbound, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse generated signing key");
+        let signing_fingerprint =
+            format!("{:X}", signing_unbound.secret_subkeys[0].key.fingerprint());
+        signing_unbound.secret_subkeys[0].signatures =
+            signing_unbound.secret_subkeys[1].signatures.clone();
+        let signing_unbound = signing_unbound
+            .to_armored_bytes(ArmorOptions::default())
+            .expect("armor unbound signing key");
+        assert_sign_key_not_found(signing_unbound, signing_fingerprint);
+
+        let (mut decryption_unbound, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse generated decryption key");
+        let decryption_fingerprint = format!(
+            "{:X}",
+            decryption_unbound.secret_subkeys[1].key.fingerprint()
+        );
+        decryption_unbound.secret_subkeys[1].signatures =
+            decryption_unbound.secret_subkeys[0].signatures.clone();
+        let decryption_unbound = decryption_unbound
+            .to_armored_bytes(ArmorOptions::default())
+            .expect("armor unbound decryption key");
+        let response = OpenPgpAgentDecryptResult::decode(
+            decrypt_request(OpenPgpAgentDecryptRequest {
+                private_key: decryption_unbound,
+                preferred_fingerprint: decryption_fingerprint,
+                ciphertext: Vec::new(),
+                unwrap_ecdh: false,
+            })
+            .expect("unbound selector is a typed result")
+            .as_slice(),
+        )
+        .expect("decode unbound decryption result");
+        assert!(matches!(
+            response.result,
+            Some(open_pgp_agent_decrypt_result::Result::Error(error))
+                if error.reason == OpenPgpAgentErrorReason::KeyNotFound as i32
+        ));
+    }
+
+    #[test]
+    fn agent_signing_requires_authenticated_sign_flag_and_cross_certification() {
+        let rsa = generated_material(OpenPgpKeyKind::Rsa, 3_072);
+        let (rsa, _) =
+            SignedSecretKey::from_reader_single(Cursor::new(rsa.private_key_armored.as_slice()))
+                .expect("parse generated RSA key");
+        let encryption_fingerprint = format!("{:X}", rsa.secret_subkeys[1].key.fingerprint());
+        assert_sign_key_not_found(
+            rsa.to_armored_bytes(ArmorOptions::default())
+                .expect("armor RSA key"),
+            encryption_fingerprint,
+        );
+
+        let material = generated_material(OpenPgpKeyKind::LegacyEd25519X25519, 0);
+        let (mut missing_cross_certification, _) = SignedSecretKey::from_reader_single(
+            Cursor::new(material.private_key_armored.as_slice()),
+        )
+        .expect("parse generated signing key");
+        let primary = &missing_cross_certification.primary_key;
+        let signing_subkey = missing_cross_certification.secret_subkeys[0]
+            .key
+            .public_key()
+            .clone();
+        let signing_fingerprint = format!("{:X}", signing_subkey.fingerprint());
+        let mut flags = KeyFlags::default();
+        flags.set_sign(true);
+        let mut config = SignatureConfig::v4(
+            SignatureType::SubkeyBinding,
+            primary.algorithm(),
+            HashAlgorithm::Sha256,
+        );
+        config.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                TEST_TIME as u32,
+            )))
+            .expect("signature creation subpacket"),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(primary.fingerprint()))
+                .expect("issuer fingerprint subpacket"),
+            Subpacket::regular(SubpacketData::KeyFlags(flags)).expect("key flags subpacket"),
+        ];
+        config.unhashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::IssuerKeyId(primary.legacy_key_id()))
+                .expect("issuer key ID subpacket"),
+        ];
+        let binding = config
+            .sign_subkey_binding(
+                primary,
+                primary.public_key(),
+                &Password::empty(),
+                &signing_subkey,
+            )
+            .expect("create binding without back-signature");
+        missing_cross_certification.secret_subkeys[0].signatures = vec![binding];
+        assert_sign_key_not_found(
+            missing_cross_certification
+                .to_armored_bytes(ArmorOptions::default())
+                .expect("armor key missing cross-certification"),
+            signing_fingerprint,
+        );
     }
 
     fn generated_material(kind: OpenPgpKeyKind, rsa_bits: u32) -> OpenPgpKeyMaterial {
@@ -1270,6 +1642,25 @@ mod tests {
             .as_slice(),
         )
         .expect("decode generated agent key material")
+    }
+
+    fn assert_sign_key_not_found(private_key: Vec<u8>, preferred_fingerprint: String) {
+        let response = OpenPgpAgentSignResult::decode(
+            sign_request(OpenPgpAgentSignRequest {
+                private_key,
+                preferred_fingerprint,
+                hash_algorithm: "sha256".to_owned(),
+                hash: vec![0x5a; 32],
+            })
+            .expect("unusable signing selector is a typed result")
+            .as_slice(),
+        )
+        .expect("decode unusable signing result");
+        assert!(matches!(
+            response.result,
+            Some(open_pgp_agent_sign_result::Result::Error(error))
+                if error.reason == OpenPgpAgentErrorReason::KeyNotFound as i32
+        ));
     }
 
     fn secret_packets(key: &SignedSecretKey) -> impl Iterator<Item = SecretPacketRef<'_>> {

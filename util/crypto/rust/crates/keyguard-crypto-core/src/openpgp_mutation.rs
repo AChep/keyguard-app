@@ -28,6 +28,7 @@ use thiserror::Error;
 use zeroize::Zeroizing;
 
 use crate::{
+    openpgp_packets::{RawPacketError, RawPacketStream},
     openpgp_read::{
         OpenPgpReadBudget, PublicComponent, all_components, fingerprint_hex, inspect_certificate,
         normalize_fingerprint,
@@ -46,6 +47,7 @@ const MAX_IDENTITIES: usize = 256;
 const MAX_SIGNATURES: usize = 4 * 1024;
 const MAX_CANDIDATE_CERTIFICATES: usize = 64;
 const MAX_KEY_DOCUMENT_BYTES: usize = 8 * 1024 * 1024;
+const MAX_KEY_PACKETS: usize = 4 * 1024;
 
 /// Fatal failure that must use the stable native error channel.
 #[derive(Clone, Copy, Debug, Error, PartialEq, Eq)]
@@ -166,6 +168,7 @@ fn update_expiration(
 
     let private_key = Zeroizing::new(std::mem::take(&mut request.private_key));
     let secret = parse_single_secret(&private_key)?;
+    ensure_losslessly_representable(&private_key, &secret)?;
     let supplied = parse_single_public(&request.public_key, MutationError::FingerprintMismatch)?;
     ensure_v4_secret(&secret)?;
     ensure_v4_public(&supplied)?;
@@ -340,6 +343,35 @@ fn parse_single_secret(input: &[u8]) -> Result<SignedSecretKey, MutationError> {
         return Err(MutationError::MalformedKey);
     }
     values.into_iter().next().ok_or(MutationError::MalformedKey)
+}
+
+fn ensure_losslessly_representable(
+    input: &[u8],
+    secret: &SignedSecretKey,
+) -> Result<(), MutationError> {
+    let original = RawPacketStream::parse(input, MAX_KEY_PACKETS).map_err(map_packet_error)?;
+    let original_range = original
+        .first_secret_certificate()
+        .ok_or(MutationError::MalformedKey)?;
+    let canonical = secret
+        .to_armored_bytes(Default::default())
+        .map_err(|_| MutationError::InternalFailure)?;
+    let canonical =
+        RawPacketStream::parse(&canonical, MAX_KEY_PACKETS).map_err(map_packet_error)?;
+    let canonical_range = canonical
+        .first_secret_certificate()
+        .ok_or(MutationError::InternalFailure)?;
+    if !original.inventory_matches(original_range, &canonical, canonical_range) {
+        return Err(MutationError::MalformedKey);
+    }
+    Ok(())
+}
+
+fn map_packet_error(error: RawPacketError) -> MutationError {
+    match error {
+        RawPacketError::Malformed => MutationError::MalformedKey,
+        RawPacketError::ResourceLimit => MutationError::ResourceLimit,
+    }
 }
 
 fn parse_single_public(
@@ -1485,6 +1517,28 @@ mod tests {
         assert_eq!(
             normalize_selected(&[" -- ".to_owned()]),
             Err(MutationError::ComponentNotFound)
+        );
+    }
+
+    #[test]
+    fn mutation_rejects_packet_inventory_that_composed_reserialization_would_drop() {
+        let generated = crate::openpgp_write::generate_key_request(OpenPgpKeyGenerateRequest {
+            kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
+            user_id: "Packet Guard <packet-guard@example.test>".to_owned(),
+            rsa_bits: 0,
+            creation_time_epoch_seconds: 1_700_000_000,
+            expiration_seconds: None,
+        })
+        .expect("generate guarded certificate");
+        let material = OpenPgpKeyMaterial::decode(generated.as_slice()).expect("key material");
+        let secret = parse_single_secret(&material.private_key_armored).expect("parse secret key");
+        let packets = RawPacketStream::parse(&material.private_key_armored, MAX_KEY_PACKETS)
+            .expect("scan secret key");
+        let mut with_marker = packets.bytes().to_vec();
+        with_marker.extend_from_slice(&[0xca, 0x03, b'P', b'G', b'P']);
+        assert_eq!(
+            ensure_losslessly_representable(&with_marker, &secret),
+            Err(MutationError::MalformedKey),
         );
     }
 

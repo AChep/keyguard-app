@@ -9,6 +9,7 @@ pub mod fast;
 mod legacy_pem;
 mod openpgp_agent;
 mod openpgp_mutation;
+mod openpgp_packets;
 mod openpgp_read;
 mod openpgp_write;
 mod padding;

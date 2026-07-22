@@ -25,7 +25,7 @@ use ocb3::{
     consts::{U15, U16},
 };
 use pgp::{
-    armor::{self, BlockType, Dearmor, DearmorOptions},
+    armor::{self, BlockType},
     composed::{
         ArmorOptions, DecryptionOptions, Deserializable, DetachedSignature, Esk, Message,
         PlainSessionKey, PublicOrSecret, RawSessionKey, SignedKeyDetails, SignedPublicKey,
@@ -36,9 +36,9 @@ use pgp::{
         public_key::PublicKeyAlgorithm, sym::SymmetricKeyAlgorithm,
     },
     packet::{
-        Features, KeyFlags, OnePassSignature, PacketHeader, PacketParser, PacketTrait, PubKeyInner,
-        PublicKeyEncryptedSessionKey, SecretKey, SecretSubkey, SignatureConfig, SignatureHasher,
-        SignatureType, SignatureVersionSpecific, Subpacket, SubpacketData, UserId,
+        Features, KeyFlags, OnePassSignature, PacketHeader, PacketTrait, PubKeyInner,
+        PublicKeyEncryptedSessionKey, PublicSubkey, SecretKey, SecretSubkey, SignatureConfig,
+        SignatureHasher, SignatureType, SignatureVersionSpecific, Subpacket, SubpacketData, UserId,
     },
     ser::Serialize,
     types::{
@@ -60,10 +60,12 @@ use keyguard_crypto_sensitive::{
 
 use crate::{
     MAX_CONTROL_ENVELOPE_BYTES,
+    openpgp_packets::{RawPacketError, RawPacketSpan, RawPacketStream},
     openpgp_read::{
-        CertificatePolicy, OpenPgpReadBudget, PublicComponent, all_components, can_encrypt,
-        can_sign, component_is_expired, evaluate_preverified_signature, fingerprint_hex,
-        inspect_certificate, normalize_fingerprint, parse_public_key_documents, reference_time,
+        CertificatePolicy, OpenPgpReadBudget, PublicComponent, all_components,
+        component_is_expired, encryption_component_usable, evaluate_preverified_signature,
+        fingerprint_hex, inspect_certificate, normalize_fingerprint, parse_public_key_documents,
+        reference_time, signing_component_usable,
     },
     protocol::{
         OpenPgpDecryptFinal, OpenPgpDecryptRequest, OpenPgpDecryptResult,
@@ -595,101 +597,49 @@ pub(crate) fn import_key_request(
         return Err(OpenPgpWriteError::InvalidArgument);
     }
 
-    let packet_preflight = match preflight_key_packets(key_data.as_slice()) {
-        Ok(preflight) => preflight,
-        Err(OpenPgpWriteError::ResourceLimit) => return Err(OpenPgpWriteError::ResourceLimit),
-        Err(_) => return Ok(import_error(OpenPgpKeyImportErrorReason::MalformedKey)),
-    };
-    if packet_preflight.legacy_version.is_some() {
-        return Ok(import_error(OpenPgpKeyImportErrorReason::UnsupportedFormat));
-    }
-
-    let (iterator, _) = match PublicOrSecret::from_reader_many(Cursor::new(key_data.as_slice())) {
-        Ok(parsed) => parsed,
-        Err(_) => return Ok(import_error(OpenPgpKeyImportErrorReason::MalformedKey)),
-    };
-    let mut secret = None;
-    let mut saw_public = false;
-    let mut parsed_keys = 0_usize;
-    for item in iterator.take(MAX_OPENPGP_KEYS + 1) {
-        parsed_keys += 1;
-        if parsed_keys > MAX_OPENPGP_KEYS {
-            return Err(OpenPgpWriteError::ResourceLimit);
+    let stream = match RawPacketStream::parse(key_data.as_slice(), MAX_OPENPGP_PACKETS) {
+        Ok(stream) => stream,
+        Err(RawPacketError::ResourceLimit) => return Err(OpenPgpWriteError::ResourceLimit),
+        Err(RawPacketError::Malformed) => {
+            return Ok(import_error(OpenPgpKeyImportErrorReason::MalformedKey));
         }
-        let item = match item {
-            Ok(item) => item,
-            Err(_) => return Ok(import_error(OpenPgpKeyImportErrorReason::MalformedKey)),
-        };
-        match item {
-            PublicOrSecret::Public(_) => saw_public = true,
-            PublicOrSecret::Secret(candidate) if secret.is_none() => secret = Some(candidate),
-            PublicOrSecret::Secret(_) => {}
-        }
-    }
-    let Some(mut secret) = secret else {
-        return Ok(import_error(if saw_public {
+    };
+    let Some(certificate_range) = stream.first_secret_certificate() else {
+        let reason = if stream.packets().iter().any(|packet| packet.tag() == 6) {
             OpenPgpKeyImportErrorReason::UnsupportedFormat
         } else {
             OpenPgpKeyImportErrorReason::MalformedKey
-        }));
+        };
+        return Ok(import_error(reason));
     };
-    if matches!(
-        secret.primary_key.version(),
-        KeyVersion::V2 | KeyVersion::V3
-    ) || secret
-        .public_subkeys
-        .iter()
-        .any(|subkey| matches!(subkey.key.version(), KeyVersion::V2 | KeyVersion::V3))
-        || secret
-            .secret_subkeys
-            .iter()
-            .any(|subkey| matches!(subkey.key.version(), KeyVersion::V2 | KeyVersion::V3))
-        || secret.public_subkeys.len() + secret.secret_subkeys.len() > MAX_OPENPGP_COMPONENTS
-    {
-        return Ok(import_error(OpenPgpKeyImportErrorReason::UnsupportedFormat));
-    }
-
-    let encrypted = secret.primary_key.secret_params().is_encrypted()
-        || secret
-            .secret_subkeys
-            .iter()
-            .any(|subkey| subkey.key.secret_params().is_encrypted());
-    if encrypted && passphrase.is_none() {
-        return Ok(OpenPgpKeyImportResult {
-            result: Some(open_pgp_key_import_result::Result::NeedsPassphrase(
-                OpenPgpKeyImportNeedsPassphrase {
-                    format_label: "OpenPGP".to_owned(),
-                },
-            )),
+    let material = match import_packet_material(
+        &stream,
+        certificate_range,
+        passphrase.as_deref().map(Vec::as_slice),
+    ) {
+        Ok(material) => material,
+        Err(ImportPacketError::NeedsPassphrase) => {
+            return Ok(OpenPgpKeyImportResult {
+                result: Some(open_pgp_key_import_result::Result::NeedsPassphrase(
+                    OpenPgpKeyImportNeedsPassphrase {
+                        format_label: "OpenPGP".to_owned(),
+                    },
+                )),
+            }
+            .encode_to_vec());
         }
-        .encode_to_vec());
-    }
-    let password = passphrase
-        .as_deref()
-        .map_or_else(Password::empty, |value| Password::from(value.as_slice()));
-    let usages = match packet_preflight.secret_usages(&secret) {
-        Ok(usages) => usages,
-        Err(_) => return Ok(import_error(OpenPgpKeyImportErrorReason::MalformedKey)),
+        Err(ImportPacketError::InvalidPassphrase) => {
+            return Ok(import_error(OpenPgpKeyImportErrorReason::InvalidPassphrase));
+        }
+        Err(ImportPacketError::UnsupportedFormat) => {
+            return Ok(import_error(OpenPgpKeyImportErrorReason::UnsupportedFormat));
+        }
+        Err(ImportPacketError::Malformed) => {
+            return Ok(import_error(OpenPgpKeyImportErrorReason::MalformedKey));
+        }
+        Err(ImportPacketError::ResourceLimit) => return Err(OpenPgpWriteError::ResourceLimit),
+        Err(ImportPacketError::Internal) => return Err(OpenPgpWriteError::Internal),
     };
-    let primary_unlocked = remove_primary_password_compatible(
-        &mut secret.primary_key,
-        &password,
-        usages.first().copied().unwrap_or_default(),
-    );
-    let subkeys_unlocked = secret
-        .secret_subkeys
-        .iter_mut()
-        .zip(usages.iter().copied().skip(1))
-        .all(|(subkey, usage)| {
-            remove_subkey_password_compatible(&mut subkey.key, &password, usage).is_ok()
-        });
-    if primary_unlocked.is_err() || !subkeys_unlocked {
-        return Ok(import_error(OpenPgpKeyImportErrorReason::InvalidPassphrase));
-    }
-    if secret.verify_bindings().is_err() {
-        return Ok(import_error(OpenPgpKeyImportErrorReason::MalformedKey));
-    }
-    let material = encode_key_material(&secret)?;
     Ok(OpenPgpKeyImportResult {
         result: Some(open_pgp_key_import_result::Result::Success(
             OpenPgpKeyImportSuccess {
@@ -700,122 +650,296 @@ pub(crate) fn import_key_request(
     .encode_to_vec())
 }
 
-struct KeyPacketPreflight {
-    legacy_version: Option<u8>,
-    secret_packet_bodies: Vec<Zeroizing<Vec<u8>>>,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ImportPacketError {
+    Malformed,
+    UnsupportedFormat,
+    NeedsPassphrase,
+    InvalidPassphrase,
+    ResourceLimit,
+    Internal,
 }
 
-impl KeyPacketPreflight {
-    fn secret_usages(&self, secret: &SignedSecretKey) -> Result<Vec<u8>, OpenPgpWriteError> {
-        let public_lengths = std::iter::once(Serialize::write_len(secret.primary_key.public_key()))
-            .chain(
-                secret
-                    .secret_subkeys
-                    .iter()
-                    .map(|subkey| Serialize::write_len(subkey.key.public_key())),
-            )
-            .collect::<Vec<_>>();
-        if public_lengths.len() > self.secret_packet_bodies.len() {
-            return Err(OpenPgpWriteError::InvalidArgument);
+enum ImportSecretPacket {
+    Primary(SecretKey),
+    Subkey(SecretSubkey),
+}
+
+impl ImportSecretPacket {
+    fn version(&self) -> KeyVersion {
+        match self {
+            Self::Primary(key) => key.version(),
+            Self::Subkey(key) => key.version(),
         }
-        public_lengths
-            .into_iter()
-            .zip(
-                self.secret_packet_bodies
-                    .iter()
-                    .take(secret.secret_subkeys.len() + 1),
-            )
-            .map(|(public_length, body)| {
-                body.get(public_length)
-                    .copied()
-                    .ok_or(OpenPgpWriteError::InvalidArgument)
-            })
-            .collect()
+    }
+
+    fn public_len(&self) -> usize {
+        match self {
+            Self::Primary(key) => Serialize::write_len(key.public_key()),
+            Self::Subkey(key) => Serialize::write_len(key.public_key()),
+        }
+    }
+
+    fn is_encrypted(&self) -> bool {
+        match self {
+            Self::Primary(key) => key.secret_params().is_encrypted(),
+            Self::Subkey(key) => key.secret_params().is_encrypted(),
+        }
+    }
+
+    fn fingerprint(&self) -> Fingerprint {
+        match self {
+            Self::Primary(key) => key.fingerprint(),
+            Self::Subkey(key) => key.fingerprint(),
+        }
+    }
+
+    fn write_public_body(&self, output: &mut Vec<u8>) -> pgp::errors::Result<()> {
+        match self {
+            Self::Primary(key) => key.public_key().to_writer(output),
+            Self::Subkey(key) => key.public_key().to_writer(output),
+        }
+    }
+
+    fn write_secret_body(&self, output: &mut Vec<u8>) -> pgp::errors::Result<()> {
+        match self {
+            Self::Primary(key) => key.to_writer(output),
+            Self::Subkey(key) => key.to_writer(output),
+        }
+    }
+
+    fn remove_password(
+        &mut self,
+        password: &Password,
+        original_s2k_usage: u8,
+    ) -> pgp::errors::Result<()> {
+        match self {
+            Self::Primary(key) => {
+                remove_primary_password_compatible(key, password, original_s2k_usage)
+            }
+            Self::Subkey(key) => {
+                remove_subkey_password_compatible(key, password, original_s2k_usage)
+            }
+        }
     }
 }
 
-fn preflight_key_packets(data: &[u8]) -> Result<KeyPacketPreflight, OpenPgpWriteError> {
-    let binary = decode_bounded_packet_stream(data)?;
-    let mut packets = PacketParser::new(BufReader::new(Cursor::new(binary.as_slice())));
-    let mut packet_count = 0_usize;
-    let mut legacy_version = None;
-    let mut secret_packet_bodies = Vec::new();
-    while let Some(packet) = packets.next_ref() {
-        packet_count = packet_count
-            .checked_add(1)
-            .filter(|count| *count <= MAX_OPENPGP_PACKETS)
-            .ok_or(OpenPgpWriteError::ResourceLimit)?;
-        let mut body = packet.map_err(|_| OpenPgpWriteError::InvalidArgument)?;
-        let tag = body.packet_header().tag();
-        let key_packet = matches!(
-            tag,
-            Tag::PublicKey | Tag::PublicSubkey | Tag::SecretKey | Tag::SecretSubkey
-        );
-        let secret_packet = matches!(tag, Tag::SecretKey | Tag::SecretSubkey);
-        if key_packet {
-            let mut bytes = Zeroizing::new(Vec::new());
-            body.by_ref()
-                .take((MAX_CONTROL_ENVELOPE_BYTES + 1) as u64)
-                .read_to_end(&mut bytes)
-                .map_err(|_| OpenPgpWriteError::InvalidArgument)?;
-            if bytes.len() > MAX_CONTROL_ENVELOPE_BYTES {
-                return Err(OpenPgpWriteError::ResourceLimit);
+struct ParsedImportPacket<'a> {
+    span: &'a RawPacketSpan,
+    secret: Option<ImportSecretPacket>,
+    body: Option<Zeroizing<Vec<u8>>>,
+    public_len: usize,
+}
+
+fn import_packet_material(
+    stream: &RawPacketStream,
+    certificate_range: std::ops::Range<usize>,
+    passphrase: Option<&[u8]>,
+) -> Result<OpenPgpKeyMaterial, ImportPacketError> {
+    let spans = stream
+        .packets()
+        .get(certificate_range)
+        .ok_or(ImportPacketError::Malformed)?;
+    let mut parsed = Vec::with_capacity(spans.len());
+    let mut subkey_components = 0usize;
+    for (position, span) in spans.iter().enumerate() {
+        if !allowed_transferable_secret_tag(span.tag(), position == 0) {
+            return Err(ImportPacketError::Malformed);
+        }
+        if matches!(span.tag(), 7 | 14) {
+            subkey_components = subkey_components
+                .checked_add(1)
+                .filter(|count| *count <= MAX_OPENPGP_COMPONENTS)
+                .ok_or(ImportPacketError::ResourceLimit)?;
+        }
+        let secret = match span.tag() {
+            5 | 7 => Some(parse_import_secret_packet(stream, span)?),
+            _ => None,
+        };
+        if span.tag() == 14 {
+            let subkey = parse_import_public_subkey(stream, span)?;
+            if matches!(subkey.version(), KeyVersion::V2 | KeyVersion::V3) {
+                return Err(ImportPacketError::UnsupportedFormat);
             }
-            match bytes.first().copied() {
-                Some(version @ (2 | 3)) => {
-                    legacy_version.get_or_insert(version);
-                }
-                Some(_) => {}
-                None => return Err(OpenPgpWriteError::InvalidArgument),
-            };
-            if secret_packet {
-                if secret_packet_bodies.len() > MAX_OPENPGP_COMPONENTS {
-                    return Err(OpenPgpWriteError::ResourceLimit);
-                }
-                secret_packet_bodies.push(bytes);
+        }
+        let (body, public_len) = if let Some(secret) = &secret {
+            let body = stream.body(span);
+            let public_len = secret.public_len();
+            let mut serialized_public = Vec::with_capacity(public_len);
+            secret
+                .write_public_body(&mut serialized_public)
+                .map_err(|_| ImportPacketError::Malformed)?;
+            if serialized_public.len() != public_len
+                || body.get(..public_len) != Some(serialized_public.as_slice())
+                || body.get(public_len).is_none()
+            {
+                return Err(ImportPacketError::UnsupportedFormat);
             }
+            (Some(body), public_len)
         } else {
-            let read = std::io::copy(
-                &mut body.by_ref().take((MAX_CONTROL_ENVELOPE_BYTES + 1) as u64),
-                &mut std::io::sink(),
-            )
-            .map_err(|_| OpenPgpWriteError::InvalidArgument)?;
-            if read > MAX_CONTROL_ENVELOPE_BYTES as u64 {
-                return Err(OpenPgpWriteError::ResourceLimit);
-            }
-        }
+            (None, 0)
+        };
+        parsed.push(ParsedImportPacket {
+            span,
+            secret,
+            body,
+            public_len,
+        });
     }
-    Ok(KeyPacketPreflight {
-        legacy_version,
-        secret_packet_bodies,
+    if parsed
+        .first()
+        .and_then(|packet| packet.secret.as_ref())
+        .is_none()
+    {
+        return Err(ImportPacketError::Malformed);
+    }
+    if parsed.iter().any(|packet| {
+        packet
+            .secret
+            .as_ref()
+            .is_some_and(|secret| matches!(secret.version(), KeyVersion::V2 | KeyVersion::V3))
+    }) {
+        return Err(ImportPacketError::UnsupportedFormat);
+    }
+    if passphrase.is_none()
+        && parsed.iter().any(|packet| {
+            packet
+                .secret
+                .as_ref()
+                .is_some_and(ImportSecretPacket::is_encrypted)
+        })
+    {
+        return Err(ImportPacketError::NeedsPassphrase);
+    }
+
+    let password = passphrase.map_or_else(Password::empty, Password::from);
+    let primary_fingerprint = parsed
+        .first()
+        .and_then(|packet| packet.secret.as_ref())
+        .map(ImportSecretPacket::fingerprint)
+        .ok_or(ImportPacketError::Malformed)?;
+    let mut private_packets = Zeroizing::new(Vec::new());
+    let mut public_packets = Vec::new();
+    for packet in &mut parsed {
+        let Some(secret) = packet.secret.as_mut() else {
+            private_packets.extend_from_slice(stream.raw(packet.span));
+            public_packets.extend_from_slice(stream.raw(packet.span));
+            continue;
+        };
+        let body = packet.body.as_ref().ok_or(ImportPacketError::Internal)?;
+        write_fixed_packet(
+            public_packet_tag(packet.span.tag()),
+            &body[..packet.public_len],
+            &mut public_packets,
+        )?;
+        if !secret.is_encrypted() {
+            private_packets.extend_from_slice(stream.raw(packet.span));
+            continue;
+        }
+        let usage = body
+            .get(packet.public_len)
+            .copied()
+            .ok_or(ImportPacketError::Malformed)?;
+        secret
+            .remove_password(&password, usage)
+            .map_err(|_| ImportPacketError::InvalidPassphrase)?;
+        let mut unlocked_body = Zeroizing::new(Vec::new());
+        secret
+            .write_secret_body(&mut unlocked_body)
+            .map_err(|_| ImportPacketError::Internal)?;
+        if unlocked_body.get(..packet.public_len) != Some(&body[..packet.public_len]) {
+            return Err(ImportPacketError::UnsupportedFormat);
+        }
+        let suffix = unlocked_body
+            .get(packet.public_len..)
+            .ok_or(ImportPacketError::Internal)?;
+        let mut preserved_body = Zeroizing::new(Vec::with_capacity(body.len()));
+        preserved_body.extend_from_slice(&body[..packet.public_len]);
+        preserved_body.extend_from_slice(suffix);
+        write_fixed_packet(packet.span.tag(), &preserved_body, &mut private_packets)?;
+    }
+
+    Ok(OpenPgpKeyMaterial {
+        private_key_armored: armor_key_packets(&private_packets, BlockType::PrivateKey)?,
+        public_key_armored: armor_key_packets(&public_packets, BlockType::PublicKey)?,
+        fingerprint: format!("{primary_fingerprint:X}"),
     })
 }
 
-fn decode_bounded_packet_stream(data: &[u8]) -> Result<Zeroizing<Vec<u8>>, OpenPgpWriteError> {
-    let first = data
-        .first()
-        .copied()
-        .ok_or(OpenPgpWriteError::InvalidArgument)?;
-    if first & 0x80 != 0 {
-        return Ok(Zeroizing::new(data.to_vec()));
+fn parse_import_secret_packet(
+    stream: &RawPacketStream,
+    span: &RawPacketSpan,
+) -> Result<ImportSecretPacket, ImportPacketError> {
+    let body = stream.body(span);
+    let length = u32::try_from(span.body_len()).map_err(|_| ImportPacketError::ResourceLimit)?;
+    let tag = Tag::from(span.tag());
+    let header = PacketHeader::new_fixed(tag, length);
+    let mut reader = Cursor::new(body.as_slice());
+    let secret = match span.tag() {
+        5 => SecretKey::try_from_reader(header, &mut reader).map(ImportSecretPacket::Primary),
+        7 => SecretSubkey::try_from_reader(header, &mut reader).map(ImportSecretPacket::Subkey),
+        _ => return Err(ImportPacketError::Malformed),
     }
-    let input = BufReader::new(Cursor::new(data));
-    let mut dearmor = Dearmor::with_options(
-        input,
-        DearmorOptions::default().set_limit(MAX_CONTROL_ENVELOPE_BYTES),
-    );
-    dearmor
-        .read_header()
-        .map_err(|_| OpenPgpWriteError::InvalidArgument)?;
-    let mut binary = Zeroizing::new(Vec::new());
-    dearmor
-        .take((MAX_CONTROL_ENVELOPE_BYTES + 1) as u64)
-        .read_to_end(&mut binary)
-        .map_err(|_| OpenPgpWriteError::InvalidArgument)?;
-    if binary.len() > MAX_CONTROL_ENVELOPE_BYTES {
-        return Err(OpenPgpWriteError::ResourceLimit);
+    .map_err(|_| ImportPacketError::Malformed)?;
+    if usize::try_from(reader.position()).ok() != Some(body.len()) {
+        return Err(ImportPacketError::Malformed);
     }
-    Ok(binary)
+    Ok(secret)
+}
+
+fn parse_import_public_subkey(
+    stream: &RawPacketStream,
+    span: &RawPacketSpan,
+) -> Result<PublicSubkey, ImportPacketError> {
+    let body = stream.body(span);
+    let length = u32::try_from(span.body_len()).map_err(|_| ImportPacketError::ResourceLimit)?;
+    let header = PacketHeader::new_fixed(Tag::PublicSubkey, length);
+    let mut reader = Cursor::new(body.as_slice());
+    let subkey = PublicSubkey::try_from_reader(header, &mut reader)
+        .map_err(|_| ImportPacketError::Malformed)?;
+    if usize::try_from(reader.position()).ok() != Some(body.len()) {
+        return Err(ImportPacketError::Malformed);
+    }
+    Ok(subkey)
+}
+
+fn allowed_transferable_secret_tag(tag: u8, is_first: bool) -> bool {
+    match tag {
+        5 => is_first,
+        2 | 7 | 10 | 12 | 13 | 14 | 17 | 21 | 40..=63 => !is_first,
+        _ => false,
+    }
+}
+
+fn public_packet_tag(secret_tag: u8) -> u8 {
+    match secret_tag {
+        5 => 6,
+        7 => 14,
+        _ => secret_tag,
+    }
+}
+
+fn write_fixed_packet(tag: u8, body: &[u8], output: &mut Vec<u8>) -> Result<(), ImportPacketError> {
+    let length = u32::try_from(body.len()).map_err(|_| ImportPacketError::ResourceLimit)?;
+    PacketHeader::new_fixed(Tag::from(tag), length)
+        .to_writer(output)
+        .map_err(|_| ImportPacketError::Internal)?;
+    output.extend_from_slice(body);
+    Ok(())
+}
+
+fn armor_key_packets(packets: &[u8], block_type: BlockType) -> Result<Vec<u8>, ImportPacketError> {
+    let options = ArmorOptions::default();
+    let mut output = Vec::new();
+    armor::write(
+        &RawPackets(packets),
+        block_type,
+        &mut output,
+        options.headers,
+        options.include_checksum,
+    )
+    .map_err(|_| ImportPacketError::Internal)?;
+    Ok(output)
 }
 
 fn remove_primary_password_compatible(
@@ -1013,7 +1137,13 @@ fn signature_hasher_with_key(
 }
 
 fn parse_secret_key(input: &[u8]) -> Result<SignedSecretKey, OpenPgpWriteError> {
-    let (secret, _) = SignedSecretKey::from_reader_single(Cursor::new(input))
+    let packets =
+        RawPacketStream::parse(input, MAX_OPENPGP_PACKETS).map_err(|error| match error {
+            RawPacketError::Malformed => OpenPgpWriteError::InvalidArgument,
+            RawPacketError::ResourceLimit => OpenPgpWriteError::ResourceLimit,
+        })?;
+    let semantic = packets.semantic_bytes();
+    let (secret, _) = SignedSecretKey::from_reader_single(Cursor::new(semantic.as_slice()))
         .map_err(|_| OpenPgpWriteError::InvalidArgument)?;
     if let Some(version) = legacy_secret_version(&secret) {
         return Err(OpenPgpWriteError::UnsupportedKeyVersion(version));
@@ -1123,21 +1253,6 @@ fn select_signing_packet<'a>(
     primary_usable
         .then_some(SecretPacketRef::Primary(&secret.primary_key))
         .ok_or(OpenPgpWriteError::MissingKey)
-}
-
-fn signing_component_usable<K>(
-    component: &crate::openpgp_read::ComponentPolicy<'_, K>,
-    reference_time: u64,
-    require_cross_certification: bool,
-) -> bool
-where
-    K: KeyDetails,
-{
-    component.authenticated
-        && !component.revoked
-        && !component_is_expired(component, reference_time)
-        && (!require_cross_certification || component.signing_cross_certified)
-        && can_sign(component.key.algorithm(), component.key_flags.as_ref())
 }
 
 fn sign_with_packet(
@@ -1481,19 +1596,6 @@ fn select_recipients(
         }
     }
     Ok((recipients, all_allow_ocb))
-}
-
-fn encryption_component_usable<K>(
-    component: &crate::openpgp_read::ComponentPolicy<'_, K>,
-    reference_time: u64,
-) -> bool
-where
-    K: KeyDetails,
-{
-    component.authenticated
-        && !component.revoked
-        && !component_is_expired(component, reference_time)
-        && can_encrypt(component.key.algorithm(), component.key_flags.as_ref())
 }
 
 fn recipient_allows_gnupg_ocb(policy: &CertificatePolicy<'_>) -> bool {
@@ -3085,7 +3187,7 @@ fn run_openpgp_decrypt_worker(
     output: SyncSender<OpenPgpWorkerOutput>,
 ) -> Result<OpenPgpWorkerFinal, OpenPgpWriteError> {
     let message = parse_streaming_message(input)?;
-    let session_key = find_message_session_key(&message, &config.secrets)?;
+    let session_key = find_message_session_key(&message, &config.secrets, config.policy_time)?;
     let ring = TheRing {
         session_keys: vec![session_key],
         decrypt_options: DecryptionOptions::new()
@@ -3157,7 +3259,7 @@ pub(crate) fn decrypt_request(
     let content = Zeroizing::new(std::mem::take(&mut request.content));
     let (message, _) = Message::from_reader(BufReader::new(Cursor::new(content.as_slice())))
         .map_err(|_| OpenPgpWriteError::InvalidArgument)?;
-    let session_key = find_message_session_key(&message, &secrets)?;
+    let session_key = find_message_session_key(&message, &secrets, policy_time)?;
     let ring = TheRing {
         session_keys: vec![session_key],
         decrypt_options: DecryptionOptions::new().enable_gnupg_aead(),
@@ -3214,6 +3316,7 @@ fn parse_secret_key_candidates(
 fn find_message_session_key(
     message: &Message<'_>,
     secrets: &[SignedSecretKey],
+    reference_time: u64,
 ) -> Result<PlainSessionKey, OpenPgpWriteError> {
     let Message::Encrypted { esk, .. } = message else {
         return Err(OpenPgpWriteError::InvalidArgument);
@@ -3222,6 +3325,17 @@ fn find_message_session_key(
         return Err(OpenPgpWriteError::ResourceLimit);
     }
     let mut private_key_attempts = 0_usize;
+    let mut budget = OpenPgpReadBudget::default();
+    let public_keys = secrets
+        .iter()
+        .map(SignedSecretKey::to_public_key)
+        .collect::<Vec<_>>();
+    let candidates = all_components(&public_keys);
+    let policies = public_keys
+        .iter()
+        .map(|public| inspect_certificate(public, &candidates, reference_time, &mut budget))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(map_read_error)?;
     for encrypted_session_key in esk {
         let Esk::PublicKeyEncryptedSessionKey(pkesk) = encrypted_session_key else {
             continue;
@@ -3234,17 +3348,33 @@ fn find_message_session_key(
         let values = pkesk
             .values()
             .map_err(|_| OpenPgpWriteError::InvalidArgument)?;
-        for secret in secrets {
+        for (secret, policy) in secrets.iter().zip(&policies) {
+            if !policy.primary.authenticated
+                || policy.primary.revoked
+                || component_is_expired(&policy.primary, reference_time)
+            {
+                continue;
+            }
             let primary = SecretPacketRef::Primary(&secret.primary_key);
-            if pkesk.match_identity(&primary) && session_key_algorithm_matches(primary, values) {
+            if encryption_component_usable(&policy.primary, reference_time)
+                && pkesk.match_identity(&primary)
+                && session_key_algorithm_matches(primary, values)
+            {
                 increment_private_key_attempts(&mut private_key_attempts)?;
                 if let Some(session_key) = decrypt_session_key(primary, values, typ) {
                     return Ok(session_key);
                 }
             }
-            for subkey in &secret.secret_subkeys {
+            let public_offset = secret.public_subkeys.len();
+            for (index, subkey) in secret.secret_subkeys.iter().enumerate() {
+                let Some(component) = policy.subkeys.get(public_offset + index) else {
+                    continue;
+                };
                 let packet = SecretPacketRef::Subkey(&subkey.key);
-                if pkesk.match_identity(&packet) && session_key_algorithm_matches(packet, values) {
+                if encryption_component_usable(component, reference_time)
+                    && pkesk.match_identity(&packet)
+                    && session_key_algorithm_matches(packet, values)
+                {
                     increment_private_key_attempts(&mut private_key_attempts)?;
                     if let Some(session_key) = decrypt_session_key(packet, values, typ) {
                         return Ok(session_key);
@@ -3542,8 +3672,7 @@ fn secret_subkey_from_params(
 ) -> Result<SecretSubkey, OpenPgpWriteError> {
     let inner = PubKeyInner::new(KeyVersion::V4, algorithm, created_at, None, public)
         .map_err(|_| OpenPgpWriteError::Internal)?;
-    let public =
-        pgp::packet::PublicSubkey::from_inner(inner).map_err(|_| OpenPgpWriteError::Internal)?;
+    let public = PublicSubkey::from_inner(inner).map_err(|_| OpenPgpWriteError::Internal)?;
     SecretSubkey::new(public, secret).map_err(|_| OpenPgpWriteError::Internal)
 }
 
@@ -3936,11 +4065,12 @@ mod tests {
     use super::*;
     use crate::protocol::{
         OpenPgpDecryptResult, OpenPgpEncryptResult, OpenPgpKeyGenerateRequest,
-        OpenPgpKeyImportRequest, OpenPgpKeyImportResult, OpenPgpSignRequest,
-        OpenPgpVerificationStatus, OpenPgpVerifyKind, OpenPgpVerifyRequest,
-        open_pgp_key_import_result,
+        OpenPgpKeyImportRequest, OpenPgpKeyImportResult, OpenPgpMetadataResolveRequest,
+        OpenPgpMetadataResolveResult, OpenPgpSignRequest, OpenPgpVerificationStatus,
+        OpenPgpVerifyKind, OpenPgpVerifyRequest, open_pgp_key_import_result,
     };
-    use pgp::types::{EncryptedSecretParams, StringToKey};
+    use pgp::composed::{KeyType, SecretKeyParamsBuilder};
+    use pgp::types::{EncryptedSecretParams, RevocationKey, RevocationKeyClass, StringToKey};
 
     const TEST_TIME: u64 = 1_700_000_000;
     static STREAM_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
@@ -3988,6 +4118,123 @@ mod tests {
             .as_slice(),
         )
         .expect("decode RSA key material")
+    }
+
+    fn import_secret(secret: &SignedSecretKey) -> OpenPgpKeyImportResult {
+        let key_data = secret
+            .to_armored_bytes(ArmorOptions::default())
+            .expect("armor secret key");
+        OpenPgpKeyImportResult::decode(
+            import_key_request(OpenPgpKeyImportRequest {
+                key_data,
+                passphrase_utf8: None,
+                reference_time_epoch_seconds: Some(TEST_TIME),
+            })
+            .expect("import request")
+            .as_slice(),
+        )
+        .expect("decode import result")
+    }
+
+    fn imported_material(result: OpenPgpKeyImportResult) -> OpenPgpKeyMaterial {
+        match result.result {
+            Some(open_pgp_key_import_result::Result::Success(success)) => {
+                success.key_material.expect("imported key material")
+            }
+            result => panic!("expected successful import, got {result:?}"),
+        }
+    }
+
+    fn import_key_data(key_data: Vec<u8>) -> OpenPgpKeyImportResult {
+        OpenPgpKeyImportResult::decode(
+            import_key_request(OpenPgpKeyImportRequest {
+                key_data,
+                passphrase_utf8: None,
+                reference_time_epoch_seconds: Some(TEST_TIME),
+            })
+            .expect("import request")
+            .as_slice(),
+        )
+        .expect("decode import result")
+    }
+
+    fn resolved_metadata(
+        material: &OpenPgpKeyMaterial,
+    ) -> Option<crate::protocol::OpenPgpKeyMetadata> {
+        OpenPgpMetadataResolveResult::decode(
+            crate::openpgp_read::resolve_metadata(OpenPgpMetadataResolveRequest {
+                private_key_data: Some(material.private_key_armored.clone()),
+                public_key_data: Some(material.public_key_armored.clone()),
+                normalized_fingerprint: material.fingerprint.clone(),
+                candidate_revocation_keys: Vec::new(),
+                reference_time_epoch_seconds: Some(TEST_TIME),
+            })
+            .expect("resolve imported metadata")
+            .as_slice(),
+        )
+        .expect("decode imported metadata")
+        .metadata
+    }
+
+    fn signature_config(
+        signature_type: SignatureType,
+        signer: &dyn SigningKey,
+        created_at: u64,
+    ) -> SignatureConfig {
+        let created_at = Timestamp::from_secs(created_at as u32);
+        let mut config =
+            SignatureConfig::v4(signature_type, signer.algorithm(), HashAlgorithm::Sha256);
+        config.hashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::SignatureCreationTime(created_at))
+                .expect("signature creation subpacket"),
+            Subpacket::regular(SubpacketData::IssuerFingerprint(signer.fingerprint()))
+                .expect("issuer fingerprint subpacket"),
+        ];
+        config.unhashed_subpackets = vec![
+            Subpacket::regular(SubpacketData::IssuerKeyId(signer.legacy_key_id()))
+                .expect("issuer key ID subpacket"),
+        ];
+        config
+    }
+
+    fn subkey_binding_with_signature_expiration(
+        secret: &SignedSecretKey,
+        subkey_index: usize,
+        created_at: u64,
+        expiration_seconds: u32,
+        keep_embedded_signature: bool,
+    ) -> pgp::packet::Signature {
+        let primary = &secret.primary_key;
+        let subkey = secret.secret_subkeys[subkey_index].key.public_key().clone();
+        let template = secret.secret_subkeys[subkey_index]
+            .signatures
+            .iter()
+            .find(|signature| signature.typ() == Some(SignatureType::SubkeyBinding))
+            .expect("subkey binding template");
+        let mut config = template.config().cloned().expect("binding config");
+        config
+            .hashed_subpackets
+            .retain(|subpacket| match subpacket.data {
+                SubpacketData::SignatureCreationTime(_)
+                | SubpacketData::SignatureExpirationTime(_) => false,
+                SubpacketData::EmbeddedSignature(_) => keep_embedded_signature,
+                _ => true,
+            });
+        config.hashed_subpackets.push(
+            Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+                created_at as u32,
+            )))
+            .expect("signature creation subpacket"),
+        );
+        config.hashed_subpackets.push(
+            Subpacket::regular(SubpacketData::SignatureExpirationTime(Duration::from_secs(
+                expiration_seconds,
+            )))
+            .expect("signature expiration subpacket"),
+        );
+        config
+            .sign_subkey_binding(primary, primary.public_key(), &Password::empty(), &subkey)
+            .expect("sign replacement subkey binding")
     }
 
     #[test]
@@ -4042,6 +4289,636 @@ mod tests {
         signature
             .verify(&signing_key.key, content)
             .expect("verify signature");
+    }
+
+    #[test]
+    fn import_preserves_third_party_certification_and_direct_signature() {
+        let material = generated_modern_material();
+        let certifier_material = generated_modern_material();
+        let (mut target, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse target secret key");
+        let (certifier, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            certifier_material.private_key_armored.as_slice(),
+        ))
+        .expect("parse certifier secret key");
+        let signer = SigningKeyRef(&certifier.primary_key);
+        let password = Password::empty();
+
+        let certification = signature_config(SignatureType::CertPositive, &signer, TEST_TIME + 1)
+            .sign_certification_third_party(
+                &signer,
+                &password,
+                target.primary_key.public_key(),
+                Tag::UserId,
+                &target.details.users[0].id,
+            )
+            .expect("create third-party certification");
+        certification
+            .verify_third_party_certification(
+                target.primary_key.public_key(),
+                certifier.primary_key.public_key(),
+                Tag::UserId,
+                &target.details.users[0].id,
+            )
+            .expect("verify third-party certification");
+        target.details.users[0]
+            .signatures
+            .push(certification.clone());
+
+        let direct = signature_config(SignatureType::Key, &signer, TEST_TIME + 2)
+            .sign_key(&signer, &password, target.primary_key.public_key())
+            .expect("create third-party Direct Key signature");
+        direct
+            .verify_key_third_party(
+                target.primary_key.public_key(),
+                certifier.primary_key.public_key(),
+            )
+            .expect("verify third-party Direct Key signature");
+        target.details.direct_signatures.push(direct.clone());
+
+        assert!(target.verify_bindings().is_err());
+        let imported = imported_material(import_secret(&target));
+        let (imported_secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            imported.private_key_armored.as_slice(),
+        ))
+        .expect("parse imported secret key");
+        let (imported_public, _) = SignedPublicKey::from_reader_single(Cursor::new(
+            imported.public_key_armored.as_slice(),
+        ))
+        .expect("parse imported public key");
+
+        assert!(
+            imported_secret.details.users[0]
+                .signatures
+                .contains(&certification)
+        );
+        assert!(
+            imported_public.details.users[0]
+                .signatures
+                .contains(&certification)
+        );
+        assert!(imported_secret.details.direct_signatures.contains(&direct));
+        assert!(imported_public.details.direct_signatures.contains(&direct));
+    }
+
+    #[test]
+    fn import_uses_valid_binding_when_newer_foreign_binding_is_present() {
+        let material = generated_modern_material();
+        let certifier_material = generated_modern_material();
+        let (mut target, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse target secret key");
+        let (certifier, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            certifier_material.private_key_armored.as_slice(),
+        ))
+        .expect("parse certifier secret key");
+        let signer = SigningKeyRef(&certifier.primary_key);
+        let subkey = target.secret_subkeys[0].key.public_key().clone();
+        let foreign_binding =
+            signature_config(SignatureType::SubkeyBinding, &signer, TEST_TIME + 10)
+                .sign_subkey_binding(
+                    &signer,
+                    target.primary_key.public_key(),
+                    &Password::empty(),
+                    &subkey,
+                )
+                .expect("create foreign subkey binding");
+        assert!(
+            foreign_binding
+                .verify_subkey_binding(target.primary_key.public_key(), &subkey)
+                .is_err()
+        );
+        target.secret_subkeys[0]
+            .signatures
+            .push(foreign_binding.clone());
+
+        assert!(target.verify_bindings().is_err());
+        let imported = imported_material(import_secret(&target));
+        let (imported_secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            imported.private_key_armored.as_slice(),
+        ))
+        .expect("parse imported secret key");
+        assert!(
+            imported_secret.secret_subkeys[0]
+                .signatures
+                .contains(&foreign_binding)
+        );
+    }
+
+    #[test]
+    fn import_preserves_unresolved_designated_revoker_signature() {
+        let material = generated_modern_material();
+        let revoker_material = generated_modern_material();
+        let (mut target, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse target secret key");
+        let (revoker, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            revoker_material.private_key_armored.as_slice(),
+        ))
+        .expect("parse revoker secret key");
+        let target_signer = SigningKeyRef(&target.primary_key);
+        let revoker_signer = SigningKeyRef(&revoker.primary_key);
+        let password = Password::empty();
+
+        let mut declaration = signature_config(SignatureType::Key, &target_signer, TEST_TIME + 1);
+        declaration.hashed_subpackets.push(
+            Subpacket::regular(SubpacketData::RevocationKey(RevocationKey::new(
+                RevocationKeyClass::Default,
+                revoker.primary_key.algorithm(),
+                revoker.primary_key.fingerprint().as_bytes(),
+            )))
+            .expect("revocation key subpacket"),
+        );
+        let declaration = declaration
+            .sign_key(&target_signer, &password, target.primary_key.public_key())
+            .expect("create revoker declaration");
+        declaration
+            .verify_key(target.primary_key.public_key())
+            .expect("verify revoker declaration");
+        target.details.direct_signatures.push(declaration.clone());
+
+        let revocation =
+            signature_config(SignatureType::KeyRevocation, &revoker_signer, TEST_TIME + 2)
+                .sign_key(&revoker_signer, &password, target.primary_key.public_key())
+                .expect("create designated revocation");
+        revocation
+            .verify_key_third_party(
+                target.primary_key.public_key(),
+                revoker.primary_key.public_key(),
+            )
+            .expect("verify designated revocation");
+        target
+            .details
+            .revocation_signatures
+            .push(revocation.clone());
+
+        assert!(target.verify_bindings().is_err());
+        let imported = imported_material(import_secret(&target));
+        let (imported_secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            imported.private_key_armored.as_slice(),
+        ))
+        .expect("parse imported secret key");
+        assert!(
+            imported_secret
+                .details
+                .direct_signatures
+                .contains(&declaration)
+        );
+        assert!(
+            imported_secret
+                .details
+                .revocation_signatures
+                .contains(&revocation)
+        );
+    }
+
+    #[test]
+    fn import_preserves_but_quarantines_foreign_only_identity_and_unbound_subkey() {
+        let material = generated_modern_material();
+        let certifier_material = generated_modern_material();
+        let (mut foreign_only, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse target secret key");
+        let (certifier, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            certifier_material.private_key_armored.as_slice(),
+        ))
+        .expect("parse certifier secret key");
+        let signer = SigningKeyRef(&certifier.primary_key);
+        let certification = signature_config(SignatureType::CertPositive, &signer, TEST_TIME + 1)
+            .sign_certification_third_party(
+                &signer,
+                &Password::empty(),
+                foreign_only.primary_key.public_key(),
+                Tag::UserId,
+                &foreign_only.details.users[0].id,
+            )
+            .expect("create foreign-only certification");
+        foreign_only.details.users[0].signatures = vec![certification];
+        let foreign_input = foreign_only
+            .to_armored_bytes(ArmorOptions::default())
+            .expect("armor foreign-only key");
+        let foreign_imported = imported_material(import_secret(&foreign_only));
+        let foreign_input_packets = RawPacketStream::parse(&foreign_input, MAX_OPENPGP_PACKETS)
+            .expect("scan foreign-only input");
+        let foreign_output_packets =
+            RawPacketStream::parse(&foreign_imported.private_key_armored, MAX_OPENPGP_PACKETS)
+                .expect("scan foreign-only output");
+        assert_eq!(
+            foreign_input_packets.bytes(),
+            foreign_output_packets.bytes()
+        );
+        let (foreign_output, _) =
+            SignedSecretKey::from_reader_single(Cursor::new(&foreign_imported.private_key_armored))
+                .expect("parse foreign-only output");
+        let mut budget = OpenPgpReadBudget::default();
+        let foreign_public = foreign_output.to_public_key();
+        let foreign_candidates = all_components(std::slice::from_ref(&foreign_public));
+        let foreign_policy =
+            inspect_certificate(&foreign_public, &foreign_candidates, TEST_TIME, &mut budget)
+                .expect("inspect foreign-only output");
+        assert!(!foreign_policy.primary.authenticated);
+
+        let (mut unbound, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse target secret key again");
+        unbound.secret_subkeys[0].signatures = unbound.secret_subkeys[1].signatures.clone();
+        let unbound_input = unbound
+            .to_armored_bytes(ArmorOptions::default())
+            .expect("armor unbound key");
+        let unbound_imported = imported_material(import_secret(&unbound));
+        let unbound_input_packets = RawPacketStream::parse(&unbound_input, MAX_OPENPGP_PACKETS)
+            .expect("scan unbound input");
+        let unbound_output_packets =
+            RawPacketStream::parse(&unbound_imported.private_key_armored, MAX_OPENPGP_PACKETS)
+                .expect("scan unbound output");
+        assert_eq!(
+            unbound_input_packets.bytes(),
+            unbound_output_packets.bytes()
+        );
+        let (unbound_output, _) =
+            SignedSecretKey::from_reader_single(Cursor::new(&unbound_imported.private_key_armored))
+                .expect("parse unbound output");
+        let mut budget = OpenPgpReadBudget::default();
+        let unbound_public = unbound_output.to_public_key();
+        let unbound_candidates = all_components(std::slice::from_ref(&unbound_public));
+        let unbound_policy =
+            inspect_certificate(&unbound_public, &unbound_candidates, TEST_TIME, &mut budget)
+                .expect("inspect unbound output");
+        assert!(!unbound_policy.subkeys[0].authenticated);
+    }
+
+    #[test]
+    fn import_preserves_signatureless_v4_and_v6_primaries_without_authorizing_use() {
+        let v4 = generated_rsa_material();
+        let v6 = SecretKeyParamsBuilder::default()
+            .version(KeyVersion::V6)
+            .key_type(KeyType::Ed25519)
+            .can_certify(true)
+            .can_sign(true)
+            .passphrase(None)
+            .build()
+            .expect("build v6 key parameters")
+            .generate(AwsLcRng)
+            .expect("generate v6 key")
+            .to_armored_bytes(ArmorOptions::default())
+            .expect("armor v6 key");
+
+        for input in [v4.private_key_armored.clone(), v6] {
+            let packets =
+                RawPacketStream::parse(&input, MAX_OPENPGP_PACKETS).expect("scan generated key");
+            let range = packets
+                .first_secret_certificate()
+                .expect("find generated secret key");
+            let primary = packets
+                .packets()
+                .get(range.start)
+                .expect("primary secret packet");
+            let primary_only = packets.raw(primary).to_vec();
+            let primary_only_armored = armor_key_packets(&primary_only, BlockType::PrivateKey)
+                .expect("armor signatureless key");
+            let imported = imported_material(import_key_data(primary_only_armored));
+            let imported_private =
+                RawPacketStream::parse(&imported.private_key_armored, MAX_OPENPGP_PACKETS)
+                    .expect("scan imported signatureless key");
+            assert_eq!(imported_private.bytes(), primary_only);
+            let imported_public =
+                RawPacketStream::parse(&imported.public_key_armored, MAX_OPENPGP_PACKETS)
+                    .expect("scan imported signatureless public key");
+            assert_eq!(imported_public.packets().len(), 1);
+            assert_eq!(imported_public.packets()[0].tag(), 6);
+            assert_eq!(resolved_metadata(&imported), None);
+        }
+    }
+
+    #[test]
+    fn import_preserves_unsigned_secret_subkeys_without_advertising_them() {
+        let material = generated_modern_material();
+        let packets = RawPacketStream::parse(&material.private_key_armored, MAX_OPENPGP_PACKETS)
+            .expect("scan generated key");
+        let range = packets
+            .first_secret_certificate()
+            .expect("find generated secret key");
+        let mut unsigned = Vec::new();
+        let mut after_subkey = false;
+        for packet in &packets.packets()[range] {
+            match packet.tag() {
+                7 => {
+                    after_subkey = true;
+                    unsigned.extend_from_slice(packets.raw(packet));
+                }
+                2 if after_subkey => {}
+                _ => {
+                    after_subkey = false;
+                    unsigned.extend_from_slice(packets.raw(packet));
+                }
+            }
+        }
+        let unsigned_count = RawPacketStream::parse(&unsigned, MAX_OPENPGP_PACKETS)
+            .expect("scan unsigned key")
+            .packets()
+            .iter()
+            .filter(|packet| packet.tag() == 7)
+            .count();
+        assert!(unsigned_count > 0);
+
+        let armored =
+            armor_key_packets(&unsigned, BlockType::PrivateKey).expect("armor unsigned-subkey key");
+        let imported = imported_material(import_key_data(armored));
+        let imported_private =
+            RawPacketStream::parse(&imported.private_key_armored, MAX_OPENPGP_PACKETS)
+                .expect("scan imported private key");
+        assert_eq!(imported_private.bytes(), unsigned);
+        let imported_public =
+            RawPacketStream::parse(&imported.public_key_armored, MAX_OPENPGP_PACKETS)
+                .expect("scan imported public key");
+        assert_eq!(
+            imported_public
+                .packets()
+                .iter()
+                .filter(|packet| packet.tag() == 14)
+                .count(),
+            unsigned_count,
+        );
+        let metadata = resolved_metadata(&imported).expect("authenticated primary metadata");
+        assert_eq!(metadata.keys.len(), 1);
+        assert_eq!(metadata.keys[0].fingerprint, imported.fingerprint);
+    }
+
+    #[test]
+    fn import_preserves_unknown_noncritical_packets_but_rejects_unknown_critical_packets() {
+        let material = generated_modern_material();
+        let packets = RawPacketStream::parse(&material.private_key_armored, MAX_OPENPGP_PACKETS)
+            .expect("scan generated key");
+        let range = packets
+            .first_secret_certificate()
+            .expect("find generated key");
+        let mut with_noncritical = Vec::new();
+        for (position, packet) in packets.packets()[range.clone()].iter().enumerate() {
+            with_noncritical.extend_from_slice(packets.raw(packet));
+            if position == 0 {
+                with_noncritical.extend_from_slice(&[0xe8, 0x03, 0x01, 0x02, 0x03]);
+            }
+        }
+        let imported = imported_material(import_key_data(
+            armor_key_packets(&with_noncritical, BlockType::PrivateKey)
+                .expect("armor key with noncritical packet"),
+        ));
+        let imported_private =
+            RawPacketStream::parse(&imported.private_key_armored, MAX_OPENPGP_PACKETS)
+                .expect("scan imported key with noncritical packet");
+        assert_eq!(imported_private.bytes(), with_noncritical);
+        assert!(
+            imported_private
+                .packets()
+                .iter()
+                .any(|packet| packet.tag() == 40)
+        );
+        assert!(resolved_metadata(&imported).is_some());
+
+        let mut with_critical = Vec::new();
+        for (position, packet) in packets.packets()[range].iter().enumerate() {
+            with_critical.extend_from_slice(packets.raw(packet));
+            if position == 0 {
+                with_critical.extend_from_slice(&[0xd6, 0x00]);
+            }
+        }
+        let rejected = import_key_data(
+            armor_key_packets(&with_critical, BlockType::PrivateKey)
+                .expect("armor key with critical packet"),
+        );
+        assert!(matches!(
+            rejected.result,
+            Some(open_pgp_key_import_result::Result::Error(error))
+                if error.reason == OpenPgpKeyImportErrorReason::MalformedKey as i32
+        ));
+    }
+
+    #[test]
+    fn import_accepts_expired_transferable_secret_key() {
+        let material = OpenPgpKeyMaterial::decode(
+            generate_key_request(OpenPgpKeyGenerateRequest {
+                kind: OpenPgpKeyKind::LegacyEd25519X25519 as i32,
+                user_id: "Expired Example <expired@example.test>".to_owned(),
+                rsa_bits: 0,
+                creation_time_epoch_seconds: TEST_TIME,
+                expiration_seconds: Some(1),
+            })
+            .expect("generate expired certificate")
+            .as_slice(),
+        )
+        .expect("decode expired material");
+        let (secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse expired secret key");
+        assert!(matches!(
+            import_secret(&secret).result,
+            Some(open_pgp_key_import_result::Result::Success(_))
+        ));
+    }
+
+    #[test]
+    fn import_accepts_missing_backsig_but_signing_rejects_subkey() {
+        let material = generated_modern_material();
+        let (mut secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse generated secret key");
+        let primary = &secret.primary_key;
+        let signing_subkey = secret.secret_subkeys[0].key.public_key().clone();
+        let binding = subkey_binding_signature(
+            SigningKeyRef(primary),
+            primary.public_key(),
+            &signing_subkey,
+            &Password::empty(),
+            Timestamp::from_secs(TEST_TIME as u32),
+            None,
+            true,
+            None,
+        )
+        .expect("create signing binding without back-signature");
+        secret.secret_subkeys[0].signatures = vec![binding];
+
+        assert!(matches!(
+            import_secret(&secret).result,
+            Some(open_pgp_key_import_result::Result::Success(_))
+        ));
+        let private_key = secret
+            .to_armored_bytes(ArmorOptions::default())
+            .expect("armor key without back-signature");
+        assert_eq!(
+            sign_request(OpenPgpSignRequest {
+                kind: OpenPgpSignKind::Detached as i32,
+                content: b"must not sign".to_vec(),
+                private_key,
+                preferred_fingerprint: material.fingerprint.clone(),
+                armored: false,
+                signature_time_epoch_seconds: Some(TEST_TIME + 1),
+                reference_time_epoch_seconds: Some(TEST_TIME + 1),
+            })
+            .expect_err("missing back-signature must prevent signing"),
+            OpenPgpWriteError::MissingKey,
+        );
+    }
+
+    #[test]
+    fn message_decryption_quarantines_unbound_secret_subkeys() {
+        let material = generated_modern_material();
+        let encrypted = OpenPgpEncryptResult::decode(
+            encrypt_request(OpenPgpEncryptRequest {
+                content: b"bound recipient only".to_vec(),
+                public_keys: vec![material.public_key_armored.clone()],
+                signing_private_key: None,
+                preferred_signing_fingerprint: String::new(),
+                file_name: "quarantine.bin".to_owned(),
+                armored: false,
+                literal_time_epoch_seconds: Some(TEST_TIME),
+                reference_time_epoch_seconds: Some(TEST_TIME),
+            })
+            .expect("encrypt to bound subkey")
+            .as_slice(),
+        )
+        .expect("decode encrypted message");
+        let (mut unbound, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse generated key");
+        unbound.secret_subkeys[1].signatures = unbound.secret_subkeys[0].signatures.clone();
+        assert_eq!(
+            decrypt_request(OpenPgpDecryptRequest {
+                content: encrypted.data,
+                private_keys: vec![
+                    unbound
+                        .to_armored_bytes(ArmorOptions::default())
+                        .expect("armor unbound key"),
+                ],
+                verification_public_keys: Vec::new(),
+                reference_time_epoch_seconds: Some(TEST_TIME),
+            }),
+            Err(OpenPgpWriteError::MissingKey),
+        );
+    }
+
+    #[test]
+    fn message_decryption_rejects_current_sign_only_subkeys() {
+        let material = generated_modern_material();
+        let encrypted = OpenPgpEncryptResult::decode(
+            encrypt_request(OpenPgpEncryptRequest {
+                content: b"sign-only recipient must be rejected".to_vec(),
+                public_keys: vec![material.public_key_armored.clone()],
+                signing_private_key: None,
+                preferred_signing_fingerprint: String::new(),
+                file_name: "sign-only.bin".to_owned(),
+                armored: false,
+                literal_time_epoch_seconds: Some(TEST_TIME),
+                reference_time_epoch_seconds: Some(TEST_TIME),
+            })
+            .expect("encrypt to bound encryption subkey")
+            .as_slice(),
+        )
+        .expect("decode encrypted message");
+
+        let (mut sign_only, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse generated key");
+        let primary = &sign_only.primary_key;
+        let target = sign_only.secret_subkeys[1].key.public_key().clone();
+        let binding = subkey_binding_signature(
+            SigningKeyRef(primary),
+            primary.public_key(),
+            &target,
+            &Password::empty(),
+            Timestamp::from_secs(TEST_TIME as u32),
+            None,
+            true,
+            None,
+        )
+        .expect("create current sign-only binding");
+        sign_only.secret_subkeys[1].signatures = vec![binding];
+
+        assert_eq!(
+            decrypt_request(OpenPgpDecryptRequest {
+                content: encrypted.data,
+                private_keys: vec![
+                    sign_only
+                        .to_armored_bytes(ArmorOptions::default())
+                        .expect("armor sign-only key"),
+                ],
+                verification_public_keys: Vec::new(),
+                reference_time_epoch_seconds: Some(TEST_TIME),
+            }),
+            Err(OpenPgpWriteError::MissingKey),
+        );
+    }
+
+    #[test]
+    fn expired_newer_binding_does_not_shadow_live_cross_certified_binding() {
+        let material = generated_modern_material();
+        let (mut secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse generated secret key");
+        let newer = subkey_binding_with_signature_expiration(&secret, 0, TEST_TIME + 10, 1, false);
+        secret.secret_subkeys[0].signatures.push(newer);
+
+        let public = secret.to_public_key();
+        let candidates = all_components(std::slice::from_ref(&public));
+        let component_index = secret.public_subkeys.len();
+        let inspect_at = |reference_time| {
+            let mut budget = OpenPgpReadBudget::default();
+            inspect_certificate(&public, &candidates, reference_time, &mut budget)
+                .expect("inspect certificate")
+        };
+
+        let current = inspect_at(TEST_TIME + 10);
+        let current = &current.subkeys[component_index];
+        assert_eq!(
+            current
+                .effective_signature
+                .and_then(pgp::packet::Signature::created)
+                .map(Timestamp::as_secs),
+            Some((TEST_TIME + 10) as u32),
+        );
+        assert!(!current.signing_cross_certified);
+
+        let after_expiration = inspect_at(TEST_TIME + 12);
+        let after_expiration = &after_expiration.subkeys[component_index];
+        assert_eq!(
+            after_expiration
+                .effective_signature
+                .and_then(pgp::packet::Signature::created)
+                .map(Timestamp::as_secs),
+            Some(TEST_TIME as u32),
+        );
+        assert!(after_expiration.signing_cross_certified);
+        assert!(signing_component_usable(
+            after_expiration,
+            TEST_TIME + 12,
+            true,
+        ));
+    }
+
+    #[test]
+    fn import_accepts_signature_expired_subkey_binding() {
+        let material = generated_modern_material();
+        let (mut secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse generated secret key");
+        let expired = subkey_binding_with_signature_expiration(&secret, 1, TEST_TIME - 10, 1, true);
+        secret.secret_subkeys[1].signatures = vec![expired];
+
+        assert!(matches!(
+            import_secret(&secret).result,
+            Some(open_pgp_key_import_result::Result::Success(_))
+        ));
     }
 
     #[test]
@@ -4254,16 +5131,17 @@ mod tests {
         let protected = protected
             .to_armored_bytes(ArmorOptions::default())
             .expect("armor usage-255 key");
-        let preflight = preflight_key_packets(&protected).expect("preflight usage-255 key");
-        let (parsed, _) = SignedSecretKey::from_reader_single(Cursor::new(&protected))
-            .expect("rPGP parses compatibility key");
-        assert!(
-            preflight
-                .secret_usages(&parsed)
-                .expect("extract original usages")
-                .iter()
-                .all(|usage| *usage == 255)
-        );
+        let raw =
+            RawPacketStream::parse(&protected, MAX_OPENPGP_PACKETS).expect("scan usage-255 key");
+        let range = raw.first_secret_certificate().expect("find usage-255 key");
+        for span in raw.packets()[range]
+            .iter()
+            .filter(|span| matches!(span.tag(), 5 | 7))
+        {
+            let secret = parse_import_secret_packet(&raw, span).expect("parse secret packet");
+            let body = raw.body(span);
+            assert_eq!(body.get(secret.public_len()), Some(&255));
+        }
 
         let import = |password: &[u8]| {
             OpenPgpKeyImportResult::decode(
@@ -4456,9 +5334,13 @@ mod tests {
 
     #[test]
     fn legacy_v2_secret_packet_is_unsupported_but_truncation_is_malformed() {
-        let mut legacy_v2 =
-            decode_bounded_packet_stream(include_bytes!("../tests/fixtures/openpgp/v3-secret.asc"))
-                .expect("decode checked-in v3 secret fixture");
+        let mut legacy_v2 = RawPacketStream::parse(
+            include_bytes!("../tests/fixtures/openpgp/v3-secret.asc"),
+            MAX_OPENPGP_PACKETS,
+        )
+        .expect("decode checked-in v3 secret fixture")
+        .bytes()
+        .to_vec();
         assert_eq!(legacy_v2.first().copied(), Some(0x95));
         assert_eq!(legacy_v2.get(3).copied(), Some(3));
         legacy_v2[3] = 2;

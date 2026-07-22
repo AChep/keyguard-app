@@ -5,9 +5,25 @@ import com.artemchep.jna.util.DisposableScope
 import com.artemchep.jna.util.asMemory
 import com.sun.jna.Pointer
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+
+internal class BiometricsCallbackRetention {
+    private val callbacks = ConcurrentHashMap.newKeySet<DesktopLibJna.BiometricsVerifyCallback>()
+
+    internal val size: Int
+        get() = callbacks.size
+
+    internal fun retain(callback: DesktopLibJna.BiometricsVerifyCallback) {
+        check(callbacks.add(callback))
+    }
+
+    internal fun release(callback: DesktopLibJna.BiometricsVerifyCallback): Boolean =
+        callbacks.remove(callback)
+}
+
+private val biometricsCallbackRetention = BiometricsCallbackRetention()
 
 internal fun DisposableScope.autoTypeOrThrow(
     lib: DesktopLibJna,
@@ -67,34 +83,29 @@ internal fun DisposableScope.keychainGetPasswordOrThrow(
 internal suspend fun biometricsVerifyOrThrow(
     lib: DesktopLibJna,
     title: String,
+    callbackRetention: BiometricsCallbackRetention = biometricsCallbackRetention,
 ) {
     suspendCancellableCoroutine<Unit> { continuation ->
-        val retainedCallback = AtomicReference<DesktopLibJna.BiometricsVerifyCallback?>()
         val scope = DisposableScope()
         val callback = object : DesktopLibJna.BiometricsVerifyCallback {
             override fun invoke(success: Boolean, error: Pointer?) {
-                if (retainedCallback.getAndSet(null) == null) {
+                if (!callbackRetention.release(this)) {
                     return
                 }
 
-                val result = if (success) {
-                    Result.success(Unit)
-                } else {
-                    val message = error?.getString(0L) ?: "Unknown error"
-                    Result.failure(RuntimeException(message))
+                if (!continuation.isActive) {
+                    return
                 }
 
-                result.fold(
-                    onSuccess = continuation::resume,
-                    onFailure = continuation::resumeWithException,
-                )
+                if (success) {
+                    continuation.resume(Unit)
+                } else {
+                    val message = error?.getString(0L) ?: "Unknown error"
+                    continuation.resumeWithException(RuntimeException(message))
+                }
             }
         }
-        retainedCallback.set(callback)
-
-        continuation.invokeOnCancellation {
-            retainedCallback.set(null)
-        }
+        callbackRetention.retain(callback)
 
         try {
             lib.biometricsVerify(
@@ -104,8 +115,9 @@ internal suspend fun biometricsVerifyOrThrow(
                 callback = callback,
             )
         } catch (e: Throwable) {
-            retainedCallback.set(null)
-            throw e
+            if (callbackRetention.release(callback) && continuation.isActive) {
+                continuation.resumeWithException(e)
+            }
         } finally {
             scope.dispose()
         }

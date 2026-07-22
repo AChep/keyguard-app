@@ -79,15 +79,19 @@ private class DesktopLibGlobalHotKeyRegistration(
     private val lib: DesktopLibJna,
     private val id: Int,
     private val closed: AtomicBoolean,
-    @Suppress("unused")
-    private val callback: DesktopLibJna.GlobalHotKeyCallback,
+    private var callback: DesktopLibJna.GlobalHotKeyCallback?,
 ) : GlobalHotKeyRegistration {
-    override fun unregister(): Boolean {
-        if (!closed.compareAndSet(false, true)) {
-            return false
+    override fun unregister(): Boolean = synchronized(this) {
+        if (callback == null) {
+            return@synchronized false
         }
 
-        return lib.unregisterNativeGlobalHotKey(id)
+        val success = lib.unregisterNativeGlobalHotKey(id)
+        if (success) {
+            closed.set(true)
+            callback = null
+        }
+        success
     }
 }
 

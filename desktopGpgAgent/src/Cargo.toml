@@ -40,6 +40,9 @@ windows-sys = { version = "0.61", features = [
 tempfile = "3"
 tokio = { version = "1", features = ["test-util", "io-util", "macros", "rt"] }
 
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"
+
 [profile.release]
 strip = true
 lto = true

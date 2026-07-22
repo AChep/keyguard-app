@@ -8,6 +8,9 @@ pub(crate) fn is_supported() -> bool {
 
 pub(crate) fn verify(_title: *const c_char, callback: BiometricsVerifyCallback) {
     if let Some(callback) = callback {
+        // SAFETY: A non-null callback came from the exported biometrics FFI
+        // contract and is invoked synchronously with its declared C ABI. The
+        // callback ABI explicitly permits a null error pointer.
         unsafe {
             callback(false, ptr::null());
         }

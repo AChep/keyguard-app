@@ -1,9 +1,9 @@
-use crate::ffi::HotKeyPressedCallback;
 use super::{
-    with_restartable_thread, CallbackDispatcher, REGISTER_STATUS_INTERNAL_ERROR,
-    REGISTER_STATUS_INVALID_SHORTCUT, REGISTER_STATUS_UNAVAILABLE,
+    with_restartable_thread, CallbackDispatcher, CallbackRegistration, UnregisterResponse,
+    REGISTER_STATUS_INTERNAL_ERROR, REGISTER_STATUS_INVALID_SHORTCUT, REGISTER_STATUS_UNAVAILABLE,
     REGISTER_STATUS_UNSUPPORTED_SESSION,
 };
+use crate::ffi::HotKeyPressedCallback;
 use libc::{c_char, c_int, c_long, c_uchar, c_uint, c_ulong};
 use std::collections::{HashMap, HashSet};
 use std::env;
@@ -100,11 +100,11 @@ unsafe extern "C" {
     fn XSetErrorHandler(handler: XErrorHandler) -> XErrorHandler;
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 struct RegisteredHotKey {
     keycode: c_int,
     modifiers: c_uint,
-    callback: HotKeyPressedCallback,
+    callback: CallbackRegistration,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -131,7 +131,7 @@ enum Command {
     },
     Unregister {
         id: i32,
-        response_tx: mpsc::Sender<bool>,
+        response_tx: mpsc::Sender<UnregisterResponse>,
     },
 }
 
@@ -170,6 +170,12 @@ pub(crate) fn unregister(id: i32) -> bool {
 
 impl HotKeyThread {
     fn start() -> Result<Self, i32> {
+        // SAFETY: XInitThreads takes no pointers. Xlib requires it to precede
+        // every other Xlib call in the process, which cannot be guaranteed from
+        // inside a library (the host JVM may already use Xlib), so thread
+        // safety does not rest on it: this crate confines each Display
+        // connection to the single worker that opened it. Within this crate it
+        // does run before the worker makes the first Xlib call.
         unsafe {
             XInitThreads();
         }
@@ -226,7 +232,8 @@ impl HotKeyThread {
             return None;
         }
 
-        response_rx.recv().ok()
+        let response = response_rx.recv().ok()?;
+        Some(self.callback_dispatcher.complete_unregister(response))
     }
 }
 
@@ -245,6 +252,8 @@ fn hotkey_thread_main(
         return;
     }
 
+    // SAFETY: XOpenDisplay explicitly accepts null to select the display from
+    // the process environment and returns either null or an owned live handle.
     let display = unsafe { XOpenDisplay(ptr::null()) };
     if display.is_null() {
         log_linux_hotkey("startup failed: XOpenDisplay returned null");
@@ -252,6 +261,8 @@ fn hotkey_thread_main(
         return;
     }
 
+    // SAFETY: The null case returned above, so display is a live Xlib handle
+    // owned by this worker and remains open throughout the event loop.
     let root = unsafe { XDefaultRootWindow(display) };
     let _ = ready_tx.send(Ok(()));
 
@@ -283,9 +294,13 @@ fn hotkey_thread_main(
         }
     }
 
+    // Worker shutdown does not report a successful unregister to any foreign
+    // owner, so owners retain these callbacks while queued invocations drain.
     for registered in registrations.into_values() {
         let _ = ungrab_hotkey(display, root, registered.keycode, registered.modifiers);
     }
+    // SAFETY: display is the live handle opened by this worker, and the handle
+    // is not used after this call.
     unsafe {
         XCloseDisplay(display);
     }
@@ -322,12 +337,14 @@ fn handle_command(
             callback,
             response_tx,
         } => {
-            if callback.is_none() {
+            let Some(callback) = CallbackRegistration::new(callback) else {
                 log_linux_hotkey("register failed: callback was null");
                 let _ = response_tx.send(REGISTER_STATUS_INTERNAL_ERROR);
                 return;
-            }
+            };
 
+            // SAFETY: display is the worker's live Xlib handle, and keysym is
+            // passed by value. XKeysymToKeycode does not retain either value.
             let keycode = unsafe { XKeysymToKeycode(display, keysym) } as c_int;
             if keycode == 0 {
                 log_linux_hotkey(&format!(
@@ -370,8 +387,8 @@ fn handle_command(
         }
 
         Command::Unregister { id, response_tx } => {
-            let Some(registered) = registrations.get(&id).copied() else {
-                let _ = response_tx.send(false);
+            let Some(registered) = registrations.get(&id).cloned() else {
+                let _ = response_tx.send(UnregisterResponse::Unchanged);
                 return;
             };
 
@@ -382,13 +399,19 @@ fn handle_command(
                     registered.modifiers,
                 ));
                 registrations.remove(&id);
+                // Retire before reporting success so queued invocations skip
+                // this callback. The caller waits for an active invocation
+                // after receiving the response, leaving this worker free to
+                // process commands submitted reentrantly by that callback.
+                registered.callback.retire();
+                let _ = response_tx.send(UnregisterResponse::Removed(registered.callback));
             } else {
                 log_linux_hotkey(&format!(
                     "unregister failed: id={id} keycode={} modifiers=0x{:x}",
                     registered.keycode, registered.modifiers
                 ));
+                let _ = response_tx.send(UnregisterResponse::Unchanged);
             }
-            let _ = response_tx.send(ok);
         }
     }
 }
@@ -399,18 +422,28 @@ fn process_x11_events(
     pressed_hotkeys: &mut HashSet<HotKeyTrigger>,
     callback_dispatcher: &CallbackDispatcher,
 ) {
+    // SAFETY: display is a live handle used only by this worker. XPending only
+    // observes the connection and accepts this non-null handle.
     while unsafe { XPending(display) } > 0 {
         let mut event = MaybeUninit::<XEvent>::uninit();
+        // SAFETY: display is live, event points to correctly aligned writable
+        // storage for one XEvent, and XPending established an event is queued.
+        // XNextEvent initializes that entire output before it returns.
         unsafe {
             XNextEvent(display, event.as_mut_ptr());
         }
+        // SAFETY: XNextEvent above initialized the XEvent output completely.
         let event = unsafe { event.assume_init() };
 
+        // SAFETY: XEvent was initialized by Xlib, and type_ is the common
+        // discriminator at the start of every event union variant.
         let event_type = unsafe { event.type_ };
         if event_type != KEY_PRESS && event_type != KEY_RELEASE {
             continue;
         }
 
+        // SAFETY: The discriminator was checked as KeyPress or KeyRelease, for
+        // both of which Xlib initializes the union's XKeyEvent variant.
         let xkey = unsafe { event.xkey };
         let trigger = HotKeyTrigger::new(xkey.keycode as c_int, xkey.state);
         let is_auto_repeat_release =
@@ -422,7 +455,7 @@ fn process_x11_events(
             registrations,
             pressed_hotkeys,
         ) {
-            let _ = callback_dispatcher.dispatch(callback, id);
+            let _ = callback_dispatcher.dispatch(&callback, id);
         }
     }
 }
@@ -433,13 +466,13 @@ fn resolve_hotkey_event(
     is_auto_repeat_release: bool,
     registrations: &HashMap<i32, RegisteredHotKey>,
     pressed_hotkeys: &mut HashSet<HotKeyTrigger>,
-) -> Option<(i32, HotKeyPressedCallback)> {
+) -> Option<(i32, CallbackRegistration)> {
     let (id, registered) = registrations
         .iter()
         .find(|(_, registered)| {
             registered.keycode == trigger.keycode && registered.modifiers == trigger.modifiers
         })
-        .map(|(id, registered)| (*id, *registered))?;
+        .map(|(id, registered)| (*id, registered.clone()))?;
 
     match event_type {
         KEY_PRESS => {
@@ -460,19 +493,27 @@ fn resolve_hotkey_event(
 }
 
 fn is_auto_repeat_release(display: *mut Display, release_event: XKeyEvent) -> bool {
+    // SAFETY: display is the worker's live, non-null Xlib handle and is not
+    // accessed by another thread in this crate.
     if unsafe { XPending(display) } <= 0 {
         return false;
     }
 
     let mut next_event = MaybeUninit::<XEvent>::uninit();
+    // SAFETY: XPending established a queued event, and next_event is correctly
+    // aligned writable storage. XPeekEvent initializes it without dequeueing.
     unsafe {
         XPeekEvent(display, next_event.as_mut_ptr());
     }
+    // SAFETY: XPeekEvent above initialized the XEvent output completely.
     let next_event = unsafe { next_event.assume_init() };
+    // SAFETY: The initialized XEvent stores its common discriminator in type_.
     if unsafe { next_event.type_ } != KEY_PRESS {
         return false;
     }
 
+    // SAFETY: The discriminator was checked as KeyPress, so Xlib initialized
+    // the union's XKeyEvent variant.
     let next_key = unsafe { next_event.xkey };
     next_key.keycode == release_event.keycode && next_key.time == release_event.time
 }
@@ -480,6 +521,9 @@ fn is_auto_repeat_release(display: *mut Display, release_event: XKeyEvent) -> bo
 fn grab_hotkey(display: *mut Display, root: Window, keycode: c_int, modifiers: c_uint) -> bool {
     let ok = with_x11_error_boundary(display, || {
         for variant in modifier_variants(modifiers) {
+            // SAFETY: display is the worker's live Xlib handle and root belongs
+            // to that display. The remaining XGrabKey arguments are scalar
+            // values, and Xlib does not retain Rust-managed memory.
             unsafe {
                 XGrabKey(
                     display,
@@ -505,6 +549,8 @@ fn grab_hotkey(display: *mut Display, root: Window, keycode: c_int, modifiers: c
 fn ungrab_hotkey(display: *mut Display, root: Window, keycode: c_int, modifiers: c_uint) -> bool {
     let ok = with_x11_error_boundary(display, || {
         for variant in modifier_variants(modifiers) {
+            // SAFETY: display is the worker's live Xlib handle and root belongs
+            // to it. XUngrabKey receives only those handles and scalar values.
             unsafe {
                 XUngrabKey(display, keycode, variant, root);
             }
@@ -522,6 +568,8 @@ fn with_x11_error_boundary(display: *mut Display, operation: impl FnOnce()) -> b
     let _guard = X11_ERROR_LOCK.lock().expect("x11 error lock poisoned");
     X11_ERROR_CODE.store(0, Ordering::SeqCst);
 
+    // SAFETY: x11_error_handler has the exact Xlib callback ABI and static
+    // lifetime. X11_ERROR_LOCK serializes this crate's temporary replacements.
     let previous_handler = unsafe { XSetErrorHandler(Some(x11_error_handler)) };
     *X11_PREVIOUS_ERROR_HANDLER
         .lock()
@@ -529,6 +577,9 @@ fn with_x11_error_boundary(display: *mut Display, operation: impl FnOnce()) -> b
 
     operation();
 
+    // SAFETY: display remains live for this entire boundary. XSync receives no
+    // borrowed output, and previous_handler is exactly the value returned by
+    // XSetErrorHandler above, so it is valid to reinstall (including null).
     unsafe {
         XSync(display, 0);
         XSetErrorHandler(previous_handler);
@@ -539,7 +590,9 @@ fn with_x11_error_boundary(display: *mut Display, operation: impl FnOnce()) -> b
 
     let error_code = X11_ERROR_CODE.load(Ordering::SeqCst);
     if error_code != 0 {
-        log_linux_hotkey(&format!("x11 error boundary captured error_code={error_code}"));
+        log_linux_hotkey(&format!(
+            "x11 error boundary captured error_code={error_code}"
+        ));
     }
     error_code == 0
 }
@@ -558,6 +611,8 @@ fn normalize_modifiers(modifiers: c_uint) -> c_uint {
 }
 
 unsafe extern "C" fn x11_error_handler(display: *mut Display, event: *mut XErrorEvent) -> c_int {
+    // SAFETY: Xlib invokes an installed error handler with either null or a
+    // properly aligned XErrorEvent valid for the duration of this callback.
     if let Some(event) = unsafe { event.as_ref() } {
         X11_ERROR_CODE.store(event.error_code as i32, Ordering::SeqCst);
         log_linux_hotkey(&format!(
@@ -570,6 +625,8 @@ unsafe extern "C" fn x11_error_handler(display: *mut Display, event: *mut XError
         .lock()
         .expect("x11 previous error handler mutex poisoned");
     if let Some(handler) = previous_handler {
+        // SAFETY: handler was returned by XSetErrorHandler and is called with
+        // the unchanged display/event pair supplied by Xlib for this callback.
         unsafe { handler(display, event) }
     } else {
         0
@@ -579,10 +636,12 @@ unsafe extern "C" fn x11_error_handler(display: *mut Display, event: *mut XError
 #[cfg(test)]
 mod tests {
     use super::{
-        resolve_hotkey_event, supports_global_hotkeys_in_session, HotKeyTrigger, RegisteredHotKey,
-        KEY_PRESS, KEY_RELEASE, LOCK_MASK,
+        resolve_hotkey_event, supports_global_hotkeys_in_session, CallbackRegistration,
+        HotKeyTrigger, RegisteredHotKey, KEY_PRESS, KEY_RELEASE, LOCK_MASK,
     };
     use std::collections::{HashMap, HashSet};
+
+    unsafe extern "C" fn ignore_callback(_id: i32) {}
 
     fn registration_map() -> HashMap<i32, RegisteredHotKey> {
         HashMap::from([(
@@ -590,7 +649,8 @@ mod tests {
             RegisteredHotKey {
                 keycode: 49,
                 modifiers: 1 << 2,
-                callback: None,
+                callback: CallbackRegistration::new(Some(ignore_callback))
+                    .expect("callback registration"),
             },
         )])
     }

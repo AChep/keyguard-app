@@ -18,6 +18,9 @@ libc = "0.2"
 [build-dependencies]
 cc = "1"
 
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"
+
 [profile.release]
 strip = true
 lto = true

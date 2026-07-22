@@ -13,3 +13,6 @@ prost = "0.13"
 
 [build-dependencies]
 prost-build = "0.13"
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

@@ -13,6 +13,7 @@ on:
       - master
     paths:
       - 'commonSshAgent/**'
+      - 'commonAgent/**'
       - 'androidSshAgent/**'
       - 'desktopSshAgent/**'
       - 'util/crypto/**'
@@ -31,6 +32,7 @@ on:
       - master
     paths:
       - 'commonSshAgent/**'
+      - 'commonAgent/**'
       - 'androidSshAgent/**'
       - 'desktopSshAgent/**'
       - 'util/crypto/**'
@@ -58,7 +60,15 @@ jobs:
           persist-credentials: false
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
+        with:
+          components: "clippy"
       - uses: ./.github/actions/setup_protobuf
+      - name: "Run Rust static analysis"
+        run: |
+          cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonSshAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path androidSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path desktopSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
       - name: "Test commonSshAgent crate"
         run: cargo test --manifest-path commonSshAgent/Cargo.toml
       - name: "Test androidSshAgent crate"
@@ -108,7 +118,13 @@ jobs:
           cache-write-only: ${{ inputs.cache-write-only || false }}
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
+        with:
+          components: "clippy"
       - uses: ./.github/actions/setup_protobuf
+      - name: "Run platform Rust static analysis"
+        run: |
+          cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path desktopSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
       - name: "Setup OpenSSH (Linux)"
         if: runner.os == 'Linux'
         shell: bash

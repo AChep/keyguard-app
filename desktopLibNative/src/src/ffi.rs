@@ -15,6 +15,9 @@ pub(crate) fn require_string(ptr: *const c_char, label: &str) -> Result<String, 
     use std::ffi::CStr;
 
     let ptr = require_non_null(ptr, label)?;
+    // SAFETY: This helper is only used for C string arguments supplied through
+    // the exported FFI. That contract requires a readable, NUL-terminated byte
+    // sequence; the check above additionally establishes that it is non-null.
     Ok(unsafe { CStr::from_ptr(ptr) }
         .to_string_lossy()
         .into_owned())
@@ -71,6 +74,9 @@ fn format_failure_log(name: &str, message: &str, detail: FailureLogDetail) -> St
 }
 
 pub(crate) fn free_ptr(ptr: *mut c_void) {
+    // SAFETY: The exported freePointer contract only accepts pointers returned
+    // by this library's strdup-backed keychain getter (or null, which free also
+    // accepts), so the allocation belongs to the C allocator exactly once.
     unsafe {
         libc::free(ptr);
     }
@@ -97,6 +103,8 @@ mod tests {
     #[test]
     fn free_ptr_releases_strdup_allocation() {
         let payload = CString::new("hello").unwrap();
+        // SAFETY: CString provides a valid NUL-terminated source pointer for
+        // the duration of the call; strdup returns a C-allocator allocation.
         let duplicated = unsafe { libc::strdup(payload.as_ptr()) };
         assert!(!duplicated.is_null());
 

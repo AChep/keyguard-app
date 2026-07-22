@@ -83,6 +83,8 @@ fn zeroize_bytes(buf: &mut [u8]) {
 }
 
 fn zeroize_string(buf: &mut String) {
+    // SAFETY: Replacing every byte with ASCII NUL leaves the string as valid
+    // UTF-8, and `fill` does not change its length or capacity.
     unsafe {
         buf.as_bytes_mut().fill(0);
     }

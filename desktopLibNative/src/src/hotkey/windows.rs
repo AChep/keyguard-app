@@ -1,9 +1,8 @@
-use crate::ffi::HotKeyPressedCallback;
 use super::{
-    with_restartable_thread, CallbackDispatcher, REGISTER_STATUS_INTERNAL_ERROR,
-    REGISTER_STATUS_INVALID_SHORTCUT,
-    REGISTER_STATUS_UNAVAILABLE,
+    with_restartable_thread, CallbackDispatcher, CallbackRegistration, UnregisterResponse,
+    REGISTER_STATUS_INTERNAL_ERROR, REGISTER_STATUS_INVALID_SHORTCUT, REGISTER_STATUS_UNAVAILABLE,
 };
+use crate::ffi::HotKeyPressedCallback;
 use std::collections::{HashMap, VecDeque};
 use std::ffi::c_int;
 use std::ffi::c_void;
@@ -69,7 +68,7 @@ enum Command {
     },
     Unregister {
         id: i32,
-        response_tx: mpsc::Sender<bool>,
+        response_tx: mpsc::Sender<UnregisterResponse>,
     },
 }
 
@@ -110,7 +109,7 @@ impl<T> PendingQueue<T> {
 struct HotKeyThread {
     thread_id: Dword,
     commands: Arc<Mutex<PendingQueue<Command>>>,
-    _callback_dispatcher: CallbackDispatcher,
+    callback_dispatcher: CallbackDispatcher,
 }
 
 static HOTKEY_THREAD: OnceLock<Mutex<Option<HotKeyThread>>> = OnceLock::new();
@@ -146,18 +145,27 @@ impl HotKeyThread {
             .name("keyguard-hotkey-windows".to_owned())
             .spawn(move || {
                 let mut msg = Msg::default();
+                // SAFETY: msg is valid, aligned writable storage for MSG. A
+                // null HWND and PM_NOREMOVE are documented to initialize this
+                // thread's message queue without retaining the pointer.
                 unsafe {
                     PeekMessageW(&mut msg, ptr::null_mut(), 0, 0, PM_NOREMOVE);
                 }
 
+                // SAFETY: GetCurrentThreadId takes no arguments and returns a
+                // scalar identifier for the calling worker thread.
                 let thread_id = unsafe { GetCurrentThreadId() };
                 if ready_tx.send(thread_id).is_err() {
                     return;
                 }
 
                 let mut next_id = 1;
-                let mut callbacks = HashMap::<i32, HotKeyPressedCallback>::new();
+                let mut callbacks = HashMap::<i32, CallbackRegistration>::new();
                 loop {
+                    // SAFETY: msg remains valid writable storage for the whole
+                    // call. A null HWND selects this thread's messages, and the
+                    // struct is read only when the positive result says it was
+                    // initialized with a retrieved message.
                     let result = unsafe { GetMessageW(&mut msg, ptr::null_mut(), 0, 0) };
                     if result <= 0 {
                         break;
@@ -166,7 +174,7 @@ impl HotKeyThread {
                     match msg.message {
                         WM_HOTKEY => {
                             let id = msg.wParam as i32;
-                            if let Some(callback) = callbacks.get(&id).copied() {
+                            if let Some(callback) = callbacks.get(&id) {
                                 let _ = callback_dispatcher_worker.dispatch(callback, id);
                             }
                         }
@@ -179,7 +187,13 @@ impl HotKeyThread {
                     }
                 }
 
+                // Worker shutdown does not report a successful unregister to
+                // any foreign owner, so callbacks remain retained while queued
+                // invocations drain.
                 for id in callbacks.into_keys() {
+                    // SAFETY: Each id is still registered by this worker with a
+                    // null HWND, which denotes a thread-associated hotkey. The
+                    // call receives no Rust memory and the id is removed once.
                     unsafe {
                         UnregisterHotKey(ptr::null_mut(), id);
                     }
@@ -187,11 +201,13 @@ impl HotKeyThread {
             })
             .map_err(|_| REGISTER_STATUS_INTERNAL_ERROR)?;
 
-        let thread_id = ready_rx.recv().map_err(|_| REGISTER_STATUS_INTERNAL_ERROR)?;
+        let thread_id = ready_rx
+            .recv()
+            .map_err(|_| REGISTER_STATUS_INTERNAL_ERROR)?;
         Ok(Self {
             thread_id,
             commands,
-            _callback_dispatcher: callback_dispatcher,
+            callback_dispatcher,
         })
     }
 
@@ -220,7 +236,8 @@ impl HotKeyThread {
             return None;
         }
 
-        response_rx.recv().ok()
+        let response = response_rx.recv().ok()?;
+        Some(self.callback_dispatcher.complete_unregister(response))
     }
 
     fn enqueue(&self, command: Command) -> bool {
@@ -229,6 +246,9 @@ impl HotKeyThread {
             .lock()
             .expect("windows hotkey commands mutex poisoned");
         let token = commands.push(command);
+        // SAFETY: thread_id was obtained from the live worker itself after its
+        // message queue was initialized. The custom message carries only zero
+        // scalar payloads and does not borrow Rust-managed memory.
         let ok = unsafe { PostThreadMessageW(self.thread_id, WM_KEYGUARD_HOTKEY, 0, 0) != 0 };
         if !ok {
             let _ = commands.remove(token);
@@ -239,7 +259,7 @@ impl HotKeyThread {
 
 fn drain_commands(
     commands: &Mutex<PendingQueue<Command>>,
-    callbacks: &mut HashMap<i32, HotKeyPressedCallback>,
+    callbacks: &mut HashMap<i32, CallbackRegistration>,
     next_id: &mut i32,
 ) {
     loop {
@@ -266,11 +286,18 @@ fn drain_commands(
                     continue;
                 }
 
-                if id <= 0 || callback.is_none() {
+                let Some(callback) = CallbackRegistration::new(callback) else {
+                    let _ = response_tx.send(REGISTER_STATUS_INTERNAL_ERROR);
+                    continue;
+                };
+                if id <= 0 {
                     let _ = response_tx.send(REGISTER_STATUS_INTERNAL_ERROR);
                     continue;
                 }
 
+                // SAFETY: id is positive and unique in this worker, key_code
+                // was checked nonzero, and a null HWND requests a hotkey owned
+                // by the current message-loop thread. All inputs are scalars.
                 let ok = unsafe {
                     RegisterHotKey(ptr::null_mut(), id, register_modifiers(modifiers), key_code)
                         != 0
@@ -285,16 +312,26 @@ fn drain_commands(
             }
 
             Command::Unregister { id, response_tx } => {
-                let Some(_callback) = callbacks.get(&id).copied() else {
-                    let _ = response_tx.send(false);
+                let Some(callback) = callbacks.get(&id).cloned() else {
+                    let _ = response_tx.send(UnregisterResponse::Unchanged);
                     continue;
                 };
 
+                // SAFETY: The callbacks map proves id is currently registered
+                // by this worker with a null HWND; it is removed only when this
+                // matching UnregisterHotKey call succeeds.
                 let ok = unsafe { UnregisterHotKey(ptr::null_mut(), id) != 0 };
                 if ok {
                     callbacks.remove(&id);
+                    // Retire before reporting success so queued invocations
+                    // skip this callback. The caller waits for an active
+                    // invocation after receiving the response, leaving this
+                    // worker free to process commands submitted reentrantly.
+                    callback.retire();
+                    let _ = response_tx.send(UnregisterResponse::Removed(callback));
+                } else {
+                    let _ = response_tx.send(UnregisterResponse::Unchanged);
                 }
-                let _ = response_tx.send(ok);
             }
         }
     }

@@ -14,6 +14,9 @@ unsafe extern "system" {
 pub(crate) fn get_system_accent_color() -> i32 {
     let mut colorization = 0_u32;
     let mut opaque_blend = 0;
+    // SAFETY: Both out-pointers refer to initialized, correctly aligned local
+    // values that remain live and exclusively borrowed for the duration of the
+    // system call. DwmGetColorizationColor does not retain them.
     let result = unsafe { DwmGetColorizationColor(&mut colorization, &mut opaque_blend) };
     if result != S_OK {
         return 0;

@@ -31,6 +31,8 @@ fn linux_managed_gpg_home_path() -> PathBuf {
     if let Some(runtime_dir) = dirs::runtime_dir() {
         runtime_dir.join("keyguard-gpg-agent")
     } else {
+        // SAFETY: `getuid` takes no arguments, has no preconditions, and only
+        // returns the real user ID of the calling process.
         let uid = unsafe { libc::getuid() };
         linux_fallback_gpg_home_path(uid)
     }
@@ -139,6 +141,8 @@ mod tests {
     #[cfg(target_os = "macos")]
     #[test]
     fn macos_dev_fallback_path_matches_layout() {
+        // SAFETY: `getuid` takes no arguments, has no preconditions, and only
+        // returns the real user ID of the calling process.
         let uid = unsafe { libc::getuid() };
         assert_eq!(
             linux_fallback_gpg_agent_socket_path(uid),

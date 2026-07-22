@@ -134,10 +134,57 @@ class DesktopLibInteropTest {
         assertTrue(result.isCompleted)
     }
 
+    @Test
+    fun `biometrics verify retains callback until callback after cancellation`() = runTest {
+        val lib = FakeDesktopLibJna()
+        val callbackRetention = BiometricsCallbackRetention()
+        val result = async {
+            biometricsVerifyOrThrow(
+                lib = lib,
+                title = "Verify",
+                callbackRetention = callbackRetention,
+            )
+        }
+        runCurrent()
+        val callback = lib.biometricsCallback!!
+
+        result.cancel()
+        runCurrent()
+
+        assertTrue(result.isCancelled)
+        assertEquals(1, callbackRetention.size)
+
+        callback.invoke(true, null)
+
+        assertTrue(result.isCancelled)
+        assertEquals(0, callbackRetention.size)
+    }
+
+    @Test
+    fun `biometrics verify releases callback on synchronous native failure`() = runTest {
+        val failure = IllegalStateException("native failure")
+        val lib = FakeDesktopLibJna().apply {
+            biometricsVerifyFailure = failure
+        }
+        val callbackRetention = BiometricsCallbackRetention()
+
+        val actual = assertFailsWith<IllegalStateException> {
+            biometricsVerifyOrThrow(
+                lib = lib,
+                title = "Verify",
+                callbackRetention = callbackRetention,
+            )
+        }
+
+        assertEquals(failure.message, actual.message)
+        assertEquals(0, callbackRetention.size)
+    }
+
     private class FakeDesktopLibJna : DesktopLibJna {
         var keychainAddPasswordResult: Boolean = true
         var keychainGetPasswordResult: Pointer? = null
         var biometricsCallback: DesktopLibJna.BiometricsVerifyCallback? = null
+        var biometricsVerifyFailure: Throwable? = null
         var nativeSystemAccentColor: Int = 0
         val freedPointers = mutableListOf<Pointer>()
 
@@ -152,6 +199,7 @@ class DesktopLibInteropTest {
             callback: DesktopLibJna.BiometricsVerifyCallback,
         ) {
             biometricsCallback = callback
+            biometricsVerifyFailure?.let { throw it }
         }
 
         override fun keychainAddPassword(id: Pointer, password: Pointer): Boolean =

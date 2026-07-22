@@ -81,6 +81,8 @@ pub async fn serve<K: KeyProvider>(
 fn ensure_socket_parent_dir(socket_path: &Path) -> Result<()> {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
+        // SAFETY: `getuid` has no preconditions and only reads the real
+        // user ID maintained by the operating system for this process.
         let uid = unsafe { libc::getuid() };
         ensure_socket_parent_dir_for_uid(socket_path, uid)
     }
@@ -252,6 +254,8 @@ mod tests {
     use tempfile::tempdir;
 
     fn current_uid() -> libc::uid_t {
+        // SAFETY: `getuid` has no preconditions and only reads the real
+        // user ID maintained by the operating system for this process.
         unsafe { libc::getuid() }
     }
 

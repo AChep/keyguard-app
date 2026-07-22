@@ -227,6 +227,8 @@ fn log_task_result(result: std::result::Result<Result<()>, JoinError>) {
 fn ensure_socket_parent_dir(socket_path: &Path) -> Result<()> {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
+        // SAFETY: `getuid` takes no arguments, has no preconditions, and only
+        // returns the real user ID of the calling process.
         let uid = unsafe { libc::getuid() };
         ensure_socket_parent_dir_for_uid(socket_path, uid)
     }

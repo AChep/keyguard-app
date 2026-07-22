@@ -1,5 +1,5 @@
-use crate::ffi::HotKeyPressedCallback;
 use super::REGISTER_STATUS_UNSUPPORTED_PLATFORM;
+use crate::ffi::HotKeyPressedCallback;
 
 pub(crate) fn register(_key_code: u32, _modifiers: u32, _callback: HotKeyPressedCallback) -> i32 {
     REGISTER_STATUS_UNSUPPORTED_PLATFORM
@@ -16,7 +16,10 @@ mod tests {
 
     #[test]
     fn register_reports_unsupported_platform_by_default() {
-        assert_eq!(register(49, 768, None), REGISTER_STATUS_UNSUPPORTED_PLATFORM);
+        assert_eq!(
+            register(49, 768, None),
+            REGISTER_STATUS_UNSUPPORTED_PLATFORM
+        );
     }
 
     #[test]

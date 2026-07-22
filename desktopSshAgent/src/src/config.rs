@@ -80,6 +80,8 @@ pub fn default_ssh_agent_socket_path() -> PathBuf {
         if let Some(runtime_dir) = dirs::runtime_dir() {
             runtime_dir.join("keyguard-ssh-agent.sock")
         } else {
+            // SAFETY: `getuid` has no preconditions and only reads the real
+            // user ID maintained by the operating system for this process.
             let uid = unsafe { libc::getuid() };
             linux_fallback_ssh_agent_socket_path(uid)
         }
@@ -141,6 +143,8 @@ mod tests {
     #[cfg(target_os = "macos")]
     #[test]
     fn macos_dev_fallback_path_matches_layout() {
+        // SAFETY: `getuid` has no preconditions and only reads the real
+        // user ID maintained by the operating system for this process.
         let uid = unsafe { libc::getuid() };
         assert_eq!(
             linux_fallback_ssh_agent_socket_path(uid),
@@ -219,6 +223,8 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn linux_fallback_path_matches_expected_layout() {
+        // SAFETY: `getuid` has no preconditions and only reads the real
+        // user ID maintained by the operating system for this process.
         let uid = unsafe { libc::getuid() };
         let path = linux_fallback_ssh_agent_socket_path(uid);
         assert_eq!(

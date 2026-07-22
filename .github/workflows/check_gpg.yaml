@@ -13,6 +13,7 @@ on:
       - master
     paths:
       - 'commonGpgAgent/**'
+      - 'commonAgent/**'
       - 'desktopGpgAgent/**'
       - 'integration/gpgE2eTest/**'
       - 'common/src/**/gpgagent/**'
@@ -28,6 +29,7 @@ on:
       - master
     paths:
       - 'commonGpgAgent/**'
+      - 'commonAgent/**'
       - 'desktopGpgAgent/**'
       - 'integration/gpgE2eTest/**'
       - 'common/src/**/gpgagent/**'
@@ -52,7 +54,14 @@ jobs:
           persist-credentials: false
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
+        with:
+          components: "clippy"
       - uses: ./.github/actions/setup_protobuf
+      - name: "Run Rust static analysis"
+        run: |
+          cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonGpgAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
       - name: "Test commonGpgAgent crate"
         run: cargo test --manifest-path commonGpgAgent/Cargo.toml
       - name: "Test desktopGpgAgent crate"
@@ -104,7 +113,13 @@ jobs:
           cache-write-only: ${{ inputs.cache-write-only || false }}
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
+        with:
+          components: "clippy"
       - uses: ./.github/actions/setup_protobuf
+      - name: "Run platform Rust static analysis"
+        run: |
+          cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
       - name: "Setup gpg (Linux)"
         if: runner.os == 'Linux'
         shell: bash

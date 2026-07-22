@@ -10,6 +10,9 @@ publish = false
 [package.metadata]
 cargo-fuzz = true
 
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"
+
 [dependencies]
 keyguard-crypto-core = { path = "../crates/keyguard-crypto-core" }
 libfuzzer-sys = "=0.4.13"

@@ -3,5 +3,7 @@ unsafe extern "C" {
 }
 
 pub(crate) fn post_keyboard_event(key_code: u16, key_down: bool, flags: u64) -> bool {
+    // SAFETY: The Objective-C shim accepts these values by value using the same
+    // fixed-width C ABI types and neither receives nor returns owned memory.
     unsafe { kg_post_keyboard_event(key_code, key_down, flags) }
 }

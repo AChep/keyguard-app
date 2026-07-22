@@ -2,7 +2,7 @@
 title: Multiple accounts
 description: Connect several Bitwarden and KeePass vaults side by side — one merged view, with per-account identity and control.
 category: accounts
-order: 0
+order: 1
 ---
 
 Keyguard can hold several vaults at once: **Bitwarden** accounts — official
@@ -48,8 +48,6 @@ vault; the original stays where it was.
 
 ## On the watch
 
-The [Wear OS app](/docs/wear-os/) has its own vault, set up when you pair
-the watch: you choose a provider — Bitwarden or KeePass — and complete a fresh
-sign-in through your phone. The watch then carries that single account on its
-own. (For KeePass, the watch receives a one-time copy of the database; it
-can't sync the database afterwards.)
+Unlike the phone, the [Wear OS app](/docs/wear-os/) carries a **single
+account**, chosen when you pair the watch — see the
+[setup guide](/docs/wear-os/#setup) for how pairing works.

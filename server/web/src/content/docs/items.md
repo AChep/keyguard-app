@@ -5,13 +5,14 @@ category: guides
 order: 1
 ---
 
-Everything in your vault is an **item**. Keyguard supports five types:
+Everything in your vault is an **item**. Keyguard supports six types:
 
 - **Login** — username, password, one-time password, and any number of URLs;
 - **Card** — payment cards;
 - **Identity** — names, addresses, and contact details;
 - **Note** — free-form secure text;
 - **SSH key** — key pairs used by the [SSH agent](/docs/ssh-agent/).
+- **GPG key** — key pairs used by the [GPG agent](/docs/gpg-agent/).
 
 ## Custom fields
 
@@ -52,12 +53,10 @@ move several items at once, or **merge** duplicates into a single item
 ## Tags
 
 Tags label items independently of folders — an item can carry any number of
-them, and the [search](/docs/search/) can filter on them. Storage follows
-the account type: on **KeePass** items, tags map to the database's native
-tags; on **Bitwarden** items — whose platform has no tag concept — each tag
-is a visible custom field named exactly `Tag`, the convention described in
-[Item types & extras](/docs/item-extras/), so your tags survive round-trips
-through other Bitwarden clients.
+them, and the [search](/docs/search/) can filter on them. How a tag is
+stored depends on the account type: [KeePass](/docs/keepass/) uses the
+database's native tags, while Bitwarden items use a
+[custom-field convention](/docs/item-extras/#tags).
 
 ## Per-item protection
 

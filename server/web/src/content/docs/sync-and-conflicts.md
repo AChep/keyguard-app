@@ -2,7 +2,7 @@
 title: Sync & conflict resolution
 description: How offline edits sync back, and how Keyguard merges conflicting edits field by field.
 category: accounts
-order: 4
+order: 5
 ---
 
 Keyguard keeps a local copy of your vault, so you can view, add, and edit items

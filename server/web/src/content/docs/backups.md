@@ -2,7 +2,7 @@
 title: Backups
 description: How Keyguard's automatic backups work — what's saved, where, encryption, retention, and how to recover.
 category: accounts
-order: 5
+order: 6
 ---
 
 Keyguard can keep an automatic, versioned backup of your vault so you always

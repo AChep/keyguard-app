@@ -1,29 +1,16 @@
 ---
 title: Security & privacy
-description: How Keyguard handles your data.
+description: How the local copy of your vault is protected, layer by layer — and how to report a security vulnerability.
 category: help
 order: 1
 ---
 
-Keyguard is built so that your data stays yours.
-
-## Watchtower
-
-Watchtower continuously analyzes your vault and surfaces issues so you can act
-on them:
-
-- Pwned (leaked) passwords
-- Reused passwords
-- Vulnerable accounts and weak passwords
-- Inactive two-factor authentication
-- Inactive passkeys
-- Unsecured websites
-- Duplicate items
-- Incomplete and expiring items
-
-The [Watchtower guide](/docs/watchtower/) covers every check in detail —
-including how the pwned-password check uses k-anonymity so your passwords
-never leave the device.
+Keyguard keeps a local, encrypted copy of your vault on the device. This page
+explains how that copy is protected and how to report a vulnerability. For the
+checks Keyguard runs on the vault's *contents* — pwned passwords, reused
+passwords, weak keys, and the rest — see the
+[Watchtower guide](/docs/watchtower/), including
+[how those checks respect your privacy](/docs/watchtower/#how-the-checks-respect-your-privacy).
 
 ## Data safety
 

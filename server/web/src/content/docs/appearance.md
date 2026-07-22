@@ -2,7 +2,7 @@
 title: Appearance
 description: Theme, accent color, font, icons, layout, and the small behavior toggles that shape how Keyguard looks and feels.
 category: guides
-order: 9
+order: 10
 ---
 
 Almost everything about how Keyguard looks lives in one place: **Settings →

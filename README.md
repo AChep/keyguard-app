@@ -2,7 +2,7 @@
 
 [![Crowdin](https://badges.crowdin.net/keyguard/localized.svg)](https://crowdin.com/project/keyguard)
 
-Keyguard is a third-party client for the [Bitwarden® platform](https://bitwarden.com/) and [KeePass](https://keepass.info/) (KDBX) files. It autofills your logins, supports passkeys, works offline, and runs a Watchtower that finds leaked and reused passwords and other issues. 
+Keyguard is a third-party client for the [Bitwarden® platform](https://bitwarden.com/) and [KeePass](https://keepass.info/) (KDBX) files. It autofills your logins, supports passkeys, works offline, and runs a Watchtower that finds leaked and reused passwords and other issues. Read more in the [documentation](https://keyguard.dev/docs/).
 
 _Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc._
 
@@ -25,20 +25,20 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 #### Highlights
 - a beautiful rich and responsive **Material You** user interface;
 - a **[powerful](https://keyguard.dev/docs/search/)** and **fast search**;
-- a support for creating & using **passkeys** - a modern alternative to passwords.
-- a watchtower that finds items with **Pwned passwords**, **Vulnerable accounts**, **Reused passwords**, **Inactive two factor authentication**, **Inactive passkeys**, **Unsecure Websites** as well as **Duplicate**, **Incomplete** and **Expiring** items, and other;
-- **multi-account support** 🌠 with secure login and two-factor authentication support;
-- add items 🌠 and sends _(Bitwarden, 🌠)_, modify 🌠, and view your vault **offline**;
-- automatically manage vault backup repository;
-- upload attachments 🌠 to the vault;
+- a support for creating & using **[passkeys](https://keyguard.dev/docs/passkeys/)** - a modern alternative to passwords.
+- a [watchtower](https://keyguard.dev/docs/watchtower/) that finds items with **Pwned passwords**, **Vulnerable accounts**, **Reused passwords**, **Inactive two factor authentication**, **Inactive passkeys**, **Unsecure Websites** as well as **Duplicate**, **Incomplete** and **Expiring** items, and other;
+- **[multi-account support](https://keyguard.dev/docs/multi-account/)** 🌠 with secure login and two-factor authentication support;
+- add items 🌠 and sends _(Bitwarden, 🌠)_, modify 🌠, and view your vault **[offline](https://keyguard.dev/features/offline-access/)**;
+- automatically manage [vault backup repository](https://keyguard.dev/docs/backups/);
+- upload [attachments](https://keyguard.dev/features/attachments/) 🌠 to the vault;
 - view attachments in-app without saving them;
-- unlock vault with a password, biometrics or a YubiKey;
-- **export individual** or organization items, **including the attachments**; 
-- beautiful **Light**/**Dark theme**;
-- a generator with **SSH & GPG keys**, **Email forwarders**, **Custom wordlists** support, and many other features; 
+- [unlock vault](https://keyguard.dev/docs/lock-and-unlock/) with a password, biometrics or a YubiKey;
+- **[export](https://keyguard.dev/features/data-export/) individual** or organization items, **including the attachments**; 
+- beautiful **Light**/**Dark** [theme](https://keyguard.dev/docs/appearance/);
+- a [generator](https://keyguard.dev/docs/generator/) with **SSH & GPG keys**, **[Email forwarders](https://keyguard.dev/docs/email-relays/)**, **[Custom wordlists](https://keyguard.dev/docs/generator/#custom-wordlists)** support, and many other features; 
 - a support for [shortcuts](https://keyguard.dev/docs/shortcuts/), [placeholders](https://keyguard.dev/docs/placeholders/) and [URL overrides](https://keyguard.dev/docs/url-overrides/);
-- a support for an SSH agent - interacting with SSH-based services on Android and Desktop platform;
-- a support for an GPG agent - interacting with GPG-based services on Desktop platform;
+- a support for an [SSH agent](https://keyguard.dev/docs/ssh-agent/) - interacting with SSH-based services on Android and Desktop platform;
+- a support for a [GPG agent](https://keyguard.dev/docs/gpg-agent/) - interacting with GPG-based services on Desktop platform;
 - a [smart conflict resolution](https://keyguard.dev/docs/sync-and-conflicts/);
 - and much more!
 
@@ -56,8 +56,8 @@ Keyguard is written using Kotlin Multiplatform + Compose Multiplatform and large
 Keyguard is focusing to provide a full support of the Bitwarden® platform, while the KeePass support is implemented through a prism of Bitwarden's features. 
 Read more about implementation details:
 
-- [Bitwarden](wiki/BITWARDEN.md);
-- [KeePass](wiki/KEEPASS.md);
+- [Bitwarden](https://keyguard.dev/docs/bitwarden/self-hosted/), including the [custom-field conventions](https://keyguard.dev/docs/item-extras/) Keyguard adds on top;
+- [KeePass](https://keyguard.dev/docs/keepass/);
 
 #### Looks
 

@@ -2,7 +2,7 @@
 title: Supported servers
 description: Connect Keyguard to bitwarden.com, bitwarden.eu, or your own server — including Vaultwarden, per-endpoint URLs, and custom HTTP headers.
 category: accounts
-order: 1
+order: 2
 ---
 
 Keyguard works with any Bitwarden-compatible server. When you add an account,

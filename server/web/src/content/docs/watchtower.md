@@ -1,6 +1,6 @@
 ---
 title: Watchtower
-description: The thirteen security checks Keyguard runs on your vault, how each one works, and how the checks respect your privacy.
+description: The sixteen security checks Keyguard runs on your vault, how each one works, and how the checks respect your privacy.
 category: guides
 order: 4
 ---
@@ -18,6 +18,9 @@ when **new alerts** appear.
 | Reused passwords | The same password used on multiple sites |
 | Weak passwords | Passwords that fail strength requirements |
 | Weak SSH keys | RSA SSH keys shorter than 2048 bits |
+| Unusable GPG keys | GPG keys that are revoked, expired, malformed, or missing usable signing or decryption material |
+| Weak GPG keys | GPG keys using weak or legacy algorithms or key sizes |
+| GPG key publishing | Keys whose keyserver status is missing, stale, unverified, or revoked |
 | Inactive two-factor authentication | Sites that offer 2FA you haven't enabled |
 | Available passkeys | Sites that support passkeys you haven't set up |
 | Unsecure websites | Item URLs still using `http://` |
@@ -73,6 +76,40 @@ check is the one alert that **cannot be ignored per item**.
 
 > *Example:* `dragon99` rates as guessable in minutes despite meeting an
 > "8 characters with digits" policy.
+
+### Unusable GPG keys
+
+Every [GPG key](/docs/gpg-keys/) is checked for a valid public key, a
+fingerprint that matches the stored key material, and usable signing or
+decryption material. Keyguard also flags revoked or expired keys and missing
+or inconsistent [GPG agent](/docs/gpg-agent/) metadata.
+
+> *Example:* your encryption subkey expired last month — mail encrypted to
+> the old subkey still opens, but nobody can encrypt *to* you until you
+> extend or replace it.
+
+### Weak GPG keys
+
+The primary key **and every subkey** are checked for weak or legacy
+cryptography: RSA shorter than 2048 bits and the legacy DSA and ElGamal
+algorithms are flagged. Modern Ed25519 / Curve25519 keys pass.
+
+> *Example:* a 1024-bit RSA key generated a decade ago still signs fine,
+> but its strength is well below current recommendations — generate a
+> replacement and revoke the old key.
+
+### GPG key publishing
+
+Watches the [keyserver](/docs/gpg-keys/#keyservers) status recorded for
+each key and flags the ones needing attention: never checked, **not
+found** on the keyserver, found but the identity is **unverified**,
+**revoked**, or **stale** — verified, but not re-checked in over 30 days.
+Fix a finding by uploading, verifying, or refreshing the key from the
+item, or let the auto-refresh worker keep the status current.
+
+> *Example:* you rotated your key but never published the new one —
+> correspondents fetching your key by email still get the old,
+> soon-to-expire key.
 
 ### Inactive two-factor authentication
 
@@ -170,5 +207,8 @@ weak-password check is the one exception — it cannot be silenced per item.
   with the app (powered by [2factorauth](https://2fa.directory/) and the
   [passkeys directory](https://passkeys.directory/)), so those checks
   involve no network requests at all.
+- **GPG key** checks parse and evaluate your keys locally. The publishing
+  check reads the keyserver status recorded the last time *you* verified,
+  uploaded, or if auto-refreshed is enabled.
 - Everything else — strength, reuse, duplicates, URLs, completeness — is
   computed entirely on your device.

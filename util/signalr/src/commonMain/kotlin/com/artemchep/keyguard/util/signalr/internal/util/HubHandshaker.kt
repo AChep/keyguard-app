@@ -6,7 +6,7 @@ import com.artemchep.keyguard.util.signalr.internal.Transport
 import com.artemchep.keyguard.util.signalr.internal.model.Handshake
 import com.artemchep.keyguard.util.signalr.internal.model.HandshakeResponse
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -27,9 +27,11 @@ internal suspend fun handshake(
     ) + RECORD_SEPARATOR
     transport.sendText(handshake)
 
-    val handshakePayload = withTimeout(handshakeResponseTimeout) {
+    val handshakePayload = withTimeoutOrNull(handshakeResponseTimeout) {
         transport.receive().first()
-    }
+    } ?: throw RuntimeException(
+        "Server timeout elapsed without receiving a handshake response.",
+    )
 
     val recordSeparatorIndex = handshakePayload.indexOf(RECORD_SEPARATOR.code.toByte())
     if (recordSeparatorIndex < 0) {

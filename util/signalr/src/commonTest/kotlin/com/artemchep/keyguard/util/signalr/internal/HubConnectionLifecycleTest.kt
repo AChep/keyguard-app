@@ -15,6 +15,7 @@ import io.ktor.websocket.WebSocketExtension
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.readBytes
 import io.ktor.websocket.readText
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -29,6 +30,7 @@ import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.time.Duration
@@ -79,6 +81,37 @@ class HubConnectionLifecycleTest {
             withTimeout(5.seconds) {
                 job.cancelAndJoin()
             }
+        } finally {
+            close(client, session)
+        }
+    }
+
+    @Test
+    fun `handshake timeout emits failed disconnected event`() = runTest {
+        val session = FakeWebSocketSession(handshakePayload = null)
+        val client = testHttpClient()
+        val connection = testConnection(
+            client = client,
+            session = session,
+            handshakeResponseTimeout = 50.milliseconds,
+        )
+
+        try {
+            val events = Channel<HubConnectionEvent>(Channel.UNLIMITED)
+            val job = launchConnection(
+                connection = connection,
+                events = events,
+            )
+
+            val disconnected = events.awaitState(HubConnectionState.DISCONNECTED)
+            val reason = assertIs<HubConnectionCloseReason.Failed>(disconnected.reason)
+            assertFalse(reason.cause is CancellationException)
+            assertEquals(
+                "Server timeout elapsed without receiving a handshake response.",
+                reason.cause.message,
+            )
+            session.awaitCloseFrame()
+            job.join()
         } finally {
             close(client, session)
         }
@@ -287,10 +320,11 @@ class HubConnectionLifecycleTest {
         session: FakeWebSocketSession,
         logger: Logger = Logger.Empty,
         keepAliveInterval: Duration = 1.minutes,
+        handshakeResponseTimeout: Duration = 5.seconds,
     ): HubConnection {
         val config = HubConnectionConfig().apply {
             this.skipNegotiate = true
-            this.handshakeResponseTimeout = 5.seconds
+            this.handshakeResponseTimeout = handshakeResponseTimeout
             this.serverTimeout = 1.minutes
             this.keepAliveInterval = keepAliveInterval
             this.logger = logger

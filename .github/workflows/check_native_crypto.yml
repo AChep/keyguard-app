@@ -564,11 +564,12 @@ jobs:
             task: ":androidApp:connectedNoneDebugAndroidTest"
             gradle-arguments: ""
             inspect-minified: false
-          - api-level: 30
-            profile: minified-release-rules
-            task: ":androidApp:connectedNoneNativeCryptoSmokeReleaseAndroidTest"
-            gradle-arguments: "-Pkeyguard.nativeCrypto.minifiedSmoke=true"
-            inspect-minified: true
+          # Minified release instrumentation is disabled until AGP/R8 accounts
+          # for androidTest references when shrinking the target APK.
+          # https://issuetracker.google.com/issues/126429384
+          #
+          # After the issue is resolved please revert the commit that
+          # has added the comment and re-run the test.
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:

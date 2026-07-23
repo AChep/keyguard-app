@@ -302,10 +302,13 @@ class OpenPgpReadBouncyCastleDifferentialTest {
                 signatureType = PGPSignature.KEY_REVOCATION,
                 privateKey = secretRing(fixture.revoker).secretKey.extractPrivateKeyEmptyPassphrase(),
             ).generateCertification(victimPrimary)
+        // RFC 9580 places a primary-key revocation before direct-key signatures. Bouncy Castle
+        // only appends certifications, so regenerate this deprecated designated-revoker
+        // compatibility fixture in wire order instead of retaining the old nonconforming order.
         val revokedPrimary =
             PGPPublicKey.addCertification(
-                PGPPublicKey.addCertification(victimPrimary, authorization),
-                revocation,
+                PGPPublicKey.addCertification(victimPrimary, revocation),
+                authorization,
             )
         val revokedRing = PGPPublicKeyRing.insertPublicKey(victimRing, revokedPrimary)
         val armoredCollection = armoredCollection(revokedRing, publicRing(fixture.revoker))
@@ -877,6 +880,9 @@ private object BouncyCastleMetadataOracle : GpgKeyMetadataResolver {
     private fun Sequence<GpgCertificateInspectorJvm>.toMetadataOrNull(): GpgAgentKeyMetadata? {
         val keys =
             flatMap { certificate ->
+                if (!certificate.primary.authenticated || certificate.primary.revoked) {
+                    return@flatMap emptySequence()
+                }
                 certificate.authenticatedKeys.asSequence().map { key ->
                     MetadataKey(
                         key = key,

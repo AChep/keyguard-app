@@ -1232,7 +1232,7 @@ class GpgKeyExpirationServiceJvmTest {
                 }.generate(),
             )
         }.generateCertification(primary)
-        var updatedPrimary = PGPPublicKey.addCertification(primary, authorization)
+        var updatedPrimary = primary
         if (revokePrimary) {
             val revocation = signatureGenerator(
                 signingKey = revokerPrimary,
@@ -1241,6 +1241,12 @@ class GpgKeyExpirationServiceJvmTest {
             ).generateCertification(primary)
             updatedPrimary = PGPPublicKey.addCertification(updatedPrimary, revocation)
         }
+        // RFC 9580 orders primary-key revocations before direct-key signatures. Bouncy Castle's
+        // addCertification() appends instead of canonicalizing, so the old fixture encoded the
+        // authorization first and the revocation second. The native lossless mutation guard
+        // correctly rejects that nonconforming order, requiring this fixture to be regenerated
+        // by adding the revocation before the designated-revoker authorization.
+        updatedPrimary = PGPPublicKey.addCertification(updatedPrimary, authorization)
         var updatedCertificate = PGPPublicKeyRing.insertPublicKey(certificate, updatedPrimary)
         if (revokeSubkeyFingerprint != null) {
             val subkey = certificate.publicKeys

@@ -96,17 +96,42 @@ class GpgCertificateInspectorJvmTest {
             privateKey = revokerPrivate,
         ).generateCertification(victimPrimary, victimSubkey)
 
+        // RFC 9580 orders revocations before direct-key signatures and subkey bindings.
+        // Bouncy Castle only appends certifications, so rebuild this deprecated designated-
+        // revoker compatibility fixture in wire order instead of preserving the old
+        // authorization/binding-before-revocation encoding rejected by strict readers.
         val primaryWithSignatures = PGPPublicKey.addCertification(
-            PGPPublicKey.addCertification(victimPrimary, authorization),
-            primaryRevocation,
+            PGPPublicKey.addCertification(victimPrimary, primaryRevocation),
+            authorization,
         )
-        val subkeyWithRevocation = PGPPublicKey.addCertification(victimSubkey, subkeyRevocation)
+        val subkeyBindings = victimSubkey.signatures.asSequence().toList()
+        var subkeyWithRevocation = victimSubkey
+        subkeyBindings.forEach { binding ->
+            subkeyWithRevocation = PGPPublicKey.removeCertification(
+                subkeyWithRevocation,
+                binding,
+            )
+        }
+        subkeyWithRevocation = PGPPublicKey.addCertification(
+            subkeyWithRevocation,
+            subkeyRevocation,
+        )
+        subkeyBindings.forEach { binding ->
+            subkeyWithRevocation = PGPPublicKey.addCertification(
+                subkeyWithRevocation,
+                binding,
+            )
+        }
         var revokedRing = PGPPublicKeyRing.insertPublicKey(victimRing, primaryWithSignatures)
         revokedRing = PGPPublicKeyRing.insertPublicKey(revokedRing, subkeyWithRevocation)
 
         val authorizationOnlyRing = PGPPublicKeyRing.insertPublicKey(
             victimRing,
             PGPPublicKey.addCertification(victimPrimary, authorization),
+        )
+        val subkeyRevokedRing = PGPPublicKeyRing.insertPublicKey(
+            authorizationOnlyRing,
+            subkeyWithRevocation,
         )
         val authorizationOnly = assertNotNull(
             GpgCertificateInspectorJvm.inspect(authorizationOnlyRing),
@@ -153,7 +178,7 @@ class GpgCertificateInspectorJvmTest {
                 key.fingerprint == victimSubkey.fingerprintHex()
             },
         )
-        val resolvedMetadata = assertNotNull(
+        assertNull(
             NativeGpgKeyMetadataResolver.resolve(
                 privateKeyArmored = null,
                 publicKeyArmored = revokedRing.armored(),
@@ -163,8 +188,23 @@ class GpgCertificateInspectorJvmTest {
                 ),
             ),
         )
+        val subkeyRevokedMetadata = assertNotNull(
+            NativeGpgKeyMetadataResolver.resolve(
+                privateKeyArmored = null,
+                publicKeyArmored = subkeyRevokedRing.armored(),
+                fingerprint = victim.fingerprint,
+                candidateRevocationKeys = listOf(
+                    GpgOpenPgpPublicKey(revoker.publicKeyArmored),
+                ),
+            ),
+        )
+        assertTrue(
+            subkeyRevokedMetadata.keys.any { key ->
+                key.fingerprint == victimPrimary.fingerprintHex()
+            },
+        )
         assertFalse(
-            resolvedMetadata.keys.any { key ->
+            subkeyRevokedMetadata.keys.any { key ->
                 key.fingerprint == victimSubkey.fingerprintHex()
             },
         )

@@ -192,8 +192,8 @@ internal actual object NativeCryptoPlatform : NativeCryptoBridge {
         output.capacity = 0.convert()
         try {
             when (val transportCode = block(outputPointer)) {
-                0 -> copyOutput(output)
-                -2 -> throw NativeCryptoPlatformException(NativeCryptoErrorCode.PANIC)
+                TRANSPORT_OK -> copyOutput(output)
+                TRANSPORT_PANIC -> throw NativeCryptoPlatformException(NativeCryptoErrorCode.PANIC)
                 else -> throw NativeCryptoPlatformException(
                     NativeCryptoErrorCode.INTERNAL,
                     IllegalStateException("Native crypto bridge code $transportCode"),
@@ -250,4 +250,6 @@ internal actual object NativeCryptoPlatform : NativeCryptoBridge {
     private const val FAST_OK: Int = 0
     private const val FAST_INTERNAL: Int = 9
     private const val FAST_MAX_WIRE_STATUS: Int = 10
+    private const val TRANSPORT_OK: Int = 0
+    private const val TRANSPORT_PANIC: Int = -2
 }

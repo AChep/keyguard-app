@@ -47,7 +47,7 @@ public object NativeCryptoDesktopSmoke {
         }
 
         val sshAgentCiphertext = NativeCrypto.primitives.sshAgentTcpChaCha20Poly1305Encrypt(
-            key = ByteArray(32) { index -> index.toByte() },
+            key = ByteArray(CHACHA20_POLY1305_KEY_BYTES) { index -> index.toByte() },
             nonce = SSH_AGENT_NONCE,
             header = SSH_AGENT_HEADER,
             payload = SSH_AGENT_PLAINTEXT,
@@ -61,7 +61,7 @@ public object NativeCryptoDesktopSmoke {
                 )
             }
             sshAgentPlaintext = NativeCrypto.primitives.sshAgentTcpChaCha20Poly1305Decrypt(
-                key = ByteArray(32) { index -> index.toByte() },
+                key = ByteArray(CHACHA20_POLY1305_KEY_BYTES) { index -> index.toByte() },
                 nonce = SSH_AGENT_NONCE,
                 header = SSH_AGENT_HEADER,
                 payload = sshAgentCiphertext,
@@ -92,7 +92,7 @@ public object NativeCryptoDesktopSmoke {
                 flags = 0,
             )
             sshSignature = signed.signature
-            if (signed.algorithm != "ssh-ed25519" || signed.signature.size != 64) {
+            if (signed.algorithm != "ssh-ed25519" || signed.signature.size != ED25519_SIGNATURE_BYTES) {
                 throw NativeCryptoException(
                     operation = "packaged_smoke.ssh_agent_sign",
                     code = NativeCryptoErrorCode.INTERNAL,
@@ -370,7 +370,7 @@ public object NativeCryptoDesktopSmoke {
                 try {
                     val value = canonicalValue(canonical)
                     try {
-                        if (value.isEmpty() || value.size % 8 != 0) {
+                        if (value.isEmpty() || value.size % AES_KEY_WRAP_BLOCK_BYTES != 0) {
                             throw packagedSmokeFailure("openpgp_agent_ecdh_decrypt")
                         }
                     } finally {
@@ -432,11 +432,16 @@ public object NativeCryptoDesktopSmoke {
                         val value = canonicalValue(canonical)
                         try {
                             // The raw private operation returns the PKCS#1 v1.5
-                            // encryption block without its leading zero octet.
-                            val separator = (9 until value.size)
+                            // encryption block without its leading zero octet:
+                            // block type 2, at least eight non-zero padding
+                            // octets, then a zero separator.
+                            val separator = (PKCS1_MIN_PADDING_BYTES + 1 until value.size)
                                 .firstOrNull { index -> value[index] == 0.toByte() }
                                 ?: -1
-                            if (value.firstOrNull() != 0x02.toByte() || separator < 9) {
+                            if (
+                                value.firstOrNull() != PKCS1_BLOCK_TYPE_2 ||
+                                separator < PKCS1_MIN_PADDING_BYTES + 1
+                            ) {
                                 throw packagedSmokeFailure("openpgp_agent_rsa_decrypt")
                             }
                         } finally {
@@ -494,14 +499,20 @@ public object NativeCryptoDesktopSmoke {
 
     private fun firstPkeskBody(message: ByteArray): ByteArray {
         if (message.isEmpty()) throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
-        val header = message[0].toInt() and 0xff
-        if (header and 0x80 == 0) throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
-        val (tag, length, bodyOffset) = if (header and 0x40 != 0) {
+        val header = message[0].toInt() and UNSIGNED_BYTE_MASK
+        if (header and PACKET_HEADER_BIT == 0) {
+            throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
+        }
+        val (tag, length, bodyOffset) = if (header and PACKET_NEW_FORMAT_BIT != 0) {
             val (length, offset) = readNewPacketLength(message, 1)
-            Triple(header and 0x3f, length, offset)
+            Triple(header and NEW_FORMAT_TAG_MASK, length, offset)
         } else {
-            val tag = (header ushr 2) and 0x0f
-            val (length, offset) = readOldPacketLength(message, 1, header and 0x03)
+            val tag = (header ushr OLD_FORMAT_TAG_SHIFT) and OLD_FORMAT_TAG_MASK
+            val (length, offset) = readOldPacketLength(
+                message,
+                1,
+                header and OLD_FORMAT_LENGTH_TYPE_MASK,
+            )
             Triple(tag, length, offset)
         }
         val bodyEnd = bodyOffset.toLong() + length.toLong()
@@ -512,17 +523,22 @@ public object NativeCryptoDesktopSmoke {
     }
 
     private fun readNewPacketLength(input: ByteArray, offset: Int): Pair<Int, Int> {
-        val first = input.getOrNull(offset)?.toInt()?.and(0xff)
+        val first = input.getOrNull(offset)?.toInt()?.and(UNSIGNED_BYTE_MASK)
             ?: throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
         return when {
-            first < 192 -> first to offset + 1
-            first < 224 -> {
-                val second = input.getOrNull(offset + 1)?.toInt()?.and(0xff)
+            first < TWO_OCTET_LENGTH_FLOOR -> first to offset + 1
+            first < PARTIAL_LENGTH_FLOOR -> {
+                val second = input.getOrNull(offset + 1)?.toInt()?.and(UNSIGNED_BYTE_MASK)
                     ?: throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
-                ((first - 192) shl 8) + second + 192 to offset + 2
+                val length = ((first - TWO_OCTET_LENGTH_FLOOR) shl OCTET_BITS) +
+                    second +
+                    TWO_OCTET_LENGTH_FLOOR
+                length to offset + 2
             }
 
-            first == 255 -> readUint32Length(input, offset + 1) to offset + 5
+            first == FIVE_OCTET_LENGTH_MARKER ->
+                readUint32Length(input, offset + 1) to offset + 1 + UINT32_BYTES
+
             else -> throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
         }
     }
@@ -532,27 +548,27 @@ public object NativeCryptoDesktopSmoke {
         offset: Int,
         lengthType: Int,
     ): Pair<Int, Int> = when (lengthType) {
-        0 -> (input.getOrNull(offset)?.toInt()?.and(0xff)
+        0 -> (input.getOrNull(offset)?.toInt()?.and(UNSIGNED_BYTE_MASK)
             ?: throw packagedSmokeFailure("openpgp_agent_decrypt_packet")) to offset + 1
 
         1 -> {
-            val high = input.getOrNull(offset)?.toInt()?.and(0xff)
+            val high = input.getOrNull(offset)?.toInt()?.and(UNSIGNED_BYTE_MASK)
                 ?: throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
-            val low = input.getOrNull(offset + 1)?.toInt()?.and(0xff)
+            val low = input.getOrNull(offset + 1)?.toInt()?.and(UNSIGNED_BYTE_MASK)
                 ?: throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
-            ((high shl 8) or low) to offset + 2
+            ((high shl OCTET_BITS) or low) to offset + 2
         }
 
-        2 -> readUint32Length(input, offset) to offset + 4
+        2 -> readUint32Length(input, offset) to offset + UINT32_BYTES
         else -> throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
     }
 
     private fun readUint32Length(input: ByteArray, offset: Int): Int {
-        if (offset < 0 || offset + 4 > input.size) {
+        if (offset < 0 || offset + UINT32_BYTES > input.size) {
             throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
         }
-        val value = (0 until 4).fold(0L) { length, index ->
-            (length shl 8) or (input[offset + index].toLong() and 0xff)
+        val value = (0 until UINT32_BYTES).fold(0L) { length, index ->
+            (length shl OCTET_BITS) or (input[offset + index].toLong() and UNSIGNED_BYTE_MASK.toLong())
         }
         if (value > Int.MAX_VALUE) throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
         return value.toInt()
@@ -562,9 +578,9 @@ public object NativeCryptoDesktopSmoke {
         if (offset < 0 || offset + 2 > input.size) {
             throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
         }
-        val bits = ((input[offset].toInt() and 0xff) shl 8) or
-            (input[offset + 1].toInt() and 0xff)
-        val size = (bits + 7) / 8
+        val bits = ((input[offset].toInt() and UNSIGNED_BYTE_MASK) shl OCTET_BITS) or
+            (input[offset + 1].toInt() and UNSIGNED_BYTE_MASK)
+        val size = (bits + OCTET_BITS - 1) / OCTET_BITS
         val end = offset + 2 + size
         if (end < offset || end > input.size) {
             throw packagedSmokeFailure("openpgp_agent_decrypt_packet")
@@ -600,7 +616,7 @@ public object NativeCryptoDesktopSmoke {
     private fun canonicalValue(input: ByteArray): ByteArray {
         var offset = 0
         fun requireByte(expected: Int) {
-            if (input.getOrNull(offset)?.toInt()?.and(0xff) != expected) {
+            if (input.getOrNull(offset)?.toInt()?.and(UNSIGNED_BYTE_MASK) != expected) {
                 throw packagedSmokeFailure("openpgp_agent_decrypt_response")
             }
             offset += 1
@@ -608,7 +624,7 @@ public object NativeCryptoDesktopSmoke {
         fun atom(): ByteArray {
             val digitsStart = offset
             while (true) {
-                val value = input.getOrNull(offset)?.toInt()?.and(0xff) ?: break
+                val value = input.getOrNull(offset)?.toInt()?.and(UNSIGNED_BYTE_MASK) ?: break
                 if (value !in '0'.code..'9'.code) break
                 offset += 1
             }
@@ -681,7 +697,7 @@ public object NativeCryptoDesktopSmoke {
             updated.keyMaterial.publicKeyArmored.fill(0)
         }
 
-        val hash = ByteArray(32) { index -> index.toByte() }
+        val hash = ByteArray(SHA256_DIGEST_BYTES) { index -> index.toByte() }
         try {
             val signed = NativeCrypto.openPgp.agentSignHash(
                 privateKey = material.privateKeyArmored,
@@ -790,11 +806,8 @@ public object NativeCryptoDesktopSmoke {
         }
     }
 
-    private val EXPECTED_SHA256_ABC = byteArrayOf(
-        0xba.toByte(), 0x78, 0x16, 0xbf.toByte(), 0x8f.toByte(), 0x01, 0xcf.toByte(), 0xea.toByte(),
-        0x41, 0x41, 0x40, 0xde.toByte(), 0x5d, 0xae.toByte(), 0x22, 0x23,
-        0xb0.toByte(), 0x03, 0x61, 0xa3.toByte(), 0x96.toByte(), 0x17, 0x7a, 0x9c.toByte(),
-        0xb4.toByte(), 0x10, 0xff.toByte(), 0x61, 0xf2.toByte(), 0x00, 0x15, 0xad.toByte(),
+    private val EXPECTED_SHA256_ABC = hex(
+        "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
     )
     private val SSH_AGENT_NONCE = hex("a0a1a2a30000000000000001")
     private val SSH_AGENT_HEADER = hex("4b5341470203000000000000000100000028")
@@ -831,6 +844,36 @@ public object NativeCryptoDesktopSmoke {
     private const val PKESK_PREFIX_BYTES = 10
     private const val RSA_ALGORITHM: Byte = 1
     private const val ECDH_ALGORITHM: Byte = 18
+
+    // OpenPGP packet framing, RFC 4880 section 4.2: bit 7 of the header
+    // octet is always set and bit 6 selects the new packet format.
+    private const val PACKET_HEADER_BIT = 0x80
+    private const val PACKET_NEW_FORMAT_BIT = 0x40
+    private const val NEW_FORMAT_TAG_MASK = 0x3f
+    private const val OLD_FORMAT_TAG_SHIFT = 2
+    private const val OLD_FORMAT_TAG_MASK = 0x0f
+    private const val OLD_FORMAT_LENGTH_TYPE_MASK = 0x03
+
+    // New-format length encoding, RFC 4880 section 4.2.2: one octet below
+    // 192, two octets below 224, and a full uint32 after a 255 marker.
+    private const val TWO_OCTET_LENGTH_FLOOR = 192
+    private const val PARTIAL_LENGTH_FLOOR = 224
+    private const val FIVE_OCTET_LENGTH_MARKER = 255
+
+    private const val UNSIGNED_BYTE_MASK = 0xff
+    private const val OCTET_BITS = 8
+    private const val UINT32_BYTES = 4
+
+    /** PKCS#1 v1.5 encryption blocks carry at least eight padding octets. */
+    private const val PKCS1_MIN_PADDING_BYTES = 8
+    private const val PKCS1_BLOCK_TYPE_2: Byte = 0x02
+
+    /** RFC 6637 wraps ECDH session keys with AES key wrap, so plaintexts stay 8-byte aligned. */
+    private const val AES_KEY_WRAP_BLOCK_BYTES = 8
+
+    private const val CHACHA20_POLY1305_KEY_BYTES = 32
+    private const val SHA256_DIGEST_BYTES = 32
+    private const val ED25519_SIGNATURE_BYTES = 64
     private val OPENPGP_PUBLIC_KEY = """
         -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -893,6 +936,6 @@ F4o=
 
     private fun hex(value: String): ByteArray = value
         .chunked(2)
-        .map { byte -> byte.toInt(16).toByte() }
+        .map { byte -> byte.toInt(radix = 16).toByte() }
         .toByteArray()
 }

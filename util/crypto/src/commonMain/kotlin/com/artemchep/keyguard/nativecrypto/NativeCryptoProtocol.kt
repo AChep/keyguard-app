@@ -1083,10 +1083,10 @@ internal enum class OpenPgpVerificationStatusProto {
 internal enum class OpenPgpVerificationWarningProto(
     val wireValue: Int,
 ) {
-    UNSPECIFIED(0),
-    KEY_REVOKED(1),
-    KEY_EXPIRED(2),
-    SIGNATURE_EXPIRED(3),
+    UNSPECIFIED(wireValue = 0),
+    KEY_REVOKED(wireValue = 1),
+    KEY_EXPIRED(wireValue = 2),
+    SIGNATURE_EXPIRED(wireValue = 3),
     ;
 
     companion object {

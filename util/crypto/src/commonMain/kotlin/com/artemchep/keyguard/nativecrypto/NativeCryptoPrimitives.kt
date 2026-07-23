@@ -96,7 +96,7 @@ public object NativeCryptoPrimitives {
         seed: ByteArray,
         salt: ByteArray? = null,
         info: ByteArray? = null,
-        length: Int = 32,
+        length: Int = DEFAULT_KDF_OUTPUT_BYTES,
     ): ByteArray {
         require(length in 0..HKDF_SHA256_MAX_LENGTH) {
             "HKDF-SHA256 output length must be in 0..$HKDF_SHA256_MAX_LENGTH"
@@ -119,7 +119,7 @@ public object NativeCryptoPrimitives {
         seed: ByteArray,
         salt: ByteArray,
         iterations: Int = 1,
-        length: Int = 32,
+        length: Int = DEFAULT_KDF_OUTPUT_BYTES,
     ): ByteArray {
         require(iterations > 0) { "PBKDF2 iterations must be positive" }
         require(length >= 0) { "PBKDF2 output length must not be negative" }
@@ -144,7 +144,7 @@ public object NativeCryptoPrimitives {
         iterations: Int,
         memoryKb: Int,
         parallelism: Int,
-        length: Int = 32,
+        length: Int = DEFAULT_KDF_OUTPUT_BYTES,
         version: NativeArgon2Version = NativeArgon2Version.VERSION_1_3,
         secret: ByteArray? = null,
         associatedData: ByteArray? = null,
@@ -679,10 +679,10 @@ public object NativeCryptoPrimitives {
         offset: Long,
         data: ByteArray,
     ): ByteArray {
-        require(key.size == 32) { "Stream-cipher key must contain 32 bytes" }
+        require(key.size == STREAM_CIPHER_KEY_BYTES) { "Stream-cipher key must contain 32 bytes" }
         val expectedNonceSize = when (algorithm) {
-            NativeStreamCipherAlgorithm.SALSA20 -> 8
-            NativeStreamCipherAlgorithm.CHACHA20 -> 12
+            NativeStreamCipherAlgorithm.SALSA20 -> SALSA20_NONCE_BYTES
+            NativeStreamCipherAlgorithm.CHACHA20 -> CHACHA20_NONCE_BYTES
         }
         require(nonce.size == expectedNonceSize) {
             "${algorithm.name} nonce must contain $expectedNonceSize bytes"
@@ -930,9 +930,7 @@ public object NativeCryptoPrimitives {
         key: ByteArray,
         iv: ByteArray,
     ): NativeCryptoSession {
-        require(key.size == 16 || key.size == 24 || key.size == 32) {
-            "Twofish key must contain 16, 24, or 32 bytes"
-        }
+        requireValidBlockCipherKey("Twofish", key)
         require(iv.size == AES_BLOCK_BYTES) { "Twofish-CBC IV must be 16 bytes" }
         return NativeCrypto.openTwofishCbcPkcs7(direction, key, iv)
     }
@@ -948,9 +946,7 @@ public object NativeCryptoPrimitives {
         iv: ByteArray,
         data: ByteArray,
     ): ByteArray {
-        require(key.size == 16 || key.size == 24 || key.size == 32) {
-            "Twofish key must contain 16, 24, or 32 bytes"
-        }
+        requireValidBlockCipherKey("Twofish", key)
         require(iv.size == AES_BLOCK_BYTES) { "Twofish-CBC IV must be 16 bytes" }
         if (direction == CipherDirectionProto.DECRYPT) {
             require(data.isNotEmpty() && data.size % AES_BLOCK_BYTES == 0) {
@@ -1039,9 +1035,15 @@ public object NativeCryptoPrimitives {
     }
 
     private fun requireValidAesKey(key: ByteArray) {
-        require(key.size == 16 || key.size == 24 || key.size == 32) {
-            "AES key must contain 16, 24, or 32 bytes"
-        }
+        requireValidBlockCipherKey("AES", key)
+    }
+
+    private fun requireValidBlockCipherKey(algorithm: String, key: ByteArray) {
+        require(
+            key.size == BLOCK_CIPHER_128_KEY_BYTES ||
+                key.size == BLOCK_CIPHER_192_KEY_BYTES ||
+                key.size == BLOCK_CIPHER_256_KEY_BYTES,
+        ) { "$algorithm key must contain 16, 24, or 32 bytes" }
     }
 
     private fun aesCbcEncryptedSize(inputSize: Int): Int =
@@ -1079,7 +1081,14 @@ public object NativeCryptoPrimitives {
 
     private const val HKDF_SHA256_MAX_LENGTH: Int = 255 * 32
     private const val ARGON2_MIN_OUTPUT_LENGTH: Int = 4
+    private const val DEFAULT_KDF_OUTPUT_BYTES: Int = 32
     private const val AES_BLOCK_BYTES: Int = 16
+    private const val BLOCK_CIPHER_128_KEY_BYTES: Int = 16
+    private const val BLOCK_CIPHER_192_KEY_BYTES: Int = 24
+    private const val BLOCK_CIPHER_256_KEY_BYTES: Int = 32
+    private const val STREAM_CIPHER_KEY_BYTES: Int = 32
+    private const val SALSA20_NONCE_BYTES: Int = 8
+    private const val CHACHA20_NONCE_BYTES: Int = 12
     private const val HMAC_SHA256_BYTES: Int = 32
     private const val CHACHA20_POLY1305_KEY_BYTES: Int = 32
     private const val CHACHA20_POLY1305_NONCE_BYTES: Int = 12
@@ -1194,9 +1203,14 @@ private fun NativeHashAlgorithm.toProto(): HashAlgorithmProto = when (this) {
     NativeHashAlgorithm.MD5 -> HashAlgorithmProto.MD5
 }
 
+private const val SHA1_DIGEST_BYTES: Int = 20
+private const val SHA256_DIGEST_BYTES: Int = 32
+private const val SHA512_DIGEST_BYTES: Int = 64
+private const val MD5_DIGEST_BYTES: Int = 16
+
 private fun NativeHashAlgorithm.outputSizeBytes(): Int = when (this) {
-    NativeHashAlgorithm.SHA_1 -> 20
-    NativeHashAlgorithm.SHA_256 -> 32
-    NativeHashAlgorithm.SHA_512 -> 64
-    NativeHashAlgorithm.MD5 -> 16
+    NativeHashAlgorithm.SHA_1 -> SHA1_DIGEST_BYTES
+    NativeHashAlgorithm.SHA_256 -> SHA256_DIGEST_BYTES
+    NativeHashAlgorithm.SHA_512 -> SHA512_DIGEST_BYTES
+    NativeHashAlgorithm.MD5 -> MD5_DIGEST_BYTES
 }

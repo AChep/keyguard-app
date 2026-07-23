@@ -269,6 +269,19 @@ public object NativeCryptoOpenPgp {
      */
     public const val MAX_IN_MEMORY_PLAINTEXT_BYTES: Int = 15 * 1024 * 1024
 
+    private const val RSA_3072_KEY_BITS: Int = 3072
+    private const val RSA_4096_KEY_BITS: Int = 4096
+
+    /**
+     * RSA modulus sizes accepted by the native OpenPGP key generator. This is
+     * the source of truth for user-facing key size options; anything offered in
+     * the UI must be present in this set.
+     */
+    public val SUPPORTED_RSA_KEY_BITS: Set<Int> = setOf(
+        RSA_3072_KEY_BITS,
+        RSA_4096_KEY_BITS,
+    )
+
     public fun parsePublicKeys(
         keyData: ByteArray,
         referenceTimeEpochSeconds: Long? = null,
@@ -387,7 +400,9 @@ public object NativeCryptoOpenPgp {
                 require(rsaBits == 0) { "RSA bits must be zero for a modern OpenPGP key" }
 
             NativeOpenPgpKeyKind.RSA ->
-                require(rsaBits == 3072 || rsaBits == 4096) { "Unsupported OpenPGP RSA size" }
+                require(rsaBits in SUPPORTED_RSA_KEY_BITS) {
+                    "Unsupported OpenPGP RSA size"
+                }
         }
         val payload = NativeCrypto.call(
             operationName = "open_pgp_key_generate",
@@ -1496,10 +1511,25 @@ private fun requireDecryptInputs(
     requireReferenceTime(referenceTimeEpochSeconds)
 }
 
+/** Key IDs are 64-bit values rendered as upper-case hex. */
+private const val OPEN_PGP_KEY_ID_HEX_CHARS: Int = 16
+
+/** Keygrips are SHA-1 digests rendered as upper-case hex. */
+private const val OPEN_PGP_KEYGRIP_HEX_CHARS: Int = 40
+
+/** Accepts fingerprints from MD5 (32 hex chars) up to SHA-512 (128 hex chars). */
+private const val OPEN_PGP_MIN_FINGERPRINT_HEX_CHARS: Int = 32
+private const val OPEN_PGP_MAX_FINGERPRINT_HEX_CHARS: Int = 128
+
 private fun requirePreferredFingerprint(value: String) {
     require(
         value.isEmpty() ||
-            (value.length in 32..128 && value.length % 2 == 0 && value.isUpperHex()),
+            (
+                value.length in
+                    OPEN_PGP_MIN_FINGERPRINT_HEX_CHARS..OPEN_PGP_MAX_FINGERPRINT_HEX_CHARS &&
+                    value.length % 2 == 0 &&
+                    value.isUpperHex()
+                ),
     ) { "Invalid preferred OpenPGP fingerprint" }
 }
 
@@ -1520,17 +1550,23 @@ private fun requireOpenPgpAlgorithm(operation: String, value: String) {
 }
 
 private fun requireOpenPgpKeyId(operation: String, value: String) {
-    if (value.length != 16 || !value.isUpperHex()) malformedOpenPgp(operation)
+    if (value.length != OPEN_PGP_KEY_ID_HEX_CHARS || !value.isUpperHex()) {
+        malformedOpenPgp(operation)
+    }
 }
 
 private fun requireOpenPgpFingerprint(operation: String, value: String) {
-    if (value.length !in 32..128 || value.length % 2 != 0 || !value.isUpperHex()) {
+    if (
+        value.length !in OPEN_PGP_MIN_FINGERPRINT_HEX_CHARS..OPEN_PGP_MAX_FINGERPRINT_HEX_CHARS ||
+        value.length % 2 != 0 ||
+        !value.isUpperHex()
+    ) {
         malformedOpenPgp(operation)
     }
 }
 
 private fun requireOpenPgpKeygrip(operation: String, value: String?) {
-    if (value != null && (value.length != 40 || !value.isUpperHex())) {
+    if (value != null && (value.length != OPEN_PGP_KEYGRIP_HEX_CHARS || !value.isUpperHex())) {
         malformedOpenPgp(operation)
     }
 }

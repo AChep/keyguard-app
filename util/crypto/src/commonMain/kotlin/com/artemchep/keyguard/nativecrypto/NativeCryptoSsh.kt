@@ -65,13 +65,29 @@ public object NativeCryptoSsh {
     private const val MAX_SIGN_DATA_BYTES: Int = 1024 * 1024
     private const val MIN_RSA_SIGNATURE_BYTES: Int = 128
     private const val MAX_RSA_SIGNATURE_BYTES: Int = 1024
+    private const val RSA_1024_KEY_BITS: Int = 1024
+    private const val RSA_2048_KEY_BITS: Int = 2048
+    private const val RSA_3072_KEY_BITS: Int = 3072
+    private const val RSA_4096_KEY_BITS: Int = 4096
+
+    /**
+     * RSA modulus sizes accepted by the native SSH key generator. This is the
+     * source of truth for user-facing key size options; anything offered in the
+     * UI must be present in this set.
+     */
+    public val SUPPORTED_RSA_KEY_BITS: Set<Int> = setOf(
+        RSA_1024_KEY_BITS,
+        RSA_2048_KEY_BITS,
+        RSA_3072_KEY_BITS,
+        RSA_4096_KEY_BITS,
+    )
 
     public fun generate(
         type: NativeSshKeyType,
         rsaBits: Int? = null,
     ): NativeSshKeyMaterial {
         when (type) {
-            NativeSshKeyType.RSA -> require(rsaBits in setOf(1024, 2048, 3072, 4096)) {
+            NativeSshKeyType.RSA -> require(rsaBits in SUPPORTED_RSA_KEY_BITS) {
                 "RSA key size must be 1024, 2048, 3072, or 4096 bits"
             }
 

@@ -28,51 +28,6 @@
     <ID>LongMethod:NativeCryptoSmokeTest.kt:NativeCryptoSmokeTest$@Test fun generatesParsesFormatsAndSignsSshKeysThroughTheRealNativeLibrary</ID>
     <ID>LongMethod:NativeCryptoSsh.kt:NativeCryptoSsh$public fun importPrivateKey: NativeSshPrivateKeyImportResult</ID>
     <ID>LoopWithTooManyJumpStatements:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$while</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.AES$6</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.AES_CBC_HMAC_SHA256$20</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.AES_CBC_HMAC_SHA256_FAST_PATH$21</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.AES_CBC_HMAC_SHA256_STREAMING$22</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.DIGEST$5</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.HMAC$4</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.KDBX_ARGON2$8</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.OPENPGP_MUTATION_AGENT$19</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.OPENPGP_READ$17</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.OPENPGP_WRITE$18</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.RNG$3</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.RNG_FAST_PATH$23</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.RSA_KEY_FORMATS$12</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.RSA_OAEP$11</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.SSH_AGENT_SIGNING$15</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.SSH_AGENT_TCP_CHACHA20_POLY1305$13</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.SSH_KEYS$14</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.SSH_PRIVATE_KEY_IMPORT$16</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.STREAMING$7</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.STREAM_CIPHER_XOR_AT_OFFSET$9</ID>
-    <ID>MagicNumber:NativeCrypto.kt:NativeCryptoCapability.TWOFISH_CBC_PKCS7$10</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$0x03</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$0x3f</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$0x40</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$0x80</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$0xff</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$16</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$192</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$224</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$255</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$32</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$4</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$5</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$64</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$8</ID>
-    <ID>MagicNumber:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$9</ID>
-    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.AUTHENTICATION_FAILED$6</ID>
-    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.CRYPTO_FAILURE$5</ID>
-    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.INTERNAL$9</ID>
-    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.INVALID_ARGUMENT$3</ID>
-    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.INVALID_SESSION$7</ID>
-    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.NO_USABLE_KEY$11</ID>
-    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.PANIC$8</ID>
-    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.RESOURCE_LIMIT$4</ID>
-    <ID>MagicNumber:NativeCryptoError.kt:NativeCryptoErrorCode.UNSUPPORTED_KEY_VERSION$10</ID>
     <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:0xffL</ID>
     <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:17L</ID>
     <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:3L</ID>
@@ -91,30 +46,11 @@
     <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:50</ID>
     <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:500</ID>
     <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:5_000</ID>
-    <ID>MagicNumber:NativeCryptoOpenPgp.kt:128</ID>
-    <ID>MagicNumber:NativeCryptoOpenPgp.kt:16</ID>
-    <ID>MagicNumber:NativeCryptoOpenPgp.kt:32</ID>
-    <ID>MagicNumber:NativeCryptoOpenPgp.kt:40</ID>
-    <ID>MagicNumber:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp$3072</ID>
-    <ID>MagicNumber:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp$4096</ID>
     <ID>MagicNumber:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest$3</ID>
     <ID>MagicNumber:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest$30</ID>
     <ID>MagicNumber:NativeCryptoOpenPgpLargeTextTest.kt:NativeCryptoOpenPgpLargeTextTest$13</ID>
     <ID>MagicNumber:NativeCryptoOpenPgpLargeTextTest.kt:NativeCryptoOpenPgpLargeTextTest$17</ID>
     <ID>MagicNumber:NativeCryptoOpenPgpLargeTextTest.kt:NativeCryptoOpenPgpLargeTextTest$5</ID>
-    <ID>MagicNumber:NativeCryptoProtocol.kt:OpenPgpVerificationWarningProto.SIGNATURE_EXPIRED$3</ID>
-    <ID>MagicNumber:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform$2</ID>
-    <ID>MagicNumber:NativeCryptoPrimitives.kt:16</ID>
-    <ID>MagicNumber:NativeCryptoPrimitives.kt:20</ID>
-    <ID>MagicNumber:NativeCryptoPrimitives.kt:32</ID>
-    <ID>MagicNumber:NativeCryptoPrimitives.kt:64</ID>
-    <ID>MagicNumber:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$16</ID>
-    <ID>MagicNumber:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$24</ID>
-    <ID>MagicNumber:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$32</ID>
-    <ID>MagicNumber:NativeCryptoSsh.kt:NativeCryptoSsh$1024</ID>
-    <ID>MagicNumber:NativeCryptoSsh.kt:NativeCryptoSsh$2048</ID>
-    <ID>MagicNumber:NativeCryptoSsh.kt:NativeCryptoSsh$3072</ID>
-    <ID>MagicNumber:NativeCryptoSsh.kt:NativeCryptoSsh$4096</ID>
     <ID>MatchingDeclarationName:NativeCryptoLibraryLoader.desktop.kt:NativeCryptoLibraryLoader</ID>
     <ID>MatchingDeclarationName:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform : NativeCryptoBridge</ID>
     <ID>NestedBlockDepth:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpAgentEcdhDecrypt</ID>

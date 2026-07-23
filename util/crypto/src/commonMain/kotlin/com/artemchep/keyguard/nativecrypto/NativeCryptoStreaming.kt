@@ -50,7 +50,8 @@ internal fun collectNativeStream(
     val stagedOutputs = mutableListOf<ByteArray>()
     var totalOutputSize = 0L
     var primaryFailure: Throwable? = null
-    return try {
+    var resultData: ByteArray? = null
+    val result = try {
         var offset = 0
         while (offset < input.size) {
             val length = minOf(chunkSize, input.size - offset)
@@ -69,6 +70,7 @@ internal fun collectNativeStream(
             previousTotal = totalOutputSize,
         ).also { totalOutputSize = it }
         mergeStagedOutputs(stagedOutputs, totalOutputSize.toInt())
+            .also { resultData = it }
     } catch (failure: Throwable) {
         primaryFailure = failure
         throw failure
@@ -80,10 +82,13 @@ internal fun collectNativeStream(
             if (primaryFailure != null) {
                 primaryFailure.addSuppressed(closeFailure)
             } else {
-                throw closeFailure
+                resultData?.fill(0)
+                primaryFailure = closeFailure
             }
         }
     }
+    primaryFailure?.let { throw it }
+    return result
 }
 
 /** Collects authenticated-or-public output directly when its exact final size is known. */
@@ -101,7 +106,8 @@ internal fun collectNativeStreamToExpectedSize(
     val result = ByteArray(expectedOutputSize)
     var outputOffset = 0
     var primaryFailure: Throwable? = null
-    return try {
+    var deferredCloseFailure: Throwable? = null
+    try {
         fun append(output: ByteArray) {
             try {
                 if (output.size > result.size - outputOffset) {
@@ -130,7 +136,6 @@ internal fun collectNativeStreamToExpectedSize(
                 code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
             )
         }
-        result
     } catch (failure: Throwable) {
         primaryFailure = failure
         result.fill(0)
@@ -143,10 +148,12 @@ internal fun collectNativeStreamToExpectedSize(
                 primaryFailure.addSuppressed(closeFailure)
             } else {
                 result.fill(0)
-                throw closeFailure
+                deferredCloseFailure = closeFailure
             }
         }
     }
+    deferredCloseFailure?.let { throw it }
+    return result
 }
 
 internal fun stageOutput(

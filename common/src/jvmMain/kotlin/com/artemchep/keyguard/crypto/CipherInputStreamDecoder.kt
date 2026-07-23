@@ -42,7 +42,7 @@ internal class CipherInputStreamDecoder(
         outOff: Int,
     ): Int {
         var primaryFailure: Throwable? = null
-        return try {
+        val result = try {
             val provisionalDecryptor = checkNotNull(provisionalDecryptor) { "Invalid encrypted data" }
             check(headerLength == HEADER_LENGTH) { "Invalid encrypted data" }
 
@@ -61,13 +61,15 @@ internal class CipherInputStreamDecoder(
             primaryFailure = failure
             throw failure
         } finally {
-            val closeFailure = closeSession(primaryFailure)
+            val sessionCloseFailure = closeSession(primaryFailure)
             provisionalDecryptor = null
             headerBuffer.fill(0)
-            if (primaryFailure == null && closeFailure != null) {
-                throw closeFailure
-            }
+
+            primaryFailure = primaryFailure
+                ?: sessionCloseFailure
         }
+        primaryFailure?.let { throw it }
+        return result
     }
 
     private fun closeSession(primaryFailure: Throwable?): Throwable? = try {
@@ -75,7 +77,8 @@ internal class CipherInputStreamDecoder(
         null
     } catch (closeFailure: Throwable) {
         if (primaryFailure != null) {
-            primaryFailure.addSuppressed(closeFailure)
+            primaryFailure
+                .addSuppressed(closeFailure)
             null
         } else {
             closeFailure

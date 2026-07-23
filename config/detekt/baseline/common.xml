@@ -4200,8 +4200,6 @@
     <ID>ReturnCount:createSubDi.kt:DatabaseSqlManagerInFileApple$private fun isPlaintextSqliteDatabaseFile: Boolean</ID>
     <ID>ReturnCount:getHttpCode.kt:fun Throwable.getHttpCode: Int</ID>
     <ID>ReturnCount:screenFlow.kt:private fun Context.isScreenOn: Boolean</ID>
-    <ID>ThrowingExceptionFromFinally:CipherInputStreamDecoder.kt:CipherInputStreamDecoder$throw closeFailure</ID>
-    <ID>ThrowingExceptionFromFinally:OpenPgpPlaintextStagingApple.kt:ApplePrivateTemporaryStorage$throw IOException("Could not close staging file")</ID>
     <ID>ThrowingExceptionsWithoutMessageOrCause:AutofillFakeAuthActivity.kt:AutofillFakeAuthActivity$NullPointerException()</ID>
     <ID>ThrowingExceptionsWithoutMessageOrCause:ComposeWindow.kt:IllegalStateException()</ID>
     <ID>ThrowingExceptionsWithoutMessageOrCause:FingerprintRepositoryModule.kt:CleanUpAttachmentImpl$RuntimeException()</ID>

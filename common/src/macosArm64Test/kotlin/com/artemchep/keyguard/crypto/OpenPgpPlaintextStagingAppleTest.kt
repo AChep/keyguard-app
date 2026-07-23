@@ -10,9 +10,34 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertSame
 
 @OptIn(ExperimentalForeignApi::class)
 class OpenPgpPlaintextStagingAppleTest {
+    @Test
+    fun closePreservesSinkFailureWhenDescriptorCloseAlsoFails() {
+        val sinkFailure = kotlinx.io.IOException("Could not close staging sink")
+        var descriptorCloseCalls = 0
+
+        val actual = assertFailsWith<kotlinx.io.IOException> {
+            closeAppleStagingResources(
+                closeSink = { throw sinkFailure },
+                closeDescriptor = {
+                    descriptorCloseCalls += 1
+                    false
+                },
+            )
+        }
+
+        assertSame(sinkFailure, actual)
+        assertEquals(1, descriptorCloseCalls)
+        assertEquals(1, actual.suppressedExceptions.size)
+        assertEquals(
+            "Could not close staging file",
+            actual.suppressedExceptions.single().message,
+        )
+    }
+
     @Test
     fun provisionalPlaintextIsDiscardedWhenFinalizationFails() {
         val output = Buffer()

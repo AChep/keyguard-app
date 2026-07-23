@@ -91,6 +91,30 @@ class NativeCryptoStreamingTest {
     }
 
     @Test
+    fun propagatesCleanupFailureAfterSuccessfulCollection() {
+        val returnedBuffers = mutableListOf<ByteArray>()
+        val closeFailure = NativeCryptoException(
+            operation = "stream.close",
+            code = NativeCryptoErrorCode.INVALID_SESSION,
+        )
+        val session = FakeSession(
+            onUpdate = { _, _, _ ->
+                byteArrayOf(7, 8, 9).also(returnedBuffers::add)
+            },
+            onClose = { throw closeFailure },
+        )
+
+        val actual = assertFailsWith<NativeCryptoException> {
+            collectNativeStream(session, ByteArray(1))
+        }
+
+        assertSame(closeFailure, actual)
+        assertEquals(1, session.finishCalls)
+        assertEquals(1, session.closeCalls)
+        assertTrue(returnedBuffers.all { buffer -> buffer.all { byte -> byte == 0.toByte() } })
+    }
+
+    @Test
     fun cancellationClosesSessionWithoutFinalizing() {
         val cancellation = CancellationException("cancelled")
         val session = FakeSession(

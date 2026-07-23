@@ -859,7 +859,7 @@ private class NativeCryptoSessionImpl(
         consumed = true
         var primaryFailure: Throwable? = null
         var output: ByteArray? = null
-        return try {
+        val result = try {
             client.streamFinish(handle).also { result -> output = result }
         } catch (t: Throwable) {
             primaryFailure = t
@@ -873,10 +873,12 @@ private class NativeCryptoSessionImpl(
                     primaryFailure.addSuppressed(closeFailure)
                 } else {
                     output?.let(client::clearDiscardedOutput)
-                    throw closeFailure
+                    primaryFailure = closeFailure
                 }
             }
         }
+        primaryFailure?.let { throw it }
+        return result
     }
 
     override fun close() {

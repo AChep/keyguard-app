@@ -585,7 +585,7 @@ public object NativeCryptoOpenPgp {
         var totalOutputSize = 0L
         var primaryFailure: Throwable? = null
         var resultData: ByteArray? = null
-        return try {
+        val result = try {
             var offset = 0
             while (offset < content.size) {
                 val length = minOf(NATIVE_CRYPTO_STREAM_CHUNK_BYTES, content.size - offset)
@@ -625,10 +625,12 @@ public object NativeCryptoOpenPgp {
                     primaryFailure.addSuppressed(closeFailure)
                 } else {
                     resultData?.fill(0)
-                    throw closeFailure
+                    primaryFailure = closeFailure
                 }
             }
         }
+        primaryFailure?.let { throw it }
+        return result
     }
 
     public fun decrypt(
@@ -669,7 +671,8 @@ public object NativeCryptoOpenPgp {
         )
         var primaryFailure: Throwable? = null
         var resultData: ByteArray? = null
-        return try {
+        var deferredCloseFailure: Throwable? = null
+        val result = try {
             var offset = 0
             while (offset < content.size) {
                 val length = minOf(NATIVE_CRYPTO_STREAM_CHUNK_BYTES, content.size - offset)
@@ -696,10 +699,11 @@ public object NativeCryptoOpenPgp {
                     primaryFailure.addSuppressed(closeFailure)
                 } else {
                     resultData?.fill(0)
-                    throw closeFailure
+                    deferredCloseFailure = closeFailure
                 }
             }
         }
+        return deferredCloseFailure?.let { throw it } ?: result
     }
 
     public fun openDetachedSigning(

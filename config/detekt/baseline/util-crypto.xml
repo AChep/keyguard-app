@@ -318,9 +318,6 @@
     <ID>NestedBlockDepth:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpAgentRsaDecrypt</ID>
     <ID>ReturnCount:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest$private fun gpgSupportsOcb: Boolean</ID>
     <ID>ReturnCount:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform$private inline fun normalizeFastResult: Long</ID>
-    <ID>ThrowingExceptionFromFinally:NativeCrypto.kt:NativeCryptoSessionImpl$throw closeFailure</ID>
-    <ID>ThrowingExceptionFromFinally:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp$throw closeFailure</ID>
-    <ID>ThrowingExceptionFromFinally:NativeCryptoStreaming.kt:throw closeFailure</ID>
     <ID>ThrowsCount:NativeCrypto.kt:NativeCryptoClient$internal fun decodeResponse: NativeResponseResultProto?</ID>
     <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$fun atom: ByteArray</ID>
     <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun firstPkeskBody: ByteArray</ID>

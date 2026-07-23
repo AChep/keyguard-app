@@ -26,6 +26,22 @@ import platform.posix.write as posixWrite
 internal actual fun createPrivateTemporaryStorage(): PrivateTemporaryStorage =
     createPrivateTemporaryStorageApple()
 
+internal fun closeAppleStagingResources(
+    closeSink: () -> Unit,
+    closeDescriptor: () -> Boolean,
+) {
+    val sinkFailure = runCatching(closeSink).exceptionOrNull()
+    val descriptorFailure: Throwable? = runCatching(closeDescriptor).fold(
+        onSuccess = { closed -> if (closed) null else IOException("Could not close staging file") },
+        onFailure = { failure -> failure },
+    )
+    if (sinkFailure != null) {
+        descriptorFailure?.let(sinkFailure::addSuppressed)
+        throw sinkFailure
+    }
+    descriptorFailure?.let { throw it }
+}
+
 @OptIn(ExperimentalForeignApi::class)
 private fun createPrivateTemporaryStorageApple(): PrivateTemporaryStorage = memScoped {
     val pathTemplate = "${NSTemporaryDirectory().trimEnd('/')}" +
@@ -92,13 +108,10 @@ private class ApplePrivateTemporaryStorage(
     override fun close() {
         if (closed) return
         closed = true
-        try {
-            writableSink.close()
-        } finally {
-            if (close(descriptor) != 0) {
-                throw IOException("Could not close staging file")
-            }
-        }
+        closeAppleStagingResources(
+            closeSink = writableSink::close,
+            closeDescriptor = { close(descriptor) == 0 },
+        )
     }
 }
 

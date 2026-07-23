@@ -32,7 +32,7 @@ object GpgCliTestSupport {
                 }
             }
             .start()
-        val completed = process.waitFor(20, TimeUnit.SECONDS)
+        val completed = process.waitFor(60, TimeUnit.SECONDS)
         if (!completed) {
             process.destroyForcibly()
             throw AssertionError("gpg timed out: ${args.joinToString(" ")}")

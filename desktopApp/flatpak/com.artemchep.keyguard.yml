@@ -11,6 +11,7 @@ finish-args:
   - --device=dri
   - --filesystem=xdg-download
   - --filesystem=xdg-run/gnupg:create
+  - --talk-name=org.kde.StatusNotifierWatcher
 modules:
   - name: keyguard
     buildsystem: simple

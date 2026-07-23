@@ -179,11 +179,13 @@ class GetPasswordImpl(
                     }
 
                     is GetPasswordResult.AsyncKey -> {
-                        throw IllegalArgumentException()
+                        val msg = "Composite generators cannot return key pairs."
+                        throw IllegalArgumentException(msg)
                     }
 
                     is GetPasswordResult.AsyncGpgKey -> {
-                        throw IllegalArgumentException()
+                        val msg = "Composite generators cannot return GPG keys."
+                        throw IllegalArgumentException(msg)
                     }
                 }
             }

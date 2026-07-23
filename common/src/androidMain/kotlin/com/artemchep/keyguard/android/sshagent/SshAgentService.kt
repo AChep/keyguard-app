@@ -257,7 +257,11 @@ class SshAgentService : Service(), DIAware {
 
         if (!sshAgentBridgeAdmission.canStart(notificationTag)) {
             Log.w(TAG, "Rejecting SSH agent bridge: admission reservation is unavailable")
-            showBridgeErrorToast(IllegalStateException())
+            val exception = kotlin.run {
+                val msg = "SSH agent bridge admission is unavailable."
+                IllegalStateException(msg)
+            }
+            showBridgeErrorToast(exception)
             bridgeTracker.requestStop(startId)?.let { stopStartId ->
                 stopSelfResult(stopStartId)
             }

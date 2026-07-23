@@ -193,8 +193,10 @@ class GetSuggestionsImpl : GetSuggestions<Any?> {
         p2: Getter<Any?, DSecret>,
         p3: AutofillTarget,
         p4: EquivalentDomainsBuilderFactory,
-    ): IO<List<Any?>> =
-        ioRaise(RuntimeException())
+    ): IO<List<Any?>> = kotlin.run {
+        val msg = "Autofill suggestions are not supported on desktop."
+        ioRaise(RuntimeException(msg))
+    }
 }
 
 class GetPurchasedImpl : GetPurchased {
@@ -202,8 +204,10 @@ class GetPurchasedImpl : GetPurchased {
 }
 
 class CleanUpAttachmentImpl : CleanUpAttachment {
-    override fun invoke(): IO<Int> =
-        ioRaise(RuntimeException())
+    override fun invoke(): IO<Int> = kotlin.run {
+        val msg = "Attachment cleanup is not supported on desktop."
+        ioRaise(RuntimeException(msg))
+    }
 }
 
 class AutofillServiceAndroid : AutofillService {

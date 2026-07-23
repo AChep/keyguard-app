@@ -457,7 +457,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
         getProfiles()
             .toIO()
     } else {
-        val e = RuntimeException()
+        val e = RuntimeException("Profiles are not available in this environment.")
         ioRaise(e)
     }
         .map { profiles ->

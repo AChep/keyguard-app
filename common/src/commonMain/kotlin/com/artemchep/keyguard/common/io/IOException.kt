@@ -39,7 +39,7 @@ inline fun <T> IO<T>.retry(crossinline retry: suspend (Throwable, Int) -> Boolea
         }
 
         @Suppress("ThrowableNotThrown", "UNREACHABLE_CODE")
-        throw IllegalStateException()
+        throw IllegalStateException("Retry loop terminated unexpectedly.")
     }
 
 fun <T> Either<Throwable, T>.toIO(): IO<T> =

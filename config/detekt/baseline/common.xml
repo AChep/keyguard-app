@@ -4192,16 +4192,6 @@
     <ID>ReturnCount:createSubDi.kt:DatabaseSqlManagerInFileApple$private fun isPlaintextSqliteDatabaseFile: Boolean</ID>
     <ID>ReturnCount:getHttpCode.kt:fun Throwable.getHttpCode: Int</ID>
     <ID>ReturnCount:screenFlow.kt:private fun Context.isScreenOn: Boolean</ID>
-    <ID>ThrowingExceptionsWithoutMessageOrCause:AutofillFakeAuthActivity.kt:AutofillFakeAuthActivity$NullPointerException()</ID>
-    <ID>ThrowingExceptionsWithoutMessageOrCause:ComposeWindow.kt:IllegalStateException()</ID>
-    <ID>ThrowingExceptionsWithoutMessageOrCause:FingerprintRepositoryModule.kt:CleanUpAttachmentImpl$RuntimeException()</ID>
-    <ID>ThrowingExceptionsWithoutMessageOrCause:FingerprintRepositoryModule.kt:GetSuggestionsImpl$RuntimeException()</ID>
-    <ID>ThrowingExceptionsWithoutMessageOrCause:GeneratorStateProducer.kt:RuntimeException()</ID>
-    <ID>ThrowingExceptionsWithoutMessageOrCause:GetPasswordImpl.kt:GetPasswordImpl$IllegalArgumentException()</ID>
-    <ID>ThrowingExceptionsWithoutMessageOrCause:IOException.kt:IllegalStateException()</ID>
-    <ID>ThrowingExceptionsWithoutMessageOrCause:NavigationRouterBackHandler.kt:IllegalStateException()</ID>
-    <ID>ThrowingExceptionsWithoutMessageOrCause:SshAgentService.kt:SshAgentService$IllegalStateException()</ID>
-    <ID>ThrowingExceptionsWithoutMessageOrCause:TrustManager.kt:HybridTrustManager$IllegalStateException()</ID>
     <ID>ThrowsCount:AgentIpcPeerVerification.kt:UnixLibC$fun macosPeerCredentials: UnixAgentPeerCredentials</ID>
     <ID>ThrowsCount:AgentStartupRetry.kt:internal suspend fun &lt;T&gt; retryAgentStartup: T</ID>
     <ID>ThrowsCount:BackupObjectStore.kt:BackupObjectStore$suspend fun test: BackupObjectStoreTestResult</ID>

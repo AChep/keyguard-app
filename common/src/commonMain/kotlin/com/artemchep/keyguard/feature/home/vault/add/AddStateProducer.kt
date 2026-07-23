@@ -603,7 +603,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         },
         extra = {
             val bitwardenUploadLimitError = translate(Res.string.error_file_must_be_500_mb_or_smaller)
-            val keePassUploadLimitError = translate(Res.string.error_file_must_be_1_mb_or_smaller)
+            val keePassUploadLimitError = translate(Res.string.error_file_must_be_500_mb_or_smaller)
 
             fun addAttachmentFile(
                 info: FilePickerResult,

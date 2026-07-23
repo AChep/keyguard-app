@@ -833,7 +833,7 @@ class KeePassCipherCodec(
                 if (read == -1) break
                 total += read
                 require(total <= KEEPASS_FILE_UPLOAD_MAX_BYTES) {
-                    "KeePass attachment file must be 1 MB or smaller."
+                    "KeePass attachment file must be 500 MB or smaller."
                 }
                 output.write(buffer, 0, read)
             }

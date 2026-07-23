@@ -50,14 +50,14 @@ class SkeletonAttachmentItemFactoryTest {
     }
 
     @Test
-    fun `picked vault attachment over keepass limit uses bitwarden limit when account is unknown`() {
+    fun `picked vault attachment over upload limit is rejected when account is unknown`() {
         val attachment = FilePickerResult(
             uri = leParseUri("content://attachment/file"),
             name = "large.bin",
-            size = KEEPASS_FILE_UPLOAD_MAX_BYTES + 1L,
+            size = BITWARDEN_FILE_UPLOAD_MAX_BYTES + 1L,
         ).toSkeletonAttachmentOrNull()
 
-        assertEquals("large.bin", attachment?.name)
+        assertNull(attachment)
     }
 
     @Test

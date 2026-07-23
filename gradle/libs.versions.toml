@@ -10,7 +10,7 @@ androidNdk = "27.0.12077973"
 # @keep
 jdk = "21"
 # @keep
-appVersionName = "2.14.2"
+appVersionName = "3.0.0"
 # @keep
 appVersionCode = "7"
 # https://github.com/google/accompanist

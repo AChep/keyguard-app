@@ -2911,10 +2911,6 @@
     <ID>MagicNumber:BreachesRepositoryImpl.kt:BreachesRepositoryImpl$0.7</ID>
     <ID>MagicNumber:ByteArray.kt:10</ID>
     <ID>MagicNumber:ByteArray.kt:4</ID>
-    <ID>MagicNumber:CallerAuthorization.kt:CallerAuthorization$6</ID>
-    <ID>MagicNumber:CallerAuthorization.kt:CallerAuthorization$7</ID>
-    <ID>MagicNumber:CallerAuthorization.kt:CallerAuthorization$8</ID>
-    <ID>MagicNumber:CallerAuthorization.kt:CallerAuthorizationSubject$3</ID>
     <ID>MagicNumber:ChangePasswordScreen.kt:0.3f</ID>
     <ID>MagicNumber:ChangePasswordScreen.kt:0.6f</ID>
     <ID>MagicNumber:CipherDuplicatesCheck.kt:CipherDuplicatesCheckImpl$0.2f</ID>
@@ -3026,28 +3022,6 @@
     <ID>MagicNumber:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$0x40</ID>
     <ID>MagicNumber:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$0xff</ID>
     <ID>MagicNumber:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$33</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.CallerIdentity$3</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.CallerIdentity$4</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.CallerIdentity$5</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.CallerIdentity$6</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.CallerIdentity$7</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.CallerIdentity$8</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.CallerIdentity$9</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.GpgKey$3</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.GpgKey$4</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.GpgKey$5</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.GpgKey$6</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.IpcRequest$3</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.IpcRequest$4</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.IpcRequest$5</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.IpcResponse$15</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.IpcResponse$3</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.IpcResponse$4</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.IpcResponse$5</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.PkdecryptRequest$3</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.PkdecryptRequest$4</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.SignHashRequest$3</ID>
-    <ID>MagicNumber:GpgAgentMessages.kt:GpgAgentMessages.SignHashRequest$4</ID>
     <ID>MagicNumber:GpgAgentMessagesTest.kt:GpgAgentMessagesTest$0x0a</ID>
     <ID>MagicNumber:GpgAgentMessagesTest.kt:GpgAgentMessagesTest$0x10</ID>
     <ID>MagicNumber:GpgAgentSigningTest.kt:GpgAgentSigningTest$32</ID>
@@ -3212,16 +3186,6 @@
     <ID>MagicNumber:OpenPgpPlaintextStagingJvmTest.kt:OpenPgpPlaintextStagingJvmTest$5</ID>
     <ID>MagicNumber:OpenPgpReadBouncyCastleDifferentialTest.kt:1_000L</ID>
     <ID>MagicNumber:OrganizationsScreen.kt:3</ID>
-    <ID>MagicNumber:OtpAuthMigrationData.kt:OtpAuthMigrationData$3</ID>
-    <ID>MagicNumber:OtpAuthMigrationData.kt:OtpAuthMigrationData$4</ID>
-    <ID>MagicNumber:OtpAuthMigrationData.kt:OtpAuthMigrationData$5</ID>
-    <ID>MagicNumber:OtpAuthMigrationData.kt:OtpAuthMigrationData.OtpParameters$3</ID>
-    <ID>MagicNumber:OtpAuthMigrationData.kt:OtpAuthMigrationData.OtpParameters$4</ID>
-    <ID>MagicNumber:OtpAuthMigrationData.kt:OtpAuthMigrationData.OtpParameters$5</ID>
-    <ID>MagicNumber:OtpAuthMigrationData.kt:OtpAuthMigrationData.OtpParameters$6</ID>
-    <ID>MagicNumber:OtpAuthMigrationData.kt:OtpAuthMigrationData.OtpParameters$7</ID>
-    <ID>MagicNumber:OtpAuthMigrationData.kt:OtpAuthMigrationData.OtpParameters.Algorithm.ALGORITHM_MD5$4</ID>
-    <ID>MagicNumber:OtpAuthMigrationData.kt:OtpAuthMigrationData.OtpParameters.Algorithm.ALGORITHM_SHA512$3</ID>
     <ID>MagicNumber:OtpMigrationConverterTest.kt:10</ID>
     <ID>MagicNumber:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$30L</ID>
     <ID>MagicNumber:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$6</ID>
@@ -3309,22 +3273,6 @@
     <ID>MagicNumber:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$5_000L</ID>
     <ID>MagicNumber:SshAgentIpcProtocolTest.kt:SshAgentIpcProtocolTest$3</ID>
     <ID>MagicNumber:SshAgentIpcProtocolTest.kt:SshAgentIpcProtocolTest$4</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.CallerIdentity$3</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.CallerIdentity$4</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.CallerIdentity$5</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.CallerIdentity$6</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.CallerIdentity$7</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.CallerIdentity$8</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.CallerIdentity$9</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.IpcRequest$3</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.IpcRequest$4</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.IpcResponse$15</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.IpcResponse$3</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.IpcResponse$4</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.SignDataRequest$3</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.SignDataRequest$4</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.SshKey$3</ID>
-    <ID>MagicNumber:SshAgentMessages.kt:SshAgentMessages.SshKey$4</ID>
     <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$0x04</ID>
     <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$0x0a</ID>
     <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$0x10</ID>

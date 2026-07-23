@@ -4324,13 +4324,6 @@
     <ID>TooGenericExceptionCaught:http.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:http.kt:f: Exception</ID>
     <ID>TooGenericExceptionCaught:screenFlow.kt:e: Exception</ID>
-    <ID>TooGenericExceptionThrown:AnnotatedResource.kt:throw RuntimeException(msg, e)</ID>
-    <ID>TooGenericExceptionThrown:DownloadAttachmentMetadataImpl.kt:DownloadAttachmentMetadataImpl2$throw RuntimeException(msg)</ID>
-    <ID>TooGenericExceptionThrown:FeedbackStateProducer.kt:throw RuntimeException(msg)</ID>
-    <ID>TooGenericExceptionThrown:PutAccountMasterPasswordHintById.kt:PutKeePassAccountMasterPasswordHintByIdImpl$throw RuntimeException(msg)</ID>
-    <ID>TooGenericExceptionThrown:SettingCrash.kt:throw RuntimeException("Test crash.")</ID>
-    <ID>TooGenericExceptionThrown:getMonetNeutralColor.kt:throw Exception("Accent$type shade $shade doesn't exist")</ID>
-    <ID>TooGenericExceptionThrown:getMonetNeutralColor.kt:throw Exception("Neutral$type shade $shade doesn't exist")</ID>
     <ID>TooManyFunctions:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest</ID>
     <ID>TooManyFunctions:AddScreen.kt:com.artemchep.keyguard.feature.add.AddScreen.kt</ID>
     <ID>TooManyFunctions:AddStateProducer.kt:com.artemchep.keyguard.feature.home.vault.add.AddStateProducer.kt</ID>

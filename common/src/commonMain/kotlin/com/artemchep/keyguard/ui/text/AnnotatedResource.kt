@@ -66,7 +66,7 @@ private inline fun <T> withHumanReadableException(
 }.getOrElse { e ->
     val language = LeLocale.iso3Language
     val msg = "Failed to annotate ${resource.key}@$language resource!"
-    throw RuntimeException(msg, e)
+    throw IllegalStateException(msg, e)
 }
 
 private fun rebuild(

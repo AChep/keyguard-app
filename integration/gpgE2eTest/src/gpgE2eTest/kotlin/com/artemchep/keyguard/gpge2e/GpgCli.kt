@@ -1,7 +1,9 @@
 package com.artemchep.keyguard.gpge2e
 
 import java.nio.file.Path
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 data class ProcessResult(
     val exitCode: Int,
@@ -70,18 +72,21 @@ class GpgCli(
             } else {
                 process.outputStream.close()
             }
-            val stdoutBytes = process.inputStream.readBytes()
-            val stderrBytes = process.errorStream.readBytes()
+            // Drain the streams on background threads, otherwise a process
+            // that outputs nothing but never exits would block the reads and
+            // the timeout below would never get a chance to fire.
+            val stdoutFuture = CompletableFuture.supplyAsync { process.inputStream.readBytes() }
+            val stderrFuture = CompletableFuture.supplyAsync { process.errorStream.readBytes() }
             if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
                 process.destroyForcibly()
-                throw RuntimeException(
+                throw TimeoutException(
                     "Timed out after ${timeoutSeconds}s running: ${command.joinToString(" ")}",
                 )
             }
             return ProcessResult(
                 exitCode = process.exitValue(),
-                stdout = stdoutBytes.decodeToString(),
-                stderr = stderrBytes.decodeToString(),
+                stdout = stdoutFuture.get(timeoutSeconds, TimeUnit.SECONDS).decodeToString(),
+                stderr = stderrFuture.get(timeoutSeconds, TimeUnit.SECONDS).decodeToString(),
             )
         }
     }

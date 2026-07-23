@@ -35,6 +35,7 @@ suspend fun RememberStateFlowScope.feedbackScreenStateProducer(): Flow<Loadable<
     fun onSend(message: String) {
         if (message == "send test crash report") {
             val msg = "Test crash report."
+            @Suppress("TooGenericExceptionThrown")
             throw RuntimeException(msg)
         }
 

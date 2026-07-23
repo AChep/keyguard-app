@@ -49,7 +49,6 @@
     <ID>MagicNumber:KeyguardAgentLauncher.kt:KeyguardAgentLauncher$65535</ID>
     <ID>TooGenericExceptionCaught:KeyguardAgentLauncher.kt:KeyguardAgentLauncher$e: Exception</ID>
     <ID>TooGenericExceptionCaught:TestGpgAgentRequestProcessor.kt:TestGpgAgentRequestProcessor$e: Exception</ID>
-    <ID>TooGenericExceptionThrown:GpgCli.kt:GpgCli.Companion$throw RuntimeException( "Timed out after ${timeoutSeconds}s running: ${command.joinToString(" ")}", )</ID>
     <ID>TooManyFunctions:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest</ID>
   </CurrentIssues>
 </SmellBaseline>

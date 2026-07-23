@@ -59,12 +59,12 @@ private suspend fun startNegotiate(
         headers = headers,
     )
     response.error?.let { error ->
-        throw RuntimeException(error)
+        throw IllegalStateException(error)
     }
 
     response.url?.let { redirectUrl ->
         if (negotiateAttempts >= MAX_NEGOTIATE_ATTEMPTS) {
-            throw RuntimeException("Negotiate redirection limit exceeded.")
+            throw IllegalStateException("Negotiate redirection limit exceeded.")
         }
 
         val newHeaders = response.accessToken
@@ -90,14 +90,14 @@ private suspend fun startNegotiate(
             )
         }
     if (!hasCompatibleTransport) {
-        throw RuntimeException("There were no compatible transports on the server.")
+        throw IllegalStateException("There were no compatible transports on the server.")
     }
 
     if (response.connectionId == null) {
-        throw RuntimeException("Missing required property 'connectionId'.")
+        throw IllegalStateException("Missing required property 'connectionId'.")
     }
     if (response.negotiateVersion > 0 && response.connectionToken == null) {
-        throw RuntimeException("Missing required property 'connectionToken'.")
+        throw IllegalStateException("Missing required property 'connectionToken'.")
     }
 
     val id = if (response.negotiateVersion > 0) {
@@ -148,7 +148,7 @@ private suspend fun handleNegotiate(
         .parseToJsonElement(body)
         .jsonObject
     if ("ProtocolVersion" in jsonObject) {
-        throw RuntimeException(
+        throw UnsupportedOperationException(
             "Detected an ASP.NET SignalR Server. This client only supports connecting to an ASP.NET Core SignalR Server.",
         )
     }

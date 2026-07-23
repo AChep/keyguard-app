@@ -12,6 +12,5 @@
     <ID>ReturnCount:KeyguardSshAgentLauncher.kt:KeyguardSshAgentLauncher$private fun canConnectToSocket: Boolean</ID>
     <ID>TooGenericExceptionCaught:KeyguardSshAgentLauncher.kt:KeyguardSshAgentLauncher$e: Exception</ID>
     <ID>TooGenericExceptionCaught:TestSshAgentRequestProcessor.kt:TestSshAgentRequestProcessor$e: Exception</ID>
-    <ID>TooGenericExceptionThrown:SshCli.kt:SshCli$throw RuntimeException( "Timed out after ${timeoutSeconds}s running: ${command.joinToString(" ")}", )</ID>
   </CurrentIssues>
 </SmellBaseline>

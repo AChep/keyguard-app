@@ -29,13 +29,13 @@ internal suspend fun handshake(
 
     val handshakePayload = withTimeoutOrNull(handshakeResponseTimeout) {
         transport.receive().first()
-    } ?: throw RuntimeException(
+    } ?: throw IllegalStateException(
         "Server timeout elapsed without receiving a handshake response.",
     )
 
     val recordSeparatorIndex = handshakePayload.indexOf(RECORD_SEPARATOR.code.toByte())
     if (recordSeparatorIndex < 0) {
-        throw RuntimeException("HubMessage is incomplete.")
+        throw IllegalArgumentException("HubMessage is incomplete.")
     }
 
     val handshakeCandidate = handshakePayload.decodeToString(
@@ -45,16 +45,16 @@ internal suspend fun handshake(
     val response = try {
         val responseElement = json.decodeFromString<JsonObject>(handshakeCandidate)
         if ("type" in responseElement) {
-            throw RuntimeException("Expected a handshake response from the server.")
+            throw IllegalArgumentException("Expected a handshake response from the server.")
         }
 
         json.decodeFromJsonElement<HandshakeResponse>(responseElement)
     } catch (ex: SerializationException) {
-        throw RuntimeException("An invalid handshake response was received from the server.", ex)
+        throw IllegalStateException("An invalid handshake response was received from the server.", ex)
     }
 
     if (response.error != null) {
-        throw RuntimeException("Error in handshake ${response.error}")
+        throw IllegalStateException("Error in handshake ${response.error}")
     }
 
     return handshakePayload

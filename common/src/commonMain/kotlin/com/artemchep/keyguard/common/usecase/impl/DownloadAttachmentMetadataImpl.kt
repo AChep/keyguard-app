@@ -166,8 +166,8 @@ class DownloadAttachmentMetadataImpl2(
             ?.data
             // failed to find the attachment data
             ?: kotlin.run {
-                val msg = "Could not requested attachment data!"
-                throw RuntimeException(msg)
+                val msg = "Could not find requested attachment data!"
+                throw IllegalStateException(msg)
             }
         val source = DownloadAttachmentRequestData.DirectSource(
             data = data.getContent(),

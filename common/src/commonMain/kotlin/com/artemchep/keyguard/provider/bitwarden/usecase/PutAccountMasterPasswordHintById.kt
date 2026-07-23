@@ -139,6 +139,6 @@ internal class PutKeePassAccountMasterPasswordHintByIdImpl :
     ) = ioEffect {
         val msg = "Setting master password hint is not supported on the " +
                 "KeePass database!"
-        throw RuntimeException(msg)
+        throw UnsupportedOperationException(msg)
     }
 }

@@ -37,18 +37,6 @@
     <ID>TooGenericExceptionCaught:HubSession.kt:ex: Throwable</ID>
     <ID>TooGenericExceptionCaught:JsonHubProtocol.kt:JsonHubProtocol$ex: Exception</ID>
     <ID>TooGenericExceptionCaught:KtorTransport.kt:cause: Throwable</ID>
-    <ID>TooGenericExceptionThrown:HubHandshaker.kt:throw RuntimeException( "Server timeout elapsed without receiving a handshake response.", )</ID>
-    <ID>TooGenericExceptionThrown:HubHandshaker.kt:throw RuntimeException("An invalid handshake response was received from the server.", ex)</ID>
-    <ID>TooGenericExceptionThrown:HubHandshaker.kt:throw RuntimeException("Error in handshake ${response.error}")</ID>
-    <ID>TooGenericExceptionThrown:HubHandshaker.kt:throw RuntimeException("Expected a handshake response from the server.")</ID>
-    <ID>TooGenericExceptionThrown:HubHandshaker.kt:throw RuntimeException("HubMessage is incomplete.")</ID>
-    <ID>TooGenericExceptionThrown:HubNegotiation.kt:throw RuntimeException( "Detected an ASP.NET SignalR Server. This client only supports connecting to an ASP.NET Core SignalR Server.", )</ID>
-    <ID>TooGenericExceptionThrown:HubNegotiation.kt:throw RuntimeException("Missing required property 'connectionId'.")</ID>
-    <ID>TooGenericExceptionThrown:HubNegotiation.kt:throw RuntimeException("Missing required property 'connectionToken'.")</ID>
-    <ID>TooGenericExceptionThrown:HubNegotiation.kt:throw RuntimeException("Negotiate redirection limit exceeded.")</ID>
-    <ID>TooGenericExceptionThrown:HubNegotiation.kt:throw RuntimeException("There were no compatible transports on the server.")</ID>
-    <ID>TooGenericExceptionThrown:HubNegotiation.kt:throw RuntimeException(error)</ID>
-    <ID>TooGenericExceptionThrown:JsonHubProtocol.kt:JsonHubProtocol$throw RuntimeException("HubMessage is incomplete.")</ID>
     <ID>TooManyFunctions:MessagePackHubProtocol.kt:MessagePackHubProtocol : HubProtocol</ID>
   </CurrentIssues>
 </SmellBaseline>

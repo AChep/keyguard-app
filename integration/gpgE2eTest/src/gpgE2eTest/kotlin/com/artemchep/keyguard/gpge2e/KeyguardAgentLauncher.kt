@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.net.InetAddress
 import java.net.Socket
+import java.net.SocketException
 import java.net.StandardProtocolFamily
 import java.net.UnixDomainSocketAddress
 import java.nio.ByteBuffer
@@ -200,8 +201,35 @@ class KeyguardAgentLauncher(
             }
             output.flush()
             socket.shutdownOutput()
-            return socket.getInputStream().readBytes()
+            return readWindowsAssuanResponse(socket)
         }
+    }
+
+    private fun readWindowsAssuanResponse(socket: Socket): ByteArray {
+        val input = socket.getInputStream()
+        val out = ByteArrayOutputStream()
+        val buffer = ByteArray(4096)
+        try {
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                out.write(buffer, 0, read)
+            }
+        } catch (e: SocketException) {
+            // A malformed Assuan request may cause the Rust server to close
+            // while bytes sent after the protocol error are still unread. On
+            // Windows loopback TCP this can surface as a reset rather than
+            // EOF. Preserve the response bytes already received; the caller's
+            // protocol assertions still reject a truncated response.
+            if (!e.isExpectedConnectionReset()) throw e
+        }
+        return out.toByteArray()
+    }
+
+    private fun SocketException.isExpectedConnectionReset(): Boolean {
+        val message = message ?: return false
+        return message.contains("connection reset", ignoreCase = true) ||
+            message.contains("forcibly closed", ignoreCase = true)
     }
 
     private fun readWindowsAssuanMarker(path: Path): WindowsAssuanMarker? {

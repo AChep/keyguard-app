@@ -6,7 +6,7 @@ use super::*;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt};
 
 #[tokio::test]
-async fn pkdecrypt_oversized_inquiry_closes_connection() {
+async fn pkdecrypt_oversized_inquiry_reports_error_and_preserves_framing() {
     let mut overlong_line = b"D ".to_vec();
     overlong_line.extend_from_slice(&vec![b'A'; MAX_INQUIRE_LINE_LEN]);
     overlong_line.extend_from_slice(b"\nEND\nNOP\n");
@@ -21,11 +21,14 @@ async fn pkdecrypt_oversized_inquiry_closes_connection() {
         too_much_data.push(b'\n');
         remaining -= chunk_len;
     }
-    too_much_data.extend_from_slice(b"END\nNOP\n");
+    too_much_data.extend_from_slice(b"END\nBYE\n");
 
     for (inquiry, expected_response) in [
         (overlong_line, b"ERR 263 line too long\n".as_slice()),
-        (too_much_data, b"ERR 273 too much data\n".as_slice()),
+        (
+            too_much_data,
+            b"ERR 273 too much data\nOK closing connection\n".as_slice(),
+        ),
     ] {
         let response = run_oversized_pkdecrypt_inquiry(&inquiry).await;
 

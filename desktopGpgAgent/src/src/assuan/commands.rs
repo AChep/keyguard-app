@@ -411,8 +411,9 @@ async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
             clear_decrypt_state(state);
             return Ok(false);
         }
-        // Both oversized outcomes leave the inquiry incomplete. Close after
-        // the error response so its remaining bytes cannot become commands.
+        // A line that exceeded the protocol limit cannot be framed reliably.
+        // Close after the error response rather than allowing its tail to be
+        // interpreted as another Assuan command.
         InquireResult::LineTooLong => {
             write_error(write, ERR_ASS_LINE_TOO_LONG, "line too long").await?;
             clear_decrypt_state(state);
@@ -421,7 +422,11 @@ async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
         InquireResult::TooMuchData => {
             write_error(write, ERR_ASS_TOO_MUCH_DATA, "too much data").await?;
             clear_decrypt_state(state);
-            return Ok(true);
+            // Unlike an overlong line, the inquiry has been fully framed: the
+            // remaining D-lines were discarded through END. Keep the session
+            // alive so a pipelined BYE (or the next client command) cannot
+            // turn an otherwise valid error response into a transport reset.
+            return Ok(false);
         }
         InquireResult::Unexpected => {
             write_error(write, ERR_ASS_UNEXPECTED_CMD, "unexpected command").await?;
@@ -526,6 +531,7 @@ async fn inquire_ciphertext<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
     write.flush().await?;
 
     let mut ciphertext: Vec<u8> = Vec::new();
+    let mut too_much_data = false;
     loop {
         let buf = match reader
             .read_until_limited(b'\n', MAX_INQUIRE_LINE_LEN)
@@ -546,13 +552,25 @@ async fn inquire_ciphertext<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
         }
 
         if line.starts_with(b"D ") {
+            if too_much_data {
+                // libassuan continues reading after MAXLEN has been reached so
+                // the client's remaining D-lines cannot be mistaken for new
+                // top-level Assuan commands. Discard them without growing the
+                // bounded ciphertext buffer.
+                continue;
+            }
             let chunk = assuan_unescape(&line[2..]);
             if ciphertext.len() + chunk.len() > MAX_CIPHERTEXT_LEN {
-                return Ok(InquireResult::TooMuchData);
+                too_much_data = true;
+                continue;
             }
             ciphertext.extend_from_slice(&chunk);
         } else if line == b"END" {
-            return Ok(InquireResult::Data(ciphertext));
+            return Ok(if too_much_data {
+                InquireResult::TooMuchData
+            } else {
+                InquireResult::Data(ciphertext)
+            });
         } else if line.starts_with(b"CAN") {
             return Ok(InquireResult::Canceled);
         } else {

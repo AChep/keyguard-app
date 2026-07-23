@@ -96,7 +96,6 @@ open class DownloadTaskJvm(
                 DownloadProgress.Complete(location.right())
             } catch (e: Exception) {
                 e.throwIfFatalOrCancellation()
-                e.printStackTrace()
 
                 val result = e.left()
                 DownloadProgress.Complete(

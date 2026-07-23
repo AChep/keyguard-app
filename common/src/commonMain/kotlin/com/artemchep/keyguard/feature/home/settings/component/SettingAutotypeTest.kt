@@ -29,6 +29,7 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.focus.FocusRequester2
@@ -160,7 +161,7 @@ private fun SettingAutotypeTest(
                                 updatedAutotypeService.type(payload).bind()
                             } catch (e: Throwable) {
                                 e.throwIfFatal()
-                                e.printStackTrace()
+                                recordException(e)
                             } finally {
                                 inProgress = false
                             }

@@ -293,24 +293,14 @@ private fun isMiui(): Boolean {
     return !getSystemProperty("ro.miui.ui.version.name").isNullOrBlank()
 }
 
-private fun getSystemProperty(propName: String): String? {
-    val line: String
-    var input: BufferedReader? = null
+private fun getSystemProperty(propName: String): String? =
     try {
-        val p = Runtime.getRuntime().exec("getprop $propName")
-        input = BufferedReader(InputStreamReader(p.inputStream), 1024)
-        line = input.readLine()
-        input.close()
+        val process = Runtime.getRuntime().exec("getprop $propName")
+        BufferedReader(
+            InputStreamReader(process.inputStream),
+            1024,
+        )
+            .use { input -> input.readLine() }
     } catch (_: IOException) {
-        return null
-    } finally {
-        if (input != null) {
-            try {
-                input.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
+        null
     }
-    return line
-}

@@ -56,8 +56,6 @@ suspend inline fun <reified T : Any> HttpResponse.bodyOrApiException(): T = kotl
     try {
         b.body<T>()
     } catch (e: Exception) {
-        e.printStackTrace()
-
         throw response.buildApiException(
             body = b,
             status = newStatus,
@@ -80,7 +78,9 @@ internal suspend fun HttpResponse.buildApiException(
                 route = call.attributes.getOrNull(routeAttribute),
             )
     } catch (f: Exception) {
-        f.printStackTrace()
+        if (f !== exception) {
+            exception.addSuppressed(f)
+        }
 
         // Try to parse an unknown exception, it might still contain
         // the message content.

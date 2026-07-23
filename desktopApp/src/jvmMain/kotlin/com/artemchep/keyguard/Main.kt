@@ -525,7 +525,7 @@ private fun runKeyguardApplication() {
                         throw e
                     } catch (e: Exception) {
                         e.throwIfFatal()
-                        e.printStackTrace()
+
                         failed = true
                         sshAgentStatusService.set(AgentStatus.Failed)
 
@@ -614,7 +614,7 @@ private fun runKeyguardApplication() {
                         throw e
                     } catch (e: Exception) {
                         e.throwIfFatal()
-                        e.printStackTrace()
+
                         failed = true
                         gpgAgentStatusService.set(AgentStatus.Failed)
 

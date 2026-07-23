@@ -31,7 +31,6 @@
     <ID>MagicNumber:MacPopupOverlayEffect.kt:10</ID>
     <ID>MagicNumber:Main.kt:0.12f</ID>
     <ID>MagicNumber:Main.kt:21</ID>
-    <ID>PrintStackTrace:Main.kt:e</ID>
     <ID>ReturnCount:Desktop.kt:fun getAwtDesktopOrNull: Desktop?</ID>
     <ID>ThrowsCount:Main.kt:@OptIn(ExperimentalTime::class) private fun runKeyguardApplication</ID>
     <ID>TooGenericExceptionCaught:Main.kt:e: Exception</ID>

@@ -272,9 +272,8 @@ class RememberStateFlowScopeImpl(
                     try {
                         val v = serializedValue as S
                         return@run deserialize(json, v)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         // Fall down.
-                        e.printStackTrace()
                     }
                 }
 
@@ -285,9 +284,8 @@ class RememberStateFlowScopeImpl(
                     try {
                         val v = storage.disk.restoredState[key] as S
                         return@run deserialize(json, v)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         // Fall down.
-                        e.printStackTrace()
                     }
                 }
 

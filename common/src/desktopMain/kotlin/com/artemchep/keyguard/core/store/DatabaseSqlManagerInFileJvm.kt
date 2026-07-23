@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.database.DatabaseSqlHelper
 import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
 import com.artemchep.keyguard.common.util.toHex
+import com.artemchep.keyguard.platform.recordException
 import org.sqlite.mc.SQLiteMCSqlCipherConfig
 import java.io.File
 import java.sql.DriverManager
@@ -37,8 +38,7 @@ class DatabaseSqlManagerInFileJvm<Database>(
                 callbacks = callbacks,
             )
         } catch (e: Exception) {
-            e.printStackTrace()
-            println(e.message)
+            recordException(e)
             if ("is not a database" in e.message.orEmpty()) {
                 file.delete()
             }

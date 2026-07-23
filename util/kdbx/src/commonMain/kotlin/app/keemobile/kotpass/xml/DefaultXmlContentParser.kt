@@ -77,9 +77,15 @@ class StreamingXmlContentParser(
         } catch (e: CancellationException) {
             throw e
         } catch (e: XmlException) {
-            throw FormatError.InvalidXml(e.message ?: "Malformed XML document.")
+            throw FormatError.InvalidXml(
+                e.message ?: "Malformed XML document.",
+                e,
+            )
         } catch (e: Exception) {
-            throw FormatError.InvalidXml(e.message ?: "Malformed XML document.")
+            throw FormatError.InvalidXml(
+                e.message ?: "Malformed XML document.",
+                e,
+            )
         }
 
         if (!sawRoot) {

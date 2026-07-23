@@ -546,10 +546,10 @@ private object Dispatch {
                 ),
             )
             true
-        } catch (e: LinkageError) {
+        } catch (_: LinkageError) {
             asyncCallbacks.remove(work)
             false
-        } catch (e: RuntimeException) {
+        } catch (_: RuntimeException) {
             asyncCallbacks.remove(work)
             false
         }

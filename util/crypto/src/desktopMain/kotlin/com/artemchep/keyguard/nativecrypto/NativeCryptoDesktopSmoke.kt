@@ -775,10 +775,12 @@ public object NativeCryptoDesktopSmoke {
     private fun loadPackagedLibrary() {
         try {
             NativeCryptoLibraryLoader.ensureBundledLibraryLoaded()
-        } catch (e: NativeCryptoPlatformException) {
+        } catch (ignored: NativeCryptoPlatformException) {
+            // Keep packaged-library diagnostics out of the
+            // stable public exception contract.
             throw NativeCryptoException(
                 operation = "packaged_smoke.load",
-                code = e.code,
+                code = ignored.code,
             )
         } catch (_: Exception) {
             throw NativeCryptoException(

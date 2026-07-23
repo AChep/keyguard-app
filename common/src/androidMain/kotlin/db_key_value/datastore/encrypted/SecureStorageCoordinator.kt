@@ -257,13 +257,13 @@ internal class SecureStorageCoordinator(
                 }
                 log("state=ready", LogLevel.INFO)
                 return masterKeyAlias
-            } catch (request: WipeRequiredException) {
+            } catch (expectedWipe: WipeRequiredException) {
                 if (wiped) {
-                    throw SecureStorageInitializationException(request.failure)
+                    throw SecureStorageInitializationException(expectedWipe.failure)
                 }
                 wipeAllForRecovery(
                     allowGlobalWipe = allowGlobalWipe,
-                    cause = request.failure,
+                    cause = expectedWipe.failure,
                 )
                 wiped = true
             }
@@ -321,4 +321,3 @@ internal class SecureStorageCoordinator(
         artifacts.wipeAll()
     }
 }
-

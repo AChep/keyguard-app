@@ -429,7 +429,7 @@ private fun getApps(
             try {
                 packageInfo = pm.getPackageInfo(info.activityInfo.packageName, 0)
                 applicationInfo = pm.getApplicationInfo(info.activityInfo.packageName, 0)
-            } catch (e: NameNotFoundException) {
+            } catch (_: NameNotFoundException) {
                 // The app was removed in-between querying the list
                 // of activities and querying the info about each
                 // of the app.

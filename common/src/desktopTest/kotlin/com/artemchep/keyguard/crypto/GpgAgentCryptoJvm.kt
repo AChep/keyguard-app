@@ -350,7 +350,9 @@ class GpgAgentCryptoJvm() : GpgAgentCrypto {
         val collection = try {
             parseGpgSecretKeyRingCollection(privateKeyArmored)
         } catch (error: GpgUnsupportedKeyVersionException) {
-            throw GpgAgentUnsupportedAlgorithmException(error.message.orEmpty())
+            throw GpgAgentUnsupportedAlgorithmException(error.message.orEmpty()).apply {
+                initCause(error)
+            }
         }
         val expectedFingerprint = metadataKey.fingerprint
             .takeIf { it.isNotBlank() }

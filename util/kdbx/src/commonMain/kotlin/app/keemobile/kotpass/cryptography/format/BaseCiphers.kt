@@ -46,6 +46,7 @@ enum class BaseCiphers : CipherProvider {
                     is UnsupportedOperationException -> {
                         AlgorithmUnavailable(
                             "AES/CBC encryption is not supported in current environment.",
+                            error,
                         )
                     }
 
@@ -55,7 +56,10 @@ enum class BaseCiphers : CipherProvider {
                 }
             }
         } catch (error: UnsupportedOperationException) {
-            throw AlgorithmUnavailable("AES/CBC encryption is not supported in current environment.")
+            throw AlgorithmUnavailable(
+                "AES/CBC encryption is not supported in current environment.",
+                error,
+            )
         } catch (_: Throwable) {
             throw InvalidKey("Wrong key used for decryption.")
         }

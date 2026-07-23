@@ -633,10 +633,6 @@
     <ID>ReturnCount:Placeholders.kt:fun KeePassDatabase.resolvePlaceholder: String</ID>
     <ID>ReturnCount:Placeholders.kt:fun KeePassDatabase.resolveReference: String</ID>
     <ID>ReturnCount:StreamingIo.kt:KotlinxSourceAdapter$override fun read: Long</ID>
-    <ID>SwallowedException:BaseCiphers.kt:BaseCiphers.Aes$error: UnsupportedOperationException</ID>
-    <ID>SwallowedException:Credentials.kt:Credentials.Companion$e: Exception</ID>
-    <ID>SwallowedException:DefaultXmlContentParser.kt:StreamingXmlContentParser$e: Exception</ID>
-    <ID>SwallowedException:DefaultXmlContentParser.kt:StreamingXmlContentParser$e: XmlException</ID>
     <ID>ThrowsCount:ContentBlocks.kt:ContentBlocks.Ver3BlockSource$override fun readBlock</ID>
     <ID>ThrowsCount:Credentials.kt:Credentials.Companion$private fun findXmlKeyData: ByteArray</ID>
     <ID>ThrowsCount:DatabaseHeader.kt:DatabaseHeader.Companion$internal fun readFrom: DatabaseHeader</ID>

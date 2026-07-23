@@ -7,8 +7,6 @@
     <ID>ReturnCount:DesktopLibJna.kt:internal fun findLibBinaryPathOrNull: java.nio.file.Path?</ID>
     <ID>ReturnCount:globalHotKey.kt:internal fun mapNativeGlobalHotKeySpec: NativeGlobalHotKeySpec?</ID>
     <ID>ReturnCount:globalHotKey.kt:internal fun registerGlobalHotKey: GlobalHotKeyRegistrationResult</ID>
-    <ID>SwallowedException:MacPopupOverlay.kt:Dispatch$e: LinkageError</ID>
-    <ID>SwallowedException:MacPopupOverlay.kt:Dispatch$e: RuntimeException</ID>
     <ID>TooGenericExceptionCaught:DesktopLibInterop.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:MacPopupOverlay.kt:Dispatch$e: RuntimeException</ID>
     <ID>TooManyFunctions:DesktopLibJna.kt:DesktopLibJna : Library</ID>

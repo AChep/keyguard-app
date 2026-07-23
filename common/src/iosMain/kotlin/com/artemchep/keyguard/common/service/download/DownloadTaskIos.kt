@@ -13,6 +13,7 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onStart
+import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
@@ -214,18 +215,28 @@ class DownloadTaskIos(
                 source = sourcePath,
                 destination = destinationPath,
             )
-        } catch (e: Throwable) {
-            try {
-                copyToFile(destination)
-            } catch (copyError: Throwable) {
-                runCatching {
-                    destination.deleteIfExists()
-                }
-                throw copyError
-            } finally {
-                runCatching {
-                    deleteIfExists()
-                }
+        } catch (moveError: IOException) {
+            copyAfterFailedAtomicMove(destination, moveError)
+        } catch (moveError: UnsupportedOperationException) {
+            copyAfterFailedAtomicMove(destination, moveError)
+        }
+    }
+
+    private fun LocalPath.copyAfterFailedAtomicMove(
+        destination: LocalPath,
+        moveError: Throwable,
+    ) {
+        try {
+            copyToFile(destination)
+        } catch (copyError: Throwable) {
+            copyError.addSuppressed(moveError)
+            runCatching {
+                destination.deleteIfExists()
+            }
+            throw copyError
+        } finally {
+            runCatching {
+                deleteIfExists()
             }
         }
     }

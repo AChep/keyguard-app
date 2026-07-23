@@ -4200,28 +4200,6 @@
     <ID>ReturnCount:createSubDi.kt:DatabaseSqlManagerInFileApple$private fun isPlaintextSqliteDatabaseFile: Boolean</ID>
     <ID>ReturnCount:getHttpCode.kt:fun Throwable.getHttpCode: Int</ID>
     <ID>ReturnCount:screenFlow.kt:private fun Context.isScreenOn: Boolean</ID>
-    <ID>SwallowedException:AppPickerStateProducer.kt:e: NameNotFoundException</ID>
-    <ID>SwallowedException:AutofillActivity.kt:AutofillActivity$e: Exception</ID>
-    <ID>SwallowedException:BaseActivity.kt:BaseActivity$e: ActivityNotFoundException</ID>
-    <ID>SwallowedException:BitwardenLoginTwofaStateProducer.kt:e: URLParserException</ID>
-    <ID>SwallowedException:CipherUrlCheckImplTest.kt:CipherUrlCheckImplTest$e: Throwable</ID>
-    <ID>SwallowedException:DownloadTaskIos.kt:DownloadTaskIos$e: Throwable</ID>
-    <ID>SwallowedException:GpgAgentCryptoJvm.kt:GpgAgentCryptoJvm$error: GpgUnsupportedKeyVersionException</ID>
-    <ID>SwallowedException:KeyguardAutofillService.kt:KeyguardAutofillService$e: Exception</ID>
-    <ID>SwallowedException:LeAnimation.kt:e: Settings.SettingNotFoundException</ID>
-    <ID>SwallowedException:LinkInfoExtractorAndroid.kt:LinkInfoExtractorAndroid$e: PackageManager.NameNotFoundException</ID>
-    <ID>SwallowedException:PasskeyBeginGetRequest.kt:e: WebAuthnEncodingException</ID>
-    <ID>SwallowedException:PasskeyBeginGetRequest.kt:e: WebAuthnNotAllowedException</ID>
-    <ID>SwallowedException:PasskeyCreateRequest.kt:e: WebAuthnEncodingException</ID>
-    <ID>SwallowedException:PasskeyCreateRequest.kt:e: WebAuthnInvalidStateException</ID>
-    <ID>SwallowedException:PasskeyProviderGetRequest.kt:e: WebAuthnEncodingException</ID>
-    <ID>SwallowedException:PasskeyProviderGetRequest.kt:e: WebAuthnNotAllowedException</ID>
-    <ID>SwallowedException:SecureStorageCoordinator.kt:SecureStorageCoordinator$request: WipeRequiredException</ID>
-    <ID>SwallowedException:SettingAutofill.kt:AutofillPlatformWarning.Miui$e: Exception</ID>
-    <ID>SwallowedException:SettingAutofill.kt:ex: IOException</ID>
-    <ID>SwallowedException:Yubi.kt:e: Exception</ID>
-    <ID>SwallowedException:Yubi.kt:e: NfcNotAvailable</ID>
-    <ID>SwallowedException:screenFlow.kt:e: Exception</ID>
     <ID>ThrowingExceptionFromFinally:CipherInputStreamDecoder.kt:CipherInputStreamDecoder$throw closeFailure</ID>
     <ID>ThrowingExceptionFromFinally:OpenPgpPlaintextStagingApple.kt:ApplePrivateTemporaryStorage$throw IOException("Could not close staging file")</ID>
     <ID>ThrowingExceptionsWithoutMessageOrCause:AutofillFakeAuthActivity.kt:AutofillFakeAuthActivity$NullPointerException()</ID>

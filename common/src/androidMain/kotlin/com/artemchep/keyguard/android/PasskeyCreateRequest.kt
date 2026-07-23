@@ -398,11 +398,15 @@ private inline fun <T> mapCreateWebAuthnExceptions(
         throw CreatePublicKeyCredentialDomException(
             domError = EncodingError(),
             errorMessage = e.message.orEmpty(),
-        )
+        ).apply {
+            initCause(e)
+        }
     } catch (e: WebAuthnInvalidStateException) {
         throw CreatePublicKeyCredentialDomException(
             domError = InvalidStateError(),
             errorMessage = e.message.orEmpty(),
-        )
+        ).apply {
+            initCause(e)
+        }
     }
 }

@@ -424,12 +424,16 @@ private inline fun <T> mapCredentialProviderBeginGetWebAuthnExceptions(
         throw GetPublicKeyCredentialDomException(
             domError = EncodingError(),
             errorMessage = e.message.orEmpty(),
-        )
+        ).apply {
+            initCause(e)
+        }
     } catch (e: WebAuthnNotAllowedException) {
         throw GetPublicKeyCredentialDomException(
             domError = NotAllowedError(),
             errorMessage = e.message.orEmpty(),
-        )
+        ).apply {
+            initCause(e)
+        }
     }
 }
 

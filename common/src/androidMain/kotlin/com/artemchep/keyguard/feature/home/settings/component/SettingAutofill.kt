@@ -276,7 +276,7 @@ private sealed interface AutofillPlatformWarning {
             }
             try {
                 context.startActivity(intent)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 val genericIntent = Intent(
                     Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                     "package:$packageName".toUri(),
@@ -301,7 +301,7 @@ private fun getSystemProperty(propName: String): String? {
         input = BufferedReader(InputStreamReader(p.inputStream), 1024)
         line = input.readLine()
         input.close()
-    } catch (ex: IOException) {
+    } catch (_: IOException) {
         return null
     } finally {
         if (input != null) {

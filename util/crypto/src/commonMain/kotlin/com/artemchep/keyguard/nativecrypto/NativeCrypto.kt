@@ -786,8 +786,10 @@ internal class NativeCryptoClient(
         block()
     } catch (e: NativeCryptoException) {
         throw e
-    } catch (e: NativeCryptoPlatformException) {
-        throw NativeCryptoException(operation, e.code)
+    } catch (ignored: NativeCryptoPlatformException) {
+        // Platform diagnostics can contain sensitive paths;
+        // retain only the stable error code.
+        throw NativeCryptoException(operation, ignored.code)
     } catch (_: Exception) {
         throw NativeCryptoException(operation, NativeCryptoErrorCode.INTERNAL)
     }

@@ -7,6 +7,7 @@ import app.keemobile.kotpass.models.DatabaseContent
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.FormatVersion
 import app.keemobile.kotpass.models.XmlContext
+import nl.adaptivity.xmlutil.XmlException
 import okio.Buffer
 import okio.Source
 import okio.Timeout
@@ -240,6 +241,30 @@ class StreamingXmlContentParserTest {
         }
 
         assertSame(expected, actual)
+    }
+
+    @Test
+    fun xmlFailureBecomesInvalidXmlWithCause() {
+        val actual = assertFailsWith<FormatError.InvalidXml> {
+            parse("<KeePassFile><Meta></KeePassFile>")
+        }
+
+        assertTrue(actual.cause is XmlException)
+    }
+
+    @Test
+    fun sourceFailureBecomesInvalidXmlWithCause() {
+        val expected = IllegalStateException("source failure")
+        val source = ThrowingSource(expected).buffer()
+        val innerEncryption = EncryptionSaltGenerator.ChaCha20(byteArrayOf())
+
+        val actual = assertFailsWith<FormatError.InvalidXml> {
+            DefaultXmlContentParser.unmarshalContent(source, innerEncryption) {
+                decodeContext(innerEncryption)
+            }
+        }
+
+        assertSame(expected, actual.cause)
     }
 
     private fun parse(xml: String): DatabaseContent {

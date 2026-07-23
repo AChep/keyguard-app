@@ -125,7 +125,7 @@ class Credentials private constructor(
                 }
                 XmlKeyfile(version, hasKeyData, hash, data)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
 

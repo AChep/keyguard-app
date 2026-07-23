@@ -62,7 +62,7 @@ class LinkInfoExtractorAndroid(
                 return@run appInfoNotInstalled
             }
             packageManager.getApplicationInfo(packageName, 0)
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (_: PackageManager.NameNotFoundException) {
             return@run appInfoNotInstalled
         }
 

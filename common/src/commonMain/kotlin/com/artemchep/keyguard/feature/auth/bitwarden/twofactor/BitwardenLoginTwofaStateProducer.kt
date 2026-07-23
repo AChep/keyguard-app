@@ -292,7 +292,7 @@ private fun RememberStateFlowScope.createStateFlowForUnsupported(
             navigate(intent)
         }
         onClick
-    } catch (e: URLParserException) {
+    } catch (_: URLParserException) {
         null
     }
     val defaultState = BitwardenLoginTwofaState.Unsupported(

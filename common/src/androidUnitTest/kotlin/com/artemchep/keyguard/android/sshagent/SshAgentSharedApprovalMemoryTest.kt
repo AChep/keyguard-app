@@ -32,8 +32,11 @@ import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
+import java.math.BigInteger
+import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.PrivateKey
+import java.security.interfaces.RSAPublicKey
 import java.util.Base64
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -129,14 +132,13 @@ class SshAgentSharedApprovalMemoryTest {
 
     private class Fixture {
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
-        private val publicKeyBlob = buildOpenSshPublicKeyBlob()
-        private val publicKey =
-            "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
+        private val keyPair = generateRsaKeyPair()
+        private val publicKey = toOpenSshPublicKey(keyPair.public as RSAPublicKey)
         private val vaultSession = FixedVaultSession(
             createUnlockedSession(
                 createSshSecret(
                     publicKey = publicKey,
-                    privateKey = generatePkcs8RsaPrivateKeyPem(),
+                    privateKey = toPkcs8PrivateKeyPem(keyPair.private),
                 ),
             ),
         )
@@ -278,22 +280,31 @@ class SshAgentSharedApprovalMemoryTest {
             ),
         )
 
-        fun buildOpenSshPublicKeyBlob(): ByteArray = ByteArrayOutputStream().use { output ->
-            DataOutputStream(output).use { dataOutput ->
-                val keyType = "ssh-ed25519".toByteArray(Charsets.US_ASCII)
-                dataOutput.writeInt(keyType.size)
-                dataOutput.write(keyType)
-                val key = ByteArray(32) { (it + 1).toByte() }
-                dataOutput.writeInt(key.size)
-                dataOutput.write(key)
-            }
-            output.toByteArray()
-        }
-
-        fun generatePkcs8RsaPrivateKeyPem(): String {
+        fun generateRsaKeyPair(): KeyPair {
             val generator = KeyPairGenerator.getInstance("RSA")
             generator.initialize(2048)
-            return toPkcs8PrivateKeyPem(generator.generateKeyPair().private)
+            return generator.generateKeyPair()
+        }
+
+        fun toOpenSshPublicKey(publicKey: RSAPublicKey): String {
+            val blob = ByteArrayOutputStream().use { output ->
+                DataOutputStream(output).use { dataOutput ->
+                    dataOutput.writeSshString("ssh-rsa".toByteArray(Charsets.US_ASCII))
+                    dataOutput.writeSshMpint(publicKey.publicExponent)
+                    dataOutput.writeSshMpint(publicKey.modulus)
+                }
+                output.toByteArray()
+            }
+            return "ssh-rsa ${Base64.getEncoder().encodeToString(blob)}"
+        }
+
+        fun DataOutputStream.writeSshMpint(value: BigInteger) {
+            writeSshString(value.toByteArray())
+        }
+
+        fun DataOutputStream.writeSshString(value: ByteArray) {
+            writeInt(value.size)
+            write(value)
         }
 
         fun toPkcs8PrivateKeyPem(privateKey: PrivateKey): String {

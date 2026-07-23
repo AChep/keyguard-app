@@ -43,8 +43,6 @@ internal object KeyTransform {
                     kdfProvider.transformKey(header.kdfParameters, compositeKey)
                 }
             }
-        } catch (error: Exception) {
-            throw error
         } finally {
             compositeKey.clear()
         }

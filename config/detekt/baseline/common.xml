@@ -3954,7 +3954,6 @@
     <ID>PackageNaming:WipeRequiredException.kt:package db_key_value.datastore.encrypted.exception</ID>
     <ID>ProtectedMemberInFinalClass:PasskeyGetActivity.kt:PasskeyGetActivity$protected val args: PasskeyProviderGetActivityArgs get() = requireNotNull(_args)</ID>
     <ID>ProtectedMemberInFinalClass:PasswordGetActivity.kt:PasswordGetActivity$protected val args: PasswordProviderGetActivityArgs get() = requireNotNull(_args)</ID>
-    <ID>RethrowCaughtException:AppIconFetcher.kt:throw e</ID>
     <ID>ReturnCount:AddSend.kt:internal suspend fun prepareSendPendingUpload: PreparedSend</ID>
     <ID>ReturnCount:AddStateProducer.kt:suspend fun createExpirationDecor: GpgKeyDecor2Brr.Expiration?</ID>
     <ID>ReturnCount:AgentApplicationPresentation.desktop.kt:private fun desktopApplicationLookup: DesktopApplicationLookup?</ID>

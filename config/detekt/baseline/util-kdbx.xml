@@ -624,7 +624,6 @@
     <ID>MaxLineLength:TwofishCbcPaddedRes.kt:TwofishCbcPaddedRes$"80000000000000000000000000000000" to "23a385f617f313dac05bcb7eabd61807225b022f06a24d97d722038ba4dd637a"</ID>
     <ID>MaxLineLength:TwofishCbcPaddedRes.kt:TwofishCbcPaddedRes$"80000000000000000000000000000000" to "62ef193edb7d399aca50ec1cbe5398d8342d83e6f509a34bb203413b1a818e30"</ID>
     <ID>MaxLineLength:TwofishCbcPaddedRes.kt:TwofishCbcPaddedRes$"80000000000000000000000000000000" to "73b9ff14cf2589901ff52a0d6f4b7edef10da92ef7a287d4f38319cbf7ab1570"</ID>
-    <ID>RethrowCaughtException:KeyTransform.kt:KeyTransform$throw error</ID>
     <ID>ReturnCount:Credentials.kt:Credentials.Companion$private fun parseKeyfile: ByteArray</ID>
     <ID>ReturnCount:CustomData.kt:CustomData$private fun unmarshalCustomDataItem: Pair&lt;String, CustomDataValue&gt;?</ID>
     <ID>ReturnCount:CustomIcons.kt:CustomIcons$private fun unmarshalCustomIcon: Pair&lt;Uuid, CustomIcon&gt;?</ID>

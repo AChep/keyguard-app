@@ -121,13 +121,7 @@ private fun getApplicationIconOrThrow(
         // no need to check if empty package is installed
         return null
     }
-    val appIcon = try {
-        packageManager.getApplicationIcon(packageName)
-    } catch (e: PackageManager.NameNotFoundException) {
-        throw e
-    }
-
-    return appIcon
+    return packageManager.getApplicationIcon(packageName)
 }
 
 /**
@@ -137,4 +131,3 @@ private fun getApplicationIconOrThrow(
  * @return The [Drawable] representation of the [Bitmap].
  */
 private fun Bitmap.toDrawable(context: Context) = toDrawable(context.resources)
-

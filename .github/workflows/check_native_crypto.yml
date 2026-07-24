@@ -595,7 +595,7 @@ jobs:
         with:
           build-flavor: "None"
       - name: "Call native crypto on emulator"
-        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
@@ -654,7 +654,7 @@ jobs:
           VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
         run: echo "$VARS_GOOGLE_SERVICES" | base64 -d | zcat > wearApp/google-services.json
       - name: "Call native crypto on a Wear emulator"
-        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: 33
           target: android-wear

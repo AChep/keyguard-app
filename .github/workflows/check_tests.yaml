@@ -226,7 +226,7 @@ jobs:
         with:
           build-flavor: ${{ matrix.build-flavor }}
       - name: "Run Android instrumentation tests"
-        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64

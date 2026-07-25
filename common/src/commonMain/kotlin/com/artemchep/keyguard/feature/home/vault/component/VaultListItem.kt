@@ -91,6 +91,7 @@ import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
@@ -285,6 +286,78 @@ fun LargeSection(
 }
 
 @Composable
+fun ColumnScope.VaultItemTextContent(
+    item: VaultItemPresentation,
+    textMaxLines: Int = if (item.source.type == DSecret.Type.SecureNote) 4 else 2,
+) {
+    FlatItemTextContent(
+        title = {
+            val title = item.title
+                .takeUnless { it.isEmpty() }
+            if (title != null) {
+                Text(
+                    text = title,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            } else {
+                Text(
+                    text = stringResource(Res.string.empty_value),
+                    color = LocalContentColor.current
+                        .combineAlpha(DisabledEmphasisAlpha),
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                )
+            }
+        },
+        text = item.text
+            ?.takeIf { it.isNotEmpty() }
+            ?.let {
+                // composable
+                {
+                    Text(
+                        text = it,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = textMaxLines,
+                    )
+                }
+            },
+    )
+}
+
+@Composable
+fun CompactVaultItem(
+    modifier: Modifier = Modifier,
+    item: VaultItemPresentation,
+    shapeState: Int = ShapeState.ALL,
+    padding: PaddingValues? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    enabled: Boolean = onClick != null,
+) {
+    FlatItemLayoutExpressive(
+        modifier = modifier,
+        shapeState = shapeState,
+        padding = padding,
+        content = {
+            VaultItemTextContent(
+                item = item,
+                textMaxLines = 1,
+            )
+        },
+        leading = {
+            AccountListItemTextIcon(
+                item = item,
+            )
+        },
+        trailing = trailing,
+        onClick = onClick,
+        enabled = enabled,
+    )
+}
+
+@Composable
 fun VaultListItemText(
     modifier: Modifier = Modifier,
     item: VaultItem2.Item,
@@ -364,40 +437,7 @@ fun VaultListItemText(
         backgroundColor = backgroundColor,
         shapeState = item.shapeState,
         content = {
-            FlatItemTextContent(
-                title = {
-                    val title = item.title
-                        .takeUnless { it.isEmpty() }
-                    if (title != null) {
-                        Text(
-                            text = title,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(Res.string.empty_value),
-                            color = LocalContentColor.current
-                                .combineAlpha(DisabledEmphasisAlpha),
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                        )
-                    }
-                },
-                text = item.text
-                    ?.takeIf { it.isNotEmpty() }
-                    ?.let {
-                        // composable
-                        {
-                            Text(
-                                text = it,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = if (item.source.type == DSecret.Type.SecureNote) 4 else 2,
-                            )
-                        }
-                    },
-            )
+            VaultItemTextContent(item = item)
 
             content?.invoke(this)
 
@@ -1329,7 +1369,7 @@ fun BoxScope.VaultItemIcon2(
 @Composable
 fun AccountListItemTextIcon(
     modifier: Modifier = Modifier,
-    item: VaultItem2.Item,
+    item: VaultItemPresentation,
 ) {
     val accent = rememberSecretAccentColor(
         accentLight = item.accentLight,

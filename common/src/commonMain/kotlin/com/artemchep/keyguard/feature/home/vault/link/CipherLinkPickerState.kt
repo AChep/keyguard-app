@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.feature.home.vault.link
 
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 
 data class CipherLinkPickerState(
     val query: TextFieldModel = TextFieldModel.empty,
@@ -9,10 +9,7 @@ data class CipherLinkPickerState(
     val onDeny: (() -> Unit)? = null,
 ) {
     data class Item(
-        val id: String,
-        val title: String,
-        val text: String,
-        val icon: VaultItemIcon,
+        val presentation: VaultItemPresentation,
         val onClick: () -> Unit,
     )
 }

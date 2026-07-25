@@ -19,6 +19,7 @@ data class CreateRequest(
     val favorite: Boolean? = null,
     val reprompt: Boolean? = null,
     val uris: PersistentList<DSecret.Uri> = persistentListOf(),
+    val links: PersistentList<DSecret.Link> = persistentListOf(),
     val fido2Credentials: PersistentList<DSecret.Login.Fido2Credentials> = persistentListOf(),
     val fields: PersistentList<DSecret.Field> = persistentListOf(),
     val tags: PersistentList<String> = persistentListOf(),

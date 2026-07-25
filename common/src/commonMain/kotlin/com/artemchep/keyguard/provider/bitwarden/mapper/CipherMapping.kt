@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.TotpToken
+import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.hasPendingAttachmentMutations
@@ -56,6 +57,9 @@ suspend fun BitwardenCipher.toDomain(
                 !hasPendingAttachmentMutations(),
         ignoredAlerts = ignoredAlerts,
         uris = login?.uris.orEmpty().map(BitwardenCipher.Login.Uri::toDomain),
+        links = canonicalizeCipherLinkIds(
+            links.map(BitwardenCipher.Link::remoteCipherId),
+        ).map(DSecret::Link),
         tags = tags.map(BitwardenCipher.Tag::toDomain),
         fields = fields.map(BitwardenCipher.Field::toDomain),
         attachments = attachments

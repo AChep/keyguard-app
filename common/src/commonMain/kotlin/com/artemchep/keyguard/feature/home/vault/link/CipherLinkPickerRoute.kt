@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.home.vault.link
 
 import androidx.compose.runtime.Composable
+import com.artemchep.keyguard.common.service.cipherlink.CipherLink
 import com.artemchep.keyguard.feature.navigation.DialogRouteForResult
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 

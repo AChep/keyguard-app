@@ -80,6 +80,7 @@ import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.model.toGpgKeyMaterial
+import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
@@ -111,6 +112,7 @@ import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
+import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
@@ -120,6 +122,7 @@ import com.artemchep.keyguard.common.usecase.GetMarkdown
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -164,6 +167,10 @@ import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerResult
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerRoute
+import com.artemchep.keyguard.feature.home.vault.link.CipherLinkTarget
+import com.artemchep.keyguard.feature.home.vault.link.cipherLinkTargetsByRemoteId
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
+import com.artemchep.keyguard.feature.home.vault.screen.toVaultItemPresentation
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -192,6 +199,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
@@ -237,6 +245,8 @@ fun produceAddScreenState(
         getCollections = instance(),
         getFolders = instance(),
         getCiphers = instance(),
+        getAppIcons = instance(),
+        getWebsiteIcons = instance(),
         getTotpCode = instance(),
         getGravatarUrl = instance(),
         getMarkdown = instance(),
@@ -275,6 +285,8 @@ fun produceAddScreenState(
     getCollections: GetCollections,
     getFolders: GetFolders,
     getCiphers: GetCiphers,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
     getTotpCode: GetTotpCode,
     getGravatarUrl: GetGravatarUrl,
     getMarkdown: GetMarkdown,
@@ -302,6 +314,8 @@ fun produceAddScreenState(
         getCollections,
         getFolders,
         getCiphers,
+        getAppIcons,
+        getWebsiteIcons,
         getTotpCode,
     ),
 ) {
@@ -313,6 +327,8 @@ fun produceAddScreenState(
         getCollections = getCollections,
         getFolders = getFolders,
         getCiphers = getCiphers,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
         getTotpCode = getTotpCode,
         getGravatarUrl = getGravatarUrl,
         getMarkdown = getMarkdown,
@@ -341,6 +357,8 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     getCollections: GetCollections,
     getFolders: GetFolders,
     getCiphers: GetCiphers,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
     getTotpCode: GetTotpCode,
     getGravatarUrl: GetGravatarUrl,
     getMarkdown: GetMarkdown,
@@ -791,20 +809,9 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         }
         .foldAsList()
 
-    val fieldAccountIdFlow = ownershipFlow
-        .map { it.data.accountId }
-        .distinctUntilChanged()
     val fieldsFactories = kotlin.run {
-        val plainTextFactory = AddStateItemFieldTextFactory(
-            defaultConcealed = false,
-            accountIdFlow = fieldAccountIdFlow,
-            excludedCipherId = args.initialValue?.id,
-        )
-        val concealedTextFactory = AddStateItemFieldTextFactory(
-            defaultConcealed = true,
-            accountIdFlow = fieldAccountIdFlow,
-            excludedCipherId = args.initialValue?.id,
-        )
+        val plainTextFactory = AddStateItemFieldTextFactory(false)
+        val concealedTextFactory = AddStateItemFieldTextFactory(true)
         val booleanFactory = AddStateItemFieldBooleanFactory()
         val linkedIdFactory = AddStateItemFieldLinkedIdFactory(
             typeFlow = typeFlow,
@@ -816,6 +823,55 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
             linkedIdFactory,
         )
     }
+    val linkAccountIdFlow = ownershipFlow
+        .map { it.data.accountId }
+        .distinctUntilChanged()
+    val linkPresentationContextFlow = createCipherLinkPresentationContextFlow(
+        ciphersFlow = getCiphers(),
+        accountIdFlow = linkAccountIdFlow,
+        appIconsFlow = getAppIcons(),
+        websiteIconsFlow = getWebsiteIcons(),
+        excludedCipherId = args.initialValue?.id,
+        sharingScope = screenScope,
+    )
+    val linksFlow = foo3(
+        logRepository = logRepository,
+        scope = "link",
+        initial = canonicalizeCipherLinkIds(
+            args.initialValue
+                ?.links
+                .orEmpty()
+                .map(DSecret.Link::remoteCipherId),
+        ).map(DSecret::Link),
+        initialType = { "link" },
+        confirmationRouteFactory = confirmationRouteFactory,
+        factories = listOf(
+            AddStateItemLinkFactory(
+                presentationContextFlow = linkPresentationContextFlow,
+            ),
+        ),
+        afterList = {
+            // The add item is hidden until an account is picked, so
+            // without this the header could end up on its own.
+            if (isEmpty()) {
+                return@foo3
+            }
+
+            val header = AddStateItem.Section(
+                id = "link.section",
+                text = translate(Res.string.cipher_links_outgoing_title),
+            )
+            add(0, header)
+        },
+        extra = {
+            cipherLinkAddItem(
+                scope = this@addCipherStateProducer,
+                accountIdFlow = linkAccountIdFlow,
+                excludedCipherId = args.initialValue?.id,
+            )
+        },
+    )
+
     val fieldsFlow = foo3(
         logRepository = logRepository,
         scope = "field",
@@ -1006,6 +1062,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         fieldsFlow,
         tagsFlow,
         attachmentsFlow,
+        linksFlow,
         miscFlow,
     ) { arr ->
         arr.toList().flatten()
@@ -1399,6 +1456,114 @@ internal fun createUriWithPreservedSignatures(
     )
 }
 
+internal data class CipherLinkPresentationContext(
+    val targetsByRemoteId: Map<String, CipherLinkTarget>,
+    val appIcons: Boolean,
+    val websiteIcons: Boolean,
+) {
+    fun presentation(remoteCipherId: String): VaultItemPresentation? =
+        targetsByRemoteId[remoteCipherId]
+            ?.cipher
+            ?.toVaultItemPresentation(
+                appIcons = appIcons,
+                websiteIcons = websiteIcons,
+            )
+}
+
+internal fun createCipherLinkPresentationContextFlow(
+    ciphersFlow: Flow<List<DSecret>>,
+    accountIdFlow: Flow<String?>,
+    appIconsFlow: Flow<Boolean>,
+    websiteIconsFlow: Flow<Boolean>,
+    excludedCipherId: String?,
+    sharingScope: CoroutineScope,
+): Flow<CipherLinkPresentationContext> = combine(
+    ciphersFlow,
+    accountIdFlow,
+    appIconsFlow,
+    websiteIconsFlow,
+) { ciphers, accountId, appIcons, websiteIcons ->
+    CipherLinkPresentationContext(
+        targetsByRemoteId = cipherLinkTargetsByRemoteId(
+            ciphers = ciphers,
+            accountId = accountId,
+            excludedCipherId = excludedCipherId,
+        ),
+        appIcons = appIcons,
+        websiteIcons = websiteIcons,
+    )
+}
+    .shareIn(
+        scope = sharingScope,
+        started = SharingStarted.WhileSubscribed(5_000L),
+        replay = 1,
+    )
+
+private class AddStateItemLinkFactory(
+    private val presentationContextFlow: Flow<CipherLinkPresentationContext>,
+) : Foo2Factory<AddStateItem.Link<*>, DSecret.Link> {
+    override val type: String = "link"
+
+    override fun RememberStateFlowScope.release(key: String) {
+        clearPersistedFlow("$key.data")
+    }
+
+    override fun RememberStateFlowScope.add(
+        key: String,
+        initial: DSecret.Link?,
+    ): AddStateItem.Link<CreateRequest> {
+        val remoteCipherIdSink = mutablePersistedFlow<String?>(
+            key = "$key.data",
+        ) {
+            initial?.remoteCipherId
+        }
+
+        fun String?.toState(
+            context: CipherLinkPresentationContext?,
+        ) = AddStateItem.Link.State(
+            link = this?.let(DSecret::Link),
+            presentation = this?.let { remoteCipherId ->
+                context?.presentation(remoteCipherId)
+            },
+        )
+
+        val stateFlow = combine(
+            remoteCipherIdSink,
+            presentationContextFlow,
+        ) { remoteCipherId, context ->
+            remoteCipherId.toState(context)
+        }
+            .persistingStateIn(
+                scope = screenScope,
+                started = SharingStarted.WhileSubscribed(),
+                // The link itself is known upfront, only its title has to wait
+                // for the ciphers to load. Seeding the state with the link
+                // keeps a save that lands before the first emission from
+                // silently dropping it.
+                initialValue = remoteCipherIdSink.value.toState(context = null),
+            )
+        return AddStateItem.Link<CreateRequest>(
+            id = key,
+            state = LocalStateItem(
+                flow = stateFlow,
+                populator = { state ->
+                    val link = state.link
+                    // Do not modify the state if the
+                    // link does not exist.
+                        ?: return@LocalStateItem this
+                    val newLinks = canonicalizeCipherLinkIds(
+                        (links + link)
+                            .map(DSecret.Link::remoteCipherId),
+                    )
+                        .map(DSecret::Link)
+                        .toPersistentList()
+                    copy(links = newLinks)
+                },
+            ),
+        )
+    }
+}
+
 class AddStateItemPasskeyFactory(
 ) : Foo2Factory<AddStateItem.Passkey<*>, DSecret.Login.Fido2Credentials> {
     @kotlinx.serialization.Serializable
@@ -1637,8 +1802,6 @@ abstract class AddStateItemFieldFactory : Foo2Factory<AddStateItem.Field<*>, DSe
 
 class AddStateItemFieldTextFactory(
     private val defaultConcealed: Boolean = false,
-    private val accountIdFlow: Flow<String?>,
-    private val excludedCipherId: String?,
 ) : AddStateItemFieldFactory() {
     override val type: String = if (defaultConcealed) {
         "field.text_concealed"
@@ -1701,64 +1864,40 @@ class AddStateItemFieldTextFactory(
                 ?: defaultConcealed
         }
 
-        val actionsFlow = combine(
-            concealSink,
-            accountIdFlow,
-        ) { conceal, accountId ->
-            val concealItem = FlatItemAction(
-                id = "addItem.field.concealValue",
-                leading = {
-                    val imageVector = if (conceal) {
-                        Icons.Outlined.VisibilityOff
-                    } else {
-                        Icons.Outlined.Visibility
-                    }
-                    Crossfade(targetState = imageVector) { iv ->
-                        IconBox(
-                            main = iv,
-                        )
-                    }
-                },
-                title = TextHolder.Res(Res.string.conceal_value),
-                trailing = {
-                    Checkbox(
-                        checked = conceal,
-                        onCheckedChange = null,
-                    )
-                },
-                onClick = {
-                    concealSink.value = !conceal
-                },
-            )
-
-            buildContextItems {
-                if (!conceal && accountId != null) {
-                    this += FlatItemAction(
-                        id = "addItem.field.linkCipher",
-                        leading = icon(Icons.Outlined.Link),
-                        title = TextHolder.Res(Res.string.cipher_link_picker_action),
-                        trailing = {
-                            ChevronIcon()
-                        },
-                        onClick = {
-                            val pickerRoute = CipherLinkPickerRoute(
-                                args = CipherLinkPickerRoute.Args(
-                                    accountId = accountId,
-                                    excludedCipherId = excludedCipherId,
-                                ),
+        val actionsConcealItemFlow = concealSink
+            .map { conceal ->
+                FlatItemAction(
+                    id = "addItem.field.concealValue",
+                    leading = {
+                        val imageVector = if (conceal) {
+                            Icons.Outlined.VisibilityOff
+                        } else {
+                            Icons.Outlined.Visibility
+                        }
+                        Crossfade(targetState = imageVector) { iv ->
+                            IconBox(
+                                main = iv,
                             )
-                            val route = registerRouteResultReceiver(pickerRoute) { result ->
-                                if (result is CipherLinkPickerResult.Confirm) {
-                                    textHandle.setText(result.link.toString())
-                                }
-                            }
-                            navigate(NavigationIntent.NavigateToRoute(route))
-                        },
-                    )
-                }
-                this += concealItem
+                        }
+                    },
+                    title = TextHolder.Res(Res.string.conceal_value),
+                    trailing = {
+                        Checkbox(
+                            checked = conceal,
+                            onCheckedChange = null,
+                        )
+                    },
+                    onClick = {
+                        concealSink.value = !conceal
+                    },
+                )
             }
-        }
+        val actionsFlow = actionsConcealItemFlow
+            .map { concealItem ->
+                buildContextItems {
+                    this += concealItem
+                }
+            }
 
         val stateFlow = combine(
             labelFlow,
@@ -2055,6 +2194,61 @@ interface FieldBakeryScope<Argument> {
     fun delete(key: String)
 
     fun add(type: String, arg: Argument?)
+}
+
+/**
+ * Unlike the other lists, a link can not start out empty: the user has to
+ * pick the cipher to link to first, so the add item opens the picker
+ * instead of appending a blank entry.
+ */
+private fun FieldBakeryScope<DSecret.Link>.cipherLinkAddItem(
+    scope: RememberStateFlowScope,
+    accountIdFlow: Flow<String?>,
+    excludedCipherId: String?,
+): Flow<List<AddStateItem>> {
+    val bakery = this
+    return accountIdFlow
+        .map { accountId ->
+            if (accountId == null) {
+                return@map emptyList() // hide add item
+            }
+
+            val actions = buildContextItems {
+                this += FlatItemAction(
+                    id = "addItem.link.add",
+                    leading = icon(Icons.Outlined.Link),
+                    title = TextHolder.Res(Res.string.cipher_link_picker_action),
+                    onClick = {
+                        val pickerRoute = CipherLinkPickerRoute(
+                            args = CipherLinkPickerRoute.Args(
+                                accountId = accountId,
+                                excludedCipherId = excludedCipherId,
+                            ),
+                        )
+                        val route = with(scope) {
+                            registerRouteResultReceiver(pickerRoute) { result ->
+                                if (result is CipherLinkPickerResult.Confirm) {
+                                    bakery.add(
+                                        type = "link",
+                                        arg = DSecret.Link(
+                                            remoteCipherId = result.link.remoteCipherId,
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+                        scope.navigate(NavigationIntent.NavigateToRoute(route))
+                    },
+                )
+            }
+            listOf(
+                AddStateItem.Add(
+                    id = "link.add",
+                    text = scope.translate(Res.string.list_add),
+                    actions = actions,
+                ),
+            )
+        }
 }
 
 private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(

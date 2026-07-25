@@ -60,6 +60,7 @@ data class DSecret(
     val ignoredAlerts: Map<DWatchtowerAlertType, Instant> = emptyMap(),
     val tags: List<String> = emptyList(),
     val uris: List<Uri> = emptyList(),
+    val links: List<Link> = emptyList(),
     val fields: List<Field> = emptyList(),
     val attachments: List<Attachment> = emptyList(),
     val passwordHistory: List<Login.PasswordHistory> = emptyList(),
@@ -311,6 +312,17 @@ data class DSecret(
                 val default = Domain
             }
         }
+    }
+
+    /**
+     * A link to another cipher of the same account, see
+     * [com.artemchep.keyguard.common.service.cipherlink.CipherLink].
+     */
+    @optics
+    data class Link(
+        val remoteCipherId: String,
+    ) {
+        companion object;
     }
 
     //

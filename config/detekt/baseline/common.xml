@@ -359,6 +359,7 @@
     <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun FieldTextField</ID>
     <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun FieldTextTag</ID>
     <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun GpgKeyField</ID>
+    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun LinkField</ID>
     <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun NoteTextField</ID>
     <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun PasskeyField</ID>
     <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun SectionItem</ID>

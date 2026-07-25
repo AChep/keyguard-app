@@ -1952,7 +1952,6 @@
     <string name="cipher_links_outgoing_title">Linked items</string>
     <string name="cipher_links_incoming_title">Referenced by</string>
     <string name="cipher_link_unavailable_title">Item unavailable</string>
-    <string name="cipher_link_default_label">Linked item</string>
     <string name="cipher_link_picker_title">Select linked item</string>
     <string name="cipher_link_picker_action">Link to an item</string>
 

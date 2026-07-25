@@ -107,6 +107,17 @@ sealed interface VaultViewItem {
         override fun withShape(shape: Int) = copy(shapeState = shape)
     }
 
+    data class Link(
+        override val id: String,
+        val presentation: VaultItemPresentation?,
+        val shapeState: Int = ShapeState.ALL,
+        val onClick: (() -> Unit)? = null,
+    ) : VaultViewItem, Groupable<Link> {
+        companion object;
+
+        override fun withShape(shape: Int) = copy(shapeState = shape)
+    }
+
     data class Value(
         override val id: String,
         val elevation: Dp = 0.dp,

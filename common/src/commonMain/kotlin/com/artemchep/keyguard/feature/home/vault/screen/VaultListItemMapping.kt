@@ -22,8 +22,10 @@ import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
 import com.artemchep.keyguard.feature.home.vault.component.VaultViewTotpBadge
 import com.artemchep.keyguard.feature.home.vault.component.obscureCardNumber
+import com.artemchep.keyguard.feature.home.vault.model.DefaultVaultItemPresentation
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
@@ -53,50 +55,30 @@ suspend fun DSecret.toVaultListItem(
         VaultItem2.Item.LocalStateSource.PerItem(requireNotNull(localStateFlow)),
 ): VaultItem2.Item {
     val cf = concealFields || reprompt
-    val d = when (type) {
+    val actions = when (type) {
         DSecret.Type.Login ->
-            createLogin(
+            createLoginActions(
                 copy = copy,
-                translator = translator,
                 getTotpCode = getTotpCode,
                 concealFields = cf,
             )
 
         DSecret.Type.Card ->
-            createCard(
+            createCardActions(
                 copy = copy,
-                translator = translator,
                 concealFields = cf,
             )
 
         DSecret.Type.Identity ->
-            createIdentity(
+            createIdentityActions(
                 copy = copy,
-                translator = translator,
                 concealFields = cf,
             )
 
-        DSecret.Type.SecureNote ->
-            createNote(
-                copy = copy,
-                translator = translator,
-                concealFields = cf,
-            )
-
-        DSecret.Type.SshKey ->
-            createSshKey(
-                copy = copy,
-                translator = translator,
-                concealFields = cf,
-            )
-
-        DSecret.Type.GpgKey ->
-            createGpgKey()
-
-        else -> createUnknown()
+        else -> emptyList()
     }
 
-    val icon = toVaultItemIcon(
+    val presentation = toVaultItemPresentation(
         appIcons = appIcons,
         websiteIcons = websiteIcons,
     )
@@ -166,16 +148,44 @@ suspend fun DSecret.toVaultListItem(
         password = DSecret.login.notNull.password.getOrNull(this),
         passwordRevisionDate = DSecret.login.notNull.passwordRevisionDate.getOrNull(this),
         score = DSecret.login.notNull.passwordStrength.getOrNull(this),
-        icon = icon,
+        icon = presentation.icon,
         type = type.name,
         folderId = folderId,
         favourite = favorite,
         attachments = attachments.isNotEmpty(),
-        title = AnnotatedString(name.trim()),
-        text = d.text.trim(),
-        action = onClick(d.actions),
+        title = presentation.title,
+        text = presentation.text,
+        action = onClick(actions),
         localStateSource = localStateSource,
     )
+}
+
+fun DSecret.toVaultItemPresentation(
+    appIcons: Boolean,
+    websiteIcons: Boolean,
+): VaultItemPresentation = DefaultVaultItemPresentation(
+    source = this,
+    icon = toVaultItemIcon(
+        appIcons = appIcons,
+        websiteIcons = websiteIcons,
+    ),
+    title = AnnotatedString(name.trim()),
+    text = vaultItemText().trim(),
+)
+
+private fun DSecret.vaultItemText(): String = when (type) {
+    DSecret.Type.Login ->
+        login?.username
+            ?: login?.fido2Credentials
+                ?.firstNotNullOfOrNull { it.userDisplayName }
+            ?: ""
+
+    DSecret.Type.Card -> obscureCardNumber(card?.number.orEmpty())
+    DSecret.Type.Identity -> identity?.firstName.orEmpty()
+    DSecret.Type.SecureNote -> if (reprompt) concealedText() else notes
+    DSecret.Type.SshKey -> sshKey?.fingerprint.orEmpty()
+    DSecret.Type.GpgKey -> gpgKey?.fingerprint.orEmpty()
+    DSecret.Type.None -> ""
 }
 
 fun DSecret.toVaultItemIcon(
@@ -242,18 +252,12 @@ fun DSecret.toVaultItemIcon(
     websiteIcon ?: appIcon ?: fallbackIcon
 }
 
-private data class TypeSpecific(
-    val text: String,
-    val actions: List<FlatItemAction> = emptyList(),
-)
-
-private suspend fun DSecret.createLogin(
+private suspend fun DSecret.createLoginActions(
     copy: CopyText,
-    translator: TranslatorScope,
     getTotpCode: GetTotpCode,
     concealFields: Boolean,
-): TypeSpecific {
-    val actions = listOfNotNull(
+): List<FlatItemAction> =
+    listOfNotNull(
         copy.FlatItemAction(
             title = Res.string.copy_username.wrap(),
             value = login?.username,
@@ -292,21 +296,12 @@ private suspend fun DSecret.createLogin(
             )
         },
     )
-    return TypeSpecific(
-        text = login?.username
-            ?: login?.fido2Credentials
-                ?.firstNotNullOfOrNull { it.userDisplayName }
-            ?: "",
-        actions = actions,
-    )
-}
 
-private fun DSecret.createCard(
+private fun DSecret.createCardActions(
     copy: CopyText,
-    translator: TranslatorScope,
     concealFields: Boolean,
-): TypeSpecific {
-    val actions = listOfNotNull(
+): List<FlatItemAction> =
+    listOfNotNull(
         copy.FlatItemAction(
             title = Res.string.copy_card_number.wrap(),
             value = card?.number,
@@ -318,22 +313,12 @@ private fun DSecret.createCard(
             hidden = concealFields,
         ),
     )
-    val text = kotlin.run {
-        val textRaw = card?.number.orEmpty()
-        obscureCardNumber(textRaw)
-    }
-    return TypeSpecific(
-        text = text,
-        actions = actions,
-    )
-}
 
-private fun DSecret.createIdentity(
+private fun DSecret.createIdentityActions(
     copy: CopyText,
-    translator: TranslatorScope,
     concealFields: Boolean,
-): TypeSpecific {
-    val actions = listOfNotNull(
+): List<FlatItemAction> =
+    listOfNotNull(
         copy.FlatItemAction(
             title = Res.string.copy_phone_number.wrap(),
             value = identity?.phone,
@@ -353,48 +338,3 @@ private fun DSecret.createIdentity(
             hidden = concealFields,
         ),
     )
-    val text = identity?.firstName.orEmpty()
-    return TypeSpecific(
-        text = text,
-        actions = actions,
-    )
-}
-
-private fun DSecret.createNote(
-    copy: CopyText,
-    translator: TranslatorScope,
-    concealFields: Boolean,
-): TypeSpecific {
-    val text = if (reprompt) {
-        concealedText()
-    } else {
-        notes
-    }
-    return TypeSpecific(
-        text = text,
-    )
-}
-
-private fun DSecret.createSshKey(
-    copy: CopyText,
-    translator: TranslatorScope,
-    concealFields: Boolean,
-): TypeSpecific {
-    val text = sshKey?.fingerprint.orEmpty()
-    return TypeSpecific(
-        text = text,
-    )
-}
-
-private fun DSecret.createGpgKey(): TypeSpecific {
-    val text = gpgKey?.fingerprint.orEmpty()
-    return TypeSpecific(
-        text = text,
-    )
-}
-
-private fun DSecret.createUnknown(): TypeSpecific {
-    return TypeSpecific(
-        text = "",
-    )
-}

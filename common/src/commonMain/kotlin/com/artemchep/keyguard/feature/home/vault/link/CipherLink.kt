@@ -1,114 +1,94 @@
 package com.artemchep.keyguard.feature.home.vault.link
 
 import com.artemchep.keyguard.common.model.DSecret
-import kotlin.uuid.Uuid
+import com.artemchep.keyguard.common.service.cipherlink.CipherLink
+import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinks
 
-class CipherLink private constructor(
-    val remoteCipherId: String,
-) {
-    override fun toString(): String = "$SCHEME_PREFIX$remoteCipherId"
-
-    companion object {
-        const val SCHEME_PREFIX = "keyguard://cipher/"
-
-        fun of(remoteCipherId: String): CipherLink? = kotlin.runCatching {
-            CipherLink(Uuid.parse(remoteCipherId).toString())
-        }.getOrNull()
-
-        fun parse(value: String?): CipherLink? {
-            val normalizedValue = value?.trim().orEmpty()
-            if (!normalizedValue.startsWith(SCHEME_PREFIX)) {
-                return null
-            }
-            val remoteCipherId = normalizedValue.removePrefix(SCHEME_PREFIX)
-            if (
-                remoteCipherId.isEmpty() ||
-                remoteCipherId.any { it == '/' || it == '?' || it == '#' }
-            ) {
-                return null
-            }
-            return of(remoteCipherId)
-        }
-    }
-}
-
-data class CipherRelation(
-    val fieldIndex: Int,
-    val label: String,
+data class CipherLinkTarget(
     val link: CipherLink,
-    val cipher: DSecret?,
+    val cipher: DSecret,
 )
 
 data class CipherRelations(
-    val outgoing: List<CipherRelation>,
-    val incoming: List<CipherRelation>,
+    /**
+     * Targets linked by this cipher, with `null` placeholders for links that
+     * can not be resolved.
+     */
+    val outgoingTargets: List<DSecret?>,
+    /**
+     * Ciphers of the same account that link to this one. Such a cipher is
+     * always resolved, otherwise we would not know about the relation, and
+     * appears once no matter how many times it links here.
+     */
+    val incomingSources: List<DSecret>,
 )
+
+/**
+ * Returns the ciphers of the given account that a link may point at, keyed by
+ * the canonical remote id of a [CipherLink]. A cipher that sits in the trash,
+ * belongs to another account, or was never synced can not be a target.
+ */
+fun cipherLinkTargetsByRemoteId(
+    ciphers: List<DSecret>,
+    accountId: String?,
+    excludedCipherId: String? = null,
+): Map<String, CipherLinkTarget> = ciphers
+    .asSequence()
+    .filter { cipher ->
+        cipher.accountId == accountId &&
+                cipher.id != excludedCipherId &&
+                cipher.deletedDate == null
+    }
+    .mapNotNull { cipher ->
+        val link = cipher.service.remote?.id
+            ?.let(CipherLink::of)
+            ?: return@mapNotNull null
+        CipherLinkTarget(
+            link = link,
+            cipher = cipher,
+        )
+    }
+    .associateBy { target -> target.link.remoteCipherId }
 
 fun resolveCipherRelations(
     cipher: DSecret,
     ciphers: List<DSecret>,
 ): CipherRelations {
+    // Both a target and a source must be a live cipher of the same account,
+    // and neither of them may be the cipher itself.
     val accountCiphers = ciphers
-        .asSequence()
-        .filter { it.accountId == cipher.accountId && it.deletedDate == null }
-        .toList()
-    val targetsByRemoteId = accountCiphers
-        .asSequence()
-        .filter { it.id != cipher.id }
-        .mapNotNull { target ->
-            target.service.remote?.id
-                ?.let(CipherLink::of)
-                ?.remoteCipherId
-                ?.let { it to target }
+        .filter { candidate ->
+            candidate.accountId == cipher.accountId &&
+                    candidate.id != cipher.id &&
+                    candidate.deletedDate == null
         }
-        .toMap()
+    val targetsByRemoteId = cipherLinkTargetsByRemoteId(
+        ciphers = accountCiphers,
+        accountId = cipher.accountId,
+    )
 
-    val outgoing = cipher.fields.mapIndexedNotNull { fieldIndex, field ->
-        if (field.type != DSecret.Field.Type.Text) {
-            return@mapIndexedNotNull null
-        }
-        val link = CipherLink.parse(field.value)
-            ?: return@mapIndexedNotNull null
-        CipherRelation(
-            fieldIndex = fieldIndex,
-            label = field.name.orEmpty(),
-            link = link,
-            cipher = targetsByRemoteId[link.remoteCipherId],
-        )
+    val outgoingTargets = canonicalizeCipherLinks(
+        cipher.links.map(DSecret.Link::remoteCipherId),
+    ).map { link ->
+        targetsByRemoteId[link.remoteCipherId]?.cipher
     }
 
     val currentRemoteId = cipher.service.remote?.id
         ?.let(CipherLink::of)
         ?.remoteCipherId
-    val incoming = if (currentRemoteId == null) {
+    val incomingSources = if (currentRemoteId == null) {
         emptyList()
     } else {
         accountCiphers
-            .asSequence()
-            .filter { it.id != cipher.id }
-            .flatMap { source ->
-                source.fields
-                    .asSequence()
-                    .mapIndexedNotNull { fieldIndex, field ->
-                        if (field.type != DSecret.Field.Type.Text) {
-                            return@mapIndexedNotNull null
-                        }
-                        val link = CipherLink.parse(field.value)
-                            ?.takeIf { it.remoteCipherId == currentRemoteId }
-                            ?: return@mapIndexedNotNull null
-                        CipherRelation(
-                            fieldIndex = fieldIndex,
-                            label = field.name.orEmpty(),
-                            link = link,
-                            cipher = source,
-                        )
-                    }
+            .filter { source ->
+                source.links.any { link ->
+                    CipherLink.of(link.remoteCipherId)?.remoteCipherId == currentRemoteId
+                }
             }
-            .toList()
     }
 
     return CipherRelations(
-        outgoing = outgoing,
-        incoming = incoming,
+        outgoingTargets = outgoingTargets,
+        incomingSources = incomingSources,
     )
 }

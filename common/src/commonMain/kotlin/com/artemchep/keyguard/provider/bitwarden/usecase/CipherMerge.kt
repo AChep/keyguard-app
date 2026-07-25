@@ -20,6 +20,7 @@ import com.artemchep.keyguard.common.model.gpgKey
 import com.artemchep.keyguard.common.model.identity
 import com.artemchep.keyguard.common.model.lastName
 import com.artemchep.keyguard.common.model.licenseNumber
+import com.artemchep.keyguard.common.model.links
 import com.artemchep.keyguard.common.model.login
 import com.artemchep.keyguard.common.model.metadata
 import com.artemchep.keyguard.common.model.middleName
@@ -42,6 +43,7 @@ import com.artemchep.keyguard.common.model.totp
 import com.artemchep.keyguard.common.model.type
 import com.artemchep.keyguard.common.model.uris
 import com.artemchep.keyguard.common.model.username
+import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
 import com.artemchep.keyguard.common.usecase.CipherMerge
 import org.kodein.di.DirectDI
 
@@ -79,6 +81,10 @@ class CipherMergeImpl() : CipherMerge {
             Node.Leaf(
                 lens = DSecret.attachments,
                 strategy = PickAttachmentStrategy(),
+            ),
+            Node.Leaf(
+                lens = DSecret.links,
+                strategy = PickLinkStrategy(),
             ),
             Node.Leaf(
                 lens = DSecret.tags,
@@ -213,6 +219,16 @@ class CipherMergeImpl() : CipherMerge {
         override fun pick(
             list: List<List<DSecret.Attachment>>,
         ): List<DSecret.Attachment> = emptyList()
+    }
+
+    private class PickLinkStrategy : PickStrategy<List<DSecret.Link>> {
+        override fun pick(
+            list: List<List<DSecret.Link>>,
+        ): List<DSecret.Link> = canonicalizeCipherLinkIds(
+            list
+                .flatten()
+                .map(DSecret.Link::remoteCipherId),
+        ).map(DSecret::Link)
     }
 
     private class PickTagStrategy : PickStrategy<List<String>> {

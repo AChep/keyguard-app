@@ -14,6 +14,7 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.home.vault.add.GpgKeyDecor2Brr
 import com.artemchep.keyguard.feature.home.vault.add.KeyPairDecor2Brr
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -177,6 +178,27 @@ sealed interface AddStateItem {
                 options = options,
             )
         }
+    }
+
+    data class Link<Request>(
+        override val id: String,
+        override val options: ImmutableList<ContextItem> = persistentListOf(),
+        override val state: LocalStateItem<State, Request>,
+    ) : AddStateItem, HasOptions<Link<*>>, HasState<Link.State, Request> {
+        override fun withOptions(
+            options: ImmutableList<ContextItem>,
+        ) = copy(
+            options = options,
+        )
+
+        data class State(
+            val link: DSecret.Link? = null,
+            /**
+             * Presentation of the cipher the link points to, `null` if it
+             * can not be resolved.
+             */
+            val presentation: VaultItemPresentation? = null,
+        )
     }
 
     data class Field<Request>(

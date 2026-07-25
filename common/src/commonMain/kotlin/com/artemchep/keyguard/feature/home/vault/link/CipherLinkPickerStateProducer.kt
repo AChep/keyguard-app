@@ -2,17 +2,21 @@ package com.artemchep.keyguard.feature.home.vault.link
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
-import com.artemchep.keyguard.feature.home.vault.screen.toVaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.screen.toVaultItemPresentation
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -47,39 +51,29 @@ fun produceCipherLinkPickerState(
         key = "query",
         initial = "",
     )
-    val typeTitles = DSecret.Type.entries
-        .associateWith { type -> translate(type.titleH()) }
-
+    val candidatesFlow = createCipherLinkPickerTargetsFlow(
+        ciphersFlow = getCiphers(),
+        accountId = args.accountId,
+        excludedCipherId = args.excludedCipherId,
+        sharingScope = screenScope,
+    )
     combine(
-        getCiphers(),
+        candidatesFlow,
         queryHandle.sink,
         getAppIcons(),
         getWebsiteIcons(),
-    ) { ciphers, queryCell, appIcons, websiteIcons ->
-        val query = queryCell.text.trim()
-        val items = filterCipherLinkPickerCiphers(
-            ciphers = ciphers,
-            accountId = args.accountId,
-            excludedCipherId = args.excludedCipherId,
-            query = query,
+    ) { candidates, queryCell, appIcons, websiteIcons ->
+        val items = filterCipherLinkPickerTargets(
+            targets = candidates,
+            query = queryCell.text,
         )
             .asSequence()
-            .map { cipher ->
-                val link = requireNotNull(
-                    cipher.service.remote?.id?.let(CipherLink::of),
-                )
-                CipherLinkPickerState.Item(
-                    id = cipher.id,
-                    title = cipher.name,
-                    text = cipher.login?.username
-                        ?.takeIf { it.isNotBlank() }
-                        ?: typeTitles.getValue(cipher.type),
-                    icon = cipher.toVaultItemIcon(
-                        appIcons = appIcons,
-                        websiteIcons = websiteIcons,
-                    ),
+            .map { target ->
+                target.cipher.toCipherLinkPickerItem(
+                    appIcons = appIcons,
+                    websiteIcons = websiteIcons,
                     onClick = {
-                        transmitter(CipherLinkPickerResult.Confirm(link))
+                        transmitter(CipherLinkPickerResult.Confirm(target.link))
                         navigatePopSelf()
                     },
                 )
@@ -102,29 +96,58 @@ fun produceCipherLinkPickerState(
     }
 }
 
-internal fun filterCipherLinkPickerCiphers(
-    ciphers: List<DSecret>,
-    accountId: String,
-    excludedCipherId: String?,
+internal fun DSecret.toCipherLinkPickerItem(
+    appIcons: Boolean,
+    websiteIcons: Boolean,
+    onClick: () -> Unit,
+) = CipherLinkPickerState.Item(
+    presentation = toVaultItemPresentation(
+        appIcons = appIcons,
+        websiteIcons = websiteIcons,
+    ),
+    onClick = onClick,
+)
+
+internal fun filterCipherLinkPickerTargets(
+    targets: Collection<CipherLinkTarget>,
     query: String,
-): List<DSecret> = ciphers
+): List<CipherLinkTarget> {
+    val normalizedQuery = query.trim()
+    return targets
     .asSequence()
-    .filter { cipher ->
-        cipher.accountId == accountId &&
-                cipher.id != excludedCipherId &&
-                cipher.deletedDate == null &&
-                cipher.service.remote?.id?.let(CipherLink::of) != null
-    }
-    .filter { cipher ->
-        query.isBlank() || cipher.matchesCipherLinkPickerQuery(query.trim())
+    .filter { target ->
+        normalizedQuery.isEmpty() ||
+                target.cipher.matchesCipherLinkPickerQuery(normalizedQuery)
     }
     .sortedWith(
-        compareBy<DSecret> { it.name.lowercase() }
-            .thenBy { it.id },
+        compareBy<CipherLinkTarget> { it.cipher.name.lowercase() }
+            .thenBy { it.cipher.id },
     )
     .toList()
+}
+
+internal fun createCipherLinkPickerTargetsFlow(
+    ciphersFlow: Flow<List<DSecret>>,
+    accountId: String,
+    excludedCipherId: String?,
+    sharingScope: CoroutineScope,
+): Flow<List<CipherLinkTarget>> = ciphersFlow
+    .map { ciphers ->
+        cipherLinkTargetsByRemoteId(
+            ciphers = ciphers,
+            accountId = accountId,
+            excludedCipherId = excludedCipherId,
+        ).values.toList()
+    }
+    .shareIn(
+        scope = sharingScope,
+        started = SharingStarted.WhileSubscribed(SHARING_STOP_TIMEOUT_MS),
+        replay = 1,
+    )
 
 private fun DSecret.matchesCipherLinkPickerQuery(query: String): Boolean =
     name.contains(query, ignoreCase = true) ||
             login?.username?.contains(query, ignoreCase = true) == true ||
             uris.any { it.uri.contains(query, ignoreCase = true) }
+
+private const val SHARING_STOP_TIMEOUT_MS = 5_000L

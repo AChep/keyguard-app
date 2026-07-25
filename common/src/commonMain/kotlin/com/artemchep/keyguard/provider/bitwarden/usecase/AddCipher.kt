@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.model.create.CreateRequest
+import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.text.Base64Service
@@ -509,6 +510,11 @@ private suspend fun BitwardenCipher.Companion.of(
             )
         }
 
+    val links = canonicalizeCipherLinkIds(
+        request.links.map(DSecret.Link::remoteCipherId),
+    )
+        .map(BitwardenCipher::Link)
+
     val tags = request.tags
         .filter { it.isNotBlank() }
         .map { tag ->
@@ -718,6 +724,7 @@ private suspend fun BitwardenCipher.Companion.of(
         customIcon = customIcon,
         favorite = favourite,
         fields = fields,
+        links = links,
         tags = tags,
         attachments = attachments,
         reprompt = reprompt,

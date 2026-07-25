@@ -60,6 +60,7 @@ data class BitwardenCipher(
     val ignoredAlerts: Map<IgnoreAlertType, IgnoreAlertData> = emptyMap(),
     val tags: List<Tag> = emptyList(),
     val fields: List<Field> = emptyList(),
+    val links: List<Link> = emptyList(),
     val attachments: List<Attachment> = emptyList(),
     val sourceData: CipherSourceData? = null,
     /**
@@ -132,6 +133,18 @@ data class BitwardenCipher(
     data class Tag(
         val name: String,
     )
+
+    /**
+     * A link to another cipher of the same account. Encoded into the
+     * custom fields when the cipher leaves the app, see
+     * [com.artemchep.keyguard.common.service.cipherlink.CipherLinkFields].
+     */
+    @Serializable
+    data class Link(
+        val remoteCipherId: String,
+    ) {
+        companion object
+    }
 
     @Serializable
     data class Field(
@@ -405,6 +418,10 @@ fun BitwardenCipher.Companion.getMergeRules() = kotlin.run {
             DiffFinderNode.Leaf(BitwardenCipher.reprompt),
             DiffFinderNode.Leaf(
                 lens = BitwardenCipher.fields,
+                finder = DiffApplierByListValue(),
+            ),
+            DiffFinderNode.Leaf(
+                lens = BitwardenCipher.links,
                 finder = DiffApplierByListValue(),
             ),
             DiffFinderNode.Leaf(

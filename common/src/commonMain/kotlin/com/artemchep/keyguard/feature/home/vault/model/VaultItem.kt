@@ -25,6 +25,26 @@ import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 @Immutable
+interface VaultItemPresentation {
+    val source: DSecret
+    val accentLight: Color get() = source.accentLight
+    val accentDark: Color get() = source.accentDark
+    val icon: VaultItemIcon
+    val title: AnnotatedString
+    val text: String?
+    val favourite: Boolean get() = source.favorite
+    val attachments: Boolean get() = source.attachments.isNotEmpty()
+}
+
+@Immutable
+data class DefaultVaultItemPresentation(
+    override val source: DSecret,
+    override val icon: VaultItemIcon,
+    override val title: AnnotatedString,
+    override val text: String?,
+) : VaultItemPresentation
+
+@Immutable
 @optics
 sealed interface VaultItem2 {
     companion object
@@ -93,10 +113,10 @@ sealed interface VaultItem2 {
     @Immutable
     data class Item(
         override val id: String,
-        val source: DSecret,
+        override val source: DSecret,
         val interactionId: String = source.id,
-        val accentLight: Color,
-        val accentDark: Color,
+        override val accentLight: Color,
+        override val accentDark: Color,
         val tag: String? = source.accountId,
         val accountId: String,
         val groupId: String?,
@@ -107,7 +127,7 @@ sealed interface VaultItem2 {
         val score: PasswordStrength?,
         val type: String,
         val folderId: String?,
-        val icon: VaultItemIcon,
+        override val icon: VaultItemIcon,
         val feature: Feature,
         val copyText: CopyText,
         val token: TotpToken?,
@@ -117,16 +137,16 @@ sealed interface VaultItem2 {
         /**
          * The name of the item.
          */
-        val title: AnnotatedString,
-        val text: String?,
+        override val title: AnnotatedString,
+        override val text: String?,
         val searchContextBadge: SearchContextBadge? = null,
-        val favourite: Boolean,
-        val attachments: Boolean,
+        override val favourite: Boolean,
+        override val attachments: Boolean,
         val shapeState: Int = ShapeState.ALL,
         //
         val action: Action,
         val localStateSource: LocalStateSource,
-    ) : VaultItem2, GroupableShapeItem<Item> {
+    ) : VaultItem2, GroupableShapeItem<Item>, VaultItemPresentation {
         companion object;
 
         override val contentType: String get() = "item"

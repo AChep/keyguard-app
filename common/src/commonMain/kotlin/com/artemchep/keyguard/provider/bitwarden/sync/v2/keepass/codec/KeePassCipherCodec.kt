@@ -105,6 +105,7 @@ class KeePassCipherCodec(
     private val identityCodec = KeePassIdentityCodec()
     private val sshKeyCodec = KeePassSshKeyCodec()
     private val gpgKeyCodec = KeePassGpgKeyCodec()
+    private val cipherLinkCodec = KeePassCipherLinkCodec()
 
     companion object {
         private const val KEYGUARD_PREFIX = "Keyguard: "
@@ -208,6 +209,7 @@ class KeePassCipherCodec(
         if (local.gpgKey != null) {
             gpgKeyCodec.encode(local.gpgKey).forEach { scope.setValue(it.key, it.value) }
         }
+        cipherLinkCodec.encode(local.links).forEach { scope.setValue(it.key, it.value) }
 
         local.fields.forEach { field ->
             fun putTextField(key: String?, value: String?, concealed: Boolean) {
@@ -370,6 +372,10 @@ class KeePassCipherCodec(
         if (type == BitwardenCipher.Type.SecureNote && gpgKeyCodec.detects(remote)) {
             gpgKey = gpgKeyCodec.decode(scope)
         }
+        val links = cipherLinkCodec.decode(
+            scope = scope,
+            remote = remote,
+        )
 
         val name = scope.consumeFieldAndReturnContent(BasicField.Title())
         val notes = scope.consumeFieldAndReturnContent(BasicField.Notes())
@@ -527,6 +533,7 @@ class KeePassCipherCodec(
                 resolver = gpgKeyMetadataResolver,
             ),
             fields = customFields,
+            links = links,
             sourceData = CipherSourceData(
                 providerId = CipherSourceProviderIds.KEEPASS,
                 bindings = sourceBindings,

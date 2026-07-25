@@ -1,13 +1,25 @@
 package com.artemchep.keyguard.feature.home.vault.link
 
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.service.cipherlink.CipherLink
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import kotlin.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class CipherLinkTest {
     @Test
     fun `formats a canonical cipher link`() {
@@ -55,17 +67,16 @@ class CipherLinkTest {
         val current = cipher(
             localId = "current-local",
             remoteId = CURRENT_REMOTE_ID,
+            links = listOf(
+                DSecret.Link(TARGET_REMOTE_ID),
+                DSecret.Link(MISSING_REMOTE_ID),
+            ),
             fields = listOf(
-                textField("Sign in with Google", TARGET_REMOTE_ID),
-                textField("Missing item", MISSING_REMOTE_ID),
+                // A custom field that merely holds a link uri is not a
+                // link, only the reserved fields are.
                 DSecret.Field(
-                    name = "Hidden link",
+                    name = "Ordinary link",
                     value = requireNotNull(CipherLink.of(TARGET_REMOTE_ID)).toString(),
-                    type = DSecret.Field.Type.Hidden,
-                ),
-                DSecret.Field(
-                    name = "Ordinary UUID",
-                    value = TARGET_REMOTE_ID,
                     type = DSecret.Field.Type.Text,
                 ),
             ),
@@ -73,10 +84,30 @@ class CipherLinkTest {
 
         val relations = resolveCipherRelations(current, listOf(current, target))
 
-        assertEquals(2, relations.outgoing.size)
-        assertSame(target, relations.outgoing[0].cipher)
-        assertNull(relations.outgoing[1].cipher)
-        assertEquals(listOf(0, 1), relations.outgoing.map { it.fieldIndex })
+        assertEquals(2, relations.outgoingTargets.size)
+        assertSame(target, relations.outgoingTargets[0])
+        assertNull(relations.outgoingTargets[1])
+    }
+
+    @Test
+    fun `collapses duplicate links to the same target`() {
+        val target = cipher(
+            localId = "target-local",
+            remoteId = TARGET_REMOTE_ID,
+        )
+        val current = cipher(
+            localId = "current-local",
+            remoteId = CURRENT_REMOTE_ID,
+            links = listOf(
+                DSecret.Link(TARGET_REMOTE_ID),
+                DSecret.Link(TARGET_REMOTE_ID),
+            ),
+        )
+
+        val relations = resolveCipherRelations(current, listOf(current, target))
+
+        assertEquals(1, relations.outgoingTargets.size)
+        assertSame(target, relations.outgoingTargets.single())
     }
 
     @Test
@@ -88,18 +119,18 @@ class CipherLinkTest {
         val source = cipher(
             localId = "source-local",
             remoteId = SOURCE_REMOTE_ID,
-            fields = listOf(textField("Uses account", CURRENT_REMOTE_ID)),
+            links = listOf(DSecret.Link(CURRENT_REMOTE_ID)),
         )
         val crossAccountSource = cipher(
             localId = "cross-account-local",
             remoteId = CROSS_ACCOUNT_REMOTE_ID,
             accountId = "other-account",
-            fields = listOf(textField("Cross-account", CURRENT_REMOTE_ID)),
+            links = listOf(DSecret.Link(CURRENT_REMOTE_ID)),
         )
         val deletedSource = cipher(
             localId = "deleted-local",
             remoteId = DELETED_REMOTE_ID,
-            fields = listOf(textField("Deleted", CURRENT_REMOTE_ID)),
+            links = listOf(DSecret.Link(CURRENT_REMOTE_ID)),
             deletedDate = NOW,
         )
 
@@ -108,9 +139,28 @@ class CipherLinkTest {
             listOf(current, source, crossAccountSource, deletedSource),
         )
 
-        assertEquals(1, relations.incoming.size)
-        assertSame(source, relations.incoming.single().cipher)
-        assertEquals("Uses account", relations.incoming.single().label)
+        assertEquals(1, relations.incomingSources.size)
+        assertSame(source, relations.incomingSources.single())
+    }
+
+    @Test
+    fun `lists a source that links here more than once only once`() {
+        val current = cipher(
+            localId = "current-local",
+            remoteId = CURRENT_REMOTE_ID,
+        )
+        val source = cipher(
+            localId = "source-local",
+            remoteId = SOURCE_REMOTE_ID,
+            links = listOf(
+                DSecret.Link(CURRENT_REMOTE_ID),
+                DSecret.Link(CURRENT_REMOTE_ID),
+            ),
+        )
+
+        val relations = resolveCipherRelations(current, listOf(current, source))
+
+        assertEquals(listOf(source), relations.incomingSources)
     }
 
     @Test
@@ -118,14 +168,14 @@ class CipherLinkTest {
         val current = cipher(
             localId = "current-local",
             remoteId = CURRENT_REMOTE_ID,
-            fields = listOf(textField("Self", CURRENT_REMOTE_ID)),
+            links = listOf(DSecret.Link(CURRENT_REMOTE_ID)),
         )
 
         val relations = resolveCipherRelations(current, listOf(current))
 
-        assertEquals(1, relations.outgoing.size)
-        assertNull(relations.outgoing.single().cipher)
-        assertEquals(emptyList(), relations.incoming)
+        assertEquals(1, relations.outgoingTargets.size)
+        assertNull(relations.outgoingTargets.single())
+        assertEquals(emptyList(), relations.incomingSources)
     }
 
     @Test
@@ -155,21 +205,81 @@ class CipherLinkTest {
             remoteId = null,
         )
 
-        val result = filterCipherLinkPickerCiphers(
+        val targets = cipherLinkTargetsByRemoteId(
             ciphers = listOf(selectable, excluded, crossAccount, deleted, localOnly),
             accountId = "account",
             excludedCipherId = excluded.id,
-            query = "gmail",
         )
+        val result = filterCipherLinkPickerTargets(
+            targets = targets.values,
+            query = "gmail",
+        ).map(CipherLinkTarget::cipher)
 
         assertEquals(listOf(selectable), result)
     }
 
-    private fun textField(name: String, remoteId: String) = DSecret.Field(
-        name = name,
-        value = requireNotNull(CipherLink.of(remoteId)).toString(),
-        type = DSecret.Field.Type.Text,
-    )
+    @Test
+    fun `target index keeps the last cipher for a duplicate canonical remote id`() {
+        val first = cipher(
+            localId = "first",
+            remoteId = TARGET_REMOTE_ID.uppercase(),
+        )
+        val last = cipher(
+            localId = "last",
+            remoteId = TARGET_REMOTE_ID,
+        )
+
+        val targets = cipherLinkTargetsByRemoteId(
+            ciphers = listOf(first, last),
+            accountId = "account",
+        )
+
+        assertSame(last, targets.getValue(TARGET_REMOTE_ID).cipher)
+    }
+
+    @Test
+    fun `picker query changes reuse the shared candidate index`() = runTest {
+        var subscriptions = 0
+        val selectable = cipher(
+            localId = "selectable",
+            remoteId = TARGET_REMOTE_ID,
+            name = "Google account",
+            username = "user@gmail.com",
+        )
+        val targetsFlow = createCipherLinkPickerTargetsFlow(
+            ciphersFlow = flow {
+                subscriptions += 1
+                emit(listOf(selectable))
+                awaitCancellation()
+            },
+            accountId = "account",
+            excludedCipherId = null,
+            sharingScope = backgroundScope,
+        )
+        val queryFlow = MutableStateFlow("")
+        val results = mutableListOf<List<CipherLinkTarget>>()
+        val collector = backgroundScope.launch(
+            UnconfinedTestDispatcher(testScheduler),
+        ) {
+            combine(targetsFlow, queryFlow, ::filterCipherLinkPickerTargets)
+                .take(3)
+                .toList(results)
+        }
+        testScheduler.runCurrent()
+
+        queryFlow.value = "google"
+        testScheduler.runCurrent()
+        queryFlow.value = "gmail"
+        testScheduler.runCurrent()
+        collector.join()
+
+        assertEquals(1, subscriptions)
+        assertEquals(3, results.size)
+        assertEquals(
+            listOf(selectable),
+            results.last().map(CipherLinkTarget::cipher),
+        )
+    }
 
     private fun cipher(
         localId: String,
@@ -177,6 +287,7 @@ class CipherLinkTest {
         name: String = localId,
         accountId: String = "account",
         fields: List<DSecret.Field> = emptyList(),
+        links: List<DSecret.Link> = emptyList(),
         deletedDate: Instant? = null,
         username: String? = null,
     ) = DSecret(
@@ -204,6 +315,7 @@ class CipherLinkTest {
         reprompt = false,
         synced = true,
         fields = fields,
+        links = links,
         type = DSecret.Type.Login,
         login = DSecret.Login(
             username = username,

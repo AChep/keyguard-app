@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.crypto
 
+import com.artemchep.keyguard.common.service.cipherlink.CipherLinkFields
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
@@ -12,6 +13,8 @@ fun BitwardenCipher.transform(
     val sourceCipher = encodeKeePassIconCustomField(
         mode = itemCrypto.mode,
     ).encodeGpgKeyCustomFields(
+        mode = itemCrypto.mode,
+    ).encodeCipherLinkCustomFields(
         mode = itemCrypto.mode,
     )
     return sourceCipher.copy(
@@ -38,6 +41,11 @@ fun BitwardenCipher.transform(
             null
         } else {
             sourceCipher.gpgKey
+        },
+        links = if (itemCrypto.mode == BitwardenCrCta.Mode.ENCRYPT) {
+            emptyList()
+        } else {
+            sourceCipher.links
         },
     ).let { transformedCipher ->
         if (globalCrypto.mode == BitwardenCrCta.Mode.DECRYPT) {
@@ -144,6 +152,26 @@ private fun MutableList<BitwardenCipher.Field>.addGpgField(
     )
 }
 
+private fun BitwardenCipher.encodeCipherLinkCustomFields(
+    mode: BitwardenCrCta.Mode,
+): BitwardenCipher {
+    if (mode != BitwardenCrCta.Mode.ENCRYPT) return this
+    val linkFields = links.toFields()
+    // The links are auxiliary data, append them after the user's own custom fields.
+    return if (linkFields.isEmpty()) this else copy(fields = fields + linkFields)
+}
+
+private fun List<BitwardenCipher.Link>.toFields(): List<BitwardenCipher.Field> =
+    CipherLinkFields
+        .format(map(BitwardenCipher.Link::remoteCipherId))
+        .map { (name, value) ->
+            BitwardenCipher.Field(
+                name = name,
+                value = value,
+                type = BitwardenCipher.Field.Type.Text,
+            )
+        }
+
 private fun decodeEntity(
     cipher: BitwardenCipher,
 ): BitwardenCipher {
@@ -152,70 +180,109 @@ private fun decodeEntity(
                 field.name == "Tag"
     }
 
-    val fieldsWithoutTags = cipher.fields
-        .filter { !isTag(it) }
-    val tags = cipher.fields
-        .filter { isTag(it) }
+    val fields = CipherFieldDecodeScope(cipher.fields)
+    val tags = fields
+        .consumeAll(::isTag)
         .mapNotNull {
             val name = it.value
                 ?: return@mapNotNull null
             BitwardenCipher.Tag(name)
         }
-    val decodedIcon = fieldsWithoutTags.decodeKeePassIconCustomField()
+    val decodedIcon = fields.consumeFirstDecoded { field ->
+        field.decodeKeePassIconOrNull()
+    }
     // Only these types may carry GPG key custom fields, see
     // the encodeGpgKeyCustomFields gating. Other types must keep
     // user-created fields with matching names untouched.
     val canDecodeGpgKey = cipher.type == BitwardenCipher.Type.SecureNote ||
             cipher.type == BitwardenCipher.Type.GpgKey
     val decodedGpgKey = if (canDecodeGpgKey) {
-        decodedIcon.fields.decodeGpgKeyCustomFields(
+        fields.decodeGpgKeyCustomFields(
             existing = cipher.gpgKey,
-        ).takeIf { it.gpgKey != null }
+        )
     } else {
         null
     }
+    val decodedLinks = fields.decodeCipherLinkCustomFields()
     return cipher.copy(
-        fields = decodedGpgKey?.fields ?: decodedIcon.fields,
+        fields = fields.remainingFields,
+        links = decodedLinks,
         tags = tags,
-        customIcon = if (decodedIcon.consumed) {
-            decodedIcon.keepassIcon
-        } else {
-            cipher.customIcon
+        customIcon = when (decodedIcon) {
+            null -> cipher.customIcon
+            KeePassIcon.Key -> null
+            else -> decodedIcon
         },
         type = if (decodedGpgKey != null) {
             BitwardenCipher.Type.GpgKey
         } else {
             cipher.type
         },
-        gpgKey = decodedGpgKey?.gpgKey ?: cipher.gpgKey,
+        gpgKey = decodedGpgKey ?: cipher.gpgKey,
     )
 }
 
-private data class DecodedKeePassIconCustomField(
-    val fields: List<BitwardenCipher.Field>,
-    val keepassIcon: KeePassIcon?,
-    val consumed: Boolean,
-)
+/**
+ * Tracks fields claimed by the individual decoders while preserving the
+ * original order and duplicate field instances for the final remainder.
+ */
+private class CipherFieldDecodeScope(
+    private val source: List<BitwardenCipher.Field>,
+    private val consumed: BooleanArray = BooleanArray(source.size),
+) {
+    val remainingFields: List<BitwardenCipher.Field>
+        get() = source.filterIndexed { index, _ -> !consumed[index] }
 
-private fun List<BitwardenCipher.Field>.decodeKeePassIconCustomField(): DecodedKeePassIconCustomField {
-    var consumed = false
-    var keepassIcon: KeePassIcon? = null
-    val remainingFields = buildList {
-        this@decodeKeePassIconCustomField.forEach { field ->
-            val decodedIcon = field.decodeKeePassIconOrNull()
-            if (!consumed && decodedIcon != null) {
-                consumed = true
-                keepassIcon = decodedIcon.takeUnless { it == KeePassIcon.Key }
-            } else {
-                add(field)
-            }
+    fun consumeAll(
+        predicate: (BitwardenCipher.Field) -> Boolean,
+    ): List<BitwardenCipher.Field> = consumeAllDecoded { field ->
+        field.takeIf(predicate)
+    }
+
+    fun <T : Any> consumeFirstDecoded(
+        decode: (BitwardenCipher.Field) -> T?,
+    ): T? {
+        for (index in source.indices) {
+            if (consumed[index]) continue
+
+            val value = decode(source[index])
+                ?: continue
+            consumed[index] = true
+            return value
+        }
+        return null
+    }
+
+    fun <T : Any> consumeAllDecoded(
+        decode: (BitwardenCipher.Field) -> T?,
+    ): List<T> = buildList {
+        for (index in source.indices) {
+            if (consumed[index]) continue
+
+            val value = decode(source[index])
+                ?: continue
+            consumed[index] = true
+            add(value)
         }
     }
-    return DecodedKeePassIconCustomField(
-        fields = remainingFields,
-        keepassIcon = keepassIcon,
-        consumed = consumed,
-    )
+
+    /**
+     * Commits field consumption only when the decoder produces a value.
+     * This keeps fields that merely look reserved when aggregate decoding
+     * ultimately fails.
+     */
+    fun <T : Any> consumeAtomically(
+        decode: CipherFieldDecodeScope.() -> T?,
+    ): T? {
+        val staged = CipherFieldDecodeScope(
+            source = source,
+            consumed = consumed.copyOf(),
+        )
+        val value = staged.decode()
+            ?: return null
+        staged.consumed.copyInto(consumed)
+        return value
+    }
 }
 
 private fun BitwardenCipher.Field.decodeKeePassIconOrNull(): KeePassIcon? {
@@ -226,60 +293,36 @@ private fun BitwardenCipher.Field.decodeKeePassIconOrNull(): KeePassIcon? {
     return KeePassIcon.entries.firstOrNull { icon -> icon.name == rawValue }
 }
 
-private data class DecodedGpgKeyCustomFields(
-    val fields: List<BitwardenCipher.Field>,
-    val gpgKey: BitwardenCipher.GpgKey?,
-)
-
-private fun List<BitwardenCipher.Field>.decodeGpgKeyCustomFields(
+private fun CipherFieldDecodeScope.decodeGpgKeyCustomFields(
     existing: BitwardenCipher.GpgKey?,
-): DecodedGpgKeyCustomFields {
+): BitwardenCipher.GpgKey? = consumeAtomically {
     var privateKeyArmored = existing?.privateKeyArmored
     var publicKeyArmored = existing?.publicKeyArmored
     var fingerprint = existing?.fingerprint
 
-    val remainingFields = buildList {
-        this@decodeGpgKeyCustomFields.forEach { field ->
-            if (!field.canDecodeGpgField()) {
-                add(field)
-                return@forEach
-            }
-
+    consumeAll { field -> field.canDecodeGpgField() }
+        .forEach { field ->
             when (field.name) {
-                GpgAgentFields.PRIVATE_KEY_ARMORED -> {
-                    if (privateKeyArmored == null) {
-                        privateKeyArmored = field.value
-                    }
+                GpgAgentFields.PRIVATE_KEY_ARMORED -> if (privateKeyArmored == null) {
+                    privateKeyArmored = field.value
                 }
 
-                GpgAgentFields.PUBLIC_KEY_ARMORED -> {
-                    if (publicKeyArmored == null) {
-                        publicKeyArmored = field.value
-                    }
+                GpgAgentFields.PUBLIC_KEY_ARMORED -> if (publicKeyArmored == null) {
+                    publicKeyArmored = field.value
                 }
 
-                GpgAgentFields.FINGERPRINT -> {
-                    if (fingerprint == null) {
-                        fingerprint = field.value
-                    }
+                GpgAgentFields.FINGERPRINT -> if (fingerprint == null) {
+                    fingerprint = field.value
                 }
-
-                else -> add(field)
             }
         }
-    }
 
-    val gpgKey = BitwardenCipher.GpgKey(
+    BitwardenCipher.GpgKey(
         privateKeyArmored = privateKeyArmored,
         publicKeyArmored = publicKeyArmored,
         fingerprint = fingerprint,
         metadata = existing?.metadata,
     ).takeUnlessEmpty()
-
-    return DecodedGpgKeyCustomFields(
-        fields = remainingFields,
-        gpgKey = gpgKey,
-    )
 }
 
 private fun BitwardenCipher.Field.canDecodeGpgField(): Boolean {
@@ -288,6 +331,29 @@ private fun BitwardenCipher.Field.canDecodeGpgField(): Boolean {
     if (linkedId != null) return false
     return type == BitwardenCipher.Field.Type.Text ||
             type == BitwardenCipher.Field.Type.Hidden
+}
+
+private fun CipherFieldDecodeScope.decodeCipherLinkCustomFields(): List<BitwardenCipher.Link> {
+    val decodedFields = consumeAllDecoded { field ->
+        field.decodeCipherLinkFieldOrNull()
+    }
+    return CipherLinkFields
+        .decode(decodedFields)
+        .map { link ->
+            BitwardenCipher.Link(
+                remoteCipherId = link.remoteCipherId,
+            )
+        }
+}
+
+private fun BitwardenCipher.Field.decodeCipherLinkFieldOrNull(): CipherLinkFields.ParsedField? {
+    if (linkedId != null || type != BitwardenCipher.Field.Type.Text) {
+        return null
+    }
+    return CipherLinkFields.parse(
+        name = name,
+        value = value,
+    )
 }
 
 private fun BitwardenCipher.GpgKey.takeUnlessEmpty(): BitwardenCipher.GpgKey? =

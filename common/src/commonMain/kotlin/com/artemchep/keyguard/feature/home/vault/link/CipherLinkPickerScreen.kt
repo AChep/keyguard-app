@@ -1,13 +1,11 @@
 package com.artemchep.keyguard.feature.home.vault.link
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -20,10 +18,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
-import com.artemchep.keyguard.feature.home.vault.component.VaultItemIcon2
+import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -79,23 +75,10 @@ fun CipherLinkPickerScreen(
                     ) {
                         items(
                             items = state.items,
-                            key = CipherLinkPickerState.Item::id,
+                            key = { item -> item.presentation.source.id },
                         ) { item ->
-                            FlatItemSimpleExpressive(
-                                shapeState = ShapeState.ALL,
-                                title = {
-                                    Text(item.title)
-                                },
-                                text = {
-                                    Text(item.text)
-                                },
-                                leading = {
-                                    Box(
-                                        modifier = Modifier.size(24.dp),
-                                    ) {
-                                        VaultItemIcon2(icon = item.icon)
-                                    }
-                                },
+                            CompactVaultItem(
+                                item = item.presentation,
                                 trailing = {
                                     ChevronIcon()
                                 },

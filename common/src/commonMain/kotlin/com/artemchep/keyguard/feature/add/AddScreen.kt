@@ -37,6 +37,7 @@ import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Button
@@ -89,6 +90,7 @@ import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
+import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
@@ -209,6 +211,7 @@ fun getAnyFieldShapeState(
         is AddStateItem.Passkey<*> -> ::getAnyFieldShapeStatePasskeyPredicate
         is AddStateItem.Attachment<*> -> ::getAnyFieldShapeStateAttachmentPredicate
         is AddStateItem.Url<*> -> ::getAnyFieldShapeStateUrlPredicate
+        is AddStateItem.Link<*> -> ::getAnyFieldShapeStateLinkPredicate
         is AddStateItem.Field<*> -> ::getAnyFieldShapeStateFieldPredicate
         is AddStateItem.Tag<*> -> ::getAnyFieldShapeStateTagPredicate
         else -> ::getAnyFieldShapeStateOtherPredicate
@@ -254,6 +257,11 @@ private fun getAnyFieldShapeStateUrlPredicate(
     item: AddStateItem,
     index: Int,
 ) = item is AddStateItem.Url<*>
+
+private fun getAnyFieldShapeStateLinkPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Link<*>
 
 private fun getAnyFieldShapeStateFieldPredicate(
     item: AddStateItem,
@@ -311,6 +319,14 @@ fun AnyField(
 
     is AddStateItem.Url<*> -> {
         UrlTextField(
+            modifier = modifier,
+            item = item,
+            shapeState = shapeState,
+        )
+    }
+
+    is AddStateItem.Link<*> -> {
+        LinkField(
             modifier = modifier,
             item = item,
             shapeState = shapeState,
@@ -1144,6 +1160,60 @@ private fun AttachmentTextField(
             },
         )
     }
+}
+
+context(addScope: AddScreenScope)
+@Composable
+private fun LinkField(
+    modifier: Modifier = Modifier,
+    item: AddStateItem.Link<*>,
+    shapeState: Int,
+) {
+    val state by item.state.flow.collectAsState()
+    val presentation = state.presentation
+    if (presentation != null) {
+        CompactVaultItem(
+            modifier = modifier,
+            item = presentation,
+            shapeState = shapeState,
+            trailing = {
+                OptionsButton(
+                    actions = item.options,
+                )
+            },
+            enabled = true,
+        )
+        return
+    }
+
+    FlatItemLayoutExpressive(
+        modifier = modifier,
+        shapeState = shapeState,
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.cipher_link_unavailable_title),
+                        color = LocalContentColor.current
+                            .combineAlpha(DisabledEmphasisAlpha),
+                    )
+                },
+                text = {
+                    Text(
+                        text = state.link?.remoteCipherId.orEmpty(),
+                        color = LocalContentColor.current
+                            .combineAlpha(DisabledEmphasisAlpha),
+                    )
+                },
+            )
+        },
+        trailing = {
+            OptionsButton(
+                actions = item.options,
+            )
+        },
+        enabled = true,
+    )
 }
 
 context(addScope: AddScreenScope)

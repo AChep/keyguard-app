@@ -1,10 +1,8 @@
 package com.artemchep.keyguard.provider.bitwarden.crypto
 
-import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
-import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
@@ -84,6 +82,20 @@ class CipherCryptoKeePassIconTest {
 
         assertNull(decrypted.customIcon)
         assertTrue(decrypted.fields.isEmpty())
+    }
+
+    @Test
+    fun `decrypt consumes only the first valid custom icon field`() {
+        val secondIconField = customIconField("Question")
+        val decrypted = cipher(
+            fields = listOf(
+                customIconField("Warning"),
+                secondIconField,
+            ),
+        ).decryptForTest()
+
+        assertEquals(KeePassIcon.Warning, decrypted.customIcon)
+        assertEquals(listOf(secondIconField), decrypted.fields)
     }
 
     @Test
@@ -248,6 +260,40 @@ class CipherCryptoKeePassIconTest {
         )
         assertEquals(listOf(metadataField), decrypted.fields)
     }
+
+    @Test
+    fun `decrypt keeps gpg fields when they do not produce a key`() {
+        val emptyPrivateKeyField = BitwardenCipher.Field(
+            name = GpgAgentFields.PRIVATE_KEY_ARMORED,
+            value = " ",
+            type = BitwardenCipher.Field.Type.Hidden,
+        )
+
+        val decrypted = cipher(fields = listOf(emptyPrivateKeyField))
+            .decryptForTest()
+
+        assertEquals(BitwardenCipher.Type.SecureNote, decrypted.type)
+        assertNull(decrypted.gpgKey)
+        assertEquals(listOf(emptyPrivateKeyField), decrypted.fields)
+    }
+
+    @Test
+    fun `decrypt keeps gpg fields on unsupported cipher type`() {
+        val privateKeyField = BitwardenCipher.Field(
+            name = GpgAgentFields.PRIVATE_KEY_ARMORED,
+            value = PRIVATE_KEY_ARMORED,
+            type = BitwardenCipher.Field.Type.Hidden,
+        )
+
+        val decrypted = cipher(
+            type = BitwardenCipher.Type.Login,
+            fields = listOf(privateKeyField),
+        ).decryptForTest()
+
+        assertEquals(BitwardenCipher.Type.Login, decrypted.type)
+        assertNull(decrypted.gpgKey)
+        assertEquals(listOf(privateKeyField), decrypted.fields)
+    }
 }
 
 private fun customIconField(
@@ -345,54 +391,6 @@ private fun BitwardenCipher.decryptForTest() =
         itemCrypto = identityDecrypt,
         globalCrypto = identityDecrypt,
     )
-
-private val identityEnv = BitwardenCrCta.BitwardenCrCtaEnv(
-    key = BitwardenCrKey.UserToken,
-)
-
-private val identityEncrypt = IdentityBitwardenCr.cta(
-    env = identityEnv,
-    mode = BitwardenCrCta.Mode.ENCRYPT,
-)
-
-private val identityDecrypt = IdentityBitwardenCr.cta(
-    env = identityEnv,
-    mode = BitwardenCrCta.Mode.DECRYPT,
-)
-
-private object IdentityBitwardenCr : BitwardenCr {
-    override val base64Service: Base64Service = IdentityBase64Service
-
-    override fun decoder(
-        key: BitwardenCrKey,
-    ): (String) -> DecodeResult = { cipherText ->
-        DecodeResult(
-            data = cipherText.encodeToByteArray(),
-            type = CipherEncryptor.Type.AesCbc256_HmacSha256_B64,
-        )
-    }
-
-    override fun encoder(
-        key: BitwardenCrKey,
-    ): (CipherEncryptor.Type, ByteArray) -> String = { _, data ->
-        data.decodeToString()
-    }
-
-    override fun cta(
-        env: BitwardenCrCta.BitwardenCrCtaEnv,
-        mode: BitwardenCrCta.Mode,
-    ): BitwardenCrCta = BitwardenCrCta(
-        crypto = this,
-        env = env,
-        mode = mode,
-    )
-}
-
-private object IdentityBase64Service : Base64Service {
-    override fun encode(bytes: ByteArray): ByteArray = bytes
-
-    override fun decode(bytes: ByteArray): ByteArray = bytes
-}
 
 private const val PRIVATE_KEY_ARMORED = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
 private const val PUBLIC_KEY_ARMORED = "-----BEGIN PGP PUBLIC KEY BLOCK-----"

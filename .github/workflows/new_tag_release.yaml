@@ -707,11 +707,30 @@ jobs:
         with:
           name: app-android-aab
           path: artifacts
+      # Kept out of the 'artifacts' dir on purpose: its mapping.txt would
+      # collide with the Android one, and we only want to publish the .apk
+      # under a versioned name.
+      - name: "Download WearOS app (apk)"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-wearos-apk
+          path: artifacts-wearos
       - name: "Download Termux packages"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: app-termux
           path: artifacts
+      - name: "Produce versioned .apk names"
+        shell: bash
+        env:
+          VERSION: ${{ needs.generate-versions.outputs.version-semantic }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts-versioned
+          cp artifacts/apk/none/release/androidApp-none-release.apk \
+            "artifacts-versioned/Keyguard-Mobile-$VERSION.apk"
+          cp artifacts-wearos/apk/none/release/wearApp-none-release.apk \
+            "artifacts-versioned/Keyguard-Watch-$VERSION.apk"
       - name: "Create release"
         uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b
         if: startsWith(github.ref, 'refs/tags/')
@@ -722,6 +741,7 @@ jobs:
           files: |
             artifacts/*
             artifacts/**/*.apk
+            artifacts-versioned/*.apk
   deploy-versions:
     name: "Deploy versions"
     runs-on: ubuntu-latest

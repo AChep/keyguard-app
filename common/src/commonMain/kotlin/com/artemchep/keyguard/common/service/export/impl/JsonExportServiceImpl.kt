@@ -20,6 +20,7 @@ import com.artemchep.keyguard.common.service.export.entity.ItemLoginUriExportEnt
 import com.artemchep.keyguard.common.service.export.entity.ItemSshKeyExportEntity
 import com.artemchep.keyguard.common.service.export.entity.OrganizationExportEntity
 import com.artemchep.keyguard.common.service.export.entity.RootExportEntity
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentFields
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.FieldTypeEntity
@@ -192,21 +193,34 @@ class JsonExportServiceImpl(
 
         run {
             val key = "fields"
+            val gpgFields = when (type) {
+                DSecret.Type.GpgKey,
+                DSecret.Type.SecureNote,
+                -> gpgKey?.toExportFields().orEmpty()
+
+                else -> emptyList()
+            }
             val list = buildList {
-                fields.forEach { field ->
-                    val type = FieldTypeEntity.of(field.type)
-                    val linkedId = field.linkedId?.let(LinkedIdTypeEntity::of)
-                    add(
-                        ItemFieldExportEntity(
-                            type = type,
-                            name = field.name,
-                            value = field.value,
-                            linkedId = linkedId,
-                        ),
-                    )
-                }
+                addAll(gpgFields)
+                fields
+                    .filterNot { field ->
+                        gpgFields.isNotEmpty() &&
+                                field.name in GPG_FIELD_NAMES
+                    }
+                    .forEach { field ->
+                        val type = FieldTypeEntity.of(field.type)
+                        val linkedId = field.linkedId?.let(LinkedIdTypeEntity::of)
+                        add(
+                            ItemFieldExportEntity(
+                                type = type,
+                                name = field.name,
+                                value = field.value,
+                                linkedId = linkedId,
+                            ),
+                        )
+                    }
                 // The export schema has no place for the links, so they are
-                // written out as the custom fields, appended after the user's own.
+                // written out as custom fields after the GPG and user fields.
                 CipherLinkFields
                     .format(links.map(DSecret.Link::remoteCipherId))
                     .forEach { (name, value) ->
@@ -389,4 +403,45 @@ class JsonExportServiceImpl(
             put("secureNote", value)
         }
     }
+}
+
+private val GPG_FIELD_NAMES = setOf(
+    GpgAgentFields.PRIVATE_KEY_ARMORED,
+    GpgAgentFields.PUBLIC_KEY_ARMORED,
+    GpgAgentFields.FINGERPRINT,
+)
+
+private fun DSecret.GpgKey.toExportFields(): List<ItemFieldExportEntity> = buildList {
+    addGpgField(
+        name = GpgAgentFields.PRIVATE_KEY_ARMORED,
+        value = privateKeyArmored,
+        type = FieldTypeEntity.Hidden,
+    )
+    addGpgField(
+        name = GpgAgentFields.PUBLIC_KEY_ARMORED,
+        value = publicKeyArmored,
+        type = FieldTypeEntity.Text,
+    )
+    addGpgField(
+        name = GpgAgentFields.FINGERPRINT,
+        value = fingerprint,
+        type = FieldTypeEntity.Text,
+    )
+}
+
+private fun MutableList<ItemFieldExportEntity>.addGpgField(
+    name: String,
+    value: String?,
+    type: FieldTypeEntity,
+) {
+    val v = value?.takeIf { it.isNotBlank() }
+        ?: return
+    add(
+        ItemFieldExportEntity(
+            type = type,
+            name = name,
+            value = v,
+            linkedId = null,
+        ),
+    )
 }

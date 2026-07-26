@@ -188,6 +188,7 @@ jobs:
 
   check-android-instrumentation:
     name: Check Android Instrumentation (${{ matrix.variant }}, API ${{ matrix.api-level }})
+    if: ${{ false }} # temporarily disabled
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

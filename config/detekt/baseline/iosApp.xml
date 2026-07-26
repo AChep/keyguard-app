@@ -2,9 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>FunctionNaming:MainViewController.kt:@Composable private fun BoxScope.KeyguardIosToastHost</ID>
-    <ID>FunctionNaming:MainViewController.kt:@Composable private fun KeyguardIosApp</ID>
-    <ID>FunctionNaming:MainViewController.kt:@Composable private fun KeyguardIosNavigation</ID>
     <ID>FunctionNaming:MainViewController.kt:fun MainViewController: UIViewController</ID>
     <ID>LongMethod:IosAppModule.kt:internal fun DI.Builder.installIosAppModule</ID>
     <ID>MagicNumber:IosAppModule.kt:20_000</ID>

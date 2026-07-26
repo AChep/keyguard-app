@@ -5,26 +5,6 @@
     <ID>CyclomaticComplexMethod:Main.kt:@OptIn(ExperimentalTime::class) private fun runKeyguardApplication</ID>
     <ID>CyclomaticComplexMethod:WindowStateManager.kt:WindowStateManager.SaveableWindowState.Companion$fun of: SaveableWindowState</ID>
     <ID>ForbiddenComment:WindowStateManager.kt:WindowStateManager$// TODO: Add a support for window positioning via</ID>
-    <ID>FunctionNaming:AgentRequestWindow.kt:@Composable private fun &lt;T : AgentRequest&gt; AgentUnlockWindow</ID>
-    <ID>FunctionNaming:AgentRequestWindow.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable internal fun &lt;T : AgentRequest&gt; ApplicationScope.AgentRequestWindow</ID>
-    <ID>FunctionNaming:GpgAgentRequestWindow.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable internal fun ApplicationScope.GpgRequestWindow</ID>
-    <ID>FunctionNaming:MacPopupComposeWindow.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable internal fun MacOwnerlessPopupComposeWindow</ID>
-    <ID>FunctionNaming:MacPopupOverlayEffect.kt:@Composable internal fun DialogWindowScope.MacPopupOverlayEffect</ID>
-    <ID>FunctionNaming:Main.kt:@Composable internal fun ApplicationScope.KeyguardPopupScaffold</ID>
-    <ID>FunctionNaming:Main.kt:@Composable internal fun ApplicationScope.KeyguardWindowScaffold</ID>
-    <ID>FunctionNaming:Main.kt:@Composable internal fun DialogWindowScope.KeyguardWindowEssentials</ID>
-    <ID>FunctionNaming:Main.kt:@Composable internal fun FrameWindowScope.KeyguardWindowEssentials</ID>
-    <ID>FunctionNaming:Main.kt:@Composable private fun ApplicationScope.KeyguardMainWindow</ID>
-    <ID>FunctionNaming:Main.kt:@Composable private fun Content</ID>
-    <ID>FunctionNaming:Main.kt:@Composable private fun KeyguardWindowEssentialsProvider</ID>
-    <ID>FunctionNaming:Main.kt:@Composable private fun Navigation</ID>
-    <ID>FunctionNaming:PopupComposeWindow.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable internal fun PopupComposeWindow</ID>
-    <ID>FunctionNaming:QuickSearchWindow.kt:@Composable private fun QuickSearchWindowContent</ID>
-    <ID>FunctionNaming:QuickSearchWindow.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable internal fun ApplicationScope.QuickSearchWindow</ID>
-    <ID>FunctionNaming:SshAgentRequestWindow.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable internal fun ApplicationScope.SshRequestWindow</ID>
-    <ID>FunctionNaming:WindowEventHandler.kt:@Composable fun AppReopenedListenerEffect</ID>
-    <ID>FunctionNaming:WindowFocus.kt:@Composable internal fun WindowFocusRequestEffect</ID>
-    <ID>FunctionNaming:WindowStateManager.kt:WindowStateManager$@OptIn(FlowPreview::class) @Composable private fun LaunchSaveEffect</ID>
     <ID>LongMethod:MacPopupComposeWindow.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable internal fun MacOwnerlessPopupComposeWindow</ID>
     <ID>LongMethod:Main.kt:@OptIn(ExperimentalTime::class) private fun runKeyguardApplication</ID>
     <ID>LongMethod:QuickSearchWindow.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable internal fun ApplicationScope.QuickSearchWindow</ID>
@@ -43,6 +23,5 @@
     <ID>UnusedParameter:NavigateDesktop.kt:intent: NavigationIntent.NavigateToShare</ID>
     <ID>UnusedParameter:NavigateDesktop.kt:intent: NavigationIntent.NavigateToSms</ID>
     <ID>UnusedParameter:NavigateDesktop.kt:showMessage: ShowMessage</ID>
-    <ID>WildcardImport:Main.kt:import com.artemchep.keyguard.res.*</ID>
   </CurrentIssues>
 </SmellBaseline>

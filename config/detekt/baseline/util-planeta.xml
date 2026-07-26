@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>FunctionNaming:Planeta.kt:@Composable fun Planeta</ID>
     <ID>LongMethod:PlanetaBodyRenderer.kt:internal fun DrawScope.drawPlanetBody</ID>
     <ID>LongMethod:PlanetaPaletteGenerator.kt:internal fun paletteFor: PlanetaPalette</ID>
     <ID>LongMethod:PlanetaSceneRenderer.kt:internal fun DrawScope.drawPlanetaScene</ID>

@@ -7,185 +7,15 @@
     <ID>CyclomaticComplexMethod:WearVaultListStateProducer.kt:@Composable internal fun wearVaultListScreenState: WearVaultListState</ID>
     <ID>CyclomaticComplexMethod:WearVaultListStateProducer.kt:private fun createFilteredCiphersFlow</ID>
     <ID>ForbiddenComment:WearGeneratorScreen.kt:// TODO: Would be nice to add a better UI here. Need to re-check how the</ID>
-    <ID>FunctionNaming:VaultViewActionItem.kt:@Composable fun WearVaultViewActionItem</ID>
-    <ID>FunctionNaming:VaultViewAttachmentItem.kt:@Composable fun WearVaultViewAttachmentItem</ID>
-    <ID>FunctionNaming:VaultViewButtonItem.kt:@Composable fun WearVaultViewButtonItem</ID>
-    <ID>FunctionNaming:VaultViewCardItem.kt:@Composable fun WearVaultViewCardItem</ID>
-    <ID>FunctionNaming:VaultViewCollectionItem.kt:@Composable fun WearVaultViewCollectionItem</ID>
-    <ID>FunctionNaming:VaultViewErrorItem.kt:@Composable fun WearVaultViewErrorItem</ID>
-    <ID>FunctionNaming:VaultViewFolderItem.kt:@Composable fun WearVaultViewFolderItem</ID>
-    <ID>FunctionNaming:VaultViewIdentityItem.kt:@Composable fun WearVaultViewIdentityItem</ID>
-    <ID>FunctionNaming:VaultViewInactivePasskeyItem.kt:@Composable fun WearVaultViewInactivePasskeyItem</ID>
-    <ID>FunctionNaming:VaultViewInactiveTotpItem.kt:@Composable fun WearVaultViewInactiveTotpItem</ID>
-    <ID>FunctionNaming:VaultViewInfoItem.kt:@Composable fun WearVaultViewInfoItem</ID>
-    <ID>FunctionNaming:VaultViewInfoItem.kt:@Composable private fun LearnButton</ID>
-    <ID>FunctionNaming:VaultViewInfoItem.kt:@Composable private fun LearnOverlay</ID>
-    <ID>FunctionNaming:VaultViewItem.kt:@Composable fun WearVaultViewItem</ID>
-    <ID>FunctionNaming:VaultViewLabelItem.kt:@Composable fun WearVaultViewLabelItem</ID>
-    <ID>FunctionNaming:VaultViewNoteItem.kt:@Composable fun WearVaultViewNoteItem</ID>
-    <ID>FunctionNaming:VaultViewOrganizationItem.kt:@Composable fun WearVaultViewOrganizationItem</ID>
-    <ID>FunctionNaming:VaultViewPasskeyItem.kt:@Composable fun WearVaultViewPasskeyItem</ID>
-    <ID>FunctionNaming:VaultViewQrItem.kt:@Composable fun WearVaultViewQrItem</ID>
-    <ID>FunctionNaming:VaultViewQuickActionsItem.kt:@Composable fun WearVaultViewQuickActionsItem</ID>
-    <ID>FunctionNaming:VaultViewQuickBadgesItem.kt:@Composable fun WearVaultViewQuickBadgesItem</ID>
-    <ID>FunctionNaming:VaultViewReusedPasswordItem.kt:@Composable fun WearVaultViewReusedPasswordItem</ID>
-    <ID>FunctionNaming:VaultViewSectionItem.kt:@Composable fun WearVaultViewSectionItem</ID>
-    <ID>FunctionNaming:VaultViewSpacerItem.kt:@Composable fun WearVaultViewSpacerItem</ID>
-    <ID>FunctionNaming:VaultViewSwitchItem.kt:@Composable fun WearVaultViewSwitchItem</ID>
-    <ID>FunctionNaming:VaultViewTableItem.kt:@Composable fun WearVaultViewTableItem</ID>
-    <ID>FunctionNaming:VaultViewTableItem.kt:@Composable private fun WearVaultViewTableRow</ID>
-    <ID>FunctionNaming:VaultViewTagsItem.kt:@Composable fun WearVaultViewTagsItem</ID>
-    <ID>FunctionNaming:VaultViewTagsItem.kt:@Composable private fun TagItem</ID>
-    <ID>FunctionNaming:VaultViewTotpItemBadgeState.kt:@Composable fun RowScope.VaultViewTotpBadge</ID>
-    <ID>FunctionNaming:VaultViewTotpItemBadgeState.kt:@Composable fun VaultViewTotpBadge2</ID>
-    <ID>FunctionNaming:VaultViewTotpItemBadgeState.kt:@Composable private fun RowScope.VaultViewTotpCodeDigits</ID>
-    <ID>FunctionNaming:VaultViewTotpItemBadgeState.kt:@Composable private fun RowScope.VaultViewTotpRemainderBadgeContent</ID>
-    <ID>FunctionNaming:VaultViewTotpItemBadgeState.kt:@Composable private fun VaultViewTotpCodeContent</ID>
-    <ID>FunctionNaming:VaultViewTotpItemBadgeState.kt:@Composable private fun VaultViewTotpRemainderBadge</ID>
-    <ID>FunctionNaming:VaultViewTotpItemBadgeState.kt:@Composable private fun VaultViewTotpRemainderBadgeLayout</ID>
-    <ID>FunctionNaming:VaultViewTotpItemBadgeState.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun WearVaultViewTotpItem</ID>
-    <ID>FunctionNaming:VaultViewUriItem.kt:@Composable fun WearVaultViewUriItem</ID>
-    <ID>FunctionNaming:VaultViewValueItem.kt:@Composable fun WearVaultViewValueItem</ID>
-    <ID>FunctionNaming:WearAboutTeamScreen.kt:@Composable fun WearAboutTeamScreen</ID>
-    <ID>FunctionNaming:WearAccountViewScreen.kt:@Composable fun AccountViewScreen</ID>
-    <ID>FunctionNaming:WearAccountViewScreen.kt:@Composable fun WearVaultViewHeader</ID>
-    <ID>FunctionNaming:WearAccountViewScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ) @Composable fun AccountViewScaffold</ID>
-    <ID>FunctionNaming:WearAttachmentPreviewScreen.kt:@Composable fun WearAttachmentPreviewScreen</ID>
-    <ID>FunctionNaming:WearAttachmentPreviewScreen.kt:@Composable private fun WearAttachmentPreviewImage</ID>
-    <ID>FunctionNaming:WearAttachmentPreviewScreen.kt:@Composable private fun WearAttachmentPreviewMarkdown</ID>
-    <ID>FunctionNaming:WearAttachmentPreviewScreen.kt:@Composable private fun WearAttachmentPreviewScaffold</ID>
-    <ID>FunctionNaming:WearAttachmentPreviewScreen.kt:@Composable private fun WearAttachmentPreviewText</ID>
-    <ID>FunctionNaming:WearBitwardenLoginTwofaScreen.kt:@Composable fun WearBitwardenLoginTwofaProviderScreen</ID>
-    <ID>FunctionNaming:WearBitwardenLoginTwofaScreen.kt:@Composable fun WearBitwardenLoginTwofaScreen</ID>
-    <ID>FunctionNaming:WearBitwardenLoginTwofaScreen.kt:@Composable private fun TransformingLazyColumnItemScope.WearBitwardenLoginTwofaCodeField</ID>
     <ID>FunctionNaming:WearBitwardenLoginTwofaScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginTwofaCodeSection</ID>
     <ID>FunctionNaming:WearBitwardenLoginTwofaScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginTwofaStateContent</ID>
-    <ID>FunctionNaming:WearCategoryListScreen.kt:@Composable fun &lt;I : Any&gt; WearCategoryListScreen</ID>
-    <ID>FunctionNaming:WearChangePasswordScreen.kt:@Composable fun WearChangePasswordScaffoldSkeleton</ID>
-    <ID>FunctionNaming:WearChangePasswordScreen.kt:@Composable fun WearChangePasswordScreen</ID>
-    <ID>FunctionNaming:WearChangePasswordScreen.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable fun WearChangePasswordScaffold</ID>
     <ID>FunctionNaming:WearChangePasswordScreen.kt:private fun TransformingLazyColumnScope.WearChangePasswordContent</ID>
-    <ID>FunctionNaming:WearCollectionsScreen.kt:@Composable fun WearCollectionsScreen</ID>
-    <ID>FunctionNaming:WearCollectionsScreen.kt:@Composable private fun WearCollectionsListItem</ID>
-    <ID>FunctionNaming:WearConfirmationRoute.kt:@Composable private fun WearConfirmationBooleanItem</ID>
-    <ID>FunctionNaming:WearConfirmationRoute.kt:@Composable private fun WearConfirmationEnumItem</ID>
-    <ID>FunctionNaming:WearConfirmationRoute.kt:@Composable private fun WearConfirmationFileItem</ID>
-    <ID>FunctionNaming:WearConfirmationRoute.kt:@Composable private fun WearConfirmationItem</ID>
-    <ID>FunctionNaming:WearConfirmationRoute.kt:@Composable private fun WearConfirmationScreen</ID>
-    <ID>FunctionNaming:WearConfirmationRoute.kt:@Composable private fun WearConfirmationStringItem</ID>
-    <ID>FunctionNaming:WearCreateVault.kt:@Composable fun WearCreateVaultScreen</ID>
-    <ID>FunctionNaming:WearCreateVault.kt:@Composable private fun ColumnScope.SetupScreenCreateVaultTitle</ID>
     <ID>FunctionNaming:WearCreateVault.kt:private fun TransformingLazyColumnScope.WearCreateVaultContent</ID>
-    <ID>FunctionNaming:WearCredentialProviderActivity.kt:WearCredentialProviderActivity$@Composable protected abstract fun Content</ID>
-    <ID>FunctionNaming:WearCredentialProviderUi.kt:@Composable fun WearCredentialErrorScreen</ID>
-    <ID>FunctionNaming:WearCredentialProviderUi.kt:@Composable fun WearUserVerificationScreen</ID>
-    <ID>FunctionNaming:WearCredentialProviderUi.kt:@Composable private fun LaunchedFocus</ID>
-    <ID>FunctionNaming:WearCredentialProviderUi.kt:@Composable private fun Spacer16</ID>
-    <ID>FunctionNaming:WearCredentialProviderUi.kt:@Composable private fun WearUserVerificationContent</ID>
-    <ID>FunctionNaming:WearCredentialProviderUi.kt:@Composable private fun WearUserVerificationScreen</ID>
-    <ID>FunctionNaming:WearDataSafetyScreen.kt:@Composable fun WearDataSafetyScreen</ID>
-    <ID>FunctionNaming:WearDataSafetyScreen.kt:@Composable private fun TransformingLazyColumnItemScope.WearDataSafetyItem</ID>
-    <ID>FunctionNaming:WearDataSafetyScreen.kt:@Composable private fun WearDataSafetyRow</ID>
-    <ID>FunctionNaming:WearDataSafetyScreen.kt:@Composable private fun WearDataSafetyText</ID>
-    <ID>FunctionNaming:WearFoldersScreen.kt:@Composable fun WearFoldersScreen</ID>
-    <ID>FunctionNaming:WearFoldersScreen.kt:@Composable private fun WearFoldersListItem</ID>
-    <ID>FunctionNaming:WearGeneratorScreen.kt:@Composable fun WearGeneratorScreen</ID>
-    <ID>FunctionNaming:WearGeneratorScreen.kt:@Composable private fun WearGeneratorLengthItem</ID>
-    <ID>FunctionNaming:WearGeneratorScreen.kt:@Composable private fun WearGeneratorSwitchItem</ID>
-    <ID>FunctionNaming:WearGeneratorScreen.kt:@Composable private fun WearGeneratorTypeItem</ID>
-    <ID>FunctionNaming:WearGeneratorScreen.kt:@Composable private fun WearGeneratorValueItem</ID>
     <ID>FunctionNaming:WearGeneratorScreen.kt:private fun TransformingLazyColumnScope.WearGeneratorContent</ID>
-    <ID>FunctionNaming:WearHomeScreen.kt:@Composable fun HomeListItem</ID>
-    <ID>FunctionNaming:WearHomeScreen.kt:@Composable fun WearHomeScreen</ID>
-    <ID>FunctionNaming:WearLicenseScreen.kt:@Composable fun WearLicenseScreen</ID>
-    <ID>FunctionNaming:WearLicenseScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun WearLicenseItem</ID>
-    <ID>FunctionNaming:WearListItems.kt:@Composable fun WearContextAction</ID>
-    <ID>FunctionNaming:WearListItems.kt:@Composable fun WearListAction</ID>
-    <ID>FunctionNaming:WearListItems.kt:@Composable fun WearListCard</ID>
-    <ID>FunctionNaming:WearListItems.kt:@Composable fun WearListEmpty</ID>
-    <ID>FunctionNaming:WearListItems.kt:@Composable fun WearListLabel</ID>
-    <ID>FunctionNaming:WearListItems.kt:@Composable fun WearListPicker</ID>
-    <ID>FunctionNaming:WearListItems.kt:@Composable internal fun WearListAction</ID>
-    <ID>FunctionNaming:WearLoadingVault.kt:@Composable fun WearLoadingScreen</ID>
-    <ID>FunctionNaming:WearLoginMethodRoute.kt:@Composable private fun WearLoginMethodScreen</ID>
-    <ID>FunctionNaming:WearManualLoginScreen.kt:@Composable fun WearManualLoginScreen</ID>
-    <ID>FunctionNaming:WearManualLoginScreen.kt:@Composable private fun TransformingLazyColumnItemScope.WearBitwardenLoginItem</ID>
-    <ID>FunctionNaming:WearManualLoginScreen.kt:@Composable private fun TransformingLazyColumnItemScope.WearBitwardenLoginItemAdd</ID>
-    <ID>FunctionNaming:WearManualLoginScreen.kt:@Composable private fun TransformingLazyColumnItemScope.WearBitwardenLoginItemField</ID>
-    <ID>FunctionNaming:WearManualLoginScreen.kt:@Composable private fun TransformingLazyColumnItemScope.WearBitwardenLoginItemUrl</ID>
-    <ID>FunctionNaming:WearManualLoginScreen.kt:@Composable private fun WearBitwardenLoginRegisterButton</ID>
     <ID>FunctionNaming:WearManualLoginScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginContent</ID>
     <ID>FunctionNaming:WearManualLoginScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginItems</ID>
-    <ID>FunctionNaming:WearNavigationHost.kt:@Composable fun WearNavigationHost</ID>
-    <ID>FunctionNaming:WearOnboardingScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun WearOnboardingScreen</ID>
-    <ID>FunctionNaming:WearOrganizationsScreen.kt:@Composable fun WearOrganizationsScreen</ID>
-    <ID>FunctionNaming:WearOrganizationsScreen.kt:@Composable private fun WearOrganizationsListItem</ID>
-    <ID>FunctionNaming:WearPasskeysCredentialViewScreen.kt:@Composable fun WearPasskeysCredentialViewScreen</ID>
-    <ID>FunctionNaming:WearPasskeysCredentialViewScreen.kt:@Composable private fun WearPasskeysCredentialTextItem</ID>
-    <ID>FunctionNaming:WearPasskeysCredentialViewScreen.kt:@Composable private fun WearPasskeysCredentialViewPreviewHost</ID>
-    <ID>FunctionNaming:WearPasskeysCredentialViewScreen.kt:@Composable private fun WearPasskeysCredentialViewScreen</ID>
-    <ID>FunctionNaming:WearPasskeysCredentialViewScreen.kt:@Preview @Composable private fun WearPasskeysCredentialViewContentFullPreview</ID>
-    <ID>FunctionNaming:WearPasskeysCredentialViewScreen.kt:@Preview @Composable private fun WearPasskeysCredentialViewContentMissingOptionalFieldsPreview</ID>
-    <ID>FunctionNaming:WearPasskeysCredentialViewScreen.kt:@Preview @Composable private fun WearPasskeysCredentialViewErrorPreview</ID>
-    <ID>FunctionNaming:WearPasskeysCredentialViewScreen.kt:@Preview @Composable private fun WearPasskeysCredentialViewLoadingPreview</ID>
     <ID>FunctionNaming:WearPasskeysCredentialViewScreen.kt:private fun TransformingLazyColumnScope.WearPasskeysCredentialViewContent</ID>
-    <ID>FunctionNaming:WearPhoneLoginRoute.kt:@Composable private fun WearPhoneLoginScreen</ID>
-    <ID>FunctionNaming:WearPickerScreen.kt:@Composable fun WearPickerScreen</ID>
-    <ID>FunctionNaming:WearPickerScreen.kt:@Composable private fun TransformingLazyColumnItemScope.WearPickerItem</ID>
-    <ID>FunctionNaming:WearPrivilegedAppListScreen.kt:@Composable fun WearPrivilegedAppListScreen</ID>
-    <ID>FunctionNaming:WearPrivilegedAppListScreen.kt:@Composable private fun WearPrivilegedAppItem</ID>
-    <ID>FunctionNaming:WearPrivilegedAppListScreen.kt:@Composable private fun WearPrivilegedAppSelectionItem</ID>
-    <ID>FunctionNaming:WearRoot.kt:@Composable fun WearRoot</ID>
-    <ID>FunctionNaming:WearRoot.kt:@Composable private fun BoxScope.WearToastHost</ID>
-    <ID>FunctionNaming:WearRoot.kt:@Composable private fun WearAppState</ID>
-    <ID>FunctionNaming:WearRoot.kt:@Composable private fun WearMainAppScreen</ID>
-    <ID>FunctionNaming:WearRows.kt:@Composable fun WearDotsDivider</ID>
-    <ID>FunctionNaming:WearRows.kt:@Composable fun WearSectionHeader</ID>
-    <ID>FunctionNaming:WearScaffold.kt:@Composable fun BoxScope.WearScaffoldLoader</ID>
-    <ID>FunctionNaming:WearScaffold.kt:@Composable fun EdgeButtonScope.DefaultEdgeButton</ID>
-    <ID>FunctionNaming:WearScaffold.kt:@Composable fun WearScaffoldColumn</ID>
-    <ID>FunctionNaming:WearScaffold.kt:@Composable fun WearScaffoldScreen</ID>
-    <ID>FunctionNaming:WearScaffold.kt:@Composable private fun ScreenScaffoldContentLazyColumn</ID>
-    <ID>FunctionNaming:WearSendListItem.kt:@Composable fun SendListItemSection</ID>
-    <ID>FunctionNaming:WearSendListItem.kt:@Composable fun SendListItemText</ID>
-    <ID>FunctionNaming:WearSendListItem.kt:@Composable fun WearSendListItem</ID>
-    <ID>FunctionNaming:WearSendListScreen.kt:@Composable fun WearSendListScreen</ID>
-    <ID>FunctionNaming:WearSendViewScreen.kt:@Composable fun WearSendViewHeader</ID>
-    <ID>FunctionNaming:WearSendViewScreen.kt:@Composable fun WearSendViewScreen</ID>
-    <ID>FunctionNaming:WearSendViewScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun WearSendViewScaffold</ID>
-    <ID>FunctionNaming:WearSettingsAutofillScreen.kt:@Composable fun WearSettingsAutofillScreen</ID>
-    <ID>FunctionNaming:WearSettingsListItemBase.kt:@Composable fun WearSettingsListAccountAdd</ID>
-    <ID>FunctionNaming:WearSettingsListItemBase.kt:@Composable fun WearSettingsListAccountItem</ID>
-    <ID>FunctionNaming:WearSettingsListItemBase.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun WearSettingsListItem</ID>
-    <ID>FunctionNaming:WearSettingsListItemBase.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun WearSettingsListSection</ID>
-    <ID>FunctionNaming:WearSettingsOtherScreen.kt:@Composable fun WearSettingsOtherScreen</ID>
-    <ID>FunctionNaming:WearSettingsPane.kt:@Composable fun WearSettingsPaneScaffold</ID>
-    <ID>FunctionNaming:WearSettingsPane.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ) @Composable fun WearSettingsPaneScaffold</ID>
-    <ID>FunctionNaming:WearSettingsScreen.kt:@Composable fun WearSettingsScreen</ID>
-    <ID>FunctionNaming:WearSettingsSecurityScreen.kt:@Composable fun WearSettingsSecurityScreen</ID>
-    <ID>FunctionNaming:WearSettingsUiScreen.kt:@Composable fun WearSettingsUiScreen</ID>
-    <ID>FunctionNaming:WearSkeleton.kt:@Composable fun WearSkeletonItem</ID>
-    <ID>FunctionNaming:WearTheme.kt:@Composable fun ProxyMaterial3Styles</ID>
-    <ID>FunctionNaming:WearTheme.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun WearKeyguardTheme</ID>
-    <ID>FunctionNaming:WearUnlockVault.kt:@Composable fun WearUnlockVaultScreen</ID>
     <ID>FunctionNaming:WearUnlockVault.kt:private fun TransformingLazyColumnScope.WearUnlockVaultContent</ID>
-    <ID>FunctionNaming:WearValueViewScreen.kt:@Composable fun WearValueViewScreen</ID>
-    <ID>FunctionNaming:WearValueViewScreen.kt:@Composable private fun WearValueViewQrCode</ID>
-    <ID>FunctionNaming:WearValueViewScreen.kt:@Composable private fun WearValueViewValueCard</ID>
-    <ID>FunctionNaming:WearVaultListItem.kt:@Composable fun Section</ID>
-    <ID>FunctionNaming:WearVaultListItem.kt:@Composable fun VaultListItemButton</ID>
-    <ID>FunctionNaming:WearVaultListItem.kt:@Composable fun VaultListItemSection</ID>
-    <ID>FunctionNaming:WearVaultListItem.kt:@Composable fun VaultListItemText</ID>
-    <ID>FunctionNaming:WearVaultListItem.kt:@Composable fun WearVaultListItem</ID>
-    <ID>FunctionNaming:WearVaultListScreen.kt:@Composable fun WearVaultListScreen</ID>
-    <ID>FunctionNaming:WearVaultListScreen.kt:@Composable private fun WearNoAccounts</ID>
-    <ID>FunctionNaming:WearVaultRouteListItem.kt:@Composable internal fun WearVaultRouteListItem</ID>
-    <ID>FunctionNaming:WearVaultRouteListItem.kt:@Composable internal fun WearVaultRouteSectionItem</ID>
-    <ID>FunctionNaming:WearVaultViewScreen.kt:@Composable fun WearVaultViewHeader</ID>
-    <ID>FunctionNaming:WearVaultViewScreen.kt:@Composable fun WearVaultViewScreen</ID>
-    <ID>FunctionNaming:WearVaultViewScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun WearVaultViewScaffold</ID>
-    <ID>FunctionNaming:WearViewHeader.kt:@Composable fun WearViewHeader</ID>
-    <ID>FunctionNaming:WearViewSkeleton.kt:@Composable fun ShimmerBar</ID>
     <ID>LongMethod:VaultViewCardItem.kt:@Composable fun WearVaultViewCardItem</ID>
     <ID>LongMethod:VaultViewErrorItem.kt:@Composable fun WearVaultViewErrorItem</ID>
     <ID>LongMethod:VaultViewInfoItem.kt:@Composable fun WearVaultViewInfoItem</ID>
@@ -285,10 +115,5 @@
     <ID>UnusedParameter:WearVaultListItem.kt:content: (@Composable ColumnScope.() -&gt; Unit)? = null</ID>
     <ID>UnusedParameter:WearVaultListStateProducer.kt:passkeyTargetCheck: PasskeyTargetCheck</ID>
     <ID>UnusedParameter:WearVaultListStateProducer.kt:syncSupervisor: SupervisorRead</ID>
-    <ID>WildcardImport:WearChangePasswordScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WearLicenseScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WearSendListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WearVaultListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WearVaultListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
   </CurrentIssues>
 </SmellBaseline>

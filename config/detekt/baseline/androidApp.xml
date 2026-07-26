@@ -20,7 +20,6 @@
     <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$90_000</ID>
     <ID>WildcardImport:Main.kt:import com.artemchep.keyguard.common.io.*</ID>
     <ID>WildcardImport:Main.kt:import com.artemchep.keyguard.common.usecase.*</ID>
-    <ID>WildcardImport:Main.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:Main.kt:import kotlinx.coroutines.*</ID>
     <ID>WildcardImport:Main.kt:import kotlinx.coroutines.flow.*</ID>
     <ID>WildcardImport:Main.kt:import org.kodein.di.*</ID>

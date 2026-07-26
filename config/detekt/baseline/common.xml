@@ -305,24 +305,6 @@
     <ID>ForbiddenComment:WordlistViewScreen.kt:// TODO: I should somehow sync it with the toolbar instead</ID>
     <ID>ForbiddenComment:changePasswordAction.kt:// TODO: Where do I put 'after' callback?</ID>
     <ID>ForbiddenComment:getMonetNeutralColor.kt:// TODO: Support properly populating all the difference surfaces</ID>
-    <ID>FunctionNaming:AboutTeamScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun AboutTeamScreen</ID>
-    <ID>FunctionNaming:AboutTeamSocialNetwork.kt:@Composable fun AboutTeamSocialNetworkAvatar</ID>
-    <ID>FunctionNaming:AccountListItem.kt:@Composable fun AccountListItem</ID>
-    <ID>FunctionNaming:AccountListItem.kt:@Composable fun AccountListItemSection</ID>
-    <ID>FunctionNaming:AccountListItem.kt:@Composable fun AccountListItemText</ID>
-    <ID>FunctionNaming:AccountListItem.kt:@Composable fun TextContent</ID>
-    <ID>FunctionNaming:AccountListItem.kt:@Composable fun VaultListItemTextIcon</ID>
-    <ID>FunctionNaming:AccountListScreen.kt:@Composable fun AccountListScreen</ID>
-    <ID>FunctionNaming:AccountListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ) @Composable fun AccountListScreenContent</ID>
-    <ID>FunctionNaming:AccountListSelection.kt:@Composable fun AccountsSelection</ID>
-    <ID>FunctionNaming:AccountViewScreen.kt:@Composable fun AccountViewScreen</ID>
-    <ID>FunctionNaming:AccountViewScreen.kt:@Composable private fun AccountViewTitle</ID>
-    <ID>FunctionNaming:AccountViewScreen.kt:@Composable private fun LaunchLocalVaultButton</ID>
-    <ID>FunctionNaming:AccountViewScreen.kt:@Composable private fun LaunchWebVaultButton</ID>
-    <ID>FunctionNaming:AccountViewScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:AccountViewScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ) @Composable fun AccountViewScreen</ID>
-    <ID>FunctionNaming:AccountsScreen.kt:@Composable fun AccountsScreen</ID>
-    <ID>FunctionNaming:AddAccount.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun AddAccountView</ID>
     <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `direct add calls and awaits syncById`</ID>
     <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `direct add propagates sync failure`</ID>
     <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `missing key file fails before inserting account or scheduling sync`</ID>
@@ -333,45 +315,6 @@
     <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `queued add stores local token and queues sync`</ID>
     <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `queued add stores webdav username and password in token`</ID>
     <ID>FunctionNaming:AddRoute.kt:fun LeAddRoute: Route</ID>
-    <ID>FunctionNaming:AddScreen.kt:@Composable fun AddScreen</ID>
-    <ID>FunctionNaming:AddScreen.kt:@Composable fun ToolbarContent</ID>
-    <ID>FunctionNaming:AddScreen.kt:@Composable private fun AddScreenAttachmentFileDropItem</ID>
-    <ID>FunctionNaming:AddScreen.kt:@Composable private fun AddScreenMergeItem</ID>
-    <ID>FunctionNaming:AddScreen.kt:@Composable private fun AddScreenToolbarItem</ID>
-    <ID>FunctionNaming:AddScreen.kt:@Composable private fun AddScreenToolbarSkeletonItem</ID>
-    <ID>FunctionNaming:AddScreen.kt:@Composable private fun FileDropField</ID>
-    <ID>FunctionNaming:AddScreen.kt:@Composable private fun SuggestionItemChip</ID>
-    <ID>FunctionNaming:AddScreen.kt:@Composable private fun ToolbarContentItem</ID>
-    <ID>FunctionNaming:AddScreen.kt:@Composable private fun ToolbarContentItemErr</ID>
-    <ID>FunctionNaming:AddScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun ToolbarContentItemErr</ID>
-    <ID>FunctionNaming:AddScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun ToolbarContentItemErrSkeleton</ID>
-    <ID>FunctionNaming:AddScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun AddScreenContent</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable fun AnyField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun AddItem</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun AttachmentTextField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun DateMonthYearField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun DateTimeField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun EnumItem</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun FieldField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun FieldLinkedIdField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun FieldSwitchField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun FieldTag</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun FieldTextField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun FieldTextTag</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun GpgKeyField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun LinkField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun NoteTextField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun PasskeyField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun SectionItem</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun SshKeyField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun SwitchField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun TextTextField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun TitleTextField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun TotpTextField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun UrlTextField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @Composable private fun UsernameTextField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @OptIn(ExperimentalLayoutApi::class) @Composable private fun PasswordTextField</ID>
-    <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) @OptIn(ExperimentalLayoutApi::class) @Composable private fun SuggestionItem</ID>
     <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) fun LazyListScope.AddScreenItems</ID>
     <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo escapes controls and bidi and bounds labels`</ID>
     <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo keeps authenticated label ahead of OS name`</ID>
@@ -379,7 +322,6 @@
     <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo returns null for null caller`</ID>
     <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo shows process details for process-only caller`</ID>
     <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo uses shared field-specific path limits`</ID>
-    <ID>FunctionNaming:AgentApprovalContent.kt:@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class) @Composable fun AgentApprovalContent</ID>
     <ID>FunctionNaming:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$@Test fun `approval window away and back transition invalidates an old approval`</ID>
     <ID>FunctionNaming:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$@Test fun `completed policy update is visible to the next cache access`</ID>
     <ID>FunctionNaming:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$@Test fun `infinite approvals evict the least recently used entry at the size cap`</ID>
@@ -409,11 +351,6 @@
     <ID>FunctionNaming:AgentManagerTest.kt:AgentManagerTest$@Test fun `rethrows IPC server failure that wins process publication race`</ID>
     <ID>FunctionNaming:AgentRequestUiStateTest.kt:AgentRequestUiStateTest$@Test fun `removeFirstPendingRequestOrNull returns null when all requests are completed`</ID>
     <ID>FunctionNaming:AgentRequestUiStateTest.kt:AgentRequestUiStateTest$@Test fun `removeFirstPendingRequestOrNull skips completed requests`</ID>
-    <ID>FunctionNaming:AgentSetupComponents.kt:@Composable internal fun AgentSetupBodyLabel</ID>
-    <ID>FunctionNaming:AgentSetupComponents.kt:@Composable internal fun AgentSetupCodeBlock</ID>
-    <ID>FunctionNaming:AgentSetupComponents.kt:@Composable internal fun AgentSetupParagraph</ID>
-    <ID>FunctionNaming:AgentSetupComponents.kt:@Composable internal fun AgentSetupSectionDivider</ID>
-    <ID>FunctionNaming:AgentSetupComponents.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable internal fun AgentSetupScaffold</ID>
     <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `Android bridge authorization combines connection and verified package`</ID>
     <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `Android bridge authorization falls back to the connection without package evidence`</ID>
     <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `Android bridge replaces request authorization with framework evidence`</ID>
@@ -435,85 +372,13 @@
     <ID>FunctionNaming:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@Test fun `blocked proxy write is interrupted by closing its socket at the deadline`</ID>
     <ID>FunctionNaming:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@Test fun `idle authenticated proxy session is closed at the packet deadline`</ID>
     <ID>FunctionNaming:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@Test fun `launch cancellation closes an active proxy socket`</ID>
-    <ID>FunctionNaming:AnimatedBadge.kt:@Composable fun AnimatedCounterBadge</ID>
-    <ID>FunctionNaming:AnimatedBadge.kt:@Composable inline fun AnimatedNewCounterBadge</ID>
-    <ID>FunctionNaming:AnimatedBadge.kt:@Composable inline fun AnimatedTotalCounterBadge</ID>
-    <ID>FunctionNaming:AppPickerScreen.kt:@Composable fun AppPickerScreen</ID>
-    <ID>FunctionNaming:AppPickerScreen.kt:@Composable private fun AppItem</ID>
-    <ID>FunctionNaming:AppPickerScreen.kt:@Composable private fun AppPickerSortButton</ID>
-    <ID>FunctionNaming:AppPickerScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:AppPickerScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun ChangePasswordScreen</ID>
-    <ID>FunctionNaming:AppScreen.kt:@Composable fun AppScreen</ID>
-    <ID>FunctionNaming:AppScreen.kt:@Composable fun ManualAppScreenOnCreate</ID>
-    <ID>FunctionNaming:AppScreen.kt:@Composable fun ManualAppScreenOnLoading</ID>
-    <ID>FunctionNaming:AppScreen.kt:@Composable fun ManualAppScreenOnMain</ID>
-    <ID>FunctionNaming:AppScreen.kt:@Composable fun ManualAppScreenOnUnlock</ID>
-    <ID>FunctionNaming:AppScreen.kt:@OptIn(ExperimentalAnimationApi::class) @Composable fun ManualAppScreen</ID>
-    <ID>FunctionNaming:AsyncIcon.kt:@Composable fun &lt;T&gt; AsyncIcon</ID>
-    <ID>FunctionNaming:AttachmentIcon.kt:@Composable fun AttachmentIcon</ID>
-    <ID>FunctionNaming:AttachmentIcon.kt:@Composable private fun AttachmentIconFilePreview</ID>
     <ID>FunctionNaming:AttachmentItemStatusTest.kt:AttachmentItemStatusTest$@Test fun `complete progress with uri maps to downloaded status`</ID>
     <ID>FunctionNaming:AttachmentItemStatusTest.kt:AttachmentItemStatusTest$@Test fun `complete progress without uri maps to none`</ID>
     <ID>FunctionNaming:AttachmentItemStatusTest.kt:AttachmentItemStatusTest$@Test fun `pending upload status has no preview url`</ID>
     <ID>FunctionNaming:AttachmentPreviewActionTest.kt:AttachmentPreviewActionTest$@Test fun `preview action appears before download for not downloaded previewable attachments`</ID>
     <ID>FunctionNaming:AttachmentPreviewActionTest.kt:AttachmentPreviewActionTest$@Test fun `preview action appears before external open for already downloaded previewable attachments`</ID>
-    <ID>FunctionNaming:AttachmentPreviewCodeMinimap.kt:@Composable internal fun AttachmentPreviewCodeMinimap</ID>
-    <ID>FunctionNaming:AttachmentPreviewScreen.kt:@Composable fun AttachmentPreviewScreen</ID>
-    <ID>FunctionNaming:AttachmentPreviewScreen.kt:@Composable private fun AttachmentPreviewCodeLine</ID>
-    <ID>FunctionNaming:AttachmentPreviewScreen.kt:@Composable private fun AttachmentPreviewCodeViewer</ID>
-    <ID>FunctionNaming:AttachmentPreviewScreen.kt:@Composable private fun AttachmentPreviewErrorPane</ID>
-    <ID>FunctionNaming:AttachmentPreviewScreen.kt:@Composable private fun AttachmentPreviewImage</ID>
-    <ID>FunctionNaming:AttachmentPreviewScreen.kt:@Composable private fun AttachmentPreviewLoading</ID>
-    <ID>FunctionNaming:AttachmentPreviewScreen.kt:@Composable private fun AttachmentPreviewMarkdown</ID>
-    <ID>FunctionNaming:AttachmentPreviewScreen.kt:@Composable private fun AttachmentPreviewMarkdownText</ID>
-    <ID>FunctionNaming:AttachmentPreviewScreen.kt:@Composable private fun AttachmentPreviewText</ID>
-    <ID>FunctionNaming:AttachmentPreviewScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun AttachmentPreviewScaffold</ID>
-    <ID>FunctionNaming:AttachmentsScreen.kt:@Composable fun AttachmentsScreen</ID>
-    <ID>FunctionNaming:AttachmentsScreen.kt:@Composable private fun Item</ID>
-    <ID>FunctionNaming:AttachmentsScreen.kt:@Composable private fun ItemSection</ID>
-    <ID>FunctionNaming:AttachmentsScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:AttachmentsScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalMaterialApi::class, ) @Composable fun AttachmentsScreen</ID>
-    <ID>FunctionNaming:AutoSizeText.kt:@Composable fun AutoSizeText</ID>
-    <ID>FunctionNaming:AutofillCompose.kt:@Composable fun AppInfo</ID>
-    <ID>FunctionNaming:AutofillCompose.kt:@Composable fun AutofillScaffold</ID>
-    <ID>FunctionNaming:AutofillCompose.kt:@Composable fun ExtensionScaffold</ID>
-    <ID>FunctionNaming:AutofillCompose.kt:@Composable fun PasskeyScaffold</ID>
-    <ID>FunctionNaming:AutofillCompose.kt:@Composable private fun AppInfo</ID>
-    <ID>FunctionNaming:AutofillCompose.kt:@Composable private fun AppInfoAndroid</ID>
-    <ID>FunctionNaming:AutofillCompose.kt:@Composable private fun AppInfoWeb</ID>
-    <ID>FunctionNaming:AutofillSaveActivity.kt:@Composable private fun TwoColumnRow</ID>
-    <ID>FunctionNaming:AutofillSettingsScreen.kt:@Composable fun AutofillSettingsScreen</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable expect fun LeMOdelBottomSheet</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable fun AutofillButton</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable fun ColumnScope.AutofillWindow</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable fun ColumnScope.AutofillWindowContent</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable fun ColumnScope.GeneratorSuggestions</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable fun ColumnScope.RecentsWindow</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable fun ColumnScope.RecentsWindowOk</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable fun ColumnScope.RecentsWindowSkeleton</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable fun RecentsButton</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable fun RecentsButtonRaw</ID>
-    <ID>FunctionNaming:AutofillWindow.kt:@Composable private fun ColumnScope.GeneratorValue2</ID>
-    <ID>FunctionNaming:AutomaticBackupsDetailsSection.kt:@Composable internal fun AutomaticBackupsDetailsSection</ID>
-    <ID>FunctionNaming:AutomaticBackupsDetailsSection.kt:@Composable private fun AutomaticBackupsDetailText</ID>
-    <ID>FunctionNaming:AutomaticBackupsDetailsSection.kt:@Composable private fun AutomaticBackupsRepositoryTree</ID>
-    <ID>FunctionNaming:AutomaticBackupsDetailsSection.kt:@Composable private fun AutomaticBackupsRuleLine</ID>
-    <ID>FunctionNaming:AutomaticBackupsEnabledSection.kt:@Composable private fun AutomaticBackupsRetentionRow</ID>
-    <ID>FunctionNaming:AutomaticBackupsEnabledSection.kt:@Composable private fun DisableAutomaticBackupsAction</ID>
     <ID>FunctionNaming:AutomaticBackupsEnabledSection.kt:internal fun LazyListScope.AutomaticBackupsEnabledContent</ID>
-    <ID>FunctionNaming:AutomaticBackupsSettingsScreen.kt:@Composable fun AutomaticBackupsSettingsScreen</ID>
-    <ID>FunctionNaming:AutomaticBackupsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun AutomaticBackupsSettingsContent</ID>
-    <ID>FunctionNaming:AutomaticBackupsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun AutomaticBackupsSettingsLoadingContent</ID>
-    <ID>FunctionNaming:AutomaticBackupsSetupSection.kt:@Composable private fun AutomaticBackupsIncludeAttachmentsRow</ID>
-    <ID>FunctionNaming:AutomaticBackupsSetupSection.kt:@Composable private fun AutomaticBackupsLocationRow</ID>
-    <ID>FunctionNaming:AutomaticBackupsSetupSection.kt:@Composable private fun AutomaticBackupsPasswordRow</ID>
-    <ID>FunctionNaming:AutomaticBackupsSetupSection.kt:@Composable private fun AutomaticBackupsUnsupportedRow</ID>
     <ID>FunctionNaming:AutomaticBackupsSetupSection.kt:internal fun LazyListScope.AutomaticBackupsSetupContent</ID>
-    <ID>FunctionNaming:AutomaticBackupsStatusSection.kt:@Composable private fun AutomaticBackupsLastSyncLines</ID>
-    <ID>FunctionNaming:AutomaticBackupsStatusSection.kt:@Composable private fun AutomaticBackupsStatusPanel</ID>
-    <ID>FunctionNaming:AutomaticBackupsStatusSection.kt:@Composable private fun AutomaticBackupsStatusPanelLine</ID>
-    <ID>FunctionNaming:AutomaticBackupsStatusSection.kt:@Composable private fun BackupProgressFooter</ID>
-    <ID>FunctionNaming:BackgroundManager.kt:@Composable fun ReportSurfaceColor</ID>
     <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `listSnapshotIds follows paginated object store listing`</ID>
     <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `readIndexes follows paginated object store listing`</ID>
     <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `readIndexes returns latest readable generation only`</ID>
@@ -531,72 +396,16 @@
     <ID>FunctionNaming:BackupSchedulerWorkerTest.kt:BackupSchedulerWorkerTest$@Test fun `start collects scheduler and runs automatic backup after debounce`</ID>
     <ID>FunctionNaming:BackupSchedulerWorkerTest.kt:BackupSchedulerWorkerTest$@Test fun `start does not run automatic backup while vault is locked`</ID>
     <ID>FunctionNaming:BackupSchedulerWorkerTest.kt:BackupSchedulerWorkerTest$@Test fun `start runs automatic backup for persisted dirty vault`</ID>
-    <ID>FunctionNaming:BadgeField.kt:@Composable fun Ah</ID>
-    <ID>FunctionNaming:BadgeField.kt:@Composable fun AhContainer</ID>
-    <ID>FunctionNaming:BadgeField.kt:@Composable fun AhLayout</ID>
     <ID>FunctionNaming:BarcodeTypeHistoryKeyTest.kt:BarcodeTypeHistoryKeyTest$@Test fun `creates different keys for different cipher value pairs`</ID>
     <ID>FunctionNaming:BarcodeTypeHistoryKeyTest.kt:BarcodeTypeHistoryKeyTest$@Test fun `creates stable md5 key from cipher id and value`</ID>
-    <ID>FunctionNaming:BarcodeTypeScreen.kt:@Composable fun BarcodeImage</ID>
-    <ID>FunctionNaming:BarcodeTypeScreen.kt:@Composable fun BarcodeTypeScreen</ID>
-    <ID>FunctionNaming:BarcodeTypeScreen.kt:@Composable private fun BarcodeTypeContent</ID>
     <ID>FunctionNaming:BarcodeUsageHistoryRepositoryImplTest.kt:BarcodeUsageHistoryRepositoryImplTest$@Test fun `get by id returns null for missing history item`</ID>
     <ID>FunctionNaming:BarcodeUsageHistoryRepositoryImplTest.kt:BarcodeUsageHistoryRepositoryImplTest$@Test fun `put upserts history item by id`</ID>
     <ID>FunctionNaming:BarcodeUsageHistoryRepositoryImplTest.kt:BarcodeUsageHistoryRepositoryImplTest$@Test fun `use cases write and read history item`</ID>
-    <ID>FunctionNaming:BaseActivity.kt:BaseActivity$@Composable private fun Navigation</ID>
-    <ID>FunctionNaming:BaseActivity.kt:BaseActivity$@Composable protected abstract fun Content</ID>
-    <ID>FunctionNaming:BetaBadge.kt:@Composable fun BetaBadge</ID>
-    <ID>FunctionNaming:BiometricPromptEffect.kt:@Composable actual fun BiometricPromptEffect</ID>
-    <ID>FunctionNaming:BiometricPromptEffect.kt:@Composable expect fun BiometricPromptEffect</ID>
     <ID>FunctionNaming:BitwardenCryptoBenchmarkTest.kt:BitwardenCryptoBenchmarkTest$@Test fun `compare Bouncy Castle and Native Crypto on Bitwarden operations`</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@Composable fun BitwardenLoginScreen</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@Composable fun ColumnScope.LoginContent</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@Composable private fun LoginItem</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@Composable private fun LoginItemAdd</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@Composable private fun LoginItemField</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@Composable private fun LoginItemLabel</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@Composable private fun LoginItemSection</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@Composable private fun LoginItemUrl</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@Composable private fun LoginItems</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ) @Composable fun LoginContentSkeleton</ID>
-    <ID>FunctionNaming:BitwardenLoginScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ) @Composable fun LoginScaffold</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaPlatform.kt:@Composable actual fun ColumnScope.LoginOtpScreenContentDuoWebView</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaPlatform.kt:@Composable actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnBrowser</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaPlatform.kt:@Composable actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnWebView</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable expect fun ColumnScope.LoginOtpScreenContentDuoWebView</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable expect fun ColumnScope.LoginOtpScreenContentFido2WebAuthnBrowser</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable expect fun ColumnScope.LoginOtpScreenContentFido2WebAuthnWebView</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable fun LoginTwofaScreen</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable private fun ColumnScope.LoginOtpScreenContentAuthenticator</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable private fun ColumnScope.LoginOtpScreenContentEmail</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable private fun ColumnScope.LoginOtpScreenContentEmailNewDevice</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable private fun ColumnScope.LoginOtpScreenContentSkeleton</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable private fun ColumnScope.LoginOtpScreenContentUnsupported</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable private fun ColumnScope.LoginOtpScreenContentYubiKey</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@Composable private fun TwoFactorProviderSelector</ID>
-    <ID>FunctionNaming:BitwardenLoginTwofaScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun LoginTwofaScreenContent</ID>
     <ID>FunctionNaming:CallerAuthorizationWireTest.kt:CallerAuthorizationWireTest$@Test fun `SSH and GPG callers serialize shared authorization identically`</ID>
     <ID>FunctionNaming:CallerAuthorizationWireTest.kt:CallerAuthorizationWireTest$@Test fun `shared authorization keeps the exact protobuf wire contract`</ID>
-    <ID>FunctionNaming:ChangePasswordScreen.kt:@Composable fun ChangePasswordScreen</ID>
-    <ID>FunctionNaming:ChangePasswordScreen.kt:@Composable fun FabScope.ChangePasswordFab</ID>
-    <ID>FunctionNaming:ChangePasswordScreen.kt:@Composable private fun ChangePasswordBiometricItem</ID>
-    <ID>FunctionNaming:ChangePasswordScreen.kt:@Composable private fun ChangePasswordCurrentPasswordItem</ID>
-    <ID>FunctionNaming:ChangePasswordScreen.kt:@Composable private fun ChangePasswordDisclaimerIconItem</ID>
-    <ID>FunctionNaming:ChangePasswordScreen.kt:@Composable private fun ChangePasswordDisclaimerTextItem</ID>
-    <ID>FunctionNaming:ChangePasswordScreen.kt:@Composable private fun ChangePasswordNewPasswordItem</ID>
-    <ID>FunctionNaming:ChangePasswordScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun ChangePasswordScaffoldSkeleton</ID>
-    <ID>FunctionNaming:ChangePasswordScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class) @Composable fun ChangePasswordScreen</ID>
     <ID>FunctionNaming:ChangePasswordScreen.kt:private fun LazyListScope.ChangePasswordContent</ID>
     <ID>FunctionNaming:ChangePasswordScreen.kt:private fun LazyListScope.ChangePasswordContentSkeleton</ID>
-    <ID>FunctionNaming:ChevronIcon.kt:@Composable fun ChevronIcon</ID>
-    <ID>FunctionNaming:CipherFilterViewScreen.kt:@Composable fun CipherFilterViewFullScreen</ID>
-    <ID>FunctionNaming:CipherFilterViewScreen.kt:@Composable fun CipherFilterViewScreen</ID>
-    <ID>FunctionNaming:CipherFilterViewScreen.kt:@Composable fun CipherFilterViewScreenOk</ID>
-    <ID>FunctionNaming:CipherFilterViewScreen.kt:@Composable fun CipherFilterViewSkeleton</ID>
-    <ID>FunctionNaming:CipherFiltersListScreen.kt:@Composable fun CipherFiltersListScreen</ID>
-    <ID>FunctionNaming:CipherFiltersListScreen.kt:@Composable private fun FilterItem</ID>
-    <ID>FunctionNaming:CipherFiltersListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:CipherFiltersListScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun CipherFiltersListScreen</ID>
-    <ID>FunctionNaming:CipherFiltersScreen.kt:@Composable fun CipherFiltersScreen</ID>
     <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `close preserves input failure when cipher finalization also fails`</ID>
     <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `decodes aes cbc 128 hmac sha256 frame`</ID>
     <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `decodes aes cbc 256 hmac sha256 frame`</ID>
@@ -608,7 +417,6 @@
     <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `rejects unsupported frame type`</ID>
     <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `repeated zero progress input is rejected`</ID>
     <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `zero length read returns immediately without consuming input`</ID>
-    <ID>FunctionNaming:CipherLinkPickerScreen.kt:@Composable fun CipherLinkPickerScreen</ID>
     <ID>FunctionNaming:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest$@Test fun `bulk cipher snapshot update benchmark`</ID>
     <ID>FunctionNaming:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest$@Test fun `initial load comparison with pre snapshot query for ten thousand ciphers`</ID>
     <ID>FunctionNaming:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest$@Test fun `initial snapshot load benchmark`</ID>
@@ -640,57 +448,10 @@
     <ID>FunctionNaming:CloudflareEmailRelayTest.kt:CloudflareEmailRelayTest$@Test fun `generate normalizes domain`</ID>
     <ID>FunctionNaming:CloudflareEmailRelayTest.kt:CloudflareEmailRelayTest$@Test fun `generate surfaces http error message`</ID>
     <ID>FunctionNaming:CloudflareEmailRelayTest.kt:CloudflareEmailRelayTest$@Test fun `generate surfaces success false message`</ID>
-    <ID>FunctionNaming:CollectedEffect.kt:@Composable fun &lt;T&gt; CollectedEffect</ID>
-    <ID>FunctionNaming:CollectionScreen.kt:@Composable fun CollectionScreen</ID>
-    <ID>FunctionNaming:CollectionScreen.kt:@Composable fun CollectionScreenContent</ID>
-    <ID>FunctionNaming:CollectionsScreen.kt:@Composable fun CollectionsScreen</ID>
-    <ID>FunctionNaming:CollectionsScreen.kt:@Composable fun CollectionsScreenContent</ID>
-    <ID>FunctionNaming:CollectionsScreen.kt:@Composable private fun OrganizationsScreenCollectionItem</ID>
-    <ID>FunctionNaming:CollectionsScreen.kt:@Composable private fun OrganizationsScreenItem</ID>
-    <ID>FunctionNaming:CollectionsScreen.kt:@Composable private fun OrganizationsScreenSectionItem</ID>
-    <ID>FunctionNaming:ColorPickerScreen.kt:@Composable fun ColorPickerScreen</ID>
-    <ID>FunctionNaming:ColorPickerScreen.kt:@Composable private fun ColorItem</ID>
-    <ID>FunctionNaming:ColorPickerScreen.kt:@Composable private fun ColumnScope.Content</ID>
-    <ID>FunctionNaming:ColumnScrollbar.kt:@Composable fun ColumnScrollbar</ID>
-    <ID>FunctionNaming:ColumnScrollbar.kt:@Composable fun InternalColumnScrollbar</ID>
-    <ID>FunctionNaming:CompanionAuthActivity.kt:CompanionAuthActivity$@Composable private fun CompanionAppScreen</ID>
-    <ID>FunctionNaming:CompanionAuthProviderBitwarden.kt:@Composable private fun CompanionBitwardenLoginScreen</ID>
-    <ID>FunctionNaming:CompanionAuthProviderBitwarden.kt:@Composable private fun CompanionBitwardenTwofaScreen</ID>
-    <ID>FunctionNaming:CompanionAuthProviderKeePass.kt:@Composable private fun CompanionKeePassLoginScreen</ID>
-    <ID>FunctionNaming:CompanionAuthUi.kt:@Composable fun CompanionAuthHeader</ID>
-    <ID>FunctionNaming:Composable.kt:@Composable fun Compose</ID>
-    <ID>FunctionNaming:ConfirmationItemContent.kt:@Composable fun ConfirmationItemContent</ID>
-    <ID>FunctionNaming:ConfirmationScreen.kt:@Composable fun ConfirmationScreen</ID>
-    <ID>FunctionNaming:ConfirmationScreen.kt:@Composable private fun ConfirmationBooleanItem</ID>
-    <ID>FunctionNaming:ConfirmationScreen.kt:@Composable private fun ConfirmationEnumItemItem</ID>
-    <ID>FunctionNaming:ConfirmationScreen.kt:@Composable private fun ConfirmationItem</ID>
-    <ID>FunctionNaming:ConfirmationScreen.kt:@Composable private fun ConfirmationStringItem</ID>
-    <ID>FunctionNaming:ConfirmationScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun ConfirmationEnumItem</ID>
-    <ID>FunctionNaming:ConfirmationScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun ConfirmationFileItem</ID>
-    <ID>FunctionNaming:ContentSearchbar.kt:@Composable fun CustomSearchbarContent</ID>
-    <ID>FunctionNaming:ContentToolbar.kt:@Composable fun CustomToolbarContent</ID>
-    <ID>FunctionNaming:CustomToolbar.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun CustomToolbar</ID>
     <ID>FunctionNaming:DFilter.kt:DFilter.Companion$private fun &lt;T&gt; _findAny: T?</ID>
     <ID>FunctionNaming:DFilter.kt:DFilter.Companion$private fun &lt;T&gt; _findOne: Either&lt;Unit, T?&gt;</ID>
     <ID>FunctionNaming:DSendFilter.kt:DSendFilter.Companion$private fun &lt;T&gt; _findOne: Either&lt;Unit, T?&gt;</ID>
-    <ID>FunctionNaming:DataSafetyScreen.kt:@Composable private fun DataSafetyScreenItem</ID>
-    <ID>FunctionNaming:DataSafetyScreen.kt:@Composable private fun DataSafetySecondaryText</ID>
-    <ID>FunctionNaming:DataSafetyScreen.kt:@Composable private fun TwoColumnRow</ID>
-    <ID>FunctionNaming:DataSafetyScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun DataSafetyScreen</ID>
     <ID>FunctionNaming:DataSafetyScreen.kt:private fun LazyListScope.DataSafetyScreenContent</ID>
-    <ID>FunctionNaming:DateDayPickerScreen.kt:@Composable fun DatePickerScreen</ID>
-    <ID>FunctionNaming:DateDayPickerScreen.kt:@Composable private fun ColumnScope.Content</ID>
-    <ID>FunctionNaming:DatePickerScreen.kt:@Composable fun DatePickerScreen</ID>
-    <ID>FunctionNaming:DatePickerScreen.kt:@Composable private fun ColumnScope.Content</ID>
-    <ID>FunctionNaming:DatePickerScreen.kt:@Composable private fun MonthPicker</ID>
-    <ID>FunctionNaming:DatePickerScreen.kt:@Composable private fun MonthPickerItem</ID>
-    <ID>FunctionNaming:DebugSettingsScreen.kt:@Composable fun DebugSettingsScreen</ID>
-    <ID>FunctionNaming:DeveloperSettingsScreen.kt:@Composable fun DeveloperSettingsScreen</ID>
-    <ID>FunctionNaming:Dialog.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun Dialog</ID>
-    <ID>FunctionNaming:Dialog.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun DialogContent</ID>
-    <ID>FunctionNaming:Divider.kt:@Composable fun HorizontalDivider</ID>
-    <ID>FunctionNaming:Divider.kt:@Composable fun VerticalDivider</ID>
-    <ID>FunctionNaming:Divider.kt:@Composable private fun Divider</ID>
     <ID>FunctionNaming:DownloadTaskJvmTest.kt:DownloadTaskJvmTest$@Test fun `byte array loader decrypts and writes local path download`</ID>
     <ID>FunctionNaming:DownloadTaskJvmTest.kt:DownloadTaskJvmTest$@Test fun `url loader deletes cache and leaves no local path file after failed decrypt`</ID>
     <ID>FunctionNaming:DownloadTaskJvmTest.kt:DownloadTaskJvmTest$@Test fun `url loader deletes cache file after successful local path download`</ID>
@@ -698,50 +459,9 @@
     <ID>FunctionNaming:DownloadTaskJvmTest.kt:DownloadTaskJvmTest$@Test fun `url loader writes local path download with short filename`</ID>
     <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `local path writer stores bytes on disk`</ID>
     <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `sink writer writes into provided sink`</ID>
-    <ID>FunctionNaming:Dropdown.kt:@Composable fun KeyguardDropdownMenu</ID>
-    <ID>FunctionNaming:DropdownButton.kt:@Composable fun &lt;T&gt; DropdownButton</ID>
-    <ID>FunctionNaming:DropdownHeader.kt:@Composable fun DropdownHeader</ID>
-    <ID>FunctionNaming:DropdownIcon.kt:@Composable fun DropdownIcon</ID>
-    <ID>FunctionNaming:DuplicatesListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:DuplicatesListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ExperimentalFoundationApi::class, ) @Composable fun DuplicatesListScreen</ID>
-    <ID>FunctionNaming:DuplicatesScreen.kt:@Composable fun DuplicatesScreen</ID>
-    <ID>FunctionNaming:ElevatedAccessScreen.kt:@Composable fun ElevatedAccessScreen</ID>
-    <ID>FunctionNaming:ElevatedAccessScreen.kt:@Composable private fun ColumnScope.ElevatedAccessSkeleton</ID>
-    <ID>FunctionNaming:ElevatedAccessScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun ColumnScope.ElevatedAccessContent</ID>
-    <ID>FunctionNaming:EmailIcon.kt:@Composable fun EmailIcon</ID>
-    <ID>FunctionNaming:EmailLeakScreen.kt:@Composable fun EmailLeakScreen</ID>
-    <ID>FunctionNaming:EmailLeakScreen.kt:@Composable private fun ColumnScope.Content</ID>
-    <ID>FunctionNaming:EmailLeakScreen.kt:@Composable private fun ColumnScope.ContentSkeleton</ID>
-    <ID>FunctionNaming:EmailLeakScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun BreachItem</ID>
-    <ID>FunctionNaming:EmailRelayListScreen.kt:@Composable fun EmailRelayListScreen</ID>
-    <ID>FunctionNaming:EmailRelayListScreen.kt:@Composable private fun AppItem</ID>
-    <ID>FunctionNaming:EmailRelayListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:EmailRelayListScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun EmailRelayListScreen</ID>
-    <ID>FunctionNaming:EmptyItem.kt:@Composable fun EmptyItem</ID>
-    <ID>FunctionNaming:EmptyView.kt:@Composable fun EmptySearchView</ID>
-    <ID>FunctionNaming:EmptyView.kt:@Composable private fun DefaultEmptyViewText</ID>
-    <ID>FunctionNaming:EmptyView.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun EmptyView</ID>
-    <ID>FunctionNaming:EmptyView.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun PixelEmptyArtwork</ID>
     <ID>FunctionNaming:EncryptedFilePendingUploadServiceJvmTest.kt:EncryptedFilePendingUploadServiceJvmTest$@Test fun `mark uploaded writes marker and delete removes it`</ID>
     <ID>FunctionNaming:EncryptedFilePendingUploadServiceJvmTest.kt:EncryptedFilePendingUploadServiceJvmTest$@Test fun `stage clears stale uploaded marker`</ID>
     <ID>FunctionNaming:EncryptedFilePendingUploadServiceJvmTest.kt:EncryptedFilePendingUploadServiceJvmTest$@Test fun `stage deletes managed source file after successful staging`</ID>
-    <ID>FunctionNaming:EquivalentDomainsScreen.kt:@Composable fun EquivalentDomainsScreen</ID>
-    <ID>FunctionNaming:EquivalentDomainsScreen.kt:@Composable private fun EquivalentDomainsContentItem</ID>
-    <ID>FunctionNaming:EquivalentDomainsScreen.kt:@Composable private fun EquivalentDomainsItem</ID>
-    <ID>FunctionNaming:EquivalentDomainsScreen.kt:@Composable private fun EquivalentDomainsSectionItem</ID>
-    <ID>FunctionNaming:EquivalentDomainsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun EquivalentDomainsContent</ID>
-    <ID>FunctionNaming:ErrorView.kt:@Composable fun ErrorView</ID>
-    <ID>FunctionNaming:ExpandableIcon.kt:@Composable fun ExpandableIcon</ID>
-    <ID>FunctionNaming:ExpandedIfNotEmpty.kt:@Composable fun &lt;T : Any&gt; ExpandedIfNotEmptyForRow</ID>
-    <ID>FunctionNaming:ExperimentalSettingsScreen.kt:@Composable fun ExperimentalSettingsScreen</ID>
-    <ID>FunctionNaming:ExportScreen.kt:@Composable fun ExportScreen</ID>
-    <ID>FunctionNaming:ExportScreen.kt:@Composable fun ExportScreenOk</ID>
-    <ID>FunctionNaming:ExportScreen.kt:@Composable fun ExportScreenSkeleton</ID>
-    <ID>FunctionNaming:ExportScreen.kt:@Composable private fun ColumnScope.ExportContentOk</ID>
-    <ID>FunctionNaming:ExportScreen.kt:@Composable private fun ColumnScope.ExportContentSkeleton</ID>
-    <ID>FunctionNaming:ExportScreen.kt:@Composable private fun ExportScreenFilterButton</ID>
-    <ID>FunctionNaming:ExportScreen.kt:@Composable private fun ExportScreenFilterList</ID>
-    <ID>FunctionNaming:ExportScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun ExportScreen</ID>
     <ID>FunctionNaming:FNV.kt:FNV$fun fnv1_32: Long</ID>
     <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate creates masked email through JMAP`</ID>
     <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate fails clearly on unauthorized token`</ID>
@@ -749,12 +469,6 @@
     <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate surfaces JMAP error description`</ID>
     <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate surfaces notCreated description`</ID>
     <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate uses empty forDomain when host is missing`</ID>
-    <ID>FunctionNaming:FaviconIcon.kt:@Composable fun FaviconIcon</ID>
-    <ID>FunctionNaming:FavouriteToggleButton.kt:@Composable fun FavouriteToggleButton</ID>
-    <ID>FunctionNaming:FeedbackScreen.kt:@Composable fun FeedbackScreen</ID>
-    <ID>FunctionNaming:FeedbackScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun FeedbackContent</ID>
-    <ID>FunctionNaming:FileDropTargetBox.kt:@Composable internal fun FileDropOverlay</ID>
-    <ID>FunctionNaming:FileDropTargetBox.kt:@Composable internal fun FileDropTargetBox</ID>
     <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `detects file list drag without reading files`</ID>
     <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `ignores missing file uri`</ID>
     <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `ignores unreadable dropped file list`</ID>
@@ -773,8 +487,6 @@
     <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming encode preserves existing destination on source failure`</ID>
     <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming encode removes partial output after cancellation`</ID>
     <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming file operations cross the bounded ciphertext spill threshold`</ID>
-    <ID>FunctionNaming:FilePickerEffect.kt:@Composable actual fun FilePickerEffect</ID>
-    <ID>FunctionNaming:FilePickerEffect.kt:@Composable expect fun FilePickerEffect</ID>
     <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `deduplicates mixed mime types`</ID>
     <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `maps legacy jpeg mime type to jpg and jpeg extensions`</ID>
     <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `maps png mime type to png extension`</ID>
@@ -793,55 +505,6 @@
     <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `unsupported uri scheme fails consistently`</ID>
     <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `writeToFile writes bytes to disk`</ID>
     <ID>FunctionNaming:FileWatcherServiceJvmTest.kt:FileWatcherServiceJvmTest$@Test fun `directory watcher cancellation closes blocking watcher`</ID>
-    <ID>FunctionNaming:FilterButton.kt:@Composable fun FilterButton</ID>
-    <ID>FunctionNaming:FilterItem.kt:@Composable fun FilterItemLayout</ID>
-    <ID>FunctionNaming:FilterItem.kt:@Composable private fun FilterItemComposableContent</ID>
-    <ID>FunctionNaming:FilterItem.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun FilterChipItemComposable</ID>
-    <ID>FunctionNaming:FilterItem.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun FilterListItemComposable</ID>
-    <ID>FunctionNaming:FilterItems.kt:@Composable private fun FilterItemItem</ID>
-    <ID>FunctionNaming:FilterItems.kt:@Composable private fun FilterItemSection</ID>
-    <ID>FunctionNaming:FilterItems.kt:@Composable private fun FilterItemsListBlock</ID>
-    <ID>FunctionNaming:FilterItems.kt:@Composable private fun FilterNestedFolderItem</ID>
-    <ID>FunctionNaming:FilterItems.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun ColumnScope.FilterItems</ID>
-    <ID>FunctionNaming:FilterItems.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun FilterItemsFlowBlock</ID>
-    <ID>FunctionNaming:FilterScreen.kt:@Composable fun FilterScreen</ID>
-    <ID>FunctionNaming:FilterSection.kt:@Composable fun FilterSectionComposable</ID>
-    <ID>FunctionNaming:FolderConfirmationScreen.kt:@Composable fun CreateNewFolder</ID>
-    <ID>FunctionNaming:FolderConfirmationScreen.kt:@Composable private fun FolderConfirmationItem</ID>
-    <ID>FunctionNaming:FolderConfirmationScreen.kt:@OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class) @Composable fun FolderConfirmationScreen</ID>
-    <ID>FunctionNaming:FoldersScreen.kt:@Composable fun FoldersScreen</ID>
-    <ID>FunctionNaming:FoldersScreen.kt:@Composable private fun FoldersScreenFolderItem</ID>
-    <ID>FunctionNaming:FoldersScreen.kt:@Composable private fun FoldersScreenFolderItemBadge</ID>
-    <ID>FunctionNaming:FoldersScreen.kt:@Composable private fun FoldersScreenItem</ID>
-    <ID>FunctionNaming:FoldersScreen.kt:@Composable private fun FoldersScreenSectionItem</ID>
-    <ID>FunctionNaming:FoldersScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun FoldersScreenContent</ID>
-    <ID>FunctionNaming:GeneratorHistoryScreen.kt:@Composable fun GeneratorHistoryItem</ID>
-    <ID>FunctionNaming:GeneratorHistoryScreen.kt:@Composable fun GeneratorHistoryScreen</ID>
-    <ID>FunctionNaming:GeneratorHistoryScreen.kt:@Composable private fun GeneratorHistoryItem</ID>
-    <ID>FunctionNaming:GeneratorHistoryScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ) @Composable private fun GeneratorPaneMaster</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable fun AutoResizeText</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable fun DecoratedSlider</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable fun FilterItem</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable fun FilterSwitchItemCounter</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable fun GeneratorBadgesRow</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable fun GeneratorScreen</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun ColumnScope.DecoratedSkeletonSlider</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun ColumnScope.DecoratedSliderContent</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun ColumnScope.DecoratedSliderLayout</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun ColumnScope.GeneratorFilterItems</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun ColumnScope.GeneratorFilterTip</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun ColumnScope.GeneratorPaneDetailContent</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun ColumnScope.GeneratorPaneMasterContent</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun FilterEnumItem</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun FilterSectionItem</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun FilterSwitchItem</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun FilterSwitchItemCounterButton</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun FilterSwitchItemMainContent</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@Composable private fun FilterTextItem</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GeneratorPaneDetail</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GeneratorPaneMaster</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun ColumnScope.GeneratorType</ID>
-    <ID>FunctionNaming:GeneratorScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun ColumnScope.GeneratorValue</ID>
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `direct source accepts payload at the size limit`</ID>
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `encrypted source decrypts in memory`</ID>
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `encrypted source surfaces decryption failures`</ID>
@@ -857,7 +520,6 @@
     <ID>FunctionNaming:GpgAgentApprovalCacheKeyTest.kt:GpgAgentApprovalCacheKeyTest$@Test fun `gpg cache reuses verified subject across connections but partitions context`</ID>
     <ID>FunctionNaming:GpgAgentApprovalCacheKeyTest.kt:GpgAgentApprovalCacheKeyTest$@Test fun `legacy callers never produce reusable gpg cache keys`</ID>
     <ID>FunctionNaming:GpgAgentApprovalCacheKeyTest.kt:GpgAgentApprovalCacheKeyTest$@Test fun `malformed gpg authorization never produces a cache key`</ID>
-    <ID>FunctionNaming:GpgAgentApprovalContent.kt:@Composable fun GpgAgentApprovalContent</ID>
     <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `canonical s-expression parser is byte-accurate`</ID>
     <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `cv25519 legacy pkdecrypt returns prefixed shared secret`</ID>
     <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `cv25519 pkdecrypt performs the rfc6637 kdf and aes key unwrap`</ID>
@@ -868,24 +530,12 @@
     <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `rsa pkdecrypt returns the raw modular exponentiation`</ID>
     <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `scoped canonical s-expression parsing clears nested atoms after failure`</ID>
     <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `scoped canonical s-expression parsing clears nested atoms after success`</ID>
-    <ID>FunctionNaming:GpgAgentFiltersScreen.kt:@Composable fun GpgAgentFiltersScreen</ID>
-    <ID>FunctionNaming:GpgAgentFiltersScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GpgAgentFiltersScreenContent</ID>
-    <ID>FunctionNaming:GpgAgentFiltersScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GpgAgentFiltersScreenSkeleton</ID>
-    <ID>FunctionNaming:GpgAgentHistoryScreen.kt:@Composable fun GpgAgentHistoryScreen</ID>
-    <ID>FunctionNaming:GpgAgentHistoryScreen.kt:@Composable private fun GpgAgentHistoryItem</ID>
-    <ID>FunctionNaming:GpgAgentHistoryScreen.kt:@Composable private fun GpgAgentHistorySectionItem</ID>
-    <ID>FunctionNaming:GpgAgentHistoryScreen.kt:@Composable private fun GpgAgentHistoryValueItem</ID>
-    <ID>FunctionNaming:GpgAgentHistoryScreen.kt:@Composable private fun ToolbarTitle</ID>
-    <ID>FunctionNaming:GpgAgentHistoryScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GpgAgentHistoryScreen</ID>
     <ID>FunctionNaming:GpgAgentIpcAuthenticationTest.kt:GpgAgentIpcAuthenticationTest$@Test fun `authentication requires exact current protocol revision`</ID>
     <ID>FunctionNaming:GpgAgentIpcAuthenticationTest.kt:GpgAgentIpcAuthenticationTest$@Test fun `matching revision does not weaken token authentication`</ID>
     <ID>FunctionNaming:GpgAgentMessagesTest.kt:GpgAgentMessagesTest$@Test fun `CallerAuthorization round-trips as field 9`</ID>
     <ID>FunctionNaming:GpgAgentMessagesTest.kt:GpgAgentMessagesTest$@Test fun `authentication revision round-trips and is emitted as field 2`</ID>
     <ID>FunctionNaming:GpgAgentPublicKeyRepositoryImplTest.kt:GpgAgentPublicKeyRepositoryImplTest$@Test fun `replaceAll restores public-only key rows from exposed database`</ID>
     <ID>FunctionNaming:GpgAgentPublicKeySyncerImplTest.kt:GpgAgentPublicKeySyncerImplTest$@Test fun `syncer stores public-only keys without private operation capabilities`</ID>
-    <ID>FunctionNaming:GpgAgentSetupScreen.kt:@Composable fun GpgAgentSetupScreen</ID>
-    <ID>FunctionNaming:GpgAgentSetupScreen.kt:@Composable private fun ColumnScope.GpgAgentSetupScreenContent</ID>
-    <ID>FunctionNaming:GpgAgentSetupScreen.kt:@Composable private fun ColumnScope.GpgAgentSetupSupportedPlatformContent</ID>
     <ID>FunctionNaming:GpgAgentSigningTest.kt:GpgAgentSigningTest$@Test fun `ecdsa sig-val reconstructs a verifiable signature`</ID>
     <ID>FunctionNaming:GpgAgentSigningTest.kt:GpgAgentSigningTest$@Test fun `ed25519 sig-val reconstructs a verifiable signature`</ID>
     <ID>FunctionNaming:GpgAgentSigningTest.kt:GpgAgentSigningTest$@Test fun `legacy V2 and V3 private keys are unsupported`</ID>
@@ -905,8 +555,6 @@
     <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `legacy V2 and V3 certificates are rejected`</ID>
     <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `newer expired user id certification shadows an older live certification`</ID>
     <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `newer invalid self signature cannot replace authenticated expiry or key flags`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationScreen.kt:@Composable private fun GpgKeyExpirationComponent</ID>
-    <ID>FunctionNaming:GpgKeyExpirationScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun GpgKeyExpirationScreen</ID>
     <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `a forged primary revocation does not prevent expiry changes`</ID>
     <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `a revoked primary prevents subkey-only expiry changes`</ID>
     <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `an empty legacy fingerprint is canonicalized for a single certificate`</ID>
@@ -971,9 +619,6 @@
     <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `VKS upload posts keytext to upload endpoint`</ID>
     <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `canServeSearch reflects protocol and resolved mode`</ID>
     <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `search uses request keyserver config protocol for fingerprint lookup`</ID>
-    <ID>FunctionNaming:GpgKeyserverSearchScreen.kt:@Composable fun GpgKeyserverSearchScreen</ID>
-    <ID>FunctionNaming:GpgKeyserverSearchScreen.kt:@Composable private fun KeyItem</ID>
-    <ID>FunctionNaming:GpgKeyserverSearchScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
     <ID>FunctionNaming:GpgKeyserverStateRepositoryImplTest.kt:GpgKeyserverStateRepositoryImplTest$@Test fun `put normalizes fingerprint and looks up state`</ID>
     <ID>FunctionNaming:GpgKeyserverStateRepositoryImplTest.kt:GpgKeyserverStateRepositoryImplTest$@Test fun `put replaces existing state by normalized fingerprint`</ID>
     <ID>FunctionNaming:GpgKeyserverStateRepositoryImplTest.kt:GpgKeyserverStateRepositoryImplTest$@Test fun `remove by fingerprint and remove all clear state`</ID>
@@ -1019,28 +664,6 @@
     <ID>FunctionNaming:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$@Test fun `time conflict is returned after five clock waits`</ID>
     <ID>FunctionNaming:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$@Test fun `weak RSA digests are upgraded while constrained algorithms preserve them`</ID>
     <ID>FunctionNaming:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$@Test fun `zero and exact unsigned wrap leave copied expiration untouched`</ID>
-    <ID>FunctionNaming:GpgSettingsScreen.kt:@Composable fun GpgSettingsScreen</ID>
-    <ID>FunctionNaming:GpgToolsPickerScreen.kt:@Composable internal fun GpgToolsPickerScreen</ID>
-    <ID>FunctionNaming:GpgToolsPickerScreen.kt:@Composable private fun GpgKeyserverSearchCard</ID>
-    <ID>FunctionNaming:GpgToolsPickerScreen.kt:@Composable private fun GpgOperationCard</ID>
-    <ID>FunctionNaming:GpgToolsPickerScreen.kt:@Composable private fun GpgToolsCard</ID>
-    <ID>FunctionNaming:GpgToolsPickerScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GpgToolsPickerScreen</ID>
-    <ID>FunctionNaming:GpgToolsPublicKeyScreen.kt:@Composable fun GpgToolsPublicKeyScreen</ID>
-    <ID>FunctionNaming:GpgToolsResultScreen.kt:@Composable fun GpgToolsResultScreen</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable fun GpgToolsOperationScreen</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable fun GpgToolsScreen</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable private fun DecryptNote</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable private fun GpgAddPublicKeyButton</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable private fun GpgArmorRow</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable private fun GpgCheckboxRow</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable private fun GpgCustomPublicKeyRow</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable private fun GpgFileRefRow</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable private fun GpgOptionalSigningNoneRow</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable private fun GpgPrivateKeyRow</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable private fun GpgRecipientRow</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@Composable private fun VerifyNote</ID>
-    <ID>FunctionNaming:GpgToolsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GpgToolsOperationScreen</ID>
-    <ID>FunctionNaming:GridLayout.kt:@Composable fun GridLayout</ID>
     <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `all breaches calls HIBP breaches endpoint and decodes group`</ID>
     <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `breached account retries 429 using retry after header`</ID>
     <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `breached account returns empty list for not found`</ID>
@@ -1050,56 +673,12 @@
     <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `pwned password range returns matching suffix count or zero`</ID>
     <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `subscription status propagates HIBP HTTP errors`</ID>
     <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `subscription status sends token, user agent, and route`</ID>
-    <ID>FunctionNaming:HomeLayout.kt:@Composable fun ResponsiveLayout</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@Composable fun HomeScreen</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@Composable private fun BannerStatusBadge</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@Composable private fun BannerStatusBadgeContent</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@Composable private fun HomeNavigationDynamicRootEffect</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@Composable private fun HomeNavigationOverflowMenu</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@Composable private fun NavigationIcon</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@Composable private fun RailStatusBadge</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@Composable private fun RailStatusBadgeContent</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun HomeScreenContent</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun BottomNavigationControllerItem</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun BottomNavigationOverflowItem</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun RailNavigationControllerItem</ID>
-    <ID>FunctionNaming:HomeScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun RailNavigationOverflowItem</ID>
-    <ID>FunctionNaming:Html.ios.kt:@Composable actual fun HtmlText</ID>
-    <ID>FunctionNaming:Html.jvm.kt:@Composable actual fun HtmlText</ID>
-    <ID>FunctionNaming:Html.kt:@Composable expect fun HtmlText</ID>
-    <ID>FunctionNaming:Html.macos.kt:@Composable actual fun HtmlText</ID>
-    <ID>FunctionNaming:IconBox.kt:@Composable fun IconBox</ID>
-    <ID>FunctionNaming:IconBox.kt:@Composable fun IconBoxContainer</ID>
-    <ID>FunctionNaming:IconBox.kt:@Composable fun IconSmallBox</ID>
-    <ID>FunctionNaming:IncognitoInput.android.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable actual fun IncognitoInput</ID>
-    <ID>FunctionNaming:IncognitoInput.desktop.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable actual fun IncognitoInput</ID>
-    <ID>FunctionNaming:IncognitoInput.kt:@Composable actual fun IncognitoInput</ID>
-    <ID>FunctionNaming:IncognitoInput.kt:@Composable expect fun IncognitoInput</ID>
     <ID>FunctionNaming:InputStreamReadCompatTest.kt:InputStreamReadCompatTest$@Test fun `readBytesCompat returns a truncated buffer when the stream ends early`</ID>
     <ID>FunctionNaming:InputStreamReadCompatTest.kt:InputStreamReadCompatTest$@Test fun `readBytesCompat returns the requested bytes across short reads`</ID>
-    <ID>FunctionNaming:ItemAttachment.kt:@Composable private fun ItemAttachmentLayout</ID>
-    <ID>FunctionNaming:ItemAttachment.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun ItemAttachment</ID>
     <ID>FunctionNaming:JavaIoExtJvmTest.kt:JavaIoExtJvmTest$@Test fun `useBufferedSink flushes and closes owned output stream`</ID>
     <ID>FunctionNaming:JavaIoExtJvmTest.kt:JavaIoExtJvmTest$@Test fun `withBufferedSink flushes without closing borrowed output stream`</ID>
     <ID>FunctionNaming:JsonKeyValueStoreTest.kt:JsonKeyValueStoreTest$@Test fun `file store writes and reads data through nested path`</ID>
     <ID>FunctionNaming:JsonKeyValueStoreTest.kt:JsonKeyValueStoreTest$@Test fun `json key value store falls back to empty state on malformed json`</ID>
-    <ID>FunctionNaming:JustDeleteMeComponent.kt:@Composable fun AhDifficulty</ID>
-    <ID>FunctionNaming:JustDeleteMeServiceListScreen.kt:@Composable fun JustDeleteMeListScreen</ID>
-    <ID>FunctionNaming:JustDeleteMeServiceListScreen.kt:@Composable private fun AppItem</ID>
-    <ID>FunctionNaming:JustDeleteMeServiceListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:JustDeleteMeServiceViewScreen.kt:@Composable fun ColumnScope.Content</ID>
-    <ID>FunctionNaming:JustDeleteMeServiceViewScreen.kt:@Composable fun JustDeleteMeDialogScreen</ID>
-    <ID>FunctionNaming:JustDeleteMeServiceViewScreen.kt:@Composable fun JustDeleteMeFullScreen</ID>
-    <ID>FunctionNaming:JustDeleteMeServicesScreen.kt:@Composable fun TwoFaServicesScreen</ID>
-    <ID>FunctionNaming:JustGetMyDataComponent.kt:@Composable fun AhDifficulty</ID>
-    <ID>FunctionNaming:JustGetMyDataListScreen.kt:@Composable fun JustGetMyDataListScreen</ID>
-    <ID>FunctionNaming:JustGetMyDataListScreen.kt:@Composable private fun AppItem</ID>
-    <ID>FunctionNaming:JustGetMyDataListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:JustGetMyDataServicesScreen.kt:@Composable fun JustGetMyDataServicesScreen</ID>
-    <ID>FunctionNaming:JustGetMyDataViewScreen.kt:@Composable fun ColumnScope.Content</ID>
-    <ID>FunctionNaming:JustGetMyDataViewScreen.kt:@Composable fun JustGetMyDataViewDialogScreen</ID>
-    <ID>FunctionNaming:JustGetMyDataViewScreen.kt:@Composable fun JustGetMyDataViewFullScreen</ID>
-    <ID>FunctionNaming:JustGetMyDataViewScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun JustGetMyDataViewDialogScreen</ID>
     <ID>FunctionNaming:KeePassCipherCodecTest.kt:KeePassCipherCodecTest$@Test fun `encode preserves remote XML extensions on current and historical entries`</ID>
     <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `existing db with correct password succeeds`</ID>
     <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `existing db with wrong password fails before import`</ID>
@@ -1127,9 +706,6 @@
     <ID>FunctionNaming:KeePassGpgKeyCodecTest.kt:KeePassGpgKeyCodecTest$@Test fun `decode ignores metadata as available field`</ID>
     <ID>FunctionNaming:KeePassGpgKeyCodecTest.kt:KeePassGpgKeyCodecTest$@Test fun `encode writes gpg fields with concealment`</ID>
     <ID>FunctionNaming:KeePassGpgKeyCodecTest.kt:KeePassGpgKeyCodecTest$@Test fun `encode-decode preserves public-only gpg key`</ID>
-    <ID>FunctionNaming:KeePassLoginScreen.kt:@Composable fun KeePassLoginScreen</ID>
-    <ID>FunctionNaming:KeePassLoginScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ) @Composable fun LoginContentSkeleton</ID>
-    <ID>FunctionNaming:KeePassLoginScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable fun LoginContent</ID>
     <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode does not treat display or embedded OTP fields as configuration`</ID>
     <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode precedence keeps non-winning OTP fields available`</ID>
     <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode precedence keeps secondary secret encodings available`</ID>
@@ -1156,23 +732,9 @@
     <ID>FunctionNaming:KeePassWriteBackBufferTest.kt:KeePassWriteBackBufferTest$@Test fun `isEmpty reflects whether anything is staged`</ID>
     <ID>FunctionNaming:KeePassWriteBackBufferTest.kt:KeePassWriteBackBufferTest$@Test fun `overlay read reflects a staged delete as absent`</ID>
     <ID>FunctionNaming:KeePassWriteBackBufferTest.kt:KeePassWriteBackBufferTest$@Test fun `overlay read returns staged upsert before commit`</ID>
-    <ID>FunctionNaming:KeepScreenOn.kt:@Composable expect fun KeepScreenOnEffect</ID>
-    <ID>FunctionNaming:KeepScreenOn.kt:@Composable fun OptionallyKeepScreenOnEffect</ID>
-    <ID>FunctionNaming:KeepScreenOnEffect.kt:@Composable actual fun KeepScreenOnEffect</ID>
     <ID>FunctionNaming:KeyExportImplTest.kt:KeyExportImplTest$@Test fun `key pair export writes zip entries with same text payloads`</ID>
     <ID>FunctionNaming:KeyExportImplTest.kt:KeyExportImplTest$@Test fun `private export writes ssh text into downloads sink`</ID>
     <ID>FunctionNaming:KeyExportImplTest.kt:KeyExportImplTest$@Test fun `public export writes ssh text into downloads sink`</ID>
-    <ID>FunctionNaming:LargeToolbar.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class) @Composable fun LargeToolbar</ID>
-    <ID>FunctionNaming:LargeTypeActivity.kt:@Composable private fun LargeTypeScreen</ID>
-    <ID>FunctionNaming:LargeTypeScreen.kt:@Composable fun LargeTypeScreen</ID>
-    <ID>FunctionNaming:LargeTypeScreen.kt:@Composable private fun SymbolItem</ID>
-    <ID>FunctionNaming:LargeTypeScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun LargeTypeContent</ID>
-    <ID>FunctionNaming:LargeTypeScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun LargeTypeDialog</ID>
-    <ID>FunctionNaming:LazyColumnScrollbar.kt:@Composable fun InternalLazyColumnScrollbar</ID>
-    <ID>FunctionNaming:LazyColumnScrollbar.kt:@Composable fun LazyColumnScrollbar</ID>
-    <ID>FunctionNaming:LazyListScroll.kt:@Composable fun RequestLazyListScrollOnRevision</ID>
-    <ID>FunctionNaming:LeMOdelBottomSheet.kt:@Composable actual fun LeMOdelBottomSheet</ID>
-    <ID>FunctionNaming:LePlatformLifecycleProvider.kt:@Composable fun LaunchLifecycleProviderEffect</ID>
     <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `claim persists source metadata and skips fresh non-forced claim`</ID>
     <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `claim stores recent failure throttles non-forced retry and force bypasses throttle`</ID>
     <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `claim success without key keeps same source stored key and updates snapshot`</ID>
@@ -1183,12 +745,6 @@
     <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `refresh skips redeemed license with fresh snapshot`</ID>
     <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `refresh updates stale redeemed snapshot and adopts decodable server key`</ID>
     <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `valid redeem persists decoded active entitlement`</ID>
-    <ID>FunctionNaming:LicenseScreen.kt:@Composable fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:LicenseScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun LicenseItem</ID>
-    <ID>FunctionNaming:LicenseScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun LicenseScreen</ID>
-    <ID>FunctionNaming:LoadingIndicator.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun KeyguardLoadingIndicator</ID>
-    <ID>FunctionNaming:LoadingScreen.kt:@Composable fun LoadingScreen</ID>
-    <ID>FunctionNaming:LoadingScreen.kt:@Composable private fun LoadingScreenContent</ID>
     <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `create or replace replaces existing object`</ID>
     <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `create race maps existing target to already exists`</ID>
     <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `delete reports typed error when filesystem refuses removal`</ID>
@@ -1209,28 +765,6 @@
     <ID>FunctionNaming:LocalPathIoExtTest.kt:LocalPathIoExtTest$@Test fun `read helpers fail on missing file`</ID>
     <ID>FunctionNaming:LocalPathIoExtTest.kt:LocalPathIoExtTest$@Test fun `writeBytes and readBytes round trip bytes`</ID>
     <ID>FunctionNaming:LocalPathIoExtTest.kt:LocalPathIoExtTest$@Test fun `writeText and readText round trip utf8 text`</ID>
-    <ID>FunctionNaming:LocalizationContributorsListScreen.kt:@Composable fun LocalizationContributorCrown</ID>
-    <ID>FunctionNaming:LocalizationContributorsListScreen.kt:@Composable fun LocalizationContributorsListScreen</ID>
-    <ID>FunctionNaming:LocalizationContributorsListScreen.kt:@Composable private fun LocalizationContributorItem</ID>
-    <ID>FunctionNaming:LocalizationContributorsListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:LocalizationContributorsListScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun LocalizationContributorsListScreen</ID>
-    <ID>FunctionNaming:LoginOtpScreen.android.kt:@Composable actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnBrowser</ID>
-    <ID>FunctionNaming:LoginOtpScreen.android.kt:@Composable private fun BaseWebView</ID>
-    <ID>FunctionNaming:LoginOtpScreen.android.kt:@SuppressLint("SetJavaScriptEnabled") @Composable actual fun ColumnScope.LoginOtpScreenContentDuoWebView</ID>
-    <ID>FunctionNaming:LoginOtpScreen.android.kt:@SuppressLint("SetJavaScriptEnabled") @Composable actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnWebView</ID>
-    <ID>FunctionNaming:LoginOtpScreen.desktop.kt:@Composable actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnBrowser</ID>
-    <ID>FunctionNaming:LoginOtpScreen.desktop.kt:@Composable actual fun ColumnScope.LoginOtpScreenContentFido2WebAuthnWebView</ID>
-    <ID>FunctionNaming:LoginTwofaScreen.desktop.kt:@Composable actual fun ColumnScope.LoginOtpScreenContentDuoWebView</ID>
-    <ID>FunctionNaming:LogsScreen.kt:@Composable fun LogsScreen</ID>
-    <ID>FunctionNaming:LogsScreen.kt:@Composable private fun LogItem</ID>
-    <ID>FunctionNaming:LogsScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ) @Composable private fun LogsScreenContent</ID>
-    <ID>FunctionNaming:LogsScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ) @Composable private fun LogsScreenSkeleton</ID>
-    <ID>FunctionNaming:MainScreen.kt:@OptIn(kotlin.time.ExperimentalTime::class) @Composable fun MainScreen</ID>
-    <ID>FunctionNaming:Markdown.kt:@Composable fun MarkdownText</ID>
-    <ID>FunctionNaming:Markdown.kt:@Composable internal expect fun PlatformMarkdownText</ID>
-    <ID>FunctionNaming:MarkdownApple.kt:@Composable internal actual fun PlatformMarkdownText</ID>
-    <ID>FunctionNaming:MarkdownJvm.kt:@Composable internal actual fun PlatformMarkdownText</ID>
-    <ID>FunctionNaming:MarkdownJvm.kt:@Composable private fun ProvideGracefulUriHandler</ID>
     <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `BC Bitwarden AES HMAC frames decrypt with native crypto`</ID>
     <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `BC OAEP ciphertexts decrypt through every native Bitwarden RSA type`</ID>
     <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `BC file frames for types 1 and 2 decrypt with native crypto`</ID>
@@ -1240,31 +774,6 @@
     <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `native PKCS8 to SPKI bytes exactly match BC`</ID>
     <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `native RSA types 5 and 6 retain BC ignored MAC artifact behavior`</ID>
     <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `tampered MAC is rejected before Bitwarden plaintext is returned`</ID>
-    <ID>FunctionNaming:Navigation.kt:RouteForResult$@Composable fun Content</ID>
-    <ID>FunctionNaming:NavigationController.kt:@Composable fun NavigationController</ID>
-    <ID>FunctionNaming:NavigationEntryProvider.kt:@Composable fun NavigationNode</ID>
-    <ID>FunctionNaming:NavigationItemsSettingsScreen.kt:@Composable fun NavigationItemsSettingsScreen</ID>
-    <ID>FunctionNaming:NavigationItemsSettingsScreen.kt:@Composable private fun NavigationItemsAddMenu</ID>
-    <ID>FunctionNaming:NavigationItemsSettingsScreen.kt:@Composable private fun NavigationItemsSettingsItem</ID>
-    <ID>FunctionNaming:NavigationItemsSettingsScreen.kt:@Composable private fun RowScope.NavigationItemsSettingsItemActions</ID>
-    <ID>FunctionNaming:NavigationItemsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun NavigationItemsSettingsContent</ID>
-    <ID>FunctionNaming:NavigationItemsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun NavigationItemsSettingsLoadingContent</ID>
-    <ID>FunctionNaming:NavigationItemsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun NavigationItemsSettingsToolbar</ID>
-    <ID>FunctionNaming:NavigationNode.kt:@Composable fun NavigationNode</ID>
-    <ID>FunctionNaming:NavigationNode.kt:@Composable fun VisualStackText</ID>
-    <ID>FunctionNaming:NavigationNode.kt:@Composable private fun &lt;T&gt; Transition&lt;T&gt;.DialogCrossLifecycle</ID>
-    <ID>FunctionNaming:NavigationNode.kt:@Composable private fun NavigationRoute</ID>
-    <ID>FunctionNaming:NavigationRoute.kt:Route$@Composable fun Content</ID>
-    <ID>FunctionNaming:NavigationRouter.kt:@Composable fun NavigationRouter</ID>
-    <ID>FunctionNaming:NavigationRouterBackHandler.kt:@Composable fun NavigationRouterBackHandler</ID>
-    <ID>FunctionNaming:NavigationRouterBackIcon.kt:@Composable fun NavigationIcon</ID>
-    <ID>FunctionNaming:NotificationsSettingsScreen.kt:@Composable fun NotificationsSettingsScreen</ID>
-    <ID>FunctionNaming:OfflineIcon.kt:@Composable fun OfflineIcon</ID>
-    <ID>FunctionNaming:OnboardingScreen.kt:@Composable fun ColumnScope.OnboardingScreenContent</ID>
-    <ID>FunctionNaming:OnboardingScreen.kt:@Composable fun OnboardingCard</ID>
-    <ID>FunctionNaming:OnboardingScreen.kt:@Composable fun OnboardingScreen</ID>
-    <ID>FunctionNaming:OnboardingScreen.kt:@Composable fun SmallOnboardingCard</ID>
-    <ID>FunctionNaming:OnboardingScreen.kt:@Composable private fun OnboardingContainer</ID>
     <ID>FunctionNaming:OpenPgpMutationAndAgentBouncyCastleDifferentialTest.kt:OpenPgpMutationAndAgentBouncyCastleDifferentialTest$@Test fun `agent Ed25519 signature matches BC`</ID>
     <ID>FunctionNaming:OpenPgpMutationAndAgentBouncyCastleDifferentialTest.kt:OpenPgpMutationAndAgentBouncyCastleDifferentialTest$@Test fun `agent raw RSA decryption matches BC`</ID>
     <ID>FunctionNaming:OpenPgpMutationAndAgentBouncyCastleDifferentialTest.kt:OpenPgpMutationAndAgentBouncyCastleDifferentialTest$@Test fun `expiration preserves unselected packets and matches BC semantics`</ID>
@@ -1283,20 +792,6 @@
     <ID>FunctionNaming:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest$@Test fun `native and BC generated certificates have equivalent structural policy`</ID>
     <ID>FunctionNaming:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest$@Test fun `native and BC import outcomes preserve the same domain contract`</ID>
     <ID>FunctionNaming:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest$@Test fun `native detached signature verifies with BC public operations`</ID>
-    <ID>FunctionNaming:OptionsWindow.kt:@Composable fun DropdownScope.DropdownMenuItemFlat</ID>
-    <ID>FunctionNaming:OptionsWindow.kt:@Composable fun DropdownScope.DropdownMenuItemFlatLayout</ID>
-    <ID>FunctionNaming:OptionsWindow.kt:@Composable fun OptionsButton</ID>
-    <ID>FunctionNaming:OrganizationConfirmationScreen.kt:@Composable fun OrganizationConfirmationScreen</ID>
-    <ID>FunctionNaming:OrganizationConfirmationScreen.kt:@Composable private fun ColumnScope.Note</ID>
-    <ID>FunctionNaming:OrganizationConfirmationScreen.kt:@Composable private fun OrganizationConfirmationScreen</ID>
-    <ID>FunctionNaming:OrganizationConfirmationScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun ColumnScope.FolderSection</ID>
-    <ID>FunctionNaming:OrganizationScreen.kt:@Composable fun OrganizationScreen</ID>
-    <ID>FunctionNaming:OrganizationScreen.kt:@Composable fun OrganizationScreenContent</ID>
-    <ID>FunctionNaming:OrganizationsScreen.kt:@Composable fun FoldersScreen</ID>
-    <ID>FunctionNaming:OrganizationsScreen.kt:@Composable private fun OrganizationsScreenItem</ID>
-    <ID>FunctionNaming:OrganizationsScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun FoldersScreenContent</ID>
-    <ID>FunctionNaming:OtherScaffold.kt:@Composable fun OtherScaffold</ID>
-    <ID>FunctionNaming:OtherSettingsScreen.kt:@Composable fun OtherSettingsScreen</ID>
     <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `generated totp uri round-trips through TotpToken parse`</ID>
     <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `hotp always includes a counter`</ID>
     <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `hotp preserves an explicit counter`</ID>
@@ -1307,78 +802,18 @@
     <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `totp with neither issuer nor name omits the label entirely`</ID>
     <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `totp without an account name omits the colon and relies on the issuer parameter`</ID>
     <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `totp without an issuer has no leading colon and no issuer parameter`</ID>
-    <ID>FunctionNaming:PasskeyCompose.kt:@Composable fun CredentialScaffold</ID>
-    <ID>FunctionNaming:PasskeyCompose.kt:@Composable fun CredentialSubtitlePassword</ID>
-    <ID>FunctionNaming:PasskeyCompose.kt:@Composable fun CredentialSubtitlePublicKey</ID>
-    <ID>FunctionNaming:PasskeyCompose.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun CredentialError</ID>
-    <ID>FunctionNaming:PasskeyCompose.kt:@Preview @Composable private fun CredentialErrorPreview</ID>
-    <ID>FunctionNaming:PasskeyGetActivity.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun UserVerificationScreen</ID>
-    <ID>FunctionNaming:PasskeysCredentialViewScreen.kt:@Composable fun PasskeysCredentialViewScreen</ID>
-    <ID>FunctionNaming:PasskeysCredentialViewScreen.kt:@Composable private fun ColumnScope.ContentError</ID>
-    <ID>FunctionNaming:PasskeysCredentialViewScreen.kt:@Composable private fun ColumnScope.ContentOk</ID>
-    <ID>FunctionNaming:PasskeysCredentialViewScreen.kt:@Composable private fun ColumnScope.ContentSkeleton</ID>
-    <ID>FunctionNaming:PasskeysCredentialViewScreen.kt:@Composable private fun PasskeysCredentialInfoButton</ID>
-    <ID>FunctionNaming:PasskeysCredentialViewScreen.kt:@Composable private fun PasskeysCredentialItem</ID>
-    <ID>FunctionNaming:PasskeysCredentialViewScreen.kt:@Composable private fun PasskeysCredentialTextItem</ID>
-    <ID>FunctionNaming:PasskeysCredentialViewScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun PasskeysCredentialViewScreen</ID>
-    <ID>FunctionNaming:PasskeysServiceListScreen.kt:@Composable fun PasskeysListScreen</ID>
-    <ID>FunctionNaming:PasskeysServiceListScreen.kt:@Composable private fun AppItem</ID>
-    <ID>FunctionNaming:PasskeysServiceListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:PasskeysServiceViewScreen.kt:@Composable fun ColumnScope.Content</ID>
-    <ID>FunctionNaming:PasskeysServiceViewScreen.kt:@Composable fun PasskeysViewDialogScreen</ID>
-    <ID>FunctionNaming:PasskeysServiceViewScreen.kt:@Composable fun PasskeysViewFullScreen</ID>
-    <ID>FunctionNaming:PasskeysServiceViewScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun PasskeysViewDialogScreen</ID>
-    <ID>FunctionNaming:PasskeysServiceViewScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun HeaderChipContainer</ID>
-    <ID>FunctionNaming:PasskeysServiceViewScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun HeaderChips</ID>
-    <ID>FunctionNaming:PasskeysServicesScreen.kt:@Composable fun TwoFaServicesScreen</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@Composable fun &lt;T&gt; ColumnScope.DropdownMenuExpandableContainer</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@Composable fun Avatar</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@Composable fun AvatarBadgeIcon</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@Composable fun AvatarBadgeSurface</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@Composable fun ColumnScope.FlatItemTextContent</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@Composable fun FlatDropdown</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@Composable fun FlatDropdownLayout</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@Composable fun FlatItem</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@Composable fun RowScope.FlatItemActionContent</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@Composable private fun ContentColorColumn</ID>
     <ID>FunctionNaming:PasswordFilterItem.kt:@JvmName("FlatItemActionNullable") fun CopyText.FlatItemAction</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ) @Composable fun FlatItemLayout</ID>
-    <ID>FunctionNaming:PasswordFilterItem.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun AvatarBuilder</ID>
     <ID>FunctionNaming:PasswordFilterItem.kt:fun CopyText.FlatItemAction</ID>
-    <ID>FunctionNaming:PasswordLeakScreen.kt:@Composable fun PasswordLeakScreen</ID>
-    <ID>FunctionNaming:PasswordLeakScreen.kt:@Composable private fun ColumnScope.Content</ID>
-    <ID>FunctionNaming:PasswordLeakScreen.kt:@Composable private fun ColumnScope.ContentSkeleton</ID>
-    <ID>FunctionNaming:PasswordPwnedBadge.kt:@Composable fun PasswordPwnedBadge</ID>
-    <ID>FunctionNaming:PasswordStrengthBadge.kt:@Composable fun PasswordStrengthBadge</ID>
-    <ID>FunctionNaming:PermissionsSettingsScreen.kt:@Composable fun PermissionsSettingsScreen</ID>
-    <ID>FunctionNaming:Placeholder.kt:@Composable fun ColumnScope.Placeholder</ID>
-    <ID>FunctionNaming:Placeholder.kt:@Composable fun Placeholder</ID>
-    <ID>FunctionNaming:Planeta.kt:@Composable fun FingerprintPlaneta</ID>
-    <ID>FunctionNaming:PoweredBy.kt:@Composable fun PoweredBy2factorauth</ID>
-    <ID>FunctionNaming:PoweredBy.kt:@Composable fun PoweredByHaveibeenpwned</ID>
-    <ID>FunctionNaming:PoweredBy.kt:@Composable fun PoweredByJustDeleteMe</ID>
-    <ID>FunctionNaming:PoweredBy.kt:@Composable fun PoweredByJustGetMyData</ID>
-    <ID>FunctionNaming:PoweredBy.kt:@Composable fun PoweredByLabel</ID>
-    <ID>FunctionNaming:PoweredBy.kt:@Composable fun PoweredByPasskeys</ID>
-    <ID>FunctionNaming:PrivilegedAppListContent.kt:@Composable fun PrivilegedAppItemContent</ID>
-    <ID>FunctionNaming:PrivilegedAppListScreen.kt:@Composable fun PrivilegedAppListScreen</ID>
-    <ID>FunctionNaming:PrivilegedAppListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:PrivilegedAppListScreen.kt:@Composable private fun PrivilegedAppItem</ID>
-    <ID>FunctionNaming:PrivilegedAppListScreen.kt:@Composable private fun PrivilegedAppItemContentRow</ID>
-    <ID>FunctionNaming:PrivilegedAppListScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun PrivilegedAppListScreen</ID>
-    <ID>FunctionNaming:PromoView.kt:@Composable fun PromoView</ID>
     <ID>FunctionNaming:ProstDecodeTest.kt:ProstDecodeTest$@Test fun `compare kotlinx vs prost encoding`</ID>
     <ID>FunctionNaming:ProstDecodeTest.kt:ProstDecodeTest$@Test fun `decode prost-encoded ErrorResponse bytes`</ID>
     <ID>FunctionNaming:ProstDecodeTest.kt:ProstDecodeTest$@Test fun `decode prost-encoded ListKeysResponse bytes`</ID>
     <ID>FunctionNaming:ProstDecodeTest.kt:ProstDecodeTest$@Test fun `decode prost-encoded SignDataRequest bytes`</ID>
     <ID>FunctionNaming:ProstDecodeTest.kt:ProstDecodeTest$@Test fun `stale prost authentication without revision decodes to rejected sentinel`</ID>
-    <ID>FunctionNaming:PullToSearch.kt:@Composable fun PullToSearch</ID>
     <ID>FunctionNaming:QuickSearchActionTest.kt:QuickSearchActionTest$@Test fun `copy otp fetches the current code and finishes after copy`</ID>
     <ID>FunctionNaming:QuickSearchActionTest.kt:QuickSearchActionTest$@Test fun `copy otp is a no op when code generation fails`</ID>
     <ID>FunctionNaming:QuickSearchActionTest.kt:QuickSearchActionTest$@Test fun `copy primary copies the primary value and finishes`</ID>
     <ID>FunctionNaming:QuickSearchActionTest.kt:QuickSearchActionTest$@Test fun `copy secret copies the secret value and marks it concealed`</ID>
     <ID>FunctionNaming:QuickSearchActionTest.kt:QuickSearchActionTest$@Test fun `open in browser queues navigation intent and finishes`</ID>
-    <ID>FunctionNaming:QuickSearchAppScreen.kt:@Composable fun QuickSearchAppScreen</ID>
     <ID>FunctionNaming:QuickSearchHotkeyServiceTest.kt:QuickSearchHotkeyServiceTest$@Test fun `quick search hotkey matches platform defaults`</ID>
     <ID>FunctionNaming:QuickSearchHotkeyServiceTest.kt:QuickSearchHotkeyServiceTest$@Test fun `start does not dispose when registration fails`</ID>
     <ID>FunctionNaming:QuickSearchHotkeyServiceTest.kt:QuickSearchHotkeyServiceTest$@Test fun `start handles missing registration`</ID>
@@ -1391,13 +826,6 @@
     <ID>FunctionNaming:QuickSearchInteractionTest.kt:QuickSearchInteractionTest$@Test fun `escape clears a non empty query`</ID>
     <ID>FunctionNaming:QuickSearchInteractionTest.kt:QuickSearchInteractionTest$@Test fun `shortcut action takes precedence over other key handling`</ID>
     <ID>FunctionNaming:QuickSearchInteractionTest.kt:QuickSearchInteractionTest$@Test fun `shortcut matching adapts for macos and windows modifier semantics`</ID>
-    <ID>FunctionNaming:QuickSearchListScreen.kt:@Composable internal fun QuickSearchListScreen</ID>
-    <ID>FunctionNaming:QuickSearchListScreen.kt:@Composable private fun QuickSearchActionStrip</ID>
-    <ID>FunctionNaming:QuickSearchListScreen.kt:@Composable private fun QuickSearchDetailPane</ID>
-    <ID>FunctionNaming:QuickSearchListScreen.kt:@Composable private fun QuickSearchListPlaceholder</ID>
-    <ID>FunctionNaming:QuickSearchListScreen.kt:@Composable private fun QuickSearchLoadingPlaceholder</ID>
-    <ID>FunctionNaming:QuickSearchListScreen.kt:@Composable private fun QuickSearchSearch</ID>
-    <ID>FunctionNaming:QuickSearchListScreen.kt:@OptIn(ExperimentalFoundationApi::class) @Composable private fun QuickSearchResultRow</ID>
     <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `action types for card include primary and secret copy`</ID>
     <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `action types for full login expose copy otp and browser`</ID>
     <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `action types for secure note include value copy only`</ID>
@@ -1415,42 +843,6 @@
     <ID>FunctionNaming:QuickSearchWindowManagerTest.kt:QuickSearchWindowManagerTest$@Test fun `requestOpen shows the window and bumps revision`</ID>
     <ID>FunctionNaming:ReadWordlistFromFileImplTest.kt:ReadWordlistFromFileImplTest$@Test fun `invoke filters blank and commented lines from file`</ID>
     <ID>FunctionNaming:ReadWordlistFromFileImplTest.kt:ReadWordlistFromFileImplTest$@Test fun `invoke handles final line without trailing newline`</ID>
-    <ID>FunctionNaming:RememberScreenStateFlow.kt:@Composable fun LaunchParameterEffect</ID>
-    <ID>FunctionNaming:RequestAppReviewEffect.kt:@Composable fun RequestAppReviewEffect</ID>
-    <ID>FunctionNaming:Scaffold.kt:@Composable fun DefaultSelection</ID>
-    <ID>FunctionNaming:Scaffold.kt:@Composable fun FabScope.DefaultFab</ID>
-    <ID>FunctionNaming:Scaffold.kt:@Composable fun FabScope.SmallFab</ID>
-    <ID>FunctionNaming:Scaffold.kt:@Composable fun OverlayScope.DefaultProgressBar</ID>
-    <ID>FunctionNaming:Scaffold.kt:@Composable fun ProvideScaffoldLocalValues</ID>
-    <ID>FunctionNaming:Scaffold.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ExperimentalLayoutApi::class, ) @Composable fun ScaffoldLazyColumn</ID>
-    <ID>FunctionNaming:Scaffold.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun ScaffoldColumn</ID>
-    <ID>FunctionNaming:ScanQrButton.kt:@Composable fun ScanQrButton</ID>
-    <ID>FunctionNaming:ScanQrScreen.kt:@Composable fun ScanQrScreen</ID>
-    <ID>FunctionNaming:ScanQrScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun ScanQrScreen</ID>
-    <ID>FunctionNaming:ScanQrScreen.kt:@OptIn(ExperimentalPermissionsApi::class) @Composable private fun ScanQrCamera</ID>
-    <ID>FunctionNaming:ScanQrScreen.kt:@OptIn(ExperimentalPermissionsApi::class) @Composable private fun ScanQrCamera2</ID>
-    <ID>FunctionNaming:SearchQualifierSuggestionPopup.kt:@Composable fun SearchQualifierSuggestionPopup</ID>
-    <ID>FunctionNaming:SearchSettingsScreen.kt:@Composable fun SearchSettingsScreen</ID>
-    <ID>FunctionNaming:SearchSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun SearchSettingsScreenContent</ID>
-    <ID>FunctionNaming:SearchTextField.kt:@Composable fun SearchTextField</ID>
-    <ID>FunctionNaming:SecuritySettingsScreen.kt:@Composable fun SecuritySettingsScreen</ID>
-    <ID>FunctionNaming:SegmentedTabs.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun &lt;T : TabItem&gt; SegmentedButtonGroup</ID>
-    <ID>FunctionNaming:SelectionBar.kt:@Composable fun SelectionBar</ID>
-    <ID>FunctionNaming:SendAddScreen.kt:@Composable fun SendAddScreen</ID>
-    <ID>FunctionNaming:SendAddScreen.kt:@Composable private fun AddScreenToolbarItem</ID>
-    <ID>FunctionNaming:SendAddScreen.kt:@Composable private fun AddScreenToolbarSkeletonItem</ID>
-    <ID>FunctionNaming:SendListScreen.kt:@Composable fun AccountListItemTextIcon</ID>
-    <ID>FunctionNaming:SendListScreen.kt:@Composable fun SendListScreen</ID>
-    <ID>FunctionNaming:SendListScreen.kt:@Composable fun VaultSendItemText</ID>
-    <ID>FunctionNaming:SendListScreen.kt:@Composable private fun SendListFilterButton</ID>
-    <ID>FunctionNaming:SendListScreen.kt:@Composable private fun SendListFilterScreen</ID>
-    <ID>FunctionNaming:SendListScreen.kt:@Composable private fun SendListSortButton</ID>
-    <ID>FunctionNaming:SendListScreen.kt:@Composable private fun SmallInfoBadge</ID>
-    <ID>FunctionNaming:SendListScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun SendScreenContent</ID>
-    <ID>FunctionNaming:SendScreen.kt:@Composable fun SendScreen</ID>
-    <ID>FunctionNaming:SendViewScreen.kt:@Composable fun SendViewScreen</ID>
-    <ID>FunctionNaming:SendViewScreen.kt:@Composable private fun RowScope.VaultViewTitleActions</ID>
-    <ID>FunctionNaming:SendViewScreen.kt:@Composable private fun VaultViewTitle</ID>
     <ID>FunctionNaming:ServerEnvApiAccountsTest.kt:ServerEnvApiAccountsTest$@Test fun `account profile methods decode profile responses`</ID>
     <ID>FunctionNaming:ServerEnvApiAccountsTest.kt:ServerEnvApiAccountsTest$@Test fun `account revision date decodes string response`</ID>
     <ID>FunctionNaming:ServerEnvApiAccountsTest.kt:ServerEnvApiAccountsTest$@Test fun `account revision date surfaces parsed api error`</ID>
@@ -1463,196 +855,15 @@
     <ID>FunctionNaming:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$@Test fun `cipher bulk methods send expected requests`</ID>
     <ID>FunctionNaming:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$@Test fun `cipher single hard delete validates non-success response`</ID>
     <ID>FunctionNaming:ServerEnvApiSubscriptionsTest.kt:ServerEnvApiSubscriptionsTest$@Test fun `subscription methods send expected requests and decode storage stats`</ID>
-    <ID>FunctionNaming:ServiceDirectoryListScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable internal fun &lt;State, Filter, Content, Item, ContentItem&gt; ServiceDirectoryListScaffold</ID>
-    <ID>FunctionNaming:ServiceDirectoryListStateProducer.kt:@Composable private fun ServiceDirectoryFaviconIcon</ID>
-    <ID>FunctionNaming:SettingAboutApp.kt:@Composable private fun SettingAboutApp</ID>
-    <ID>FunctionNaming:SettingAboutAppBuildDate.kt:@Composable private fun SettingAboutAppBuildDate</ID>
-    <ID>FunctionNaming:SettingAboutAppBuildRef.kt:@Composable private fun SettingAboutAppBuildRef</ID>
-    <ID>FunctionNaming:SettingAboutAppChangelog.kt:@Composable private fun SettingAboutAppChangelog</ID>
-    <ID>FunctionNaming:SettingAboutTeam.kt:@Composable private fun SettingAboutTeam</ID>
-    <ID>FunctionNaming:SettingAboutTelegram.kt:@Composable private fun SettingAboutTelegram</ID>
-    <ID>FunctionNaming:SettingAgentApprovalCachePolicy.kt:@Composable private fun AgentApprovalScopeComparison</ID>
-    <ID>FunctionNaming:SettingAgentApprovalCachePolicy.kt:@Composable private fun SettingAgentApprovalCachePolicy</ID>
-    <ID>FunctionNaming:SettingApk.kt:@Composable private fun SettingApk</ID>
-    <ID>FunctionNaming:SettingAppIcons.kt:@Composable private fun SettingAppIcons</ID>
-    <ID>FunctionNaming:SettingAutofill.kt:@Composable private fun SettingAutofill</ID>
-    <ID>FunctionNaming:SettingAutofill.kt:@Composable private fun SettingAutofillBrowserAutofillInfo</ID>
-    <ID>FunctionNaming:SettingAutofill.kt:@Composable private fun SettingAutofillBrowserStatusRow</ID>
-    <ID>FunctionNaming:SettingAutofill.kt:@Composable private fun SettingAutofillPlatformWarning</ID>
-    <ID>FunctionNaming:SettingAutofill.kt:@Composable private fun SettingAutofillPlatformWarningMiui</ID>
-    <ID>FunctionNaming:SettingAutofillBlockUri.kt:@Composable private fun SettingAutofillBlockUri</ID>
-    <ID>FunctionNaming:SettingAutofillCopyTotp.kt:@Composable private fun SettingAutofillCopyTotp</ID>
-    <ID>FunctionNaming:SettingAutofillDefaultMatchDetection.kt:@Composable private fun SettingAutofillDefaultMatchDetection</ID>
-    <ID>FunctionNaming:SettingAutofillInlineSuggestions.kt:@Composable private fun SettingAutofillInlineSuggestions</ID>
-    <ID>FunctionNaming:SettingAutofillManualSelection.kt:@Composable private fun SettingAutofillManualSelection</ID>
-    <ID>FunctionNaming:SettingAutofillPasskeysEnabled.kt:@Composable private fun SettingAutofillPasskeysEnabled</ID>
-    <ID>FunctionNaming:SettingAutofillPasswordsEnabled.kt:@Composable private fun SettingAutofillPasswordsEnabled</ID>
-    <ID>FunctionNaming:SettingAutofillPrivilegedApp.kt:@Composable private fun SettingAutofillPrivilegedApp</ID>
-    <ID>FunctionNaming:SettingAutofillRespectAutofillOff.kt:@Composable private fun SettingAutofillRespectAutofillOff</ID>
-    <ID>FunctionNaming:SettingAutofillSaveRequest.kt:@Composable private fun SettingAutofillSaveRequest</ID>
-    <ID>FunctionNaming:SettingAutofillSaveUri.kt:@Composable private fun SettingAutofillSaveUri</ID>
-    <ID>FunctionNaming:SettingAutotypeTest.kt:@Composable private fun SettingAutotypeTest</ID>
-    <ID>FunctionNaming:SettingBackupSettings.kt:@Composable private fun SettingBackupSettings</ID>
-    <ID>FunctionNaming:SettingBiometrics.kt:@Composable private fun SettingBiometrics</ID>
-    <ID>FunctionNaming:SettingBiometricsRequireConfirmation.kt:@Composable private fun SettingBiometricsRequireConfirmation</ID>
-    <ID>FunctionNaming:SettingCheckPasskeys.kt:@Composable private fun SettingCheckPasskeys</ID>
-    <ID>FunctionNaming:SettingCheckPwnedPasswords.kt:@Composable private fun SettingCheckPwnedPasswords</ID>
-    <ID>FunctionNaming:SettingCheckPwnedServices.kt:@Composable private fun SettingCheckPwnedServices</ID>
-    <ID>FunctionNaming:SettingCheckTwoFA.kt:@Composable private fun SettingCheckTwoFA</ID>
-    <ID>FunctionNaming:SettingClearCache.kt:@Composable private fun SettingClearCache</ID>
-    <ID>FunctionNaming:SettingClipboardAutoClear.kt:@Composable private fun SettingClipboardAutoClear</ID>
-    <ID>FunctionNaming:SettingClipboardAutoRefresh.kt:@Composable private fun SettingClipboardAutoRefresh</ID>
-    <ID>FunctionNaming:SettingClipboardNotificationSettings.kt:@Composable fun SettingClipboardNotificationSettings</ID>
-    <ID>FunctionNaming:SettingCloseToTray.kt:@Composable private fun SettingCloseToTray</ID>
-    <ID>FunctionNaming:SettingColorAccent.kt:@Composable private fun SettingFont</ID>
-    <ID>FunctionNaming:SettingColorScheme.kt:@Composable private fun SettingFont</ID>
-    <ID>FunctionNaming:SettingComponent.kt:@Composable fun SettingListItem</ID>
-    <ID>FunctionNaming:SettingConcealedFields.kt:@Composable private fun SettingScreenshotsFields</ID>
-    <ID>FunctionNaming:SettingCrash.kt:@Composable private fun SettingCrash</ID>
-    <ID>FunctionNaming:SettingCrashlytics.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun SettingCrashlytics</ID>
-    <ID>FunctionNaming:SettingCredentialProvider.kt:@Composable private fun SettingCredentialProvider</ID>
-    <ID>FunctionNaming:SettingDataSafety.kt:@Composable private fun SettingPermissionDetails</ID>
-    <ID>FunctionNaming:SettingEmitMessage.kt:@Composable fun SettingEmitMessage</ID>
-    <ID>FunctionNaming:SettingEmitTotp.kt:@Composable fun SettingEmitTotp</ID>
-    <ID>FunctionNaming:SettingExperimental.kt:@Composable private fun SettingExperimental</ID>
-    <ID>FunctionNaming:SettingFeaturesOverview.kt:@Composable private fun SettingFeaturesOverview</ID>
-    <ID>FunctionNaming:SettingFeedbackApp.kt:@Composable fun SettingFeedbackAppItem</ID>
-    <ID>FunctionNaming:SettingFont.kt:@Composable private fun SettingFont</ID>
-    <ID>FunctionNaming:SettingGitHub.kt:@Composable private fun SettingGitHub</ID>
-    <ID>FunctionNaming:SettingGpgAgent.kt:@Composable private fun SettingGpgAgent</ID>
-    <ID>FunctionNaming:SettingGpgAgentDisplayKeyNames.kt:@Composable private fun SettingGpgAgentDisplayKeyNames</ID>
-    <ID>FunctionNaming:SettingGpgAgentFilters.kt:@Composable private fun SettingGpgAgentFilters</ID>
-    <ID>FunctionNaming:SettingGpgAgentHistory.kt:@Composable private fun SettingGpgAgentHistory</ID>
-    <ID>FunctionNaming:SettingGpgAgentSetup.kt:@Composable private fun SettingGpgAgentSetup</ID>
-    <ID>FunctionNaming:SettingGpgKeyserverAutoRefresh.kt:@Composable private fun SettingGpgKeyserverAutoRefresh</ID>
-    <ID>FunctionNaming:SettingGpgKeyserverSearch.kt:@Composable private fun SettingGpgKeyserverSearch</ID>
-    <ID>FunctionNaming:SettingGpgKeyserverUrl.kt:@Composable private fun SettingGpgKeyserverUrl</ID>
-    <ID>FunctionNaming:SettingGpgSettings.kt:@Composable private fun SettingGpgSettings</ID>
-    <ID>FunctionNaming:SettingGravatar.kt:@Composable private fun SettingGravatar</ID>
-    <ID>FunctionNaming:SettingHibpApiToken.kt:@Composable private fun HibpApiTokenCheckStatusBadge</ID>
-    <ID>FunctionNaming:SettingHibpApiToken.kt:@Composable private fun HibpApiTokenCheckStatusIcon</ID>
-    <ID>FunctionNaming:SettingHibpApiToken.kt:@Composable private fun HibpApiTokenFooter</ID>
-    <ID>FunctionNaming:SettingHibpApiToken.kt:@Composable private fun SettingHibpApiToken</ID>
-    <ID>FunctionNaming:SettingKeepScreenOn.kt:@Composable private fun SettingKeepScreenOn</ID>
-    <ID>FunctionNaming:SettingLaunchAppPicker.kt:@Composable private fun SettingLaunchYubiKey</ID>
-    <ID>FunctionNaming:SettingLaunchYubiKey.kt:@Composable private fun SettingLaunchYubiKey</ID>
-    <ID>FunctionNaming:SettingLicenseClaim.kt:@Composable fun LicenseEntitlementFooter</ID>
-    <ID>FunctionNaming:SettingLicenseClaim.kt:@Composable private fun LicenseStatusBadge</ID>
-    <ID>FunctionNaming:SettingLicenseClaim.kt:@Composable private fun LicenseStatusIcon</ID>
-    <ID>FunctionNaming:SettingLicenseClaim.kt:@Composable private fun SettingLicenseClaim</ID>
-    <ID>FunctionNaming:SettingLicenseRedeem.kt:@Composable private fun SettingRedeemLicense</ID>
-    <ID>FunctionNaming:SettingListItem.kt:@Composable fun SettingListAccountsItem</ID>
-    <ID>FunctionNaming:SettingListItem.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun SettingListItem</ID>
-    <ID>FunctionNaming:SettingListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalMaterialApi::class, ) @Composable private fun SettingListScreenContent</ID>
-    <ID>FunctionNaming:SettingListScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun SettingListScreen</ID>
-    <ID>FunctionNaming:SettingLocalization.kt:@Composable private fun SettingLocalization</ID>
-    <ID>FunctionNaming:SettingLocalization.kt:@Composable private fun SettingLocalizationTopContributors</ID>
-    <ID>FunctionNaming:SettingLogs.kt:@Composable private fun SettingLogs</ID>
-    <ID>FunctionNaming:SettingMarkdown.kt:@Composable private fun SettingMarkdown</ID>
-    <ID>FunctionNaming:SettingMasterPassword.kt:@Composable private fun SettingMasterPassword</ID>
-    <ID>FunctionNaming:SettingMinimizeOnCopy.kt:@Composable private fun SettingMinimizeOnCopy</ID>
-    <ID>FunctionNaming:SettingNavAnimation.kt:@Composable private fun SettingNavAnimation</ID>
-    <ID>FunctionNaming:SettingNavLabel.kt:@Composable private fun SettingNavLabel</ID>
-    <ID>FunctionNaming:SettingNavigationItems.kt:@Composable private fun SettingNavigationItems</ID>
-    <ID>FunctionNaming:SettingOpenSourceLicenses.kt:@Composable private fun SettingOpenSourceLicenses</ID>
-    <ID>FunctionNaming:SettingPaneComponents.kt:@Composable fun SettingPaneComponents.KgAction</ID>
-    <ID>FunctionNaming:SettingPaneComponents.kt:@Composable fun SettingPaneComponents.KgPicker</ID>
-    <ID>FunctionNaming:SettingPaneComponents.kt:@Composable fun SettingPaneComponents.KgSwitch</ID>
-    <ID>FunctionNaming:SettingPaneComponents.kt:SettingPaneComponents$@Composable fun KgAction</ID>
-    <ID>FunctionNaming:SettingPaneComponents.kt:SettingPaneComponents$@Composable fun KgBlock</ID>
-    <ID>FunctionNaming:SettingPaneComponents.kt:SettingPaneComponents$@Composable fun KgPicker</ID>
-    <ID>FunctionNaming:SettingPaneComponents.kt:SettingPaneComponents$@Composable fun KgSwitch</ID>
-    <ID>FunctionNaming:SettingPaneContent.kt:@Composable fun SettingPaneContent</ID>
-    <ID>FunctionNaming:SettingPaneContent.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalMaterialApi::class, ) @Composable fun SettingPaneContent2</ID>
-    <ID>FunctionNaming:SettingPermission.kt:@Composable private fun SettingPermission</ID>
-    <ID>FunctionNaming:SettingPermission.kt:@Composable private fun SettingPermissionDetails</ID>
-    <ID>FunctionNaming:SettingPermissionOther.kt:@Composable private fun SettingPermissionOther</ID>
-    <ID>FunctionNaming:SettingPrivacyPolicy.kt:@Composable private fun SettingPrivacyPolicy</ID>
-    <ID>FunctionNaming:SettingRateApp.kt:@Composable fun SettingRateAppItem</ID>
-    <ID>FunctionNaming:SettingRequireMasterPassword.kt:@Composable fun SettingRequireMasterPassword</ID>
-    <ID>FunctionNaming:SettingRequireMasterPassword.kt:@Composable private fun ColumnScope.SettingRequireMasterPasswordFooter</ID>
-    <ID>FunctionNaming:SettingResetWatchtowerAlerts.kt:@Composable private fun SettingResetWatchtowerAlerts</ID>
-    <ID>FunctionNaming:SettingRotateDeviceId.kt:@Composable private fun SettingRotateDeviceId</ID>
-    <ID>FunctionNaming:SettingScreenDelay.kt:@Composable private fun SettingDebugScreenDelay</ID>
-    <ID>FunctionNaming:SettingScreenshots.kt:@Composable private fun SettingAllowScreenshots</ID>
-    <ID>FunctionNaming:SettingSelectLocale.kt:@Composable private fun SettingLocale</ID>
-    <ID>FunctionNaming:SettingSshAgent.kt:@Composable private fun SettingSshAgent</ID>
-    <ID>FunctionNaming:SettingSshAgentApprovalWindow.kt:@Composable private fun SettingSshAgentApprovalWindow</ID>
-    <ID>FunctionNaming:SettingSshAgentDisplayKeyNames.kt:@Composable private fun SettingSshAgentDisplayKeyNames</ID>
-    <ID>FunctionNaming:SettingSshAgentFilters.kt:@Composable private fun SettingSshAgentFilters</ID>
-    <ID>FunctionNaming:SettingSshAgentHistory.kt:@Composable private fun SettingSshAgentHistory</ID>
-    <ID>FunctionNaming:SettingSshAgentSetup.kt:@Composable private fun SettingSshAgentSetup</ID>
-    <ID>FunctionNaming:SettingSshSettings.kt:@Composable private fun SettingSshSettings</ID>
-    <ID>FunctionNaming:SettingSubscriptions.kt:@Composable private fun SettingGroupLayout</ID>
-    <ID>FunctionNaming:SettingSubscriptions.kt:@Composable private fun SettingItemLayout</ID>
-    <ID>FunctionNaming:SettingSubscriptions.kt:@Composable private fun SettingProductItem</ID>
-    <ID>FunctionNaming:SettingSubscriptions.kt:@Composable private fun SettingSubscriptionItem</ID>
-    <ID>FunctionNaming:SettingSubscriptions.kt:@Composable private fun SettingSubscriptionSkeletonItem</ID>
-    <ID>FunctionNaming:SettingSubscriptions.kt:@Composable private fun SettingSubscriptions</ID>
-    <ID>FunctionNaming:SettingSubscriptionsDebug.kt:@Composable private fun SettingDebugPremium</ID>
-    <ID>FunctionNaming:SettingSubscriptionsPlayStore.kt:@Composable private fun SettingSubscriptionsPlayStore</ID>
-    <ID>FunctionNaming:SettingThemeExpressive.kt:@Composable private fun SettingThemeExpressive</ID>
-    <ID>FunctionNaming:SettingThemeUseAmoledDark.kt:@Composable private fun SettingThemeUseAmoledDark</ID>
-    <ID>FunctionNaming:SettingTwoPanelLayoutLandscape.kt:@Composable private fun SettingTwoPanelLayoutLandscape</ID>
-    <ID>FunctionNaming:SettingTwoPanelLayoutPortrait.kt:@Composable private fun SettingTwoPanelLayoutPortrait</ID>
-    <ID>FunctionNaming:SettingUnreadWatchtowerAlerts.kt:@Composable private fun SettingUnreadWatchtowerAlerts</ID>
-    <ID>FunctionNaming:SettingUrlOverride.kt:@Composable private fun SettingUrlOverride</ID>
-    <ID>FunctionNaming:SettingUseExternalBrowser.kt:@Composable private fun SettingUseExternalBrowser</ID>
-    <ID>FunctionNaming:SettingVaultClear.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun SettingVaultClear</ID>
-    <ID>FunctionNaming:SettingVaultLock.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun SettingVaultLock</ID>
-    <ID>FunctionNaming:SettingVaultLockAfterReboot.kt:@Composable private fun SettingLockAfterReboot</ID>
-    <ID>FunctionNaming:SettingVaultLockAfterScreenOff.kt:@Composable private fun SettingLockAfterScreenOff</ID>
-    <ID>FunctionNaming:SettingVaultLockAfterTimeout.kt:@Composable fun SettingLockAfterTimeout</ID>
-    <ID>FunctionNaming:SettingVaultPersist.kt:@Composable private fun SettingVaultPersist</ID>
-    <ID>FunctionNaming:SettingWebsiteIcons.kt:@Composable private fun SettingMarkdown</ID>
-    <ID>FunctionNaming:SettingWriteAccess.kt:@Composable private fun SettingWriteAccess</ID>
-    <ID>FunctionNaming:SettingYubiKeyUnlock.kt:@Composable private fun SettingYubiKeyUnlock</ID>
-    <ID>FunctionNaming:SettingsScreen.kt:@Composable fun SettingsScreen</ID>
-    <ID>FunctionNaming:SetupScreen.kt:@Composable fun ColumnScope.SetupScreenCreateVaultTitle</ID>
-    <ID>FunctionNaming:SetupScreen.kt:@Composable fun SetupScreen</ID>
-    <ID>FunctionNaming:SetupScreen.kt:@Composable private fun SetupScreenSkeleton</ID>
-    <ID>FunctionNaming:SetupScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable fun ColumnScope.SetupContent</ID>
-    <ID>FunctionNaming:ShortcutTooltip.kt:@Composable fun ShortcutTooltip</ID>
-    <ID>FunctionNaming:SimpleGridLayout.kt:@Composable fun SimpleGridLayout</ID>
-    <ID>FunctionNaming:SimpleNote.kt:@Composable fun FlatSimpleNote</ID>
-    <ID>FunctionNaming:SkeletonButton.kt:@Composable fun SkeletonButton</ID>
-    <ID>FunctionNaming:SkeletonCheckBox.kt:@Composable fun SkeletonCheckbox</ID>
-    <ID>FunctionNaming:SkeletonFilter.kt:@Composable fun SkeletonFilter</ID>
-    <ID>FunctionNaming:SkeletonItem.kt:@Composable fun SkeletonItem</ID>
-    <ID>FunctionNaming:SkeletonItemPilled.kt:@Composable fun SkeletonItemPilled</ID>
-    <ID>FunctionNaming:SkeletonSection.kt:@Composable fun SkeletonSection</ID>
-    <ID>FunctionNaming:SkeletonSegmented.kt:@Composable fun SkeletonSegmented</ID>
-    <ID>FunctionNaming:SkeletonSlider.kt:@Composable fun SkeletonSlider</ID>
-    <ID>FunctionNaming:SkeletonSwitch.kt:@Composable fun SkeletonSwitch</ID>
-    <ID>FunctionNaming:SkeletonText.kt:@Composable fun SkeletonText</ID>
-    <ID>FunctionNaming:SkeletonTextField.kt:@Composable fun SkeletonTextField</ID>
-    <ID>FunctionNaming:SmallToolbar.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun SmallToolbar</ID>
-    <ID>FunctionNaming:SortButton.kt:@Composable fun SortButton</ID>
-    <ID>FunctionNaming:SortButton.kt:@Composable private fun ColumnScope.SortItems</ID>
-    <ID>FunctionNaming:SortButton.kt:@Composable private fun SortItemItem</ID>
-    <ID>FunctionNaming:SortButton.kt:@Composable private fun SortItemSection</ID>
-    <ID>FunctionNaming:SortItem.kt:@Composable fun SortItemComposable</ID>
-    <ID>FunctionNaming:SortSection.kt:@Composable fun SortSectionComposable</ID>
     <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `delete removes value and falls back to default`</ID>
     <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `get file is unsupported`</ID>
     <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `missing values use defaults`</ID>
     <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `preference flow emits defaults and updates`</ID>
     <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `set stores all primitive values and exposes keys`</ID>
     <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `wrong type and invalid values fall back to defaults`</ID>
-    <ID>FunctionNaming:SshAgentApprovalContent.kt:@Composable fun SshAgentApprovalContent</ID>
-    <ID>FunctionNaming:SshAgentFiltersScreen.kt:@Composable fun SshAgentFiltersScreen</ID>
-    <ID>FunctionNaming:SshAgentFiltersScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun SshAgentFiltersScreenContent</ID>
-    <ID>FunctionNaming:SshAgentFiltersScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun SshAgentFiltersScreenSkeleton</ID>
-    <ID>FunctionNaming:SshAgentGetListContent.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun SshAgentGetListContent</ID>
     <ID>FunctionNaming:SshAgentHistoryMapperTest.kt:SshAgentHistoryMapperTest$@Test fun `build caller info falls back to process name`</ID>
     <ID>FunctionNaming:SshAgentHistoryMapperTest.kt:SshAgentHistoryMapperTest$@Test fun `build caller info returns null for malformed json`</ID>
     <ID>FunctionNaming:SshAgentHistoryMapperTest.kt:SshAgentHistoryMapperTest$@Test fun `build caller info summarizes app and process names`</ID>
-    <ID>FunctionNaming:SshAgentHistoryScreen.kt:@Composable fun SshAgentHistoryScreen</ID>
-    <ID>FunctionNaming:SshAgentHistoryScreen.kt:@Composable private fun SshAgentHistoryItem</ID>
-    <ID>FunctionNaming:SshAgentHistoryScreen.kt:@Composable private fun SshAgentHistorySectionItem</ID>
-    <ID>FunctionNaming:SshAgentHistoryScreen.kt:@Composable private fun SshAgentHistoryValueItem</ID>
-    <ID>FunctionNaming:SshAgentHistoryScreen.kt:@Composable private fun ToolbarTitle</ID>
-    <ID>FunctionNaming:SshAgentHistoryScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun SshAgentHistoryScreen</ID>
     <ID>FunctionNaming:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server accepts connection and authenticates over unix socket`</ID>
     <ID>FunctionNaming:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server handles multiple sequential requests over unix socket`</ID>
     <ID>FunctionNaming:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server rejects bad token over unix socket`</ID>
@@ -1739,10 +950,6 @@
     <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `queued request expires on its own deadline while waiting`</ID>
     <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `request timeout denies the active request`</ID>
     <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `single request resolves and clears active state`</ID>
-    <ID>FunctionNaming:SshAgentSetupScreen.kt:@Composable fun SshAgentSetupScreen</ID>
-    <ID>FunctionNaming:SshAgentSetupScreen.kt:@Composable private fun ColumnScope.SshAgentSetupAndroidPlatformContent</ID>
-    <ID>FunctionNaming:SshAgentSetupScreen.kt:@Composable private fun ColumnScope.SshAgentSetupScreenContent</ID>
-    <ID>FunctionNaming:SshAgentSetupScreen.kt:@Composable private fun ColumnScope.SshAgentSetupSupportedPlatformContent</ID>
     <ID>FunctionNaming:SshAgentSigningTest.kt:SshAgentSigningTest$@Test fun `extractKeyType preserves OpenSSH text behavior`</ID>
     <ID>FunctionNaming:SshAgentSigningTest.kt:SshAgentSigningTest$@Test fun `native Ed25519 signing returns raw verifiable signature`</ID>
     <ID>FunctionNaming:SshAgentSigningTest.kt:SshAgentSigningTest$@Test fun `native RSA signing preserves algorithm precedence and verifies`</ID>
@@ -1794,9 +1001,6 @@
     <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `rejects malformed key material`</ID>
     <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `rejects unsupported algorithm in a supported container`</ID>
     <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `rejects unsupported format`</ID>
-    <ID>FunctionNaming:SshRequestActivity.kt:SshRequestActivity$@Composable private fun ActiveRequestContent</ID>
-    <ID>FunctionNaming:SshRequestActivity.kt:SshRequestActivity$@Composable private fun TimeoutIndicator</ID>
-    <ID>FunctionNaming:SshSettingsScreen.kt:@Composable fun SshSettingsScreen</ID>
     <ID>FunctionNaming:SshSigningParityTest.kt:SshSigningParityTest$@Test fun `signWithPrivateKey reproduces RSA known-answer vectors for PKCS1 key`</ID>
     <ID>FunctionNaming:SshSigningParityTest.kt:SshSigningParityTest$@Test fun `signWithPrivateKey reproduces RSA known-answer vectors for openssh-key-v1 key`</ID>
     <ID>FunctionNaming:SshSigningParityTest.kt:SshSigningParityTest$@Test fun `signWithPrivateKey reproduces the deterministic Ed25519 known-answer vector`</ID>
@@ -1806,21 +1010,11 @@
     <ID>FunctionNaming:SshUsageHistoryRepositoryImplTest.kt:SshUsageHistoryRepositoryImplTest$@Test fun `get recent assigns distinct ids to identical events`</ID>
     <ID>FunctionNaming:SshUsageHistoryRepositoryImplTest.kt:SshUsageHistoryRepositoryImplTest$@Test fun `get recent returns newest history first with limit`</ID>
     <ID>FunctionNaming:SshUsageHistoryRepositoryImplTest.kt:SshUsageHistoryRepositoryImplTest$@Test fun `remove all clears history`</ID>
-    <ID>FunctionNaming:SubscriptionsSettingsScreen.kt:@Composable fun SubscriptionsSettingsScreen</ID>
-    <ID>FunctionNaming:SurfaceColor.kt:@Composable inline fun ProvideSurfaceColor</ID>
     <ID>FunctionNaming:SyncByBitwardenTokenV2IntegrationTest.kt:SyncByBitwardenTokenV2IntegrationTest$@Test fun `expired access token is refreshed before sync requests`</ID>
     <ID>FunctionNaming:SyncByBitwardenTokenV2IntegrationTest.kt:SyncByBitwardenTokenV2IntegrationTest$@Test fun `full sync orchestrates folders ciphers collections organizations and sends in one run`</ID>
     <ID>FunctionNaming:SyncByBitwardenTokenV2IntegrationTest.kt:SyncByBitwardenTokenV2IntegrationTest$@Test fun `full sync resolves cipher folder references to local folders and converges`</ID>
     <ID>FunctionNaming:SyncByBitwardenTokenV2IntegrationTest.kt:SyncByBitwardenTokenV2IntegrationTest$@Test fun `sync skips unknown cipher types and preserves existing local copies`</ID>
     <ID>FunctionNaming:SyncByBitwardenTokenV2IntegrationTest.kt:SyncByBitwardenTokenV2IntegrationTest$@Test fun `unauthorized response during sync refreshes token and retries full sync`</ID>
-    <ID>FunctionNaming:SyncIcon.kt:@Composable fun AnimatedRotation</ID>
-    <ID>FunctionNaming:SyncIcon.kt:@Composable fun SyncIcon</ID>
-    <ID>FunctionNaming:SyncScreen.kt:@Composable fun SyncScreen</ID>
-    <ID>FunctionNaming:SyncScreen.kt:@Composable private fun BadgeStatusFailed</ID>
-    <ID>FunctionNaming:SyncScreen.kt:@Composable private fun BadgeStatusPending</ID>
-    <ID>FunctionNaming:SyncScreen.kt:@Composable private fun BadgeStatusUpToDate</ID>
-    <ID>FunctionNaming:SyncScreen.kt:@Composable private fun TestK</ID>
-    <ID>FunctionNaming:SyncScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun SyncContent</ID>
     <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `SyncByBitwardenTokenV2Impl keeps pending hard delete local when server rejects deletes`</ID>
     <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `SyncByBitwardenTokenV2Impl uses cipher bulk hard delete for pending local removals`</ID>
     <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `cipher multiple attachments keep staged files when later upload fails`</ID>
@@ -1913,43 +1107,7 @@
     <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `send uploaded marker reconciles matching remote file without reuploading bytes`</ID>
     <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `send uploaded marker with mismatched remote file reuploads bytes`</ID>
     <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `send uploaded marker with missing refreshed send preserves pending file`</ID>
-    <ID>FunctionNaming:TableItem.kt:@Composable fun TableRowItem</ID>
-    <ID>FunctionNaming:TagsConfirmationScreen.kt:@Composable fun TagsConfirmationScreen</ID>
-    <ID>FunctionNaming:TagsConfirmationScreen.kt:@Composable private fun TagItem</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun BiFlatContainer</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun BiFlatTextField</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun ColumnScope.BiFlatTextFieldLabel</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun ColumnScope.BiFlatTextFieldValue</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun ConcealedFlatTextField</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun EmailFlatTextField</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun FakeFlatTextField</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun FlatTextField</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun FlatTextFieldBadge</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun FlatTextFieldBadgeLegacy</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun PasswordFlatTextField</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun PlainTextField</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun TagFlatTextField</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable fun UrlFlatTextField</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable private fun Decoration</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable private fun FlatTextFieldSurface</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable private fun IncognitoInputIf</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable private fun PlainTextFieldDecorationBox</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable private fun TextFieldLabel</ID>
-    <ID>FunctionNaming:TextItem.kt:@Composable private fun TextFieldLabelLayout</ID>
-    <ID>FunctionNaming:Theme.kt:@Composable actual fun SystemUiThemeEffect</ID>
-    <ID>FunctionNaming:Theme.kt:@Composable expect fun SystemUiThemeEffect</ID>
-    <ID>FunctionNaming:Theme.kt:@Composable fun KeyguardTheme</ID>
-    <ID>FunctionNaming:Theme.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun KeyguardTheme</ID>
-    <ID>FunctionNaming:TimePickerScreen.kt:@Composable fun TimePickerScreen</ID>
-    <ID>FunctionNaming:TimePickerScreen.kt:@Composable private fun ColumnScope.Content</ID>
     <ID>FunctionNaming:TldServiceBenchmarkTest.kt:TldServiceBenchmarkTest$@OptIn(ExperimentalResourceApi::class) @Test fun `benchmark cold load and hot lookup`</ID>
-    <ID>FunctionNaming:ToastComposable.kt:@Composable fun ToastMessage</ID>
-    <ID>FunctionNaming:ToastComposable.kt:@Composable fun ToastMessageHost</ID>
-    <ID>FunctionNaming:ToastComposable.kt:ToastMessageRenderDrawable$@Composable fun Content</ID>
-    <ID>FunctionNaming:Tooltip.android.kt:@Composable actual fun &lt;T : Any&gt; Tooltip</ID>
-    <ID>FunctionNaming:Tooltip.desktop.kt:@Composable actual fun &lt;T : Any&gt; Tooltip</ID>
-    <ID>FunctionNaming:Tooltip.kt:@Composable actual fun &lt;T : Any&gt; Tooltip</ID>
-    <ID>FunctionNaming:Tooltip.kt:@Composable expect fun &lt;T : Any&gt; Tooltip</ID>
     <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `code is six lowercase hex characters`</ID>
     <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `code is stable within the same 10 second window`</ID>
     <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `code rolls over into the next 10 second window`</ID>
@@ -1959,75 +1117,10 @@
     <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `offset advances the counter by one 10 second step`</ID>
     <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `pin is part of the hashed input`</ID>
     <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `produces distinct codes for distinct 10 second windows inside the same 30 second window`</ID>
-    <ID>FunctionNaming:TwoFaServiceListScreen.kt:@Composable fun TwoFaServiceListScreen</ID>
-    <ID>FunctionNaming:TwoFaServiceListScreen.kt:@Composable private fun AppItem</ID>
-    <ID>FunctionNaming:TwoFaServiceListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:TwoFaServiceViewScreen.kt:@Composable fun ColumnScope.Content</ID>
-    <ID>FunctionNaming:TwoFaServiceViewScreen.kt:@Composable fun FlatLaunchBrowserItem</ID>
-    <ID>FunctionNaming:TwoFaServiceViewScreen.kt:@Composable fun TwoFaServiceViewDialogScreen</ID>
-    <ID>FunctionNaming:TwoFaServiceViewScreen.kt:@Composable fun TwoFaServiceViewFullScreen</ID>
-    <ID>FunctionNaming:TwoFaServiceViewScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun TwoFaServiceViewDialogScreen</ID>
-    <ID>FunctionNaming:TwoFaServiceViewScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun HeaderChipContainer</ID>
-    <ID>FunctionNaming:TwoFaServiceViewScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun HeaderChips</ID>
-    <ID>FunctionNaming:TwoFaServicesScreen.kt:@Composable fun TwoFaServicesScreen</ID>
-    <ID>FunctionNaming:TwoPaneLayout.kt:@Composable fun EmptyKeyguardBox</ID>
-    <ID>FunctionNaming:TwoPaneLayout.kt:@Composable fun TwoPaneScaffold</ID>
-    <ID>FunctionNaming:TwoPaneLayout.kt:@Composable fun TwoPaneScaffoldScope.TwoPaneLayout</ID>
-    <ID>FunctionNaming:TwoPaneLayout.kt:@Composable private fun PaneLayout</ID>
-    <ID>FunctionNaming:TwoPaneNavigation.kt:@Composable fun TwoPaneNavigationContent</ID>
-    <ID>FunctionNaming:TwoPaneScreen.kt:@Composable fun TwoPaneScreen</ID>
-    <ID>FunctionNaming:UiSettingsScreen.kt:@Composable fun UiSettingsScreen</ID>
-    <ID>FunctionNaming:UnlockScreen.kt:@Composable fun UnlockScreen</ID>
-    <ID>FunctionNaming:UnlockScreen.kt:@Composable fun UnlockScreenTheVaultIsLockedTitle</ID>
-    <ID>FunctionNaming:UnlockScreen.kt:@Composable inline fun ColumnScope.UnlockScreenContainer</ID>
-    <ID>FunctionNaming:UnlockScreen.kt:@Composable private fun UnlockDialogSkeleton</ID>
-    <ID>FunctionNaming:UnlockScreen.kt:@Composable private fun UnlockScreenSkeleton</ID>
-    <ID>FunctionNaming:UnlockScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun UnlockDialog</ID>
-    <ID>FunctionNaming:UnlockScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun ExpandedHardwareUnlockIfExists</ID>
-    <ID>FunctionNaming:UnlockScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun UnlockCtaButton</ID>
-    <ID>FunctionNaming:UnlockScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun UnlockPasswordField</ID>
-    <ID>FunctionNaming:UnlockScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun UnlockScreen</ID>
-    <ID>FunctionNaming:UrlBlockListScreen.kt:@Composable fun UrlBlockListScreen</ID>
-    <ID>FunctionNaming:UrlBlockListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:UrlBlockListScreen.kt:@Composable private fun UrlBlockItem</ID>
-    <ID>FunctionNaming:UrlBlockListScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun UrlBlockListScreen</ID>
-    <ID>FunctionNaming:UrlOverrideListScreen.kt:@Composable fun MiniRow</ID>
-    <ID>FunctionNaming:UrlOverrideListScreen.kt:@Composable fun UrlOverrideListScreen</ID>
-    <ID>FunctionNaming:UrlOverrideListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:UrlOverrideListScreen.kt:@Composable private fun UrlOverrideItem</ID>
-    <ID>FunctionNaming:UrlOverrideListScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun EmailRelayListScreen</ID>
-    <ID>FunctionNaming:UserIcon.kt:@Composable fun UserIcon</ID>
-    <ID>FunctionNaming:UsernameVariation2.kt:@Composable fun UsernameVariationIcon</ID>
-    <ID>FunctionNaming:VaultHomeScreenFilterPaneNumberOfItems.kt:@Composable fun VaultHomeScreenFilterPaneNumberOfItems</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun AccountListItemTextIcon</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun BoxScope.VaultItemIcon2</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun FlatDropdownLayoutExpressive</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun FlatDropdownSimpleExpressive</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun FlatItemLayoutExpressive</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun FlatItemSimpleExpressive</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun FlatSurfaceExpressive</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun LargeSection</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun Section</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun SmartBadge</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun SmartBadgeListContainer</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun VaultItemSearchContextBadge</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun VaultListItem</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun VaultListItemButton</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun VaultListItemSection</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable fun VaultListItemText</ID>
-    <ID>FunctionNaming:VaultListItem.kt:@Composable inline fun &lt;T : Any&gt; SmartBadgeList</ID>
-    <ID>FunctionNaming:VaultListScreen.kt:@Composable fun VaultListScreen</ID>
-    <ID>FunctionNaming:VaultListScreen.kt:@Composable private fun VaultListFilterButton</ID>
-    <ID>FunctionNaming:VaultListScreen.kt:@Composable private fun VaultListFilterScreen</ID>
-    <ID>FunctionNaming:VaultListScreen.kt:@Composable private fun VaultListSortButton</ID>
-    <ID>FunctionNaming:VaultListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, ExperimentalAnimationApi::class, ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable fun VaultHomeScreenListPane</ID>
     <ID>FunctionNaming:VaultLockHotkeyServiceTest.kt:VaultLockHotkeyServiceTest$@Test fun `start handles missing registration`</ID>
     <ID>FunctionNaming:VaultLockHotkeyServiceTest.kt:VaultLockHotkeyServiceTest$@Test fun `start locks vault manually when hotkey callback is invoked`</ID>
     <ID>FunctionNaming:VaultLockHotkeyServiceTest.kt:VaultLockHotkeyServiceTest$@Test fun `start registers macos vault lock shortcut and disposes registration`</ID>
     <ID>FunctionNaming:VaultLockHotkeyServiceTest.kt:VaultLockHotkeyServiceTest$@Test fun `vault lock hotkey matches platform defaults`</ID>
-    <ID>FunctionNaming:VaultPasswordHistoryItem.kt:@Composable fun VaultPasswordHistoryItem</ID>
-    <ID>FunctionNaming:VaultPasswordHistoryValueItem.kt:@Composable fun VaultPasswordHistoryValueItem</ID>
-    <ID>FunctionNaming:VaultScreen.kt:@Composable fun VaultScreen</ID>
     <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `compile and evaluate benchmark`</ID>
     <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `compile only benchmark`</ID>
     <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `evaluate only benchmark`</ID>
@@ -2036,69 +1129,6 @@
     <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `initial build benchmark`</ID>
     <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `metadata only rebuild benchmark`</ID>
     <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `parallel threshold query returns many results`</ID>
-    <ID>FunctionNaming:VaultViewActionItem.kt:@Composable fun VaultViewActionItem</ID>
-    <ID>FunctionNaming:VaultViewAttachmentItem.kt:@Composable fun VaultViewAttachmentItem</ID>
-    <ID>FunctionNaming:VaultViewBooleanItem.kt:@Composable fun VaultViewSwitchItem</ID>
-    <ID>FunctionNaming:VaultViewButtonItem.kt:@Composable fun VaultViewButtonItem</ID>
-    <ID>FunctionNaming:VaultViewCardItem.kt:@Composable fun VaultViewCardItem</ID>
-    <ID>FunctionNaming:VaultViewCollectionItem.kt:@Composable fun VaultViewCollectionItem</ID>
-    <ID>FunctionNaming:VaultViewErrorItem.kt:@Composable fun VaultViewErrorItem</ID>
-    <ID>FunctionNaming:VaultViewFolderItem.kt:@Composable fun VaultViewFolderTree</ID>
-    <ID>FunctionNaming:VaultViewFolderItem.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun VaultViewFolderItem</ID>
-    <ID>FunctionNaming:VaultViewIdentityItem.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun VaultViewIdentityItem</ID>
-    <ID>FunctionNaming:VaultViewIdentityItem.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun RowScope.IdentityActionButton</ID>
-    <ID>FunctionNaming:VaultViewInactivePasskeyItem.kt:@Composable fun VaultViewInactivePasskeyItem</ID>
-    <ID>FunctionNaming:VaultViewInactiveTotpItem.kt:@Composable fun VaultViewInactiveTotpItem</ID>
-    <ID>FunctionNaming:VaultViewInfoItem.kt:@Composable fun VaultViewInfoItem</ID>
-    <ID>FunctionNaming:VaultViewInfoItem.kt:@Composable private fun LearnButton</ID>
-    <ID>FunctionNaming:VaultViewInfoItem.kt:@Composable private fun LearnOverlay</ID>
-    <ID>FunctionNaming:VaultViewItem.kt:@Composable fun VaultViewItem</ID>
-    <ID>FunctionNaming:VaultViewItemContent.kt:@Composable fun VaultViewItemContent</ID>
-    <ID>FunctionNaming:VaultViewLabelItem.kt:@Composable fun VaultViewLabelItem</ID>
-    <ID>FunctionNaming:VaultViewNoteItem.kt:@Composable fun VaultViewNoteItem</ID>
-    <ID>FunctionNaming:VaultViewNoteItem.kt:@Composable fun VaultViewNoteItemLayout</ID>
-    <ID>FunctionNaming:VaultViewOrganizationItem.kt:@Composable fun VaultViewOrganizationItem</ID>
-    <ID>FunctionNaming:VaultViewPasskeyItem.kt:@Composable fun VaultViewPasskeyItem</ID>
-    <ID>FunctionNaming:VaultViewPasskeyItem.kt:@Composable private fun TextRpId</ID>
-    <ID>FunctionNaming:VaultViewPasskeyItem.kt:@Composable private fun TextUserName</ID>
-    <ID>FunctionNaming:VaultViewPasswordHistoryScreen.kt:@Composable fun VaultViewPasswordHistoryScreen</ID>
-    <ID>FunctionNaming:VaultViewPasswordHistoryScreen.kt:@Composable private fun ToolbarTitle</ID>
-    <ID>FunctionNaming:VaultViewPasswordHistoryScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun VaultViewPasswordHistoryScreen</ID>
-    <ID>FunctionNaming:VaultViewPlanetaItem.kt:@Composable fun VaultViewPlanetaItem</ID>
-    <ID>FunctionNaming:VaultViewQrItem.kt:@Composable private fun VaultViewQrPreviewItem</ID>
-    <ID>FunctionNaming:VaultViewQrItem.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun VaultViewQrItem</ID>
-    <ID>FunctionNaming:VaultViewQuickActionsItem.kt:@Composable fun HorizontalContextItems</ID>
-    <ID>FunctionNaming:VaultViewQuickActionsItem.kt:@Composable fun VaultViewQuickActionsItem</ID>
-    <ID>FunctionNaming:VaultViewQuickActionsItem.kt:@Composable private fun HorizontalContextItem</ID>
-    <ID>FunctionNaming:VaultViewQuickActionsItem.kt:@Composable private fun RowScope.HorizontalFlatActionContent</ID>
-    <ID>FunctionNaming:VaultViewQuickActionsItem.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable private fun HorizontalFlatActionItem</ID>
-    <ID>FunctionNaming:VaultViewQuickBadgesItem.kt:@Composable fun VaultViewQuickBadgesItem</ID>
-    <ID>FunctionNaming:VaultViewReusedPasswordItem.kt:@Composable fun VaultViewReusedPasswordItem</ID>
-    <ID>FunctionNaming:VaultViewScreen.kt:@Composable fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:VaultViewScreen.kt:@Composable fun VaultViewScreen</ID>
-    <ID>FunctionNaming:VaultViewScreen.kt:@Composable private fun RowScope.VaultViewTitleActions</ID>
-    <ID>FunctionNaming:VaultViewScreen.kt:@Composable private fun VaultViewTitle</ID>
-    <ID>FunctionNaming:VaultViewScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun VaultViewScreenContent</ID>
-    <ID>FunctionNaming:VaultViewSectionItem.kt:@Composable fun VaultViewSectionItem</ID>
-    <ID>FunctionNaming:VaultViewSpacerItem.kt:@Composable fun VaultViewSpacerItem</ID>
-    <ID>FunctionNaming:VaultViewTableItem.kt:@Composable fun VaultViewTableItem</ID>
-    <ID>FunctionNaming:VaultViewTagsItem.kt:@Composable fun VaultViewTagsItem</ID>
-    <ID>FunctionNaming:VaultViewTagsItem.kt:@Composable private fun TagItem</ID>
-    <ID>FunctionNaming:VaultViewTitleActions.kt:@Composable internal fun RowScope.VaultViewCipherTitleActions</ID>
-    <ID>FunctionNaming:VaultViewTotpItem.kt:@Composable fun RowScope.VaultViewTotpBadge</ID>
-    <ID>FunctionNaming:VaultViewTotpItem.kt:@Composable fun VaultViewTotpBadge2</ID>
-    <ID>FunctionNaming:VaultViewTotpItem.kt:@Composable private fun RowScope.VaultViewTotpCodeContent</ID>
-    <ID>FunctionNaming:VaultViewTotpItem.kt:@Composable private fun RowScope.VaultViewTotpRemainderBadgeContent</ID>
-    <ID>FunctionNaming:VaultViewTotpItem.kt:@Composable private fun VaultViewTotpRemainderBadge</ID>
-    <ID>FunctionNaming:VaultViewTotpItem.kt:@Composable private fun VaultViewTotpRemainderBadgeLayout</ID>
-    <ID>FunctionNaming:VaultViewTotpItem.kt:@OptIn(ExperimentalLayoutApi::class) @Composable fun VaultViewTotpItem</ID>
-    <ID>FunctionNaming:VaultViewUriItem.kt:@Composable fun UrlAppStoreListings</ID>
-    <ID>FunctionNaming:VaultViewUriItem.kt:@Composable fun VaultViewUriItem</ID>
-    <ID>FunctionNaming:VaultViewUriItem.kt:@Composable private fun UrlAppStoreListingItem</ID>
-    <ID>FunctionNaming:VaultViewUriItem.kt:@Composable private fun UrlAppStoreListingSkeletonItem</ID>
-    <ID>FunctionNaming:VaultViewUriItem.kt:@Composable private fun UrlOverrideItem</ID>
-    <ID>FunctionNaming:VaultViewValueItem.kt:@Composable fun ColumnScope.FlatItemTextContent2</ID>
-    <ID>FunctionNaming:VaultViewValueItem.kt:@Composable fun VaultViewValueItem</ID>
     <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `aggregate status prefers verified email match`</ID>
     <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `aggregate status reports not found when email and fingerprint lookups miss`</ID>
     <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `aggregate status uses fingerprint lookup as found unverified fallback`</ID>
@@ -2107,15 +1137,7 @@
     <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `email verification reports revoked matching fingerprint`</ID>
     <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `invoke falls back to fingerprint lookup when emails are not verified`</ID>
     <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `invoke verifies by email and persists verified state`</ID>
-    <ID>FunctionNaming:Visibility.kt:@Composable fun VisibilityToggle</ID>
-    <ID>FunctionNaming:VisibilityIcon.kt:@Composable fun VisibilityIcon</ID>
-    <ID>FunctionNaming:WatchtowerAlertsScreen.kt:@Composable fun WatchtowerAlerts</ID>
     <ID>FunctionNaming:WatchtowerBenchmarkTest.kt:WatchtowerBenchmarkTest$@Test fun `benchmark and profile every Watchtower check`</ID>
-    <ID>FunctionNaming:WatchtowerNewAlertsScreen.kt:@Composable fun VaultListItemSection</ID>
-    <ID>FunctionNaming:WatchtowerNewAlertsScreen.kt:@Composable fun WatchtowerNewAlerts</ID>
-    <ID>FunctionNaming:WatchtowerNewAlertsScreen.kt:@Composable private fun Ahhhh</ID>
-    <ID>FunctionNaming:WatchtowerNewAlertsScreen.kt:@Composable private fun GeneratorHistoryItem</ID>
-    <ID>FunctionNaming:WatchtowerNewAlertsScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ) @Composable private fun GeneratorPaneMaster</ID>
     <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `all pending signal uses the shared current vault snapshot`</ID>
     <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `cipher upsert does not overwrite or increment a different account`</ID>
     <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `counter increments when the incoming timestamp is unchanged or older`</ID>
@@ -2123,71 +1145,10 @@
     <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `matching report is not pending and the next cipher write increments its counter`</ID>
     <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `pending key query returns only cipher id and counter`</ID>
     <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `stale result cannot consume a newer cipher revision`</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable fun Card</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable fun CardSkeleton</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable fun VaultHomeScreenFilterButton2</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable fun WatchtowerScreen</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardBroadWebsites</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardCompromisedAccount</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardDuplicateItems</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardDuplicateWebsites</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardEmptyItems</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardExpiringItems</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardGpgKeyPublishing</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardInactivePasskey</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardInactiveTwoFactorAuth</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardIncompleteItems</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardPwnedPassword</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardReusedPassword</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardTrashedItems</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardUnsecureWebsites</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardUnusableGpgKeys</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardVulnerableAccounts</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardWeakGpgKeys</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun CardWeakSshKeys</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun ColumnScope.DashboardContent</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun ColumnScope.DashboardContentData</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun ColumnScope.DashboardContentSkeleton</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun ContentLayout</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun RowScope.ContentCardsContentTitle</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private fun VaultHomeScreenFilterButton</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@Composable private inline fun &lt;T, R&gt; Loadable&lt;T&gt;.RenderCard</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@OptIn( androidx.compose.foundation.layout.ExperimentalLayoutApi::class, ) @Composable fun VaultHomeScreenFilterPaneCard2</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@OptIn( androidx.compose.foundation.layout.ExperimentalLayoutApi::class, ) @Composable private fun VaultHomeScreenFilterPaneCard</ID>
-    <ID>FunctionNaming:WatchtowerScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun WatchtowerScreen2</ID>
-    <ID>FunctionNaming:WatchtowerSettingsScreen.kt:@Composable fun WatchtowerSettingsScreen</ID>
     <ID>FunctionNaming:WebAuthnRpIdValidatorTest.kt:WebAuthnRpIdValidatorTest$@Test fun `rp id validation converts unicode domain to ascii`</ID>
     <ID>FunctionNaming:WebAuthnRpIdValidatorTest.kt:WebAuthnRpIdValidatorTest$@Test fun `rp id validation rejects malformed ace label`</ID>
     <ID>FunctionNaming:WebAuthnRpIdValidatorTest.kt:WebAuthnRpIdValidatorTest$@Test fun `rp id validation uses non transitional UTS46 processing`</ID>
     <ID>FunctionNaming:WebAuthnRpIdValidatorTest.kt:WebAuthnRpIdValidatorTest$@Test fun `rp validation allows unicode rp id matching punycoded origin`</ID>
-    <ID>FunctionNaming:WebDavSettingsScreen.kt:@Composable fun WebDavSettingsScreen</ID>
-    <ID>FunctionNaming:WebDavSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class) @Composable private fun WebDavSettingsContent</ID>
-    <ID>FunctionNaming:WebsiteLeakScreen.kt:@Composable fun WebsiteLeakScreen</ID>
-    <ID>FunctionNaming:WebsiteLeakScreen.kt:@Composable private fun ColumnScope.Content</ID>
-    <ID>FunctionNaming:WebsiteLeakScreen.kt:@Composable private fun ColumnScope.ContentSkeleton</ID>
-    <ID>FunctionNaming:WebsiteLeakScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun BreachItem</ID>
-    <ID>FunctionNaming:WindowScreenshotProtectionEffect.kt:@Composable fun WindowScreenshotProtectionEffect</ID>
-    <ID>FunctionNaming:WordlistListScreen.kt:@Composable fun WordlistListScreen</ID>
-    <ID>FunctionNaming:WordlistListScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:WordlistListScreen.kt:@Composable private fun WordlistItem</ID>
-    <ID>FunctionNaming:WordlistListScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun WordlistListScreen</ID>
-    <ID>FunctionNaming:WordlistViewScreen.kt:@Composable fun WordlistViewScreen</ID>
-    <ID>FunctionNaming:WordlistViewScreen.kt:@Composable private fun AppItem</ID>
-    <ID>FunctionNaming:WordlistViewScreen.kt:@Composable private fun NoItemsPlaceholder</ID>
-    <ID>FunctionNaming:WordlistViewScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun WordlistViewScreen</ID>
-    <ID>FunctionNaming:WordlistsScreen.kt:@Composable fun WordlistsScreen</ID>
-    <ID>FunctionNaming:YubiKey.kt:@Composable fun YubiKeyNfcCard</ID>
-    <ID>FunctionNaming:YubiKey.kt:@Composable fun YubiKeyUsbCard</ID>
-    <ID>FunctionNaming:YubiKey.kt:@Composable private fun YubiKeyCard</ID>
-    <ID>FunctionNaming:YubiKeyPromptEffect.kt:@Composable actual fun YubiKeyPromptEffect</ID>
-    <ID>FunctionNaming:YubiKeyPromptEffect.kt:@Composable expect fun YubiKeyPromptEffect</ID>
-    <ID>FunctionNaming:YubiKeyProvisionEffect.kt:@Composable internal fun YubiKeyProvisionEffect</ID>
-    <ID>FunctionNaming:YubiKeyProvisionEffect.kt:@Composable internal fun YubiKeyProvisionProbeEffect</ID>
-    <ID>FunctionNaming:YubiScreen.kt:@Composable fun YubiKeyManual</ID>
-    <ID>FunctionNaming:YubiScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun YubiScreen</ID>
-    <ID>FunctionNaming:popup.kt:@Composable fun DialogPopup</ID>
-    <ID>FunctionNaming:popup.kt:@Composable fun SheetPopup</ID>
-    <ID>FunctionNaming:popup.kt:@Composable private fun BasicPopup</ID>
     <ID>FunctionNaming:toColorInt.kt:fun RGBToHSL</ID>
     <ID>FunctionOnlyReturningConstant:AddScreen.kt:private fun getAnyFieldShapeStateOtherPredicate</ID>
     <ID>FunctionOnlyReturningConstant:CanModify.kt:fun BitwardenService.canDelete</ID>
@@ -4599,416 +3560,42 @@
     <ID>VariableNaming:SymmetricCryptoKey.kt:SymmetricCryptoKey2$private val aesCbc128_HmacSha256_B64 by lazy { require(data.size == 32) { "Crypto key Aes+Cbc+128+Hmac256 must be 32 bytes long, got ${data.size} instead!" } CryptoWithMac( encKey = data.sliceArray(0 until 16), macKey = data.sliceArray(16 until 32), ) }</ID>
     <ID>VariableNaming:SymmetricCryptoKey.kt:SymmetricCryptoKey2$private val aesCbc256_B64 by lazy { require(data.size == 32) { "Crypto key Aes+Cbc+256 must be 32 bytes long, got ${data.size} instead!" } Crypto( encKey = data, ) }</ID>
     <ID>VariableNaming:SymmetricCryptoKey.kt:SymmetricCryptoKey2$private val aesCbc256_HmacSha256_B64 by lazy { require(data.size == 64) { "Crypto key Aes+Cbc+256+Hmac256 must be 64 bytes long, got ${data.size} instead!" } CryptoWithMac( encKey = data.sliceArray(0 until 32), macKey = data.sliceArray(32 until 64), ) }</ID>
-    <ID>WildcardImport:AboutTeamScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AboutTeamSocialNetwork.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AccountListItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AccountListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AccountListViewModel.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AccountViewScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AccountViewStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:AddScreen.kt:import androidx.compose.runtime.*</ID>
-    <ID>WildcardImport:AddScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AddStateOwnershipUtil.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AddStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:AgentManager.kt:import kotlinx.coroutines.*</ID>
-    <ID>WildcardImport:AnonAddyEmailRelay.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AppPickerScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AppPickerStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AttachmentPreviewScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AttachmentsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AttachmentsStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutofillActivity.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutofillSaveActivity.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutofillSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutofillWindow.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutomaticBackupsDetailsSection.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutomaticBackupsEnabledSection.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutomaticBackupsFormatters.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutomaticBackupsSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutomaticBackupsSettingsStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutomaticBackupsSetupSection.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:AutomaticBackupsStatusSection.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:BackupWorker.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:BarcodeTypeRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:BarcodeTypeScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:BaseActivity.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:BiometricKeyDecryptException.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:BiometricKeyEncryptException.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:BitwardenLoginScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:BitwardenLoginStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:BitwardenLoginTwofaScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:BitwardenLoginTwofaStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CallsTabs.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ChangePasswordScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ChangePasswordStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CipherDuplicatesCheck.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CipherFilterRepositoryImpl.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CipherFilterUtil.android.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CipherFilterUtil.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CipherFilterViewStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CipherFiltersListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CipherFiltersListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CipherFiltersRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CipherLinkPickerScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CloudflareEmailRelay.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CollectionScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CollectionsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CollectionsStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ColorPickerScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CompanionAuthUi.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ConfirmationScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ConfirmationStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ContentSearchbar.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:CopyText.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:CredentialGetUnlockActivity.kt:import androidx.compose.foundation.layout.*</ID>
     <ID>WildcardImport:CredentialGetUnlockActivity.kt:import androidx.compose.material3.*</ID>
     <ID>WildcardImport:CredentialGetUnlockActivity.kt:import androidx.compose.runtime.*</ID>
-    <ID>WildcardImport:CredentialGetUnlockActivity.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:CredentialGetUnlockActivity.kt:import org.kodein.di.*</ID>
-    <ID>WildcardImport:CreditCardType.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DFilter.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:DSecret.kt:import androidx.compose.material.icons.outlined.*</ID>
-    <ID>WildcardImport:DSecret.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DSend.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DWatchtowerAlertType.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DataSafetyScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DateDayPickerScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DatePickerScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DatePickerStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DebugSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DeveloperSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DuckDuckGoEmailRelay.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DuplicatesListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:DuplicatesListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:Duration.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ElevatedAccessScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ElevatedAccessStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:EmailLeakRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:EmailLeakScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:EmailRelayListRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:EmailRelayListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:EmailRelayListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:EmptyView.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:EquivalentDomainsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ExperimentalSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ExportManagerImpl.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ExportRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ExportScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ExportStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ExportWorker.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:FastmailEmailRelay.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:FeedbackScreen.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:FileWatcherServiceAndroid.kt:import kotlinx.coroutines.*</ID>
-    <ID>WildcardImport:FilterButton.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:FilterItems.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:FilterScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:FirefoxRelayEmailRelay.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:FolderConfirmationScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:FolderConfirmationStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:FoldersScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:FoldersStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ForwardEmailEmailRelay.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:GeneratorActivity.kt:import androidx.compose.runtime.*</ID>
     <ID>WildcardImport:GeneratorActivity.kt:import org.kodein.di.*</ID>
-    <ID>WildcardImport:GeneratorHistoryScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GeneratorHistoryStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GeneratorScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GeneratorStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GeneratorType.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgAgentFiltersScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgAgentHistoryScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgAgentHistoryStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgAgentSetupScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgKeyActions.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgKeyExpirationMessages.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgKeyExpirationScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgKeyExpirationStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgKeyserverSearchScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgKeyserverSearchStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:GpgSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:HomeScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ItemAttachment.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:JustDeleteMeComponent.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:JustDeleteMeServiceViewDialogRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:JustDeleteMeServiceViewScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:JustDeleteMeServicesRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:JustGetMyDataComponent.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:JustGetMyDataServicesRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:JustGetMyDataViewDialogRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:JustGetMyDataViewScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:KeePassFileAlreadyExistsException.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:KeePassLoginScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:KeyPair.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:KeyguardAutofillService.kt:import android.service.autofill.*</ID>
     <ID>WildcardImport:KeyguardAutofillService.kt:import arrow.core.*</ID>
     <ID>WildcardImport:KeyguardAutofillService.kt:import com.artemchep.keyguard.common.io.*</ID>
     <ID>WildcardImport:KeyguardAutofillService.kt:import com.artemchep.keyguard.common.model.*</ID>
     <ID>WildcardImport:KeyguardAutofillService.kt:import com.artemchep.keyguard.common.usecase.*</ID>
-    <ID>WildcardImport:KeyguardAutofillService.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:KeyguardAutofillService.kt:import io.ktor.http.*</ID>
     <ID>WildcardImport:KeyguardAutofillService.kt:import kotlinx.coroutines.flow.*</ID>
-    <ID>WildcardImport:KeyguardClipboardService.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:KeyguardCredentialService.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LargeTypeActivity.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LargeTypeRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LargeTypeScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LargeTypeStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LicenseScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LicenseServiceImpl.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LoadingTask.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LocalizationContributorsListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LoginOtpScreen.android.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LogsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:LogsStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:NavAnimation.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:NavigationItemsSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:NavigationItemsSettingsStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:NotificationsSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:OnboardingScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:OrganizationConfirmationScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:OrganizationConfirmationStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:OrganizationScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:OrganizationsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:OrganizationsStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:OtherSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:OtpCodeGenerationException.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:OtpEmptySecretKeyException.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:OtpInvalidSecretKeyException.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:OtpMigrationConverter.kt:import io.ktor.http.*</ID>
     <ID>WildcardImport:OtpMigrationParser.kt:import io.ktor.http.*</ID>
-    <ID>WildcardImport:OutOfMemoryKdfException.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PasskeyCompose.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:PasskeyCreateActivity.kt:import androidx.compose.material3.*</ID>
     <ID>WildcardImport:PasskeyCreateActivity.kt:import androidx.compose.runtime.*</ID>
-    <ID>WildcardImport:PasskeyCreateActivity.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:PasskeyCreateActivity.kt:import org.kodein.di.*</ID>
     <ID>WildcardImport:PasskeyGetActivity.kt:import androidx.compose.foundation.layout.*</ID>
     <ID>WildcardImport:PasskeyGetActivity.kt:import androidx.compose.material3.*</ID>
     <ID>WildcardImport:PasskeyGetActivity.kt:import androidx.compose.runtime.*</ID>
-    <ID>WildcardImport:PasskeyGetActivity.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:PasskeyGetActivity.kt:import org.kodein.di.*</ID>
-    <ID>WildcardImport:PasskeysCredentialViewScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PasskeysCredentialViewStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PasskeysServiceViewScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PasskeysServicesRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PasswordLeakRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PasswordLeakScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PasswordMismatchException.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PasswordPwnedBadge.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PasswordStrength.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PermissionsSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:Placeholder.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PoweredBy.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PrivilegedAppListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PrivilegedAppListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:PullToSearch.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:QuickSearchListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:QuickSearchStateTest.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:ReadWordlistFromUrlImpl.kt:import io.ktor.client.*</ID>
     <ID>WildcardImport:ReadWordlistFromUrlImpl.kt:import io.ktor.client.request.*</ID>
     <ID>WildcardImport:ReadWordlistFromUrlImpl.kt:import io.ktor.client.statement.*</ID>
-    <ID>WildcardImport:RelativeTime.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:Scaffold.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ScanQrButton.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:ScanQrScreen.kt:import androidx.compose.runtime.*</ID>
-    <ID>WildcardImport:ScanQrScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SearchSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SearchTextField.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SecuritySettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SendAddScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SendAddStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SendListFilter.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SendListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SendListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SendUtil.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SendViewScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SendViewStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ServerEnv.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAboutApp.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAboutAppBuildDate.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAboutAppBuildRef.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAboutAppChangelog.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAboutTeam.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAboutTelegram.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingApk.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAppIcons.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofill.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillBlockUri.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillCopyTotp.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillDefaultMatchDetection.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillInlineSuggestions.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillManualSelection.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillPasskeysEnabled.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillPasswordsEnabled.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillPrivilegedApp.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillRespectAutofillOff.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillSaveRequest.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingAutofillSaveUri.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingBiometrics.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingBiometricsRequireConfirmation.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingCheckPasskeys.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingCheckPwnedPasswords.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingCheckPwnedServices.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingCheckTwoFA.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingClipboardAutoClear.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingClipboardAutoRefresh.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingClipboardNotificationSettings.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingCloseToTray.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingColorAccent.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingColorScheme.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingConcealedFields.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingCrash.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingCrashlytics.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingCredentialProvider.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingDataSafety.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingExperimental.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingFeaturesOverview.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingFeedbackApp.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingFont.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGitHub.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgAgent.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgAgentApprovalWindow.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgAgentDisplayKeyNames.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgAgentFilters.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgAgentHistory.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgAgentLocalStorageInfo.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgAgentSetup.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgKeyserverAutoRefresh.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgKeyserverProtocol.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgKeyserverRefreshInterval.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgKeyserverSearch.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgKeyserverUrl.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGpgSettings.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingGravatar.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingKeepScreenOn.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingLicenseClaim.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingLicenseRedeem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingLocalization.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingLogs.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingMarkdown.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingMasterPassword.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingMinimizeOnCopy.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingNavAnimation.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingNavLabel.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingNavigationItems.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingOpenSourceLicenses.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingPermission.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingPermissionCamera.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingPermissionPostNotifications.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingPermissionWriteExternalStorage.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingPrivacyPolicy.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingRateApp.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingRequireMasterPassword.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingScreenshots.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSelectLocale.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSshAgent.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSshAgentApprovalWindow.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSshAgentDisplayKeyNames.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSshAgentFilters.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSshAgentHistory.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSshAgentLocalStorageInfo.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSshAgentSetup.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSshSettings.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSubscriptions.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingSubscriptionsPlayStore.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingThemeExpressive.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingThemeUseAmoledDark.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingTwoPanelLayoutLandscape.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingTwoPanelLayoutPortrait.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingUrlOverride.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingUseExternalBrowser.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingVaultClear.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingVaultLock.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingVaultLockAfterReboot.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingVaultLockAfterScreenOff.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingVaultLockAfterTimeout.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingVaultPersist.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingWebsiteIcons.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SettingYubiKeyUnlock.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SetupScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SetupStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SimpleLoginEmailRelay.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SortButton.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SshAgentFiltersScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SshAgentHistoryScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SshAgentHistoryStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:SshAgentIpcComponentTest.kt:import kotlinx.coroutines.*</ID>
     <ID>WildcardImport:SshAgentManager.kt:import kotlinx.coroutines.*</ID>
-    <ID>WildcardImport:SshAgentSetupScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SshKeyActions.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SshSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SubscriptionsSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SyncScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:SyncStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:TagsConfirmationScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:TagsConfirmationStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:TextItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:Theme.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:TimePickerScreen.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:ToastComposable.kt:import androidx.compose.runtime.*</ID>
-    <ID>WildcardImport:ToastComposable.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:TwoFaServiceViewScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:TwoFaServicesRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:TwoFactorProvider.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:UiSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:UnlockScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:UnlockStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:UrlBlockListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:UrlBlockListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:UrlOverrideListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:UrlOverrideListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:UrlPlaceholder.kt:import io.ktor.http.*</ID>
-    <ID>WildcardImport:ValidatorEmail.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ValidatorFeedback.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ValidatorInteger.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ValidatorPassword.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ValidatorTitle.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ValidatorUri.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:ValidatorUrl.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultHomeScreenFilterPaneNumberOfItems.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultListFilter.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultListItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultListItemMapping.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultSearchQualifierAutocomplete.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultSessionLocker.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewCardItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewInactivePasskeyItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewInactiveTotpItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewInfoItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewNoteItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewPasskeyItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewPasswordHistoryScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewPasswordHistoryStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewReusedPasswordItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewTotpItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:VaultViewValueItem.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WatchtowerNewAlertsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WatchtowerScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WatchtowerSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WatchtowerStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WatchtowerSyncerImpl.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:WatchtowerSyncerImpl.kt:import io.ktor.http.*</ID>
-    <ID>WildcardImport:WebDavSettingsScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WebDavSettingsStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WebsiteLeakRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WebsiteLeakScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WordlistListScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WordlistListStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WordlistUtil.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WordlistViewScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WordlistViewStateProducer.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:WordlistsRoute.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:YubiKey.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:YubiScreen.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:changePasswordAction.kt:import com.artemchep.keyguard.res.*</ID>
-    <ID>WildcardImport:cipherChangeGpgKeyExpirationAction.kt:import com.artemchep.keyguard.res.*</ID>
     <ID>WildcardImport:http.kt:import io.ktor.client.statement.*</ID>
     <ID>WildcardImport:http.kt:import io.ktor.http.*</ID>
-    <ID>WildcardImport:showInLargeTypeActionOrNull.kt:import com.artemchep.keyguard.res.*</ID>
   </CurrentIssues>
 </SmellBaseline>

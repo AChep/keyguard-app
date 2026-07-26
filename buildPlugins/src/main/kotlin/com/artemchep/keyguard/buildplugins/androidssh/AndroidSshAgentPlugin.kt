@@ -80,9 +80,10 @@ class AndroidSshAgentPlugin : Plugin<Project> {
             compileTasks[targetInfo.rustTarget] = tasks.register<SignAndCopyBinaryTask>("compile$suffix") {
                 dependsOn(cargoBuild)
                 sourceBinary.set(cargoBuild.flatMap { it.outputBinary })
-                destinationBinary.set(
-                    layout.buildDirectory.file("bin/${targetInfo.rustTarget}/$cargoBinaryName"),
+                destinationDirectory.set(
+                    layout.buildDirectory.dir("compiled-binaries/${targetInfo.rustTarget}"),
                 )
+                destinationRelativePath.set(cargoBinaryName)
                 platformMacOs.set(false)
                 platformWindows.set(false)
                 markExecutable.set(true)

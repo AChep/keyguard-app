@@ -37,6 +37,7 @@ class CargoCommonPlugin : Plugin<Project> {
         bundledElements: Configuration,
     ) {
         val cargoTargetDir = layout.buildDirectory.dir("cargo-target")
+        val bundledAppResourcesDir = layout.buildDirectory.dir("bundled-app-resources")
         val sourceDirPath = extension.sourceDir.get().asFile
         val sourceFileTrees = listOf(
             fileTree(sourceDirPath) {
@@ -66,10 +67,11 @@ class CargoCommonPlugin : Plugin<Project> {
         val compileTask = tasks.register<SignAndCopyBinaryTask>(extension.compileTaskName.get()) {
             dependsOn(cargoBuild)
             sourceBinary.set(cargoBuild.flatMap { it.outputBinary })
-            destinationBinary.set(
-                layout.buildDirectory.file(
-                    "bin/${extension.composeResourceDir.get()}/${extension.packagedBinaryName.get()}",
-                ),
+            destinationDirectory.set(bundledAppResourcesDir)
+            destinationRelativePath.set(
+                extension.composeResourceDir.zip(extension.packagedBinaryName) { resourceDir, binaryName ->
+                    "$resourceDir/$binaryName"
+                },
             )
             certIdentity.set(extension.certIdentity)
             platformMacOs.set(extension.platformMacOs)
@@ -77,7 +79,7 @@ class CargoCommonPlugin : Plugin<Project> {
             markExecutable.set(extension.markExecutable)
         }
 
-        artifacts.add(bundledElements.name, layout.buildDirectory.dir("bin")) {
+        artifacts.add(bundledElements.name, bundledAppResourcesDir) {
             type = "directory"
             builtBy(compileTask)
         }

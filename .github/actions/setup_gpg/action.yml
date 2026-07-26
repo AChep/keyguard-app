@@ -45,8 +45,8 @@ runs:
         "KEYGUARD_GPG_BIN_DIR=$gpgBin" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
         "$gpgBin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
-        $gpgPath = (Get-Command gpg.exe -CommandType Application).Source
-        $gpgConfPath = (Get-Command gpgconf.exe -CommandType Application).Source
+        $gpgPath = (Get-Command gpg.exe -CommandType Application | Select-Object -First 1).Source
+        $gpgConfPath = (Get-Command gpgconf.exe -CommandType Application | Select-Object -First 1).Source
         if ((Split-Path -Parent $gpgPath) -ne $gpgBin) {
           throw "Selected gpg executable is outside the native GnuPG install: $gpgPath"
         }

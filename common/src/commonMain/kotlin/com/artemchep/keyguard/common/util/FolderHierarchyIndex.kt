@@ -4,15 +4,17 @@ import com.artemchep.keyguard.common.model.FolderHierarchyMode
 
 sealed interface FolderHierarchyKey {
     val accountId: String
+    val folderId: String
 
     data class Path(
         override val accountId: String,
+        override val folderId: String,
         val path: String,
     ) : FolderHierarchyKey
 
     data class Id(
         override val accountId: String,
-        val folderId: String,
+        override val folderId: String,
     ) : FolderHierarchyKey
 }
 
@@ -21,7 +23,7 @@ data class FolderHierarchyIndexNode<T : Any>(
     val parentKey: FolderHierarchyKey?,
     val name: String,
     val depth: Int,
-    val directItems: List<T>,
+    val item: T,
 )
 
 /**
@@ -30,8 +32,9 @@ data class FolderHierarchyIndexNode<T : Any>(
  * Invariants (established by [createFolderHierarchyIndex]):
  * - Nodes are scoped per account; keys carry their `accountId` and never cross
  *   account boundaries.
- * - In [FolderHierarchyMode.Path], folders sharing the same path collapse into a
- *   single node whose [FolderHierarchyIndexNode.directItems] holds every folder.
+ * - Every physical folder has its own node, including folders that share a path.
+ * - In [FolderHierarchyMode.Path], a child with an ambiguous same-path parent is
+ *   attached to the parent with the lexicographically smallest stable folder id.
  * - A folder whose parent is missing (dangling parent) is re-rooted: its
  *   `parentKey` is `null`.
  * - Parent-id cycles (a self-parent, or `A -> B -> A`) are broken by re-rooting
@@ -39,94 +42,97 @@ data class FolderHierarchyIndexNode<T : Any>(
  */
 class FolderHierarchyIndex<T : Any> internal constructor(
     private val nodesByKey: Map<FolderHierarchyKey, FolderHierarchyIndexNode<T>>,
-    private val childKeysByParentKey: Map<FolderHierarchyKey?, List<FolderHierarchyKey>>,
+    private val childNodesByParentKey: Map<FolderHierarchyKey?, List<FolderHierarchyIndexNode<T>>>,
 ) {
-    // Precomputed once: for each key, the node's own [directItems] followed by
-    // every descendant's items (each folder once). Avoids re-running a DFS per
-    // [descendantsOf] call.
-    private val descendantsByKey: Map<FolderHierarchyKey, List<T>> =
-        computeDescendantsByKey()
+    private data class ItemKey(
+        val accountId: String,
+        val folderId: String,
+    )
+
+    private val nodesByItemKey = nodesByKey.values
+        .associateBy { node ->
+            ItemKey(
+                accountId = node.key.accountId,
+                folderId = node.key.folderId,
+            )
+        }
 
     fun node(
         key: FolderHierarchyKey,
     ): FolderHierarchyIndexNode<T>? = nodesByKey[key]
 
+    fun nodeOf(
+        accountId: String,
+        folderId: String,
+    ): FolderHierarchyIndexNode<T>? = nodesByItemKey[
+        ItemKey(
+            accountId = accountId,
+            folderId = folderId,
+        )
+    ]
+
     fun childrenOf(
         parentKey: FolderHierarchyKey?,
-    ): List<FolderHierarchyIndexNode<T>> = childKeysByParentKey[parentKey]
-        .orEmpty()
-        .mapNotNull(nodesByKey::get)
+    ): List<FolderHierarchyIndexNode<T>> = childNodesByParentKey[parentKey].orEmpty()
 
     fun descendantsOf(
         key: FolderHierarchyKey,
-    ): List<T> = descendantsByKey[key].orEmpty()
-
-    private fun computeDescendantsByKey(): Map<FolderHierarchyKey, List<T>> {
-        val result = mutableMapOf<FolderHierarchyKey, List<T>>()
-        for (rootKey in nodesByKey.keys) {
-            if (rootKey in result) {
-                continue
-            }
-            collectDescendantsInto(rootKey, result)
+    ): List<T> = buildList {
+        visitSubtree(key) { item ->
+            add(item)
+            false
         }
-        return result
     }
 
-    // Iterative post-order traversal: a node is finalized only after all of its
-    // children, so every entry can be assembled from already-finalized children.
-    // The on-stack set guards against parent-id cycles.
-    private fun collectDescendantsInto(
+    /**
+     * Returns whether [predicate] matches this node or any of its descendants.
+     * Unlike [descendantsOf], this does not allocate a subtree list and stops at
+     * the first match.
+     */
+    fun anyDescendant(
+        key: FolderHierarchyKey,
+        predicate: (T) -> Boolean,
+    ): Boolean = visitSubtree(key, predicate)
+
+    /**
+     * Visits a subtree iteratively in parent-first order. Returning `true` from
+     * [visitor] stops the traversal and is propagated to the caller.
+     */
+    private fun visitSubtree(
         startKey: FolderHierarchyKey,
-        result: MutableMap<FolderHierarchyKey, List<T>>,
-    ) {
-        val stack = ArrayDeque<FolderHierarchyKey>()
-        val onStack = mutableSetOf<FolderHierarchyKey>()
-        stack.addLast(startKey)
-        onStack += startKey
+        visitor: (T) -> Boolean,
+    ): Boolean {
+        val startNode = nodesByKey[startKey]
+            ?: return false
+        val stack = ArrayDeque<FolderHierarchyIndexNode<T>>()
+        val visited = mutableSetOf<FolderHierarchyKey>()
+        stack.addLast(startNode)
         while (stack.isNotEmpty()) {
-            val currentKey = stack.last()
-            val node = nodesByKey[currentKey]
-            if (node == null) {
-                stack.removeLast()
-                onStack -= currentKey
-                result[currentKey] = emptyList()
+            val node = stack.removeLast()
+            if (!visited.add(node.key)) {
                 continue
             }
-            val children = childKeysByParentKey[currentKey].orEmpty()
-            val pending = children.firstOrNull { childKey ->
-                childKey != currentKey &&
-                        childKey !in result &&
-                        childKey !in onStack
+            if (visitor(node.item)) {
+                return true
             }
-            if (pending != null) {
-                stack.addLast(pending)
-                onStack += pending
-                continue
+            val children = childNodesByParentKey[node.key].orEmpty()
+            for (index in children.lastIndex downTo 0) {
+                stack.addLast(children[index])
             }
-            val items = buildList {
-                addAll(node.directItems)
-                for (childKey in children) {
-                    if (childKey == currentKey) {
-                        continue
-                    }
-                    addAll(result[childKey].orEmpty())
-                }
-            }
-            result[currentKey] = items
-            stack.removeLast()
-            onStack -= currentKey
         }
+        return false
     }
 }
 
 /**
  * Builds a [FolderHierarchyIndex] from a flat collection of [folders].
  *
- * Folders are grouped per account, so identical paths or ids in different
- * accounts never collide. In [FolderHierarchyMode.Path] folders with the same
- * path collapse into a single node. In [FolderHierarchyMode.ParentId] a folder
- * pointing at a missing parent, or one whose parent chain loops back on itself,
- * is re-rooted (`parentKey == null`) so that every node remains reachable from
+ * Folders are partitioned by account and hierarchy mode, so identical paths or
+ * ids in different accounts never collide and mixed hierarchy modes cannot
+ * become each other's ancestors. Every physical folder remains a separate node.
+ * In [FolderHierarchyMode.ParentId] a folder pointing at a missing parent, or
+ * one whose parent chain loops back on itself, is re-rooted
+ * (`parentKey == null`) so that every node remains reachable from
  * `childrenOf(null)`.
  */
 fun <T : Any> createFolderHierarchyIndex(
@@ -140,44 +146,50 @@ fun <T : Any> createFolderHierarchyIndex(
     val records = folders
         .groupBy(accountId)
         .flatMap { (accountId, accountFolders) ->
-            val foldersById = accountFolders.associateBy(id)
             accountFolders
-                .map { folder ->
-                    createFolderHierarchyIndexRecord(
-                        accountId = accountId,
-                        accountFolders = accountFolders,
-                        foldersById = foldersById,
-                        folder = folder,
-                        lens = lens,
-                        id = id,
-                        parentId = parentId,
-                        hierarchyMode = hierarchyMode(folder),
-                    )
+                .groupBy(hierarchyMode)
+                .flatMap { (mode, modeFolders) ->
+                    when (mode) {
+                        FolderHierarchyMode.Path -> createPathFolderHierarchyIndexRecords(
+                            accountId = accountId,
+                            folders = modeFolders,
+                            lens = lens,
+                            id = id,
+                        )
+
+                        FolderHierarchyMode.ParentId -> createParentIdFolderHierarchyIndexRecords(
+                            accountId = accountId,
+                            folders = modeFolders,
+                            lens = lens,
+                            id = id,
+                            parentId = parentId,
+                        )
+                    }
                 }
         }
     val nodesByKey = records
-        .groupBy { it.key }
-        .mapValues { (_, records) ->
-            val first = records.first()
-            FolderHierarchyIndexNode(
-                key = first.key,
-                parentKey = first.parentKey,
-                name = first.name,
-                depth = first.depth,
-                directItems = records.map { it.folder },
+        .associate { record ->
+            record.key to FolderHierarchyIndexNode(
+                key = record.key,
+                parentKey = record.parentKey,
+                name = record.name,
+                depth = record.depth,
+                item = record.folder,
             )
         }
-    val childKeysByParentKey = records
+    val childNodesByParentKey = records
         .groupBy(
             keySelector = { it.parentKey },
             valueTransform = { it.key },
         )
-        .mapValues { (_, keys) ->
-            keys.distinct()
+        .mapValues { (_, childKeys) ->
+            childKeys
+                .distinct()
+                .mapNotNull(nodesByKey::get)
         }
     return FolderHierarchyIndex(
         nodesByKey = nodesByKey,
-        childKeysByParentKey = childKeysByParentKey,
+        childNodesByParentKey = childNodesByParentKey,
     )
 }
 
@@ -189,70 +201,102 @@ private data class FolderHierarchyIndexRecord<T : Any>(
     val folder: T,
 )
 
-private fun <T : Any> createFolderHierarchyIndexRecord(
+private fun <T : Any> createPathFolderHierarchyIndexRecords(
     accountId: String,
-    accountFolders: Collection<T>,
-    foldersById: Map<String, T>,
-    folder: T,
+    folders: List<T>,
     lens: (T) -> String,
     id: (T) -> String,
-    parentId: (T) -> String?,
-    hierarchyMode: FolderHierarchyMode,
-): FolderHierarchyIndexRecord<T> = when (hierarchyMode) {
-    FolderHierarchyMode.Path -> {
-        val hierarchy = createFolderHierarchy(
-            lens = lens,
-            allFolders = accountFolders,
-            folder = folder,
-            hierarchyMode = FolderHierarchyMode.Path,
-        )
-        val parent = hierarchy.nodes
-            .dropLast(1)
-            .lastOrNull()
-            ?.folder
+): List<FolderHierarchyIndexRecord<T>> {
+    // A path can belong to multiple physical folders. Pick its owner directly
+    // instead of sorting the whole account, keeping the choice deterministic.
+    val ownersByPath = mutableMapOf<String, T>()
+    folders.forEach { folder ->
+        val path = lens(folder)
+        val currentOwner = ownersByPath[path]
+        if (currentOwner == null || id(folder) < id(currentOwner)) {
+            ownersByPath[path] = folder
+        }
+    }
+    val parentPaths = ownersByPath.keys
+        .associateWith { path ->
+            findNearestParentPath(
+                path = path,
+                knownPaths = ownersByPath.keys,
+            )
+        }
+    // Parent paths are always shorter, so calculating shallow paths first lets
+    // each depth reuse its already-computed parent depth.
+    val depthsByPath = mutableMapOf<String, Int>()
+    parentPaths.keys
+        .sortedBy { it.length }
+        .forEach { path ->
+            val parentDepth = parentPaths[path]
+                ?.let(depthsByPath::get)
+                ?: 0
+            depthsByPath[path] = parentDepth + 1
+        }
+
+    return folders.map { folder ->
+        val folderId = id(folder)
+        val path = lens(folder)
+        val parentPath = parentPaths[path]
         FolderHierarchyIndexRecord(
             key = FolderHierarchyKey.Path(
                 accountId = accountId,
-                path = lens(folder),
+                folderId = folderId,
+                path = path,
             ),
-            parentKey = parent
-                ?.let {
+            parentKey = parentPath
+                ?.let { resolvedParentPath ->
+                    val parent = ownersByPath.getValue(resolvedParentPath)
                     FolderHierarchyKey.Path(
                         accountId = accountId,
-                        path = lens(it),
+                        folderId = id(parent),
+                        path = resolvedParentPath,
                     )
                 },
-            name = hierarchy.nodes
-                .lastOrNull()
-                ?.name
-                ?: lens(folder),
-            depth = hierarchy.nodes.size,
+            name = parentPath
+                ?.let { path.substring(it.length + 1).trimStart() }
+                ?: path,
+            depth = depthsByPath.getValue(path),
             folder = folder,
         )
     }
+}
 
-    FolderHierarchyMode.ParentId -> {
-        val folderId = id(folder)
-        // Walk the parent-id chain once, guarding against cycles with a visited
-        // set (mirrors createParentIdFolderHierarchy). This gives both the depth
-        // and whether the folder participates in a cycle, without the O(n)
-        // ancestor walk that createFolderHierarchy would perform per folder.
-        val visited = mutableSetOf(folderId)
-        var depth = 1
-        var cyclic = false
-        var ancestorId = parentId(folder)
-        while (ancestorId != null) {
-            val ancestor = foldersById[ancestorId]
-                ?: break
-            if (!visited.add(ancestorId)) {
-                // The chain loops back onto an already-seen id; the cycle
-                // reaches the folder itself, so re-root it.
-                cyclic = true
-                break
-            }
-            depth++
-            ancestorId = parentId(ancestor)
+private fun findNearestParentPath(
+    path: String,
+    knownPaths: Set<String>,
+): String? {
+    var candidate = path
+    while (true) {
+        val delimiterIndex = candidate
+            .indexOfLast { it == FOLDER_HIERARCHY_DELIMITER }
+        if (delimiterIndex == -1) {
+            return null
         }
+        candidate = candidate.substring(0, delimiterIndex)
+        if (candidate in knownPaths) {
+            return candidate
+        }
+    }
+}
+
+private fun <T : Any> createParentIdFolderHierarchyIndexRecords(
+    accountId: String,
+    folders: List<T>,
+    lens: (T) -> String,
+    id: (T) -> String,
+    parentId: (T) -> String?,
+): List<FolderHierarchyIndexRecord<T>> {
+    val foldersById = folders.associateBy(id)
+    val resolutionsById = resolveParentIdFolders(
+        foldersById = foldersById,
+        parentId = parentId,
+    )
+    return folders.map { folder ->
+        val folderId = id(folder)
+        val resolution = resolutionsById.getValue(folderId)
         FolderHierarchyIndexRecord(
             key = FolderHierarchyKey.Id(
                 accountId = accountId,
@@ -261,7 +305,7 @@ private fun <T : Any> createFolderHierarchyIndexRecord(
             parentKey = parentId(folder)
                 // Re-root a folder whose parent is missing (dangling parent)
                 // or whose parent chain loops back onto itself (cycle guard).
-                ?.takeUnless { cyclic }
+                ?.takeUnless { resolution.reachesCycle }
                 ?.takeIf { it in foldersById }
                 ?.let { parentFolderId ->
                     FolderHierarchyKey.Id(
@@ -270,8 +314,82 @@ private fun <T : Any> createFolderHierarchyIndexRecord(
                     )
                 },
             name = lens(folder),
-            depth = depth,
+            depth = resolution.depth,
             folder = folder,
         )
     }
+}
+
+private data class ParentIdFolderResolution(
+    val depth: Int,
+    val reachesCycle: Boolean,
+)
+
+/**
+ * Resolves every parent-id chain once. Resolved suffixes are reused by folders
+ * that join the same chain, avoiding a full ancestor walk for every node.
+ */
+private fun <T : Any> resolveParentIdFolders(
+    foldersById: Map<String, T>,
+    parentId: (T) -> String?,
+): Map<String, ParentIdFolderResolution> {
+    val resolutions = mutableMapOf<String, ParentIdFolderResolution>()
+    foldersById.keys.forEach { startId ->
+        if (startId in resolutions) {
+            return@forEach
+        }
+
+        val path = mutableListOf<String>()
+        val pathIndexes = mutableMapOf<String, Int>()
+        var currentId: String? = startId
+        var suffix = ParentIdFolderResolution(
+            depth = 0,
+            reachesCycle = false,
+        )
+        var cycleStartIndex: Int? = null
+        while (currentId != null) {
+            val resolved = resolutions[currentId]
+            if (resolved != null) {
+                suffix = resolved
+                break
+            }
+            val currentFolder = foldersById[currentId]
+                ?: break
+            val previousIndex = pathIndexes[currentId]
+            if (previousIndex != null) {
+                cycleStartIndex = previousIndex
+                break
+            }
+            pathIndexes[currentId] = path.size
+            path += currentId
+            currentId = parentId(currentFolder)
+        }
+
+        if (cycleStartIndex != null) {
+            val cycleLength = path.size - cycleStartIndex
+            for (index in cycleStartIndex until path.size) {
+                resolutions[path[index]] = ParentIdFolderResolution(
+                    depth = cycleLength,
+                    reachesCycle = true,
+                )
+            }
+            var depth = cycleLength
+            for (index in cycleStartIndex - 1 downTo 0) {
+                depth++
+                resolutions[path[index]] = ParentIdFolderResolution(
+                    depth = depth,
+                    reachesCycle = true,
+                )
+            }
+        } else {
+            for (index in path.lastIndex downTo 0) {
+                suffix = ParentIdFolderResolution(
+                    depth = suffix.depth + 1,
+                    reachesCycle = suffix.reachesCycle,
+                )
+                resolutions[path[index]] = suffix
+            }
+        }
+    }
+    return resolutions
 }

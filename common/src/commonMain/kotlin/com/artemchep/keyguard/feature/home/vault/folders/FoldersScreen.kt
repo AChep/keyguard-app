@@ -6,19 +6,24 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CreateNewFolder
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,11 +49,14 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.animatedNumberText
 import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.OfflineIcon
 import com.artemchep.keyguard.ui.skeleton.SkeletonItemPilled
+import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.badgeContainer
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
@@ -101,6 +109,22 @@ fun FoldersScreenContent(
                 navigationIcon = {
                     NavigationIcon()
                 },
+                actions = {
+                    val onRename = state.onRename
+                    if (onRename != null) {
+                        IconButton(
+                            onClick = onRename,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = stringResource(Res.string.rename),
+                            )
+                        }
+                    }
+                    OptionsButton(
+                        actions = state.actions,
+                    )
+                },
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -148,7 +172,8 @@ fun FoldersScreenContent(
 
             is Loadable.Ok -> {
                 val items = contentState.value.items
-                if (items.isEmpty()) {
+                val ciphers = contentState.value.ciphers
+                if (items.isEmpty() && ciphers == null) {
                     item("empty") {
                         EmptyView(
                             icon = {
@@ -156,7 +181,13 @@ fun FoldersScreenContent(
                             },
                             text = {
                                 Text(
-                                    text = stringResource(Res.string.folders_empty_label),
+                                    text = stringResource(
+                                        if (contentState.value.missing) {
+                                            Res.string.error_not_found
+                                        } else {
+                                            Res.string.folders_empty_label
+                                        },
+                                    ),
                                 )
                             },
                         )
@@ -173,8 +204,64 @@ fun FoldersScreenContent(
                         item = it,
                     )
                 }
+
+                if (ciphers != null) {
+                    item("ciphers.section") {
+                        Section(
+                            expressive = true,
+                        )
+                    }
+                    item("ciphers.button") {
+                        FoldersScreenCiphersButton(
+                            ciphers = ciphers,
+                        )
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun FoldersScreenCiphersButton(
+    modifier: Modifier = Modifier,
+    ciphers: FoldersState.Content.Ciphers,
+) {
+    val onClick = rememberUpdatedState(ciphers.onClick)
+    Button(
+        modifier = modifier
+            .padding(horizontal = Dimens.buttonHorizontalPadding),
+        onClick = {
+            onClick.value()
+        },
+        colors = ButtonDefaults.filledTonalButtonColors(),
+        elevation = ButtonDefaults.filledTonalButtonElevation(),
+    ) {
+        BadgedBox(
+            badge = {
+                Badge(
+                    containerColor = MaterialTheme.colorScheme.badgeContainer,
+                ) {
+                    Text(
+                        text = animatedNumberText(ciphers.count),
+                    )
+                }
+            },
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(ButtonDefaults.IconSize),
+                imageVector = Icons.Outlined.KeyguardCipher,
+                contentDescription = null,
+            )
+        }
+        Spacer(
+            modifier = Modifier
+                .width(24.dp),
+        )
+        Text(
+            text = stringResource(Res.string.items),
+        )
     }
 }
 
@@ -243,7 +330,7 @@ private fun FoldersScreenFolderItem(
                 )
             }
             ExpandedIfNotEmptyForRow(
-                Unit.takeIf { item.hasChildren && !item.selecting },
+                Unit.takeIf { !item.selecting },
             ) {
                 ChevronIcon()
             }

@@ -13,19 +13,10 @@ data class FoldersRoute(
         val empty: Boolean = false,
         val parent: Parent? = null,
     ) {
-        sealed interface Parent {
-            val accountId: String
-
-            data class Path(
-                override val accountId: String,
-                val path: String,
-            ) : Parent
-
-            data class Id(
-                override val accountId: String,
-                val folderId: String,
-            ) : Parent
-        }
+        data class Parent(
+            val accountId: String,
+            val folderId: String,
+        )
     }
 
     override val descriptor get() = RouteDescriptor.Folders(args.filter, args.empty)

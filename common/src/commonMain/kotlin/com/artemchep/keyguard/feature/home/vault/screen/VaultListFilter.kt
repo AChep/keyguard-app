@@ -26,7 +26,6 @@ import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DTag
-import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.existsIn
 import com.artemchep.keyguard.common.model.iconImageVector
@@ -280,11 +279,12 @@ internal data class FolderFilterTree(
 /**
  * Builds the folder filter tree from a flat list of [folders].
  *
- * Folder hierarchy is resolved per account, but nodes that resolve to the same
- * display name-path are then merged ACROSS accounts into a single filter node
- * (so "Personal" in two accounts is one entry). A node is [selectable] when any
- * of its merged folders holds ciphers ([folderIdsWithCiphers]); a node is kept
- * when it is selectable or has a selectable descendant.
+ * Folder hierarchy is resolved per physical folder and account, but nodes that
+ * resolve to the same display name-path are then merged into one filter node,
+ * both within and across accounts (so "Personal" duplicates produce one entry).
+ * A node is [selectable] when any of its merged folders holds ciphers
+ * ([folderIdsWithCiphers]); a node is kept when it is selectable or has a
+ * selectable descendant.
  */
 internal fun buildFolderFilterTree(
     folders: List<DFolder>,
@@ -304,20 +304,12 @@ internal fun buildFolderFilterTree(
     // walking its parent chain. The chain is acyclic (the index re-roots
     // cycles), so the visited guard is only a safety net.
     fun pathOf(folder: DFolder): List<String> {
-        val key = when (folder.hierarchyMode) {
-            FolderHierarchyMode.Path -> FolderHierarchyKey.Path(
-                accountId = folder.accountId,
-                path = folder.name,
-            )
-
-            FolderHierarchyMode.ParentId -> FolderHierarchyKey.Id(
-                accountId = folder.accountId,
-                folderId = folder.id,
-            )
-        }
         val names = ArrayDeque<String>()
         val visited = mutableSetOf<FolderHierarchyKey>()
-        var current = index.node(key)
+        var current = index.nodeOf(
+            accountId = folder.accountId,
+            folderId = folder.id,
+        )
         while (current != null && visited.add(current.key)) {
             names.addFirst(current.name)
             val parentKey = current.parentKey

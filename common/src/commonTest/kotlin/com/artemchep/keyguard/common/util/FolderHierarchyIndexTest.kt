@@ -62,9 +62,11 @@ class FolderHierarchyIndexTest {
 
     private fun pathKey(
         path: String,
+        folderId: String = path,
         accountId: String = "acc",
     ) = FolderHierarchyKey.Path(
         accountId = accountId,
+        folderId = folderId,
         path = path,
     )
 
@@ -92,6 +94,17 @@ class FolderHierarchyIndexTest {
         val descendantsOfB = index.descendantsOf(idKey("B"))
         assertEquals(setOf(b), descendantsOfB.toSet())
         assertEquals(descendantsOfB.size, descendantsOfB.distinct().size)
+    }
+
+    @Test
+    fun `parent-id branch that reaches a cycle is re-rooted`() {
+        val a = parentIdFolder(id = "A", parentId = "B")
+        val b = parentIdFolder(id = "B", parentId = "A")
+        val branch = parentIdFolder(id = "branch", parentId = "A")
+        val index = index(listOf(branch, a, b))
+
+        assertNull(index.node(idKey("branch"))!!.parentKey)
+        assertEquals(3, index.node(idKey("branch"))!!.depth)
     }
 
     @Test
@@ -136,6 +149,22 @@ class FolderHierarchyIndexTest {
     }
 
     @Test
+    fun `mixed hierarchy modes cannot become ancestors`() {
+        val pathParent = pathFolder(path = "Parent", id = "path-parent")
+        val idChild = parentIdFolder(id = "id-child", parentId = "path-parent")
+        val idNamedParent = parentIdFolder(id = "id-parent", parentId = null)
+            .copy(path = "Parent")
+        val pathChild = pathFolder(path = "Parent/Child", id = "path-child")
+        val index = index(listOf(pathParent, idChild, idNamedParent, pathChild))
+
+        assertNull(index.nodeOf("acc", "id-child")!!.parentKey)
+        assertEquals(
+            pathKey(path = "Parent", folderId = "path-parent"),
+            index.nodeOf("acc", "path-child")!!.parentKey,
+        )
+    }
+
+    @Test
     fun `per-account scoping keeps identical ids and paths separate`() {
         // Two accounts, same ids and same parent-child shape.
         val acc1Parent = parentIdFolder(id = "P", parentId = null, accountId = "acc1")
@@ -172,22 +201,52 @@ class FolderHierarchyIndexTest {
     }
 
     @Test
-    fun `same-path folders collapse into a single node`() {
+    fun `same-path folders remain separate nodes`() {
         // Two distinct folders share the same path within one account.
         val first = pathFolder(path = "a/b", id = "first")
         val second = pathFolder(path = "a/b", id = "second")
         val parent = pathFolder(path = "a", id = "parent")
         val index = index(listOf(parent, first, second))
 
-        val node = index.node(pathKey("a/b"))!!
-        // Both folders collapse into the single node's directItems.
-        assertEquals(setOf(first, second), node.directItems.toSet())
-        // The node's parent is the "a" path node.
-        assertEquals(pathKey("a"), node.parentKey)
+        val firstNode = index.node(pathKey(path = "a/b", folderId = "first"))!!
+        val secondNode = index.node(pathKey(path = "a/b", folderId = "second"))!!
+        assertEquals(first, firstNode.item)
+        assertEquals(second, secondNode.item)
+        assertEquals(pathKey(path = "a", folderId = "parent"), firstNode.parentKey)
+        assertEquals(pathKey(path = "a", folderId = "parent"), secondNode.parentKey)
 
-        // childrenOf de-duplicates the collapsed key.
-        val children = index.childrenOf(pathKey("a")).map { it.key }
-        assertEquals(listOf(pathKey("a/b")), children)
+        val children = index
+            .childrenOf(pathKey(path = "a", folderId = "parent"))
+            .map { it.key }
+            .toSet()
+        assertEquals(
+            setOf(
+                pathKey(path = "a/b", folderId = "first"),
+                pathKey(path = "a/b", folderId = "second"),
+            ),
+            children,
+        )
+    }
+
+    @Test
+    fun `path child chooses deterministic owner when parent path is duplicated`() {
+        val laterParent = pathFolder(path = "a", id = "z-parent")
+        val firstParent = pathFolder(path = "a", id = "a-parent")
+        val child = pathFolder(path = "a/b", id = "child")
+        val index = index(listOf(laterParent, child, firstParent))
+
+        assertEquals(
+            pathKey(path = "a", folderId = "a-parent"),
+            index.nodeOf(accountId = "acc", folderId = "child")!!.parentKey,
+        )
+        assertEquals(
+            listOf(child),
+            index.descendantsOf(pathKey(path = "a", folderId = "a-parent"))
+                .filter { it.id == "child" },
+        )
+        assertTrue(
+            child !in index.descendantsOf(pathKey(path = "a", folderId = "z-parent")),
+        )
     }
 
     @Test
@@ -237,15 +296,31 @@ class FolderHierarchyIndexTest {
     }
 
     @Test
-    fun `descendantsOf includes collapsed path direct items`() {
-        // Two folders collapse onto path "a/b"; both must surface as descendants
-        // of their parent "a".
+    fun `anyDescendant stops after the first match`() {
+        val root = parentIdFolder(id = "root", parentId = null)
+        val child = parentIdFolder(id = "child", parentId = "root")
+        val index = index(listOf(root, child))
+        var visitedCount = 0
+
+        val matches = index.anyDescendant(idKey("root")) { folder ->
+            visitedCount++
+            folder.id == "root"
+        }
+
+        assertTrue(matches)
+        assertEquals(1, visitedCount)
+    }
+
+    @Test
+    fun `descendantsOf includes distinct same-path children`() {
         val first = pathFolder(path = "a/b", id = "first")
         val second = pathFolder(path = "a/b", id = "second")
         val parent = pathFolder(path = "a", id = "parent")
         val index = index(listOf(parent, first, second))
 
-        val descendantsOfParent = index.descendantsOf(pathKey("a"))
+        val descendantsOfParent = index.descendantsOf(
+            pathKey(path = "a", folderId = "parent"),
+        )
         assertEquals(setOf(parent, first, second), descendantsOfParent.toSet())
         assertEquals(descendantsOfParent.size, descendantsOfParent.distinct().size)
     }

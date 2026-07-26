@@ -16,7 +16,6 @@ internal fun createFolderRenameMap(
     val folderNamesById = folders
         .associate { it.id to it.name }
         .toMutableMap()
-    val pathRenames = mutableListOf<Pair<String, String>>()
 
     nodes
         .sortedBy { it.depth }
@@ -25,31 +24,21 @@ internal fun createFolderRenameMap(
                 ?.trim()
                 ?.takeUnless { it.isEmpty() }
                 ?: return@forEach
-            when (val anchor = node.anchor) {
-                is FoldersRoute.Args.Parent.Id -> {
-                    node.directFolders.forEach { folder ->
-                        folderNamesById[folder.id] = newTitle
-                    }
+            when (node.folder.hierarchyMode) {
+                FolderHierarchyMode.ParentId -> {
+                    folderNamesById[node.folder.id] = newTitle
                 }
 
-                is FoldersRoute.Args.Parent.Path -> {
-                    val currentPrefix = pathRenames.fold(anchor.path) { name, rename ->
-                        renamePathPrefix(
-                            name = name,
-                            oldPrefix = rename.first,
-                            newPrefix = rename.second,
-                        ) ?: name
-                    }
-                    val parentPrefix = node.pathParentPath
-                        ?.let { parentPath ->
-                            pathRenames.fold(parentPath) { name, rename ->
-                                renamePathPrefix(
-                                    name = name,
-                                    oldPrefix = rename.first,
-                                    newPrefix = rename.second,
-                                ) ?: name
-                            }
-                        }
+                FolderHierarchyMode.Path -> {
+                    // An already-processed selected ancestor may have rewritten
+                    // this folder's path. Read the live working value rather
+                    // than the immutable route or hierarchy key.
+                    val currentPrefix = folderNamesById[node.folder.id]
+                        ?: node.folder.name
+                    val parentPrefix = node.hierarchyParentKey
+                        ?.folderId
+                        ?.let(folderNamesById::get)
+                        ?: node.pathParentPath
                         .orEmpty()
                     val newPrefix = if (parentPrefix.isBlank()) {
                         newTitle
@@ -67,7 +56,6 @@ internal fun createFolderRenameMap(
                                 newPrefix = newPrefix,
                             ) ?: currentName
                         }
-                    pathRenames += currentPrefix to newPrefix
                 }
             }
         }

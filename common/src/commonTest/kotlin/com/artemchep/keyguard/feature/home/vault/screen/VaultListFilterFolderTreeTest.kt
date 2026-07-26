@@ -86,6 +86,21 @@ class VaultListFilterFolderTreeTest {
     }
 
     @Test
+    fun `same path folders in one account merge only in the filter tree`() {
+        val first = folder(id = "first", name = "Work")
+        val second = folder(id = "second", name = "Work")
+        val tree = buildFolderFilterTree(
+            folders = listOf(first, second),
+            folderIdsWithCiphers = setOf("first", "second"),
+        )
+
+        val node = tree.nodes.single()
+        assertEquals(listOf("Work"), node.path)
+        assertEquals(setOf("first", "second"), node.folderIds)
+        assertTrue(node.selectable)
+    }
+
+    @Test
     fun `node with neither ciphers nor selectable descendants is dropped`() {
         val empty = folder(id = "empty", name = "Empty")
         val tree = buildFolderFilterTree(

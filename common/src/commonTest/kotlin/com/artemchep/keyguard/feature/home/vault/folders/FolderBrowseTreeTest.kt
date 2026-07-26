@@ -21,6 +21,7 @@ class FolderBrowseTreeTest {
             visibleFolderIds = setOf("1"),
             parent = null,
         )
+        assertEquals(null, root.current)
         assertEquals(listOf("Work/Clients/Acme"), root.items.map { it.name })
         assertFalse(root.items.single().hasVisibleChildren)
         assertEquals(setOf("1"), root.items.single().directFolderIds)
@@ -29,12 +30,47 @@ class FolderBrowseTreeTest {
         val staleParent = buildFolderBrowseTree(
             folders = folders,
             visibleFolderIds = setOf("1"),
-            parent = FoldersRoute.Args.Parent.Path(
+            parent = FoldersRoute.Args.Parent(
                 accountId = accountId,
-                path = "Work",
+                folderId = "missing",
             ),
         )
+        assertEquals(null, staleParent.current)
+        assertTrue(staleParent.missing)
         assertEquals(emptyList(), staleParent.items)
+    }
+
+    @Test
+    fun `nested path routes expose their current node including filtered ancestors and leaves`() {
+        val folders = listOf(
+            folder(id = "1", name = "Work"),
+            folder(id = "2", name = "Work/Clients"),
+        )
+
+        val root = buildFolderBrowseTree(
+            folders = folders,
+            visibleFolderIds = setOf("2"),
+            parent = null,
+        )
+        val work = root.items.single()
+        val workScreen = buildFolderBrowseTree(
+            folders = folders,
+            visibleFolderIds = setOf("2"),
+            parent = work.anchor,
+        )
+        assertEquals("Work", workScreen.current?.name)
+        assertEquals(setOf("1"), workScreen.current?.directFolderIds)
+        assertEquals(setOf("1", "2"), workScreen.current?.descendantFolderIds)
+
+        val clients = workScreen.items.single()
+        val clientsScreen = buildFolderBrowseTree(
+            folders = folders,
+            visibleFolderIds = setOf("2"),
+            parent = clients.anchor,
+        )
+        assertEquals("Clients", clientsScreen.current?.name)
+        assertEquals(setOf("2"), clientsScreen.current?.directFolderIds)
+        assertEquals(emptyList(), clientsScreen.items)
     }
 
     @Test
@@ -130,6 +166,8 @@ class FolderBrowseTreeTest {
             visibleFolderIds = setOf("1", "2", "3"),
             parent = root.items.single().anchor,
         )
+        assertEquals("Work", clients.current?.name)
+        assertEquals(setOf("1", "2", "3"), clients.current?.descendantFolderIds)
         assertEquals(listOf("Clients"), clients.items.map { it.name })
 
         val acme = buildFolderBrowseTree(
@@ -141,7 +179,7 @@ class FolderBrowseTreeTest {
     }
 
     @Test
-    fun `same path folders in one account are grouped into one browse node`() {
+    fun `same path folders in one account remain separate browse nodes`() {
         val folders = listOf(
             folder(id = "1", name = "Work"),
             folder(id = "2", name = "Work"),
@@ -153,10 +191,55 @@ class FolderBrowseTreeTest {
             parent = null,
         )
 
-        val work = root.items.single()
-        assertEquals("Work", work.name)
-        assertEquals(setOf("1", "2"), work.directFolderIds)
-        assertEquals(setOf("1", "2"), work.descendantFolderIds)
+        assertEquals(listOf("Work", "Work"), root.items.map { it.name })
+        assertEquals(
+            setOf(setOf("1"), setOf("2")),
+            root.items.mapTo(mutableSetOf()) { it.directFolderIds },
+        )
+        assertEquals(2, root.items.map { it.key }.distinct().size)
+
+        root.items.forEach { work ->
+            val workScreen = buildFolderBrowseTree(
+                folders = folders,
+                visibleFolderIds = setOf("1", "2"),
+                parent = work.anchor,
+            )
+            assertEquals(work.directFolderIds, workScreen.current?.directFolderIds)
+        }
+    }
+
+    @Test
+    fun `path child belongs to one deterministic duplicate parent`() {
+        val folders = listOf(
+            folder(id = "2", name = "Work"),
+            folder(id = "3", name = "Work/Clients"),
+            folder(id = "1", name = "Work"),
+        )
+        val visibleFolderIds = folders.mapTo(mutableSetOf()) { it.id }
+        val root = buildFolderBrowseTree(
+            folders = folders,
+            visibleFolderIds = visibleFolderIds,
+            parent = null,
+        )
+
+        val owner = root.items.single { it.anchor.folderId == "1" }
+        val other = root.items.single { it.anchor.folderId == "2" }
+        assertTrue(owner.hasVisibleChildren)
+        assertFalse(other.hasVisibleChildren)
+
+        val ownerScreen = buildFolderBrowseTree(
+            folders = folders,
+            visibleFolderIds = visibleFolderIds,
+            parent = owner.anchor,
+        )
+        assertEquals(listOf("Clients"), ownerScreen.items.map { it.name })
+
+        val otherScreen = buildFolderBrowseTree(
+            folders = folders,
+            visibleFolderIds = visibleFolderIds,
+            parent = other.anchor,
+        )
+        assertEquals(emptyList(), otherScreen.items)
     }
 
     @Test
@@ -174,10 +257,28 @@ class FolderBrowseTreeTest {
 
         assertEquals(2, root.items.size)
         assertEquals(setOf("account1", "account2"), root.items.mapTo(mutableSetOf()) { it.anchor.accountId })
-        assertEquals(
-            setOf("path|account1|Work", "path|account2|Work"),
-            root.items.mapTo(mutableSetOf()) { it.key },
+        assertEquals(2, root.items.map { it.key }.distinct().size)
+    }
+
+    @Test
+    fun `stable folder route follows a path rename`() {
+        val folder = folder(id = "1", name = "Work")
+        val initialNode = buildFolderBrowseTree(
+            folders = listOf(folder),
+            visibleFolderIds = setOf(folder.id),
+            parent = null,
+        ).items.single()
+
+        val renamed = folder.copy(name = "Business")
+        val screen = buildFolderBrowseTree(
+            folders = listOf(renamed),
+            visibleFolderIds = setOf(renamed.id),
+            parent = initialNode.anchor,
         )
+
+        assertEquals("Business", screen.current?.name)
+        assertEquals("1", screen.current?.anchor?.folderId)
+        assertEquals(initialNode.key, screen.current?.key)
     }
 
     @Test
@@ -244,6 +345,78 @@ class FolderBrowseTreeTest {
                 "3" to "Business/Clients/Acme",
             ),
             renameMap,
+        )
+    }
+
+    @Test
+    fun `renaming duplicate path node affects only its displayed subtree`() {
+        val folders = listOf(
+            folder(id = "2", name = "Work"),
+            folder(id = "3", name = "Work/Clients"),
+            folder(id = "1", name = "Work"),
+        )
+        val root = buildFolderBrowseTree(
+            folders = folders,
+            visibleFolderIds = folders.mapTo(mutableSetOf()) { it.id },
+            parent = null,
+        )
+        val owner = root.items.single { it.anchor.folderId == "1" }
+        val other = root.items.single { it.anchor.folderId == "2" }
+
+        assertEquals(
+            mapOf(
+                "1" to "Business",
+                "3" to "Business/Clients",
+            ),
+            createFolderRenameMap(
+                nodes = listOf(owner),
+                namesByNodeKey = mapOf(owner.key to "Business"),
+            ),
+        )
+        assertEquals(
+            mapOf("2" to "Personal"),
+            createFolderRenameMap(
+                nodes = listOf(other),
+                namesByNodeKey = mapOf(other.key to "Personal"),
+            ),
+        )
+    }
+
+    @Test
+    fun `nested selected renames follow the actual parent folder identity`() {
+        val folders = listOf(
+            folder(id = "2", name = "Work"),
+            folder(id = "3", name = "Work/Clients"),
+            folder(id = "1", name = "Work"),
+        )
+        val visibleFolderIds = folders.mapTo(mutableSetOf()) { it.id }
+        val root = buildFolderBrowseTree(
+            folders = folders,
+            visibleFolderIds = visibleFolderIds,
+            parent = null,
+        )
+        val owner = root.items.single { it.anchor.folderId == "1" }
+        val other = root.items.single { it.anchor.folderId == "2" }
+        val child = buildFolderBrowseTree(
+            folders = folders,
+            visibleFolderIds = visibleFolderIds,
+            parent = owner.anchor,
+        ).items.single()
+
+        assertEquals(
+            mapOf(
+                "1" to "Business",
+                "2" to "Personal",
+                "3" to "Business/Customers",
+            ),
+            createFolderRenameMap(
+                nodes = listOf(other, child, owner),
+                namesByNodeKey = mapOf(
+                    owner.key to "Business",
+                    other.key to "Personal",
+                    child.key to "Customers",
+                ),
+            ),
         )
     }
 
@@ -375,7 +548,7 @@ class FolderBrowseTreeTest {
     }
 
     @Test
-    fun `delimiter in name collapses into one node without a real intermediate folder`() {
+    fun `delimiter in name stays one node without a real intermediate folder`() {
         val folders = listOf(
             folder(id = "1", name = "A/B/C"),
         )
@@ -456,10 +629,7 @@ class FolderBrowseTreeTest {
         // Two same-named siblings must NOT collapse: ParentId mode keys by folder
         // id, so each child stays a separate node with its own id-keyed identity.
         assertEquals(listOf("Child", "Child"), children.items.map { it.name })
-        assertEquals(
-            setOf("id|$accountId|2", "id|$accountId|3"),
-            children.items.mapTo(mutableSetOf()) { it.key },
-        )
+        assertEquals(2, children.items.map { it.key }.distinct().size)
         assertEquals(
             setOf(setOf("2"), setOf("3")),
             children.items.mapTo(mutableSetOf()) { it.directFolderIds },
@@ -467,7 +637,7 @@ class FolderBrowseTreeTest {
     }
 
     @Test
-    fun `visible child folder count reflects visible direct children not collapsed folders`() {
+    fun `visible child folder count reflects visible direct children`() {
         val folders = listOf(
             folder(id = "1", name = "Work"),
             folder(id = "2", name = "Work/Clients"),
@@ -481,8 +651,7 @@ class FolderBrowseTreeTest {
             parent = null,
         ).items.single()
 
-        // The badge counts the visible direct child nodes (Clients, Partners),
-        // not the single folder collapsed into this node.
+        // The badge counts the visible direct child nodes (Clients, Partners).
         assertEquals(1, work.directFolderIds.size)
         assertEquals(2, work.visibleChildFolderCount)
 

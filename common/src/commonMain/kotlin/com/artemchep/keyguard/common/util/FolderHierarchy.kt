@@ -18,7 +18,8 @@ data class FolderHierarchyNode<T : Any>(
  *
  * Invariants:
  * - [FolderHierarchyMode.Path] derives the parent by stripping the last
- *   path segment of the name; same-name folders collapse onto each other.
+ *   path segment of the name. If that path belongs to multiple folders, the
+ *   first matching folder in [allFolders] owns the child.
  * - [FolderHierarchyMode.ParentId] follows the [parentId] chain. A dangling
  *   parent (not present in [allFolders]) terminates the walk, re-rooting the
  *   folder. The walk is cycle-guarded by a visited set, so a self-parent or a

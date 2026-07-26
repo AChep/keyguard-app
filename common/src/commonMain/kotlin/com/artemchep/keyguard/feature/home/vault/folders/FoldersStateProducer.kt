@@ -6,6 +6,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.runtime.Composable
 import arrow.core.partially1
+import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DFilter
@@ -34,6 +35,7 @@ import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -49,6 +51,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -142,6 +145,19 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
         val subtreeCiphers: List<DSecret>,
     )
 
+    data class TreeWithCiphers(
+        val tree: FolderBrowseTree,
+        val current: NodeWithCiphers?,
+        val items: List<NodeWithCiphers>,
+    )
+
+    data class ScreenContent(
+        val tree: FolderBrowseTree,
+        val current: NodeWithCiphers?,
+        val content: FoldersState.Content,
+        val canWrite: Boolean,
+    )
+
     val foldersComparator = Comparator { a: DFolder, b: DFolder ->
         AlphabeticalSort.compareStr(a.name, b.name)
     }
@@ -184,38 +200,49 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
         .shareIn(screenScope, SharingStarted.Lazily, replay = 1)
     val nodesWithCiphersFlow = browseTreeFlow
         .combine(ciphersByFolderFlow) { tree, ciphersByFolder ->
-            val nodes = tree.items
-                .map { node ->
-                    val directCiphers = node.directFolderIds
-                        .asSequence()
-                        .flatMap { folderId ->
-                            ciphersByFolder[folderId].orEmpty()
-                        }
-                        .distinctBy { it.id }
-                        .toList()
-                    val subtreeCiphers = node.descendantFolderIds
-                        .asSequence()
-                        .flatMap { folderId ->
-                            ciphersByFolder[folderId].orEmpty()
-                        }
-                        .distinctBy { it.id }
-                        .toList()
-                    NodeWithCiphers(
-                        node = node,
-                        directCiphers = directCiphers,
-                        subtreeCiphers = subtreeCiphers,
-                    )
-                }
-            tree to nodes
+            fun FolderBrowseNode.withCiphers() = NodeWithCiphers(
+                node = this,
+                directCiphers = directFolderIds
+                    .asSequence()
+                    .flatMap { folderId ->
+                        ciphersByFolder[folderId].orEmpty()
+                    }
+                    .distinctBy { it.id }
+                    .toList(),
+                subtreeCiphers = descendantFolderIds
+                    .asSequence()
+                    .flatMap { folderId ->
+                        ciphersByFolder[folderId].orEmpty()
+                    }
+                    .distinctBy { it.id }
+                    .toList(),
+            )
+
+            TreeWithCiphers(
+                tree = tree,
+                current = tree.current?.withCiphers(),
+                items = tree.items.map { it.withCiphers() },
+            )
         }
         .shareIn(screenScope, SharingStarted.Lazily, replay = 1)
 
     val selectionHandle = selectionHandle("selection")
+    screenScope.launch {
+        nodesWithCiphersFlow.collect { treeWithCiphers ->
+            val availableNodeKeys = treeWithCiphers.items
+                .mapTo(mutableSetOf()) { it.node.key }
+            val selectedNodeKeys = selectionHandle.idsFlow.value
+            val retainedNodeKeys = selectedNodeKeys.intersect(availableNodeKeys)
+            if (retainedNodeKeys.size < selectedNodeKeys.size) {
+                selectionHandle.setSelection(retainedNodeKeys)
+            }
+        }
+    }
     val selectedNodesWithCiphersFlow = nodesWithCiphersFlow
-        .combine(selectionHandle.idsFlow) { (_, nodesWithCiphers), selectedNodeKeys ->
+        .combine(selectionHandle.idsFlow) { treeWithCiphers, selectedNodeKeys ->
             selectedNodeKeys
                 .mapNotNull { selectedNodeKey ->
-                    val nodeWithCiphers = nodesWithCiphers
+                    val nodeWithCiphers = treeWithCiphers.items
                         .firstOrNull { it.node.key == selectedNodeKey }
                         ?: return@mapNotNull null
                     selectedNodeKey to nodeWithCiphers
@@ -231,9 +258,12 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
         }
         ?.id
 
-    suspend fun onAdd() {
+    suspend fun onAdd(
+        parent: FolderBrowseNode?,
+    ) {
         fun createRequest(name: String): AddFolderRequest? {
-            val requestInfo = args.parent
+            val requestInfo = parent
+                ?.folder
                 ?.createAddFolderRequest(name)
                 ?: AddFolderRequestInfo(
                     accountId = accountId
@@ -355,6 +385,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
          * `false` otherwise.
          */
         hasCiphers: Boolean,
+        navigateToParent: Boolean = false,
     ) {
         val cascadeRemoveKey = "cascade_remove"
         val cascadeRemoveItem = if (hasCiphers) {
@@ -391,7 +422,14 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                         RemoveFolderById.OnCiphersConflict.IGNORE
                     }
                 }
-                removeFolderById(folderIds, onCiphersConflict)
+                val removeIo = removeFolderById(folderIds, onCiphersConflict)
+                if (navigateToParent) {
+                    removeIo.effectTap {
+                        navigatePopSelf()
+                    }
+                } else {
+                    removeIo
+                }
                     .launchIn(appScope)
             }
         }
@@ -403,12 +441,12 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
         nodesWithCiphersFlow,
         selectedNodesWithCiphersFlow,
         getCanWrite(),
-    ) { (_, nodesWithCiphers), selectedNodes, canWrite ->
+    ) { treeWithCiphers, selectedNodes, canWrite ->
         if (selectedNodes.isEmpty()) {
             return@combine null
         }
 
-        val nodeKeys = nodesWithCiphers
+        val nodeKeys = treeWithCiphers.items
             .mapTo(mutableSetOf()) { it.node.key }
         val selectedNodeKeys = selectedNodes.keys
         // Find folders that have some limitations
@@ -521,9 +559,9 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
         nodesWithCiphersFlow,
         selectedNodesWithCiphersFlow,
         getCanWrite(),
-    ) { (tree, nodesWithCiphers), selectedNodes, canWrite ->
+    ) { treeWithCiphers, selectedNodes, canWrite ->
         val selecting = selectedNodes.isNotEmpty()
-        val items = nodesWithCiphers
+        val items = treeWithCiphers.items
             .map { nodeWithCiphers ->
                 val node = nodeWithCiphers.node
                 val selected = node.key in selectedNodes
@@ -611,7 +649,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                     onClick = when {
                         node.deleted -> null
                         selecting -> selectionHandle::toggleSelection.partially1(node.key)
-                        node.hasVisibleChildren -> onClick {
+                        else -> onClick {
                             val route = foldersRouteFactory.create(
                                 args = args.copy(
                                     parent = node.anchor,
@@ -620,15 +658,6 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                             val intent = NavigationIntent.NavigateToRoute(route)
                             navigate(intent)
                         }
-                        node.directFolders.isNotEmpty() &&
-                                nodeWithCiphers.directCiphers.isNotEmpty() -> onClick {
-                            val route = vaultRouteFactory.by(
-                                folders = node.directFolders,
-                            )
-                            val intent = NavigationIntent.NavigateToRoute(route)
-                            navigate(intent)
-                        }
-                        else -> null
                     },
                     onLongClick = if (node.deleted || selecting) {
                         null
@@ -641,17 +670,76 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
         val itemsReShaped = items
             .mapListShape()
             .toImmutableList()
-        FoldersState.Content(
-            items = itemsReShaped,
+        val current = treeWithCiphers.current
+        val ciphers = current
+            ?.takeUnless { it.node.deleted }
+            ?.let { currentFolder ->
+                FoldersState.Content.Ciphers(
+                    count = currentFolder.directCiphers.size,
+                    onClick = onClick {
+                        val route = vaultRouteFactory.by(
+                            folders = currentFolder.node.directFolders,
+                        )
+                        val intent = NavigationIntent.NavigateToRoute(route)
+                        navigate(intent)
+                    },
+                )
+            }
+        ScreenContent(
+            tree = treeWithCiphers.tree,
+            current = current,
+            content = FoldersState.Content(
+                items = itemsReShaped,
+                ciphers = ciphers,
+                missing = treeWithCiphers.tree.missing,
+            ),
+            canWrite = canWrite,
         )
-            .let { tree to it }
     }
     return combine(
         selectionFlow,
         contentFlow,
-    ) { selection, (tree, content) ->
+    ) { selection, screenContent ->
+        val currentFolder = screenContent.current
+            ?.takeUnless { it.node.deleted }
+            ?.takeUnless { selection != null }
+        val canRename = screenContent.canWrite &&
+                currentFolder?.node?.descendantFolders
+                    ?.all { it.service.canEdit() } == true
+        val canDelete = screenContent.canWrite &&
+                currentFolder?.node?.descendantFolders
+                    ?.all { it.service.canDelete() } == true
+        val onRenameClick = currentFolder
+            ?.takeIf { canRename }
+            ?.let { folder ->
+                onClick {
+                    onRename(
+                        nodes = listOf(folder.node),
+                    )
+                }
+            }
+        val actions = buildContextItems {
+            section {
+                val folder = currentFolder
+                    ?.takeIf { canDelete }
+                    ?: return@section
+                this += FlatItemAction(
+                    id = "folder.${folder.node.key}.delete",
+                    icon = Icons.Outlined.Delete,
+                    title = Res.string.delete.wrap(),
+                    danger = true,
+                    onClick = onClick {
+                        onDelete(
+                            folderIds = folder.node.descendantFolderIds,
+                            hasCiphers = folder.subtreeCiphers.isNotEmpty(),
+                            navigateToParent = true,
+                        )
+                    },
+                )
+            }
+        }
         FoldersState(
-            title = tree.title
+            title = screenContent.tree.title
                 ?: translate(Res.string.folders),
             text = if (args.parent == null) {
                 translate(Res.string.account)
@@ -659,10 +747,18 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
                 translate(Res.string.folders)
             },
             selection = selection,
-            content = Loadable.Ok(content),
+            content = Loadable.Ok(screenContent.content),
+            onRename = onRenameClick,
+            actions = actions.toImmutableList(),
             onAdd = onClick {
-                onAdd()
-            }.takeUnless { selection != null || (args.parent == null && accountId == null) },
+                onAdd(currentFolder?.node)
+            }.takeIf {
+                selection == null &&
+                        when {
+                            args.parent == null -> accountId != null
+                            else -> currentFolder != null
+                        }
+            },
         )
     }
 }

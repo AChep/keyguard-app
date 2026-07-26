@@ -414,6 +414,39 @@ jobs:
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
       - uses: ./.github/actions/setup_python
+      - name: "Select latest stable Xcode"
+        if: matrix.inspect-apple
+        shell: bash
+        run: |
+          version="$(
+            printf '%s\n' /Applications/Xcode_[0-9]*.app |
+              sed -En 's|.*/Xcode_([0-9]+(\.[0-9]+){0,2})\.app$|\1|p' |
+              sort -t. -k1,1nr -k2,2nr -k3,3nr |
+              head -n 1
+          )"
+
+          if [[ -z "$version" ]]; then
+            echo "No stable Xcode installation found under /Applications" >&2
+            exit 1
+          fi
+          if (( ${version%%.*} < 26 )); then
+            echo "Xcode 26 or newer is required; found $version" >&2
+            exit 1
+          fi
+
+          latest_xcode="/Applications/Xcode_$version.app"
+          export DEVELOPER_DIR="$latest_xcode/Contents/Developer"
+          printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
+
+          echo "Selected Xcode $version at $latest_xcode"
+          xcodebuild -version
+          simulator_sdk_version="$(xcrun --sdk iphonesimulator --show-sdk-version)"
+          simulator_sdk_major="${simulator_sdk_version%%.*}"
+          if [[ ! "$simulator_sdk_major" =~ ^[0-9]+$ ]] || (( simulator_sdk_major < 26 )); then
+            echo "iOS Simulator SDK 26 or newer is required; found $simulator_sdk_version" >&2
+            exit 1
+          fi
+          echo "iOS Simulator SDK $simulator_sdk_version"
       - uses: ./.github/actions/setup_android_ndk
         if: matrix.inspect-android
       - name: "Setup Rust toolchain"

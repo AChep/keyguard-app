@@ -11,7 +11,7 @@ jobs:
       wear-version-code: ${{ steps.producer.outputs.wear_version_code }}
       android-version-code: ${{ steps.producer.outputs.android_version_code }}
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: ./.github/actions/setup_python
       - name: "Prepare env"
         run: |
@@ -33,7 +33,7 @@ jobs:
     needs:
       - generate-versions-code-google-play-store
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/setup_android_ndk
       - name: "Setup Rust toolchain"
@@ -87,7 +87,7 @@ jobs:
     needs:
       - generate-versions-code-google-play-store
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/setup_android_ndk
       - name: "Setup Rust toolchain"

@@ -130,7 +130,7 @@ jobs:
       CARGO_DENY_VERSION: "0.20.2"
       CARGO_SBOM_VERSION: "0.10.0"
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: "Setup Rust toolchain"
@@ -277,7 +277,7 @@ jobs:
       CARGO_PROFILE_RELEASE_LTO: "false"
       RUSTUP_TOOLCHAIN: "nightly-2026-03-02"
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: "Setup pinned nightly fuzz toolchain"
@@ -407,7 +407,7 @@ jobs:
             inspect-android: false
             inspect-apple: false
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup_gradle
@@ -571,7 +571,7 @@ jobs:
           # After the issue is resolved please revert the commit that
           # has added the comment and re-run the test.
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup_gradle
@@ -633,7 +633,7 @@ jobs:
     name: "Wear native load (x86_64, API 33)"
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup_gradle
@@ -684,7 +684,7 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, native-crypto-benchmark]
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: "Setup pinned Rust toolchain"

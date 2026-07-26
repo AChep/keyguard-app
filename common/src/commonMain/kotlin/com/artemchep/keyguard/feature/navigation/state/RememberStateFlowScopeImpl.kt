@@ -243,6 +243,10 @@ class RememberStateFlowScopeImpl(
             )
     }
 
+    // This is the identity delegation that backs the plain overload, so its persisted type is
+    // the unbounded T of that overload and cannot be checked here. Safety is enforced at the
+    // call sites, which is where a concrete type is known.
+    @Suppress("MutablePersistedFlowTypeSafety")
     override fun <T> mutablePersistedFlow(
         key: String,
         storage: PersistedStorage,

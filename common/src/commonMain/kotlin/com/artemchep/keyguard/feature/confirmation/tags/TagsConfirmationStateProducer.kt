@@ -49,7 +49,9 @@ fun tagsConfirmationState(
     val initialTagsById = args.initialTags
         .associateBy { Uuid.random().toString() }
     val itemIdsSink = mutablePersistedFlow("item_ids") {
-        initialTagsById.keys
+        // toSet() because a Map.keys view is not Serializable, so persisting it directly
+        // fails even though its declared type is a plain Set.
+        initialTagsById.keys.toSet()
     }
 
     fun itemKey(id: String) = "item.$id.text"

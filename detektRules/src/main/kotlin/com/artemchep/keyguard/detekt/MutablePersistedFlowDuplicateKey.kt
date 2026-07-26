@@ -9,7 +9,10 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.base.KaConstantValue
 import org.jetbrains.kotlin.analysis.api.components.evaluate
 import org.jetbrains.kotlin.analysis.api.components.resolveToCall
+import org.jetbrains.kotlin.analysis.api.components.semanticallyEquals
 import org.jetbrains.kotlin.analysis.api.resolution.successfulFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.types.KaErrorType
+import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
@@ -44,7 +47,7 @@ class MutablePersistedFlowDuplicateKey(
         }
 
         val candidates = function.collectDescendantsOfType<KtCallExpression> { call ->
-            call.calleeExpression?.text == MutablePersistedFlow.NAME
+            call.isMutablePersistedFlowCandidate()
         }
         if (candidates.size < 2) {
             return
@@ -53,7 +56,11 @@ class MutablePersistedFlowDuplicateKey(
         analyze(function) {
             val byKey = linkedMapOf<String, MutableList<KeyedCall>>()
             for (candidate in candidates) {
-                val call = candidate.resolveToCall()?.successfulFunctionCallOrNull() ?: continue
+                val call = candidate.resolveToCall()?.successfulFunctionCallOrNull()
+                if (call == null) {
+                    reportUnverifiedCall(candidate)
+                    continue
+                }
                 if (!isMutablePersistedFlowCall(call.signature.symbol)) {
                     continue
                 }
@@ -62,20 +69,29 @@ class MutablePersistedFlowDuplicateKey(
                 val keyExpression = call.argumentFor(MutablePersistedFlow.KEY_PARAMETER) ?: continue
                 val key = (keyExpression.evaluate() as? KaConstantValue.StringValue)?.value
                     ?: continue
-                val type = call.persistedType()?.type?.renderForMessage() ?: continue
-                byKey.getOrPut(key) { mutableListOf() } += KeyedCall(candidate, type)
+                val type = call.persistedType()?.type
+                if (type == null) {
+                    reportUnverifiedCall(candidate)
+                    continue
+                }
+                if (type is KaErrorType) {
+                    reportUnverifiedCall(candidate)
+                    continue
+                }
+                byKey.getOrPut(key) { mutableListOf() } += KeyedCall(
+                    expression = candidate,
+                    type = type,
+                    typeText = renderTypeForMessage(type),
+                )
             }
 
             for ((key, calls) in byKey) {
-                if (calls.distinctBy { it.type }.size < 2) {
-                    continue
-                }
                 val first = calls.first()
                 // Report every call that conflicts with the first one, so each offending site
                 // gets a finding rather than only the declaration order winner.
                 calls.asSequence()
                     .drop(1)
-                    .filter { it.type != first.type }
+                    .filterNot { it.type.semanticallyEquals(first.type) }
                     .forEach { conflicting ->
                         report(
                             Finding(
@@ -84,7 +100,8 @@ class MutablePersistedFlowDuplicateKey(
                                         ?: conflicting.expression,
                                 ),
                                 "mutablePersistedFlow reuses the key \"$key\" within this scope " +
-                                    "but persists ${conflicting.type} here and ${first.type} " +
+                                    "but persists ${conflicting.typeText} here and " +
+                                    "${first.typeText} " +
                                     "elsewhere. The registry is keyed by name only, so one of " +
                                     "these receives the other's sink through an unchecked cast. " +
                                     "Use distinct keys.",
@@ -95,8 +112,20 @@ class MutablePersistedFlowDuplicateKey(
         }
     }
 
+    private fun reportUnverifiedCall(expression: KtCallExpression) {
+        report(
+            Finding(
+                Entity.from(expression.calleeExpression ?: expression),
+                "Unable to verify this mutablePersistedFlow call for duplicate-key conflicts. " +
+                    "Fix the surrounding type-resolution errors.",
+            ),
+        )
+    }
+
     private class KeyedCall(
         val expression: KtCallExpression,
-        val type: String,
+        // Analysis API values are session-bound. KeyedCall instances never escape analyze {}.
+        val type: KaType,
+        val typeText: String,
     )
 }

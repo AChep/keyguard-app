@@ -13,8 +13,15 @@ class MutablePersistedFlowDuplicateKeyTest {
     private fun lint(
         env: KotlinEnvironmentContainer,
         declarations: String,
+        imports: String = "",
+        additionalSources: List<String> = emptyList(),
     ) = MutablePersistedFlowDuplicateKey(Config.empty)
-        .lintWithContext(env, wrap(declarations), STATE_STUB)
+        .lintWithContext(
+            env,
+            wrap(declarations, imports),
+            STATE_STUB,
+            *additionalSources.toTypedArray(),
+        )
 
     private fun messages(
         env: KotlinEnvironmentContainer,
@@ -122,6 +129,105 @@ class MutablePersistedFlowDuplicateKeyTest {
         assertEquals(emptyList<String>(), messages)
     }
 
+    @Test
+    fun `reports nullable and non-null persisted types as a conflict`(
+        env: KotlinEnvironmentContainer,
+    ) {
+        val findings = lint(
+            env,
+            """
+            fun Scope.producer() {
+                val a = mutablePersistedFlow<String>("state") { "text" }
+                val b = mutablePersistedFlow<String?>("state") { null }
+            }
+            """.trimIndent(),
+        )
+
+        assertEquals(1, findings.size)
+        val message = findings.single().message
+        assertTrue(message.contains("kotlin.String?"), "was: $message")
+        assertTrue(message.contains("kotlin.String"), "was: $message")
+    }
+
+    @Test
+    fun `reports nested generic nullability as a conflict`(
+        env: KotlinEnvironmentContainer,
+    ) {
+        val findings = lint(
+            env,
+            """
+            fun Scope.producer() {
+                val a = mutablePersistedFlow<List<String>>("state") { listOf("text") }
+                val b = mutablePersistedFlow<List<String?>>("state") { listOf(null) }
+            }
+            """.trimIndent(),
+        )
+
+        assertEquals(1, findings.size)
+        assertTrue(
+            findings.single().message.contains("kotlin.String?"),
+            "was: ${findings.single().message}",
+        )
+    }
+
+    @Test
+    fun `reports nullable serialized type against non-null plain type`(
+        env: KotlinEnvironmentContainer,
+    ) {
+        val findings = lint(
+            env,
+            """
+            fun Scope.producer() {
+                val a = mutablePersistedFlow("state") { "text" }
+                val b = mutablePersistedFlow<Long, String?>(
+                    key = "state",
+                    serialize = { _, value -> value.toString() },
+                    deserialize = { _, value -> value?.toLong() ?: 0L },
+                    initialValue = { 1L },
+                )
+            }
+            """.trimIndent(),
+        )
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `reports a conflict through an escaped callable name`(
+        env: KotlinEnvironmentContainer,
+    ) {
+        val findings = lint(
+            env,
+            """
+            fun Scope.producer() {
+                val a = mutablePersistedFlow("state") { "text" }
+                val b = `mutablePersistedFlow`("state") { 1L }
+            }
+            """.trimIndent(),
+        )
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `reports a conflict through an imported object member alias`(
+        env: KotlinEnvironmentContainer,
+    ) {
+        val findings = lint(
+            env = env,
+            imports = "import com.artemchep.keyguard.fixture.ObjectScope.mutablePersistedFlow as persist",
+            declarations = """
+                fun producer() {
+                    val a = persist("state") { "text" }
+                    val b = persist("state") { 1L }
+                }
+            """.trimIndent(),
+            additionalSources = listOf(OBJECT_SCOPE_STUB),
+        )
+
+        assertEquals(1, findings.size)
+    }
+
     //
     // Not reported
     //
@@ -144,6 +250,38 @@ class MutablePersistedFlowDuplicateKeyTest {
                 } else {
                     mutablePersistedFlow(key = "keyboard") { false }
                 }
+            }
+            """.trimIndent(),
+        )
+
+        assertEquals(emptyList<String>(), messages)
+    }
+
+    @Test
+    fun `accepts the same nullable persisted type`(env: KotlinEnvironmentContainer) {
+        val messages = messages(
+            env,
+            """
+            fun Scope.producer() {
+                val a = mutablePersistedFlow<String?>("state") { null }
+                val b = mutablePersistedFlow<String?>("state") { "text" }
+            }
+            """.trimIndent(),
+        )
+
+        assertEquals(emptyList<String>(), messages)
+    }
+
+    @Test
+    fun `treats a type alias as its expanded type`(env: KotlinEnvironmentContainer) {
+        val messages = messages(
+            env,
+            """
+            typealias Text = String
+
+            fun Scope.producer() {
+                val a = mutablePersistedFlow<Text>("state") { "text" }
+                val b = mutablePersistedFlow<String>("state") { "text" }
             }
             """.trimIndent(),
         )
@@ -224,6 +362,25 @@ class MutablePersistedFlowDuplicateKeyTest {
     }
 
     @Test
+    fun `ignores an unrelated imported object member alias`(
+        env: KotlinEnvironmentContainer,
+    ) {
+        val findings = lint(
+            env = env,
+            imports = "import com.artemchep.keyguard.fixture.Unrelated.mutablePersistedFlow as persist",
+            declarations = """
+                fun producer() {
+                    val a = persist("state") { "text" }
+                    val b = persist("state") { 1L }
+                }
+            """.trimIndent(),
+            additionalSources = listOf(UNRELATED_OBJECT_STUB),
+        )
+
+        assertEquals(0, findings.size)
+    }
+
+    @Test
     fun `reports a conflict only once for a local function inside the scope`(
         env: KotlinEnvironmentContainer,
     ) {
@@ -243,6 +400,29 @@ class MutablePersistedFlowDuplicateKeyTest {
         )
 
         assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `reports candidates whose type resolution fails`(env: KotlinEnvironmentContainer) {
+        val findings = MutablePersistedFlowDuplicateKey(Config.empty).lintWithContext(
+            env,
+            """
+            package com.artemchep.keyguard.test
+
+            fun producer() {
+                thisDoesNotExist.mutablePersistedFlow("state") { "text" }
+                thisDoesNotExist.mutablePersistedFlow("state") { 1L }
+            }
+            """.trimIndent(),
+            STATE_STUB,
+            allowCompilationErrors = true,
+        )
+
+        assertEquals(2, findings.size)
+        assertTrue(
+            findings.all { it.message.contains("Unable to verify") },
+            "was: ${findings.map { it.message }}",
+        )
     }
 
     private companion object {
@@ -275,12 +455,46 @@ class MutablePersistedFlowDuplicateKeyTest {
             }
         """.trimIndent()
 
-        fun wrap(declarations: String) = """
+        val OBJECT_SCOPE_STUB = """
+            package com.artemchep.keyguard.fixture
+
+            import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
+            import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScopeSub
+            import kotlinx.serialization.json.Json
+
+            object ObjectScope : RememberStateFlowScopeSub {
+                override fun <T> mutablePersistedFlow(
+                    key: String,
+                    storage: PersistedStorage,
+                    initialValue: () -> T,
+                ): T = initialValue()
+
+                override fun <T, S> mutablePersistedFlow(
+                    key: String,
+                    storage: PersistedStorage,
+                    serialize: (Json, T) -> S,
+                    deserialize: (Json, S) -> T,
+                    initialValue: () -> T,
+                ): T = initialValue()
+            }
+        """.trimIndent()
+
+        val UNRELATED_OBJECT_STUB = """
+            package com.artemchep.keyguard.fixture
+
+            object Unrelated {
+                fun <T> mutablePersistedFlow(key: String, initialValue: () -> T): T =
+                    initialValue()
+            }
+        """.trimIndent()
+
+        fun wrap(declarations: String, imports: String = "") = """
             package com.artemchep.keyguard.test
 
             import com.artemchep.keyguard.feature.navigation.state.DiskHandle
             import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
             import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScopeSub
+            $imports
 
             typealias Scope = RememberStateFlowScopeSub
 

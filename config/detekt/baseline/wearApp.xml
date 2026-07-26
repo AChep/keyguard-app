@@ -57,11 +57,8 @@
     <ID>MagicNumber:WearAccountViewScreen.kt:0.22f</ID>
     <ID>MagicNumber:WearAccountViewScreen.kt:0.34f</ID>
     <ID>MagicNumber:WearCredentialProviderUi.kt:80L</ID>
-    <ID>MagicNumber:WearKeyguardCredentialService.kt:WearKeyguardCredentialService$34</ID>
-    <ID>MagicNumber:WearPasskeyGetActivity.kt:WearPasskeyGetActivity$34</ID>
-    <ID>MagicNumber:WearPasskeyGetUnlockActivity.kt:WearPasskeyGetUnlockActivity$34</ID>
-    <ID>MagicNumber:WearPasswordGetActivity.kt:WearPasswordGetActivity$34</ID>
     <ID>MagicNumber:WearRows.kt:3</ID>
+    <ID>MagicNumber:WearVaultItemPresentation.kt:4</ID>
     <ID>MagicNumber:WearViewSkeleton.kt:0.15f</ID>
     <ID>MagicNumber:WearViewSkeleton.kt:0.38f</ID>
     <ID>MatchingDeclarationName:AboutTeamRouteFactory.kt:AboutTeamRouteFactoryWear : AboutTeamRouteFactory</ID>

@@ -1,13 +1,18 @@
 package com.artemchep.keyguard.detekt
 
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.components.allOverriddenSymbols
+import org.jetbrains.kotlin.analysis.api.components.render
 import org.jetbrains.kotlin.analysis.api.resolution.KaFunctionCall
+import org.jetbrains.kotlin.analysis.api.renderer.types.impl.KaTypeRendererForSource
 import org.jetbrains.kotlin.analysis.api.symbols.KaCallableSymbol
-import org.jetbrains.kotlin.analysis.api.types.KaClassType
-import org.jetbrains.kotlin.analysis.api.types.KaStarTypeProjection
 import org.jetbrains.kotlin.analysis.api.types.KaType
+import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.types.Variance
 
 /**
  * Shared vocabulary for the rules that guard
@@ -70,14 +75,29 @@ internal fun KaFunctionCall<*>.argumentFor(parameterName: String): KtExpression?
         .firstOrNull { (_, parameter) -> parameter.name.asString() == parameterName }
         ?.key
 
-/** A stable, readable spelling of a type, used both in messages and to compare two types. */
-internal fun KaType.renderForMessage(): String {
-    val classType = this as? KaClassType ?: return toString()
-    val name = classType.classId.asSingleFqName().asString()
-    if (classType.typeArguments.isEmpty()) {
-        return name
+/**
+ * A cheap syntactic pre-filter before resolving a call. Resolution remains the source of truth;
+ * this only avoids resolving every call expression in the file.
+ */
+internal fun KtCallExpression.isMutablePersistedFlowCandidate(): Boolean {
+    val referencedName = (calleeExpression as? KtSimpleNameExpression)
+        ?.getReferencedName()
+        ?: return false
+    if (referencedName == MutablePersistedFlow.NAME) {
+        return true
     }
-    return classType.typeArguments.joinToString(prefix = "$name<", postfix = ">") { projection ->
-        if (projection is KaStarTypeProjection) "*" else projection.type?.renderForMessage() ?: "*"
+
+    val file = containingFile as? KtFile ?: return false
+    return file.importDirectives.any { directive ->
+        directive.aliasName == referencedName &&
+            directive.importedFqName?.shortName()?.asString() == MutablePersistedFlow.NAME
     }
 }
+
+/** A qualified, source-like spelling for diagnostics. Type identity is compared semantically. */
+@OptIn(KaExperimentalApi::class)
+internal fun KaSession.renderTypeForMessage(type: KaType): String =
+    type.render(
+        renderer = KaTypeRendererForSource.WITH_QUALIFIED_NAMES,
+        position = Variance.INVARIANT,
+    )

@@ -131,7 +131,9 @@ data class ComparatorHolder(
     val favourites: Boolean = false,
 ) : LeParcelable {
     companion object {
-        fun of(map: Map<String, Any?>): ComparatorHolder {
+        // Accepts Map<*, *> so that a state persisted by an older version, which stored the
+        // flags as real Booleans, still restores.
+        fun of(map: Map<*, *>): ComparatorHolder {
             return ComparatorHolder(
                 comparator = SendSort.valueOf(map["comparator"].toString()) ?: AlphabeticalSendSort,
                 reversed = map["reversed"].toString() == "true",
@@ -140,10 +142,12 @@ data class ComparatorHolder(
         }
     }
 
-    fun toMap() = mapOf(
+    // Homogeneous Map<String, String>: a Map<String, Any?> is neither bundle-safe nor
+    // JSON-safe, because Any? tells the persistence layer nothing about the values.
+    fun toMap(): Map<String, String> = mapOf(
         "comparator" to comparator.id,
-        "reversed" to reversed,
-        "favourites" to favourites,
+        "reversed" to reversed.toString(),
+        "favourites" to favourites.toString(),
     )
 }
 

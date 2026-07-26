@@ -14,8 +14,17 @@ class MutablePersistedFlowTypeSafetyTest {
     private fun lint(
         env: KotlinEnvironmentContainer,
         declarations: String,
+        imports: String = "",
+        additionalSources: List<String> = emptyList(),
     ) = MutablePersistedFlowTypeSafety(Config.empty)
-        .lintWithContext(env, wrap(declarations), STATE_STUB, PLATFORM_STUB, PARCELIZE_STUB)
+        .lintWithContext(
+            env,
+            wrap(declarations, imports),
+            STATE_STUB,
+            PLATFORM_STUB,
+            PARCELIZE_STUB,
+            *additionalSources.toTypedArray(),
+        )
 
     private fun messages(
         env: KotlinEnvironmentContainer,
@@ -196,6 +205,20 @@ class MutablePersistedFlowTypeSafetyTest {
         assertEquals(emptyList<String>(), messages)
     }
 
+    @Test
+    fun `ignores an unrelated imported object member alias`(
+        env: KotlinEnvironmentContainer,
+    ) {
+        val findings = lint(
+            env = env,
+            imports = "import com.artemchep.keyguard.fixture.Unrelated.mutablePersistedFlow as persist",
+            declarations = """val a = persist("a") { Custom("x") }""",
+            additionalSources = listOf(UNRELATED_OBJECT_STUB),
+        )
+
+        assertEquals(0, findings.size)
+    }
+
     //
     // Rejected
     //
@@ -208,6 +231,36 @@ class MutablePersistedFlowTypeSafetyTest {
         val message = findings.single().message
         assertTrue(message.contains("T=com.artemchep.keyguard.test.Custom"), "was: $message")
         assertTrue(message.contains("Bundle-safe"), "was: $message")
+    }
+
+    @Test
+    fun `rejects an unsafe type through an escaped callable name`(
+        env: KotlinEnvironmentContainer,
+    ) {
+        val findings = lint(
+            env,
+            """val a = scope.`mutablePersistedFlow`("a") { Custom("x") }""",
+        )
+
+        assertEquals(1, findings.size)
+    }
+
+    @Test
+    fun `rejects an unsafe type through an imported object member alias`(
+        env: KotlinEnvironmentContainer,
+    ) {
+        val findings = lint(
+            env = env,
+            imports = "import com.artemchep.keyguard.fixture.ObjectScope.mutablePersistedFlow as persist",
+            declarations = """val a = persist("a") { Custom("x") }""",
+            additionalSources = listOf(OBJECT_SCOPE_STUB),
+        )
+
+        assertEquals(1, findings.size)
+        assertTrue(
+            findings.single().message.contains("com.artemchep.keyguard.test.Custom"),
+            "was: ${findings.single().message}",
+        )
     }
 
     @Test
@@ -590,7 +643,40 @@ class MutablePersistedFlowTypeSafetyTest {
             interface LeParcelable
         """.trimIndent()
 
-        fun wrap(declarations: String) = """
+        val OBJECT_SCOPE_STUB = """
+            package com.artemchep.keyguard.fixture
+
+            import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
+            import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScopeSub
+            import kotlinx.serialization.json.Json
+
+            object ObjectScope : RememberStateFlowScopeSub {
+                override fun <T> mutablePersistedFlow(
+                    key: String,
+                    storage: PersistedStorage,
+                    initialValue: () -> T,
+                ): T = initialValue()
+
+                override fun <T, S> mutablePersistedFlow(
+                    key: String,
+                    storage: PersistedStorage,
+                    serialize: (Json, T) -> S,
+                    deserialize: (Json, S) -> T,
+                    initialValue: () -> T,
+                ): T = initialValue()
+            }
+        """.trimIndent()
+
+        val UNRELATED_OBJECT_STUB = """
+            package com.artemchep.keyguard.fixture
+
+            object Unrelated {
+                fun <T> mutablePersistedFlow(key: String, initialValue: () -> T): T =
+                    initialValue()
+            }
+        """.trimIndent()
+
+        fun wrap(declarations: String, imports: String = "") = """
             package com.artemchep.keyguard.test
 
             import com.artemchep.keyguard.feature.navigation.state.DiskHandle
@@ -604,6 +690,7 @@ class MutablePersistedFlowTypeSafetyTest {
             import kotlinx.collections.immutable.persistentMapOf
             import kotlinx.serialization.json.Json
             import kotlinx.serialization.json.JsonObject
+            $imports
 
             typealias Scope = RememberStateFlowScopeSub
 

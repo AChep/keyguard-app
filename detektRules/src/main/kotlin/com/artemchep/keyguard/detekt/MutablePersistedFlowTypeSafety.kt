@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.analysis.api.resolution.successfulFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.types.KaClassType
+import org.jetbrains.kotlin.analysis.api.types.KaErrorType
 import org.jetbrains.kotlin.analysis.api.types.KaStarTypeProjection
 import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.analysis.api.types.KaTypeParameterType
@@ -53,9 +54,9 @@ class MutablePersistedFlowTypeSafety(
     override fun visitCallExpression(expression: KtCallExpression) {
         super.visitCallExpression(expression)
 
-        // Resolving every call in a file is expensive, so filter by name first. A call that
-        // reaches the target function under a different name is out of scope by design.
-        if (expression.calleeExpression?.text != MutablePersistedFlow.NAME) {
+        // Resolving every call in a file is expensive, so first retain direct calls, escaped
+        // identifiers, and legal import aliases. Semantic resolution below remains authoritative.
+        if (!expression.isMutablePersistedFlowCandidate()) {
             return
         }
 
@@ -79,6 +80,10 @@ class MutablePersistedFlowTypeSafety(
                 return@analyze
             }
             val persistedType = persisted.type
+            if (persistedType is KaErrorType) {
+                reportUnverifiedCall(expression)
+                return@analyze
+            }
 
             val bundleSafe = isBundleSafe(persistedType)
             val mayUseDisk = mayUseDisk(call)
@@ -110,7 +115,7 @@ class MutablePersistedFlowTypeSafety(
                 Finding(
                     Entity.from(expression.calleeExpression ?: expression),
                     "mutablePersistedFlow persists " +
-                        "${persisted.typeParameterName}=${persistedType.renderForMessage()}, " +
+                        "${persisted.typeParameterName}=${renderTypeForMessage(persistedType)}, " +
                         "which is not $requirements. $remediation",
                 ),
             )

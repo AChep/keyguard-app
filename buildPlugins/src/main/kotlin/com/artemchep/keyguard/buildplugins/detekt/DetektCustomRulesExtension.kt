@@ -83,21 +83,37 @@ abstract class DetektCustomRulesExtension @Inject constructor(
         val compileTask = compilation.flatMap { it.compileTaskProvider }
             .map { it as KotlinJvmCompile }
 
-        // Take the exact file set the Kotlin compiler is given rather than rebuilding it from
-        // source sets: the source directory layout differs between AGP's built-in Kotlin and
-        // the multiplatform plugin, and getting it wrong makes the Detekt task report
-        // NO-SOURCE and pass without checking anything.
+        // Generated-source providers such as KSP cannot be queried until their producer has run.
+        // The guarded API lives in authored sources, so select from the compilation's declared
+        // Kotlin source directories and resolve generated declarations from compiled output.
         val sources = project.objects.fileCollection().from(
-            compileTask.map { it.sources },
+            project.provider {
+                compilation.get().allKotlinSourceSets.map { sourceSet ->
+                    sourceSet.kotlin.sourceDirectories
+                }
+            },
         )
-        analysedSources.from(sources)
+        // Detekt's standalone analysis cannot load all compiler plugins used by the full KMP
+        // compilation. Analyse only files that can contain guarded calls and resolve everything
+        // else from the successfully compiled output on the analysis classpath.
+        val guardedSources = project.objects.fileCollection().from(
+            project.provider {
+                val markers = guardedApiMarkers.get()
+                sources.asFileTree.files.filter { file ->
+                    file.isFile &&
+                        file.extension == "kt" &&
+                        markers.any { marker -> file.readText().contains(marker) }
+                }
+            },
+        )
+        analysedSources.from(guardedSources)
 
         val task = project.tasks.register<Detekt>("$TASK_PREFIX$suffix") {
             group = LifecycleBasePlugin.VERIFICATION_GROUP
             description = "Runs the custom keyguard Detekt rules over $suffix with " +
                 "type resolution."
 
-            source(sources)
+            source(guardedSources)
             setIncludes(listOf("**/*.kt"))
 
             // A non-empty classpath is what makes Detekt pass `--analysis-mode full`, which
@@ -106,7 +122,10 @@ abstract class DetektCustomRulesExtension @Inject constructor(
                 project.provider { compilation.get().output.classesDirs },
                 compileTask.map { it.libraries },
             )
-            friendPaths.from(project.provider { compilation.get().output.classesDirs })
+            friendPaths.from(
+                project.provider { compilation.get().output.classesDirs },
+                compileTask.map { it.friendPaths },
+            )
 
             apiVersion.set(
                 compileTask.flatMap { t -> t.compilerOptions.apiVersion.map { it.version } },
@@ -119,7 +138,8 @@ abstract class DetektCustomRulesExtension @Inject constructor(
             )
             optIn.set(compileTask.flatMap { it.compilerOptions.optIn })
             freeCompilerArgs.set(compileTask.flatMap { it.compilerOptions.freeCompilerArgs })
-            multiPlatformEnabled.set(compileTask.map { it.multiPlatformEnabled.get() })
+            noJdk.set(compileTask.flatMap { it.compilerOptions.noJdk })
+            multiPlatformEnabled.set(compileTask.flatMap { it.multiPlatformEnabled })
 
             config.setFrom(
                 project.rootProject.layout.projectDirectory

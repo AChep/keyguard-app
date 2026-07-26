@@ -12,6 +12,13 @@ plugins {
     alias(libs.plugins.google.services)
     alias(libs.plugins.crashlytics)
     id("keyguard.resources-common") apply false
+    id("keyguard.detekt-custom-rules")
+}
+
+// The flavors share src/main/java, so one production variant covers every call site.
+detektCustomRules {
+    androidVariant("noneDebug")
+    requireCoverageFor("mutablePersistedFlow")
 }
 
 fun loadProps(file: File): Properties {

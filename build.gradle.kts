@@ -51,7 +51,19 @@ tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
 }
 
 subprojects {
+    // The custom rules live here, so this module can not be a Detekt consumer of itself.
+    if (path == ":detektRules") {
+        return@subprojects
+    }
+
     apply(plugin = rootProject.libs.plugins.detekt.get().pluginId)
+
+    // Makes the `keyguard` rule set a known config key everywhere. The rules that need type
+    // resolution stay inactive on these tasks and are enabled only by the dedicated tasks; see
+    // the `keyguard.detekt-custom-rules` convention plugin.
+    dependencies {
+        add("detektPlugins", project(":detektRules"))
+    }
 
     configure<DetektExtension> {
         toolVersion.set(rootProject.libs.versions.detekt)
@@ -186,4 +198,53 @@ allprojects {
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         version.set(rootProject.libs.versions.ktlint.get())
     }
+}
+
+//
+// The custom keyguard Detekt rules from :detektRules
+//
+// They get dedicated tasks rather than riding along on the shared `detekt` task, which runs
+// without an analysis classpath and so silently skips rules that need type resolution, and whose
+// baselines must never suppress a hand-written project invariant. Modules opt in by applying
+// `keyguard.detekt-custom-rules` and registering the compilations to analyse.
+//
+
+val customRuleModules = listOf(":common", ":wearApp")
+
+// The APIs guarded by the custom rules. Each opted-in module repeats the ones it uses via
+// `requireCoverageFor(...)`; this list is the repository-wide view used by the ownership check.
+val guardedApiMarkers = listOf("mutablePersistedFlow")
+
+// Catches a module that starts using a guarded API without opting into the custom-rule tasks.
+val verifyDetektCustomRulesOwnership by tasks.registering(
+    com.artemchep.keyguard.buildplugins.detekt.VerifyDetektMarkerCoverageTask::class,
+) {
+    group = "verification"
+    description = "Fails if a guarded API is used outside the modules that run the custom " +
+        "Detekt rules."
+    markers.set(guardedApiMarkers)
+    rootDirectory.set(layout.projectDirectory)
+    candidateFiles.from(
+        fileTree(layout.projectDirectory) {
+            include("**/src/**/*.kt")
+            exclude("**/build/**")
+        },
+    )
+    // Ownership is decided purely from the path prefixes: per-module coverage is verified
+    // inside each module, so nothing is registered as "analysed" here.
+    expectsAnalysedSources.set(false)
+    allowedPathPrefixes.set(
+        customRuleModules.map { "${it.removePrefix(":").replace(':', '/')}/src" } +
+            // The rules, their fixtures and the convention plugin name the guarded APIs as the
+            // thing they enforce rather than calling them.
+            listOf("detektRules/src", "buildPlugins/src"),
+    )
+    stamp.set(layout.buildDirectory.file("reports/detekt/custom-rules-ownership.txt"))
+}
+
+tasks.register("detektCustomRules") {
+    group = "verification"
+    description = "Runs every custom keyguard Detekt rule across the repository."
+    dependsOn(verifyDetektCustomRulesOwnership)
+    dependsOn(customRuleModules.map { "$it:detektCustomRules" })
 }

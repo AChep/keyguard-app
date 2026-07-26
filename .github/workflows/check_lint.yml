@@ -37,7 +37,7 @@ jobs:
         env:
           VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
       - name: "Check lint"
-        run: ./gradlew --continue lint detekt
+        run: ./gradlew --continue lint detekt detektCustomRules
       - name: "Create lint summary"
         if: always()
         shell: bash

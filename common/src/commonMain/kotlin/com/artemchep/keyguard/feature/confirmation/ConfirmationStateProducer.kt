@@ -74,116 +74,126 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
         filePickerIntentFlow = filePickerIntentSink,
     )
 
+    // Branch on the item type before creating the sink. `args.items` is a
+    // List<Item<Any?>>, so a shared sink would persist Any? -- which is not
+    // bundle-compatible -- and would need an unchecked cast per branch.
     val itemsFlow = args.items
         .map { item ->
-            if (item is ConfirmationRoute.Args.Item.StringItem) {
-                val handle = textFieldHandle(
-                    key = createItemKey(item.key),
-                    initial = item.value,
-                )
-                return@map handle.sink.map { cell ->
-                    confirmationStringItem(
-                        item = item,
-                        cell = cell,
-                        handle = handle,
+            when (item) {
+                is ConfirmationRoute.Args.Item.StringItem -> {
+                    val handle = textFieldHandle(
+                        key = createItemKey(item.key),
+                        initial = item.value,
                     )
+                    handle.sink.map { cell ->
+                        confirmationStringItem(
+                            item = item,
+                            cell = cell,
+                            handle = handle,
+                        )
+                    }
                 }
-            }
-            val sink = mutablePersistedFlow(createItemKey(item.key)) {
-                item.value
-            }
-            sink
-                .map { value ->
-                    when (item) {
-                        is ConfirmationRoute.Args.Item.BooleanItem -> ConfirmationState.Item.BooleanItem(
+
+                is ConfirmationRoute.Args.Item.BooleanItem -> {
+                    val sink = mutablePersistedFlow(createItemKey(item.key)) {
+                        item.value
+                    }
+                    sink.map { value ->
+                        ConfirmationState.Item.BooleanItem(
                             key = item.key,
                             title = item.title,
                             text = item.text,
                             textMaxLines = item.textMaxLines,
-                            value = value as Boolean,
+                            value = value,
                             enabled = item.enabled,
                             onChange = sink::value::set,
                         )
-
-                        is ConfirmationRoute.Args.Item.StringItem ->
-                            error("Unreachable: string items are handled separately.")
-
-                        is ConfirmationRoute.Args.Item.EnumItem -> {
-                            val fixed = value as String
-                            ConfirmationState.Item.EnumItem(
-                                key = item.key,
-                                value = fixed,
-                                enabled = item.enabled,
-                                items = item.items
-                                    .map { el ->
-                                        ConfirmationState.Item.EnumItem.Item(
-                                            key = el.key,
-                                            title = el.title,
-                                            text = el.text,
-                                            selected = el.key == fixed,
-                                            onClick = {
-                                                sink.value = el.key
-                                            },
-                                        )
-                                    },
-                                doc = item.docs[fixed]
-                                    ?.let { doc ->
-                                        ConfirmationState.Item.EnumItem.Doc(
-                                            text = doc.text,
-                                            onLearnMore = if (doc.url != null) {
-                                                // lambda
-                                                {
-                                                    val intent =
-                                                        NavigationIntent.NavigateToBrowser(doc.url)
-                                                    navigate(intent)
-                                                }
-                                            } else {
-                                                null
-                                            },
-                                        )
-                                    },
-                            )
-                        }
-
-                        is ConfirmationRoute.Args.Item.FileItem -> {
-                            val fixed = value as ConfirmationRoute.Args.Item.FileItem.File?
-                            val error = if (fixed != null) null else "Must pick a file"
-                            ConfirmationState.Item.FileItem(
-                                key = item.key,
-                                title = item.title,
-                                value = fixed,
-                                enabled = item.enabled,
-                                error = error,
-                                onSelect = {
-                                    val intent = FilePickerIntent.OpenDocument(
-                                        mimeTypes = arrayOf(
-                                            "text/plain",
-                                            "text/wordlist",
-                                        )
-                                    ) { info ->
-                                        if (info != null) {
-                                            val file = ConfirmationRoute.Args.Item.FileItem.File(
-                                                uri = info.uri.toString(),
-                                                name = info.name,
-                                                size = info.size,
-                                            )
-                                            sink.value = file
-                                        }
-                                    }
-                                    filePickerIntentSink.emit(intent)
-                                },
-                                onClear = if (fixed != null) {
-                                    // lambda
-                                    {
-                                        sink.value = null
-                                    }
-                                } else {
-                                    null
-                                }
-                            )
-                        }
                     }
                 }
+
+                is ConfirmationRoute.Args.Item.EnumItem -> {
+                    val sink = mutablePersistedFlow(createItemKey(item.key)) {
+                        item.value
+                    }
+                    sink.map { value ->
+                        ConfirmationState.Item.EnumItem(
+                            key = item.key,
+                            value = value,
+                            enabled = item.enabled,
+                            items = item.items
+                                .map { el ->
+                                    ConfirmationState.Item.EnumItem.Item(
+                                        key = el.key,
+                                        title = el.title,
+                                        text = el.text,
+                                        selected = el.key == value,
+                                        onClick = {
+                                            sink.value = el.key
+                                        },
+                                    )
+                                },
+                            doc = item.docs[value]
+                                ?.let { doc ->
+                                    ConfirmationState.Item.EnumItem.Doc(
+                                        text = doc.text,
+                                        onLearnMore = if (doc.url != null) {
+                                            // lambda
+                                            {
+                                                val intent =
+                                                    NavigationIntent.NavigateToBrowser(doc.url)
+                                                navigate(intent)
+                                            }
+                                        } else {
+                                            null
+                                        },
+                                    )
+                                },
+                        )
+                    }
+                }
+
+                is ConfirmationRoute.Args.Item.FileItem -> {
+                    val sink = mutablePersistedFlow(createItemKey(item.key)) {
+                        item.value
+                    }
+                    sink.map { value ->
+                        val error = if (value != null) null else "Must pick a file"
+                        ConfirmationState.Item.FileItem(
+                            key = item.key,
+                            title = item.title,
+                            value = value,
+                            enabled = item.enabled,
+                            error = error,
+                            onSelect = {
+                                val intent = FilePickerIntent.OpenDocument(
+                                    mimeTypes = arrayOf(
+                                        "text/plain",
+                                        "text/wordlist",
+                                    )
+                                ) { info ->
+                                    if (info != null) {
+                                        val file = ConfirmationRoute.Args.Item.FileItem.File(
+                                            uri = info.uri.toString(),
+                                            name = info.name,
+                                            size = info.size,
+                                        )
+                                        sink.value = file
+                                    }
+                                }
+                                filePickerIntentSink.emit(intent)
+                            },
+                            onClear = if (value != null) {
+                                // lambda
+                                {
+                                    sink.value = null
+                                }
+                            } else {
+                                null
+                            }
+                        )
+                    }
+                }
+            }
         }
         .combineToList()
     return itemsFlow

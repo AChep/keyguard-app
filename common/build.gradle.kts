@@ -21,6 +21,19 @@ plugins {
     alias(libs.plugins.kotlin.plugin.compose)
     id("keyguard.resources-common")
     id("keyguard.native-crypto-consumer")
+    id("keyguard.detekt-custom-rules")
+}
+
+// `android`/`main` covers commonMain plus androidMain; `desktop`/`main` covers commonMain plus
+// desktopMain. Together they make every JVM-reachable source set checkable.
+//
+// Detekt registers type-resolution tasks only for JVM and Android targets, so a call site in
+// appleMain or iosMain can never be analysed. verifyDetektCustomRulesCoverage fails on one
+// instead, which blocks it rather than letting it go unchecked.
+detektCustomRules {
+    kmpCompilation(targetName = "android", compilationName = "main")
+    kmpCompilation(targetName = "desktop", compilationName = "main")
+    requireCoverageFor("mutablePersistedFlow")
 }
 
 //

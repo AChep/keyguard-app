@@ -386,11 +386,15 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         // Type the persisted form as Number and coerce via toInt(); otherwise
         // reading the Int-typed value forces a Long -> Int downcast that crashes
         // (notably on Kotlin/Native, where the cast is checked).
-        val cachedCounterSink = mutablePersistedFlow(
+        //
+        // The type arguments have to be explicit: S is inferred from the serialize
+        // lambda's return type, so an identity serializer pins S to Int no matter how
+        // the deserialize parameter is declared.
+        val cachedCounterSink = mutablePersistedFlow<Int, Number>(
             key = key,
             storage = storage,
             serialize = { _, value -> value },
-            deserialize = { _, value: Number -> value.toInt() },
+            deserialize = { _, value -> value.toInt() },
             initialValue = { -1 },
         )
         // Start with displaying cached counter, and then load

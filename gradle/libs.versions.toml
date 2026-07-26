@@ -83,7 +83,7 @@ dbusJava = "5.2.0"
 directoryWatcher = "0.19.1"
 # https://github.com/diglol/crypto
 diglolCrypto = "0.2.0"
-firebase = "34.12.0"
+firebase = "34.16.0"
 # https://github.com/ionspin/kotlin-multiplatform-bignum
 ionspinBignum = "0.3.10"
 # https://github.com/tfcporciuncula/flow-preferences

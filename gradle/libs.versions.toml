@@ -103,7 +103,7 @@ m3color = "2025.4"
 # https://github.com/Kodein-Framework/Kodein-DI
 kodeinDi = "7.32.0"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.4.0"
+kotlin = "2.4.10"
 # https://github.com/Kotlin/kotlinx-atomicfu
 atomicfu = "0.33.0"
 # https://github.com/Kotlin/kotlinx.collections.immutable

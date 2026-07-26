@@ -21,6 +21,7 @@ on:
       - 'common/src/**/*Gpg*'
       - 'util/crypto/**'
       - 'thirdParty/rust/**'
+      - '.github/actions/setup_gpg/**'
       - '.github/actions/setup_protobuf/**'
       - '.github/actions/setup_rust/**'
       - '.github/workflows/check_gpg.yaml'
@@ -37,6 +38,7 @@ on:
       - 'common/src/**/*Gpg*'
       - 'util/crypto/**'
       - 'thirdParty/rust/**'
+      - '.github/actions/setup_gpg/**'
       - '.github/actions/setup_protobuf/**'
       - '.github/actions/setup_rust/**'
       - '.github/workflows/check_gpg.yaml'
@@ -120,48 +122,7 @@ jobs:
         run: |
           cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
-      - name: "Setup gpg (Linux)"
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          sudo apt-get install -y gnupg
-          gpg --version
-          gpgconf --version
-      - name: "Verify gpg (macOS)"
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          gpg --version
-          gpgconf --version
-      - name: "Setup gpg (Windows)"
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $originalPath = $env:Path
-          $originalMachinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-          $chocoPath = "C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\ProgramData\chocolatey\bin"
-          try {
-            $env:Path = $chocoPath
-            [Environment]::SetEnvironmentVariable("Path", $chocoPath, "Machine")
-            choco install gnupg --yes --no-progress
-          } finally {
-            [Environment]::SetEnvironmentVariable("Path", $originalMachinePath, "Machine")
-            $env:Path = $originalPath
-          }
-          $gpgBin = @(
-            "${env:ProgramFiles(x86)}\GnuPG\bin",
-            "$env:ProgramFiles\GnuPG\bin"
-          ) | Where-Object { Test-Path (Join-Path $_ "gpg.exe") } | Select-Object -First 1
-          if (-not $gpgBin) {
-            throw "Native GnuPG install not found after Chocolatey install."
-          }
-          $env:Path = "$gpgBin;$env:Path"
-          "KEYGUARD_GPG_BIN_DIR=$gpgBin" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          "$gpgBin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
-          gpg --version
-          gpgconf --version
-          where.exe gpg
-          where.exe gpgconf
+      - uses: ./.github/actions/setup_gpg
       - name: "Run GPG end-to-end tests"
         run: ${{ matrix.gradle }} :integration:gpgE2eTest:gpgE2eTest
       - name: "Upload test reports"

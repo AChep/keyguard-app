@@ -173,19 +173,43 @@ class NativeCryptoOpenPgpGnuPgInteropTest {
         return major.toInt() > 2 || major.toInt() == 2 && minor.toInt() >= 3
     }
 
-    private fun isGpgAvailable(): Boolean = runCatching {
-        runGpg(null, "--version").exitCode == 0
-    }.getOrDefault(false)
+    private fun isGpgAvailable(): Boolean {
+        val gpgCommand = gpgExecutable("gpg")
+        gpgExecutable("gpgconf")
+        return runCatching {
+            runCommand(listOf(gpgCommand, "--version"), home = null).exitCode == 0
+        }.getOrDefault(false)
+    }
 
     private fun runGpg(home: Path?, vararg arguments: String): GpgResult {
-        val command = listOf("gpg", *arguments)
+        val command = listOf(gpgExecutable("gpg"), *arguments)
         return runCommand(command, home)
     }
 
     private fun runGpgConf(home: Path, vararg arguments: String): GpgResult = runCommand(
-        command = listOf("gpgconf", "--homedir", home.toString(), *arguments),
+        command = listOf(gpgExecutable("gpgconf"), "--homedir", home.toString(), *arguments),
         home = null,
     )
+
+    private fun gpgExecutable(command: String): String {
+        val configuredBinDir = System.getenv("KEYGUARD_GPG_BIN_DIR")
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?: return command
+        val executableName = if (
+            System.getProperty("os.name", "")
+                .startsWith("Windows", ignoreCase = true)
+        ) {
+            "$command.exe"
+        } else {
+            command
+        }
+        val executable = Path.of(configuredBinDir).resolve(executableName)
+        check(executable.isRegularFile()) {
+            "Configured GnuPG executable does not exist: $executable"
+        }
+        return executable.toString()
+    }
 
     private fun runCommand(command: List<String>, home: Path?): GpgResult {
         val process = ProcessBuilder(command)

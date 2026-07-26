@@ -1,0 +1,60 @@
+name: "Setup GnuPG"
+description: "Install and select the native GnuPG toolchain on the current runner"
+runs:
+  using: "composite"
+  steps:
+    - name: "Setup GnuPG (Linux)"
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y gnupg
+        gpg --version
+        gpgconf --version
+    - name: "Verify GnuPG (macOS)"
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        gpg --version
+        gpgconf --version
+    - name: "Setup GnuPG (Windows)"
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $originalPath = $env:Path
+        $originalMachinePath = [Environment]::GetEnvironmentVariable("Path", "Machine")
+        $chocoPath = "C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\ProgramData\chocolatey\bin"
+        try {
+          $env:Path = $chocoPath
+          [Environment]::SetEnvironmentVariable("Path", $chocoPath, "Machine")
+          choco install gnupg --yes --no-progress
+        } finally {
+          [Environment]::SetEnvironmentVariable("Path", $originalMachinePath, "Machine")
+          $env:Path = $originalPath
+        }
+
+        $gpgBin = @(
+          "${env:ProgramFiles(x86)}\GnuPG\bin",
+          "$env:ProgramFiles\GnuPG\bin"
+        ) | Where-Object { Test-Path (Join-Path $_ "gpg.exe") } | Select-Object -First 1
+        if (-not $gpgBin) {
+          throw "Native GnuPG install not found after Chocolatey install."
+        }
+
+        $env:Path = "$gpgBin;$env:Path"
+        "KEYGUARD_GPG_BIN_DIR=$gpgBin" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        "$gpgBin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+        $gpgPath = (Get-Command gpg.exe -CommandType Application).Source
+        $gpgConfPath = (Get-Command gpgconf.exe -CommandType Application).Source
+        if ((Split-Path -Parent $gpgPath) -ne $gpgBin) {
+          throw "Selected gpg executable is outside the native GnuPG install: $gpgPath"
+        }
+        if ((Split-Path -Parent $gpgConfPath) -ne $gpgBin) {
+          throw "Selected gpgconf executable is outside the native GnuPG install: $gpgConfPath"
+        }
+
+        gpg --version
+        gpgconf --version
+        where.exe gpg
+        where.exe gpgconf

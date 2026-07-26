@@ -52,6 +52,7 @@ on:
       - ".github/native-crypto-*"
       - ".github/actionlint.yaml"
       - ".github/actions/setup_android_ndk/**"
+      - ".github/actions/setup_gpg/**"
       - ".github/actions/setup_gradle/**"
       - ".github/actions/setup_rust/**"
       - ".github/actions/setup_protobuf/**"
@@ -102,6 +103,7 @@ on:
       - ".github/native-crypto-*"
       - ".github/actionlint.yaml"
       - ".github/actions/setup_android_ndk/**"
+      - ".github/actions/setup_gpg/**"
       - ".github/actions/setup_gradle/**"
       - ".github/actions/setup_rust/**"
       - ".github/actions/setup_protobuf/**"
@@ -455,6 +457,8 @@ jobs:
           targets: ${{ matrix.rust-targets }}
           components: "clippy"
       - uses: ./.github/actions/setup_protobuf
+      - uses: ./.github/actions/setup_gpg
+        if: runner.os == 'Windows'
       - uses: ./.github/actions/setup_linux_desktop
         if: runner.os == 'Linux'
       - name: "Run platform desktop native static analysis"
@@ -487,6 +491,16 @@ jobs:
           --max-workers=1
           "-Pkeyguard.nativeCrypto.cargoOffline=true"
           ${{ matrix.tasks }}
+      - name: "Upload native crypto desktop test reports"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-crypto-desktop-test-reports-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            util/crypto/build/reports/tests/desktopTest/
+            util/crypto/build/test-results/desktopTest/
+          if-no-files-found: ignore
+          retention-days: 21
       - name: "Run JVM import compatibility corpus"
         run: >-
           ${{ matrix.gradle }}

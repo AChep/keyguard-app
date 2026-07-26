@@ -131,8 +131,6 @@ ktlint = "0.50.0"
 ktlintPlugin = "14.2.0"
 # https://github.com/ktorio/ktor
 ktor = "3.5.1"
-# https://github.com/keemobile/kotpass
-kotpass = "0.13.0"
 # https://github.com/MohamedRejeb/Ksoup
 ksoup = "0.6.0"
 # https://github.com/pdvrieze/xmlutil
@@ -324,7 +322,6 @@ ktor-ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "kt
 ktor-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 ktor-ktor-serialization-kotlinx = { module = "io.ktor:ktor-serialization-kotlinx", version.ref = "ktor" }
-keemobile-kotpass = { module = "app.keemobile:kotpass", version.ref = "kotpass" }
 ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "ksoup" }
 java-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 kdroidfilter-composenativetray = { module = "io.github.kdroidfilter:composenativetray", version.ref = "composeNativeTray" }

@@ -455,7 +455,7 @@ jobs:
         uses: ./.github/actions/setup_rust
         with:
           targets: ${{ matrix.rust-targets }}
-          components: "clippy"
+          components: ${{ matrix.inspect-apple && 'clippy,llvm-tools' || 'clippy' }}
       - uses: ./.github/actions/setup_protobuf
       - uses: ./.github/actions/setup_gpg
         if: runner.os == 'Windows'

@@ -94,7 +94,7 @@ htmlText = "3.0.0-beta02"
 # https://chrisbanes.github.io/haze/latest/
 haze = "2.0.0-alpha03"
 # https://unicode-org.github.io/icu/userguide/icu4j/
-icu4j = "75.1"
+icu4j = "78.3"
 junit = "4.13.2"
 # https://github.com/junit-team/junit-framework/releases
 # Only used by :detektRules — detekt-test-junit is JUnit 5 based.

@@ -250,7 +250,13 @@ class KeePassCipherCodec(
             }
         }
 
-        val uuid = remote?.uuid ?: Uuid.random()
+        // Local entity ids are UUIDs. Reusing that id for a new KeePass entry
+        // makes the write idempotent if the KDBX file is saved but the
+        // corresponding SQLite write-back is interrupted.
+        val uuid = remote?.uuid
+            ?: runCatching {
+                Uuid.parse(local.cipherId)
+            }.getOrElse { Uuid.random() }
         val icon = local.customIcon?.toPredefinedIcon()
             ?: remote?.icon
             ?: PredefinedIcon.Key

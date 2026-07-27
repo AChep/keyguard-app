@@ -107,6 +107,7 @@ internal fun testBitwardenFolder(
 )
 
 internal fun buildEntry(
+    uuid: Uuid = Uuid.random(),
     title: String = "",
     username: String = "",
     password: String = "",
@@ -114,7 +115,7 @@ internal fun buildEntry(
     notes: String = "",
     extraFields: Map<String, EntryValue> = emptyMap(),
 ): Entry = Entry(
-    uuid = Uuid.random(),
+    uuid = uuid,
     fields = EntryFields.createDefault() +
             linkedMapOf(
                 BasicField.Title() to EntryValue.Plain(title),

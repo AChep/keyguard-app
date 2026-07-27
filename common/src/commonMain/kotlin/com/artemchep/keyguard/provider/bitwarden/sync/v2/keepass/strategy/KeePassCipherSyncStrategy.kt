@@ -9,10 +9,12 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.strategy.buildLocalItem
 
 class KeePassCipherSyncStrategy(
     private val remoteFolderIdToLocalId: (String) -> String?,
+    private val remoteItemsById: Map<String, KeePassCipher> = emptyMap(),
 ) : EntitySyncStrategy<BitwardenCipher, KeePassCipher> {
-    override fun toLocalItemMeta(entity: BitwardenCipher): LocalItemMeta =
-        buildLocalItemMeta(
-            localId = entity.cipherId,
+    override fun toLocalItemMeta(entity: BitwardenCipher): LocalItemMeta {
+        val localId = entity.cipherId
+        val meta = buildLocalItemMeta(
+            localId = localId,
             service = entity.service,
             revisionDate = entity.revisionDate,
             deletedDate = entity.deletedDate,
@@ -23,6 +25,12 @@ class KeePassCipherSyncStrategy(
             localFolderId = entity.folderId,
             favorite = entity.favorite,
         )
+        return recoverPublishedKeePassItem(
+            local = meta,
+            remote = remoteItemsById[localId]
+                ?.let(::toServerItemMeta),
+        )
+    }
 
     override fun toServerItemMeta(entity: KeePassCipher): ServerItemMeta =
         ServerItemMeta(

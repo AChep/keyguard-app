@@ -8,7 +8,6 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassDbMutato
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.entity.KeePassFolder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassWriteBackBuffer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassFolderCodec
-import app.keemobile.kotpass.models.Group
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.writeIfCurrent
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateEntry
@@ -103,12 +102,12 @@ class KeePassFolderSyncOps(
             }
         }
 
-        val newUuid = Uuid.random()
+        // Match new groups to their local folder ids so a retry can recognize
+        // a group that reached the KDBX file before SQLite was committed.
+        val newGroup = folderCodec.encodeNew(local)
+        val newUuid = newGroup.uuid
         mutator.addGroup(
-            Group(
-                uuid = newUuid,
-                name = local.name,
-            ),
+            newGroup,
             parentGroupUuid = targetParentUuid,
         )
         val newLocal = local.copy(

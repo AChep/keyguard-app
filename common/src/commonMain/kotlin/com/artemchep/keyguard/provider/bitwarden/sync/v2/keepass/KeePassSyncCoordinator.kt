@@ -214,6 +214,8 @@ class KeePassSyncCoordinator(
                     remoteFolders = remoteFolders,
                     strategy = KeePassFolderSyncStrategy(
                         remoteFolderIdToLocalId = initialFolderIdMappings.remoteToLocalFolders::get,
+                        remoteItemsById = remoteFolders
+                            .associateBy { it.id },
                     ),
                     ops = KeePassFolderSyncOps(
                         accountId = token.id,
@@ -246,6 +248,8 @@ class KeePassSyncCoordinator(
                         remoteCiphers = remoteCiphers,
                         strategy = KeePassCipherSyncStrategy(
                             remoteFolderIdToLocalId = folderIdMappings.remoteToLocalFolders::get,
+                            remoteItemsById = remoteCiphers
+                                .associateBy { it.id },
                         ),
                         ops = KeePassCipherSyncOps(
                             accountId = token.id,

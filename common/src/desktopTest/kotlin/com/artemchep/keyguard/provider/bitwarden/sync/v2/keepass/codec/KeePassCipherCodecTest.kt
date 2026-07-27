@@ -68,6 +68,19 @@ class KeePassCipherCodecTest {
     }
 
     @Test
+    fun `encode uses the local cipher id for a new entry uuid`() = runTest {
+        val cipherId = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
+
+        val encoded = codec.encode(
+            local = testBitwardenCipher(cipherId = cipherId),
+            remote = null,
+            existingBinaries = emptyMap(),
+        )
+
+        assertEquals(cipherId, encoded.entry.uuid.toString())
+    }
+
+    @Test
     fun `decode collapses duplicate cipher links by canonical target`() = runTest {
         val remote = buildEntry(
             extraFields = linkedMapOf(

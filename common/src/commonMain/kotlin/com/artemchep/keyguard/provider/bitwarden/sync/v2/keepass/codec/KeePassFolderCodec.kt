@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import kotlin.time.Instant
+import kotlin.uuid.Uuid
 
 /**
  * Parser contract for a KeePass group -> Bitwarden folder decode.
@@ -23,6 +24,14 @@ import kotlin.time.Instant
  * id, revision clock, and parent relationship.
  */
 class KeePassFolderCodec {
+    fun encodeNew(local: BitwardenFolder): Group =
+        Group(
+            uuid = runCatching {
+                Uuid.parse(local.folderId)
+            }.getOrElse { Uuid.random() },
+            name = local.name,
+        )
+
     fun decode(
         accountId: String,
         folderId: String,

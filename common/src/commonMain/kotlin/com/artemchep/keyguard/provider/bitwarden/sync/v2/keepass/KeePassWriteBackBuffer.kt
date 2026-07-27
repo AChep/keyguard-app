@@ -2,7 +2,9 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass
 
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
+import com.artemchep.keyguard.core.store.bitwarden.pendingAttachmentUploads
 import com.artemchep.keyguard.data.Database
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 
 /**
  * Accumulates the local SQLite writes that the KeePass sync run intends to
@@ -22,6 +24,8 @@ class KeePassWriteBackBuffer(
 
     private val ciphers = LinkedHashMap<String, Staged<BitwardenCipher>>()
     private val folders = LinkedHashMap<String, Staged<BitwardenFolder>>()
+    private val obsoletePendingUploads =
+        LinkedHashMap<String, LinkedHashMap<String, PendingUploadFile>>()
 
     /** True when nothing has been staged and there is nothing to commit. */
     val isEmpty: Boolean get() = ciphers.isEmpty() && folders.isEmpty()
@@ -85,6 +89,11 @@ class KeePassWriteBackBuffer(
     //
 
     fun stageCipherUpsert(cipher: BitwardenCipher) {
+        trackObsoletePendingUploads(
+            cipherId = cipher.cipherId,
+            previous = readCipher(cipher.cipherId),
+            next = cipher,
+        )
         ciphers[cipher.cipherId] = Staged(
             value = cipher,
             preImage = preImageCipher(cipher.cipherId),
@@ -92,10 +101,37 @@ class KeePassWriteBackBuffer(
     }
 
     fun stageCipherDelete(cipherId: String) {
+        trackObsoletePendingUploads(
+            cipherId = cipherId,
+            previous = readCipher(cipherId),
+            next = null,
+        )
         ciphers[cipherId] = Staged(
             value = null,
             preImage = preImageCipher(cipherId),
         )
+    }
+
+    private fun trackObsoletePendingUploads(
+        cipherId: String,
+        previous: BitwardenCipher?,
+        next: BitwardenCipher?,
+    ) {
+        val candidates = obsoletePendingUploads
+            .getOrPut(cipherId, ::LinkedHashMap)
+        val nextUploadsByPath = next
+            ?.pendingAttachmentUploads()
+            .orEmpty()
+            .associateBy { it.path }
+        previous
+            ?.pendingAttachmentUploads()
+            .orEmpty()
+            .filterNot { it.path in nextUploadsByPath }
+            .forEach { candidates[it.path] = it }
+        nextUploadsByPath.keys.forEach(candidates::remove)
+        if (candidates.isEmpty()) {
+            obsoletePendingUploads.remove(cipherId)
+        }
     }
 
     fun stageFolderUpsert(folder: BitwardenFolder) {
@@ -138,9 +174,12 @@ class KeePassWriteBackBuffer(
      * pre-image captured at staging time; a row changed concurrently by the
      * user (outside this sync) is left untouched so their edit is not lost —
      * the next sync reconciles it against the already updated `.kdbx`.
+     *
+     * @return staged files that are no longer referenced after the transaction
+     * and may now be deleted.
      */
-    fun commit(db: Database) {
-        if (isEmpty) return
+    fun commit(db: Database): List<PendingUploadFile> {
+        if (isEmpty) return emptyList()
         db.cipherQueries.transaction {
             for ((id, staged) in folders) {
                 val current = db.folderQueries
@@ -179,5 +218,19 @@ class KeePassWriteBackBuffer(
                 }
             }
         }
+        return obsoletePendingUploads
+            .flatMap { (cipherId, candidatesByPath) ->
+                val referencedPaths = db.cipherQueries
+                    .getByCipherId(cipherId = cipherId)
+                    .executeAsOneOrNull()
+                    ?.data_
+                    ?.pendingAttachmentUploads()
+                    .orEmpty()
+                    .mapTo(mutableSetOf()) { it.path }
+                candidatesByPath
+                    .filterKeys { it !in referencedPaths }
+                    .values
+            }
+            .distinctBy { it.path }
     }
 }

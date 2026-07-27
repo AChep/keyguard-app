@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.KeePassSyncCoordinator
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -31,6 +32,7 @@ class SyncByKeePassTokenImpl(
     private val getPasswordStrength: GetPasswordStrength,
     private val json: Json,
     private val db: VaultDatabaseManager,
+    private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val webDavClientFactory: WebDavClientFactory,
     private val watchdog: Watchdog,
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
@@ -49,6 +51,7 @@ class SyncByKeePassTokenImpl(
         gpgKeyMetadataResolver = directDI.instanceOrNull(),
         json = directDI.instance(),
         db = directDI.instance(),
+        pendingUploadCoordinator = directDI.instance(),
         webDavClientFactory = KtorWebDavClientFactory(
             httpClient = directDI.instance(),
         ),
@@ -70,6 +73,7 @@ class SyncByKeePassTokenImpl(
                 gpgKeyMetadataResolver = gpgKeyMetadataResolver,
                 json = json,
                 db = db,
+                pendingUploadCoordinator = pendingUploadCoordinator,
                 webDavClientFactory = webDavClientFactory,
             )
             coordinator.sync(user)

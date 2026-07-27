@@ -39,6 +39,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops.KeePassCiph
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops.KeePassFolderSyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy.KeePassCipherSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy.KeePassFolderSyncStrategy
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -54,6 +55,7 @@ class KeePassSyncCoordinator(
     private val getPasswordStrength: GetPasswordStrength,
     private val json: Json,
     private val db: VaultDatabaseManager,
+    private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val webDavClientFactory: WebDavClientFactory? = null,
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
 ) {
@@ -178,6 +180,7 @@ class KeePassSyncCoordinator(
             base32Service = base32Service,
             base64Service = base64Service,
             fileService = fileService,
+            pendingUploadCoordinator = pendingUploadCoordinator,
             getPasswordStrength = getPasswordStrength,
             gpgKeyMetadataResolver = gpgKeyMetadataResolver,
             json = json,
@@ -352,7 +355,15 @@ class KeePassSyncCoordinator(
     ) {
         if (buffer.isEmpty) return
         db.mutate(TAG) { localDb ->
-            buffer.commit(localDb)
+            val obsoletePendingUploads = buffer.commit(localDb)
+            // Keep the database mutation lock until cleanup finishes so a
+            // concurrent edit cannot reintroduce one of these references
+            // between the final reference check and file deletion.
+            obsoletePendingUploads.forEach { pendingUpload ->
+                runCatching {
+                    pendingUploadCoordinator.delete(pendingUpload)
+                }
+            }
         }.bind()
         diagnostics.writeBackCommitted()
     }

@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass
 
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -74,6 +76,57 @@ class KeePassWriteBackBufferTest {
     }
 
     @Test
+    fun `commit reports a staged attachment after its local reference is removed`() {
+        val db = createTestDatabase()
+        insertAccount(db)
+        val pendingUpload = pendingUpload()
+        val original = testBitwardenCipher(cipherId = "c1").copy(
+            attachments = listOf(localAttachment(pendingUpload)),
+        )
+        insertLocalCipher(db, original)
+        val buffer = KeePassWriteBackBuffer(db)
+
+        buffer.stageCipherUpsert(
+            original.copy(attachments = emptyList()),
+        )
+
+        assertEquals(
+            listOf(pendingUpload),
+            buffer.commit(db),
+        )
+    }
+
+    @Test
+    fun `commit keeps a staged attachment referenced by a concurrent edit`() {
+        val db = createTestDatabase()
+        insertAccount(db)
+        val pendingUpload = pendingUpload()
+        val original = testBitwardenCipher(cipherId = "c1").copy(
+            attachments = listOf(localAttachment(pendingUpload)),
+        )
+        insertLocalCipher(db, original)
+        val buffer = KeePassWriteBackBuffer(db)
+
+        buffer.stageCipherUpsert(
+            original.copy(attachments = emptyList()),
+        )
+        insertLocalCipher(
+            db,
+            original.copy(name = "Concurrent edit"),
+        )
+
+        assertEquals(emptyList(), buffer.commit(db))
+        assertEquals(
+            listOf(localAttachment(pendingUpload)),
+            db.cipherQueries
+                .getByCipherId("c1")
+                .executeAsOne()
+                .data_
+                .attachments,
+        )
+    }
+
+    @Test
     fun `isEmpty reflects whether anything is staged`() {
         val db = createTestDatabase()
         insertAccount(db)
@@ -84,3 +137,20 @@ class KeePassWriteBackBufferTest {
         assertEquals(false, buffer.isEmpty)
     }
 }
+
+private fun pendingUpload() = PendingUploadFile(
+    path = "/private/pending/c1.a1.bin",
+    plainSize = 10L,
+    encryptedSize = 59L,
+)
+
+private fun localAttachment(
+    pendingUpload: PendingUploadFile,
+) = BitwardenCipher.Attachment.Local(
+    id = "a1",
+    url = "content://revoked/original",
+    fileName = "attachment.txt",
+    size = pendingUpload.plainSize,
+    keyBase64 = "attachment-key",
+    pendingUpload = pendingUpload,
+)

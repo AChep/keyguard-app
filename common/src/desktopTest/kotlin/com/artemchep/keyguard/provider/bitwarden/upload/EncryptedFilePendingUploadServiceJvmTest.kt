@@ -55,6 +55,13 @@ class EncryptedFilePendingUploadServiceJvmTest {
         assertFalse(source.exists())
         assertEquals(pendingRoot.resolve("send-1.bin").toString(), pendingUpload.path)
         assertContentEquals("plain".encodeToByteArray(), File(pendingUpload.path).readBytes())
+        assertContentEquals(
+            "plain".encodeToByteArray(),
+            service.readPlaintext(
+                pendingUpload = pendingUpload,
+                fileKey = "key".encodeToByteArray(),
+            ),
+        )
     }
 
     @Test

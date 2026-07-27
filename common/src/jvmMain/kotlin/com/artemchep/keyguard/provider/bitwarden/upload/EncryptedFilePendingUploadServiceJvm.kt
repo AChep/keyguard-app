@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
+import com.artemchep.keyguard.common.service.crypto.decode
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.platform.resolve
 import kotlinx.coroutines.Dispatchers
@@ -90,6 +91,21 @@ class EncryptedFilePendingUploadServiceJvm(
         fileService.delete(File(pendingUpload.path).toURI().toString())
         fileService.delete(File("${pendingUpload.path}.tmp").toURI().toString())
         fileService.delete(uploadedMarkerFile(pendingUpload).toURI().toString())
+    }
+
+    override suspend fun readPlaintext(
+        pendingUpload: PendingUploadFile,
+        fileKey: ByteArray,
+    ): ByteArray = withContext(Dispatchers.IO) {
+        File(pendingUpload.path)
+            .inputStream()
+            .use { encryptedInput ->
+                fileEncryptor
+                    .decode(encryptedInput, fileKey)
+                    .use { plaintextInput ->
+                        plaintextInput.readBytes()
+                    }
+            }
     }
 
     override suspend fun markUploaded(

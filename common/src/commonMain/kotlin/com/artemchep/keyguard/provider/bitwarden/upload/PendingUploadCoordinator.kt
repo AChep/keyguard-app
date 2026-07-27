@@ -2,13 +2,15 @@ package com.artemchep.keyguard.provider.bitwarden.upload
 
 /**
  * Coordinates the lifecycle of encrypted local files that must survive until a
- * later Bitwarden sync upload.
+ * later provider sync.
  *
  * A selected source file is staged immediately, before the local cipher/send
  * model is written. Staging encrypts the source bytes with the raw upload
  * encryption key and stores the resulting ciphertext in a deterministic local path
  * derived from [PendingUploadTarget]. The returned [PendingUploadFile] is then
- * embedded into the local model so sync can upload it later.
+ * embedded into the local model so sync can process it later. Bitwarden can
+ * upload the ciphertext directly, while providers such as KeePass can
+ * authenticate and decrypt it through [readPlaintext].
  *
  * Call [persist] around the database write that stores the model containing the
  * new pending uploads. If the write fails, [persist] removes newly staged files.
@@ -50,9 +52,9 @@ interface PendingUploadCoordinator {
     /**
      * Encrypts [sourceUri] into a local pending-upload file for [target].
      *
-     * The staged file is ready to upload as ciphertext. The caller remains
-     * responsible for saving the returned [PendingUploadFile] into the local
-     * cipher/send model and for wrapping that save in [persist].
+     * The caller remains responsible for saving the returned
+     * [PendingUploadFile] into the local cipher/send model and for wrapping
+     * that save in [persist].
      *
      * Example:
      * ```
@@ -78,6 +80,17 @@ interface PendingUploadCoordinator {
         sourceUri: String,
         fileKey: ByteArray,
     ): PendingUploadFile
+
+    /**
+     * Authenticates and decrypts a staged file for a provider that needs the
+     * original bytes during sync, such as a KeePass KDBX attachment write.
+     */
+    suspend fun readPlaintext(
+        pendingUpload: PendingUploadFile,
+        fileKey: ByteArray,
+    ): ByteArray = throw UnsupportedOperationException(
+        "Reading pending uploads is not supported on this platform.",
+    )
 
     /**
      * Deletes a staged upload file and any temporary sibling created during

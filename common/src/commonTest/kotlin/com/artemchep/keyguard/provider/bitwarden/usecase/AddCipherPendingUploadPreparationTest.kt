@@ -142,63 +142,48 @@ class AddCipherPendingUploadPreparationTest {
     }
 
     @Test
-    fun `keepass local attachments are not staged for bitwarden upload`() = runTest {
-        val removedPendingUpload = pendingUploadFile("/tmp/cipher-1.attachment-2.bin")
-        val requestAttachment = CreateRequest.Attachment.Local(
+    fun `existing unstaged attachment does not block edits when its source is unavailable`() = runTest {
+        val attachment = BitwardenCipher.Attachment.Local(
             id = "attachment-1",
-            uri = leParseUri("file:///tmp/report.pdf"),
-            name = "report.pdf",
+            url = "content://revoked/original",
+            fileName = "report.pdf",
             size = 111L,
+            keyBase64 = "attachment-key",
+            pendingUpload = null,
         )
-        val oldCipher = cipher(
-            attachments = listOf(
-                BitwardenCipher.Attachment.Local(
-                    id = "attachment-2",
-                    url = "file:///tmp/removed.pdf",
-                    fileName = "removed.pdf",
-                    size = null,
-                    keyBase64 = "removed-key",
-                    pendingUpload = removedPendingUpload,
-                ),
-            ),
+        val requestAttachment = CreateRequest.Attachment.Local(
+            id = attachment.id,
+            uri = leParseUri(attachment.url),
+            name = attachment.fileName,
+            size = attachment.size,
         )
         val coordinator = CipherTestPendingUploadCoordinator()
+
         val prepared = prepareCipherPendingUploads(
             request = createRequest(requestAttachment),
-            old = oldCipher,
-            cipher = cipher(
-                attachments = listOf(
-                    BitwardenCipher.Attachment.Local(
-                        id = "attachment-1",
-                        url = "file:///tmp/report.pdf",
-                        fileName = "report.pdf",
-                        size = 111L,
-                        keyBase64 = "attachment-key",
-                        pendingUpload = null,
-                    ),
-                ),
-            ),
+            old = cipher(attachments = listOf(attachment)),
+            cipher = cipher(attachments = listOf(attachment)),
             base64Service = CipherTestBase64Service,
             pendingUploadCoordinator = coordinator,
-            stagePendingUploads = false,
         )
 
-        assertEquals(emptyList(), coordinator.stageCalls)
-        assertEquals(emptyList(), prepared.createdPendingUploads)
-        assertEquals(listOf(removedPendingUpload), prepared.removedPendingUploads)
         assertEquals(
             listOf(
-                BitwardenCipher.Attachment.Local(
-                    id = "attachment-1",
-                    url = "file:///tmp/report.pdf",
-                    fileName = "report.pdf",
-                    size = 111L,
-                    keyBase64 = "attachment-key",
-                    pendingUpload = null,
+                CipherTestPendingUploadCoordinator.StageCall(
+                    target = PendingUploadTarget.CipherAttachment(
+                        accountId = "account-1",
+                        cipherId = "cipher-1",
+                        attachmentId = attachment.id,
+                    ),
+                    sourceUri = attachment.url,
+                    fileKey = "attachment-key",
                 ),
             ),
-            prepared.cipher.attachments,
+            coordinator.stageCalls,
         )
+        assertEquals(emptyList(), prepared.createdPendingUploads)
+        assertEquals(emptyList(), prepared.removedPendingUploads)
+        assertEquals(listOf(attachment), prepared.cipher.attachments)
     }
 
     @Test

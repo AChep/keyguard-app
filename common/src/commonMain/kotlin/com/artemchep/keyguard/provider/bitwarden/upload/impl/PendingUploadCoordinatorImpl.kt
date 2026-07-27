@@ -28,6 +28,14 @@ class PendingUploadCoordinatorImpl(
         fileKey = fileKey,
     )
 
+    override suspend fun readPlaintext(
+        pendingUpload: PendingUploadFile,
+        fileKey: ByteArray,
+    ): ByteArray = encryptedFilePendingUploadService.readPlaintext(
+        pendingUpload = pendingUpload,
+        fileKey = fileKey,
+    )
+
     override suspend fun delete(
         pendingUpload: PendingUploadFile,
     ) = encryptedFilePendingUploadService.delete(pendingUpload)

@@ -9,6 +9,13 @@ interface EncryptedFilePendingUploadService {
         fileKey: ByteArray,
     ): PendingUploadFile
 
+    suspend fun readPlaintext(
+        pendingUpload: PendingUploadFile,
+        fileKey: ByteArray,
+    ): ByteArray = throw UnsupportedOperationException(
+        "Reading pending uploads is not supported on this platform.",
+    )
+
     suspend fun markUploaded(
         pendingUpload: PendingUploadFile,
     )

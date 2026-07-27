@@ -25,13 +25,12 @@ import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.CipherSourceDataReconciler
-import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherAttachmentCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.crypto.keyBase64OrGenerate
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
-import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
@@ -55,7 +54,6 @@ class AddCipherImpl(
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver?,
     private val base64Service: Base64Service,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
-    private val tokenRepository: ServiceTokenRepository,
 ) : AddCipher {
     companion object {
         private const val TAG = "AddCipher.bitwarden"
@@ -71,7 +69,6 @@ class AddCipherImpl(
         gpgKeyMetadataResolver = directDI.instanceOrNull(),
         base64Service = directDI.instance(),
         pendingUploadCoordinator = directDI.instance(),
-        tokenRepository = directDI.instance(),
     )
 
     override fun invoke(
@@ -106,20 +103,9 @@ class AddCipherImpl(
                 request.copy(ownership = own)
             }
     }.flatMap { map ->
-        ioEffect {
-            map.values
-                .mapNotNull { it.ownership?.accountId }
-                .distinct()
-                .associateWith { accountId ->
-                    tokenRepository
-                        .getById(AccountId(accountId))
-                        .bind() !is KeePassToken
-                }
-        }.flatMap { stagePendingUploadsByAccountId ->
-            modifyDatabase { database ->
-                val dao = database.cipherQueries
-                val now = Clock.System.now()
-
+        modifyDatabase { database ->
+            val dao = database.cipherQueries
+            val now = Clock.System.now()
             val oldCiphersMap = map
                 .keys
                 .filterNotNull()
@@ -148,7 +134,6 @@ class AddCipherImpl(
                         cipher = cipher,
                         base64Service = base64Service,
                         pendingUploadCoordinator = pendingUploadCoordinator,
-                        stagePendingUploads = stagePendingUploadsByAccountId[cipher.accountId] ?: true,
                     )
                 }
             if (models.isEmpty()) {
@@ -187,7 +172,6 @@ class AddCipherImpl(
                 value = models
                     .map { it.cipher.cipherId },
             )
-            }
         }
     }.flatTap {
         val ciphersIdsToTrash = mutableSetOf<String>()
@@ -245,11 +229,14 @@ internal suspend fun prepareCipherPendingUploads(
     cipher: BitwardenCipher,
     base64Service: Base64Service,
     pendingUploadCoordinator: PendingUploadCoordinator,
-    stagePendingUploads: Boolean = true,
 ): PreparedCipher {
     val localRequestAttachmentsById = request.attachments
         .asSequence()
         .filterIsInstance<CreateRequest.Attachment.Local>()
+        .associateBy { it.id }
+    val oldLocalAttachmentsById = old?.attachments
+        .orEmpty()
+        .filterIsInstance<BitwardenCipher.Attachment.Local>()
         .associateBy { it.id }
     val oldPendingUploadsByPath = old?.attachments
         .orEmpty()
@@ -261,26 +248,6 @@ internal suspend fun prepareCipherPendingUploads(
             }
         }
         .toMap()
-
-    if (!stagePendingUploads) {
-        return PreparedCipher(
-            cipher = cipher.copy(
-                attachments = cipher.attachments
-                    .map { attachment ->
-                        when (attachment) {
-                            is BitwardenCipher.Attachment.Remote -> attachment
-                            is BitwardenCipher.Attachment.Local -> attachment.copy(
-                                pendingUpload = null,
-                            )
-                        }
-                    },
-            ),
-            createdPendingUploads = emptyList(),
-            removedPendingUploads = oldPendingUploadsByPath
-                .values
-                .toList(),
-        )
-    }
 
     val createdPendingUploads = mutableListOf<PendingUploadFile>()
     val attachments = try {
@@ -300,15 +267,24 @@ internal suspend fun prepareCipherPendingUploads(
                         val fileKey = requireNotNull(attachment.keyBase64) {
                             "A local cipher attachment must have an encryption key."
                         }.let(base64Service::decode)
-                        val stagedPendingUpload = pendingUploadCoordinator.stage(
-                            target = PendingUploadTarget.CipherAttachment(
-                                accountId = cipher.accountId,
-                                cipherId = cipher.cipherId,
-                                attachmentId = attachment.id,
-                            ),
-                            sourceUri = requestAttachment.uri.toString(),
-                            fileKey = fileKey,
-                        )
+                        val stagedPendingUpload = try {
+                            pendingUploadCoordinator.stage(
+                                target = PendingUploadTarget.CipherAttachment(
+                                    accountId = cipher.accountId,
+                                    cipherId = cipher.cipherId,
+                                    attachmentId = attachment.id,
+                                ),
+                                sourceUri = requestAttachment.uri.toString(),
+                                fileKey = fileKey,
+                            )
+                        } catch (e: Throwable) {
+                            e.throwIfCancellation()
+                            val oldAttachment = oldLocalAttachmentsById[attachment.id]
+                            if (oldAttachment != null && oldAttachment.pendingUpload == null) {
+                                return@map attachment
+                            }
+                            throw e
+                        }
                         createdPendingUploads += stagedPendingUpload
                         attachment.copy(
                             size = attachment.size ?: stagedPendingUpload.plainSize,

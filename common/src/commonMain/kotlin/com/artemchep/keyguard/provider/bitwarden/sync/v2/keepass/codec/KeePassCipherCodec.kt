@@ -33,6 +33,7 @@ import com.artemchep.keyguard.core.store.bitwarden.withoutCanonicalPath
 import com.artemchep.keyguard.core.store.bitwarden.withoutIdentityCanonicalPaths
 import com.artemchep.keyguard.feature.fileupload.KEEPASS_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.provider.bitwarden.usecase.resolveGpgMetadata
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
@@ -89,6 +90,7 @@ class KeePassCipherCodec(
     private val base32Service: Base32Service,
     private val base64Service: Base64Service,
     private val fileService: FileService,
+    private val pendingUploadCoordinator: PendingUploadCoordinator,
     private val getPasswordStrength: GetPasswordStrength,
     private val json: Json,
     private val gpgKeyMetadataResolver: GpgKeyMetadataResolver? = null,
@@ -766,7 +768,7 @@ class KeePassCipherCodec(
         local.attachments.forEachIndexed { index, attachment ->
             if (attachment !is BitwardenCipher.Attachment.Local) return@forEachIndexed
 
-            val data = readAttachmentData(attachment.url)
+            val data = readAttachmentData(attachment)
             val binary = BinaryData.Uncompressed(
                 memoryProtection = false,
                 rawContent = data,
@@ -836,7 +838,28 @@ class KeePassCipherCodec(
         return binaryIndex.findByContentSha256(hash)
     }
 
-    private fun readAttachmentData(uri: String): ByteArray =
+    private suspend fun readAttachmentData(
+        attachment: BitwardenCipher.Attachment.Local,
+    ): ByteArray {
+        val pendingUpload = attachment.pendingUpload
+            ?: return readAttachmentDataFromUri(attachment.url)
+        require(pendingUpload.plainSize <= KEEPASS_FILE_UPLOAD_MAX_BYTES) {
+            "KeePass attachment file must be 500 MB or smaller."
+        }
+        val fileKey = requireNotNull(attachment.keyBase64) {
+            "A staged KeePass attachment must have an encryption key."
+        }.let(base64Service::decode)
+        val data = pendingUploadCoordinator.readPlaintext(
+            pendingUpload = pendingUpload,
+            fileKey = fileKey,
+        )
+        require(data.size.toLong() == pendingUpload.plainSize) {
+            "Staged KeePass attachment size does not match its metadata."
+        }
+        return data
+    }
+
+    private fun readAttachmentDataFromUri(uri: String): ByteArray =
         fileService.readFromFile(uri).use { source ->
             val buffer = ByteArray(ATTACHMENT_BUFFER_SIZE)
             val output = Buffer()

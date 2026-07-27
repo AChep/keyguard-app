@@ -32,9 +32,6 @@ import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPContentSignerBuilder
 import java.io.ByteArrayInputStream
-import java.nio.file.Files
-import java.nio.file.Path
-import java.security.SecureRandom
 import java.security.Security
 import java.util.Date
 import kotlin.io.path.writeText
@@ -1547,8 +1544,7 @@ class GpgKeyExpirationServiceJvmTest {
         target: Instant,
     ) {
         if (!GpgCliTestSupport.isGpgAvailable()) return
-        val home = Path.of("/tmp", "kg-expiry-${randomToken()}")
-        Files.createDirectories(home)
+        val home = GpgCliTestSupport.createHome("kg-expiry-")
         try {
             home.resolve("gpg-agent.conf").writeText("allow-loopback-pinentry\n")
             home.resolve("gpg.conf").writeText("pinentry-mode loopback\n")
@@ -1567,12 +1563,7 @@ class GpgKeyExpirationServiceJvmTest {
             assertTrue(expiries.isNotEmpty(), listing.stdout)
             assertTrue(expiries.all { kotlin.math.abs(it - expected) <= 1L }, listing.stdout)
         } finally {
-            runCatching {
-                ProcessBuilder("gpgconf", "--kill", "gpg-agent")
-                    .also { it.environment()["GNUPGHOME"] = home.toString() }
-                    .start()
-                    .waitFor()
-            }
+            runCatching { GpgCliTestSupport.killAgent(home) }
             runCatching { home.toFile().deleteRecursively() }
         }
     }
@@ -1583,8 +1574,7 @@ class GpgKeyExpirationServiceJvmTest {
         target: Instant,
     ) {
         if (!GpgCliTestSupport.isGpgAvailable()) return
-        val home = Path.of("/tmp", "kg-expiry-merge-${randomToken()}")
-        Files.createDirectories(home)
+        val home = GpgCliTestSupport.createHome("kg-expiry-merge-")
         try {
             home.resolve("gpg-agent.conf").writeText("allow-loopback-pinentry\n")
             home.resolve("gpg.conf").writeText("pinentry-mode loopback\n")
@@ -1617,20 +1607,9 @@ class GpgKeyExpirationServiceJvmTest {
             assertTrue(expiries.isNotEmpty(), listing.stdout)
             assertTrue(expiries.all { kotlin.math.abs(it - expected) <= 1L }, listing.stdout)
         } finally {
-            runCatching {
-                ProcessBuilder("gpgconf", "--kill", "gpg-agent")
-                    .also { it.environment()["GNUPGHOME"] = home.toString() }
-                    .start()
-                    .waitFor()
-            }
+            runCatching { GpgCliTestSupport.killAgent(home) }
             runCatching { home.toFile().deleteRecursively() }
         }
-    }
-
-    private fun randomToken(): String {
-        val bytes = ByteArray(6)
-        SecureRandom().nextBytes(bytes)
-        return bytes.joinToString("") { "%02x".format(it) }
     }
 
     private companion object {

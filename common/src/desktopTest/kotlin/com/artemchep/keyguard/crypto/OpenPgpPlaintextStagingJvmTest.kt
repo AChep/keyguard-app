@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.crypto
 
+import com.sun.jna.Platform
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
@@ -174,7 +175,9 @@ class OpenPgpPlaintextStagingJvmTest {
         try {
             assertTrue(file.name.startsWith("keyguard-private-"))
             assertFalse(file.name.contains("openpgp", ignoreCase = true))
-            if ("posix" in FileSystems.getDefault().supportedFileAttributeViews()) {
+            if (Platform.isWindows()) {
+                assertWindowsOwnerOnlyDacl(file.toPath())
+            } else if ("posix" in FileSystems.getDefault().supportedFileAttributeViews()) {
                 assertEquals(
                     setOf(
                         PosixFilePermission.OWNER_READ,

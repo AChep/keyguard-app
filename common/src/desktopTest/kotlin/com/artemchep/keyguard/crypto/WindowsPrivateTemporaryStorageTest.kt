@@ -10,6 +10,7 @@ import kotlinx.io.readByteArray
 import java.io.IOException
 import java.nio.channels.FileChannel
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.StandardOpenOption.READ
 import java.nio.file.attribute.AclEntryPermission.DELETE
 import java.nio.file.attribute.AclEntryPermission.READ_DATA
@@ -54,21 +55,7 @@ class WindowsPrivateTemporaryStorageTest {
             val file = createWindowsPrivateTemporaryFile(directory)
             try {
                 assertTrue(file.name.startsWith("keyguard-private-"))
-                val path = file.toPath()
-                val owner = Files.getOwner(path)
-                val acl = checkNotNull(
-                    Files.getFileAttributeView(path, AclFileAttributeView::class.java),
-                ).acl
-
-                assertEquals(1, acl.size)
-                with(acl.single()) {
-                    assertEquals(ALLOW, type())
-                    assertEquals(owner, principal())
-                    assertTrue(flags().isEmpty())
-                    assertTrue(READ_DATA in permissions())
-                    assertTrue(WRITE_DATA in permissions())
-                    assertTrue(DELETE in permissions())
-                }
+                assertWindowsOwnerOnlyDacl(file.toPath())
             } finally {
                 file.delete()
             }
@@ -115,5 +102,22 @@ class WindowsPrivateTemporaryStorageTest {
         } finally {
             directory.deleteRecursively()
         }
+    }
+}
+
+internal fun assertWindowsOwnerOnlyDacl(path: Path) {
+    val owner = Files.getOwner(path)
+    val acl = checkNotNull(
+        Files.getFileAttributeView(path, AclFileAttributeView::class.java),
+    ).acl
+
+    assertEquals(1, acl.size)
+    with(acl.single()) {
+        assertEquals(ALLOW, type())
+        assertEquals(owner, principal())
+        assertTrue(flags().isEmpty())
+        assertTrue(READ_DATA in permissions())
+        assertTrue(WRITE_DATA in permissions())
+        assertTrue(DELETE in permissions())
     }
 }

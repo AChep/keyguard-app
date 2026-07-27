@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.crypto
 
 import com.artemchep.keyguard.crypto.NativeGpgKeyImportService
 import com.artemchep.keyguard.crypto.armored
+import com.artemchep.keyguard.crypto.canonicalGpgArmorForComparison
 import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
 import org.bouncycastle.bcpg.HashAlgorithmTags
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
@@ -49,11 +50,10 @@ class GpgKeyImportServiceJvmTest {
         assertTrue(result is GpgKeyImportResult.Success, "expected Success, got $result")
         val key = result.gpgKey
         assertEquals("", key.privateKeyArmored)
-        val neutralPublicKeyArmored = publicKeyArmored.replace(
-            oldValue = "Version: BCPG v1.84\n",
-            newValue = "",
+        assertEquals(
+            publicKeyArmored.canonicalGpgArmorForComparison(),
+            key.publicKeyArmored.canonicalGpgArmorForComparison(),
         )
-        assertEquals(neutralPublicKeyArmored, key.publicKeyArmored)
         assertFalse(key.publicKeyArmored.contains("Version: BCPG"))
         assertEquals("D0BBCFBB250D3BB0658E5384F83D947D29EFECF7", key.fingerprint)
         assertTrue(key.metadata.keys.any { it.canSign })

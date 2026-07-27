@@ -8,9 +8,7 @@ import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
 import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
-import java.security.SecureRandom
 import java.security.Security
 import kotlin.io.path.writeText
 import kotlin.test.BeforeTest
@@ -177,8 +175,7 @@ class GpgKeyGeneratorJvmTest {
         // A short base path keeps the gpg-agent's unix socket well under the ~104-char
         // limit (a long system temp path would make the agent fail to bind, which is
         // needed to store the passphrase-less secret key on import).
-        val home = Path.of("/tmp", "kg-keygrip-${randomToken()}")
-        Files.createDirectories(home)
+        val home = GpgCliTestSupport.createHome("kg-keygrip-")
         runCatching {
             Files.setPosixFilePermissions(
                 home,
@@ -221,20 +218,9 @@ class GpgKeyGeneratorJvmTest {
                 )
             }
         } finally {
-            runCatching {
-                ProcessBuilder("gpgconf", "--kill", "gpg-agent")
-                    .also { it.environment()["GNUPGHOME"] = home.toString() }
-                    .start()
-                    .waitFor()
-            }
+            runCatching { GpgCliTestSupport.killAgent(home) }
             runCatching { home.toFile().deleteRecursively() }
         }
-    }
-
-    private fun randomToken(): String {
-        val bytes = ByteArray(6)
-        SecureRandom().nextBytes(bytes)
-        return bytes.joinToString("") { "%02x".format(it) }
     }
 
     /**

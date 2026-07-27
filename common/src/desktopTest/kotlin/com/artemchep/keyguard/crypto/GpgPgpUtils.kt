@@ -37,6 +37,10 @@ internal fun PGPKeyRing.armored(): String {
     return out.toString(Charsets.UTF_8)
 }
 
+internal fun String.canonicalGpgArmorForComparison(): String =
+    replace("\r\n", "\n")
+        .replace(GPG_ARMOR_VERSION_HEADER, "")
+
 internal fun PGPPublicKey.fingerprintHex(): String =
     fingerprint.toHex().uppercase()
 
@@ -97,6 +101,8 @@ private fun Sequence<PGPPublicKey>.requireSupportedGpgKeyVersions() {
         ?: return
     throw GpgUnsupportedKeyVersionException(legacyKey.version)
 }
+
+private val GPG_ARMOR_VERSION_HEADER = Regex("(?m)^Version:[^\\n]*\\n")
 
 /**
  * Parses independent public-key candidates without letting one malformed vault item poison the

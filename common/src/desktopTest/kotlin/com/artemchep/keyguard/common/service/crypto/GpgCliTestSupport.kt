@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.crypto
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
@@ -25,10 +26,19 @@ object GpgCliTestSupport {
         home: Path?,
         vararg args: String,
     ): GpgResult {
-        val process = ProcessBuilder(listOf("gpg", *args))
+        val normalizedHome = home?.toAbsolutePath()?.normalize()
+        val command = buildList {
+            add("gpg")
+            if (normalizedHome != null) {
+                add("--homedir")
+                add(normalizedHome.toString())
+            }
+            addAll(args)
+        }
+        val process = ProcessBuilder(command)
             .apply {
-                if (home != null) {
-                    environment()["GNUPGHOME"] = home.toString()
+                if (normalizedHome != null) {
+                    environment()["GNUPGHOME"] = normalizedHome.toString()
                 }
             }
             .start()
@@ -42,5 +52,41 @@ object GpgCliTestSupport {
             stdout = process.inputStream.readBytes().decodeToString(),
             stderr = process.errorStream.readBytes().decodeToString(),
         )
+    }
+
+    fun createHome(prefix: String): Path {
+        val shortTempRoot = Path.of("/tmp")
+        val home = if (
+            shortTempRoot.isAbsolute &&
+            Files.isDirectory(shortTempRoot) &&
+            Files.isWritable(shortTempRoot)
+        ) {
+            Files.createTempDirectory(shortTempRoot, prefix)
+        } else {
+            Files.createTempDirectory(prefix)
+        }
+        return home.toAbsolutePath().normalize()
+    }
+
+    fun killAgent(home: Path) {
+        val normalizedHome = home.toAbsolutePath().normalize()
+        val process = ProcessBuilder(
+            "gpgconf",
+            "--homedir",
+            normalizedHome.toString(),
+            "--kill",
+            "gpg-agent",
+        )
+            .apply {
+                environment()["GNUPGHOME"] = normalizedHome.toString()
+            }
+            .start()
+        if (!process.waitFor(30, TimeUnit.SECONDS)) {
+            process.destroyForcibly()
+            throw AssertionError("gpgconf timed out while stopping gpg-agent")
+        }
+        check(process.exitValue() == 0) {
+            process.errorStream.readBytes().decodeToString()
+        }
     }
 }

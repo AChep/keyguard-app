@@ -61,11 +61,11 @@ import kotlin.time.Instant
  * Permanent differential coverage for OpenPGP read behavior.
  *
  * The oracle below preserves the BC 1.84 read behavior in test-only form. The native and
- * BC results are compared as complete domain DTOs. ASCII-armor `Version:` headers are removed
- * because rPGP intentionally emits a different producer label; packet bytes, per-certificate
- * packet ordering, CRC, and all other armor remain exact. The designated-revoker collection
- * comparison additionally sorts complete certificate DTOs by fingerprint because BC's
- * `getKeyRings()` exposes `HashMap` iteration order.
+ * BC results are compared as complete domain DTOs. ASCII-armor `Version:` headers are removed,
+ * and CRLF is canonicalized to LF because BC uses the platform line separator while rPGP emits
+ * LF. Packet bytes, per-certificate packet ordering, CRC, and all other armor remain exact. The
+ * designated-revoker collection comparison additionally sorts complete certificate DTOs by
+ * fingerprint because BC's `getKeyRings()` exposes `HashMap` iteration order.
  * The repository has no checked-in OpenPGP v6 certificate fixture yet; the existing
  * RSA, legacy Curve25519, and NIST ECDSA fixtures are all exercised here.
  */
@@ -519,12 +519,12 @@ class OpenPgpReadBouncyCastleDifferentialTest {
         val expected =
             BouncyCastleParserOracle
                 .parse(armored)
-                .withoutArmorVersionHeader()
+                .withCanonicalArmorForComparison()
                 .sortKeysByFingerprintIf(sortKeysByFingerprint)
         val actual =
             nativeParser
                 .parse(armored)
-                .withoutArmorVersionHeader()
+                .withCanonicalArmorForComparison()
                 .sortKeysByFingerprintIf(sortKeysByFingerprint)
         assertEquals(
             expected = expected,
@@ -1100,7 +1100,7 @@ private object BouncyCastleVerificationOracle {
         JcaPGPContentVerifierBuilderProvider().setProvider(gpgBouncyCastleProvider)
 }
 
-private fun GpgPublicKeyParseResult.withoutArmorVersionHeader(): GpgPublicKeyParseResult =
+private fun GpgPublicKeyParseResult.withCanonicalArmorForComparison(): GpgPublicKeyParseResult =
     when (this) {
         is GpgPublicKeyParseResult.Error -> {
             this
@@ -1111,7 +1111,7 @@ private fun GpgPublicKeyParseResult.withoutArmorVersionHeader(): GpgPublicKeyPar
                 keys =
                     keys.map { key ->
                         key.copy(
-                            publicKeyArmored = key.publicKeyArmored.replace(ARMOR_VERSION_HEADER, ""),
+                            publicKeyArmored = key.publicKeyArmored.canonicalGpgArmorForComparison(),
                         )
                     },
             )
@@ -1192,5 +1192,3 @@ private fun armoredCollection(vararg rings: PGPPublicKeyRing): String {
     }
     return output.toString(Charsets.UTF_8)
 }
-
-private val ARMOR_VERSION_HEADER = Regex("(?m)^Version:[^\\r\\n]*(?:\\r?\\n)")

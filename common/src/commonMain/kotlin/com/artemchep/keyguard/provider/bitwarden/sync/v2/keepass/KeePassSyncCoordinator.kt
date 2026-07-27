@@ -40,6 +40,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops.KeePassFold
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy.KeePassCipherSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy.KeePassFolderSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
+import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -359,11 +360,7 @@ class KeePassSyncCoordinator(
             // Keep the database mutation lock until cleanup finishes so a
             // concurrent edit cannot reintroduce one of these references
             // between the final reference check and file deletion.
-            obsoletePendingUploads.forEach { pendingUpload ->
-                runCatching {
-                    pendingUploadCoordinator.delete(pendingUpload)
-                }
-            }
+            pendingUploadCoordinator.deleteBestEffort(obsoletePendingUploads)
         }.bind()
         diagnostics.writeBackCommitted()
     }

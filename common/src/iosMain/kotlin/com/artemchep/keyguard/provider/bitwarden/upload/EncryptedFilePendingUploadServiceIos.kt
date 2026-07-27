@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
+import kotlin.time.Instant
+
 object EncryptedFilePendingUploadServiceIos : EncryptedFilePendingUploadService {
     override suspend fun stage(
         accountId: String,
@@ -17,5 +19,13 @@ object EncryptedFilePendingUploadServiceIos : EncryptedFilePendingUploadService 
     override suspend fun isUploaded(pendingUpload: PendingUploadFile): Boolean = false
 
     override suspend fun delete(pendingUpload: PendingUploadFile) {
+    }
+
+    override suspend fun sweepOrphans(
+        accountId: String,
+        namespace: String,
+        referencedPaths: Set<String>,
+        olderThan: Instant,
+    ) {
     }
 }

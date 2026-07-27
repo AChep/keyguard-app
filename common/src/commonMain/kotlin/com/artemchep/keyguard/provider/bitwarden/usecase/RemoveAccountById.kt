@@ -6,14 +6,17 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.parallel
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AccountTask
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.usecase.unit
-import com.artemchep.keyguard.common.service.file.FileService
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadGarbageCollector
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -25,6 +28,7 @@ class RemoveAccountByIdImpl(
     private val fileService: FileService,
     private val watchdog: Watchdog,
     private val markBackupAsDirty: MarkBackupAsDirty,
+    private val pendingUploadGarbageCollector: PendingUploadGarbageCollector,
 ) : RemoveAccountById {
     companion object {
         private const val TAG = "RemoveAccountById.bitwarden"
@@ -35,6 +39,7 @@ class RemoveAccountByIdImpl(
         fileService = directDI.instance(),
         watchdog = directDI.instance(),
         markBackupAsDirty = directDI.instance(),
+        pendingUploadGarbageCollector = directDI.instance(),
     )
 
     override fun invoke(
@@ -72,6 +77,11 @@ class RemoveAccountByIdImpl(
                 val dao = database.accountQueries
                 dao.deleteByAccountId(accountId.id)
             }.bind()
+            withContext(NonCancellable) {
+                pendingUploadGarbageCollector
+                    .purge(accountId.id)
+                    .bind()
+            }
             markBackupAsDirty()
                 .bind()
         }

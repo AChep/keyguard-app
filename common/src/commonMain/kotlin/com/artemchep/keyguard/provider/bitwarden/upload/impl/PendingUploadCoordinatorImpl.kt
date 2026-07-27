@@ -4,8 +4,10 @@ import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUplo
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
+import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import kotlin.time.Instant
 
 class PendingUploadCoordinatorImpl(
     private val encryptedFilePendingUploadService: EncryptedFilePendingUploadService,
@@ -48,28 +50,28 @@ class PendingUploadCoordinatorImpl(
         pendingUpload: PendingUploadFile,
     ) = encryptedFilePendingUploadService.isUploaded(pendingUpload)
 
+    override suspend fun sweepOrphans(
+        accountId: String,
+        namespace: String,
+        referencedPaths: Set<String>,
+        olderThan: Instant,
+    ) = encryptedFilePendingUploadService.sweepOrphans(
+        accountId = accountId,
+        namespace = namespace,
+        referencedPaths = referencedPaths,
+        olderThan = olderThan,
+    )
+
     override suspend fun <T> persist(
         createdPendingUploads: Collection<PendingUploadFile>,
         removedPendingUploads: Collection<PendingUploadFile>,
         block: suspend () -> T,
     ): T = try {
         block().also {
-            removedPendingUploads.forEach { pendingUpload ->
-                deleteBestEffort(pendingUpload)
-            }
+            deleteBestEffort(removedPendingUploads)
         }
     } catch (e: Throwable) {
-        createdPendingUploads.forEach { pendingUpload ->
-            deleteBestEffort(pendingUpload)
-        }
+        deleteBestEffort(createdPendingUploads)
         throw e
-    }
-
-    private suspend fun deleteBestEffort(
-        pendingUpload: PendingUploadFile,
-    ) {
-        runCatching {
-            delete(pendingUpload)
-        }
     }
 }

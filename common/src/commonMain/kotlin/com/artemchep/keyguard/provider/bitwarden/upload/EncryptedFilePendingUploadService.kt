@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
+import kotlin.time.Instant
+
 interface EncryptedFilePendingUploadService {
     suspend fun stage(
         accountId: String,
@@ -26,5 +28,17 @@ interface EncryptedFilePendingUploadService {
 
     suspend fun delete(
         pendingUpload: PendingUploadFile,
+    )
+
+    /**
+     * Deletes staged-file artifacts in one account namespace when their base
+     * upload path is not referenced by local state and every sibling is older
+     * than [olderThan].
+     */
+    suspend fun sweepOrphans(
+        accountId: String,
+        namespace: String,
+        referencedPaths: Set<String>,
+        olderThan: Instant,
     )
 }

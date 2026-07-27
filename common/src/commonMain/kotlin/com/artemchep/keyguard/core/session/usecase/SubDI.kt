@@ -427,6 +427,8 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanio
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountUseCase
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadGarbageCollector
+import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadGarbageCollectorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.SyncByBitwardenTokenV2Impl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassToken
@@ -1171,6 +1173,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<SyncById> {
         SyncByIdImpl(this)
+    }
+    bindSingleton<PendingUploadGarbageCollector> {
+        PendingUploadGarbageCollectorImpl(this)
     }
     bindSingleton<SyncByToken> {
         SyncByTokenImpl(this)

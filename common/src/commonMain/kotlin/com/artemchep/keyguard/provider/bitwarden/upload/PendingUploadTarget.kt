@@ -2,7 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.upload
 
 /**
  * Stable location descriptor for a file that is staged locally before it is
- * uploaded to Bitwarden server.
+ * uploaded or written to the remote provider.
  *
  * A target is not the remote upload URL. It only describes where Keyguard keeps
  * the encrypted pending file on local storage. [namespace] separates unrelated
@@ -18,8 +18,8 @@ package com.artemchep.keyguard.provider.bitwarden.upload
  *     attachmentId = "attachment-1",
  * )
  *
- * // Staged under:
- * // account-1 / cipher_attachment_uploads / cipher-1.attachment-1.bin
+ * // Staged in account-1's cipher_attachment_uploads namespace as:
+ * // cipher-1.attachment-1.bin
  * pendingUploadCoordinator.stage(
  *     target = target,
  *     sourceUri = "content://documents/document/42",
@@ -68,8 +68,12 @@ sealed interface PendingUploadTarget {
         val cipherId: String,
         val attachmentId: String,
     ) : PendingUploadTarget {
-        override val namespace: String = "cipher_attachment_uploads"
+        override val namespace: String = NAMESPACE
         override val fileId: String = "$cipherId.$attachmentId"
+
+        companion object {
+            const val NAMESPACE = "cipher_attachment_uploads"
+        }
     }
 
     /**
@@ -90,7 +94,23 @@ sealed interface PendingUploadTarget {
         override val accountId: String,
         val sendId: String,
     ) : PendingUploadTarget {
-        override val namespace: String = "send_uploads"
+        override val namespace: String = NAMESPACE
         override val fileId: String = sendId
+
+        companion object {
+            const val NAMESPACE = "send_uploads"
+        }
+    }
+
+    companion object {
+        /**
+         * Every namespace a staged upload can live in. Maintenance passes that
+         * must cover all staged files iterate this list, so a new target type
+         * has to be added here to be swept.
+         */
+        val NAMESPACES = listOf(
+            CipherAttachment.NAMESPACE,
+            SendFile.NAMESPACE,
+        )
     }
 }

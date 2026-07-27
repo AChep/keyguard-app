@@ -34,6 +34,7 @@ import com.artemchep.keyguard.core.store.bitwarden.withoutIdentityCanonicalPaths
 import com.artemchep.keyguard.feature.fileupload.KEEPASS_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.provider.bitwarden.usecase.resolveGpgMetadata
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
+import com.artemchep.keyguard.provider.bitwarden.upload.useAndClear
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlinx.serialization.json.Json
@@ -849,10 +850,12 @@ class KeePassCipherCodec(
         val fileKey = requireNotNull(attachment.keyBase64) {
             "A staged KeePass attachment must have an encryption key."
         }.let(base64Service::decode)
-        val data = pendingUploadCoordinator.readPlaintext(
-            pendingUpload = pendingUpload,
-            fileKey = fileKey,
-        )
+        val data = fileKey.useAndClear { borrowedFileKey ->
+            pendingUploadCoordinator.readPlaintext(
+                pendingUpload = pendingUpload,
+                fileKey = borrowedFileKey,
+            )
+        }
         require(data.size.toLong() == pendingUpload.plainSize) {
             "Staged KeePass attachment size does not match its metadata."
         }

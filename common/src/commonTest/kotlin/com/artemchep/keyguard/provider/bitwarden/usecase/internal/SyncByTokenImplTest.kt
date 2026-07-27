@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadGarbageCollector
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -182,9 +183,55 @@ class SyncByTokenImplTest {
         assertEquals(2, delegate.invocationCount)
     }
 
+    @Test
+    fun `successful sync sweeps pending uploads for that account`() = runTest {
+        val delegate = ControlledSync()
+        val garbageCollector = RecordingPendingUploadGarbageCollector()
+        val sync = syncByToken(
+            delegate = delegate,
+            syncScope = this,
+            pendingUploadGarbageCollector = garbageCollector,
+        )
+        val job = async {
+            sync(keePassToken(id = "keepass-account")).bind()
+        }
+        runCurrent()
+        val invocation = delegate.started.receive()
+
+        invocation.result.complete(Unit)
+        job.await()
+
+        assertEquals(listOf("keepass-account"), garbageCollector.accountIds)
+    }
+
+    @Test
+    fun `failed sync does not sweep pending uploads`() = runTest {
+        val delegate = ControlledSync()
+        val garbageCollector = RecordingPendingUploadGarbageCollector()
+        val sync = syncByToken(
+            delegate = delegate,
+            syncScope = this,
+            pendingUploadGarbageCollector = garbageCollector,
+        )
+        val job = async {
+            runCatching {
+                sync(bitwardenToken(id = "bitwarden-account")).bind()
+            }
+        }
+        runCurrent()
+        val invocation = delegate.started.receive()
+
+        invocation.result.completeExceptionally(IllegalStateException("sync failed"))
+        assertTrue(job.await().isFailure)
+
+        assertTrue(garbageCollector.accountIds.isEmpty())
+    }
+
     private fun syncByToken(
         delegate: ControlledSync,
         syncScope: CoroutineScope,
+        pendingUploadGarbageCollector: PendingUploadGarbageCollector =
+            RecordingPendingUploadGarbageCollector(),
     ) = SyncByTokenImpl(
         syncByBitwardenToken =
             object : SyncByBitwardenToken {
@@ -194,6 +241,7 @@ class SyncByTokenImplTest {
             object : SyncByKeePassToken {
                 override fun invoke(user: KeePassToken): IO<Unit> = delegate.sync(user)
             },
+        pendingUploadGarbageCollector = pendingUploadGarbageCollector,
         syncScope = syncScope,
     )
 
@@ -216,6 +264,20 @@ class SyncByTokenImplTest {
         val token: ServiceToken,
         val result: CompletableDeferred<Unit> = CompletableDeferred(),
     )
+
+    private class RecordingPendingUploadGarbageCollector : PendingUploadGarbageCollector {
+        val accountIds = mutableListOf<String>()
+
+        override fun invoke(
+            accountId: String,
+        ): IO<Unit> = {
+            accountIds += accountId
+        }
+
+        override fun purge(
+            accountId: String,
+        ): IO<Unit> = error("Not used by this test")
+    }
 }
 
 private fun bitwardenToken(

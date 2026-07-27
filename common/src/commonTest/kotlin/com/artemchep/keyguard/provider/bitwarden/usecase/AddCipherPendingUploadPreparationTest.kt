@@ -5,9 +5,12 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.platform.leParseUri
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
+import com.artemchep.keyguard.provider.bitwarden.upload.assertKeyCleared
+import com.artemchep.keyguard.provider.bitwarden.upload.StagingPendingUploadCoordinator
+import com.artemchep.keyguard.provider.bitwarden.upload.pendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -52,7 +55,7 @@ class AddCipherPendingUploadPreparationTest {
             base64Service = CipherTestBase64Service,
         )
 
-        val coordinator = CipherTestPendingUploadCoordinator()
+        val coordinator = StagingPendingUploadCoordinator()
         val prepared = prepareCipherPendingUploads(
             request = createRequest(requestAttachment),
             old = oldCipher,
@@ -88,7 +91,7 @@ class AddCipherPendingUploadPreparationTest {
             plainSize = 111L,
             encryptedSize = 222L,
         )
-        val coordinator = CipherTestPendingUploadCoordinator(
+        val coordinator = StagingPendingUploadCoordinator(
             stagedUploads = listOf(pendingUpload),
         )
         val prepared = prepareCipherPendingUploads(
@@ -112,7 +115,7 @@ class AddCipherPendingUploadPreparationTest {
 
         assertEquals(
             listOf(
-                CipherTestPendingUploadCoordinator.StageCall(
+                StagingPendingUploadCoordinator.StageCall(
                     target = PendingUploadTarget.CipherAttachment(
                         accountId = "account-1",
                         cipherId = "cipher-1",
@@ -124,6 +127,7 @@ class AddCipherPendingUploadPreparationTest {
             ),
             coordinator.stageCalls,
         )
+        assertKeyCleared(coordinator.stageFileKeyRefs.single())
         assertEquals(listOf(pendingUpload), prepared.createdPendingUploads)
         assertEquals(emptyList(), prepared.removedPendingUploads)
         assertEquals(
@@ -142,7 +146,7 @@ class AddCipherPendingUploadPreparationTest {
     }
 
     @Test
-    fun `existing unstaged attachment does not block edits when its source is unavailable`() = runTest {
+    fun `existing URI-only attachment is not backfilled when staging could succeed`() = runTest {
         val attachment = BitwardenCipher.Attachment.Local(
             id = "attachment-1",
             url = "content://revoked/original",
@@ -157,7 +161,11 @@ class AddCipherPendingUploadPreparationTest {
             name = attachment.fileName,
             size = attachment.size,
         )
-        val coordinator = CipherTestPendingUploadCoordinator()
+        val coordinator = StagingPendingUploadCoordinator(
+            stagedUploads = listOf(
+                pendingUploadFile("/tmp/cipher-1.attachment-1.bin"),
+            ),
+        )
 
         val prepared = prepareCipherPendingUploads(
             request = createRequest(requestAttachment),
@@ -167,29 +175,203 @@ class AddCipherPendingUploadPreparationTest {
             pendingUploadCoordinator = coordinator,
         )
 
-        assertEquals(
-            listOf(
-                CipherTestPendingUploadCoordinator.StageCall(
-                    target = PendingUploadTarget.CipherAttachment(
-                        accountId = "account-1",
-                        cipherId = "cipher-1",
-                        attachmentId = attachment.id,
-                    ),
-                    sourceUri = attachment.url,
-                    fileKey = "attachment-key",
-                ),
-            ),
-            coordinator.stageCalls,
-        )
+        assertEquals(emptyList(), coordinator.stageCalls)
+        assertEquals(emptyList(), coordinator.stageFileKeyRefs)
         assertEquals(emptyList(), prepared.createdPendingUploads)
         assertEquals(emptyList(), prepared.removedPendingUploads)
         assertEquals(listOf(attachment), prepared.cipher.attachments)
     }
 
     @Test
+    fun `renaming existing URI-only attachment does not stage it`() = runTest {
+        val oldAttachment = BitwardenCipher.Attachment.Local(
+            id = "attachment-1",
+            url = "content://legacy/original",
+            fileName = "old-name.pdf",
+            size = 111L,
+            keyBase64 = "attachment-key",
+            pendingUpload = null,
+        )
+        val renamedAttachment = oldAttachment.copy(
+            fileName = "new-name.pdf",
+        )
+        val requestAttachment = CreateRequest.Attachment.Local(
+            id = renamedAttachment.id,
+            uri = leParseUri(renamedAttachment.url),
+            name = renamedAttachment.fileName,
+            size = renamedAttachment.size,
+        )
+        val coordinator = StagingPendingUploadCoordinator(
+            stagedUploads = listOf(
+                pendingUploadFile("/tmp/cipher-1.attachment-1.bin"),
+            ),
+        )
+
+        val prepared = prepareCipherPendingUploads(
+            request = createRequest(requestAttachment),
+            old = cipher(attachments = listOf(oldAttachment)),
+            cipher = cipher(attachments = listOf(renamedAttachment)),
+            base64Service = CipherTestBase64Service,
+            pendingUploadCoordinator = coordinator,
+        )
+
+        assertEquals(emptyList(), coordinator.stageCalls)
+        assertEquals(emptyList(), coordinator.stageFileKeyRefs)
+        assertEquals(emptyList(), prepared.createdPendingUploads)
+        assertEquals(emptyList(), prepared.removedPendingUploads)
+        assertEquals(listOf(renamedAttachment), prepared.cipher.attachments)
+    }
+
+    @Test
+    fun `replacing existing URI-only attachment stages the new source`() = runTest {
+        val oldAttachment = BitwardenCipher.Attachment.Local(
+            id = "attachment-1",
+            url = "content://legacy/original",
+            fileName = "report.pdf",
+            size = 111L,
+            keyBase64 = "attachment-key",
+            pendingUpload = null,
+        )
+        val replacement = oldAttachment.copy(
+            url = "content://documents/replacement",
+            size = null,
+        )
+        val requestAttachment = CreateRequest.Attachment.Local(
+            id = replacement.id,
+            uri = leParseUri(replacement.url),
+            name = replacement.fileName,
+            size = replacement.size,
+        )
+        val pendingUpload = pendingUploadFile("/tmp/cipher-1.attachment-1.bin")
+        val coordinator = StagingPendingUploadCoordinator(
+            stagedUploads = listOf(pendingUpload),
+        )
+
+        val prepared = prepareCipherPendingUploads(
+            request = createRequest(requestAttachment),
+            old = cipher(attachments = listOf(oldAttachment)),
+            cipher = cipher(attachments = listOf(replacement)),
+            base64Service = CipherTestBase64Service,
+            pendingUploadCoordinator = coordinator,
+        )
+
+        assertEquals(
+            listOf(
+                StagingPendingUploadCoordinator.StageCall(
+                    target = PendingUploadTarget.CipherAttachment(
+                        accountId = "account-1",
+                        cipherId = "cipher-1",
+                        attachmentId = replacement.id,
+                    ),
+                    sourceUri = replacement.url,
+                    fileKey = "attachment-key",
+                ),
+            ),
+            coordinator.stageCalls,
+        )
+        assertEquals(listOf(pendingUpload), prepared.createdPendingUploads)
+        assertEquals(emptyList(), prepared.removedPendingUploads)
+        assertEquals(
+            listOf(
+                replacement.copy(
+                    size = pendingUpload.plainSize,
+                    pendingUpload = pendingUpload,
+                ),
+            ),
+            prepared.cipher.attachments,
+        )
+    }
+
+    @Test
+    fun `failed replacement does not fall back to a raw URI`() = runTest {
+        val oldAttachment = BitwardenCipher.Attachment.Local(
+            id = "attachment-1",
+            url = "content://legacy/original",
+            fileName = "report.pdf",
+            size = 111L,
+            keyBase64 = "attachment-key",
+            pendingUpload = null,
+        )
+        val replacement = oldAttachment.copy(
+            url = "content://revoked/replacement",
+        )
+        val requestAttachment = CreateRequest.Attachment.Local(
+            id = replacement.id,
+            uri = leParseUri(replacement.url),
+            name = replacement.fileName,
+            size = replacement.size,
+        )
+        val coordinator = StagingPendingUploadCoordinator()
+
+        assertFailsWith<IllegalStateException> {
+            prepareCipherPendingUploads(
+                request = createRequest(requestAttachment),
+                old = cipher(attachments = listOf(oldAttachment)),
+                cipher = cipher(attachments = listOf(replacement)),
+                base64Service = CipherTestBase64Service,
+                pendingUploadCoordinator = coordinator,
+            )
+        }
+
+        assertEquals(
+            listOf(
+                StagingPendingUploadCoordinator.StageCall(
+                    target = PendingUploadTarget.CipherAttachment(
+                        accountId = "account-1",
+                        cipherId = "cipher-1",
+                        attachmentId = replacement.id,
+                    ),
+                    sourceUri = replacement.url,
+                    fileKey = "attachment-key",
+                ),
+            ),
+            coordinator.stageCalls,
+        )
+        assertKeyCleared(coordinator.stageFileKeyRefs.single())
+        assertEquals(emptyList(), coordinator.deleteCalls)
+    }
+
+    @Test
+    fun `staging cancellation clears attachment key`() = runTest {
+        val requestAttachment = CreateRequest.Attachment.Local(
+            id = "attachment-1",
+            uri = leParseUri("file:///tmp/report.pdf"),
+            name = "report.pdf",
+            size = null,
+        )
+        val coordinator = StagingPendingUploadCoordinator(
+            stageFailure = CancellationException("cancelled"),
+        )
+
+        assertFailsWith<CancellationException> {
+            prepareCipherPendingUploads(
+                request = createRequest(requestAttachment),
+                old = null,
+                cipher = cipher(
+                    attachments = listOf(
+                        BitwardenCipher.Attachment.Local(
+                            id = "attachment-1",
+                            url = "file:///tmp/report.pdf",
+                            fileName = "report.pdf",
+                            size = null,
+                            keyBase64 = "attachment-key",
+                            pendingUpload = null,
+                        ),
+                    ),
+                ),
+                base64Service = CipherTestBase64Service,
+                pendingUploadCoordinator = coordinator,
+            )
+        }
+
+        assertKeyCleared(coordinator.stageFileKeyRefs.single())
+        assertEquals(emptyList(), coordinator.deleteCalls)
+    }
+
+    @Test
     fun `staged attachments are deleted when later preparation fails`() = runTest {
         val stagedPendingUpload = pendingUploadFile("/tmp/cipher-1.attachment-1.bin")
-        val coordinator = CipherTestPendingUploadCoordinator(
+        val coordinator = StagingPendingUploadCoordinator(
             stagedUploads = listOf(stagedPendingUpload),
         )
         val attachment1 = CreateRequest.Attachment.Local(
@@ -235,6 +417,8 @@ class AddCipherPendingUploadPreparationTest {
         }
 
         assertEquals(listOf(stagedPendingUpload), coordinator.deleteCalls)
+        assertEquals(2, coordinator.stageFileKeyRefs.size)
+        coordinator.stageFileKeyRefs.forEach(::assertKeyCleared)
     }
 }
 
@@ -260,60 +444,8 @@ private fun cipher(
     attachments = attachments,
 )
 
-private class CipherTestPendingUploadCoordinator(
-    stagedUploads: List<PendingUploadFile> = emptyList(),
-) : PendingUploadCoordinator {
-    private val stagedUploads = ArrayDeque(stagedUploads)
 
-    data class StageCall(
-        val target: PendingUploadTarget,
-        val sourceUri: String,
-        val fileKey: String,
-    )
 
-    val stageCalls = mutableListOf<StageCall>()
-    val deleteCalls = mutableListOf<PendingUploadFile>()
-
-    override suspend fun stage(
-        target: PendingUploadTarget,
-        sourceUri: String,
-        fileKey: ByteArray,
-    ): PendingUploadFile {
-        stageCalls += StageCall(
-            target = target,
-            sourceUri = sourceUri,
-            fileKey = fileKey.decodeToString(),
-        )
-        return stagedUploads.removeFirstOrNull()
-            ?: error("No staged upload prepared for test")
-    }
-
-    override suspend fun delete(
-        pendingUpload: PendingUploadFile,
-    ) {
-        deleteCalls += pendingUpload
-    }
-
-    override suspend fun markUploaded(
-        pendingUpload: PendingUploadFile,
-    ) = Unit
-
-    override suspend fun isUploaded(
-        pendingUpload: PendingUploadFile,
-    ): Boolean = false
-
-    override suspend fun <T> persist(
-        createdPendingUploads: Collection<PendingUploadFile>,
-        removedPendingUploads: Collection<PendingUploadFile>,
-        block: suspend () -> T,
-    ): T = block()
-}
-
-private fun pendingUploadFile(path: String) = PendingUploadFile(
-    path = path,
-    plainSize = 123L,
-    encryptedSize = 321L,
-)
 
 private object CipherTestBase64Service : Base64Service {
     override fun encode(bytes: ByteArray): ByteArray = bytes

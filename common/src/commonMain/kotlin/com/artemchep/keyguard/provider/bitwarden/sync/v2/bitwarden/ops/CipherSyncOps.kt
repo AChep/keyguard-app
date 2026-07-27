@@ -2,7 +2,6 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops
 
 import arrow.optics.dsl.notNull
 import com.artemchep.keyguard.common.exception.HttpException
-import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.io.throwIfCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
@@ -67,6 +66,8 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOut
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.writeIfCurrent
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
+import com.artemchep.keyguard.provider.bitwarden.upload.deleteObsoletePendingUploads
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.with3WayMergePasswordHistoryOrNull
 import io.ktor.client.HttpClient
 import io.ktor.client.call.NoTransformationFoundException
@@ -304,13 +305,7 @@ class CipherSyncOps(
                 )
             }
         }
-        pendingUploadsToDelete
-            .distinctBy { it.path }
-            .forEach { pendingUpload ->
-                runCatchingNonFatal {
-                    pendingUploadCoordinator.delete(pendingUpload)
-                }
-            }
+        pendingUploadCoordinator.deleteBestEffort(pendingUploadsToDelete)
     }
 
     override suspend fun saveLocal(
@@ -1113,23 +1108,10 @@ class CipherSyncOps(
     private suspend fun deleteObsoletePendingUploadsAfterSave(
         previous: BitwardenCipher?,
         saved: BitwardenCipher,
-    ) {
-        val previousPendingUploads = previous?.pendingAttachmentUploads().orEmpty()
-        if (previousPendingUploads.isEmpty()) return
-        val referencedPendingUploads = saved.pendingAttachmentUploads()
-        val obsoletePendingUploads =
-            previousPendingUploads
-                .filterNot { pendingUpload ->
-                    referencedPendingUploads.any { it.path == pendingUpload.path }
-                }
-        if (obsoletePendingUploads.isEmpty()) return
-
-        obsoletePendingUploads.forEach { pendingUpload ->
-            runCatchingNonFatal {
-                pendingUploadCoordinator.delete(pendingUpload)
-            }
-        }
-    }
+    ) = pendingUploadCoordinator.deleteObsoletePendingUploads(
+        previous = previous?.pendingAttachmentUploads().orEmpty(),
+        saved = saved.pendingAttachmentUploads(),
+    )
 
     // ---------------------------------------------------------------
     // Error handling

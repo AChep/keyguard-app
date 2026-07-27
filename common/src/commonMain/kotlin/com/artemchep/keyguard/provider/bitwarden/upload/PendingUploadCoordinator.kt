@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
+import kotlin.time.Instant
+
 /**
  * Coordinates the lifecycle of encrypted local files that must survive until a
  * later provider sync.
@@ -71,9 +73,10 @@ interface PendingUploadCoordinator {
      * @param target Stable local destination for the staged encrypted file.
      * @param sourceUri URI of the plain source file selected by the user. This
      * can be a `content:` URI on Android or a `file:` URI on desktop.
-     * @param fileKey Raw key used to encrypt the staged bytes. Cipher
-     * attachments pass their attachment key; Send files pass the derived Send
-     * item key.
+     * @param fileKey Caller-owned, ephemeral raw key used to encrypt the staged
+     * bytes. Cipher attachments pass their attachment key; Send files pass the
+     * derived Send item key. Implementations must not retain or use this mutable
+     * array after the call returns.
      */
     suspend fun stage(
         target: PendingUploadTarget,
@@ -84,6 +87,9 @@ interface PendingUploadCoordinator {
     /**
      * Authenticates and decrypts a staged file for a provider that needs the
      * original bytes during sync, such as a KeePass KDBX attachment write.
+     *
+     * [fileKey] is caller-owned, ephemeral key material. Implementations must
+     * not retain or use this mutable array after the call returns.
      */
     suspend fun readPlaintext(
         pendingUpload: PendingUploadFile,
@@ -118,6 +124,21 @@ interface PendingUploadCoordinator {
     suspend fun isUploaded(
         pendingUpload: PendingUploadFile,
     ): Boolean
+
+    /**
+     * Removes stale staged-file artifacts that are no longer referenced by
+     * committed local state.
+     *
+     * The caller must supply references for exactly one [accountId] and
+     * [namespace]. Recent artifacts are retained to protect the interval
+     * between staging a file and committing its metadata.
+     */
+    suspend fun sweepOrphans(
+        accountId: String,
+        namespace: String,
+        referencedPaths: Set<String>,
+        olderThan: Instant,
+    )
 
     /**
      * Runs [block] as the persistence boundary for staged upload metadata.

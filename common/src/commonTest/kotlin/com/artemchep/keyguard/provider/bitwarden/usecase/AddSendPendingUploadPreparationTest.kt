@@ -7,11 +7,13 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
+import com.artemchep.keyguard.provider.bitwarden.upload.assertKeyCleared
+import com.artemchep.keyguard.provider.bitwarden.upload.StagingPendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlinx.coroutines.test.runTest
 import kotlin.time.Instant
 
@@ -23,7 +25,7 @@ class AddSendPendingUploadPreparationTest {
             plainSize = 123L,
             encryptedSize = 456L,
         )
-        val coordinator = SendTestPendingUploadCoordinator(
+        val coordinator = StagingPendingUploadCoordinator(
             stagedUploads = listOf(pendingUpload),
         )
         val prepared = prepareSendPendingUpload(
@@ -47,7 +49,7 @@ class AddSendPendingUploadPreparationTest {
 
         assertEquals(
             listOf(
-                SendTestPendingUploadCoordinator.StageCall(
+                StagingPendingUploadCoordinator.StageCall(
                     target = PendingUploadTarget.SendFile(
                         accountId = "account-1",
                         sendId = "send-1",
@@ -58,6 +60,7 @@ class AddSendPendingUploadPreparationTest {
             ),
             coordinator.stageCalls,
         )
+        assertKeyCleared(coordinator.stageFileKeyRefs.single())
         assertEquals(listOf(pendingUpload), prepared.createdPendingUploads)
         assertEquals(emptyList(), prepared.removedPendingUploads)
         assertEquals(pendingUpload, prepared.send.file?.pendingUpload)
@@ -79,7 +82,7 @@ class AddSendPendingUploadPreparationTest {
                 pendingUpload = pendingUpload,
             ),
         )
-        val coordinator = SendTestPendingUploadCoordinator()
+        val coordinator = StagingPendingUploadCoordinator()
         val prepared = prepareSendPendingUpload(
             request = createSendRequest(
                 uri = "file:///tmp/replacement.pdf",
@@ -93,9 +96,38 @@ class AddSendPendingUploadPreparationTest {
         )
 
         assertEquals(emptyList(), coordinator.stageCalls)
+        assertEquals(emptyList(), coordinator.stageFileKeyRefs)
         assertEquals(emptyList(), prepared.createdPendingUploads)
         assertEquals(emptyList(), prepared.removedPendingUploads)
         assertEquals(existingSend, prepared.send)
+    }
+
+    @Test
+    fun `failed file send staging clears derived key`() = runTest {
+        val coordinator = StagingPendingUploadCoordinator()
+
+        assertFailsWith<IllegalStateException> {
+            prepareSendPendingUpload(
+                request = createSendRequest(
+                    uri = "file:///tmp/send.pdf",
+                    name = "send.pdf",
+                ),
+                old = null,
+                send = send(
+                    file = BitwardenSend.File(
+                        id = "file-1",
+                        fileName = "send.pdf",
+                        size = null,
+                        pendingUpload = null,
+                    ),
+                ),
+                cryptoGenerator = SendTestCryptoGenerator,
+                base64Service = SendTestBase64Service,
+                pendingUploadCoordinator = coordinator,
+            )
+        }
+
+        assertKeyCleared(coordinator.stageFileKeyRefs.single())
     }
 }
 
@@ -130,51 +162,7 @@ private fun send(
     file = file,
 )
 
-private class SendTestPendingUploadCoordinator(
-    stagedUploads: List<PendingUploadFile> = emptyList(),
-) : PendingUploadCoordinator {
-    private val stagedUploads = ArrayDeque(stagedUploads)
 
-    data class StageCall(
-        val target: PendingUploadTarget,
-        val sourceUri: String,
-        val fileKey: String,
-    )
-
-    val stageCalls = mutableListOf<StageCall>()
-
-    override suspend fun stage(
-        target: PendingUploadTarget,
-        sourceUri: String,
-        fileKey: ByteArray,
-    ): PendingUploadFile {
-        stageCalls += StageCall(
-            target = target,
-            sourceUri = sourceUri,
-            fileKey = fileKey.decodeToString(),
-        )
-        return stagedUploads.removeFirstOrNull()
-            ?: error("No staged upload prepared for test")
-    }
-
-    override suspend fun delete(
-        pendingUpload: PendingUploadFile,
-    ) = Unit
-
-    override suspend fun markUploaded(
-        pendingUpload: PendingUploadFile,
-    ) = Unit
-
-    override suspend fun isUploaded(
-        pendingUpload: PendingUploadFile,
-    ): Boolean = false
-
-    override suspend fun <T> persist(
-        createdPendingUploads: Collection<PendingUploadFile>,
-        removedPendingUploads: Collection<PendingUploadFile>,
-        block: suspend () -> T,
-    ): T = block()
-}
 
 private object SendTestBase64Service : Base64Service {
     override fun encode(bytes: ByteArray): ByteArray = bytes

@@ -20,6 +20,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
+import com.artemchep.keyguard.provider.bitwarden.upload.useAndClear
 import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
@@ -160,15 +161,17 @@ internal suspend fun prepareSendPendingUpload(
         )
     val fileKey = requireNotNull(send.keyBase64)
         .let(base64Service::decode)
-        .let(cryptoGenerator::makeSendCryptoKey)
-    val pendingUpload = pendingUploadCoordinator.stage(
-        target = PendingUploadTarget.SendFile(
-            accountId = send.accountId,
-            sendId = send.sendId,
-        ),
-        sourceUri = sourceUri,
-        fileKey = fileKey,
-    )
+        .useAndClear(cryptoGenerator::makeSendCryptoKey)
+    val pendingUpload = fileKey.useAndClear { borrowedFileKey ->
+        pendingUploadCoordinator.stage(
+            target = PendingUploadTarget.SendFile(
+                accountId = send.accountId,
+                sendId = send.sendId,
+            ),
+            sourceUri = sourceUri,
+            fileKey = borrowedFileKey,
+        )
+    }
     return PreparedSend(
         send = send.copy(
             file = file.copy(

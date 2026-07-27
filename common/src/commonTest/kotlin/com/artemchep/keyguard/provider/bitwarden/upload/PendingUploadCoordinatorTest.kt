@@ -6,6 +6,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
 
 class PendingUploadCoordinatorTest {
@@ -92,7 +93,7 @@ class PendingUploadCoordinatorTest {
     }
 
     @Test
-    fun `persist ignores cleanup delete failures`() = runTest {
+    fun `persist deduplicates cleanup paths and continues after delete failures`() = runTest {
         val failingUpload = pendingUploadFile("/tmp/failing.bin")
         val succeedingUpload = pendingUploadFile("/tmp/succeeding.bin")
         val encryptedService = FakeEncryptedFilePendingUploadService(
@@ -102,7 +103,11 @@ class PendingUploadCoordinatorTest {
 
         val result = coordinator.persist(
             createdPendingUploads = emptyList(),
-            removedPendingUploads = listOf(failingUpload, succeedingUpload),
+            removedPendingUploads = listOf(
+                failingUpload,
+                failingUpload.copy(plainSize = failingUpload.plainSize + 1L),
+                succeedingUpload,
+            ),
         ) {
             "ok"
         }
@@ -135,6 +140,32 @@ class PendingUploadCoordinatorTest {
 
         assertFalse(coordinator.isUploaded(pendingUpload))
     }
+
+    @Test
+    fun `sweep orphans delegates one account namespace and its references`() = runTest {
+        val encryptedService = FakeEncryptedFilePendingUploadService()
+        val coordinator = PendingUploadCoordinatorImpl(encryptedService)
+        val olderThan = Instant.parse("2026-07-26T07:00:00Z")
+
+        coordinator.sweepOrphans(
+            accountId = "account-1",
+            namespace = PendingUploadTarget.CipherAttachment.NAMESPACE,
+            referencedPaths = setOf("/tmp/referenced.bin"),
+            olderThan = olderThan,
+        )
+
+        assertEquals(
+            listOf(
+                SweepCall(
+                    accountId = "account-1",
+                    namespace = "cipher_attachment_uploads",
+                    referencedPaths = setOf("/tmp/referenced.bin"),
+                    olderThan = olderThan,
+                ),
+            ),
+            encryptedService.sweepCalls,
+        )
+    }
 }
 
 private class FakeEncryptedFilePendingUploadService(
@@ -142,6 +173,7 @@ private class FakeEncryptedFilePendingUploadService(
 ) : EncryptedFilePendingUploadService {
     val stageCalls = mutableListOf<StageCall>()
     val deletedUploads = mutableListOf<PendingUploadFile>()
+    val sweepCalls = mutableListOf<SweepCall>()
     private val uploadedPaths = mutableSetOf<String>()
 
     override suspend fun stage(
@@ -180,6 +212,20 @@ private class FakeEncryptedFilePendingUploadService(
     override suspend fun isUploaded(
         pendingUpload: PendingUploadFile,
     ): Boolean = pendingUpload.path in uploadedPaths
+
+    override suspend fun sweepOrphans(
+        accountId: String,
+        namespace: String,
+        referencedPaths: Set<String>,
+        olderThan: Instant,
+    ) {
+        sweepCalls += SweepCall(
+            accountId = accountId,
+            namespace = namespace,
+            referencedPaths = referencedPaths,
+            olderThan = olderThan,
+        )
+    }
 }
 
 private data class StageCall(
@@ -188,10 +234,4 @@ private data class StageCall(
     val fileId: String,
     val sourceUri: String,
     val fileKey: String,
-)
-
-private fun pendingUploadFile(path: String) = PendingUploadFile(
-    path = path,
-    plainSize = 123L,
-    encryptedSize = 321L,
 )

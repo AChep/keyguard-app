@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.service.database.EnumCodeToLongAdapter
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
 import com.artemchep.keyguard.common.service.database.ObjectToStringAdapter
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
@@ -108,9 +109,9 @@ import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherCreateRequ
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherDeleteRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.SendRequest
+import com.artemchep.keyguard.provider.bitwarden.upload.FailingPendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -128,6 +129,8 @@ import io.ktor.utils.io.ByteChannel
 import io.ktor.utils.io.readRemaining
 import java.io.File
 import java.nio.file.Files
+import kotlinx.io.Sink
+import kotlinx.io.Source
 import kotlinx.io.readByteArray
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -828,16 +831,10 @@ internal class UploadTestServer {
 internal class UploadTestPendingUploadCoordinator(
     uploaded: Set<PendingUploadFile> = emptySet(),
     private val isUploadedFailure: Throwable? = null,
-) : PendingUploadCoordinator {
+) : PendingUploadCoordinator by FailingPendingUploadCoordinator {
     private val uploaded = uploaded.toMutableSet()
     val markUploadedCalls = mutableListOf<PendingUploadFile>()
     val deleteCalls = mutableListOf<PendingUploadFile>()
-
-    override suspend fun stage(
-        target: PendingUploadTarget,
-        sourceUri: String,
-        fileKey: ByteArray,
-    ): PendingUploadFile = error("unused")
 
     override suspend fun delete(pendingUpload: PendingUploadFile) {
         uploaded -= pendingUpload
@@ -853,6 +850,13 @@ internal class UploadTestPendingUploadCoordinator(
         isUploadedFailure?.let { throw it }
         return pendingUpload in uploaded
     }
+
+    override suspend fun sweepOrphans(
+        accountId: String,
+        namespace: String,
+        referencedPaths: Set<String>,
+        olderThan: Instant,
+    ) = Unit
 
     override suspend fun <T> persist(
         createdPendingUploads: Collection<PendingUploadFile>,
@@ -1380,6 +1384,16 @@ internal object UploadTestLogRepository : LogRepository {
         message: String,
         level: LogLevel,
     ) = Unit
+}
+
+internal object UploadTestUnusedFileService : FileService {
+    override fun exists(uri: String): Boolean = error("Not used by this test")
+
+    override fun readFromFile(uri: String): Source = error("Not used by this test")
+
+    override fun writeToFile(uri: String): Sink = error("Not used by this test")
+
+    override fun delete(uri: String): Boolean = error("Not used by this test")
 }
 
 internal object UploadTestMarkBackupAsDirty : MarkBackupAsDirty {

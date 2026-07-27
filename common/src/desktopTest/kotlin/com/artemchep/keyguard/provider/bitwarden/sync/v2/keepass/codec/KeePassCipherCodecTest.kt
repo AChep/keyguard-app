@@ -7,24 +7,25 @@ import app.keemobile.kotpass.models.XmlNamespace
 import app.keemobile.kotpass.models.XmlQualifiedName
 import com.artemchep.keyguard.common.service.cipherlink.CipherLinkFields
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestUnusedFileService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.buildEntry
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBase32Service
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBase64Service
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testCryptoGenerator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testJson
+import com.artemchep.keyguard.provider.bitwarden.upload.FailingPendingUploadCoordinator
+import com.artemchep.keyguard.provider.bitwarden.upload.assertKeyCleared
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import kotlinx.coroutines.test.runTest
-import kotlinx.io.Sink
-import kotlinx.io.Source
 import java.security.MessageDigest
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.time.Instant
 
 class KeePassCipherCodecTest {
@@ -88,20 +89,7 @@ class KeePassCipherCodecTest {
         )
         val pendingUploadCoordinator = ReadingPendingUploadCoordinator(data)
         val attachmentKey = "attachment-key".encodeToByteArray()
-        val local = testBitwardenCipher(
-            cipherId = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
-        ).copy(
-            attachments = listOf(
-                BitwardenCipher.Attachment.Local(
-                    id = "attachment-id",
-                    url = "content://revoked/original",
-                    fileName = "document.txt",
-                    size = data.size.toLong(),
-                    keyBase64 = testBase64Service.encodeToString(attachmentKey),
-                    pendingUpload = pendingUpload,
-                ),
-            ),
-        )
+        val local = stagedAttachmentCipher(pendingUpload, attachmentKey)
 
         val encoded = createCodec(pendingUploadCoordinator).encode(
             local = local,
@@ -113,11 +101,66 @@ class KeePassCipherCodecTest {
             listOf(pendingUpload to attachmentKey.toList()),
             pendingUploadCoordinator.readCalls,
         )
+        assertKeyCleared(pendingUploadCoordinator.readFileKeyRefs.single())
         assertEquals(
             listOf("document.txt"),
             encoded.attachments.map { it.fileName },
         )
         assertEquals(data.size.toLong(), encoded.attachments.single().size)
+    }
+
+    @Test
+    fun `encode clears attachment key when staged read fails`() = runTest {
+        assertEncodeClearsAttachmentKey<IllegalStateException>(
+            readFailure = IllegalStateException("read failed"),
+        )
+    }
+
+    @Test
+    fun `encode clears attachment key when staged read is cancelled`() = runTest {
+        assertEncodeClearsAttachmentKey<CancellationException>(
+            readFailure = CancellationException("cancelled"),
+        )
+    }
+
+    @Test
+    fun `encode keeps attachment key cleared when staged size does not match`() = runTest {
+        assertEncodeClearsAttachmentKey<IllegalArgumentException>(
+            plainSizeDelta = 1L,
+        )
+    }
+
+    /**
+     * Asserts that a failing `encode` of a staged attachment still zeroes the
+     * attachment key, whether the read itself fails or its result is rejected.
+     */
+    private suspend inline fun <reified E : Throwable> assertEncodeClearsAttachmentKey(
+        readFailure: Throwable? = null,
+        plainSizeDelta: Long = 0L,
+    ) {
+        val data = "staged attachment".encodeToByteArray()
+        val pendingUploadCoordinator = ReadingPendingUploadCoordinator(
+            data = data,
+            readFailure = readFailure,
+        )
+        val local = stagedAttachmentCipher(
+            pendingUpload = PendingUploadFile(
+                path = "/private/pending/attachment.bin",
+                plainSize = data.size.toLong() + plainSizeDelta,
+                encryptedSize = data.size.toLong() + 49L,
+            ),
+            attachmentKey = "attachment-key".encodeToByteArray(),
+        )
+
+        assertFailsWith<E> {
+            createCodec(pendingUploadCoordinator).encode(
+                local = local,
+                remote = null,
+                existingBinaries = emptyMap(),
+            )
+        }
+
+        assertKeyCleared(pendingUploadCoordinator.readFileKeyRefs.single())
     }
 
     @Test
@@ -151,12 +194,12 @@ class KeePassCipherCodecTest {
     }
 
     private fun createCodec(
-        pendingUploadCoordinator: PendingUploadCoordinator = UnusedPendingUploadCoordinator,
+        pendingUploadCoordinator: PendingUploadCoordinator = FailingPendingUploadCoordinator,
     ) = KeePassCipherCodec(
         cryptoGenerator = AttachmentCryptoGenerator,
         base32Service = testBase32Service,
         base64Service = testBase64Service,
-        fileService = UnusedFileService,
+        fileService = UploadTestUnusedFileService,
         pendingUploadCoordinator = pendingUploadCoordinator,
         getPasswordStrength = UploadTestPasswordStrength,
         json = testJson,
@@ -165,52 +208,45 @@ class KeePassCipherCodecTest {
 
 private const val TARGET_REMOTE_ID = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
 
+private fun stagedAttachmentCipher(
+    pendingUpload: PendingUploadFile,
+    attachmentKey: ByteArray,
+) = testBitwardenCipher(
+    cipherId = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+).copy(
+    attachments = listOf(
+        BitwardenCipher.Attachment.Local(
+            id = "attachment-id",
+            url = "content://revoked/original",
+            fileName = "document.txt",
+            size = pendingUpload.plainSize,
+            keyBase64 = testBase64Service.encodeToString(attachmentKey),
+            pendingUpload = pendingUpload,
+        ),
+    ),
+)
+
 private object AttachmentCryptoGenerator : CryptoGenerator by testCryptoGenerator {
     override fun hashSha256(data: ByteArray): ByteArray =
         MessageDigest.getInstance("SHA-256").digest(data)
 }
 
-private object UnusedFileService : FileService {
-    override fun exists(uri: String): Boolean = error("Not used by this test")
-
-    override fun readFromFile(uri: String): Source = error("Not used by this test")
-
-    override fun writeToFile(uri: String): Sink = error("Not used by this test")
-
-    override fun delete(uri: String): Boolean = error("Not used by this test")
-}
-
-private object UnusedPendingUploadCoordinator : PendingUploadCoordinator {
-    override suspend fun stage(
-        target: PendingUploadTarget,
-        sourceUri: String,
-        fileKey: ByteArray,
-    ): PendingUploadFile = error("Not used by this test")
-
-    override suspend fun delete(pendingUpload: PendingUploadFile) = error("Not used by this test")
-
-    override suspend fun markUploaded(pendingUpload: PendingUploadFile) = error("Not used by this test")
-
-    override suspend fun isUploaded(pendingUpload: PendingUploadFile): Boolean =
-        error("Not used by this test")
-
-    override suspend fun <T> persist(
-        createdPendingUploads: Collection<PendingUploadFile>,
-        removedPendingUploads: Collection<PendingUploadFile>,
-        block: suspend () -> T,
-    ): T = error("Not used by this test")
-}
 
 private class ReadingPendingUploadCoordinator(
     private val data: ByteArray,
-) : PendingUploadCoordinator by UnusedPendingUploadCoordinator {
+    private val readFailure: Throwable? = null,
+) : PendingUploadCoordinator by FailingPendingUploadCoordinator {
     val readCalls = mutableListOf<Pair<PendingUploadFile, List<Byte>>>()
+    val readFileKeyRefs = mutableListOf<ByteArray>()
 
     override suspend fun readPlaintext(
         pendingUpload: PendingUploadFile,
         fileKey: ByteArray,
     ): ByteArray {
         readCalls += pendingUpload to fileKey.toList()
+        readFileKeyRefs += fileKey
+        readFailure?.let { failure -> throw failure }
         return data
     }
 }
+

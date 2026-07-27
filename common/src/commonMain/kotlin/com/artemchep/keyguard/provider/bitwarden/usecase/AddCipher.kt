@@ -30,11 +30,12 @@ import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherAttachmentCryptoKeyMaterial
 import com.artemchep.keyguard.provider.bitwarden.crypto.keyBase64OrGenerate
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
+import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
+import com.artemchep.keyguard.provider.bitwarden.upload.useAndClear
 import kotlin.time.Clock
 import kotlin.time.Instant
 import org.kodein.di.DirectDI
@@ -257,17 +258,30 @@ internal suspend fun prepareCipherPendingUploads(
                 is BitwardenCipher.Attachment.Local -> {
                     val pendingUpload = attachment.pendingUpload
                     if (pendingUpload != null) {
-                        attachment.copy(
+                        return@map attachment.copy(
                             size = attachment.size ?: pendingUpload.plainSize,
                         )
-                    } else {
-                        val requestAttachment = requireNotNull(localRequestAttachmentsById[attachment.id]) {
-                            "A local cipher attachment must have a source request."
-                        }
-                        val fileKey = requireNotNull(attachment.keyBase64) {
-                            "A local cipher attachment must have an encryption key."
-                        }.let(base64Service::decode)
-                        val stagedPendingUpload = try {
+                    }
+
+                    // An existing attachment the user did not replace still
+                    // points at its original source, which may no longer be
+                    // readable. Leave it alone instead of re-staging it.
+                    val oldAttachment = oldLocalAttachmentsById[attachment.id]
+                    val isUnchangedLegacyAttachment = oldAttachment != null &&
+                            oldAttachment.pendingUpload == null &&
+                            oldAttachment.url == attachment.url
+                    if (isUnchangedLegacyAttachment) {
+                        return@map attachment
+                    }
+
+                    val requestAttachment = requireNotNull(localRequestAttachmentsById[attachment.id]) {
+                        "A local cipher attachment must have a source request."
+                    }
+                    val stagedPendingUpload = requireNotNull(attachment.keyBase64) {
+                        "A local cipher attachment must have an encryption key."
+                    }
+                        .let(base64Service::decode)
+                        .useAndClear { borrowedFileKey ->
                             pendingUploadCoordinator.stage(
                                 target = PendingUploadTarget.CipherAttachment(
                                     accountId = cipher.accountId,
@@ -275,31 +289,19 @@ internal suspend fun prepareCipherPendingUploads(
                                     attachmentId = attachment.id,
                                 ),
                                 sourceUri = requestAttachment.uri.toString(),
-                                fileKey = fileKey,
+                                fileKey = borrowedFileKey,
                             )
-                        } catch (e: Throwable) {
-                            e.throwIfCancellation()
-                            val oldAttachment = oldLocalAttachmentsById[attachment.id]
-                            if (oldAttachment != null && oldAttachment.pendingUpload == null) {
-                                return@map attachment
-                            }
-                            throw e
                         }
-                        createdPendingUploads += stagedPendingUpload
-                        attachment.copy(
-                            size = attachment.size ?: stagedPendingUpload.plainSize,
-                            pendingUpload = stagedPendingUpload,
-                        )
-                    }
+                    createdPendingUploads += stagedPendingUpload
+                    attachment.copy(
+                        size = attachment.size ?: stagedPendingUpload.plainSize,
+                        pendingUpload = stagedPendingUpload,
+                    )
                 }
             }
         }
     } catch (e: Throwable) {
-        createdPendingUploads.forEach { pendingUpload ->
-            runCatching {
-                pendingUploadCoordinator.delete(pendingUpload)
-            }
-        }
+        pendingUploadCoordinator.deleteBestEffort(createdPendingUploads)
         throw e
     }
 

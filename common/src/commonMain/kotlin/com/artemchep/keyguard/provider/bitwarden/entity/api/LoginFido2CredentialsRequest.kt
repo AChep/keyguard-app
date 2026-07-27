@@ -25,7 +25,7 @@ data class LoginFido2CredentialsRequest(
     @SerialName("counter")
     val counter: String,
     @SerialName("userHandle")
-    val userHandle: String,
+    val userHandle: String?,
     @SerialName("userName")
     val userName: String?,
     @SerialName("userDisplayName")

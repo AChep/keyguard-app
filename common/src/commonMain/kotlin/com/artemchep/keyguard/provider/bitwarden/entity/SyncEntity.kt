@@ -11,6 +11,7 @@ data class SyncEntity(
     val domains: DomainsEntity? = null,
     @JsonNames("ciphers")
     @SerialName("Ciphers")
+    @Serializable(with = CipherEntityListSerializer::class)
     val ciphers: List<CipherEntity>? = null,
     @JsonNames("folders")
     @SerialName("Folders")

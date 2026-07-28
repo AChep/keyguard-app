@@ -1,0 +1,74 @@
+name: "Build .deb and .rpm"
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "d*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup_gradle
+
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+
+      - name: "Prefetch native crypto"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+
+      - name: "Prepare version"
+        run: |
+          echo "" >> gradle.properties
+          echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
+          echo "buildkonfig.flavor=release" >> gradle.properties
+
+      - name: "Build packages"
+        run: >-
+          ./gradlew
+          :desktopApp:packageReleaseDeb
+          :desktopApp:packageReleaseDistributable
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+
+      - name: "Install rpmbuild"
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
+      - name: "Extract app version"
+        id: version
+        run: |
+          APP_VERSION=$(grep "appVersionName" gradle/libs.versions.toml | head -1 | sed 's/.*"\(.*\)"/\1/')
+          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: "Package .rpm"
+        run: |
+          TARBALL=$(ls desktopApp/build/compose/binaries/main/release/Keyguard-*.tar.gz)
+          SOURCES="$PWD/rpmbuild/SOURCES"
+          mkdir -p "$SOURCES"
+          cp "$TARBALL" "$SOURCES/keyguard-${{ steps.version.outputs.app_version }}.tar.gz"
+
+          rpmbuild -ba packaging/keyguard.spec \
+            --define "_app_version ${{ steps.version.outputs.app_version }}" \
+            --define "_topdir $PWD/rpmbuild" \
+            --define "_sourcedir $SOURCES"
+
+      - name: "Upload .deb"
+        uses: actions/upload-artifact@v4
+        with:
+          name: keyguard-deb
+          path: desktopApp/build/compose/binaries/main/deb/*.deb
+          retention-days: 7
+
+      - name: "Upload .rpm"
+        uses: actions/upload-artifact@v4
+        with:
+          name: keyguard-rpm
+          path: rpmbuild/RPMS/**/*.rpm
+          retention-days: 7

@@ -68,6 +68,14 @@ jobs:
         if: steps.synced.outputs.already_synced == 'false'
         uses: ./.github/actions/setup_gradle
 
+      - name: "Setup Linux desktop"
+        if: steps.synced.outputs.already_synced == 'false'
+        uses: ./.github/actions/setup_linux_desktop
+
+      - name: "Install protoc"
+        if: steps.synced.outputs.already_synced == 'false'
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
       - name: "Setup Rust toolchain"
         if: steps.synced.outputs.already_synced == 'false'
         uses: ./.github/actions/setup_rust

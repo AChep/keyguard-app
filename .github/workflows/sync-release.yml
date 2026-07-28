@@ -83,12 +83,15 @@ jobs:
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
           git fetch upstream --tags
+          # Save patches from current master before checkout
+          mkdir -p /tmp/patches
+          cp -r patches/* /tmp/patches/
           git checkout "$TAG"
 
       - name: "Apply crack patches"
         if: steps.synced.outputs.already_synced == 'false'
         run: |
-          git checkout master -- patches/
+          cp -r /tmp/patches/* patches/
           chmod +x patches/apply-crack.sh
           ./patches/apply-crack.sh
 

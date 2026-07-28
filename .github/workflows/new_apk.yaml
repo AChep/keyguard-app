@@ -15,6 +15,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: "Apply crack mods"
+        run: |
+          chmod +x patches/apply-crack.sh
+          patches/apply-crack.sh
       - uses: ./.github/actions/setup_gradle
       - uses: ./.github/actions/setup_android_ndk
       - name: "Setup Rust toolchain"
@@ -25,12 +29,12 @@ jobs:
         run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
       - name: "Prepare env"
         run: |
-          echo ${{ secrets.KEYSTORE_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.keystore
-          echo ${{ secrets.KEYSTORE_PROPS_B64 }} | base64 -d | zcat >> androidApp/keyguard-release.properties
-          echo ${{ secrets.GOOGLE_SERVICES }} | base64 -d | zcat >> androidApp/google-services.json
           echo "" >> gradle.properties
           echo "versionRef=$(git rev-parse --short HEAD)" >> gradle.properties
           echo buildkonfig.flavor=release >> gradle.properties
+      - name: "Provide dummy google-services.json"
+        run: |
+          echo '{}' > androidApp/google-services.json
       - uses: ./.github/actions/build_android_licenses
         with:
           build-flavor: "None"

@@ -6,6 +6,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
@@ -91,6 +92,55 @@ class GlobalHotKeyInteropTest {
     }
 
     @Test
+    fun `registered global hotkey ignores native callbacks after successful unregister`() {
+        val lib = FakeDesktopLibJna().apply {
+            registerNativeGlobalHotKeyResult = 7
+        }
+        val invocations = LinkedBlockingQueue<Unit>()
+        val result = registerGlobalHotKey(
+            lib = lib,
+            platform = GlobalHotKeyPlatform.Windows,
+            spec = GlobalHotKeySpec(
+                key = GlobalHotKeyKey.Space,
+                isCtrlPressed = true,
+                isShiftPressed = true,
+            ),
+        ) {
+            invocations.offer(Unit)
+        }
+        val success = assertIs<GlobalHotKeyRegistrationResult.Success>(result)
+        val callback = lib.globalHotKeyCallback!!
+
+        assertTrue(success.registration.unregister())
+        callback.invoke(7)
+
+        assertEquals(null, invocations.poll(250, TimeUnit.MILLISECONDS))
+    }
+
+    @Test
+    fun `registered global hotkey retains ownership and retries after unregister failure`() {
+        val lib = FakeDesktopLibJna().apply {
+            registerNativeGlobalHotKeyResult = 7
+            unregisterNativeGlobalHotKeyResults.addAll(listOf(false, true))
+        }
+        val result = registerGlobalHotKey(
+            lib = lib,
+            platform = GlobalHotKeyPlatform.Windows,
+            spec = GlobalHotKeySpec(
+                key = GlobalHotKeyKey.Space,
+                isCtrlPressed = true,
+                isShiftPressed = true,
+            ),
+        ) { }
+        val success = assertIs<GlobalHotKeyRegistrationResult.Success>(result)
+
+        assertFalse(success.registration.unregister())
+        assertTrue(success.registration.unregister())
+        assertFalse(success.registration.unregister())
+        assertEquals(listOf(7, 7), lib.unregisteredHotKeys)
+    }
+
+    @Test
     fun `register global hotkey rejects unsupported key for platform`() {
         val lib = FakeDesktopLibJna()
 
@@ -158,6 +208,7 @@ class GlobalHotKeyInteropTest {
         var registerNativeGlobalHotKeyResult: Int = 1
         var globalHotKeyCallback: DesktopLibJna.GlobalHotKeyCallback? = null
         val unregisteredHotKeys = mutableListOf<Int>()
+        val unregisterNativeGlobalHotKeyResults = ArrayDeque<Boolean>()
         var registerCalls: Int = 0
 
         override fun autoType(payload: Pointer): Boolean = true
@@ -197,7 +248,7 @@ class GlobalHotKeyInteropTest {
 
         override fun unregisterNativeGlobalHotKey(id: Int): Boolean {
             unregisteredHotKeys += id
-            return true
+            return unregisterNativeGlobalHotKeyResults.removeFirstOrNull() ?: true
         }
 
         override fun freePointer(ptr: Pointer) = Unit

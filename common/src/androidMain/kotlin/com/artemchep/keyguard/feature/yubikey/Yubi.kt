@@ -149,7 +149,7 @@ private fun YubiKitManager.rememberYubiKeyUsbState(
         try {
             val config = UsbConfiguration()
             startUsbDiscovery(config, callback)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Since we did not start USB discovery, we do not
             // want to stop it either.
             loadedState.value = true
@@ -217,7 +217,7 @@ private fun YubiKitManager.rememberYubiKeyNfcState(
         try {
             val config = NfcConfiguration()
             startNfcDiscovery(config, activity, callback)
-        } catch (e: NfcNotAvailable) {
+        } catch (_: NfcNotAvailable) {
             // Since we did not start NFC discovery, we do not
             // want to stop it either.
             state.value = Loadable.Ok(YubiKeyNfcState(enabled = false))

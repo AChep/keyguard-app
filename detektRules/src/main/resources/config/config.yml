@@ -1,0 +1,10 @@
+# `active: false` is deliberate. These rules need type resolution, and detekt silently skips
+# such rules on tasks that run without a classpath. Leaving them off here means "explicitly
+# not checked" rather than "enabled but quietly doing nothing".
+keyguard:
+  MutablePersistedFlowTypeSafety:
+    active: false
+    severity: error
+  MutablePersistedFlowDuplicateKey:
+    active: false
+    severity: error

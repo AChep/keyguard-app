@@ -32,6 +32,7 @@ import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -43,6 +44,7 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -84,6 +86,20 @@ fun produceUrlBlockListState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    urlBlockListStateProducer(
+        confirmationRouteFactory = confirmationRouteFactory,
+        addUrlBlock = addUrlBlock,
+        removeUrlBlockById = removeUrlBlockById,
+        getUrlBlocks = getUrlBlocks,
+    )
+}
+
+suspend fun RememberStateFlowScope.urlBlockListStateProducer(
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    addUrlBlock: AddUrlBlock,
+    removeUrlBlockById: RemoveUrlBlockById,
+    getUrlBlocks: GetUrlBlocks,
+): Flow<Loadable<UrlBlockListState>> {
     val selectionHandle = selectionHandle("selection")
 
     suspend fun onEdit(entity: DGlobalUrlBlock?) {
@@ -277,8 +293,10 @@ fun produceUrlBlockListState(
             val actions = buildContextItems {
                 section {
                     this += FlatItemAction(
+                        id = "urlBlock.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteByItems(
                                 items = selectedItems,
@@ -310,6 +328,7 @@ fun produceUrlBlockListState(
                     val dropdown = buildContextItems {
                         section {
                             this += FlatItemAction(
+                                id = "urlBlock.item.${it.id}.edit",
                                 icon = Icons.Outlined.Edit,
                                 title = Res.string.edit.wrap(),
                                 onClick = onClick {
@@ -319,6 +338,7 @@ fun produceUrlBlockListState(
                                 },
                             )
                             this += FlatItemAction(
+                                id = "urlBlock.item.${it.id}.duplicate",
                                 icon = Icons.Outlined.CopyAll,
                                 title = Res.string.duplicate.wrap(),
                                 onClick = onClick {
@@ -328,8 +348,10 @@ fun produceUrlBlockListState(
                                 },
                             )
                             this += FlatItemAction(
+                                id = "urlBlock.item.${it.id}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
+                                danger = true,
                                 onClick = onClick {
                                     onDeleteByItems(
                                         items = listOf(it),
@@ -419,7 +441,7 @@ fun produceUrlBlockListState(
             }
         Loadable.Ok(contentOrException)
     }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = UrlBlockListState(
                 content = content,

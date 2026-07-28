@@ -27,6 +27,7 @@ import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetBreaches
 import com.artemchep.keyguard.common.usecase.GetPasskeys
 import com.artemchep.keyguard.common.usecase.GetTwoFa
+import com.artemchep.keyguard.common.usecase.GetWatchtowerAlerts
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
 import com.artemchep.keyguard.core.store.bitwarden.exists
@@ -116,7 +117,7 @@ sealed interface DFilter {
             target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): Either<Unit, T?> = when (filter) {
-            is Or<*> -> {
+            is Or -> {
                 when (filter.filters.size) {
                     0 -> Either.Right(null)
                     1 -> {
@@ -145,7 +146,7 @@ sealed interface DFilter {
                 }
             }
 
-            is And<*> -> {
+            is And -> {
                 val results = filter
                     .filters
                     .map { f ->
@@ -205,13 +206,13 @@ sealed interface DFilter {
             target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): T? = when (filter) {
-            is Or<*> -> filter
+            is Or -> filter
                 .filters
                 .firstNotNullOfOrNull { f ->
                     _findAny(f, target, predicate)
                 }
 
-            is And<*> -> filter
+            is And -> filter
                 .filters
                 .firstNotNullOfOrNull { f ->
                     _findAny(f, target, predicate)
@@ -260,8 +261,8 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("or")
-    data class Or<out T : DFilter>(
-        val filters: Collection<T>,
+    data class Or(
+        val filters: Collection<DFilter>,
     ) : DFilter {
         override suspend fun prepare(
             directDI: DirectDI,
@@ -288,8 +289,8 @@ sealed interface DFilter {
 
     @Serializable
     @SerialName("and")
-    data class And<out T : DFilter>(
-        val filters: Collection<T>,
+    data class And(
+        val filters: Collection<DFilter>,
     ) : DFilter {
         override suspend fun prepare(
             directDI: DirectDI,
@@ -678,6 +679,108 @@ sealed interface DFilter {
     }
 
     @Serializable
+    @SerialName("by_unusable_gpg_keys")
+    data object ByUnusableGpgKeys : PrimitiveSimple {
+        @Transient
+        override val key: String = "unusable_gpg_keys"
+
+        @Transient
+        override val content
+            get() = PrimitiveSimple.Content(
+                title = Res.string.watchtower_item_unusable_gpg_keys_title
+                    .let(TextHolder::Res),
+                icon = Icons.Outlined.Key,
+            )
+
+        override suspend fun prepare(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val ids = filterWatchtowerAlert(
+                directDI = directDI,
+                ciphers = ciphers,
+                type = DWatchtowerAlertType.GPG_KEY_UNUSABLE,
+            )
+                .map { it.id }
+                .toSet()
+            ::predicate.partially1(ids)
+        }
+
+        private fun predicate(
+            ids: Set<String>,
+            cipher: DSecret,
+        ) = cipher.id in ids
+    }
+
+    @Serializable
+    @SerialName("by_weak_gpg_keys")
+    data object ByWeakGpgKeys : PrimitiveSimple {
+        @Transient
+        override val key: String = "weak_gpg_keys"
+
+        @Transient
+        override val content
+            get() = PrimitiveSimple.Content(
+                title = Res.string.watchtower_item_weak_gpg_keys_title
+                    .let(TextHolder::Res),
+                icon = Icons.Outlined.Key,
+            )
+
+        override suspend fun prepare(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val ids = filterWatchtowerAlert(
+                directDI = directDI,
+                ciphers = ciphers,
+                type = DWatchtowerAlertType.WEAK_GPG_KEY,
+            )
+                .map { it.id }
+                .toSet()
+            ::predicate.partially1(ids)
+        }
+
+        private fun predicate(
+            ids: Set<String>,
+            cipher: DSecret,
+        ) = cipher.id in ids
+    }
+
+    @Serializable
+    @SerialName("by_gpg_key_publishing")
+    data object ByGpgKeyPublishing : PrimitiveSimple {
+        @Transient
+        override val key: String = "gpg_key_publishing"
+
+        @Transient
+        override val content
+            get() = PrimitiveSimple.Content(
+                title = Res.string.watchtower_item_gpg_key_publishing_title
+                    .let(TextHolder::Res),
+                icon = Icons.Outlined.Key,
+            )
+
+        override suspend fun prepare(
+            directDI: DirectDI,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val ids = filterWatchtowerAlert(
+                directDI = directDI,
+                ciphers = ciphers,
+                type = DWatchtowerAlertType.GPG_KEY_PUBLISHING,
+            )
+                .map { it.id }
+                .toSet()
+            ::predicate.partially1(ids)
+        }
+
+        private fun predicate(
+            ids: Set<String>,
+            cipher: DSecret,
+        ) = cipher.id in ids
+    }
+
+    @Serializable
     @SerialName("by_pwd_duplicates")
     data object ByPasswordDuplicates : PrimitiveSimple {
         @Transient
@@ -779,7 +882,7 @@ sealed interface DFilter {
             val set = buildPwnedPasswordsState(directDI = directDI, ciphers = ciphers)
                 .asSequence()
                 .mapNotNull { entry ->
-                    entry.key.takeIf { entry.value > 1 }
+                    entry.key.takeIf { entry.value > 0 }
                 }
                 .toSet()
             ::predicate.partially1(set)
@@ -792,7 +895,7 @@ sealed interface DFilter {
         ) = buildPwnedPasswordsState(directDI = directDI, ciphers = ciphers)
             .asSequence()
             .count { entry ->
-                entry.value > 1
+                entry.value > 0
             }
 
         private suspend fun buildPwnedPasswordsState(
@@ -1502,4 +1605,23 @@ sealed interface DFilter {
             cipher: DSecret,
         ) = cipher.ignoredAlerts.isNotEmpty()
     }
+}
+
+private suspend fun filterWatchtowerAlert(
+    directDI: DirectDI,
+    ciphers: List<DSecret>,
+    type: DWatchtowerAlertType,
+): Sequence<DSecret> {
+    val getWatchtowerAlerts = directDI.instance<GetWatchtowerAlerts>()
+    val cipherIds = getWatchtowerAlerts()
+        .first()
+        .asSequence()
+        .filter { it.type == type }
+        .map { it.cipherId.id }
+        .toSet()
+    return ciphers
+        .asSequence()
+        .filter { cipher ->
+            cipher.id in cipherIds && !cipher.ignores(type)
+        }
 }

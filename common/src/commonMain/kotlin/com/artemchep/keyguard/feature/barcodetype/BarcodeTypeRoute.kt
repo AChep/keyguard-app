@@ -48,6 +48,7 @@ data class BarcodeTypeRoute(
             historyKey: String? = null,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
+            id = "barcode.show",
             leading = icon(Icons.Outlined.QrCode),
             title = Res.string.barcodetype_action_show_in_barcode_title.wrap(),
             onClick = {

@@ -26,11 +26,13 @@ import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.contains
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
@@ -41,6 +43,7 @@ import com.artemchep.keyguard.ui.icons.AccentColors
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.isDark
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
@@ -213,6 +216,26 @@ fun organizationConfirmationState(
         windowCoroutineScope,
     ),
 ) {
+    organizationConfirmationStateProducer(
+        args = args,
+        transmitter = transmitter,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getFolders = getFolders,
+    )
+}
+
+suspend fun RememberStateFlowScope.organizationConfirmationStateProducer(
+    args: OrganizationConfirmationRoute.Args,
+    transmitter: RouteResultTransmitter<OrganizationConfirmationResult>,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getFolders: GetFolders,
+): Flow<OrganizationConfirmationState> {
     val readOnlyAccount = OrganizationConfirmationRoute.Args.RO_ACCOUNT in args.flags
     val readOnlyOrganization = OrganizationConfirmationRoute.Args.RO_ORGANIZATION in args.flags
     val readOnlyFolder = OrganizationConfirmationRoute.Args.RO_FOLDER in args.flags
@@ -344,14 +367,15 @@ fun organizationConfirmationState(
     }
         .shareIn(screenScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    val folderNameSink = mutablePersistedFlow("folder_name") {
-        val folderName = (args.folderId as? FolderInfo.New)?.name
-        folderName.orEmpty()
-    }
-    val folderNameState = mutableComposeState(folderNameSink)
-    val folderValidatedFlow = folderNameSink
-        .validatedTitle(this)
+    val folderNameHandle = textFieldHandle(
+        key = "folder_name",
+        initial = (args.folderId as? FolderInfo.New)?.name.orEmpty(),
+    )
+    val folderPairFlow = folderNameHandle.sink
+        .map { cell -> cell to validatedTitle(cell.text) }
         .shareInScreenScope()
+    val folderValidatedFlow = folderPairFlow
+        .map { it.second }
 
     val selectionSink = mutablePersistedFlow<FooBar>("selection") {
         val folderType = args.folderId.type()
@@ -679,14 +703,15 @@ fun organizationConfirmationState(
             selectionFlow
                 .map { it.folderType }
                 .distinctUntilChanged(),
-            folderValidatedFlow,
-        ) { folderType, folderNameValidated ->
+            folderPairFlow,
+        ) { folderType, (folderNameCell, folderNameValidated) ->
             when (folderType) {
-                FolderInfoType.New -> TextFieldModel2(
-                    state = folderNameState,
-                    text = folderNameValidated.model,
+                FolderInfoType.New -> TextFieldModel(
+                    text = folderNameCell.text,
+                    textRevision = folderNameCell.revision,
                     error = (folderNameValidated as? Validated.Failure)?.error,
-                    onChange = folderNameState::value::set,
+                    onChange = folderNameHandle::onChange,
+                    onSetText = folderNameHandle::setText,
                 )
 
                 else -> null
@@ -702,7 +727,7 @@ fun organizationConfirmationState(
         )
     }
 
-    combine(
+    return combine(
         contentFlow,
         combine(
             selectionFlow,

@@ -29,8 +29,8 @@ kotlin {
                 implementation(libs.kdroidfilter.composenativetray)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlin.stdlib)
-                implementation(libs.bouncycastle.bcprov)
-                implementation(libs.bouncycastle.bctls)
+                implementation(libs.squareup.okhttp)
+                implementation(project(":util:crypto"))
                 implementation(project(":common"))
             }
         }
@@ -58,7 +58,25 @@ dependencies {
         bundledAppResources.name,
         project(
             mapOf(
+                "path" to ":desktopGpgAgent",
+                "configuration" to "bundledAppResourcesElements",
+            ),
+        ),
+    )
+    add(
+        bundledAppResources.name,
+        project(
+            mapOf(
                 "path" to ":desktopLibNative",
+                "configuration" to "bundledAppResourcesElements",
+            ),
+        ),
+    )
+    add(
+        bundledAppResources.name,
+        project(
+            mapOf(
+                "path" to ":util:crypto",
                 "configuration" to "bundledAppResourcesElements",
             ),
         ),
@@ -219,12 +237,13 @@ compose.desktop {
         buildTypes {
             release {
                 proguard {
-                    // Enabling the proguard would require us to grab the .jar of
-                    // the BouncyCastle library and strip out the signature due to this error:
-                    //
-                    // Exception in thread "main" java.lang.SecurityException:
-                    // SHA-256 digest error for org/bouncycastle/jce/provider/BouncyCastleProvider.class
-                    isEnabled = false
+                    isEnabled = true
+                    obfuscate = false
+                    optimize = true
+                    configurationFiles.from(
+                        project.file("../common/proguard-rules.pro"),
+                        project.file("proguard-rules.pro"),
+                    )
                 }
             }
         }
@@ -263,6 +282,7 @@ fun Tar.installPackageDistributable(
             if (
                 name == "jspawnhelper" || // https://github.com/AChep/keyguard-app/issues/640#issuecomment-4111835953
                 name == "keyguard-ssh-agent" ||
+                name == "keyguard-gpg-agent" ||
                 name == "keyguard-lib"
             ) {
                 permissions = DefaultFilePermissions("755".toInt(8))

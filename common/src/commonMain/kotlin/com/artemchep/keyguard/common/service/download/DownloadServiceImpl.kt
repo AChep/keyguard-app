@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.common.service.download
 
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
@@ -28,41 +27,40 @@ class DownloadServiceImpl(
     override fun download(
         request: DownloadAttachmentRequestData,
     ): IO<Unit> = ioEffect {
-        val tag = DownloadInfoEntity2.AttachmentDownloadTag(
+        val tag = DownloadInfoEntity.AttachmentDownloadTag(
             localCipherId = request.localCipherId,
             remoteCipherId = request.remoteCipherId,
             attachmentId = request.attachmentId,
         )
 
-        val url: String
-        val urlIsOneTime: Boolean
-        val data: ByteArray?
-        when (val source = request.source) {
+        val source = when (val source = request.source) {
             is DownloadAttachmentRequestData.DirectSource -> {
                 // We want to encode the data in the url, so the file loader
                 // that expects the URL to be unique per file doesn't break.
-                url = KeePassUtil.generateAttachmentUrl(
+                val url = KeePassUtil.generateAttachmentUrl(
                     data = source.data,
                     cryptoGenerator = cryptoGenerator,
                     base32Service = base32Service,
                 )
-                urlIsOneTime = true
-                data = source.data
+                DownloadQueueRequest.Source.Direct(
+                    url = url,
+                    urlIsOneTime = true,
+                    data = source.data,
+                )
             }
-            is DownloadAttachmentRequestData.UrlSource -> {
-                url = source.url
-                urlIsOneTime = source.urlIsOneTime
-                data = null
-            }
+            is DownloadAttachmentRequestData.UrlSource -> DownloadQueueRequest.Source.Url(
+                url = source.url,
+                urlIsOneTime = source.urlIsOneTime,
+            )
         }
         downloadManager.queue(
-            tag = tag,
-            url = url,
-            urlIsOneTime = urlIsOneTime,
-            data = data,
-            name = request.name,
-            key = request.encryptionKey,
-            worker = true,
+            DownloadQueueRequest(
+                tag = tag,
+                source = source,
+                name = request.name,
+                key = request.encryptionKey,
+                scheduleBackground = true,
+            ),
         )
     }
 
@@ -80,7 +78,7 @@ class DownloadServiceImpl(
     }
 
     private suspend fun RemoveAttachmentRequest.ByLocalCipherAttachment.handle() {
-        val ref = DownloadInfoEntity2.AttachmentDownloadTag(
+        val ref = DownloadInfoEntity.AttachmentDownloadTag(
             localCipherId = localCipherId,
             remoteCipherId = remoteCipherId,
             attachmentId = attachmentId,

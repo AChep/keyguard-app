@@ -1,0 +1,157 @@
+name: "✔️ Check SSH Agent"
+
+on:
+  workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: 'Cache write only'
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - master
+    paths:
+      - 'commonSshAgent/**'
+      - 'commonAgent/**'
+      - 'androidSshAgent/**'
+      - 'desktopSshAgent/**'
+      - 'util/crypto/**'
+      - 'thirdParty/rust/**'
+      - 'integration/sshE2eTest/**'
+      - 'common/src/**/sshagent/**'
+      - 'common/src/**/service/agent/**'
+      - 'common/src/**/*Ssh*'
+      - 'common/src/desktopTest/**/ssh-import-corpus/**'
+      - 'common/src/**/crypto/KeyPairGenerator*'
+      - '.github/actions/setup_protobuf/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_ssh.yaml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'commonSshAgent/**'
+      - 'commonAgent/**'
+      - 'androidSshAgent/**'
+      - 'desktopSshAgent/**'
+      - 'util/crypto/**'
+      - 'thirdParty/rust/**'
+      - 'integration/sshE2eTest/**'
+      - 'common/src/**/sshagent/**'
+      - 'common/src/**/service/agent/**'
+      - 'common/src/**/*Ssh*'
+      - 'common/src/desktopTest/**/ssh-import-corpus/**'
+      - 'common/src/**/crypto/KeyPairGenerator*'
+      - '.github/actions/setup_protobuf/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_ssh.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  ssh-rust-tests:
+    name: "Rust agent tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          components: "clippy"
+      - uses: ./.github/actions/setup_protobuf
+      - name: "Run Rust static analysis"
+        run: |
+          cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonSshAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path androidSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path desktopSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+      - name: "Test commonSshAgent crate"
+        run: cargo test --manifest-path commonSshAgent/Cargo.toml
+      - name: "Test androidSshAgent crate"
+        run: cargo test --manifest-path androidSshAgent/src/Cargo.toml --locked
+      - name: "Test desktopSshAgent crate"
+        run: cargo test --manifest-path desktopSshAgent/src/Cargo.toml
+
+  ssh-kotlin-tests:
+    name: "Kotlin agent tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "x86_64-unknown-linux-gnu"
+      - name: "Run SSH agent unit tests"
+        run: ./gradlew :common:checkSshjDependencies :common:desktopTest --tests "com.artemchep.keyguard.common.service.sshagent.*" --tests "com.artemchep.keyguard.common.service.crypto.Ssh*"
+
+  ssh-e2e-tests:
+    name: "End-to-end (${{ matrix.os }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: ubuntu
+            gradle: ./gradlew
+          - os: macos-latest
+            artifact: macos
+            gradle: ./gradlew
+          - os: windows-latest
+            artifact: windows
+            gradle: ./gradlew.bat
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          components: "clippy"
+      - uses: ./.github/actions/setup_protobuf
+      - name: "Run platform Rust static analysis"
+        run: |
+          cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path desktopSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+      - name: "Setup OpenSSH (Linux)"
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get install -y openssh-client
+          ssh -V
+          ssh-keygen -Y sign -h || true
+      - name: "Verify OpenSSH (macOS)"
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          ssh -V
+          ssh-keygen -Y sign -h || true
+      - name: "Verify OpenSSH (Windows)"
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ssh -V
+          cmd /c "ssh-keygen -Y sign -h || exit /b 0"
+      - name: "Run SSH end-to-end tests"
+        run: ${{ matrix.gradle }} :integration:sshE2eTest:sshE2eTest
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: ssh-e2e-test-reports-${{ matrix.artifact }}
+          path: |
+            integration/sshE2eTest/build/reports/tests/
+            integration/sshE2eTest/build/test-results/
+          retention-days: 7

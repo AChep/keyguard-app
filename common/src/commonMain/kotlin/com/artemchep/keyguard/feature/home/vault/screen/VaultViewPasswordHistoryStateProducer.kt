@@ -21,6 +21,7 @@ import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
@@ -36,6 +37,7 @@ import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -88,6 +90,30 @@ fun vaultViewPasswordHistoryScreenState(
         itemId,
     ),
 ) {
+    vaultViewPasswordHistoryScreenStateProducer(
+        getCanWrite = getCanWrite,
+        getAccounts = getAccounts,
+        getCiphers = getCiphers,
+        cipherRemovePasswordHistory = cipherRemovePasswordHistory,
+        cipherRemovePasswordHistoryById = cipherRemovePasswordHistoryById,
+        clipboardService = clipboardService,
+        dateFormatter = dateFormatter,
+        confirmationRouteFactory = confirmationRouteFactory,
+        itemId = itemId,
+    )
+}
+
+suspend fun RememberStateFlowScope.vaultViewPasswordHistoryScreenStateProducer(
+    getCanWrite: GetCanWrite,
+    getAccounts: GetAccounts,
+    getCiphers: GetCiphers,
+    cipherRemovePasswordHistory: CipherRemovePasswordHistory,
+    cipherRemovePasswordHistoryById: CipherRemovePasswordHistoryById,
+    clipboardService: ClipboardService,
+    dateFormatter: DateFormatter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    itemId: String,
+): Flow<VaultViewPasswordHistoryState> {
     val selectionHandle = selectionHandle("selection")
     val copyFactory = copier()
 
@@ -180,8 +206,10 @@ fun vaultViewPasswordHistoryScreenState(
             val actions = buildContextItems {
                 section {
                     this += FlatItemAction(
+                        id = "passwordHistory.selection.remove",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.remove_from_history.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteByItems(selectedItems)
                         },
@@ -218,6 +246,7 @@ fun vaultViewPasswordHistoryScreenState(
                         actions = buildContextItems {
                             section {
                                 this += copyFactory.FlatItemAction(
+                                    id = "passwordHistory.item.${password.id}.copy",
                                     title = Res.string.copy_password.wrap(),
                                     value = password.password,
                                     type = CopyText.Type.PASSWORD,
@@ -226,8 +255,10 @@ fun vaultViewPasswordHistoryScreenState(
                                     password,
                                 )
                                 this += FlatItemAction(
+                                    id = "passwordHistory.item.${password.id}.remove",
                                     leading = icon(Icons.Outlined.Delete),
                                     title = Res.string.remove_from_history.wrap(),
+                                    danger = true,
                                     onClick = onClick {
                                         onDeleteByItems(items)
                                     },
@@ -235,13 +266,13 @@ fun vaultViewPasswordHistoryScreenState(
                             }
                             section {
                                 this += LargeTypeRoute.showInLargeTypeActionOrNull(
-                                    translator = this@produceScreenState,
+                                    translator = this@vaultViewPasswordHistoryScreenStateProducer,
                                     text = password.password,
                                     colorize = true,
                                     navigate = ::navigate,
                                 )
                                 this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
-                                    translator = this@produceScreenState,
+                                    translator = this@vaultViewPasswordHistoryScreenStateProducer,
                                     text = password.password,
                                     colorize = true,
                                     navigate = ::navigate,
@@ -249,7 +280,7 @@ fun vaultViewPasswordHistoryScreenState(
                             }
                             section {
                                 this += PasswordLeakRoute.checkBreachesPasswordAction(
-                                    translator = this@produceScreenState,
+                                    translator = this@vaultViewPasswordHistoryScreenStateProducer,
                                     password = password.password,
                                     navigate = ::navigate,
                                 )
@@ -289,8 +320,10 @@ fun vaultViewPasswordHistoryScreenState(
     val actionsFlow = flowOf(
         persistentListOf(
             FlatItemAction(
+                id = "passwordHistory.clearHistory",
                 icon = Icons.Outlined.Delete,
                 title = Res.string.passwordhistory_clear_history_title.wrap(),
+                danger = true,
                 onClick = onClick {
                     onDeleteAll()
                 },
@@ -298,7 +331,7 @@ fun vaultViewPasswordHistoryScreenState(
         ),
     )
 
-    combine(
+    return combine(
         secretFlow,
         itemsFlow,
         actionsFlow,

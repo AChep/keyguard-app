@@ -3,6 +3,7 @@ package com.artemchep.keyguard.android.downloader.journal
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DGeneratorHistory
+import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyPairRaw
@@ -131,7 +132,12 @@ class GeneratorHistoryRepositoryImpl(
             .map { entities ->
                 entities
                     .map { entity ->
-                        val value = if (entity.isSshKey == true) {
+                        val value = if (entity.isGpgKey == true) {
+                            val valueEntity = json.decodeFromString<GeneratedGpgKey>(entity.value_)
+                            GetPasswordResult.AsyncGpgKey(
+                                gpgKey = valueEntity,
+                            )
+                        } else if (entity.isSshKey == true) {
                             val valueRawEntity = json.decodeFromString<KeyPairEntity>(entity.value_)
                             val valueRaw = with(base64Service) {
                                 valueRawEntity.toDomain()
@@ -152,13 +158,21 @@ class GeneratorHistoryRepositoryImpl(
                             isUsername = entity.isUsername,
                             isEmailRelay = entity.isEmailRelay == true,
                             isSshKey = entity.isSshKey == true,
+                            isGpgKey = entity.isGpgKey == true,
                         )
                     }
             }
 
     override fun put(model: DGeneratorHistory): IO<Unit> =
         daoEffect { dao ->
-            val value = if (model.isSshKey) {
+            val value = if (model.isGpgKey) {
+                require(model.value is GetPasswordResult.AsyncGpgKey) {
+                    "GPG key generator history item must have a GPG key value!"
+                }
+
+                val valueEntity = model.value.gpgKey
+                json.encodeToString(valueEntity)
+            } else if (model.isSshKey) {
                 require(model.value is GetPasswordResult.AsyncKey) {
                     "SSH key generator history item must have a key pair value!"
                 }
@@ -180,6 +194,7 @@ class GeneratorHistoryRepositoryImpl(
                 isUsername = model.isUsername,
                 isEmailRelay = model.isEmailRelay,
                 isSshKey = model.isSshKey,
+                isGpgKey = model.isGpgKey,
             )
         }
 

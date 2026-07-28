@@ -14,22 +14,27 @@ import com.artemchep.keyguard.common.model.email
 import com.artemchep.keyguard.common.model.favorite
 import com.artemchep.keyguard.common.model.fido2Credentials
 import com.artemchep.keyguard.common.model.fields
-import com.artemchep.keyguard.common.model.sshKey
-import com.artemchep.keyguard.common.model.privateKey
-import com.artemchep.keyguard.common.model.publicKey
 import com.artemchep.keyguard.common.model.fingerprint
 import com.artemchep.keyguard.common.model.firstName
+import com.artemchep.keyguard.common.model.gpgKey
 import com.artemchep.keyguard.common.model.identity
 import com.artemchep.keyguard.common.model.lastName
 import com.artemchep.keyguard.common.model.licenseNumber
+import com.artemchep.keyguard.common.model.links
 import com.artemchep.keyguard.common.model.login
+import com.artemchep.keyguard.common.model.metadata
 import com.artemchep.keyguard.common.model.middleName
 import com.artemchep.keyguard.common.model.notes
 import com.artemchep.keyguard.common.model.passportNumber
 import com.artemchep.keyguard.common.model.password
 import com.artemchep.keyguard.common.model.phone
 import com.artemchep.keyguard.common.model.postalCode
+import com.artemchep.keyguard.common.model.privateKey
+import com.artemchep.keyguard.common.model.privateKeyArmored
+import com.artemchep.keyguard.common.model.publicKey
+import com.artemchep.keyguard.common.model.publicKeyArmored
 import com.artemchep.keyguard.common.model.reprompt
+import com.artemchep.keyguard.common.model.sshKey
 import com.artemchep.keyguard.common.model.ssn
 import com.artemchep.keyguard.common.model.state
 import com.artemchep.keyguard.common.model.tags
@@ -38,6 +43,7 @@ import com.artemchep.keyguard.common.model.totp
 import com.artemchep.keyguard.common.model.type
 import com.artemchep.keyguard.common.model.uris
 import com.artemchep.keyguard.common.model.username
+import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
 import com.artemchep.keyguard.common.usecase.CipherMerge
 import org.kodein.di.DirectDI
 
@@ -75,6 +81,10 @@ class CipherMergeImpl() : CipherMerge {
             Node.Leaf(
                 lens = DSecret.attachments,
                 strategy = PickAttachmentStrategy(),
+            ),
+            Node.Leaf(
+                lens = DSecret.links,
+                strategy = PickLinkStrategy(),
             ),
             Node.Leaf(
                 lens = DSecret.tags,
@@ -128,6 +138,15 @@ class CipherMergeImpl() : CipherMerge {
                     Node.Leaf(DSecret.SshKey.fingerprint),
                 ),
             ),
+            Node.Group<DSecret, DSecret.GpgKey>(
+                lens = DSecret.gpgKey,
+                children = listOf(
+                    Node.Leaf(DSecret.GpgKey.privateKeyArmored),
+                    Node.Leaf(DSecret.GpgKey.publicKeyArmored),
+                    Node.Leaf(DSecret.GpgKey.fingerprint),
+                    Node.Leaf(DSecret.GpgKey.metadata),
+                ),
+            ),
         ),
     )
 
@@ -175,7 +194,7 @@ class CipherMergeImpl() : CipherMerge {
             list: List<List<DSecret.Uri>>,
         ): List<DSecret.Uri> = list
             .flatten()
-            .distinct()
+            .mergeUriSignatures()
     }
 
     private class PickFieldStrategy : PickStrategy<List<DSecret.Field>> {
@@ -202,6 +221,16 @@ class CipherMergeImpl() : CipherMerge {
         ): List<DSecret.Attachment> = emptyList()
     }
 
+    private class PickLinkStrategy : PickStrategy<List<DSecret.Link>> {
+        override fun pick(
+            list: List<List<DSecret.Link>>,
+        ): List<DSecret.Link> = canonicalizeCipherLinkIds(
+            list
+                .flatten()
+                .map(DSecret.Link::remoteCipherId),
+        ).map(DSecret::Link)
+    }
+
     private class PickTagStrategy : PickStrategy<List<String>> {
         override fun pick(
             list: List<List<String>>,
@@ -226,6 +255,7 @@ class CipherMergeImpl() : CipherMerge {
                     identity = identity ?: DSecret.Identity(),
                     card = card ?: DSecret.Card(),
                     sshKey = sshKey ?: DSecret.SshKey(),
+                    gpgKey = gpgKey ?: DSecret.GpgKey(),
                 )
             }
         mergeRules.merge(initialCipher, ciphers) as DSecret
@@ -276,3 +306,32 @@ class CipherMergeImpl() : CipherMerge {
         }
     }
 }
+
+private data class UriIdentity(
+    val uri: String,
+    val match: DSecret.Uri.MatchType?,
+)
+
+private fun List<DSecret.Uri>.mergeUriSignatures(): List<DSecret.Uri> {
+    val out = mutableListOf<DSecret.Uri>()
+    forEach { uri ->
+        val index = out.indexOfFirst { existing ->
+            existing.identity == uri.identity
+        }
+        if (index < 0) {
+            out += uri
+        } else {
+            out[index] = out[index].copy(
+                signatures = (out[index].signatures + uri.signatures)
+                    .distinctBy { signature -> signature.certFingerprintSha256 },
+            )
+        }
+    }
+    return out
+}
+
+private val DSecret.Uri.identity: UriIdentity
+    get() = UriIdentity(
+        uri = uri,
+        match = match,
+    )

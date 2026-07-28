@@ -2,7 +2,7 @@
 
 use std::path::PathBuf;
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 pub(crate) fn linux_fallback_ssh_agent_socket_path(uid: libc::uid_t) -> PathBuf {
     PathBuf::from(format!("/tmp/keyguard-{uid}/ssh-agent.sock"))
 }
@@ -80,6 +80,8 @@ pub fn default_ssh_agent_socket_path() -> PathBuf {
         if let Some(runtime_dir) = dirs::runtime_dir() {
             runtime_dir.join("keyguard-ssh-agent.sock")
         } else {
+            // SAFETY: `getuid` has no preconditions and only reads the real
+            // user ID maintained by the operating system for this process.
             let uid = unsafe { libc::getuid() };
             linux_fallback_ssh_agent_socket_path(uid)
         }
@@ -115,7 +117,7 @@ mod tests {
     fn default_socket_path_is_not_empty() {
         let path = default_ssh_agent_socket_path();
         assert!(
-            path.to_str().map_or(false, |s| !s.is_empty()),
+            path.to_str().is_some_and(|s| !s.is_empty()),
             "Default socket path should be non-empty"
         );
     }
@@ -133,13 +135,20 @@ mod tests {
 
     #[cfg(target_os = "macos")]
     #[test]
-    fn macos_path_ends_with_sock() {
+    fn macos_default_path_uses_group_container() {
         let path = default_ssh_agent_socket_path();
-        let path_str = path.to_string_lossy();
-        assert!(
-            path_str.ends_with(".sock"),
-            "macOS socket path should end with .sock, got: {}",
-            path_str
+        assert!(path.ends_with("Library/Group Containers/com.artemchep.keyguard/ssh-agent.sock"));
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn macos_dev_fallback_path_matches_layout() {
+        // SAFETY: `getuid` has no preconditions and only reads the real
+        // user ID maintained by the operating system for this process.
+        let uid = unsafe { libc::getuid() };
+        assert_eq!(
+            linux_fallback_ssh_agent_socket_path(uid),
+            PathBuf::from(format!("/tmp/keyguard-{uid}/ssh-agent.sock"))
         );
     }
 
@@ -214,6 +223,8 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn linux_fallback_path_matches_expected_layout() {
+        // SAFETY: `getuid` has no preconditions and only reads the real
+        // user ID maintained by the operating system for this process.
         let uid = unsafe { libc::getuid() };
         let path = linux_fallback_ssh_agent_socket_path(uid);
         assert_eq!(

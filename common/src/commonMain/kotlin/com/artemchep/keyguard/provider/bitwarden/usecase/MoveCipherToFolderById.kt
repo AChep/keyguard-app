@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.FolderOwnership2
 import com.artemchep.keyguard.common.usecase.AddFolder
+import com.artemchep.keyguard.common.usecase.AddFolderRequest
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.folderId
@@ -39,8 +40,11 @@ class MoveCipherToFolderByIdImpl(
             is FolderInfo.None -> null
             is FolderInfo.New -> {
                 val accountId = AccountId(ownership.accountId)
-                val rq = mapOf(
-                    accountId to folder.name,
+                val rq = listOf(
+                    AddFolderRequest(
+                        accountId = accountId,
+                        name = folder.name,
+                    ),
                 )
                 val rs = addFolder(rq)
                     .bind()

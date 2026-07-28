@@ -5,11 +5,11 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshKeyStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
-import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
+import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,9 +21,7 @@ import org.kodein.di.bindSingleton
 import org.kodein.di.direct
 
 class CipherSshKeyWeakCheckTest {
-    private val keyPairGenerator = KeyPairGeneratorJvm(
-        cryptoGenerator = CryptoGeneratorJvm(),
-    )
+    private val keyPairGenerator = NativeKeyPairGenerator(Base64ServiceImpl())
     private val check = CipherSshKeyWeakCheckImpl(
         keyPairGenerator = keyPairGenerator,
     )

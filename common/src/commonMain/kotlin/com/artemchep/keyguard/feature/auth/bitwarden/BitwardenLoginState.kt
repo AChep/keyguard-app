@@ -2,7 +2,7 @@ package com.artemchep.keyguard.feature.auth.bitwarden
 
 import androidx.compose.runtime.Immutable
 import arrow.optics.optics
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.collections.immutable.ImmutableList
@@ -15,9 +15,9 @@ import kotlinx.coroutines.flow.emptyFlow
 @Immutable
 @optics
 data class LoginState(
-    val email: TextFieldModel2,
-    val password: TextFieldModel2,
-    val clientSecret: TextFieldModel2? = null,
+    val email: TextFieldModel,
+    val password: TextFieldModel,
+    val clientSecret: TextFieldModel? = null,
     val effects: SideEffect = SideEffect(),
     val showCustomEnv: Boolean = false,
     val regionItems: ImmutableList<BitwardenLoginRegionItem> = persistentListOf(),
@@ -70,7 +70,7 @@ sealed interface LoginStateItem {
         data class State(
             override val options: List<FlatItemAction> = emptyList(),
             val label: String,
-            val text: TextFieldModel2,
+            val text: TextFieldModel,
         ) : HasOptions<State> {
             override fun withOptions(options: List<FlatItemAction>): State =
                 copy(
@@ -91,8 +91,8 @@ sealed interface LoginStateItem {
 
         data class State(
             override val options: List<FlatItemAction> = emptyList(),
-            val label: TextFieldModel2,
-            val text: TextFieldModel2,
+            val label: TextFieldModel,
+            val text: TextFieldModel,
         ) : HasOptions<State> {
             override fun withOptions(options: List<FlatItemAction>) =
                 copy(

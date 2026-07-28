@@ -4,8 +4,11 @@ import androidx.compose.runtime.Composable
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.WebDavCredentials
+import com.artemchep.keyguard.common.model.WebDavLocation
 import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginEvent
@@ -13,16 +16,20 @@ import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent.Companion.mimeTypesKeePass
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.webdav.WebDavSettingsRoute
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.create_database
+import com.artemchep.keyguard.res.database_location_local
+import com.artemchep.keyguard.res.database_location_webdav
 import com.artemchep.keyguard.res.open_database
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import org.kodein.di.compose.localDI
@@ -33,17 +40,21 @@ private const val DEFAULT_DATABASE_NAME = "MyKeyguardDatabase.kdbx"
 
 private const val MODE_OPEN = "open"
 private const val MODE_NEW = "new"
+private const val LOCATION_LOCAL = "local"
+private const val LOCATION_WEBDAV = "webdav"
 private const val DEFAULT_SCREEN_KEY = "keepasslogin"
 
 internal fun createKeePassLoginAction(
     mode: String?,
     dbFile: KeePassLoginState.FileItem.File?,
     keyFile: KeePassLoginState.FileItem.File?,
+    webDav: KeePassLoginState.WebDav?,
     passwordValidated: Validated<String>,
     onSubmit: (
         mode: String,
         dbFile: KeePassLoginState.FileItem.File,
         keyFile: KeePassLoginState.FileItem.File?,
+        webDav: KeePassLoginState.WebDav?,
         password: String,
     ) -> Unit,
 ): KeePassLoginState.Action? {
@@ -59,6 +70,7 @@ internal fun createKeePassLoginAction(
                 mode,
                 dbFile,
                 keyFile,
+                webDav,
                 password,
             )
         },
@@ -69,7 +81,8 @@ internal fun createKeePassLoginState(
     sideEffects: KeePassLoginState.SideEffect,
     dbFileState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.FileItem>,
     keyFileState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.FileItem>,
-    password: kotlinx.coroutines.flow.StateFlow<TextFieldModel2>,
+    databaseLocationState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.DatabaseLocation>,
+    password: kotlinx.coroutines.flow.StateFlow<TextFieldModel>,
     actionState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.Action?>,
     tabsState: kotlinx.coroutines.flow.StateFlow<KeePassLoginState.Tabs>,
     isLoading: Boolean,
@@ -77,6 +90,7 @@ internal fun createKeePassLoginState(
     sideEffects = sideEffects,
     dbFileState = dbFileState,
     keyFileState = keyFileState,
+    databaseLocationState = databaseLocationState,
     tabsState = tabsState,
     password = password,
     actionState = actionState,
@@ -124,6 +138,9 @@ fun produceKeePassLoginScreenState(
     val tabSink = mutablePersistedFlow<String?>("mode") {
         null
     }
+    val databaseLocationSink = mutablePersistedFlow("database_location") {
+        LOCATION_LOCAL
+    }
 
     val dbFileSink = mutablePersistedFlow<KeePassLoginState.FileItem.File?>("db_file") {
         null
@@ -131,21 +148,29 @@ fun produceKeePassLoginScreenState(
     val keyFileSink = mutablePersistedFlow<KeePassLoginState.FileItem.File?>("key_file") {
         null
     }
-
-    val passwordSink = mutablePersistedFlow("password") {
-        defaultPassword
+    val webDavSink = mutablePersistedFlow<KeePassLoginState.WebDav?>("webdav") {
+        null
     }
-    val passwordState = mutableComposeState(passwordSink)
-    val passwordValidatedFlow = passwordSink
-        .validatedPassword(this, minLength = 1)
+
+    val passwordHandle = textFieldHandle("password", initial = defaultPassword)
+    val passwordPairFlow = passwordHandle.sink
+        .map { cell ->
+            cell to validatedPassword(
+                password = cell.text,
+                minLength = 1,
+            )
+        }
         .shareInScreenScope()
-    val passwordFlow = passwordValidatedFlow
-        .map { passwordValidated ->
-            TextFieldModel2(
-                state = passwordState,
-                text = passwordValidated.model,
+    val passwordValidatedFlow = passwordPairFlow
+        .map { it.second }
+    val passwordFlow = passwordPairFlow
+        .map { (cell, passwordValidated) ->
+            TextFieldModel(
+                text = cell.text,
+                textRevision = cell.revision,
                 error = (passwordValidated as? Validated.Failure)?.error,
-                onChange = passwordState::value::set,
+                onChange = passwordHandle::onChange,
+                onSetText = passwordHandle::setText,
             )
         }
         .stateIn(screenScope)
@@ -154,12 +179,58 @@ fun produceKeePassLoginScreenState(
         uri = uri.toString(),
         name = name,
         size = size,
+        accessToken = accessToken,
     )
+
+    fun KeePassLoginState.WebDav.toFile() = KeePassLoginState.FileItem.File(
+        uri = url,
+        name = url.substringBefore('#')
+            .substringBefore('?')
+            .substringAfterLast('/'),
+        size = null,
+    )
+
+    fun onWebDavLocationSelected(
+        result: com.artemchep.keyguard.feature.webdav.WebDavSettingsResult,
+    ) {
+        val webDav = KeePassLoginState.WebDav(
+            url = result.url,
+            username = result.username,
+            password = result.password,
+        )
+        databaseLocationSink.value = LOCATION_WEBDAV
+        webDavSink.value = webDav
+        dbFileSink.value = webDav.toFile()
+    }
+
+    fun onSelectWebDavLocation() {
+        val webDav = webDavSink.value
+        val route = registerRouteResultReceiver(
+            route = WebDavSettingsRoute(
+                args = WebDavSettingsRoute.Args(
+                    url = webDav?.url.orEmpty(),
+                    username = webDav?.username.orEmpty(),
+                    password = webDav?.password.orEmpty(),
+                    purpose = WebDavSettingsRoute.Purpose.KeePassDatabase,
+                ),
+            ),
+        ) { result ->
+            onWebDavLocationSelected(result)
+        }
+        navigate(NavigationIntent.NavigateToRoute(route))
+    }
+
+    fun onSelectLocalLocation() {
+        databaseLocationSink.value = LOCATION_LOCAL
+        webDavSink.value = null
+        dbFileSink.value = null
+    }
 
     fun onSubmit(
         mode: String,
         dbFile: KeePassLoginState.FileItem.File,
         keyFile: KeePassLoginState.FileItem.File?,
+        webDav: KeePassLoginState.WebDav?,
         password: String,
     ) {
         val paramsMode = when (mode) {
@@ -173,7 +244,18 @@ fun produceKeePassLoginScreenState(
             mode = paramsMode,
             dbUri = dbFile.uri,
             dbFileName = dbFile.name.orEmpty(),
+            webDav = webDav?.let {
+                WebDavLocation.File(
+                    url = it.url,
+                    credentials = WebDavCredentials.of(
+                        username = it.username,
+                        password = it.password,
+                    ),
+                )
+            },
+            dbAccessToken = dbFile.accessToken,
             keyUri = keyFile?.uri,
+            keyAccessToken = keyFile?.accessToken,
             password = password,
         )
         val io = addKeepassAccount(params)
@@ -192,6 +274,8 @@ fun produceKeePassLoginScreenState(
         ) { info ->
             if (info != null) {
                 val file = info.toFile()
+                databaseLocationSink.value = LOCATION_LOCAL
+                webDavSink.value = null
                 dbFileSink.value = file
             }
         }
@@ -212,15 +296,29 @@ fun produceKeePassLoginScreenState(
     }
 
     fun onSelectMode(mode: String) {
+        if (databaseLocationSink.value == LOCATION_WEBDAV) {
+            tabSink.value = mode
+            passwordHandle.setText("")
+            keyFileSink.value = null
+            if (webDavSink.value == null) {
+                onSelectWebDavLocation()
+            }
+            return
+        }
+
         val onFileSelected: (FilePickerResult?) -> Unit = { info ->
             if (info != null) {
                 val file = info.toFile()
+                databaseLocationSink.value = LOCATION_LOCAL
+                webDavSink.value = null
                 dbFileSink.value = file
 
                 // Also change the
                 // current mode and reset password.
                 tabSink.value = mode
-                passwordSink.value = ""
+                // Command path: bumps the revision so the field's edit
+                // buffer adopts the cleared text.
+                passwordHandle.setText("")
                 keyFileSink.value = null
             }
         }
@@ -283,18 +381,54 @@ fun produceKeePassLoginScreenState(
         }
         .stateIn(screenScope)
 
+    val databaseLocationState = databaseLocationSink
+        .map { location ->
+            val type = when (location) {
+                LOCATION_WEBDAV -> KeePassLoginState.DatabaseLocation.Type.WebDav
+                else -> KeePassLoginState.DatabaseLocation.Type.Local
+            }
+            val items = listOf(
+                KeePassLoginState.DatabaseLocation.Item(
+                    type = KeePassLoginState.DatabaseLocation.Type.Local,
+                    title = TextHolder.Res(Res.string.database_location_local),
+                    checked = type == KeePassLoginState.DatabaseLocation.Type.Local,
+                    onClick = ::onSelectLocalLocation,
+                ),
+                KeePassLoginState.DatabaseLocation.Item(
+                    type = KeePassLoginState.DatabaseLocation.Type.WebDav,
+                    title = TextHolder.Res(Res.string.database_location_webdav),
+                    checked = type == KeePassLoginState.DatabaseLocation.Type.WebDav,
+                    onClick = ::onSelectWebDavLocation,
+                ),
+            ).toImmutableList()
+            KeePassLoginState.DatabaseLocation(
+                type = type,
+                items = items,
+            )
+        }
+        .stateIn(screenScope)
+
     val dbFileState = dbFileSink
         .map { file ->
             val onClear = if (file != null) {
                 // lambda
                 {
                     dbFileSink.value = null
+                    if (databaseLocationSink.value == LOCATION_WEBDAV) {
+                        webDavSink.value = null
+                    }
                 }
             } else {
                 null
             }
             KeePassLoginState.FileItem(
-                onClick = ::onSelectDbFile,
+                onClick = {
+                    if (databaseLocationSink.value == LOCATION_WEBDAV) {
+                        onSelectWebDavLocation()
+                    } else {
+                        onSelectDbFile()
+                    }
+                },
                 onClear = onClear,
                 file = file,
             )
@@ -323,18 +457,21 @@ fun produceKeePassLoginScreenState(
         tabSink,
         dbFileSink,
         keyFileSink,
+        webDavSink,
         passwordValidatedFlow,
-    ) { mode, dbFile, keyFile, passwordValidated ->
+    ) { mode, dbFile, keyFile, webDav, passwordValidated ->
         createKeePassLoginAction(
             mode = mode,
             dbFile = dbFile,
             keyFile = keyFile,
+            webDav = webDav,
             passwordValidated = passwordValidated,
-            onSubmit = { actionMode, actionDbFile, actionKeyFile, actionPassword ->
+            onSubmit = { actionMode, actionDbFile, actionKeyFile, actionWebDav, actionPassword ->
                 onSubmit(
                     mode = actionMode,
                     dbFile = actionDbFile,
                     keyFile = actionKeyFile,
+                    webDav = actionWebDav,
                     password = actionPassword,
                 )
             },
@@ -348,6 +485,7 @@ fun produceKeePassLoginScreenState(
                 sideEffects = sideEffects,
                 dbFileState = dbFileState,
                 keyFileState = keyFileState,
+                databaseLocationState = databaseLocationState,
                 tabsState = tabsState,
                 password = passwordFlow,
                 actionState = actionState,

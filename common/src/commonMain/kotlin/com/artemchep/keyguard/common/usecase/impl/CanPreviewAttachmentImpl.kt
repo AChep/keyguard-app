@@ -4,19 +4,12 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.AttachmentPreviewPolicy
 import com.artemchep.keyguard.common.model.isAttachmentPreviewSupported
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
-import com.artemchep.keyguard.platform.CurrentPlatform
-import com.artemchep.keyguard.platform.Platform
 
-class CanPreviewAttachmentImpl(
-    private val platform: Platform = CurrentPlatform,
-) : CanPreviewAttachment {
+class CanPreviewAttachmentImpl : CanPreviewAttachment {
     override fun invoke(
         fileName: String,
         encryptedSize: Long?,
     ): AttachmentPreviewPolicy {
-        if (!platform.supportsAttachmentPreview()) {
-            return AttachmentPreviewPolicy.UnsupportedPlatform
-        }
         if (!isAttachmentPreviewSupported(fileName)) {
             return AttachmentPreviewPolicy.UnsupportedType
         }
@@ -33,10 +26,4 @@ class CanPreviewAttachmentImpl(
 
         return AttachmentPreviewPolicy.Previewable
     }
-}
-
-private fun Platform.supportsAttachmentPreview(): Boolean = when (this) {
-    is Platform.Desktop -> true
-    is Platform.Mobile.Android -> true
-    is Platform.Mobile.Ios -> false
 }

@@ -136,9 +136,10 @@ class SshAgentTcpProtocolTest {
                             sessionId = sessionId,
                             sessionSecret = sessionSecret,
                         )
-                        assertFailsWith<IllegalArgumentException> {
+                        val error = assertFailsWith<IllegalArgumentException> {
                             appChannel.readPacket()
                         }
+                        assertEquals("SSH agent payload authentication failed", error.message)
                     }
 
                     val toolJob = async(Dispatchers.IO) {

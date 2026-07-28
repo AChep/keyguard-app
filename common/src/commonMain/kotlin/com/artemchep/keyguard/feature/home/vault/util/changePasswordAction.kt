@@ -1,11 +1,12 @@
 package com.artemchep.keyguard.feature.home.vault.util
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.automirrored.outlined.Label
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Edit
@@ -16,12 +17,15 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.LockOpen
 import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.RestoreFromTrash
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.Unarchive
+import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.biFlatTap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
@@ -31,7 +35,13 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.FolderOwnership2
+import com.artemchep.keyguard.common.model.GpgKeyserverVerifyStatus
+import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.PatchWatchtowerAlertCipherRequest
+import com.artemchep.keyguard.common.model.RefreshGpgPublicKeysRequest
+import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.model.UploadGpgPublicKeyRequest
+import com.artemchep.keyguard.common.model.VerifyGpgPublicKeyRequest
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
@@ -42,10 +52,13 @@ import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
+import com.artemchep.keyguard.common.usecase.RefreshGpgPublicKeys
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
+import com.artemchep.keyguard.common.usecase.UploadGpgPublicKey
+import com.artemchep.keyguard.common.usecase.VerifyGpgPublicKey
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
@@ -90,6 +103,7 @@ fun RememberStateFlowScope.cipherEnableConfirmAccessAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     FlatItemAction(
+        id = "cipher.enableConfirmAccess",
         icon = Icons.Filled.Lock,
         title = Res.string.ciphers_action_enable_auth_reprompt_title.wrap(),
         onClick = {
@@ -116,6 +130,7 @@ fun RememberStateFlowScope.cipherDisableConfirmAccessAction(
     after: ((Boolean) -> Unit)? = null,
 ) = kotlin.run {
     FlatItemAction(
+        id = "cipher.disableConfirmAccess",
         icon = Icons.Outlined.LockOpen,
         title = Res.string.ciphers_action_disable_auth_reprompt_title.wrap(),
         onClick = {
@@ -152,6 +167,7 @@ fun RememberStateFlowScope.cipherEditAction(
     val icon = icon(Icons.Outlined.Edit)
     val title = Res.string.ciphers_action_edit_title.wrap()
     FlatItemAction(
+        id = "cipher.edit",
         leading = icon,
         title = title,
         onClick = {
@@ -180,6 +196,7 @@ fun RememberStateFlowScope.cipherMergeIntoAction(
     val icon = icon(Icons.Outlined.Merge)
     val title = Res.string.ciphers_action_merge_title.wrap()
     FlatItemAction(
+        id = "cipher.mergeInto",
         leading = icon,
         title = title,
         onClick = {
@@ -224,6 +241,7 @@ fun RememberStateFlowScope.cipherExportAction(
     val iconImageVector = Icons.Outlined.SaveAlt
     val title = Res.string.ciphers_action_export_title.wrap()
     FlatItemAction(
+        id = "cipher.export",
         icon = iconImageVector,
         title = title,
         onClick = {
@@ -249,6 +267,208 @@ fun RememberStateFlowScope.cipherExportAction(
             )
         },
     )
+}
+
+fun RememberStateFlowScope.cipherUploadGpgPublicKeyAction(
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    uploadGpgPublicKey: UploadGpgPublicKey,
+    cipher: DSecret,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    val icon = icon(Icons.Outlined.CloudUpload)
+    FlatItemAction(
+        leading = icon,
+        title = Res.string.ciphers_action_upload_gpg_public_key_title.wrap(),
+        onClick = {
+            before?.invoke()
+
+            action {
+                val route = confirmationRouteFactory.registerRouteResultReceiver(
+                    args = ConfirmationRoute.Args(
+                        title = translate(Res.string.ciphers_action_upload_gpg_public_key_confirmation_title),
+                        message = translate(Res.string.ciphers_action_upload_gpg_public_key_confirmation_text),
+                    ),
+                ) { result ->
+                    if (result !is ConfirmationResult.Confirm) {
+                        return@registerRouteResultReceiver
+                    }
+
+                    uploadGpgPublicKey(
+                        UploadGpgPublicKeyRequest(
+                            cipherId = cipher.id,
+                            accountId = cipher.accountId,
+                        ),
+                    )
+                        .biFlatTap(
+                            ifException = { e ->
+                                ioEffect {
+                                    message(e)
+                                    after?.invoke(false)
+                                }
+                            },
+                            ifSuccess = {
+                                ioEffect {
+                                    message(
+                                        ToastMessage(
+                                            title = translate(Res.string.gpg_keyserver_upload_success_title),
+                                            type = ToastMessage.Type.SUCCESS,
+                                        ),
+                                    )
+                                    after?.invoke(true)
+                                }
+                            },
+                        )
+                        .attempt()
+                        .launchIn(appScope)
+                }
+                navigate(NavigationIntent.NavigateToRoute(route))
+            }
+        },
+    )
+}
+
+fun RememberStateFlowScope.cipherRefreshGpgPublicKeyAction(
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    refreshGpgPublicKeys: RefreshGpgPublicKeys,
+    cipher: DSecret,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    val icon = icon(Icons.Outlined.Refresh)
+    FlatItemAction(
+        leading = icon,
+        title = Res.string.ciphers_action_refresh_gpg_public_key_title.wrap(),
+        onClick = {
+            before?.invoke()
+
+            action {
+                val route = confirmationRouteFactory.registerRouteResultReceiver(
+                    args = ConfirmationRoute.Args(
+                        title = translate(Res.string.ciphers_action_refresh_gpg_public_key_confirmation_title),
+                        message = translate(Res.string.ciphers_action_refresh_gpg_public_key_confirmation_text),
+                    ),
+                ) { result ->
+                    if (result !is ConfirmationResult.Confirm) {
+                        return@registerRouteResultReceiver
+                    }
+
+                    refreshGpgPublicKeys(
+                        RefreshGpgPublicKeysRequest(
+                            cipherIds = setOf(cipher.id),
+                            accountId = cipher.accountId,
+                        ),
+                    )
+                        .biFlatTap(
+                            ifException = { e ->
+                                ioEffect {
+                                    message(e)
+                                    after?.invoke(false)
+                                }
+                            },
+                            ifSuccess = { result ->
+                                ioEffect {
+                                    val refreshed = result.refreshed > 0
+                                    message(
+                                        ToastMessage(
+                                            title = translate(
+                                                if (refreshed) {
+                                                    Res.string.gpg_keyserver_refresh_success_title
+                                                } else {
+                                                    Res.string.gpg_keyserver_refresh_not_found_title
+                                                },
+                                            ),
+                                            type = if (refreshed) {
+                                                ToastMessage.Type.SUCCESS
+                                            } else {
+                                                ToastMessage.Type.INFO
+                                            },
+                                        ),
+                                    )
+                                    after?.invoke(refreshed)
+                                }
+                            }
+                        )
+                        .attempt()
+                        .launchIn(appScope)
+                }
+                navigate(NavigationIntent.NavigateToRoute(route))
+            }
+        },
+    )
+}
+
+fun RememberStateFlowScope.cipherVerifyGpgPublicKeyAction(
+    verifyGpgPublicKey: VerifyGpgPublicKey,
+    cipher: DSecret,
+    before: (() -> Unit)? = null,
+    after: ((Boolean) -> Unit)? = null,
+) = kotlin.run {
+    val icon = icon(Icons.Outlined.VerifiedUser)
+    FlatItemAction(
+        leading = icon,
+        title = Res.string.ciphers_action_verify_gpg_public_key_title.wrap(),
+        onClick = {
+            before?.invoke()
+
+            verifyGpgPublicKey(
+                VerifyGpgPublicKeyRequest(
+                    cipherId = cipher.id,
+                    accountId = cipher.accountId,
+                ),
+            )
+                .biFlatTap(
+                    ifException = { e ->
+                        ioEffect {
+                            message(e)
+                            after?.invoke(false)
+                        }
+                    },
+                    ifSuccess = { result ->
+                        ioEffect {
+                            val verified = result.overall == GpgKeyserverVerificationStatus.VERIFIED
+                            message(
+                                ToastMessage(
+                                    title = translate(result.toastTitle()),
+                                    type = when (result.overall) {
+                                        GpgKeyserverVerificationStatus.VERIFIED ->
+                                            ToastMessage.Type.SUCCESS
+
+                                        GpgKeyserverVerificationStatus.REVOKED ->
+                                            ToastMessage.Type.ERROR
+
+                                        GpgKeyserverVerificationStatus.UNKNOWN,
+                                        GpgKeyserverVerificationStatus.NOT_FOUND,
+                                        GpgKeyserverVerificationStatus.FOUND_UNVERIFIED ->
+                                            ToastMessage.Type.INFO
+                                    },
+                                ),
+                            )
+                            after?.invoke(verified)
+                        }
+                    },
+                )
+                .attempt()
+                .launchIn(appScope)
+        },
+    )
+}
+
+private fun GpgKeyserverVerifyStatus.toastTitle() = when (overall) {
+    GpgKeyserverVerificationStatus.UNKNOWN ->
+        Res.string.gpg_keyserver_verify_unknown_title
+
+    GpgKeyserverVerificationStatus.NOT_FOUND ->
+        Res.string.gpg_keyserver_verify_not_found_title
+
+    GpgKeyserverVerificationStatus.FOUND_UNVERIFIED ->
+        Res.string.gpg_keyserver_verify_unverified_title
+
+    GpgKeyserverVerificationStatus.VERIFIED ->
+        Res.string.gpg_keyserver_verify_verified_title
+
+    GpgKeyserverVerificationStatus.REVOKED ->
+        Res.string.gpg_keyserver_verify_revoked_title
 }
 
 fun RememberStateFlowScope.cipherSendAction(
@@ -416,11 +636,24 @@ fun RememberStateFlowScope.cipherSendAction(
         ).let { yield(it) }
     }
 
+    suspend fun SequenceScope<SendItem?>.yieldCipherGpgKeyItems(gpgKey: DSecret.GpgKey?) {
+        if (gpgKey == null) return
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.gpg_key_secret_key),
+            value = gpgKey.privateKeyArmored,
+        ).let { yield(it) }
+        createSendItemOrNull(
+            name = TextHolder.Res(Res.string.public_key),
+            value = gpgKey.publicKeyArmored,
+        ).let { yield(it) }
+    }
+
     suspend fun SequenceScope<SendItem?>.yieldCipherItems(cipher: DSecret) {
         yieldCipherLoginItems(cipher.login)
         yieldCipherCardItems(cipher.card)
         yieldCipherIdentityItems(cipher.identity)
         yieldCipherSshKeyItems(cipher.sshKey)
+        yieldCipherGpgKeyItems(cipher.gpgKey)
 
         // Urls
         cipher.uris.forEach { uri ->
@@ -451,6 +684,7 @@ fun RememberStateFlowScope.cipherSendAction(
     val sendTitle = ciphers
         .joinToString { cipher -> cipher.name }
     FlatItemAction(
+        id = "cipher.send",
         leading = iconSmall(Icons.AutoMirrored.Outlined.Send, Icons.Outlined.Add),
         title = Res.string.text_action_send_title.wrap(),
         onClick = onClick {
@@ -480,6 +714,7 @@ fun RememberStateFlowScope.cipherSendAction(
                         key = key,
                         title = value.name,
                         text = value.value,
+                        textMaxLines = 4,
                         value = false,
                     )
                 }
@@ -538,6 +773,7 @@ fun RememberStateFlowScope.cipherCopyToAction(
     val iconImageVector = Icons.Outlined.FileCopy
     val title = Res.string.ciphers_action_copy_title.wrap()
     FlatItemAction(
+        id = "cipher.copyTo",
         icon = iconImageVector,
         title = title,
         onClick = onClick {
@@ -601,6 +837,7 @@ fun RememberStateFlowScope.cipherMoveToFolderAction(
     val icon = icon(Icons.Outlined.Folder)
     val title = Res.string.ciphers_action_change_folder_title.wrap()
     FlatItemAction(
+        id = "cipher.moveToFolder",
         leading = icon,
         title = title,
         onClick = {
@@ -683,6 +920,7 @@ fun RememberStateFlowScope.cipherChangeNameAction(
         Res.string.ciphers_action_change_name_title
     }.wrap()
     FlatItemAction(
+        id = "cipher.changeName",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -732,6 +970,7 @@ fun RememberStateFlowScope.cipherChangeTagsAction(
     val icon = icon(Icons.AutoMirrored.Outlined.Label)
     val title = Res.string.ciphers_action_change_tags_title.wrap()
     FlatItemAction(
+        id = "cipher.changeTags",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -797,6 +1036,7 @@ fun RememberStateFlowScope.cipherChangePasswordAction(
         }.wrap()
     }
     FlatItemAction(
+        id = "cipher.changePassword",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -846,6 +1086,7 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
 ) = kotlin.run {
     val title = Res.string.ciphers_action_view_password_history_title.wrap()
     FlatItemAction(
+        id = "cipher.viewPasswordHistory",
         leading = {
             BadgedBox(
                 badge = {
@@ -880,6 +1121,7 @@ fun RememberStateFlowScope.cipherViewSshAgentHistoryAction(
     cipher: DSecret,
 ) = kotlin.run {
     FlatItemAction(
+        id = "cipher.viewSshAgentHistory",
         leading = icon(Icons.Outlined.History),
         title = Res.string.ciphers_action_view_ssh_agent_history_title.wrap(),
         trailing = {
@@ -906,6 +1148,7 @@ fun RememberStateFlowScope.cipherArchiveAction(
     val icon = icon(Icons.Outlined.Archive)
     val title = Res.string.ciphers_action_archive_title.wrap()
     FlatItemAction(
+        id = "cipher.archive",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -944,6 +1187,7 @@ fun RememberStateFlowScope.cipherUnarchiveAction(
     val icon = icon(Icons.Outlined.Unarchive)
     val title = Res.string.ciphers_action_unarchive_title.wrap()
     FlatItemAction(
+        id = "cipher.unarchive",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -982,8 +1226,10 @@ fun RememberStateFlowScope.cipherTrashAction(
     val icon = icon(Icons.Outlined.Delete)
     val title = Res.string.ciphers_action_trash_title.wrap()
     FlatItemAction(
+        id = "cipher.trash",
         leading = icon,
         title = title,
+        danger = true,
         onClick = onClick {
             before?.invoke()
 
@@ -1021,6 +1267,7 @@ fun RememberStateFlowScope.cipherRestoreAction(
     val icon = icon(Icons.Outlined.RestoreFromTrash)
     val title = Res.string.ciphers_action_restore_title.wrap()
     FlatItemAction(
+        id = "cipher.restore",
         leading = icon,
         title = title,
         onClick = onClick {
@@ -1059,8 +1306,10 @@ fun RememberStateFlowScope.cipherDeleteAction(
     val icon = icon(Icons.Outlined.DeleteForever)
     val title = Res.string.ciphers_action_delete_title.wrap()
     FlatItemAction(
+        id = "cipher.delete",
         leading = icon,
         title = title,
+        danger = true,
         onClick = onClick {
             before?.invoke()
 
@@ -1101,6 +1350,7 @@ fun RememberStateFlowScope.cipherWatchtowerAlerts(
         .count()
     val title = Res.string.ciphers_action_configure_watchtower_alerts_title.wrap()
     FlatItemAction(
+        id = "cipher.watchtowerAlerts",
         leading = {
             BadgedBox(
                 badge = {

@@ -1,0 +1,92 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:NativeCrypto.kt:NativeCryptoClient$outputLength &lt; 0 || outputLength &gt; outputCapacity || (exactOutputLength != null &amp;&amp; outputLength != exactOutputLength)</ID>
+    <ID>ComplexCondition:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform$!validStatus || length !in 0L..maximumOutputLength.toLong() || status != FAST_OK &amp;&amp; length != 0L</ID>
+    <ID>ComplexCondition:NativeCryptoSsh.kt:NativeCryptoSsh$value.privateKey.isEmpty() || value.privateKey.size &gt; MAX_KEY_BYTES || value.publicKey.isEmpty() || value.publicKey.size &gt; MAX_KEY_BYTES</ID>
+    <ID>ComplexCondition:NativeCryptoSsh.kt:NativeCryptoSsh$value.privateKeyPem.isEmpty() || value.publicKeyOpenSsh.isEmpty() || value.privateFingerprint.isEmpty() || value.publicFingerprint.isEmpty()</ID>
+    <ID>CyclomaticComplexMethod:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun canonicalValue: ByteArray</ID>
+    <ID>CyclomaticComplexMethod:NativeCryptoOpenPgp.kt:private fun OpenPgpExpirationUpdateErrorReasonProto.toPublic: NativeOpenPgpExpirationUpdateError</ID>
+    <ID>CyclomaticComplexMethod:NativeCryptoOpenPgp.kt:private fun OpenPgpVerificationProto.toPublic: NativeOpenPgpVerification</ID>
+    <ID>CyclomaticComplexMethod:NativeCryptoSsh.kt:NativeCryptoSsh$public fun importPrivateKey: NativeSshPrivateKeyImportResult</ID>
+    <ID>FunctionNaming:NativeCryptoLayerBenchmarkTest.kt:NativeCryptoLayerBenchmarkTest$@Test fun `measure Native Crypto boundary layers`</ID>
+    <ID>LargeClass:NativeCryptoClientTest.kt:NativeCryptoClientTest</ID>
+    <ID>LargeClass:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke</ID>
+    <ID>LargeClass:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp</ID>
+    <ID>LargeClass:NativeCryptoPrimitives.kt:NativeCryptoPrimitives</ID>
+    <ID>LongMethod:NativeCryptoClientTest.kt:NativeCryptoClientTest$@Test fun roundTripsTypedOpenPgpOperationsAndResults</ID>
+    <ID>LongMethod:NativeCryptoClientTest.kt:NativeCryptoClientTest$@Test fun roundTripsTypedOpenPgpWriteOperationsAndFinalDtos</ID>
+    <ID>LongMethod:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpAgentRsaDecrypt</ID>
+    <ID>LongMethod:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpMutationAndAgent</ID>
+    <ID>LongMethod:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpWrite</ID>
+    <ID>LongMethod:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$public fun runPackaged: NativeCryptoDesktopSmokeResult</ID>
+    <ID>LongMethod:NativeCryptoLayerBenchmarkTest.kt:NativeCryptoLayerBenchmarkTest$private fun MutableList&lt;NativeCryptoLayerBenchmarkRun&gt;.addBitwardenCompositionBenchmarks</ID>
+    <ID>LongMethod:NativeCryptoPrimitivesInputTest.kt:NativeCryptoPrimitivesInputTest$@Test fun rejectsInvalidKdbxCipherParametersBeforeCallingNativeCode</ID>
+    <ID>LongMethod:NativeCryptoSmokeTest.kt:NativeCryptoSmokeTest$@Test fun fusedBitwardenFastAndProtobufPathsMatchGoldenAndAuthenticateBeforeDecrypt</ID>
+    <ID>LongMethod:NativeCryptoSmokeTest.kt:NativeCryptoSmokeTest$@Test fun fusedBitwardenStreamsMatchOneShotAcross64KiBChunksAndRejectTampering</ID>
+    <ID>LongMethod:NativeCryptoSmokeTest.kt:NativeCryptoSmokeTest$@Test fun generatesParsesFormatsAndSignsSshKeysThroughTheRealNativeLibrary</ID>
+    <ID>LongMethod:NativeCryptoSsh.kt:NativeCryptoSsh$public fun importPrivateKey: NativeSshPrivateKeyImportResult</ID>
+    <ID>LoopWithTooManyJumpStatements:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$while</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:0xffL</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:17L</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:3L</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:7L</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkHarness.kt:NativeCryptoLayerBenchmarkHarness$31L</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:0xff</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:1024</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:16</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:1_000</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:2_000</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:31L</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:32</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:37</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:4</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:5</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:50</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:500</ID>
+    <ID>MagicNumber:NativeCryptoLayerBenchmarkTest.kt:5_000</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest$3</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest$30</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgpLargeTextTest.kt:NativeCryptoOpenPgpLargeTextTest$13</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgpLargeTextTest.kt:NativeCryptoOpenPgpLargeTextTest$17</ID>
+    <ID>MagicNumber:NativeCryptoOpenPgpLargeTextTest.kt:NativeCryptoOpenPgpLargeTextTest$5</ID>
+    <ID>MatchingDeclarationName:NativeCryptoLibraryLoader.desktop.kt:NativeCryptoLibraryLoader</ID>
+    <ID>MatchingDeclarationName:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform : NativeCryptoBridge</ID>
+    <ID>NestedBlockDepth:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpAgentEcdhDecrypt</ID>
+    <ID>NestedBlockDepth:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpAgentRsaDecrypt</ID>
+    <ID>ReturnCount:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest$private fun gpgSupportsOcb: Boolean</ID>
+    <ID>ReturnCount:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform$private inline fun normalizeFastResult: Long</ID>
+    <ID>ThrowsCount:NativeCrypto.kt:NativeCryptoClient$internal fun decodeResponse: NativeResponseResultProto?</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$fun atom: ByteArray</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun firstPkeskBody: ByteArray</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun readNewPacketLength: Pair&lt;Int, Int&gt;</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyEncryptedSshImport</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpAgentRsaDecrypt</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$private fun verifyOpenPgpMutationAndAgent</ID>
+    <ID>ThrowsCount:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke$public fun runPackaged: NativeCryptoDesktopSmokeResult</ID>
+    <ID>ThrowsCount:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$private fun processAesEcbChunks: ByteArray</ID>
+    <ID>ThrowsCount:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$private fun sshAgentTcpChaCha20Poly1305: ByteArray</ID>
+    <ID>ThrowsCount:NativeCryptoStreaming.kt:internal fun collectNativeStreamToExpectedSize: ByteArray</ID>
+    <ID>TooGenericExceptionCaught:NativeCrypto.kt:NativeCryptoClient$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCrypto.kt:NativeCryptoSessionImpl$closeFailure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCrypto.kt:NativeCryptoSessionImpl$t: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoOpenPgp.kt:BoundedOpenPgpPlaintextAccumulator$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp$closeFailure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoPrimitives.kt:NativeCryptoPrimitives$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoSsh.kt:NativeCryptoSsh$failure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoStreaming.kt:closeFailure: Throwable</ID>
+    <ID>TooGenericExceptionCaught:NativeCryptoStreaming.kt:failure: Throwable</ID>
+    <ID>TooManyFunctions:NativeCrypto.kt:NativeCrypto</ID>
+    <ID>TooManyFunctions:NativeCrypto.kt:NativeCryptoClient</ID>
+    <ID>TooManyFunctions:NativeCryptoDesktopSmoke.kt:NativeCryptoDesktopSmoke</ID>
+    <ID>TooManyFunctions:NativeCryptoLayerBenchmarkTest.kt:NativeCryptoLayerBenchmarkTest</ID>
+    <ID>TooManyFunctions:NativeCryptoOpenPgp.kt:NativeCryptoOpenPgp</ID>
+    <ID>TooManyFunctions:NativeCryptoOpenPgp.kt:com.artemchep.keyguard.nativecrypto.NativeCryptoOpenPgp.kt</ID>
+    <ID>TooManyFunctions:NativeCryptoOpenPgpGnuPgInteropTest.kt:NativeCryptoOpenPgpGnuPgInteropTest</ID>
+    <ID>TooManyFunctions:NativeCryptoPlatform.apple.kt:NativeCryptoPlatform : NativeCryptoBridge</ID>
+    <ID>TooManyFunctions:NativeCryptoPrimitives.kt:NativeCryptoPrimitives</ID>
+    <ID>TooManyFunctions:NativeCryptoSsh.kt:NativeCryptoSsh</ID>
+  </CurrentIssues>
+</SmellBaseline>

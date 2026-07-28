@@ -24,6 +24,7 @@ import com.artemchep.keyguard.feature.home.vault.organization.OrganizationRoute
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -37,6 +38,7 @@ import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.KeyguardCollection
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -81,6 +83,26 @@ fun organizationsScreenState(
         getCanWrite,
     ),
 ) {
+    organizationsScreenStateProducer(
+        args = args,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getCiphers = getCiphers,
+        getCanWrite = getCanWrite,
+        vaultRouteFactory = vaultRouteFactory,
+        collectionsRouteFactory = collectionsRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.organizationsScreenStateProducer(
+    args: OrganizationsRoute.Args,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getCiphers: GetCiphers,
+    getCanWrite: GetCanWrite,
+    vaultRouteFactory: VaultRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
+): Flow<OrganizationsState> {
     data class OrganizationWithCiphers(
         val organization: DOrganization,
         val collections: List<DCollection>,
@@ -189,6 +211,7 @@ fun organizationsScreenState(
                         // to this cipher.
                         if (ciphers.isNotEmpty()) {
                             this += FlatItemAction(
+                                id = "organization.${organization.id}.viewItems",
                                 icon = Icons.Outlined.KeyguardCipher,
                                 title = Res.string.items.wrap(),
                                 trailing = {
@@ -207,6 +230,7 @@ fun organizationsScreenState(
                         // to this cipher.
                         if (collections.isNotEmpty()) {
                             this += FlatItemAction(
+                                id = "organization.${organization.id}.viewCollections",
                                 icon = Icons.Outlined.KeyguardCollection,
                                 title = Res.string.collections.wrap(),
                                 trailing = {
@@ -227,6 +251,7 @@ fun organizationsScreenState(
                     }
                     section {
                         this += FlatItemAction(
+                            id = "organization.${organization.id}.info",
                             icon = Icons.Outlined.Info,
                             title = Res.string.info.wrap(),
                             onClick = {
@@ -279,7 +304,7 @@ fun organizationsScreenState(
             items = itemsReShaped,
         )
     }
-    combine(
+    return combine(
         selectionFlow,
         contentFlow,
     ) { selection, content ->

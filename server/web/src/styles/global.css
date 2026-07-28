@@ -217,7 +217,10 @@ html[data-theme-setting="dark"] .theme-icon-dark {
   margin-bottom: 1rem;
 }
 .prose-doc table {
+  display: block;
   width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
   border-collapse: collapse;
   margin-bottom: 1.25rem;
   font-size: 0.9rem;

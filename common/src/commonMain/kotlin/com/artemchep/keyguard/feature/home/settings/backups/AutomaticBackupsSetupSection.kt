@@ -175,12 +175,14 @@ private fun AutomaticBackupsLocationRow(
     ) {
         persistentListOf(
             FlatItemAction(
+                id = "settings.automaticBackups.store.local",
                 icon = Icons.Outlined.Folder,
                 title = TextHolder.Res(Res.string.pref_item_automatic_backups_store_folder_title),
                 selected = isLocal,
                 onClick = onLocalClick,
             ),
             FlatItemAction(
+                id = "settings.automaticBackups.store.webdav",
                 icon = Icons.Outlined.Cloud,
                 title = TextHolder.Res(Res.string.pref_item_automatic_backups_store_webdav_title),
                 selected = isWebDav,

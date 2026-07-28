@@ -62,7 +62,7 @@ fun settingRequireMasterPasswordProvider(
     .distinctUntilChanged()
     .flatMapLatest { hasBiometrics ->
         if (hasBiometrics) {
-            ah(
+            createSettingComponentFlow(
                 fingerprintReadRepository = fingerprintReadRepository,
                 getBiometricTimeout = getBiometricTimeout,
                 getBiometricTimeoutVariants = getBiometricTimeoutVariants,
@@ -76,7 +76,7 @@ fun settingRequireMasterPasswordProvider(
         }
     }
 
-private suspend fun ah(
+private suspend fun createSettingComponentFlow(
     fingerprintReadRepository: FingerprintReadRepository,
     getBiometricTimeout: GetBiometricTimeout,
     getBiometricTimeoutVariants: GetBiometricTimeoutVariants,
@@ -101,6 +101,7 @@ private suspend fun ah(
             val actionSelected = duration == timeout
             val actionTitle = getRequirePasswordDurationTitle(duration, context)
             FlatItemAction(
+                id = "settings.requireMasterPassword.${duration.inWholeSeconds}",
                 title = TextHolder.Value(actionTitle),
                 selected = actionSelected,
                 onClick = {

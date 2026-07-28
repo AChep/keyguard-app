@@ -4,13 +4,12 @@ import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.requiresPremium
-import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 
 internal fun canUseAccountForSendType(
     account: DAccount,
     profile: DProfile,
     type: DSend.Type,
-): Boolean = account.type == AccountType.BITWARDEN &&
+): Boolean = account.type.capabilities.supportsSends &&
         (!DSend.requiresPremium(type) || profile.premium == true)
 
 internal fun hasEligibleAccountForSendType(

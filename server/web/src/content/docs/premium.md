@@ -23,9 +23,20 @@ works without a purchase.
 On Android, open **Settings → Keyguard Premium**. Two options are available
 through Google Play:
 
-- a **subscription** - with 3 months or 1 year periods;
+- a **subscription** — with 3 months or 1 year periods;
 - a **lifetime** license — a single one-time purchase.
 
 A free trial may be offered for the subscription; you won't be charged
 if you cancel before the trial ends. Manage or cancel any time via **Manage
 on Play Store** in the same screen.
+
+## License keys
+
+A license key lets you use an eligible premium purchase on another device or
+app build, including while offline. On the device with the purchase, open
+**Settings → Keyguard Premium → Entitlement token**, sync the purchase, and
+copy the key. On the other device, choose **Link entitlement token** and paste
+it.
+
+See the [License keys guide](/docs/license-keys/) for the full workflow,
+offline behavior, and troubleshooting.

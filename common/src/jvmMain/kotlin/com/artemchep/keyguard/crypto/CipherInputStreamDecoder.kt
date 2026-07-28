@@ -1,20 +1,16 @@
 package com.artemchep.keyguard.crypto
 
-import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.crypto.FileEncryptionFormat.HEADER_LENGTH
-import com.artemchep.keyguard.crypto.util.createAesCbc
-import org.bouncycastle.crypto.BufferedBlockCipher
-import org.bouncycastle.crypto.InvalidCipherTextException
-import javax.crypto.Mac
+import com.artemchep.keyguard.nativecrypto.NativeAesCbcPkcs7HmacSha256DecryptSession
+import com.artemchep.keyguard.nativecrypto.NativeCryptoException
+import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
 
-class CipherInputStreamDecoder(
+internal class CipherInputStreamDecoder(
     private val key: ByteArray,
 ) : CipherInputStream2.Decoder {
     private val headerBuffer = ByteArray(HEADER_LENGTH)
     private var headerLength = 0
-    private var bufferedBlockCipher: BufferedBlockCipher? = null
-    private var hmac: Mac? = null
-    private var expectedMac: ByteArray? = null
+    private var provisionalDecryptor: NativeAesCbcPkcs7HmacSha256DecryptSession? = null
 
     override fun processBytes(
         `in`: ByteArray,
@@ -23,41 +19,70 @@ class CipherInputStreamDecoder(
         out: ByteArray,
         outOff: Int,
     ): Int {
-        val consumedLength = initIfReady(
-            buffer = `in`,
-            offset = inOff,
-            length = len,
-        )
+        val consumedLength = initIfReady(`in`, inOff, len)
+        val ciphertextOffset = inOff + consumedLength
+        val ciphertextLength = len - consumedLength
+        if (ciphertextLength == 0) return 0
 
-        val newOffset = inOff + consumedLength
-        val newLength = len - consumedLength
-        if (newLength == 0) {
-            return 0
+        var written = 0
+        NativeFileCrypto.updateProvisionalChunked(
+            session = checkNotNull(provisionalDecryptor),
+            data = `in`,
+            offset = ciphertextOffset,
+            length = ciphertextLength,
+        ) { provisionalPlaintext ->
+            provisionalPlaintext.copyInto(out, destinationOffset = outOff + written)
+            written += provisionalPlaintext.size
         }
-
-        hmac!!.update(`in`, newOffset, newLength)
-        return bufferedBlockCipher!!.processBytes(
-            `in`,
-            newOffset,
-            newLength,
-            out,
-            outOff,
-        )
+        return written
     }
 
-    override fun doFinal(out: ByteArray, outOff: Int): Int {
-        check(headerLength == HEADER_LENGTH && bufferedBlockCipher != null) {
-            "Invalid encrypted data"
+    override fun doFinal(
+        out: ByteArray,
+        outOff: Int,
+    ): Int {
+        var primaryFailure: Throwable? = null
+        val result = try {
+            val provisionalDecryptor = checkNotNull(provisionalDecryptor) { "Invalid encrypted data" }
+            check(headerLength == HEADER_LENGTH) { "Invalid encrypted data" }
+
+            val finalPlaintext = try {
+                provisionalDecryptor.authenticateAndFinish()
+            } catch (failure: NativeCryptoException) {
+                NativeFileCrypto.rethrowAuthenticationFailure(failure)
+            }
+            try {
+                finalPlaintext.copyInto(out, destinationOffset = outOff)
+                finalPlaintext.size
+            } finally {
+                finalPlaintext.fill(0)
+            }
+        } catch (failure: Throwable) {
+            primaryFailure = failure
+            throw failure
+        } finally {
+            val sessionCloseFailure = closeSession(primaryFailure)
+            provisionalDecryptor = null
+            headerBuffer.fill(0)
+
+            primaryFailure = primaryFailure
+                ?: sessionCloseFailure
         }
-        try {
-            FileEncryptionFormat.verifyMac(
-                expectedMac = expectedMac!!,
-                actualMac = hmac!!.doFinal(),
-            )
-        } catch (e: IllegalStateException) {
-            throw InvalidCipherTextException(e.message, e)
+        primaryFailure?.let { throw it }
+        return result
+    }
+
+    private fun closeSession(primaryFailure: Throwable?): Throwable? = try {
+        provisionalDecryptor?.close()
+        null
+    } catch (closeFailure: Throwable) {
+        if (primaryFailure != null) {
+            primaryFailure
+                .addSuppressed(closeFailure)
+            null
+        } else {
+            closeFailure
         }
-        return bufferedBlockCipher!!.doFinal(out, outOff)
     }
 
     private fun initIfReady(
@@ -65,12 +90,9 @@ class CipherInputStreamDecoder(
         offset: Int,
         length: Int,
     ): Int {
-        if (bufferedBlockCipher != null) {
-            return 0
-        }
+        if (provisionalDecryptor != null) return 0
 
-        val headerRemaining = HEADER_LENGTH - headerLength
-        val consumedLength = minOf(headerRemaining, length)
+        val consumedLength = minOf(HEADER_LENGTH - headerLength, length)
         buffer.copyInto(
             destination = headerBuffer,
             destinationOffset = headerLength,
@@ -78,38 +100,32 @@ class CipherInputStreamDecoder(
             endIndex = offset + consumedLength,
         )
         headerLength += consumedLength
-        if (headerLength < HEADER_LENGTH) {
-            return consumedLength
-        }
+        if (headerLength < HEADER_LENGTH) return consumedLength
 
-        val header = FileEncryptionFormat.parseAuthenticatedHeader(
-            buffer = headerBuffer,
-            offset = 0,
-        )
-        val keys = when (header.type) {
-            CipherEncryptor.Type.AesCbc128_HmacSha256_B64 ->
-                FileEncryptionFormat.requireAesCbc128HmacSha256Keys(key)
-
-            CipherEncryptor.Type.AesCbc256_HmacSha256_B64 ->
-                FileEncryptionFormat.requireAesCbc256HmacSha256Keys(key)
-
-            else -> throw IllegalArgumentException("Can not decrypt data with a type of '${header.type}'!")
+        val header = FileEncryptionFormat.parseAuthenticatedHeader(headerBuffer, offset = 0)
+        val keys = NativeFileCrypto.keys(header.type, key)
+        try {
+            provisionalDecryptor = NativeCryptoPrimitives.createAesCbcPkcs7HmacSha256Decryptor(
+                encryptionKey = keys.encKey,
+                macKey = keys.macKey,
+                iv = header.iv,
+                expectedMac = header.mac,
+            )
+        } finally {
+            with(NativeFileCrypto) { keys.clear() }
+            header.iv.fill(0)
+            header.mac.fill(0)
         }
-        expectedMac = header.mac
-        hmac = FileEncryptionFormat.createHmac(keys.macKey).apply {
-            update(header.iv)
-        }
-        bufferedBlockCipher = createAesCbc(
-            iv = header.iv,
-            key = keys.encKey,
-            forEncryption = false,
-        )
         return consumedLength
     }
 
-    override fun getOutputSize(length: Int) =
-        bufferedBlockCipher?.getOutputSize(length) ?: length
+    override fun getOutputSize(length: Int): Int =
+        if (provisionalDecryptor == null) length else length + AES_BLOCK_SIZE
 
-    override fun getUpdateOutputSize(length: Int) =
-        bufferedBlockCipher?.getUpdateOutputSize(length) ?: length
+    override fun getUpdateOutputSize(length: Int): Int =
+        if (provisionalDecryptor == null) length else length + AES_BLOCK_SIZE
+
+    private companion object {
+        const val AES_BLOCK_SIZE = 16
+    }
 }

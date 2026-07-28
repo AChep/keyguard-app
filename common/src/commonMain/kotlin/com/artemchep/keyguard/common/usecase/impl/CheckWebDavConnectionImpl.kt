@@ -2,11 +2,12 @@ package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.readByteArrayAndClose
+import com.artemchep.keyguard.common.model.WebDavLocation
+import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
+import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
+import com.artemchep.keyguard.common.service.webdav.toWebDavAuthorization
 import com.artemchep.keyguard.common.usecase.CheckWebDavConnection
-import com.artemchep.keyguard.common.usecase.CheckWebDavConnectionRequest
-import com.artemchep.keyguard.util.webdav.KtorWebDavClient
-import com.artemchep.keyguard.util.webdav.WebDavAuthorization
+import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
 import com.artemchep.keyguard.util.webdav.WebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavClientConfig
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
@@ -17,17 +18,12 @@ import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
 class CheckWebDavConnectionImpl internal constructor(
-    private val clientFactory: (WebDavClientConfig) -> WebDavClient,
+    private val clientFactory: WebDavClientFactory,
 ) : CheckWebDavConnection {
     constructor(
         httpClient: HttpClient,
     ) : this(
-        clientFactory = { config ->
-            KtorWebDavClient(
-                httpClient = httpClient,
-                config = config,
-            )
-        },
+        clientFactory = KtorWebDavClientFactory(httpClient),
     )
 
     constructor(
@@ -37,14 +33,23 @@ class CheckWebDavConnectionImpl internal constructor(
     )
 
     override fun invoke(
-        request: CheckWebDavConnectionRequest,
+        location: WebDavLocation,
     ): IO<Unit> = ioEffect {
-        val client = clientFactory(
+        val client = clientFactory.create(
             WebDavClientConfig(
-                baseUrl = request.url,
-                authorization = request.toWebDavAuthorization(),
+                baseUrl = location.url,
+                authorization = location.toWebDavAuthorization(),
             ),
         )
+        when (location) {
+            is WebDavLocation.Collection -> testReadWrite(client)
+            is WebDavLocation.File -> testRead(client)
+        }
+    }
+
+    private suspend fun testReadWrite(
+        client: WebDavClient,
+    ) {
         val probePath = createWebDavConnectionProbePath()
         val payload = WEBDAV_CONNECTION_CHECK_PAYLOAD
         try {
@@ -67,17 +72,19 @@ class CheckWebDavConnectionImpl internal constructor(
             client.close()
         }
     }
-}
 
-private fun CheckWebDavConnectionRequest.toWebDavAuthorization(): WebDavAuthorization? {
-    val username = username
-        ?.trim()
-        ?.takeIf { it.isNotEmpty() }
-        ?: return null
-    return WebDavAuthorization.Basic(
-        username = username,
-        password = password.orEmpty(),
-    )
+    private suspend fun testRead(
+        client: WebDavClient,
+    ) {
+        try {
+            client.open()
+            // The client should already point us to
+            // the right resource.
+            client.stat("")
+        } finally {
+            client.close()
+        }
+    }
 }
 
 private fun createWebDavConnectionProbePath(): String {

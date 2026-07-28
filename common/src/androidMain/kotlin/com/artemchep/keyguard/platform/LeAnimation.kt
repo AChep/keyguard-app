@@ -15,7 +15,7 @@ actual val LocalAnimationFactor: Float
                     context.contentResolver,
                     Settings.Global.TRANSITION_ANIMATION_SCALE,
                 )
-            } catch (e: Settings.SettingNotFoundException) {
+            } catch (_: Settings.SettingNotFoundException) {
                 1f
             }
         }

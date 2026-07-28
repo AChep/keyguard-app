@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.mapper
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
@@ -15,6 +16,82 @@ import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
 
 class CipherMappingTest {
+    @Test
+    fun `cipher links map as canonical distinct domain links`() = runTest {
+        val cipher = BitwardenCipher(
+            accountId = "account-1",
+            cipherId = "cipher-1",
+            revisionDate = TEST_INSTANT,
+            createdDate = TEST_INSTANT,
+            service = BitwardenService(),
+            name = "Linked item",
+            notes = "",
+            favorite = false,
+            links = listOf(
+                BitwardenCipher.Link(TARGET_REMOTE_ID.uppercase()),
+                BitwardenCipher.Link(TARGET_REMOTE_ID),
+                BitwardenCipher.Link(OTHER_REMOTE_ID),
+            ),
+            reprompt = BitwardenCipher.RepromptType.None,
+            type = BitwardenCipher.Type.SecureNote,
+            secureNote = BitwardenCipher.SecureNote(),
+        )
+
+        val domain = cipher.toDomain(
+            getPasswordStrength = fakeGetPasswordStrength,
+        )
+
+        assertEquals(
+            listOf(
+                DSecret.Link(TARGET_REMOTE_ID),
+                DSecret.Link(OTHER_REMOTE_ID),
+            ),
+            domain.links,
+        )
+    }
+
+    @Test
+    fun `login uri signatures map to domain model`() = runTest {
+        val fingerprint = "00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF"
+        val cipher = BitwardenCipher(
+            accountId = "account-1",
+            cipherId = "cipher-1",
+            revisionDate = TEST_INSTANT,
+            createdDate = TEST_INSTANT,
+            service = BitwardenService(
+                remote = BitwardenService.Remote(
+                    id = "remote-cipher-1",
+                    revisionDate = TEST_INSTANT,
+                    deletedDate = null,
+                ),
+            ),
+            keyBase64 = "cipher-key",
+            name = "Android Login",
+            notes = "",
+            favorite = false,
+            reprompt = BitwardenCipher.RepromptType.None,
+            type = BitwardenCipher.Type.Login,
+            login = BitwardenCipher.Login(
+                uris = listOf(
+                    BitwardenCipher.Login.Uri(
+                        uri = "androidapp://com.example.app",
+                        signatures = listOf(
+                            BitwardenCipher.Login.Uri.Signature(
+                                certFingerprintSha256 = fingerprint,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val domain = cipher.toDomain(
+            getPasswordStrength = fakeGetPasswordStrength,
+        )
+
+        assertEquals(fingerprint, domain.uris.single().signatures.single().certFingerprintSha256)
+    }
+
     @Test
     fun `pending local attachment makes cipher unsynced without exposing staged upload metadata`() = runTest {
         val pendingUpload = PendingUploadFile(
@@ -69,6 +146,8 @@ class CipherMappingTest {
 }
 
 private val TEST_INSTANT = Instant.parse("2024-01-01T00:00:00Z")
+private const val TARGET_REMOTE_ID = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
+private const val OTHER_REMOTE_ID = "c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"
 
 private val fakeGetPasswordStrength = object : GetPasswordStrength {
     override fun invoke(password: String): IO<PasswordStrength> = ioEffect {

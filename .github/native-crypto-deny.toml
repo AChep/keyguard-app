@@ -1,0 +1,120 @@
+[graph]
+all-features = true
+
+[advisories]
+version = 2
+yanked = "deny"
+ignore = [
+    { id = "RUSTSEC-2023-0071", reason = "rPGP RSA is dependency-reachable, but its private RSA backend stays disabled and private operations use the reviewed AWS-LC boundary" },
+]
+
+[licenses]
+version = 2
+confidence-threshold = 0.8
+allow = [
+    "0BSD",
+    "Apache-2.0",
+    "BSD-1-Clause",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "CC0-1.0",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "NCSA",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+
+[licenses.private]
+# Workspace crates are application-internal and are never published. Third-
+# party crates, including the vendored ssh-key fork, remain fully checked.
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+highlight = "all"
+
+# These crates are deliberately restricted to the reviewed direct parents. A
+# new direct consumer fails `cargo deny check bans` without requiring a custom
+# reverse-dependency walker.
+deny = [
+    { crate = "rsa", wrappers = ["pgp"], reason = "The ignored RSA advisory is accepted only through rPGP" },
+    { crate = "pgp", wrappers = ["keyguard-crypto-core"], reason = "OpenPGP is limited to the production core" },
+    { crate = "ssh-key", wrappers = ["keyguard-crypto-core"], reason = "The reviewed ssh-key fork is limited to the native crypto core" },
+    { crate = "ssh-encoding", wrappers = ["ssh-cipher", "ssh-key"], reason = "The reviewed ssh-encoding fork is consumed only by the reviewed SSH crates" },
+    { crate = "aws-lc-rs", wrappers = ["keyguard-crypto-core"], reason = "The safe core is the only high-level AWS-LC consumer" },
+    { crate = "aws-lc-sys", wrappers = ["aws-lc-rs", "keyguard-crypto-sensitive"], reason = "Low-level AWS-LC access is limited to the reviewed high-level and sensitive boundaries" },
+]
+
+# Exact resolved feature sets lock the security-relevant consumer graph. The
+# neutral reviewed-fork workspace is tested separately because enabling every
+# feature on those roots does not represent native crypto's production use.
+[[bans.features]]
+crate = "pgp"
+allow = []
+exact = true
+reason = "rPGP defaults and optional private-key backends must stay disabled"
+
+[[bans.features]]
+crate = "rsa"
+allow = ["default", "pem", "std", "u64_digit"]
+exact = true
+reason = "Keep the advisory-bearing RSA node on the reviewed rPGP feature set"
+
+[[bans.features]]
+crate = "aes-gcm"
+allow = ["aes", "alloc", "default", "getrandom", "rand_core", "zeroize"]
+exact = true
+reason = "Keep the reviewed AES-GCM fork on the rPGP and SSH decryption feature union"
+
+[[bans.features]]
+crate = "ocb3"
+allow = ["alloc", "default", "getrandom", "rand_core", "zeroize"]
+exact = true
+reason = "Keep the reviewed OCB fork on the rPGP and native crypto feature union"
+
+[[bans.features]]
+crate = "polyval"
+allow = ["zeroize"]
+exact = true
+reason = "Keep every reviewed POLYVAL backend zeroizing"
+
+[[bans.features]]
+crate = "ssh-cipher"
+allow = ["aes-cbc", "aes-ctr", "aes-gcm", "chacha20poly1305", "tdes"]
+exact = true
+reason = "Keep the reviewed SSH cipher fork on the import-only cipher matrix"
+
+[[bans.features]]
+crate = "ssh-key"
+allow = ["alloc", "keyguard-decryption", "std"]
+exact = true
+reason = "Use only the reviewed Keyguard decryption path; upstream crypto and RSA features stay disabled"
+
+[[bans.features]]
+crate = "ssh-encoding"
+allow = ["alloc", "base64", "pem", "sha2", "std"]
+exact = true
+reason = "Keep the reviewed ssh-encoding fork on the feature set required by ssh-key"
+
+[[bans.features]]
+crate = "aws-lc-rs"
+allow = ["aws-lc-sys", "non-fips"]
+exact = true
+reason = "Keep AWS-LC on the explicitly selected non-FIPS backend without defaults"
+
+[[bans.features]]
+crate = "aws-lc-sys"
+allow = []
+exact = true
+reason = "No optional low-level AWS-LC build feature is approved"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

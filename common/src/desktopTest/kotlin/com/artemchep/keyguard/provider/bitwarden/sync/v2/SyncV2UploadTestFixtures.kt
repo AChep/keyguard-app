@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
+import app.cash.sqldelight.ColumnAdapter
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
@@ -8,15 +9,19 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
+import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
+import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.PasswordStrength
+import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.backup.BackupStatus
+import com.artemchep.keyguard.common.service.database.EnumCodeToLongAdapter
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
 import com.artemchep.keyguard.common.service.database.ObjectToStringAdapter
-import com.artemchep.keyguard.common.service.database.SshUsageHistoryRequestTypeToLongAdapter
-import com.artemchep.keyguard.common.service.database.SshUsageHistoryResponseTypeToLongAdapter
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -48,6 +53,8 @@ import com.artemchep.keyguard.data.GeneratorWordlist
 import com.artemchep.keyguard.data.GeneratorWordlistWord
 import com.artemchep.keyguard.data.PrivilegedApp
 import com.artemchep.keyguard.data.SshUsageHistory
+import com.artemchep.keyguard.data.GpgKeyserverState
+import com.artemchep.keyguard.data.GpgUsageHistory
 import com.artemchep.keyguard.data.UrlBlock
 import com.artemchep.keyguard.data.UrlOverride
 import com.artemchep.keyguard.data.WatchtowerThreat
@@ -1169,14 +1176,20 @@ internal fun SendEntity.toLocalSend(localId: String) = BitwardenSend(
     },
 )
 
-internal fun createUploadTestDatabase(): Database {
+internal fun createUploadTestDatabase(
+    cipherDataAdapter: ColumnAdapter<BitwardenCipher, String>? = null,
+): Database {
     val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
     Database.Schema.create(driver)
-    return createUploadTestDatabase(driver)
+    return createUploadTestDatabase(
+        driver = driver,
+        cipherDataAdapter = cipherDataAdapter,
+    )
 }
 
 internal fun createUploadTestDatabase(
     driver: JdbcSqliteDriver,
+    cipherDataAdapter: ColumnAdapter<BitwardenCipher, String>? = null,
 ): Database {
     val json = UploadTestServer.json
     return Database(
@@ -1184,9 +1197,19 @@ internal fun createUploadTestDatabase(
         barcodeUsageHistoryAdapter = BarcodeUsageHistory.Adapter(InstantToLongAdapter),
         cipherUsageHistoryAdapter = CipherUsageHistory.Adapter(InstantToLongAdapter),
         sshUsageHistoryAdapter = SshUsageHistory.Adapter(
-            requestAdapter = SshUsageHistoryRequestTypeToLongAdapter,
-            responseAdapter = SshUsageHistoryResponseTypeToLongAdapter,
+            requestAdapter = EnumCodeToLongAdapter(SshUsageHistoryRequestType::of) { it.code },
+            responseAdapter = EnumCodeToLongAdapter(SshUsageHistoryResponseType::of) { it.code },
             createdAtAdapter = InstantToLongAdapter,
+        ),
+        gpgUsageHistoryAdapter = GpgUsageHistory.Adapter(
+            requestAdapter = EnumCodeToLongAdapter(GpgUsageHistoryRequestType::of) { it.code },
+            responseAdapter = EnumCodeToLongAdapter(GpgUsageHistoryResponseType::of) { it.code },
+            createdAtAdapter = InstantToLongAdapter,
+        ),
+        gpgKeyserverStateAdapter = GpgKeyserverState.Adapter(
+            verificationStatusAdapter = EnumCodeToLongAdapter(GpgKeyserverVerificationStatus::of) { it.code },
+            lastCheckedAtAdapter = InstantToLongAdapter,
+            lastRefreshedAtAdapter = InstantToLongAdapter,
         ),
         cipherFilterAdapter = CipherFilter.Adapter(
             updatedAtAdapter = InstantToLongAdapter,
@@ -1199,7 +1222,7 @@ internal fun createUploadTestDatabase(
         urlOverrideAdapter = UrlOverride.Adapter(InstantToLongAdapter),
         cipherAdapter = Cipher.Adapter(
             updatedAtAdapter = InstantToLongAdapter,
-            data_Adapter = ObjectToStringAdapter<BitwardenCipher>(json),
+            data_Adapter = cipherDataAdapter ?: ObjectToStringAdapter<BitwardenCipher>(json),
         ),
         sendAdapter = DbSend.Adapter(ObjectToStringAdapter<BitwardenSend>(json)),
         collectionAdapter = DbCollection.Adapter(ObjectToStringAdapter<BitwardenCollection>(json)),

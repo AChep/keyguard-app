@@ -33,6 +33,7 @@ data class JustGetMyDataViewDialogRoute(
             justGetMyData: JustGetMyDataServiceInfo,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
+            id = "justGetMyData.service.view",
             leading = iconSmall(Icons.Outlined.AccountBox, Icons.Outlined.Dataset),
             title = Res.string.uri_action_get_my_data_account_title.wrap(),
             onClick = {

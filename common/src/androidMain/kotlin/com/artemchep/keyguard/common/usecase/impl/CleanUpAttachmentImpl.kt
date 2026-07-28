@@ -2,13 +2,13 @@ package com.artemchep.keyguard.common.usecase.impl
 
 import android.app.Application
 import android.content.Context
-import com.artemchep.keyguard.android.downloader.DownloadManagerImpl
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.measure
+import com.artemchep.keyguard.common.service.download.DownloadRepository
+import com.artemchep.keyguard.common.service.download.store.DownloadFileStoreAndroid
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.CleanUpAttachment
@@ -115,7 +115,7 @@ class CleanUpAttachmentImpl(
     )
 
     override fun invoke(): IO<Int> = ioEffect(Dispatchers.IO) {
-        val dir = DownloadManagerImpl.getDir(context)
+        val dir = DownloadFileStoreAndroid.getDir(context)
 
         val actualFiles = dir
             .listFiles()
@@ -126,7 +126,7 @@ class CleanUpAttachmentImpl(
                 .asSequence()
                 .map { downloadInfo ->
                     val fileId = downloadInfo.id
-                    DownloadManagerImpl.getFile(
+                    DownloadFileStoreAndroid.getFile(
                         dir = dir,
                         downloadId = fileId,
                     )

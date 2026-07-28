@@ -4,16 +4,25 @@
 //! protocol requests by delegating to the Keyguard desktop app via IPC.
 
 use anyhow::Result;
+use keyguard_agent_identity::AuthorizationContextFingerprint;
 use ssh_agent_lib::agent::Session;
 use ssh_agent_lib::error::AgentError;
-use ssh_agent_lib::proto::extension::QueryResponse;
 use ssh_agent_lib::proto::Extension;
 use ssh_agent_lib::proto::Identity;
 use ssh_agent_lib::proto::SignRequest;
+use ssh_encoding::Encode;
 use ssh_key::{Algorithm, Signature};
 use tracing::{debug, info, warn};
 
+#[cfg(windows)]
+use crate::ipc::messages::CallerAuthorization;
+mod session_binding;
+
 use crate::ipc::messages::{CallerIdentity, ListKeysResponse, SignDataResponse};
+pub use session_binding::VerifiedSessionBindingContext;
+use session_binding::{
+    parse_session_binding, SessionBindError, SessionBindingState, SESSION_BIND_EXTENSION,
+};
 
 /// Trait abstracting the key-listing and signing operations that
 /// `KeyguardAgent` needs. This allows replacing the real `IpcClient`
@@ -42,6 +51,12 @@ pub trait KeyProvider: Clone + Send + Sync + Unpin + 'static {
 pub struct KeyguardAgent<K: KeyProvider> {
     key_provider: K,
     caller: Option<CallerIdentity>,
+    session_bindings: SessionBindingState,
+    #[cfg(target_os = "macos")]
+    macos_caller_guard: Option<keyguard_agent_identity::macos::MacosPeerIdentity>,
+    #[cfg(target_os = "linux")]
+    linux_caller_guard:
+        Option<std::sync::Arc<keyguard_agent_identity::linux_identity::LinuxProcessIdentity>>,
 }
 
 impl<K: KeyProvider> KeyguardAgent<K> {
@@ -50,11 +65,156 @@ impl<K: KeyProvider> KeyguardAgent<K> {
         Self {
             key_provider,
             caller: None,
+            session_bindings: SessionBindingState::default(),
+            #[cfg(target_os = "macos")]
+            macos_caller_guard: None,
+            #[cfg(target_os = "linux")]
+            linux_caller_guard: None,
         }
     }
 
+    #[cfg(any(test, not(any(target_os = "linux", target_os = "macos", windows))))]
     pub fn with_caller(key_provider: K, caller: Option<CallerIdentity>) -> Self {
-        Self { key_provider, caller }
+        Self {
+            key_provider,
+            caller,
+            session_bindings: SessionBindingState::default(),
+            #[cfg(target_os = "macos")]
+            macos_caller_guard: None,
+            #[cfg(target_os = "linux")]
+            linux_caller_guard: None,
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    fn with_macos_caller(
+        key_provider: K,
+        context: Option<crate::caller_identity::UnixCallerContext>,
+    ) -> Self {
+        let (caller, macos_caller_guard) = match context {
+            Some(context) => (Some(context.caller), context.macos_guard),
+            None => (None, None),
+        };
+        Self {
+            key_provider,
+            caller,
+            session_bindings: SessionBindingState::default(),
+            macos_caller_guard,
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    fn with_linux_caller(
+        key_provider: K,
+        context: Option<crate::caller_identity::UnixCallerContext>,
+    ) -> Self {
+        let (caller, linux_caller_guard) = match context {
+            Some(context) => (
+                Some(context.caller),
+                context.linux_guard.map(std::sync::Arc::new),
+            ),
+            None => (None, None),
+        };
+        Self {
+            key_provider,
+            caller,
+            session_bindings: SessionBindingState::default(),
+            linux_caller_guard,
+        }
+    }
+
+    #[cfg(windows)]
+    fn with_windows_caller(key_provider: K, caller: Option<CallerIdentity>) -> Self {
+        Self {
+            key_provider,
+            caller,
+            session_bindings: SessionBindingState::default(),
+        }
+    }
+
+    /// Returns the verified session-binding context for this connection.
+    ///
+    /// `None` means no binding was accepted or an invalid binding poisoned the
+    /// connection. Signing sends the stable host-path digest as independent
+    /// authorization context.
+    pub fn verified_session_binding_context(&self) -> Option<VerifiedSessionBindingContext> {
+        self.session_bindings.context()
+    }
+
+    fn caller_for_sign(&self) -> Option<CallerIdentity> {
+        let mut caller = self.caller.clone()?;
+        let Some(binding_context) = self.verified_session_binding_context() else {
+            return Some(caller);
+        };
+        let Some(authorization) = caller.authorization.as_mut() else {
+            return Some(caller);
+        };
+
+        match AuthorizationContextFingerprint::derive(binding_context.cache_context_digest()) {
+            Ok(context) => {
+                authorization.authorization_context_fingerprint = context.into_bytes().to_vec();
+            }
+            Err(_) => {
+                caller.authorization = None;
+            }
+        }
+        Some(caller)
+    }
+
+    #[cfg(target_os = "macos")]
+    fn ensure_macos_caller_valid(&self) -> Result<(), AgentError> {
+        let Some(guard) = self.macos_caller_guard.as_ref() else {
+            return Ok(());
+        };
+        if let Err(error) = guard.revalidate() {
+            warn!(%error, "macOS caller identity changed; refusing agent operation");
+            return Err(AgentError::Failure);
+        }
+        Ok(())
+    }
+
+    #[cfg(target_os = "linux")]
+    fn ensure_linux_caller_valid(&self) -> Result<(), AgentError> {
+        let Some(guard) = self.linux_caller_guard.as_ref() else {
+            return Ok(());
+        };
+        if let Err(error) = guard.revalidate() {
+            warn!(%error, "Linux caller process changed; refusing agent operation");
+            return Err(AgentError::Failure);
+        }
+        Ok(())
+    }
+
+    fn bind_session(&mut self, details: &[u8]) -> Result<(), SessionBindError> {
+        if self.session_bindings.is_poisoned() {
+            return Err(SessionBindError::Poisoned);
+        }
+
+        let had_verified_binding = self
+            .session_bindings
+            .bindings()
+            .is_some_and(|bindings| !bindings.is_empty());
+
+        let result = (|| {
+            let binding = parse_session_binding(details)?;
+            binding.verify_signature()?;
+            self.session_bindings.record(binding.into_verified())
+        })();
+
+        // A failed first bind makes the connection's claimed provenance
+        // unusable. Once a path is verified, however, preserve it when a
+        // later malformed/duplicate/conflicting extension is rejected.
+        if result.is_err() && !had_verified_binding {
+            self.session_bindings = SessionBindingState::Poisoned;
+        } else if let Some(context) = self.verified_session_binding_context() {
+            debug!(
+                binding_count = context.binding_count(),
+                forwarding_hops = context.forwarding_hops(),
+                final_is_forwarding = context.final_is_forwarding(),
+                "Recorded verified SSH session binding"
+            );
+        }
+        result
     }
 }
 
@@ -62,6 +222,11 @@ impl<K: KeyProvider> KeyguardAgent<K> {
 impl<K: KeyProvider> Session for KeyguardAgent<K> {
     async fn request_identities(&mut self) -> Result<Vec<Identity>, AgentError> {
         debug!("Handling RequestIdentities");
+
+        #[cfg(target_os = "macos")]
+        self.ensure_macos_caller_valid()?;
+        #[cfg(target_os = "linux")]
+        self.ensure_linux_caller_valid()?;
 
         let keys_response = self
             .key_provider
@@ -98,6 +263,16 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
     async fn sign(&mut self, request: SignRequest) -> Result<Signature, AgentError> {
         debug!("Handling SignRequest");
 
+        if let Err(error) = self.session_bindings.validate_sign_request(&request) {
+            warn!(%error, "Refusing sign request that does not match its SSH session binding");
+            return Err(AgentError::Failure);
+        }
+
+        #[cfg(target_os = "macos")]
+        self.ensure_macos_caller_valid()?;
+        #[cfg(target_os = "linux")]
+        self.ensure_linux_caller_valid()?;
+
         // Find the matching key by comparing the public key data.
         let keys_response = self
             .key_provider
@@ -128,14 +303,14 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
         );
 
         // Request signing from Keyguard (may prompt user for approval).
+        let sign_caller = self.caller_for_sign();
+        #[cfg(target_os = "macos")]
+        self.ensure_macos_caller_valid()?;
+        #[cfg(target_os = "linux")]
+        self.ensure_linux_caller_valid()?;
         let sign_response = self
             .key_provider
-            .sign_data(
-                &key.public_key,
-                &request.data,
-                request.flags,
-                self.caller.clone(),
-            )
+            .sign_data(&key.public_key, &request.data, request.flags, sign_caller)
             .await
             .map_err(|e| {
                 warn!("Signing request failed: {}", e);
@@ -155,9 +330,26 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
         debug!(name = %extension.name, "Handling Extension request");
 
         match extension.name.as_str() {
-            "query" => Ok(Some(Extension::new_message(QueryResponse {
-                extensions: vec!["query".to_string()],
-            })?)),
+            "query" => {
+                // RFC 9987 section 5.8.1 encodes this list as consecutive SSH
+                // strings through the end of the message, without a list prefix.
+                let mut details = Vec::with_capacity(4 + SESSION_BIND_EXTENSION.len());
+                SESSION_BIND_EXTENSION
+                    .encode(&mut details)
+                    .map_err(AgentError::other)?;
+
+                Ok(Some(Extension {
+                    name: "query".to_string(),
+                    details: details.into(),
+                }))
+            }
+            SESSION_BIND_EXTENSION => match self.bind_session(extension.details.as_ref()) {
+                Ok(()) => Ok(None),
+                Err(error) => {
+                    warn!(%error, "Rejected SSH session-binding request");
+                    Err(AgentError::ExtensionFailure)
+                }
+            },
             _ => Err(AgentError::ExtensionFailure),
         }
     }
@@ -181,516 +373,94 @@ impl<K: KeyProvider> KeyguardAgentFactory<K> {
 }
 
 #[cfg(unix)]
-impl<K: KeyProvider> ssh_agent_lib::agent::Agent<tokio::net::UnixListener> for KeyguardAgentFactory<K> {
+impl<K: KeyProvider> ssh_agent_lib::agent::Agent<tokio::net::UnixListener>
+    for KeyguardAgentFactory<K>
+{
     fn new_session(&mut self, socket: &tokio::net::UnixStream) -> impl Session {
+        #[cfg(target_os = "macos")]
+        {
+            let context = crate::caller_identity::caller_context_from_unix_stream(socket);
+            KeyguardAgent::with_macos_caller(self.key_provider.clone(), context)
+        }
+
+        #[cfg(target_os = "linux")]
+        {
+            let context = crate::caller_identity::caller_context_from_unix_stream(socket);
+            KeyguardAgent::with_linux_caller(self.key_provider.clone(), context)
+        }
+
+        #[cfg(not(any(target_os = "linux", target_os = "macos")))]
         let caller = crate::caller_identity::caller_from_unix_stream(socket);
-        KeyguardAgent::with_caller(self.key_provider.clone(), caller)
+        #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+        {
+            KeyguardAgent::with_caller(self.key_provider.clone(), caller)
+        }
     }
 }
 
 #[cfg(windows)]
-impl<K: KeyProvider> ssh_agent_lib::agent::Agent<ssh_agent_lib::agent::NamedPipeListener>
-    for KeyguardAgentFactory<K>
+impl<K, L> ssh_agent_lib::agent::Agent<L> for KeyguardAgentFactory<K>
+where
+    K: KeyProvider,
+    L: ssh_agent_lib::agent::ListeningSocket<
+            Stream = tokio::net::windows::named_pipe::NamedPipeServer,
+        > + std::fmt::Debug
+        + Send,
 {
-    fn new_session(&mut self, _socket: &tokio::net::windows::named_pipe::NamedPipeServer) -> impl Session {
-        KeyguardAgent::with_caller(self.key_provider.clone(), None)
+    fn new_session(
+        &mut self,
+        _socket: &tokio::net::windows::named_pipe::NamedPipeServer,
+    ) -> impl Session {
+        let caller = windows_connection_caller();
+        KeyguardAgent::with_windows_caller(self.key_provider.clone(), caller)
+    }
+}
+
+#[cfg(windows)]
+fn windows_connection_caller() -> Option<CallerIdentity> {
+    use keyguard_agent_identity::ConnectionFingerprint;
+
+    // GetNamedPipeClientProcessId is intentionally not queried here: a client
+    // can transfer the handle and spoof/recycle that PID. Windows identity is
+    // unknown until a future design binds actual client I/O to an impersonation
+    // token, so both authorization and presentation stay connection-only.
+    let mut caller = unverified_windows_caller();
+    match ConnectionFingerprint::generate() {
+        Ok(connection) => {
+            caller.authorization = Some(connection_only_authorization(connection));
+        }
+        Err(error) => {
+            warn!(%error, "Failed to generate a Windows SSH connection principal");
+        }
+    }
+    Some(caller)
+}
+
+#[cfg(windows)]
+fn connection_only_authorization(
+    connection: keyguard_agent_identity::ConnectionFingerprint,
+) -> CallerAuthorization {
+    CallerAuthorization {
+        connection_fingerprint: connection.into_bytes().to_vec(),
+        subjects: Vec::new(),
+        authorization_context_fingerprint: Vec::new(),
+    }
+}
+
+#[cfg(windows)]
+fn unverified_windows_caller() -> CallerIdentity {
+    CallerIdentity {
+        pid: 0,
+        uid: 0,
+        gid: 0,
+        process_name: String::new(),
+        executable_path: String::new(),
+        app_pid: 0,
+        app_name: "Unverified caller".to_string(),
+        app_bundle_path: String::new(),
+        authorization: None,
     }
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::ipc::messages::SshKey;
-    use std::sync::atomic::{AtomicBool, Ordering};
-    use std::sync::Mutex;
-
-    // A well-known Ed25519 test public key (generated for testing).
-    const TEST_ED25519_PUBKEY: &str =
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHLbRWVjaj0MMLgFjoxGc8TFfDfb8rVIeONrdiZpigKW test@keyguard";
-
-    // A second key that is intentionally invalid.
-    const TEST_INVALID_PUBKEY: &str = "not-a-valid-key";
-
-    /// A fake `KeyProvider` for testing.
-    #[derive(Clone)]
-    struct FakeKeyProvider {
-        keys: Vec<SshKey>,
-        sign_result: Option<SignDataResponse>,
-        should_fail_list: Arc<AtomicBool>,
-        should_fail_sign: Arc<AtomicBool>,
-        last_list_caller: Arc<Mutex<Option<CallerIdentity>>>,
-        last_sign_caller: Arc<Mutex<Option<CallerIdentity>>>,
-    }
-
-    use std::sync::Arc;
-
-    impl FakeKeyProvider {
-        fn new(keys: Vec<SshKey>) -> Self {
-            Self {
-                keys,
-                sign_result: None,
-                should_fail_list: Arc::new(AtomicBool::new(false)),
-                should_fail_sign: Arc::new(AtomicBool::new(false)),
-                last_list_caller: Arc::new(Mutex::new(None)),
-                last_sign_caller: Arc::new(Mutex::new(None)),
-            }
-        }
-
-        fn with_sign_result(mut self, result: SignDataResponse) -> Self {
-            self.sign_result = Some(result);
-            self
-        }
-
-        fn set_list_failure(&self, fail: bool) {
-            self.should_fail_list.store(fail, Ordering::Relaxed);
-        }
-
-        fn set_sign_failure(&self, fail: bool) {
-            self.should_fail_sign.store(fail, Ordering::Relaxed);
-        }
-
-        fn last_list_caller(&self) -> Option<CallerIdentity> {
-            self.last_list_caller
-                .lock()
-                .ok()
-                .and_then(|v| v.clone())
-        }
-
-        fn last_sign_caller(&self) -> Option<CallerIdentity> {
-            self.last_sign_caller
-                .lock()
-                .ok()
-                .and_then(|v| v.clone())
-        }
-    }
-
-    #[ssh_agent_lib::async_trait]
-    impl KeyProvider for FakeKeyProvider {
-        async fn list_keys(&self, caller: Option<CallerIdentity>) -> Result<ListKeysResponse> {
-            if let Ok(mut slot) = self.last_list_caller.lock() {
-                *slot = caller;
-            }
-            if self.should_fail_list.load(Ordering::Relaxed) {
-                anyhow::bail!("Simulated list_keys failure");
-            }
-            Ok(ListKeysResponse {
-                keys: self.keys.clone(),
-            })
-        }
-
-        async fn sign_data(
-            &self,
-            _public_key: &str,
-            _data: &[u8],
-            _flags: u32,
-            caller: Option<CallerIdentity>,
-        ) -> Result<SignDataResponse> {
-            if let Ok(mut slot) = self.last_sign_caller.lock() {
-                *slot = caller;
-            }
-            if self.should_fail_sign.load(Ordering::Relaxed) {
-                anyhow::bail!("Simulated sign_data failure");
-            }
-            self.sign_result
-                .clone()
-                .ok_or_else(|| anyhow::anyhow!("No sign result configured"))
-        }
-    }
-
-    // ================================================================
-    // parse_openssh_pubkey tests
-    // ================================================================
-
-    #[test]
-    fn parse_openssh_pubkey_valid_ed25519() {
-        let result = parse_openssh_pubkey(TEST_ED25519_PUBKEY);
-        assert!(result.is_ok(), "Should parse a valid Ed25519 public key");
-    }
-
-    #[test]
-    fn parse_openssh_pubkey_invalid_returns_error() {
-        let result = parse_openssh_pubkey(TEST_INVALID_PUBKEY);
-        assert!(result.is_err(), "Should fail on an invalid public key");
-    }
-
-    #[test]
-    fn parse_openssh_pubkey_empty_returns_error() {
-        let result = parse_openssh_pubkey("");
-        assert!(result.is_err(), "Should fail on empty string");
-    }
-
-    // ================================================================
-    // KeyguardAgent::request_identities tests
-    // ================================================================
-
-    #[tokio::test]
-    async fn request_identities_returns_valid_keys() {
-        let provider = FakeKeyProvider::new(vec![SshKey {
-            name: "test-key".to_string(),
-            public_key: TEST_ED25519_PUBKEY.to_string(),
-            key_type: "ssh-ed25519".to_string(),
-            fingerprint: "SHA256:test".to_string(),
-        }]);
-        let mut agent = KeyguardAgent::new(provider);
-
-        let identities = agent.request_identities().await.unwrap();
-        assert_eq!(identities.len(), 1);
-        assert_eq!(identities[0].comment, "test-key");
-    }
-
-    #[tokio::test]
-    async fn request_identities_skips_unparseable_keys() {
-        let provider = FakeKeyProvider::new(vec![
-            SshKey {
-                name: "valid-key".to_string(),
-                public_key: TEST_ED25519_PUBKEY.to_string(),
-                key_type: "ssh-ed25519".to_string(),
-                fingerprint: "".to_string(),
-            },
-            SshKey {
-                name: "bad-key".to_string(),
-                public_key: TEST_INVALID_PUBKEY.to_string(),
-                key_type: "unknown".to_string(),
-                fingerprint: "".to_string(),
-            },
-        ]);
-        let mut agent = KeyguardAgent::new(provider);
-
-        let identities = agent.request_identities().await.unwrap();
-        assert_eq!(identities.len(), 1, "Should skip the unparseable key");
-        assert_eq!(identities[0].comment, "valid-key");
-    }
-
-    #[tokio::test]
-    async fn request_identities_empty_list() {
-        let provider = FakeKeyProvider::new(vec![]);
-        let mut agent = KeyguardAgent::new(provider);
-
-        let identities = agent.request_identities().await.unwrap();
-        assert!(identities.is_empty());
-    }
-
-    #[tokio::test]
-    async fn request_identities_ipc_error_returns_failure() {
-        let provider = FakeKeyProvider::new(vec![]);
-        provider.set_list_failure(true);
-        let mut agent = KeyguardAgent::new(provider);
-
-        let result = agent.request_identities().await;
-        assert!(result.is_err(), "Should return AgentError on IPC failure");
-    }
-
-    // ================================================================
-    // KeyguardAgent::sign tests
-    // ================================================================
-
-    #[tokio::test]
-    async fn sign_no_matching_key_returns_failure() {
-        // Provide one key but request signing with a different pubkey.
-        let provider = FakeKeyProvider::new(vec![SshKey {
-            name: "other-key".to_string(),
-            public_key: TEST_ED25519_PUBKEY.to_string(),
-            key_type: "ssh-ed25519".to_string(),
-            fingerprint: "".to_string(),
-        }]);
-        let mut agent = KeyguardAgent::new(provider);
-
-        // Build a SignRequest with a pubkey that doesn't match any key.
-        let request = SignRequest {
-            pubkey: ssh_key::public::KeyData::Ed25519(ssh_key::public::Ed25519PublicKey(
-                Default::default(),
-            )),
-            data: vec![1, 2, 3],
-            flags: 0,
-        };
-
-        let result = agent.sign(request).await;
-        assert!(result.is_err(), "Should fail when no key matches");
-    }
-
-    #[tokio::test]
-    async fn sign_ipc_error_returns_failure() {
-        let provider = FakeKeyProvider::new(vec![SshKey {
-            name: "test-key".to_string(),
-            public_key: TEST_ED25519_PUBKEY.to_string(),
-            key_type: "ssh-ed25519".to_string(),
-            fingerprint: "".to_string(),
-        }])
-        .with_sign_result(SignDataResponse {
-            signature: vec![0; 64],
-            algorithm: "ssh-ed25519".to_string(),
-        });
-        provider.set_sign_failure(true);
-
-        let mut agent = KeyguardAgent::new(provider);
-
-        // Parse the real pubkey to get the matching KeyData.
-        let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
-        let request = SignRequest {
-            pubkey: pubkey.key_data().clone(),
-            data: vec![1, 2, 3],
-            flags: 0,
-        };
-
-        let result = agent.sign(request).await;
-        assert!(result.is_err(), "Should fail when IPC sign fails");
-    }
-
-    #[tokio::test]
-    async fn sign_returns_valid_signature() {
-        let fake_sig = vec![42u8; 64];
-        let provider = FakeKeyProvider::new(vec![SshKey {
-            name: "test-key".to_string(),
-            public_key: TEST_ED25519_PUBKEY.to_string(),
-            key_type: "ssh-ed25519".to_string(),
-            fingerprint: "".to_string(),
-        }])
-        .with_sign_result(SignDataResponse {
-            signature: fake_sig.clone(),
-            algorithm: "ssh-ed25519".to_string(),
-        });
-
-        let mut agent = KeyguardAgent::new(provider);
-
-        let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
-        let request = SignRequest {
-            pubkey: pubkey.key_data().clone(),
-            data: vec![1, 2, 3],
-            flags: 0,
-        };
-
-        let result = agent.sign(request).await;
-        assert!(result.is_ok(), "Should succeed with valid sign response");
-        let sig = result.unwrap();
-        assert_eq!(sig.algorithm(), Algorithm::Ed25519);
-    }
-
-    #[tokio::test]
-    async fn caller_identity_is_forwarded_to_provider() {
-        let provider = FakeKeyProvider::new(vec![SshKey {
-            name: "test-key".to_string(),
-            public_key: TEST_ED25519_PUBKEY.to_string(),
-            key_type: "ssh-ed25519".to_string(),
-            fingerprint: "".to_string(),
-        }])
-        .with_sign_result(SignDataResponse {
-            signature: vec![42u8; 64],
-            algorithm: "ssh-ed25519".to_string(),
-        });
-
-        let caller = CallerIdentity {
-            pid: 123,
-            uid: 456,
-            gid: 789,
-            process_name: "ssh".to_string(),
-            executable_path: "/usr/bin/ssh".to_string(),
-            app_pid: 321,
-            app_name: "Terminal".to_string(),
-            app_bundle_path: "/System/Applications/Utilities/Terminal.app".to_string(),
-        };
-
-        let mut agent = KeyguardAgent::with_caller(provider.clone(), Some(caller.clone()));
-
-        // List keys should forward identity.
-        agent.request_identities().await.unwrap();
-        assert_eq!(provider.last_list_caller().unwrap().pid, caller.pid);
-
-        // Sign should forward identity.
-        let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
-        let request = SignRequest {
-            pubkey: pubkey.key_data().clone(),
-            data: vec![1, 2, 3],
-            flags: 0,
-        };
-        agent.sign(request).await.unwrap();
-        assert_eq!(provider.last_sign_caller().unwrap().pid, caller.pid);
-    }
-
-    // ================================================================
-    // Additional edge case tests
-    // ================================================================
-
-    #[tokio::test]
-    async fn request_identities_all_invalid_keys_returns_empty() {
-        let provider = FakeKeyProvider::new(vec![
-            SshKey {
-                name: "bad1".to_string(),
-                public_key: "invalid-key-1".to_string(),
-                key_type: "unknown".to_string(),
-                fingerprint: "".to_string(),
-            },
-            SshKey {
-                name: "bad2".to_string(),
-                public_key: "also not a key".to_string(),
-                key_type: "unknown".to_string(),
-                fingerprint: "".to_string(),
-            },
-        ]);
-        let mut agent = KeyguardAgent::new(provider);
-
-        let identities = agent.request_identities().await.unwrap();
-        assert!(
-            identities.is_empty(),
-            "All unparseable keys should be skipped"
-        );
-    }
-
-    #[tokio::test]
-    async fn request_identities_preserves_comment_from_key_name() {
-        let provider = FakeKeyProvider::new(vec![SshKey {
-            name: "My Important Server Key".to_string(),
-            public_key: TEST_ED25519_PUBKEY.to_string(),
-            key_type: "ssh-ed25519".to_string(),
-            fingerprint: "SHA256:test".to_string(),
-        }]);
-        let mut agent = KeyguardAgent::new(provider);
-
-        let identities = agent.request_identities().await.unwrap();
-        assert_eq!(identities.len(), 1);
-        assert_eq!(
-            identities[0].comment, "My Important Server Key",
-            "Identity comment should match the key name"
-        );
-    }
-
-    #[tokio::test]
-    async fn sign_list_keys_failure_during_sign_returns_error() {
-        // The sign() method calls list_keys() to find the matching key.
-        // If list_keys fails during this step, sign should fail.
-        let provider = FakeKeyProvider::new(vec![SshKey {
-            name: "test-key".to_string(),
-            public_key: TEST_ED25519_PUBKEY.to_string(),
-            key_type: "ssh-ed25519".to_string(),
-            fingerprint: "".to_string(),
-        }])
-        .with_sign_result(SignDataResponse {
-            signature: vec![0; 64],
-            algorithm: "ssh-ed25519".to_string(),
-        });
-        // Fail the list_keys call that sign() makes internally.
-        provider.set_list_failure(true);
-
-        let mut agent = KeyguardAgent::new(provider);
-
-        let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
-        let request = SignRequest {
-            pubkey: pubkey.key_data().clone(),
-            data: vec![1, 2, 3],
-            flags: 0,
-        };
-
-        let result = agent.sign(request).await;
-        assert!(
-            result.is_err(),
-            "Should fail when list_keys fails during sign"
-        );
-    }
-
-    #[tokio::test]
-    async fn sign_with_only_invalid_keys_returns_failure() {
-        // All keys are unparseable, so no match can be found.
-        let provider = FakeKeyProvider::new(vec![SshKey {
-            name: "bad-key".to_string(),
-            public_key: "not-a-real-key".to_string(),
-            key_type: "unknown".to_string(),
-            fingerprint: "".to_string(),
-        }])
-        .with_sign_result(SignDataResponse {
-            signature: vec![0; 64],
-            algorithm: "ssh-ed25519".to_string(),
-        });
-
-        let mut agent = KeyguardAgent::new(provider);
-
-        let request = SignRequest {
-            pubkey: ssh_key::public::KeyData::Ed25519(ssh_key::public::Ed25519PublicKey(
-                Default::default(),
-            )),
-            data: vec![1, 2, 3],
-            flags: 0,
-        };
-
-        let result = agent.sign(request).await;
-        assert!(
-            result.is_err(),
-            "Should fail when no keys can be parsed to match"
-        );
-    }
-
-    #[tokio::test]
-    async fn extension_query_returns_supported_extensions() {
-        let provider = FakeKeyProvider::new(vec![]);
-        let mut agent = KeyguardAgent::new(provider);
-
-        let request = Extension {
-            name: "query".to_string(),
-            details: Vec::new().into(),
-        };
-
-        let result = agent.extension(request).await;
-        assert!(result.is_ok(), "Query extension should be supported");
-
-        let response = result.unwrap();
-        assert!(response.is_some(), "Query extension should return a response");
-        let response = response.unwrap();
-
-        let parsed = response
-            .parse_message::<QueryResponse>()
-            .expect("Query response should parse");
-        assert!(parsed.is_some(), "Response should be a query extension payload");
-
-        let payload = parsed.unwrap();
-        assert_eq!(payload.extensions, vec!["query".to_string()]);
-    }
-
-    #[tokio::test]
-    async fn extension_unknown_name_returns_extension_failure() {
-        let provider = FakeKeyProvider::new(vec![]);
-        let mut agent = KeyguardAgent::new(provider);
-
-        let request = Extension {
-            name: "session-bind@openssh.com".to_string(),
-            details: Vec::new().into(),
-        };
-
-        let result = agent.extension(request).await;
-        assert!(
-            matches!(result, Err(AgentError::ExtensionFailure)),
-            "Unknown extension should return extension failure"
-        );
-    }
-
-    #[tokio::test]
-    async fn extension_query_does_not_require_key_provider_calls() {
-        let provider = FakeKeyProvider::new(vec![]);
-        let mut agent = KeyguardAgent::new(provider.clone());
-
-        let request = Extension {
-            name: "query".to_string(),
-            details: Vec::new().into(),
-        };
-
-        let result = agent.extension(request).await;
-        assert!(result.is_ok(), "Query extension should succeed");
-        assert!(
-            provider.last_list_caller().is_none(),
-            "Query extension should not call list_keys"
-        );
-        assert!(
-            provider.last_sign_caller().is_none(),
-            "Query extension should not call sign_data"
-        );
-    }
-
-    #[test]
-    fn parse_openssh_pubkey_with_whitespace_only() {
-        let result = parse_openssh_pubkey("   ");
-        assert!(result.is_err(), "Should fail on whitespace-only input");
-    }
-
-    #[test]
-    fn parse_openssh_pubkey_partial_key_type() {
-        let result = parse_openssh_pubkey("ssh-ed25519");
-        assert!(result.is_err(), "Should fail on key type without key data");
-    }
-}
+mod tests;

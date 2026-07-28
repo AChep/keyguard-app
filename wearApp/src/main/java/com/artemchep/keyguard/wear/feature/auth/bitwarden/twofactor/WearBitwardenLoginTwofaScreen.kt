@@ -29,7 +29,7 @@ import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaState
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.produceLoginTwofaScreenState
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
@@ -288,7 +288,7 @@ private fun TransformingLazyColumnScope.WearBitwardenLoginTwofaCodeSection(
     keyPrefix: String,
     transformationSpec: TransformationSpec,
     note: @Composable () -> String,
-    code: TextFieldModel2,
+    code: TextFieldModel,
     onSubmit: (() -> Unit)?,
     loading: Boolean,
     resendAction: (() -> Unit)?,
@@ -332,7 +332,7 @@ private fun TransformingLazyColumnScope.WearBitwardenLoginTwofaCodeSection(
 private fun TransformingLazyColumnItemScope.WearBitwardenLoginTwofaCodeField(
     modifier: Modifier,
     transformationSpec: TransformationSpec,
-    code: TextFieldModel2,
+    code: TextFieldModel,
     onSubmit: (() -> Unit)?,
 ) {
     val surfaceTransformation = SurfaceTransformation(transformationSpec)

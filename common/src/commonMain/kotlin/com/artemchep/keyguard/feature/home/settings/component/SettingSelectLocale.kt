@@ -85,6 +85,7 @@ fun settingSelectLocaleProvider(
         .map { item ->
             val actionSelected = locale == item.locale
             FlatItemAction(
+                id = "settings.locale.${item.locale ?: "system"}",
                 // leading = if (item.locale != null) null else icon(Icons.Outlined.AutoAwesome),
                 title = TextHolder.Value(item.title),
                 selected = actionSelected,

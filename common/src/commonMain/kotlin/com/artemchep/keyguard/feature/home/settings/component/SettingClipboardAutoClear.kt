@@ -65,6 +65,7 @@ fun settingClipboardAutoClearProvider(
             val actionSelected = timeout == duration
             val actionTitle = getAutoClearDurationTitle(duration, context)
             FlatItemAction(
+                id = "settings.clipboardAutoClear.${duration.inWholeSeconds}",
                 title = TextHolder.Value(actionTitle),
                 selected = actionSelected,
                 onClick = {

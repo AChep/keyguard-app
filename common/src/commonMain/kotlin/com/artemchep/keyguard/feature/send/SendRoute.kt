@@ -4,11 +4,24 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.DSendFilter
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 import com.artemchep.keyguard.feature.send.search.SendSort
 
 data class SendRoute(
     val args: Args = Args(),
 ) : Route {
+    override val descriptor
+        get() = RouteDescriptor.SendList(
+            title = args.appBar?.title,
+            filter = args.filter,
+            sortId = args.sort?.id,
+            main = args.main,
+            searchBy = args.searchBy.name,
+            trash = args.trash,
+            preselect = args.preselect,
+            canAddSecrets = args.canAddSecrets,
+        )
+
     data class Args(
         val appBar: AppBar? = null,
         val filter: DSendFilter? = null,

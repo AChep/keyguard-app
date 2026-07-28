@@ -63,6 +63,7 @@ fun settingFontProvider(
             val actionTitle = getAppFontTitle(fontVariant, context)
             val actionText = getAppFontText(fontVariant, context)
             FlatItemAction(
+                id = "settings.font.${fontVariant?.name ?: "default"}",
                 title = TextHolder.Value(actionTitle),
                 text = actionText?.let(TextHolder::Value),
                 selected = actionSelected,

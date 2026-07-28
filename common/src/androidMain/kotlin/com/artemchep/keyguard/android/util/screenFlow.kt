@@ -95,7 +95,7 @@ private fun Context.isScreenOn(): Boolean {
                     val method = Display::class.java.getDeclaredMethod("getType")
                     method.isAccessible = true
                     type = method.invoke(d) as Int
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     continue
                 }
 

@@ -3,8 +3,11 @@ package com.artemchep.keyguard.common.service.backup
 import com.artemchep.keyguard.common.io.withBufferedSink
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.common.util.RetryPolicy
+import com.artemchep.keyguard.common.util.retryWithPolicy
 import java.io.FilterOutputStream
 import java.io.OutputStream
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlinx.io.Sink
 import kotlinx.io.asInputStream
@@ -32,6 +35,12 @@ class BackupRepositoryZipImpl(
         private const val MANIFEST_ENTRY = "manifest.json"
         private const val VAULT_ENTRY = "vault.json"
         private const val BLOB_ENTRY = "attachment.bin"
+
+        private val objectReadRetryPolicy = RetryPolicy(
+            maxAttempts = 2,
+            delayBeforeRetry = { 350.milliseconds },
+            shouldRetry = { it is BackupObjectStoreException.Transient },
+        )
 
         private val INDEX_GENERATION_FILE_REGEX = Regex("""(\d{20})-(.+)\.zip""")
     }
@@ -339,26 +348,28 @@ class BackupRepositoryZipImpl(
             return null
         }
 
-        val source = try {
-            store.read(key)
-        } catch (_: BackupObjectStoreException.NotFound) {
-            return null
-        }
-        return source.use { source ->
-            var result: String? = null
-            createZipInputStream(source.asInputStream(), password).use { zipStream ->
-                while (true) {
-                    val header = zipStream.getNextEntry()
-                        ?: break
-                    if (header.fileName == entryName) {
-                        result = zipStream
-                            .bufferedReader()
-                            .use { it.readText() }
-                        break
+        return retryTransientObjectRead {
+            val source = try {
+                store.read(key)
+            } catch (_: BackupObjectStoreException.NotFound) {
+                return@retryTransientObjectRead null
+            }
+            source.use { source ->
+                var result: String? = null
+                createZipInputStream(source.asInputStream(), password).use { zipStream ->
+                    while (true) {
+                        val header = zipStream.getNextEntry()
+                            ?: break
+                        if (header.fileName == entryName) {
+                            result = zipStream
+                                .bufferedReader()
+                                .use { it.readText() }
+                            break
+                        }
                     }
                 }
+                result
             }
-            result
         }
     }
 
@@ -476,19 +487,21 @@ class BackupRepositoryZipImpl(
         password: Password?,
         entryName: String,
     ): Boolean = try {
-        val source = store.read(key)
-        source.use { source ->
-            createZipInputStream(source.asInputStream(), password).use { zipStream ->
-                var found = false
-                while (true) {
-                    val header = zipStream.getNextEntry()
-                        ?: break
-                    if (header.fileName == entryName) {
-                        found = true
-                        break
+        retryTransientObjectRead {
+            val source = store.read(key)
+            source.use { source ->
+                createZipInputStream(source.asInputStream(), password).use { zipStream ->
+                    var found = false
+                    while (true) {
+                        val header = zipStream.getNextEntry()
+                            ?: break
+                        if (header.fileName == entryName) {
+                            found = true
+                            break
+                        }
                     }
+                    found
                 }
-                found
             }
         }
     } catch (_: BackupObjectStoreException.NotFound) {
@@ -505,9 +518,9 @@ class BackupRepositoryZipImpl(
         key: BackupObjectKey,
         password: Password?,
         entryName: String,
-    ): Boolean {
+    ): Boolean = retryTransientObjectRead {
         val source = store.read(key)
-        return source.use { source ->
+        source.use { source ->
             createZipInputStream(source.asInputStream(), password).use { zipStream ->
                 var found = false
                 while (true) {
@@ -523,6 +536,12 @@ class BackupRepositoryZipImpl(
             }
         }
     }
+
+    // A streaming source cannot be replayed after exposing bytes. Reopen
+    // the object and restart the complete ZIP operation.
+    private suspend fun <T> retryTransientObjectRead(
+        block: suspend () -> T,
+    ): T = retryWithPolicy(objectReadRetryPolicy) { block() }
 
     private fun java.io.InputStream.drain() {
         val buffer = ByteArray(8192)

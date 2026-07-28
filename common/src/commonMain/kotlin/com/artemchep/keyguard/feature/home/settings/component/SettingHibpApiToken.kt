@@ -34,7 +34,7 @@ import com.artemchep.keyguard.common.usecase.GetHibpApiToken
 import com.artemchep.keyguard.common.usecase.PutHibpApiToken
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
@@ -256,11 +256,11 @@ private fun HibpApiTokenCheckStatusBadge(
     state: HibpApiTokenCheckState,
 ) {
     val type = when (state) {
-        HibpApiTokenCheckState.Checking -> TextFieldModel2.Vl.Type.INFO
-        HibpApiTokenCheckState.Verified -> TextFieldModel2.Vl.Type.SUCCESS
+        HibpApiTokenCheckState.Checking -> TextFieldModel.Vl.Type.INFO
+        HibpApiTokenCheckState.Verified -> TextFieldModel.Vl.Type.SUCCESS
         HibpApiTokenCheckState.Rejected,
         HibpApiTokenCheckState.Failed,
-            -> TextFieldModel2.Vl.Type.ERROR
+            -> TextFieldModel.Vl.Type.ERROR
     }
     val text = rememberHibpApiTokenCheckStatusText(state)
 

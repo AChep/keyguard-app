@@ -20,20 +20,24 @@ import com.artemchep.keyguard.common.usecase.ConfirmAccessByYubiKeyUseCase
 import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import org.kodein.di.compose.localDI
@@ -71,10 +75,25 @@ fun produceElevatedAccessState(
         windowCoroutineScope,
     ),
 ) {
+    elevatedAccessStateProducer(
+        transmitter = transmitter,
+        biometricStatusUseCase = biometricStatusUseCase,
+        getBiometricRequireConfirmation = getBiometricRequireConfirmation,
+        confirmAccessByPasswordUseCase = confirmAccessByPasswordUseCase,
+        confirmAccessByYubiKeyUseCase = confirmAccessByYubiKeyUseCase,
+    )
+}
+
+suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
+    transmitter: RouteResultTransmitter<ElevatedAccessResult>,
+    biometricStatusUseCase: BiometricStatusUseCase,
+    getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
+    confirmAccessByPasswordUseCase: ConfirmAccessByPasswordUseCase,
+    confirmAccessByYubiKeyUseCase: ConfirmAccessByYubiKeyUseCase,
+): Flow<ElevatedAccessState> {
     val executor = screenExecutor()
 
-    val passwordSink = mutablePersistedFlow("password") { DEFAULT_PASSWORD }
-    val passwordState = mutableComposeState(passwordSink)
+    val passwordHandle = textFieldHandle("password", initial = DEFAULT_PASSWORD)
     val grantAccess = {
         navigatePopSelf()
         transmitter(ElevatedAccessResult.Allow)
@@ -167,11 +186,11 @@ fun produceElevatedAccessState(
         )
     }
 
-    combine(
-        passwordSink
-            .validatedPassword(this),
+    return combine(
+        passwordHandle.sink
+            .map { cell -> cell to validatedPassword(cell.text) },
         executor.isExecutingFlow,
-    ) { validatedPassword, taskExecuting ->
+    ) { (passwordCell, validatedPassword), taskExecuting ->
         val error = (validatedPassword as? Validated.Failure)?.error
         val canCreateVault = error == null && !taskExecuting
         val content = ElevatedAccessState.Content(
@@ -189,8 +208,9 @@ fun produceElevatedAccessState(
                 showBiometricPromptFlow = biometricPromptFlow,
                 showYubiKeyPromptFlow = yubiKeyPromptFlow,
             ),
-            password = TextFieldModel2.of(
-                state = passwordState,
+            password = TextFieldModel.of(
+                cell = passwordCell,
+                handle = passwordHandle,
                 validated = validatedPassword,
             ),
             isLoading = taskExecuting,

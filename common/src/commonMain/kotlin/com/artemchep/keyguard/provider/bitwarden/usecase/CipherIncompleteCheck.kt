@@ -60,6 +60,7 @@ class CipherIncompleteCheckImpl() : CipherIncompleteCheck {
             DSecret.Type.Identity -> incompleteIdentity(secret)
             DSecret.Type.SecureNote -> incompleteNote(secret)
             DSecret.Type.SshKey -> incompleteSshKey(secret)
+            DSecret.Type.GpgKey -> incompleteGpgKey(secret)
             DSecret.Type.None -> false
         }
     }
@@ -103,6 +104,9 @@ class CipherIncompleteCheckImpl() : CipherIncompleteCheck {
     }
 
     private fun incompleteNote(secret: DSecret): Boolean {
+        if (secret.gpgKey != null) {
+            return false
+        }
         return secret.notes.isBlank()
     }
 
@@ -117,4 +121,7 @@ class CipherIncompleteCheckImpl() : CipherIncompleteCheck {
                 sshKey.publicKey.isNullOrBlank() ||
                 sshKey.fingerprint.isNullOrBlank()
     }
+
+    private fun incompleteGpgKey(secret: DSecret): Boolean =
+        secret.gpgKey == null
 }

@@ -2,7 +2,7 @@
 title: KeePass (KDBX)
 description: Open, edit, and create KeePass databases in Keyguard — what maps to what, and what to watch out for.
 category: accounts
-order: 3
+order: 4
 ---
 
 Keyguard can work with **KeePass (KDBX)** databases:
@@ -52,6 +52,5 @@ no KeePass equivalent:
 - **Organizations and collections** — KDBX has no concept of them;
 - **Sends** — a Bitwarden platform feature.
 
-On **Wear OS**, a KeePass database is a one-time sync: the watch receives a
-copy from the phone, and choosing a local database from the watch itself is
-not supported.
+On **Wear OS**, the watch receives a one-time copy of the database — see
+[Keyguard on Wear OS](/docs/wear-os/#setup).

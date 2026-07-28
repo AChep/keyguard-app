@@ -2,7 +2,11 @@
 name = "keyguard-android-ssh-agent"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.94.0"
 description = "Standalone Android SSH agent bridge for Keyguard"
+license-file = "../../LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+publish = false
 
 [[bin]]
 name = "keyguard-android-ssh-agent"
@@ -14,13 +18,17 @@ base64 = "0.22"
 chacha20poly1305 = "0.10"
 clap = { version = "4", features = ["derive"] }
 common-ssh-agent-rust = { path = "../../commonSshAgent" }
+keyguard-agent-identity = { path = "../../commonAgent" }
 hkdf = "0.12"
 libc = "0.2"
 prost = "0.13"
 rand = "0.8"
 sha2 = "0.10"
-tokio = { version = "1", features = ["io-util", "macros", "net", "process", "rt-multi-thread", "signal", "time"] }
+tokio = { version = "1", features = ["io-util", "macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
 zeroize = "1"
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"
 
 [profile.release]
 strip = true

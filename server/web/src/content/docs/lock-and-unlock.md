@@ -13,7 +13,7 @@ saves a lot of confusion:
   **outside Keyguard** — on the Bitwarden server, or in the `.kdbx` file —
   and the same credential works in the web vault and any other client;
 - the **app password** — created when you first set up Keyguard, it locks
-  everything Keyguard keeps on this device: the [local copy of your vault](docs/security/).
+  everything Keyguard keeps on this device: the [local copy of your vault](/docs/security/).
 
 The app password never gets stored on the device nor sent over the network —
 it is used to generate a secret key that encrypts the local data. Because it

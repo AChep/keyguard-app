@@ -1,5 +1,5 @@
 use common_ssh_agent_rust::messages::CallerIdentity as ProtoCallerIdentity;
-use common_ssh_agent_rust::unix_caller_identity::{
+use keyguard_agent_identity::unix_caller_identity::{
     caller_from_unix_stream as shared_caller_from_unix_stream, UnixCallerIdentity,
 };
 use tokio::net::UnixStream;
@@ -36,6 +36,10 @@ impl From<&CallerIdentity> for ProtoCallerIdentity {
             app_pid: 0,
             app_name: String::new(),
             app_bundle_path: String::new(),
+            // Android authorization is replaced with framework-derived
+            // evidence by the Keyguard app bridge, never trusted from this
+            // transport payload.
+            authorization: None,
         }
     }
 }
@@ -47,7 +51,7 @@ pub(crate) fn caller_from_unix_stream(stream: &UnixStream) -> Option<CallerIdent
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common_ssh_agent_rust::unix_caller_identity::UnixCallerIdentity;
+    use keyguard_agent_identity::unix_caller_identity::UnixCallerIdentity;
 
     #[test]
     fn caller_identity_maps_shared_identity() {

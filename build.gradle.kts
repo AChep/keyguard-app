@@ -1,3 +1,5 @@
+import dev.detekt.gradle.extensions.DetektExtension
+import dev.detekt.gradle.extensions.FailOnSeverity
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmVendorSpec
@@ -27,6 +29,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.parcelize) apply false
     alias(libs.plugins.kotlin.plugin.serialization) apply false
     alias(libs.plugins.compose) apply false
+    alias(libs.plugins.detekt) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.google.services) apply false
@@ -36,6 +39,7 @@ plugins {
     alias(libs.plugins.license.check) apply false
     alias(libs.plugins.versions) apply true
     alias(libs.plugins.version.catalog.update) apply true
+    id("keyguard.crypto-dependency-policy")
 }
 
 tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
@@ -47,6 +51,40 @@ tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
 }
 
 subprojects {
+    // The custom rules live here, so this module can not be a Detekt consumer of itself.
+    if (path == ":detektRules") {
+        return@subprojects
+    }
+
+    apply(plugin = rootProject.libs.plugins.detekt.get().pluginId)
+
+    // Makes the `keyguard` rule set a known config key everywhere. The rules that need type
+    // resolution stay inactive on these tasks and are enabled only by the dedicated tasks; see
+    // the `keyguard.detekt-custom-rules` convention plugin.
+    dependencies {
+        add("detektPlugins", project(":detektRules"))
+    }
+
+    configure<DetektExtension> {
+        toolVersion.set(rootProject.libs.versions.detekt)
+        source.setFrom(
+            fileTree("src") {
+                include("**/*.kt")
+                include("**/*.kts")
+            },
+        )
+        config.setFrom(rootProject.layout.projectDirectory.file("config/detekt/detekt.yml"))
+        buildUponDefaultConfig.set(true)
+        baseline.set(
+            rootProject.layout.projectDirectory.file(
+                "config/detekt/baseline/${path.removePrefix(":").replace(':', '-')}.xml",
+            ),
+        )
+        basePath.set(rootProject.layout.projectDirectory)
+        ignoreFailures.set(false)
+        failOnSeverity.set(FailOnSeverity.Error)
+    }
+
     if (
         name == "androidApp" ||
         name == "wearApp" ||
@@ -85,9 +123,6 @@ subprojects {
                 because("MIT License, but self-hosted copy of the license")
             }
             allowUrl("https://github.com/devsrsouza/compose-icons/blob/master/LICENSE") {
-                because("MIT License, but self-hosted copy of the license")
-            }
-            allowUrl("https://www.bouncycastle.org/licence.html") {
                 because("MIT License, but self-hosted copy of the license")
             }
             allowUrl("https://spdx.org/licenses/MIT.txt") {
@@ -153,9 +188,6 @@ subprojects {
             allowUrl("https://www.zetetic.net/sqlcipher/license/") {
                 because("BDS-like License")
             }
-            allowUrl("http://www.bouncycastle.org/licence.html") {
-                because("MIT-like License")
-            }
         }
     }
 }
@@ -166,4 +198,53 @@ allprojects {
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
         version.set(rootProject.libs.versions.ktlint.get())
     }
+}
+
+//
+// The custom keyguard Detekt rules from :detektRules
+//
+// They get dedicated tasks rather than riding along on the shared `detekt` task, which runs
+// without an analysis classpath and so silently skips rules that need type resolution, and whose
+// baselines must never suppress a hand-written project invariant. Modules opt in by applying
+// `keyguard.detekt-custom-rules` and registering the compilations to analyse.
+//
+
+val customRuleModules = listOf(":common", ":wearApp")
+
+// The APIs guarded by the custom rules. Each opted-in module repeats the ones it uses via
+// `requireCoverageFor(...)`; this list is the repository-wide view used by the ownership check.
+val guardedApiMarkers = listOf("mutablePersistedFlow")
+
+// Catches a module that starts using a guarded API without opting into the custom-rule tasks.
+val verifyDetektCustomRulesOwnership by tasks.registering(
+    com.artemchep.keyguard.buildplugins.detekt.VerifyDetektMarkerCoverageTask::class,
+) {
+    group = "verification"
+    description = "Fails if a guarded API is used outside the modules that run the custom " +
+        "Detekt rules."
+    markers.set(guardedApiMarkers)
+    rootDirectory.set(layout.projectDirectory)
+    candidateFiles.from(
+        fileTree(layout.projectDirectory) {
+            include("**/src/**/*.kt")
+            exclude("**/build/**")
+        },
+    )
+    // Ownership is decided purely from the path prefixes: per-module coverage is verified
+    // inside each module, so nothing is registered as "analysed" here.
+    expectsAnalysedSources.set(false)
+    allowedPathPrefixes.set(
+        customRuleModules.map { "${it.removePrefix(":").replace(':', '/')}/src" } +
+            // The rules, their fixtures and the convention plugin name the guarded APIs as the
+            // thing they enforce rather than calling them.
+            listOf("detektRules/src", "buildPlugins/src"),
+    )
+    stamp.set(layout.buildDirectory.file("reports/detekt/custom-rules-ownership.txt"))
+}
+
+tasks.register("detektCustomRules") {
+    group = "verification"
+    description = "Runs every custom keyguard Detekt rule across the repository."
+    dependsOn(verifyDetektCustomRulesOwnership)
+    dependsOn(customRuleModules.map { "$it:detektCustomRules" })
 }

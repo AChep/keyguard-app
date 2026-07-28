@@ -18,6 +18,7 @@ class AndroidSshAgentPlugin : Plugin<Project> {
         val cargoBinaryName = AndroidSshAgentTermuxPackaging.PACKAGE_NAME
         val termuxTargets = AndroidSshAgentTermuxPackaging.supportedTargets
         val androidMinSdk = libs.findVersion("androidMinSdk").get().requiredVersion.toInt()
+        val androidNdk = libs.findVersion("androidNdk").get().requiredVersion
         val appMarketingVersion = libs.findVersion("appVersionName").get().requiredVersion
         val termuxPackageVersion = AndroidSshAgentTermuxPackaging.resolvePackageVersion(
             marketingVersion = appMarketingVersion,
@@ -38,6 +39,7 @@ class AndroidSshAgentPlugin : Plugin<Project> {
                     localPropertiesFile = null,
                     rustTarget = rustTarget,
                     androidApiLevel = androidMinSdk,
+                    ndkVersion = androidNdk,
                 )
             },
         )
@@ -65,6 +67,9 @@ class AndroidSshAgentPlugin : Plugin<Project> {
                     rootProject.fileTree("commonSshAgent") {
                         exclude("target/**")
                     },
+                    rootProject.fileTree("commonAgent") {
+                        exclude("target/**")
+                    },
                 )
                 this.cargoTargetDir.set(cargoTargetDir)
                 rustTarget.set(targetInfo.rustTarget)
@@ -75,9 +80,10 @@ class AndroidSshAgentPlugin : Plugin<Project> {
             compileTasks[targetInfo.rustTarget] = tasks.register<SignAndCopyBinaryTask>("compile$suffix") {
                 dependsOn(cargoBuild)
                 sourceBinary.set(cargoBuild.flatMap { it.outputBinary })
-                destinationBinary.set(
-                    layout.buildDirectory.file("bin/${targetInfo.rustTarget}/$cargoBinaryName"),
+                destinationDirectory.set(
+                    layout.buildDirectory.dir("compiled-binaries/${targetInfo.rustTarget}"),
                 )
+                destinationRelativePath.set(cargoBinaryName)
                 platformMacOs.set(false)
                 platformWindows.set(false)
                 markExecutable.set(true)

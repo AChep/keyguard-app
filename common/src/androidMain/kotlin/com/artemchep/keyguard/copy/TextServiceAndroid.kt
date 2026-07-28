@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.copy
 
-import com.artemchep.keyguard.common.io.toSource
+import com.artemchep.keyguard.util.foundation.io.toSource
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.text.TextService

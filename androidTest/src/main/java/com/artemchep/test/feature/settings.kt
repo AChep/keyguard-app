@@ -1,15 +1,15 @@
 package com.artemchep.test.feature
 
-import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiAutomatorTestScope
 
 @JvmInline
 value class FeatureSettings(
-    val device: UiDevice,
+    val scope: UiAutomatorTestScope,
 )
 
-val UiDevice.settingsFeature get() = FeatureSettings(this)
+val UiAutomatorTestScope.settingsFeature get() = FeatureSettings(this)
 
 fun FeatureSettings.ensureSettingsScreen() =
-    device.coreFeature.launchScreen(
+    scope.coreFeature.launchScreen(
         actionButtonResource = "nav_bar:settings",
     )

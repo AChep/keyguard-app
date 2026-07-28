@@ -51,33 +51,44 @@ import com.artemchep.keyguard.common.service.quicksearch.QuickSearchHotkeyServic
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowManager
 import com.artemchep.keyguard.common.service.session.VaultLockHotkeyService
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentManager
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeyRepository
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
+import com.artemchep.keyguard.common.service.gpgagent.retryGpgAgentStartup
 import com.artemchep.keyguard.common.service.sshagent.retrySshAgentStartup
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
-import com.artemchep.keyguard.common.model.SshAgentStatus
+import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.feature.sshagent.rememberSshAgentRequestUiState
+import com.artemchep.keyguard.feature.agent.rememberAgentRequestUiState
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
+import com.artemchep.keyguard.common.usecase.GetGpgAgent
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.worker.Wrker
+import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.core.session.diFingerprintRepositoryModule
 import com.artemchep.keyguard.desktop.WindowStateManager
 import com.artemchep.keyguard.desktop.services.autotype.AutotypeServiceNative
 import com.artemchep.keyguard.desktop.services.keychain.KeychainRepositoryNative
 import com.artemchep.keyguard.desktop.services.notification.NotificationRepositoryNative
+import com.artemchep.keyguard.desktop.ui.GpgRequestWindow
 import com.artemchep.keyguard.desktop.ui.QuickSearchWindow
 import com.artemchep.keyguard.desktop.ui.SshRequestWindow
 import com.artemchep.keyguard.desktop.util.AppReopenedListenerEffect
@@ -90,6 +101,8 @@ import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.nativecrypto.NativeCryptoDesktopSmoke
+import com.artemchep.keyguard.nativecrypto.NativeCryptoException
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalWindowId
 import com.artemchep.keyguard.platform.WindowId
@@ -108,6 +121,7 @@ import com.artemchep.keyguard.ui.theme.GlobalExpressive
 import com.artemchep.keyguard.ui.theme.KeyguardTheme
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.util.foundation.crypto.ensurePlatformCryptoReady
 import com.kdroid.composetray.tray.api.Tray
 import com.kdroid.composetray.utils.SingleInstanceManager
 import kotlinx.coroutines.Dispatchers
@@ -128,8 +142,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.jsse.provider.BouncyCastleJsseProvider
+import okhttp3.OkHttpClient
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.kodein.di.DI
@@ -139,18 +152,92 @@ import org.kodein.di.compose.rememberInstance
 import org.kodein.di.compose.withDI
 import org.kodein.di.direct
 import org.kodein.di.instance
-import java.security.Security
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import java.util.Locale
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocket
+import kotlin.system.exitProcess
 import kotlin.time.ExperimentalTime
 
+private const val NATIVE_CRYPTO_PACKAGED_SMOKE_ARGUMENT = "--native-crypto-packaged-smoke"
+private const val NATIVE_CRYPTO_PACKAGED_SMOKE_RESULT_PATH_ENV =
+    "KEYGUARD_NATIVE_CRYPTO_SMOKE_RESULT_PATH"
+private const val NATIVE_CRYPTO_PACKAGED_SMOKE_NONCE_ENV =
+    "KEYGUARD_NATIVE_CRYPTO_SMOKE_NONCE"
+
+fun main(args: Array<String>) {
+    if (NATIVE_CRYPTO_PACKAGED_SMOKE_ARGUMENT in args) {
+        runNativeCryptoPackagedSmoke()
+        return
+    }
+    runKeyguardApplication()
+}
+
+private fun runNativeCryptoPackagedSmoke() {
+    val (result, tlsRuntime) = try {
+        NativeCryptoDesktopSmoke.runPackaged() to verifyPackagedDesktopTls()
+    } catch (e: NativeCryptoException) {
+        System.err.println(
+            "nativeCrypto packaged smoke failed: operation=${e.operation} code=${e.code}",
+        )
+        exitProcess(1)
+    } catch (_: Throwable) {
+        System.err.println("nativeCrypto packaged smoke failed: operation=packaged_smoke code=INTERNAL")
+        exitProcess(1)
+    }
+
+    val capabilities = result.capabilities.joinToString(",") { capability -> capability.name }
+    val success =
+        "nativeCrypto packaged smoke passed: abi=${result.abiVersion} " +
+            "capabilities=$capabilities sha256=PASS tls=$tlsRuntime"
+    publishNativeCryptoPackagedSmokeResult(success)
+    println(success)
+}
+
+private fun publishNativeCryptoPackagedSmokeResult(success: String) {
+    val resultPath = System.getenv(NATIVE_CRYPTO_PACKAGED_SMOKE_RESULT_PATH_ENV)
+        ?.takeIf(String::isNotBlank)
+        ?: return
+    val nonce = checkNotNull(
+        System.getenv(NATIVE_CRYPTO_PACKAGED_SMOKE_NONCE_ENV)
+            ?.takeIf(String::isNotBlank),
+    ) {
+        "$NATIVE_CRYPTO_PACKAGED_SMOKE_NONCE_ENV is required when publishing smoke evidence"
+    }
+    Files.writeString(
+        Path.of(resultPath),
+        "$nonce\n$success\n",
+        StandardCharsets.UTF_8,
+        StandardOpenOption.CREATE_NEW,
+        StandardOpenOption.WRITE,
+    )
+}
+
+private fun verifyPackagedDesktopTls(): String {
+    val jdkFeature = Runtime.version().feature()
+    check(jdkFeature == 21)
+
+    val defaultContext = SSLContext.getDefault()
+    val providerName = defaultContext.provider.name
+    check(providerName == "SunJSSE")
+
+    val okHttpClient = OkHttpClient.Builder().build()
+    val socketFactory = okHttpClient.sslSocketFactory
+    check(socketFactory.javaClass == defaultContext.socketFactory.javaClass)
+    val tlsSocket = socketFactory.createSocket() as SSLSocket
+    tlsSocket.use { socket ->
+        check("TLSv1.3" in socket.enabledProtocols)
+    }
+
+    return "OkHttp/$providerName/JDK$jdkFeature"
+}
+
 @OptIn(ExperimentalTime::class)
-fun main() {
-    // Add BouncyCastle as the first security provider
-    // to make OkHTTP use its TLS instead of a platform
-    // specific one.
-    // https://github.com/square/okhttp?tab=readme-ov-file#requirements
-    Security.insertProviderAt(BouncyCastleProvider(), 1)
-    Security.insertProviderAt(BouncyCastleJsseProvider(), 2)
+private fun runKeyguardApplication() {
+    ensurePlatformCryptoReady()
 
     // Allow the app to use system default proxies:
     // https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
@@ -301,9 +388,17 @@ fun main() {
     val getCloseToTray: GetCloseToTray = appDi.direct.instance()
     val getSshAgent: GetSshAgent = appDi.direct.instance()
     val getSshAgentApprovalWindow: GetSshAgentApprovalWindow = appDi.direct.instance()
+    val getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy = appDi.direct.instance()
     val getSshAgentFilter: GetSshAgentFilter = appDi.direct.instance()
     val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = appDi.direct.instance()
     val sshAgentStatusService: SshAgentStatusService = appDi.direct.instance()
+    val getGpgAgent: GetGpgAgent = appDi.direct.instance()
+    val getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow = appDi.direct.instance()
+    val getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy = appDi.direct.instance()
+    val getGpgAgentFilter: GetGpgAgentFilter = appDi.direct.instance()
+    val gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository = appDi.direct.instance()
+    val gpgAgentStatusService: GpgAgentStatusService = appDi.direct.instance()
+    val dataDirectory: DataDirectory = appDi.direct.instance()
 
     val translatorScope by lazy {
         val context = LeContext()
@@ -383,6 +478,7 @@ fun main() {
                     cryptoGenerator = cryptoGenerator,
                     getVaultSession = getVaultSession,
                     getSshAgentApprovalWindow = getSshAgentApprovalWindow,
+                    getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
                     getSshAgentFilter = getSshAgentFilter,
                     sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
                 )
@@ -397,18 +493,18 @@ fun main() {
             ) {
                 val binaryPath = sshAgentManager.defaultBinaryPath
                 if (binaryPath == null) {
-                    sshAgentStatusService.set(SshAgentStatus.Unsupported)
+                    sshAgentStatusService.set(AgentStatus.Unsupported)
                     return@LaunchedEffect
                 }
                 if (!getSshAgentStateValue) {
-                    sshAgentStatusService.set(SshAgentStatus.Stopped)
+                    sshAgentStatusService.set(AgentStatus.Stopped)
                     return@LaunchedEffect
                 }
 
                 coroutineScope {
                     var failed = false
                     try {
-                        sshAgentStatusService.set(SshAgentStatus.Starting)
+                        sshAgentStatusService.set(AgentStatus.Starting)
 
                         val process = retrySshAgentStartup(
                             logRepository = logRepository,
@@ -420,7 +516,7 @@ fun main() {
                             },
                             stop = sshAgentManager::stop,
                         )
-                        sshAgentStatusService.set(SshAgentStatus.Ready)
+                        sshAgentStatusService.set(AgentStatus.Ready)
                         val exitCode = runInterruptible(Dispatchers.IO) {
                             process.waitFor()
                         }
@@ -429,9 +525,9 @@ fun main() {
                         throw e
                     } catch (e: Exception) {
                         e.throwIfFatal()
-                        e.printStackTrace()
+
                         failed = true
-                        sshAgentStatusService.set(SshAgentStatus.Failed)
+                        sshAgentStatusService.set(AgentStatus.Failed)
 
                         val text = getErrorReadableMessage(e, translatorScope)
                             .title
@@ -446,20 +542,107 @@ fun main() {
                             sshAgentManager.stop()
                         }
                         if (!failed) {
-                            sshAgentStatusService.set(SshAgentStatus.Stopped)
+                            sshAgentStatusService.set(AgentStatus.Stopped)
                         }
                     }
                 }
             }
             // We want to collect all the requests into
             // a single model.
-            val sshAgentRequestUiState = rememberSshAgentRequestUiState(
+            val sshAgentRequestUiState = rememberAgentRequestUiState(
                 requestsFlow = sshAgentManager.requestsFlow,
             )
             if (sshAgentRequestUiState != null) {
                 SshRequestWindow(
                     processLifecycleProvider = processLifecycleProvider,
                     sshAgentRequestUiState = sshAgentRequestUiState,
+                )
+            }
+
+            val gpgAgentManager = remember {
+                GpgAgentManager(
+                    logRepository = logRepository,
+                    cryptoGenerator = cryptoGenerator,
+                    dataDirectory = dataDirectory,
+                    getVaultSession = getVaultSession,
+                    getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
+                    getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
+                    getGpgAgentFilter = getGpgAgentFilter,
+                    gpgAgentPublicKeyRepository = gpgAgentPublicKeyRepository,
+                )
+            }
+            val getGpgAgentState = remember { getGpgAgent() }
+                .collectAsState(false)
+            val getGpgAgentStateValue = getGpgAgentState.value
+            LaunchedEffect(
+                gpgAgentManager,
+                getGpgAgentStateValue,
+            ) {
+                val binaryPath = gpgAgentManager.defaultBinaryPath
+                if (binaryPath == null) {
+                    gpgAgentStatusService.set(AgentStatus.Unsupported)
+                    return@LaunchedEffect
+                }
+                if (!getGpgAgentStateValue) {
+                    gpgAgentStatusService.set(AgentStatus.Stopped)
+                    return@LaunchedEffect
+                }
+
+                coroutineScope {
+                    var failed = false
+                    try {
+                        gpgAgentStatusService.set(AgentStatus.Starting)
+                        val gpgAgentSocketPath = gpgAgentManager.resolveGpgAgentSocketPathOrNull()
+
+                        val process = retryGpgAgentStartup(
+                            logRepository = logRepository,
+                            start = { _, _ ->
+                                gpgAgentManager.start(
+                                    scope = this,
+                                    binaryPath = binaryPath,
+                                    agentSocketPath = gpgAgentSocketPath,
+                                )
+                            },
+                            stop = gpgAgentManager::stop,
+                        )
+                        gpgAgentStatusService.set(AgentStatus.Ready)
+                        val exitCode = runInterruptible(Dispatchers.IO) {
+                            process.waitFor()
+                        }
+                        throw IllegalStateException("GPG agent process exited unexpectedly: $exitCode")
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        e.throwIfFatal()
+
+                        failed = true
+                        gpgAgentStatusService.set(AgentStatus.Failed)
+
+                        val text = getErrorReadableMessage(e, translatorScope)
+                            .title
+                        val msg = ToastMessage(
+                            type = ToastMessage.Type.ERROR,
+                            title = translatorScope.translate(Res.string.error_failed_gpg_agent_start),
+                            text = text,
+                        )
+                        showMessage.copy(msg)
+                    } finally {
+                        withContext(NonCancellable) {
+                            gpgAgentManager.stop()
+                        }
+                        if (!failed) {
+                            gpgAgentStatusService.set(AgentStatus.Stopped)
+                        }
+                    }
+                }
+            }
+            val gpgAgentRequestUiState = rememberAgentRequestUiState(
+                requestsFlow = gpgAgentManager.requestsFlow,
+            )
+            if (gpgAgentRequestUiState != null) {
+                GpgRequestWindow(
+                    processLifecycleProvider = processLifecycleProvider,
+                    gpgAgentRequestUiState = gpgAgentRequestUiState,
                 )
             }
 

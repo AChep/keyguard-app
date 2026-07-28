@@ -2,7 +2,7 @@
 title: Two-factor login
 description: The second-factor methods Keyguard supports when signing in to a Bitwarden account, and how each one works.
 category: accounts
-order: 2
+order: 3
 ---
 
 If your Bitwarden account has two-step login enabled, Keyguard asks for the

@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -30,6 +31,7 @@ object CipherFiltersRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
+        id = "cipherFilters.action",
         leading = iconSmall(Icons.Outlined.KeyguardCipherFilter),
         title = Res.string.customfilters_header_title.wrap(),
         trailing = {
@@ -41,6 +43,8 @@ object CipherFiltersRoute : Route {
             navigate(intent)
         },
     )
+
+    override val descriptor get() = RouteDescriptor.CipherFilters
 
     @Composable
     override fun Content() {

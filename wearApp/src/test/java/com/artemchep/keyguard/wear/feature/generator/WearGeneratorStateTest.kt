@@ -1,8 +1,7 @@
 package com.artemchep.keyguard.wear.feature.generator
 
-import androidx.compose.runtime.mutableStateOf
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.generator.GeneratorState
 import kotlinx.collections.immutable.persistentListOf
 import org.junit.Assert.assertEquals
@@ -66,8 +65,7 @@ class WearGeneratorStateTest {
                 GeneratorState.Filter.Item.Text(
                     key = "passphrase.delimiter",
                     title = "Delimiter",
-                    model = TextFieldModel2(
-                        state = mutableStateOf("-"),
+                    model = TextFieldModel(
                         text = "-",
                         onChange = {},
                     ),

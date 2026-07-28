@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -28,22 +27,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuOpen
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.automirrored.outlined.Send
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Password
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.ErrorOutline
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Screenshot
-import androidx.compose.material.icons.outlined.Security
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -51,7 +42,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationItemColors
 import androidx.compose.material3.NavigationItemIconPosition
 import androidx.compose.material3.ShortNavigationBar
@@ -96,16 +86,19 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.DAccountStatus
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
+import com.artemchep.keyguard.common.service.filter.GetCipherFilters
 import com.artemchep.keyguard.common.usecase.GetAccountStatus
 import com.artemchep.keyguard.common.usecase.GetAllowScreenshots
-import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
+import com.artemchep.keyguard.common.usecase.GetNavItemsConfig
 import com.artemchep.keyguard.common.usecase.GetNavLabel
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadCount
 import com.artemchep.keyguard.common.usecase.PutAllowScreenshots
-import com.artemchep.keyguard.feature.generator.GeneratorRoute
-import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
-import com.artemchep.keyguard.feature.home.settings.SettingsRoute
-import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.common.util.flow.combineToList
+import com.artemchep.keyguard.feature.home.navigation.HomeNavigationItem
+import com.artemchep.keyguard.feature.home.navigation.homeGeneratorRoute
+import com.artemchep.keyguard.feature.home.navigation.homeVaultRoute
+import com.artemchep.keyguard.feature.home.navigation.resolveHomeNavigationItems
+import com.artemchep.keyguard.feature.home.navigation.splitHomeNavigationItemsByMinSize
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -115,9 +108,6 @@ import com.artemchep.keyguard.feature.navigation.NavigationEntry
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouter
-import com.artemchep.keyguard.feature.navigation.NavigationStack
-import com.artemchep.keyguard.feature.navigation.Route
-import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.sync.SyncRoute
 import com.artemchep.keyguard.platform.LocalLeContext
 import com.artemchep.keyguard.platform.leDisplayCutout
@@ -131,7 +121,10 @@ import com.artemchep.keyguard.ui.AnimatedCounterBadge
 import com.artemchep.keyguard.ui.AnimatedNewCounterBadge
 import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
+import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
+import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
@@ -150,57 +143,16 @@ import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.kodein.di.compose.rememberInstance
 
-const val HOME_VAULT_TEST_TAG = "nav_bar:vault"
-const val HOME_SENDS_TEST_TAG = "nav_bar:sends"
-const val HOME_GENERATOR_TEST_TAG = "nav_bar:generator"
-const val HOME_WATCHTOWER_TEST_TAG = "nav_bar:watchtower"
-const val HOME_SETTINGS_TEST_TAG = "nav_bar:settings"
-
-data class Rail(
-    val key: String,
-    val testTag: String,
-    val route: Route,
-    val icon: ImageVector,
-    val iconSelected: ImageVector,
-    val label: TextHolder,
-    val counterFlow: Flow<Int?> = flowOf(null),
-)
-
 private const val ROUTE_NAME = "home"
 
-private val vaultRoute = VaultRoute(
-    args = VaultRoute.Args(
-        main = true,
-    ),
-)
-
-private val sendsRoute = SendRoute()
-
-private val generatorRoute = GeneratorRoute(
-    args = GeneratorRoute.Args(
-        password = true,
-        username = true,
-        sshKey = true,
-    ),
-)
-
-private val watchtowerRoute = WatchtowerRoute()
-
-private val settingsRoute = SettingsRoute
-
-val homeRoutes = listOf(
-    vaultRoute,
-    sendsRoute,
-    generatorRoute,
-    watchtowerRoute,
-    settingsRoute,
-)
+// Min size restriction is used to collapse extra items into
+// a dedicated overflow item when needed.
+private val bottomNavigationItemMinSize = 64.dp
+private val railNavigationItemMinSize = 64.dp
 
 @Composable
 fun HomeScreen(
@@ -210,63 +162,38 @@ fun HomeScreen(
     val defaultRoute = remember {
         val defaultHome = deeplinkService.get(DeeplinkService.CUSTOM_HOME)
         when (defaultHome) {
-            "generator" -> generatorRoute
-            else -> vaultRoute
+            "generator" -> homeGeneratorRoute
+            else -> homeVaultRoute
         }
     }
 
     val getWatchtowerUnreadCount by rememberInstance<GetWatchtowerUnreadCount>()
+    val watchtowerUnreadCountFlow = remember(getWatchtowerUnreadCount) {
+        getWatchtowerUnreadCount()
+            .map { count ->
+                count.takeIf { it > 0 }
+            }
+    }
 
-    val getNavHiddenSend by rememberInstance<GetNavHiddenSend>()
-    val navHiddenSendState = remember(getNavHiddenSend) {
-        getNavHiddenSend()
+    val getNavItemsConfig by rememberInstance<GetNavItemsConfig>()
+    val navItemsConfigState = remember(getNavItemsConfig) {
+        getNavItemsConfig()
     }.collectAsState()
-    val navRoutes = remember(navHiddenSendState.value) {
-        listOfNotNull(
-            Rail(
-                key = "vault",
-                testTag = HOME_VAULT_TEST_TAG,
-                route = vaultRoute,
-                icon = Icons.Outlined.Home,
-                iconSelected = Icons.Filled.Home,
-                label = TextHolder.Res(Res.string.home_vault_label),
-            ),
-            Rail(
-                key = "sends",
-                testTag = HOME_SENDS_TEST_TAG,
-                route = sendsRoute,
-                icon = Icons.AutoMirrored.Outlined.Send,
-                iconSelected = Icons.AutoMirrored.Filled.Send,
-                label = TextHolder.Res(Res.string.home_send_label),
-            ).takeUnless { navHiddenSendState.value },
-            Rail(
-                key = "generator",
-                testTag = HOME_GENERATOR_TEST_TAG,
-                route = generatorRoute,
-                icon = Icons.Outlined.Password,
-                iconSelected = Icons.Filled.Password,
-                label = TextHolder.Res(Res.string.home_generator_label),
-            ),
-            Rail(
-                key = "watchtower",
-                testTag = HOME_WATCHTOWER_TEST_TAG,
-                route = watchtowerRoute,
-                icon = Icons.Outlined.Security,
-                iconSelected = Icons.Filled.Security,
-                counterFlow = getWatchtowerUnreadCount()
-                    .map { count ->
-                        count.takeIf { it > 0 }
-                    },
-                label = TextHolder.Res(Res.string.home_watchtower_label),
-            ),
-            Rail(
-                key = "settings",
-                testTag = HOME_SETTINGS_TEST_TAG,
-                route = settingsRoute,
-                icon = Icons.Outlined.Settings,
-                iconSelected = Icons.Filled.Settings,
-                label = TextHolder.Res(Res.string.home_settings_label),
-            ),
+
+    val getCipherFilters by rememberInstance<GetCipherFilters>()
+    val cipherFiltersState = remember(getCipherFilters) {
+        getCipherFilters()
+    }.collectAsState(emptyList())
+
+    val navRoutes = remember(
+        navItemsConfigState.value,
+        cipherFiltersState.value,
+        watchtowerUnreadCountFlow,
+    ) {
+        resolveHomeNavigationItems(
+            config = navItemsConfigState.value,
+            cipherFilters = cipherFiltersState.value,
+            watchtowerUnreadCount = watchtowerUnreadCountFlow,
         ).toPersistentList()
     }
     NavigationRouter(
@@ -285,9 +212,14 @@ fun HomeScreen(
 @Composable
 fun HomeScreenContent(
     backStack: PersistentList<NavigationEntry>,
-    routes: ImmutableList<Rail>,
+    routes: ImmutableList<HomeNavigationItem>,
     navBarVisible: Boolean = true,
 ) {
+    HomeNavigationDynamicRootEffect(
+        backStack = backStack,
+        routes = routes,
+    )
+
     ResponsiveLayout {
         val maxWidth = maxWidth
         val maxHeight = maxHeight
@@ -337,6 +269,26 @@ fun HomeScreenContent(
                     LaunchedEffect(canExpand) {
                         if (!canExpand) railState.collapse()
                     }
+                    val density = LocalDensity.current
+                    val routesSplit = remember(
+                        routes,
+                        maxHeight,
+                        canExpand,
+                        density,
+                    ) {
+                        val reservedHeight = if (canExpand) 168.dp else 112.dp
+                        splitHomeNavigationItemsByMinSize(
+                            items = routes,
+                            availableSizePx = with(density) {
+                                (maxHeight - reservedHeight)
+                                    .coerceAtLeast(0.dp)
+                                    .roundToPx()
+                            },
+                            itemMinSizePx = with(density) {
+                                railNavigationItemMinSize.roundToPx()
+                            },
+                        )
+                    }
 
                     WideNavigationRail(
                         modifier = Modifier
@@ -368,16 +320,14 @@ fun HomeScreenContent(
                             null
                         },
                     ) {
-                        routes.forEach { r ->
+                        routesSplit.visible.forEach { r ->
                             key(r.key) {
                                 val counterState = r.counterFlow.collectAsState(null)
                                 RailNavigationControllerItem(
                                     modifier = Modifier
-                                        .testTag(r.testTag),
+                                        .homeNavigationTestTag(r.testTag),
                                     backStack = backStack,
-                                    route = r.route,
-                                    icon = r.icon,
-                                    iconSelected = r.iconSelected,
+                                    item = r,
                                     expanded = railState.currentValue == WideNavigationRailValue.Expanded,
                                     count = counterState.value,
                                     label = if (navLabelState.value) {
@@ -386,6 +336,7 @@ fun HomeScreenContent(
                                             Text(
                                                 text = textResource(r.label),
                                                 maxLines = 2,
+                                                textAlign = TextAlign.Center,
                                             )
                                         }
                                     } else {
@@ -393,6 +344,23 @@ fun HomeScreenContent(
                                     },
                                 )
                             }
+                        }
+                        if (routesSplit.overflow.isNotEmpty()) {
+                            RailNavigationOverflowItem(
+                                backStack = backStack,
+                                items = routesSplit.overflow,
+                                expanded = railState.currentValue == WideNavigationRailValue.Expanded,
+                                label = if (navLabelState.value) {
+                                    {
+                                        Text(
+                                            text = stringResource(Res.string.options),
+                                            maxLines = 2,
+                                        )
+                                    }
+                                } else {
+                                    null
+                                },
+                            )
                         }
                         Spacer(
                             modifier = Modifier
@@ -556,19 +524,33 @@ fun HomeScreenContent(
                         } else {
                             NavigationItemIconPosition.Start
                         }
+                        val density = LocalDensity.current
+                        val routesSplit = remember(
+                            routes,
+                            maxWidth,
+                            density,
+                        ) {
+                            splitHomeNavigationItemsByMinSize(
+                                items = routes,
+                                availableSizePx = with(density) {
+                                    maxWidth.roundToPx()
+                                },
+                                itemMinSizePx = with(density) {
+                                    bottomNavigationItemMinSize.roundToPx()
+                                },
+                            )
+                        }
                         ShortNavigationBar(
                             containerColor = Color.Unspecified,
                         ) {
-                            routes.forEach { r ->
+                            routesSplit.visible.forEach { r ->
                                 key(r.key) {
                                     val counterState = r.counterFlow.collectAsState(null)
                                     BottomNavigationControllerItem(
                                         modifier = Modifier
-                                            .testTag(r.testTag),
+                                            .homeNavigationTestTag(r.testTag),
                                         backStack = backStack,
-                                        route = r.route,
-                                        icon = r.icon,
-                                        iconSelected = r.iconSelected,
+                                        item = r,
                                         iconPosition = iconPosition,
                                         count = counterState.value,
                                         label = if (navLabelState.value) {
@@ -589,11 +571,77 @@ fun HomeScreenContent(
                                     )
                                 }
                             }
+                            if (routesSplit.overflow.isNotEmpty()) {
+                                BottomNavigationOverflowItem(
+                                    backStack = backStack,
+                                    items = routesSplit.overflow,
+                                    iconPosition = iconPosition,
+                                    label = if (navLabelState.value) {
+                                        {
+                                            Text(
+                                                text = stringResource(Res.string.options),
+                                                maxLines = 1,
+                                                textAlign = TextAlign.Center,
+                                                fontSize = 10.sp,
+                                            )
+                                        }
+                                    } else {
+                                        null
+                                    },
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+/**
+ * Keeps the selected home navigation stack aligned with dynamically resolved
+ * items by refreshing its root route when the item still matches the stack but
+ * now resolves to a different route instance.
+ *
+ * TL/DR: When a selected home tab now points to a different screen, replace
+ * the stale root screen with the current one.
+ */
+@Composable
+private fun HomeNavigationDynamicRootEffect(
+    backStack: ImmutableList<NavigationEntry>,
+    routes: ImmutableList<HomeNavigationItem>,
+) {
+    val controller = LocalNavigationController.current
+    LaunchedEffect(
+        backStack,
+        routes,
+    ) {
+        val rootRoute = backStack.firstOrNull()?.route
+            ?: return@LaunchedEffect
+        val item = routes.firstOrNull { item ->
+            item.isSelected(backStack) &&
+                    rootRoute.descriptor != item.route.descriptor
+        } ?: return@LaunchedEffect
+
+        val intent = NavigationIntent.Manual { factory ->
+            val navStack = getStack(
+                id = item.stackId,
+            )
+            val rootEntry = navStack.entries.firstOrNull()
+                ?: return@Manual navStack
+            val shouldRefreshRoot =
+                item.isSelected(navStack.entries) &&
+                        rootEntry.route.descriptor != item.route.descriptor
+            if (!shouldRefreshRoot) {
+                return@Manual navStack
+            }
+
+            val refreshedRootEntry = factory(rootEntry.id, item.route)
+            navStack.copy(
+                entries = navStack.entries.set(0, refreshedRootEntry),
+            )
+        }
+        controller.queue(intent)
     }
 }
 
@@ -906,22 +954,20 @@ private fun RailStatusBadgeContent(
 private fun RailNavigationControllerItem(
     modifier: Modifier = Modifier,
     backStack: ImmutableList<NavigationEntry>,
-    route: Route,
-    icon: ImageVector,
-    iconSelected: ImageVector,
+    item: HomeNavigationItem,
     expanded: Boolean,
     count: Int?,
     label: @Composable (() -> Unit)? = null,
 ) {
     val controller = LocalNavigationController.current
-    val selected = isSelected(backStack, route)
+    val selected = item.isSelected(backStack)
     WideNavigationRailItem(
         modifier = modifier,
         icon = {
             NavigationIcon(
                 selected = selected,
-                icon = icon,
-                iconSelected = iconSelected,
+                icon = item.icon,
+                iconSelected = item.iconSelected,
                 count = count,
             )
         },
@@ -930,7 +976,7 @@ private fun RailNavigationControllerItem(
         railExpanded = expanded,
         colors = navigationRailItemColors(),
         onClick = {
-            navigateOnClick(controller, backStack, route)
+            navigateOnClick(controller, item)
         },
     )
 }
@@ -940,22 +986,20 @@ private fun RailNavigationControllerItem(
 private fun BottomNavigationControllerItem(
     modifier: Modifier = Modifier,
     backStack: ImmutableList<NavigationEntry>,
-    route: Route,
-    icon: ImageVector,
-    iconSelected: ImageVector,
+    item: HomeNavigationItem,
     iconPosition: NavigationItemIconPosition,
     count: Int?,
     label: @Composable (() -> Unit)? = null,
 ) {
     val controller = LocalNavigationController.current
-    val selected = isSelected(backStack, route)
+    val selected = item.isSelected(backStack)
     ShortNavigationBarItem(
         modifier = modifier,
         icon = {
             NavigationIcon(
                 selected = selected,
-                icon = icon,
-                iconSelected = iconSelected,
+                icon = item.icon,
+                iconSelected = item.iconSelected,
                 count = count,
             )
         },
@@ -964,40 +1008,170 @@ private fun BottomNavigationControllerItem(
         iconPosition = iconPosition,
         colors = navigationBarItemColors(),
         onClick = {
-            navigateOnClick(controller, backStack, route)
+            navigateOnClick(controller, item)
         },
     )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun RowScope.BottomNavigationControllerItem2(
-    modifier: Modifier = Modifier,
+private fun RailNavigationOverflowItem(
     backStack: ImmutableList<NavigationEntry>,
-    route: Route,
-    icon: ImageVector,
-    iconSelected: ImageVector,
-    count: Int?,
+    items: List<HomeNavigationItem>,
+    expanded: Boolean,
     label: @Composable (() -> Unit)? = null,
 ) {
     val controller = LocalNavigationController.current
-    val selected = isSelected(backStack, route)
-    NavigationBarItem(
-        modifier = modifier,
-        icon = {
-            NavigationIcon(
-                selected = selected,
-                icon = icon,
-                iconSelected = iconSelected,
-                count = count,
-            )
-        },
-        label = label,
-        selected = selected,
-        onClick = {
-            navigateOnClick(controller, backStack, route)
-        },
-    )
+    var menuExpanded by remember {
+        mutableStateOf(false)
+    }
+    val selected = items.any { item ->
+        item.isSelected(backStack)
+    }
+    val count = rememberOverflowCount(items)
+    Box {
+        WideNavigationRailItem(
+            icon = {
+                NavigationIcon(
+                    selected = selected,
+                    icon = Icons.Filled.MoreVert,
+                    iconSelected = Icons.Filled.MoreVert,
+                    count = count,
+                )
+            },
+            label = label,
+            selected = selected,
+            railExpanded = expanded,
+            colors = navigationRailItemColors(),
+            onClick = {
+                menuExpanded = true
+            },
+        )
+        HomeNavigationOverflowMenu(
+            expanded = menuExpanded,
+            onDismissRequest = {
+                menuExpanded = false
+            },
+            items = items,
+            backStack = backStack,
+            onItemClick = { item ->
+                menuExpanded = false
+                navigateOnClick(controller, item)
+            },
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun BottomNavigationOverflowItem(
+    backStack: ImmutableList<NavigationEntry>,
+    items: List<HomeNavigationItem>,
+    iconPosition: NavigationItemIconPosition,
+    label: @Composable (() -> Unit)? = null,
+) {
+    val updatedController by rememberUpdatedState(LocalNavigationController.current)
+
+    var menuExpanded by remember {
+        mutableStateOf(false)
+    }
+    val selected = items.any { item ->
+        item.isSelected(backStack)
+    }
+    val count = rememberOverflowCount(items)
+    Box {
+        ShortNavigationBarItem(
+            icon = {
+                NavigationIcon(
+                    selected = selected,
+                    icon = Icons.Filled.MoreHoriz,
+                    iconSelected = Icons.Filled.MoreHoriz,
+                    count = count,
+                )
+            },
+            label = label,
+            selected = selected,
+            iconPosition = iconPosition,
+            colors = navigationBarItemColors(),
+            onClick = {
+                menuExpanded = true
+            },
+        )
+        HomeNavigationOverflowMenu(
+            expanded = menuExpanded,
+            onDismissRequest = {
+                menuExpanded = false
+            },
+            items = items,
+            backStack = backStack,
+            onItemClick = { item ->
+                menuExpanded = false
+                navigateOnClick(updatedController, item)
+            },
+        )
+    }
+}
+
+@Composable
+private fun HomeNavigationOverflowMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    items: List<HomeNavigationItem>,
+    backStack: ImmutableList<NavigationEntry>,
+    onItemClick: (HomeNavigationItem) -> Unit,
+) {
+    KeyguardDropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+    ) {
+        val updatedOnClick by rememberUpdatedState(onItemClick)
+        val actions = remember(items, backStack) {
+            items
+                .map { item ->
+                    val selected = item.isSelected(backStack)
+                    FlatItemAction(
+                        id = item.key,
+                        icon = if (selected) item.iconSelected else item.icon,
+                        selected = selected,
+                        title = item.label,
+                        onClick = {
+                            updatedOnClick.invoke(item)
+                        },
+                    )
+                }
+        }
+        actions.forEach { action ->
+            key(action.id) {
+                DropdownMenuItemFlat(
+                    action = action,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun rememberOverflowCount(
+    items: List<HomeNavigationItem>,
+): Int? {
+    val countState = remember(items) {
+        items
+            .map { it.counterFlow }
+            .combineToList()
+            .map { counters ->
+                counters.sumOf { it ?: 0 }
+                    .takeIf { it > 0 }
+            }
+    }.collectAsState(null)
+    return countState.value
+}
+
+private fun Modifier.homeNavigationTestTag(
+    testTag: String?,
+): Modifier = if (testTag != null) {
+    testTag(testTag)
+} else {
+    this
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -1010,17 +1184,6 @@ private fun navigationRailItemColors(): NavigationItemColors {
 @Composable
 private fun navigationBarItemColors(): NavigationItemColors {
     return ShortNavigationBarItemDefaults.colors()
-}
-
-private fun isSelected(
-    backStack: List<NavigationEntry>,
-    route: Route,
-) = run {
-    val entry = backStack
-        .lastOrNull { entry ->
-            homeRoutes.any { it === entry.route }
-        }
-    entry?.route === route
 }
 
 @Composable
@@ -1050,15 +1213,24 @@ private fun NavigationIcon(
 
 private fun navigateOnClick(
     controller: NavigationController,
-    backStack: List<NavigationEntry>,
-    route: Route,
+    item: HomeNavigationItem,
 ) {
     val intent = NavigationIntent.Manual { factory ->
         val navStack = getStack(
-            id = NavigationStack.createIdSuffix(route),
+            id = item.stackId,
         )
-        val navEntries = navStack.entries.ifEmpty {
-            val entry = factory(ROUTE_NAME, route)
+        val rootRoute = navStack.entries.firstOrNull()?.route
+        // Dynamic home items can reuse a stack id while their resolved route
+        // changes, so restore the stack only when its root still represents
+        // the clicked item.
+        val navEntries = if (
+            rootRoute != null &&
+            item.isSelected(navStack.entries) &&
+            rootRoute.descriptor == item.route.descriptor
+        ) {
+            navStack.entries
+        } else {
+            val entry = factory(ROUTE_NAME, item.route)
             persistentListOf(entry)
         }
         navStack.copy(entries = navEntries)

@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:GpgKeyFactory.kt:GpgKeyFactory$internal fun parseColonListing: List&lt;GpgAgentKeyMetadataKey&gt;</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `all keyguard generated variants are covered`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `assuan command framing failures match gpg agent`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `assuan keygrip command failures match gpg agent`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `assuan keyinfo lists served keys`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `assuan overlong top-level command closes without error line`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `assuan pkdecrypt ciphertext size failures match gpg agent`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `assuan pkdecrypt inquiry failures match gpg agent`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `assuan signing setup failures match gpg agent`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `ed25519 cv25519 encrypt and decrypt`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `ed25519 sign and verify`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `generated modern encrypt and decrypt`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `generated modern sign and verify`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `generated rsa 3072 encrypt and decrypt`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `generated rsa 3072 sign and verify`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `generated rsa 4096 encrypt and decrypt`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `generated rsa 4096 sign and verify`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `nistp256 ecdh encrypt and decrypt`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `nistp256 sign and verify`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `rsa encrypt and decrypt`</ID>
+    <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `rsa sign and verify`</ID>
+    <ID>LongMethod:GpgToolchain.kt:GpgToolchain$fun verifyCompatibleForE2e</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$0xffff</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$1100</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$3</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$7</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.AssCanceled$277</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.AssLineTooLong$263</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.AssParameter$280</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.AssSyntax$276</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.AssTooMuchData$273</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.AssUnexpectedCommand$274</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.AssUnknownCommand$275</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.InvalidValue$5</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.NoSecretKey$17</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.NotFound$27</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.NotSupported$60</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.Truncated$74</ID>
+    <ID>MagicNumber:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest.GpgErrorCode.UnsupportedAlgorithm$84</ID>
+    <ID>MagicNumber:GpgKeyFactory.kt:GpgKeyFactory$9</ID>
+    <ID>MagicNumber:KeyguardAgentLauncher.kt:KeyguardAgentLauncher$250</ID>
+    <ID>MagicNumber:KeyguardAgentLauncher.kt:KeyguardAgentLauncher$3</ID>
+    <ID>MagicNumber:KeyguardAgentLauncher.kt:KeyguardAgentLauncher$50</ID>
+    <ID>MagicNumber:KeyguardAgentLauncher.kt:KeyguardAgentLauncher$5_000</ID>
+    <ID>MagicNumber:KeyguardAgentLauncher.kt:KeyguardAgentLauncher$65535</ID>
+    <ID>TooGenericExceptionCaught:KeyguardAgentLauncher.kt:KeyguardAgentLauncher$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TestGpgAgentRequestProcessor.kt:TestGpgAgentRequestProcessor$e: Exception</ID>
+    <ID>TooManyFunctions:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest</ID>
+  </CurrentIssues>
+</SmellBaseline>

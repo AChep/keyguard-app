@@ -27,6 +27,7 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -40,6 +41,7 @@ import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -83,6 +85,24 @@ fun produceWordlistListState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    wordlistListStateProducer(
+        addWordlist = addWordlist,
+        editWordlist = editWordlist,
+        removeWordlistById = removeWordlistById,
+        getWordlists = getWordlists,
+        numberFormatter = numberFormatter,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.wordlistListStateProducer(
+    addWordlist: AddWordlist,
+    editWordlist: EditWordlist,
+    removeWordlistById: RemoveWordlistById,
+    getWordlists: GetWordlists,
+    numberFormatter: NumberFormatter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<WordlistListState>> {
     val selectionHandle = selectionHandle("selection")
 
     fun onView(entity: DGeneratorWordlist) {
@@ -136,6 +156,7 @@ fun produceWordlistListState(
                     section {
                         val selectedItem = selectedItems.first()
                         this += FlatItemAction(
+                            id = "wordlist.selection.edit",
                             icon = Icons.Outlined.Edit,
                             title = Res.string.edit.wrap(),
                             onClick = onClick {
@@ -150,8 +171,10 @@ fun produceWordlistListState(
                 }
                 section {
                     this += FlatItemAction(
+                        id = "wordlist.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
+                        danger = true,
                         onClick = onClick {
                             WordlistUtil.onDeleteByItems(
                                 confirmationRouteFactory = confirmationRouteFactory,
@@ -255,6 +278,7 @@ fun produceWordlistListState(
     val primaryActions = buildContextItems {
         section {
             this += FlatItemAction(
+                id = "wordlist.addFromFile",
                 leading = icon(Icons.Outlined.AttachFile),
                 title = Res.string.wordlist_add_wordlist_via_file_title.wrap(),
                 onClick = onClick {
@@ -263,8 +287,9 @@ fun produceWordlistListState(
                         addWordlist = addWordlist,
                     )
                 },
-            )
+                )
                 this += FlatItemAction(
+                    id = "wordlist.addFromUrl",
                     leading = icon(Icons.Outlined.KeyguardWebsite),
                     title = Res.string.wordlist_add_wordlist_via_url_title.wrap(),
                     onClick = onClick {
@@ -291,7 +316,7 @@ fun produceWordlistListState(
             }
         Loadable.Ok(contentOrException)
     }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = WordlistListState(
                 content = content,

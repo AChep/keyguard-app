@@ -1,0 +1,54 @@
+[package]
+name = "keyguard-crypto-fuzz"
+version = "0.0.0"
+edition = "2024"
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"
+
+[dependencies]
+keyguard-crypto-core = { path = "../crates/keyguard-crypto-core" }
+libfuzzer-sys = "=0.4.13"
+prost = { version = "=0.13.5", default-features = false, features = ["derive", "std"] }
+
+[[bin]]
+name = "dispatch"
+path = "fuzz_targets/dispatch.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "session_lifecycle"
+path = "fuzz_targets/session_lifecycle.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ssh_private_key_import"
+path = "fuzz_targets/ssh_private_key_import.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "openpgp_read"
+path = "fuzz_targets/openpgp_read.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "openpgp_write"
+path = "fuzz_targets/openpgp_write.rs"
+test = false
+doc = false
+bench = false

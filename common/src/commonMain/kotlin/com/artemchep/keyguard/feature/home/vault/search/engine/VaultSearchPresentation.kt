@@ -58,6 +58,14 @@ internal fun snippetForField(
             }
         }
 
+        VaultTextField.Gpg -> {
+            if (source.gpgKey?.privateKeyArmored == value) {
+                HIDDEN_FIELD_MASK
+            } else {
+                value.normalizeSnippet()
+            }
+        }
+
         else -> {
             value
                 .normalizeSnippet()

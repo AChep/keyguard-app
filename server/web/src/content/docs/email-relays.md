@@ -2,7 +2,7 @@
 title: Email relays
 description: Generate masked email addresses through SimpleLogin, addy.io, Firefox Relay, and other forwarder services.
 category: guides
-order: 6
+order: 7
 ---
 
 An email relay gives every signup its own **masked address** that forwards to

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -210,7 +211,7 @@ class SshAgentPacketSessionTest {
 
     private class FakePacketChannel(
         requests: List<ByteArray>,
-    ) : SshAgentPacketChannel {
+    ) : AgentPacketChannel {
         private val requests = ArrayDeque(requests)
 
         val responses = mutableListOf<ByteArray>()

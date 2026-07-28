@@ -18,7 +18,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Cloud
 import androidx.compose.material.icons.outlined.FileOpen
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material3.Button
@@ -58,6 +60,7 @@ import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.component.FlatSurfaceExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
+import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
@@ -254,6 +257,8 @@ fun LoginContent(
             .collectAsState()
         val keyFileState by loginState.keyFileState
             .collectAsState()
+        val databaseLocationState by loginState.databaseLocationState
+            .collectAsState()
         val passwordState by loginState.password
             .collectAsState()
         val tabsState by loginState.tabsState
@@ -292,6 +297,56 @@ fun LoginContent(
             type = SimpleNote.Type.WARNING,
             text = stringResource(Res.string.addkeepass_use_at_your_own_risk_beta_text),
         )
+        Spacer(Modifier.height(16.dp))
+
+        Text(
+            modifier = Modifier
+                .padding(horizontal = Dimens.textHorizontalPadding),
+            text = stringResource(Res.string.database_location_title),
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        Spacer(Modifier.height(8.dp))
+        FlowRow(
+            modifier = Modifier
+                .padding(horizontal = Dimens.buttonHorizontalPadding),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            databaseLocationState.items.forEach { item ->
+                val icon = when (item.type) {
+                    KeePassLoginState.DatabaseLocation.Type.Local -> Icons.Outlined.Folder
+                    KeePassLoginState.DatabaseLocation.Type.WebDav -> Icons.Outlined.Cloud
+                }
+                Button(
+                    shapes = ButtonDefaults.shapes(),
+                    colors = if (item.checked) {
+                        ButtonDefaults.filledTonalButtonColors()
+                    } else {
+                        ButtonDefaults.outlinedButtonColors()
+                    },
+                    border = if (item.checked) {
+                        null
+                    } else {
+                        ButtonDefaults.outlinedButtonBorder()
+                    },
+                    onClick = {
+                        item.onClick?.invoke()
+                    },
+                ) {
+                    IconBox(
+                        main = icon,
+                    )
+                    Spacer(
+                        modifier = Modifier
+                            .width(Dimens.buttonIconPadding),
+                    )
+                    Text(
+                        text = textResource(item.title),
+                    )
+                }
+            }
+        }
         Spacer(Modifier.height(16.dp))
 
         val allTabs = tabsState.items
@@ -369,8 +424,12 @@ fun LoginContent(
                 shapes = IconButtonDefaults.shapes(),
                 colors = IconButtonDefaults.outlinedIconButtonColors(),
             ) {
+                val icon = when (databaseLocationState.type) {
+                    KeePassLoginState.DatabaseLocation.Type.Local -> Icons.Outlined.FileOpen
+                    KeePassLoginState.DatabaseLocation.Type.WebDav -> Icons.Outlined.Cloud
+                }
                 IconBox(
-                    main = Icons.Outlined.FileOpen,
+                    main = icon,
                 )
             }
             Spacer(

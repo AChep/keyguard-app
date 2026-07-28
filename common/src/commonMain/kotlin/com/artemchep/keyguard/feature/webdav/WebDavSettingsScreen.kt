@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.UsernameVariation
 import com.artemchep.keyguard.common.model.icon
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
@@ -55,20 +55,27 @@ fun WebDavSettingsScreen(
         route = route,
         transmitter = transmitter,
     )
-    WebDavSettingsContent(state)
+    WebDavSettingsContent(
+        state = state,
+        purpose = route.args.purpose,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun WebDavSettingsContent(
     state: WebDavSettingsState,
+    purpose: WebDavSettingsRoute.Purpose,
 ) {
     val urlRequiredError =
         stringResource(Res.string.error_webdav_url_required)
+    val fileUrlRequiredError =
+        stringResource(Res.string.error_webdav_file_url_required)
     val passwordRequiresUsernameError =
         stringResource(Res.string.webdav_settings_password_requires_username_error)
     val urlError = when (state.error) {
         WebDavSettingsState.Error.UrlRequired -> urlRequiredError
+        WebDavSettingsState.Error.FileUrlRequired -> fileUrlRequiredError
         else -> null
     }
     val passwordError = when (state.error) {
@@ -76,6 +83,13 @@ private fun WebDavSettingsContent(
             passwordRequiresUsernameError
 
         else -> null
+    }
+
+    val probeText = when (purpose) {
+        WebDavSettingsRoute.Purpose.Collection ->
+            stringResource(Res.string.webdav_settings_test_text)
+        WebDavSettingsRoute.Purpose.KeePassDatabase ->
+            stringResource(Res.string.webdav_settings_test_text_read_only)
     }
 
     val scrollBehavior = ToolbarBehavior.behavior()
@@ -121,11 +135,13 @@ private fun WebDavSettingsContent(
         },
     ) {
         item("url") {
-            val url = TextFieldModel2(
-                state = state.url,
+            val url = TextFieldModel(
                 text = state.url.value,
                 error = urlError,
-                hint = stringResource(Res.string.webdav_settings_url_hint),
+                hint = when (purpose) {
+                    WebDavSettingsRoute.Purpose.Collection -> "https://example.com/keyguard-backups/"
+                    WebDavSettingsRoute.Purpose.KeePassDatabase -> "https://example.com/keyguard.kdbx"
+                },
                 onChange = state.url::value::set,
             )
             UrlFlatTextField(
@@ -150,8 +166,7 @@ private fun WebDavSettingsContent(
             )
         }
         item("auth.username") {
-            val username = TextFieldModel2(
-                state = state.username,
+            val username = TextFieldModel(
                 text = state.username.value,
                 onChange = state.username::value::set,
             )
@@ -177,8 +192,7 @@ private fun WebDavSettingsContent(
             )
         }
         item("auth.password") {
-            val password = TextFieldModel2(
-                state = state.password,
+            val password = TextFieldModel(
                 text = state.password.value,
                 error = passwordError,
                 onChange = state.password::value::set,
@@ -234,7 +248,7 @@ private fun WebDavSettingsContent(
                         horizontal = Dimens.textHorizontalPadding,
                         vertical = Dimens.verticalPaddingHalf,
                     ),
-                text = stringResource(Res.string.webdav_settings_test_text),
+                text = probeText,
                 color = LocalContentColor.current
                     .combineAlpha(MediumEmphasisAlpha),
                 style = MaterialTheme.typography.bodySmall,

@@ -1,5 +1,6 @@
 //! Socket module: platform-specific SSH agent socket serving.
 
+mod server;
 #[cfg(unix)]
 mod unix;
 #[cfg(windows)]

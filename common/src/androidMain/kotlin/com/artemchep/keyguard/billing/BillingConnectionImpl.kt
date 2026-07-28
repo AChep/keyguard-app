@@ -1,19 +1,15 @@
 package com.artemchep.keyguard.billing
 
-import android.app.Activity
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
-import com.android.billingclient.api.SkuDetails
-import com.android.billingclient.api.SkuDetailsParams
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -59,26 +55,26 @@ class BillingConnectionImpl(
     companion object {
         private const val TAG = "BillingConnection"
 
-        private const val TIMEOUT_LAUNCH_BILLING_FLOW = 1000L
+        private const val TIMEOUT_GET_CLIENT = 1000L
     }
 
     override fun productDetailsFlow(params: QueryProductDetailsParams): Flow<RichResult<List<ProductDetails>>> =
         mapClient { client ->
-            client.mapToSkuDetails(params)
+            client.mapToProductDetails(params)
         }
 
-    private suspend fun BillingClient.mapToSkuDetails(params: QueryProductDetailsParams) =
+    private suspend fun BillingClient.mapToProductDetails(params: QueryProductDetailsParams) =
         ioEffect(Dispatchers.IO) {
-            querySkuDetailsSuspending(params)
+            queryProductDetailsSuspending(params)
         }
             .flattenMap()
-            .flatMap { skuDetailsList ->
-                skuDetailsList
+            .flatMap { productDetailsList ->
+                productDetailsList
                     ?.takeUnless { it.isEmpty() }
                     ?.let { io(it) }
                     ?: kotlin.run {
                         val exception =
-                            IllegalArgumentException("Sku details list must not be null!")
+                            IllegalArgumentException("Product details list must not be null!")
                         ioRaise<List<ProductDetails>>(exception)
                     }
             }
@@ -114,24 +110,21 @@ class BillingConnectionImpl(
             }
         }
 
-    override fun launchBillingFlow(
-        activity: Activity,
-        billingFlowParams: BillingFlowParams,
-    ) {
-        coroutineScope.launch(Dispatchers.Main) {
-            val client = getClient(TIMEOUT_LAUNCH_BILLING_FLOW) ?: return@launch
-            client.launchBillingFlow(activity, billingFlowParams)
-        }
+    override fun requestPurchasesRefresh() {
+        notifyDataChanged()
     }
 
     override fun acknowledgePurchase(acknowledgePurchaseParams: AcknowledgePurchaseParams) {
         coroutineScope.launch(Dispatchers.IO) {
-            val client = getClient(TIMEOUT_LAUNCH_BILLING_FLOW) ?: return@launch
+            val client = getClient(TIMEOUT_GET_CLIENT) ?: return@launch
             client.acknowledgePurchase(
                 acknowledgePurchaseParams,
-            ) { result ->
-                // TODO: Do we want to verify the response?
-                notifyDataChanged()
+            ) { billingResult ->
+                if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                    notifyDataChanged()
+                } else {
+                    billingResult.recordIfPurchaseFailed()
+                }
             }
         }
     }
@@ -172,11 +165,11 @@ class BillingConnectionImpl(
             }
 }
 
-private suspend fun BillingClient.querySkuDetailsSuspending(params: QueryProductDetailsParams) =
+private suspend fun BillingClient.queryProductDetailsSuspending(params: QueryProductDetailsParams) =
     suspendCancellableCoroutine<Either<BillingResponseException, List<ProductDetails>?>> { continuation ->
-        queryProductDetailsAsync(params) { billingResult, skuDetailsList ->
+        queryProductDetailsAsync(params) { billingResult, productDetailsResult ->
             kotlin.runCatching {
-                val r = getBillingResultOrException(billingResult, skuDetailsList)
+                val r = getBillingResultOrException(billingResult, productDetailsResult)
                     .map { it.productDetailsList }
                 continuation.resume(r)
             }
@@ -194,7 +187,7 @@ private suspend fun BillingClient.queryPurchasesSuspending(params: QueryPurchase
     }
 
 private fun <T> getBillingResultOrException(billingResult: BillingResult, model: T) =
-    when (val code = billingResult.responseCode) {
+    when (billingResult.responseCode) {
         BillingClient.BillingResponseCode.OK -> model.right()
-        else -> BillingResponseException(code).left()
+        else -> BillingResponseException(billingResult).left()
     }

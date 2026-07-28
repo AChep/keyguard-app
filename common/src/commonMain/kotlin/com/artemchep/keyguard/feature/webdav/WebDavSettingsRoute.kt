@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.webdav
 
 import androidx.compose.runtime.Composable
+import com.artemchep.keyguard.common.model.WebDavLocation
 import com.artemchep.keyguard.feature.navigation.RouteForResult
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 
@@ -11,7 +12,13 @@ data class WebDavSettingsRoute(
         val url: String = "",
         val username: String = "",
         val password: String = "",
+        val purpose: Purpose = Purpose.Collection,
     )
+
+    enum class Purpose {
+        Collection,
+        KeePassDatabase,
+    }
 
     @Composable
     override fun Content(
@@ -25,7 +32,9 @@ data class WebDavSettingsRoute(
 }
 
 data class WebDavSettingsResult(
-    val url: String,
-    val username: String?,
-    val password: String?,
-)
+    val location: WebDavLocation,
+) {
+    val url: String get() = location.url
+    val username: String? get() = location.credentials?.username
+    val password: String? get() = location.credentials?.password?.value
+}

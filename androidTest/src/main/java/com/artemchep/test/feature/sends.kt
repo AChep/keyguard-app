@@ -1,15 +1,29 @@
 package com.artemchep.test.feature
 
-import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiAutomatorTestScope
 
 @JvmInline
 value class FeatureSends(
-    val device: UiDevice,
+    val scope: UiAutomatorTestScope,
 )
 
-val UiDevice.sendsFeature get() = FeatureSends(this)
+val UiAutomatorTestScope.sendsFeature get() = FeatureSends(this)
 
-fun FeatureSends.ensureSendsScreen() =
-    device.coreFeature.launchScreen(
-        actionButtonResource = "nav_bar:sends",
-    )
+// Launches the sends screen if the sends tab
+// is enabled.
+fun FeatureSends.trySendsScreen() = kotlin.run {
+    val actionButtonResource = "nav_bar:sends"
+    val actionButton = scope.onElementOrNull(timeoutMs = 5_000L) {
+        viewIdResourceName == actionButtonResource && isEnabled && isClickable
+    }
+    if (actionButton == null) {
+        return@run false
+    }
+
+    actionButton.click()
+    scope.onElement(timeoutMs = 10_000L) {
+        viewIdResourceName == actionButtonResource && isSelected
+    }
+    scope.waitForDestinationScreenToStabilize()
+    return@run true
+}

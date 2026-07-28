@@ -1,3 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase.util
 
-expect fun pbk(privateKey: ByteArray): ByteArray
+import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
+
+fun pbk(privateKey: ByteArray): ByteArray =
+    NativeCryptoPrimitives.rsaPublicKeySpkiFromPkcs8(privateKey)

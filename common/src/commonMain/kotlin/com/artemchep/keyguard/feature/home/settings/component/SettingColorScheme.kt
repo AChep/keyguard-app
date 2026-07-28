@@ -54,6 +54,7 @@ fun settingColorSchemeProvider(
             val actionSelected = theme == themeVariant
             val actionTitle = getAppThemeTitle(themeVariant, context)
             FlatItemAction(
+                id = "settings.colorScheme.${themeVariant?.name ?: "system"}",
                 title = TextHolder.Value(actionTitle),
                 selected = actionSelected,
                 onClick = {

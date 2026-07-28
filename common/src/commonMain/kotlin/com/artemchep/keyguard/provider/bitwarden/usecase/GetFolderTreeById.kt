@@ -41,8 +41,11 @@ class GetFolderTreeByIdImpl(
 
             val tree = getFolderTree.invoke(
                 lens = { it.name },
-                folders,
-                target,
+                allFolders = folders,
+                folder = target,
+                id = { it.id },
+                parentId = { it.parentId },
+                hierarchyMode = target.hierarchyMode,
             )
             DFolderTree(
                 folder = target,

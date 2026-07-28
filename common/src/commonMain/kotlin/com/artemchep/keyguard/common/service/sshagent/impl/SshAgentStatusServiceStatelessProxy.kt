@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.service.sshagent.impl
 
-import com.artemchep.keyguard.common.model.SshAgentStatus
+import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import kotlinx.coroutines.flow.Flow
@@ -15,14 +15,14 @@ class SshAgentStatusServiceStatelessProxy(
         getSshAgent = directDI.instance(),
     )
 
-    override fun getStatus(): Flow<SshAgentStatus> = getSshAgent()
+    override fun getStatus(): Flow<AgentStatus> = getSshAgent()
         .map { enabled ->
             if (enabled) {
-                SshAgentStatus.Ready
-            } else SshAgentStatus.Stopped
+                AgentStatus.Ready
+            } else AgentStatus.Stopped
         }
 
-    override fun set(status: SshAgentStatus) {
+    override fun set(status: AgentStatus) {
         // Do nothing
     }
 }

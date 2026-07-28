@@ -125,13 +125,6 @@ fun SettingListItem(
                             style = MaterialTheme.typography.titleMedium,
                         )
                     },
-                    text = {
-                        Text(
-                            text = textResource(item.text),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
                 )
             },
             footer = item.footer,

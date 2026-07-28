@@ -8,20 +8,32 @@ import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.Selection
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 
 /**
  * @author Artem Chepurnyi
  */
 @Immutable
 data class FoldersState(
+    val title: String? = null,
+    val text: String? = null,
     val selection: Selection? = null,
     val content: Loadable<Content> = Loadable.Loading,
+    val onRename: (() -> Unit)? = null,
+    val actions: ImmutableList<ContextItem> = persistentListOf(),
     val onAdd: (() -> Unit)? = null,
 ) {
     @Immutable
     data class Content(
         val items: ImmutableList<Item>,
+        val ciphers: Ciphers? = null,
+        val missing: Boolean = false,
     ) {
+        @Immutable
+        data class Ciphers(
+            val count: Int,
+            val onClick: () -> Unit,
+        )
 
         @Immutable
         sealed interface Item {
@@ -40,10 +52,12 @@ data class FoldersState(
                 val shapeState: Int = ShapeState.ALL,
                 val text: String? = null,
                 val ciphers: Int,
+                val folders: Int,
                 val selecting: Boolean,
                 val selected: Boolean,
                 val synced: Boolean,
                 val failed: Boolean,
+                val hasChildren: Boolean = false,
                 val icon: ImageVector? = null,
                 val onViewItemsClick: (() -> Unit)? = null,
                 val actions: ImmutableList<ContextItem>,

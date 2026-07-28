@@ -454,9 +454,7 @@ private fun ColumnScope.ExportContentOk(
             AutofillButton(
                 key = "password",
                 password = true,
-                onValueChange = {
-                    password.model.onChange?.invoke(it)
-                },
+                onValueChange = password.model.onSetText,
             )
         },
     )

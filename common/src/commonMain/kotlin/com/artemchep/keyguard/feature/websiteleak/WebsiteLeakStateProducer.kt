@@ -8,10 +8,13 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.hibp.breaches.all.BreachesRepository
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetBreaches
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atTime
@@ -41,6 +44,18 @@ fun produceWebsiteLeakState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    websiteLeakStateProducer(
+        args = args,
+        getBreaches = getBreaches,
+        dateFormatter = dateFormatter,
+    ).map { state -> Loadable.Ok(state) }
+}
+
+suspend fun RememberStateFlowScope.websiteLeakStateProducer(
+    args: WebsiteLeakRoute.Args,
+    getBreaches: GetBreaches,
+    dateFormatter: DateFormatter,
+): Flow<WebsiteLeakState> {
     val breaches2 = getBreaches(false)
         .attempt()
         .bind()
@@ -84,5 +99,5 @@ fun produceWebsiteLeakState(
             navigatePopSelf()
         },
     )
-    flowOf(Loadable.Ok(state))
+    return flowOf(state)
 }

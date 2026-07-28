@@ -12,6 +12,13 @@ RELEASE_URL = f"{HOST}/{REPO}/releases/latest"
 
 MAX_ARTIFACTS_COUNT = 5
 
+# The phone .apk is published under a versioned name, and -- for now -- also
+# under its raw gradle name. Prefer the versioned one so the raw name can be
+# retired without touching this script again; the raw name stays as a fallback
+# so older releases keep working.
+APK_RE = re.compile(r"/Keyguard-Mobile-[^/]*\.apk$")
+APK_LEGACY_SUFFIX = "/androidApp-none-release.apk"
+
 
 def get_latest_release_tag():
     response = requests.get(RELEASE_URL)
@@ -61,11 +68,23 @@ assets_soup = BeautifulSoup(
 assets_urls = [el['href'] for el in assets_soup.select('a[href]')]
 assets_apk_url = next(
     filter(
-        lambda url: url.endswith('/androidApp-none-release.apk'),
+        lambda url: APK_RE.search(url),
         assets_urls
     ),
     None
 )
+if assets_apk_url:
+    print(f"Found a versioned .apk asset: {assets_apk_url}")
+else:
+    assets_apk_url = next(
+        filter(
+            lambda url: url.endswith(APK_LEGACY_SUFFIX),
+            assets_urls
+        ),
+        None
+    )
+    if assets_apk_url:
+        print(f"Falling back to the legacy .apk asset: {assets_apk_url}")
 if not assets_apk_url:
     raise Exception("Failed to find a url to the latest .apk file!")
 assets_apk_url = f"{HOST}{assets_apk_url}"

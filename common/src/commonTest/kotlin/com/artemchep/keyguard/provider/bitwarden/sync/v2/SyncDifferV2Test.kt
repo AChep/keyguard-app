@@ -7,7 +7,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.LocalItemMeta
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.ServerItemMeta
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncAction
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncDiffer
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.strategy.CipherSyncStrategy
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.CipherSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import kotlin.test.Test
 import kotlin.test.assertEquals

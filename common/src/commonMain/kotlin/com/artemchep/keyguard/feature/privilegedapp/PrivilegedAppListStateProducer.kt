@@ -104,8 +104,10 @@ fun producePrivilegedAppListState(
         val dropdown = buildContextItems {
             section {
                 if (canEdit) this += FlatItemAction(
+                    id = "privilegedApp.${app.id}.delete",
                     icon = Icons.Outlined.Delete,
                     title = Res.string.delete.wrap(),
+                    danger = true,
                     onClick = onClick {
                         onDeleteByItems(
                             items = listOf(app),
@@ -201,8 +203,10 @@ fun producePrivilegedAppListState(
             val actions = buildContextItems {
                 section {
                     if (canEdit) this += FlatItemAction(
+                        id = "privilegedApp.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteByItems(
                                 items = selectedItems,

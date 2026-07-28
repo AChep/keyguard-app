@@ -31,6 +31,20 @@ interface DownloadInfoDao {
         attachmentId: String,
     ): DownloadInfoEntity?
 
+    @Query(
+        """
+            SELECT * FROM DownloadInfoEntity WHERE
+                localCipherId = :localCipherId AND
+                remoteCipherId = :remoteCipherId AND 
+                attachmentId = :attachmentId
+                """,
+    )
+    fun getByTagFlow(
+        localCipherId: String,
+        remoteCipherId: String?,
+        attachmentId: String,
+    ): Flow<List<DownloadInfoEntity>>
+
     @Query("SELECT * FROM DownloadInfoEntity")
     fun getAll(): Flow<List<DownloadInfoEntity>>
 

@@ -46,12 +46,22 @@ internal data class DocumentBuildResult(
 
 internal data class CachedDocumentState(
     val fingerprint: Int,
+    val dataRevCounter: Long?,
     val buildResult: DocumentBuildResult,
 )
 
 internal data class CachedCorpusState(
     val nextDocId: Int = 0,
     val documentsBySourceId: Map<String, CachedDocumentState> = emptyMap(),
+    val corpus: SearchCorpus? = null,
+)
+
+internal data class SearchCorpus(
+    val documents: Map<Int, VaultSearchDocument>,
+    val docIdsBySourceId: Map<String, Int>,
+    val postings: Map<VaultTextField, Map<String, List<SearchPosting>>>,
+    val fieldStats: Map<VaultTextField, SearchFieldStats>,
+    val exactFacets: ExactFacetIndex,
 )
 
 internal data class ClauseMatch(

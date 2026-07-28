@@ -1,8 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline
 
-import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.BitwardenSyncV2Diagnostics
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.SyncDiagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.ActionFailure
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntitySyncPlan
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.LocalItemMeta
@@ -67,7 +66,7 @@ class EntitySyncExecutor<Local : BitwardenService.Has<Local>, Server : Any>(
     private val ops: EntitySyncOps<Local, Server>,
     private val bulkRemoteOps: BulkRemoteOps<Local>? = null,
     private val entityName: String = "unknown",
-    private val diagnostics: BitwardenSyncV2Diagnostics = BitwardenSyncV2Diagnostics.NoOp,
+    private val diagnostics: SyncDiagnostics = SyncDiagnostics.NoOp,
 ) {
     companion object {
         /** Chunk size for local database batch writes. */

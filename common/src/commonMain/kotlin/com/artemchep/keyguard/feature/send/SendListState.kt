@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateOf
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSend
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.send.search.SendSortItem
@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.emptyFlow
 @optics
 data class SendListState(
     val revision: Int = 0,
-    val query: TextFieldModel2 = TextFieldModel2(mutableStateOf("")),
+    val query: TextFieldModel = TextFieldModel(text = ""),
     val filters: List<SendFilterItem> = emptyList(),
     val sort: List<SendSortItem> = emptyList(),
     val saveFilters: (() -> Unit)? = null,

@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.compose)
     alias(libs.plugins.kotlin.plugin.compose)
-    alias(libs.plugins.ktlint)
 }
 
 kotlin {
@@ -29,10 +28,6 @@ kotlin {
                 implementation(libs.jetbrains.compose.runtime)
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material3)
-                implementation(libs.jetbrains.compose.components.resources)
-                implementation(libs.kodein.kodein.di.framework.compose)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.kotlinx.serialization.json)
             }
         }
 
@@ -50,8 +45,4 @@ kotlin {
     }
 
     jvmToolchain(libs.versions.jdk.get().toInt())
-}
-
-kotlin.compilerOptions {
-    freeCompilerArgs.add("-Xcontext-parameters")
 }

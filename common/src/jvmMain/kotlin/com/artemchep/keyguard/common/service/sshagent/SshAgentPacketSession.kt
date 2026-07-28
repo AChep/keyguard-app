@@ -1,35 +1,37 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
+import com.artemchep.keyguard.common.service.agent.runAgentPacketSession
+
 internal suspend fun runSshAgentPacketSession(
-    channel: SshAgentPacketChannel,
+    channel: AgentPacketChannel,
     rpcHandler: SshAgentRpcHandler,
     initialContext: SshAgentRpcRequestContext,
     codec: SshAgentProtoCodec = SshAgentProtoCodec,
     onRequest: suspend (SshAgentMessages.IpcRequest, ByteArray) -> Unit = { _, _ -> },
     onResponse: suspend (SshAgentMessages.IpcResponse, ByteArray) -> Unit = { _, _ -> },
+    readPacket: suspend (AgentPacketChannel) -> ByteArray? = { it.readPacket() },
+    writePacket: suspend (AgentPacketChannel, ByteArray) -> Unit = { channel, packet ->
+        channel.writePacket(packet)
+    },
 ) {
-    var authenticated = initialContext.authenticated
-
-    while (true) {
-        val requestPacket = channel.readPacket()
-            ?: break
-        val request = codec.decodeRequest(requestPacket)
-        onRequest(request, requestPacket)
-
-        val response = rpcHandler.processRequest(
-            request = request,
-            context = initialContext.copy(authenticated = authenticated),
-        )
-        val responsePacket = codec.encodeResponse(response)
-        onResponse(response, responsePacket)
-        channel.writePacket(responsePacket)
-
-        if (initialContext.allowAuthenticate && request.authenticate != null) {
-            if (response.authenticate?.success == true) {
-                authenticated = true
-            } else {
-                break
-            }
-        }
-    }
+    runAgentPacketSession(
+        channel = channel,
+        initialAuthenticated = initialContext.authenticated,
+        allowAuthenticate = initialContext.allowAuthenticate,
+        decodeRequest = codec::decodeRequest,
+        encodeResponse = codec::encodeResponse,
+        isAuthenticateRequest = { it.authenticate != null },
+        isAuthenticateSuccess = { it.authenticate?.success == true },
+        handleRequest = { request, authenticated ->
+            rpcHandler.processRequest(
+                request = request,
+                context = initialContext.copy(authenticated = authenticated),
+            )
+        },
+        onRequest = onRequest,
+        onResponse = onResponse,
+        readPacket = readPacket,
+        writePacket = writePacket,
+    )
 }

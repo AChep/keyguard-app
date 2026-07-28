@@ -60,7 +60,8 @@ class CipherBreachCheckImpl(
             .toLocalDateTime(TimeZone.UTC)
             .date
 
-        val validBreaches = breaches.breaches
+        val anyValidBreaches = breaches.breaches
+            .asSequence()
             .filter { breach ->
                 val bd = breach.breachDate
                     ?: breach.addedDate
@@ -76,17 +77,16 @@ class CipherBreachCheckImpl(
                         dataClass in sensitiveDataClass
                     }
             }
-            .filter { breach ->
+            .any { breach ->
                 val domain = breach.domain
                     ?.takeIf { it.isNotBlank() }
-                    ?: return@filter false
+                    ?: return@any false
                 cipher.uris.any { uri ->
                     cipherUrlCheck(uri, domain, defaultMatchDetection, equivalentDomains)
                         .bind()
                 }
             }
-        validBreaches
-            .isNotEmpty()
+        anyValidBreaches
     }
 
 }

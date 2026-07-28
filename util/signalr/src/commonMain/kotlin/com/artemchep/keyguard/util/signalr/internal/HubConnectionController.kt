@@ -7,6 +7,7 @@ import com.artemchep.keyguard.util.signalr.logger.Logger
 import com.artemchep.keyguard.util.signalr.internal.util.EstablishedConnection
 import com.artemchep.keyguard.util.signalr.internal.util.connect
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
@@ -15,6 +16,8 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -27,6 +30,7 @@ internal suspend fun runHubConnectionController(
     scope: CoroutineScope,
     events: SendChannel<HubConnectionEvent>,
     options: HubConnectionOptions,
+    connectConnection: suspend (HubConnectionOptions) -> EstablishedConnection = ::connect,
 ) {
     val commands = Channel<HubConnectionCommand>(COMMAND_BUFFER_CAPACITY)
     var lifecycle: Lifecycle = Lifecycle.Disconnected
@@ -106,31 +110,42 @@ internal suspend fun runHubConnectionController(
         val connectJob = scope.launch(start = CoroutineStart.LAZY) {
             var connection: EstablishedConnection? = null
             try {
-                connection = connect(options)
+                connection = connectConnection(options)
+                val ownershipAccepted = CompletableDeferred<Boolean>()
                 val delivered = commands.sendCommand(
                     HubConnectionCommand.ConnectSucceeded(
                         sessionId = sessionId,
                         connection = connection,
+                        ownershipAccepted = ownershipAccepted,
                     ),
                 )
                 if (!delivered) {
-                    connection.transport.stop()
+                    return@launch
                 }
-                connection = null
-            } catch (ex: CancellationException) {
-                withContext(NonCancellable) {
-                    runCatching {
-                        connection?.transport?.stop()
-                    }
+                if (ownershipAccepted.await()) {
+                    connection = null
                 }
-                throw ex
             } catch (ex: Throwable) {
+                val reason = if (ex is CancellationException) {
+                    currentCoroutineContext().ensureActive()
+                    HubConnectionCloseReason.TransportClosed
+                } else {
+                    HubConnectionCloseReason.Failed(ex)
+                }
                 commands.sendCommand(
                     HubConnectionCommand.ConnectFailed(
                         sessionId = sessionId,
-                        cause = ex,
+                        reason = reason,
                     ),
                 )
+            } finally {
+                withContext(NonCancellable) {
+                    runCatching {
+                        withTimeoutOrNull(options.closeTimeout) {
+                            connection?.transport?.stop()
+                        }
+                    }
+                }
             }
         }
 
@@ -162,35 +177,41 @@ internal suspend fun runHubConnectionController(
         command: HubConnectionCommand.ConnectSucceeded,
     ) {
         val connection = command.connection
-        if (!isCurrentConnectAttempt(command.sessionId)) {
-            connection.transport.stop()
-            return
-        }
+        try {
+            if (!isCurrentConnectAttempt(command.sessionId)) {
+                return
+            }
 
-        val sessionJob = scope.launchHubSession(
-            id = command.sessionId,
-            transport = connection.transport,
-            protocol = options.protocol,
-            keepAliveInterval = options.keepAliveInterval,
-            serverTimeout = options.serverTimeout,
-            logger = options.logger,
-            initialPayload = connection.initialPayload,
-            events = commands,
-            start = CoroutineStart.LAZY,
-        )
-        lifecycle = Lifecycle.Connected(
-            sessionId = command.sessionId,
-            transport = connection.transport,
-            connectionId = connection.connectionId,
-            sessionJob = sessionJob,
-        )
-        emitEvent(
-            HubConnectionEvent.StateChanged(
-                state = HubConnectionState.CONNECTED,
+            val sessionJob = scope.launchHubSession(
+                id = command.sessionId,
+                transport = connection.transport,
+                protocol = options.protocol,
+                keepAliveInterval = options.keepAliveInterval,
+                serverTimeout = options.serverTimeout,
+                logger = options.logger,
+                initialPayload = connection.initialPayload,
+                events = commands,
+                start = CoroutineStart.LAZY,
+            )
+            lifecycle = Lifecycle.Connected(
+                sessionId = command.sessionId,
+                transport = connection.transport,
                 connectionId = connection.connectionId,
-            ),
-        )
-        sessionJob.start()
+                sessionJob = sessionJob,
+            )
+            command.ownershipAccepted.complete(true)
+            emitEvent(
+                HubConnectionEvent.StateChanged(
+                    state = HubConnectionState.CONNECTED,
+                    connectionId = connection.connectionId,
+                ),
+            )
+            sessionJob.start()
+        } finally {
+            // A no-op when ownership was accepted above: only the first
+            // complete() call wins on a CompletableDeferred.
+            command.ownershipAccepted.complete(false)
+        }
     }
 
     suspend fun handleConnectFailed(
@@ -201,7 +222,7 @@ internal suspend fun runHubConnectionController(
         }
 
         stopInternal(
-            reason = HubConnectionCloseReason.Failed(command.cause),
+            reason = command.reason,
         )
         return CommandLoopResult.Stop
     }

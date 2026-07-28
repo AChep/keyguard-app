@@ -572,6 +572,10 @@ fun ColumnScope.GeneratorType(
     var isContentDropdownExpanded by remember { mutableStateOf(false) }
 
     val type by state.typeState.collectAsState()
+    if (!type.showPicker) {
+        return
+    }
+
     Row(
         modifier = Modifier
             .padding(horizontal = Dimens.contentPadding),
@@ -722,9 +726,11 @@ fun ColumnScope.GeneratorValue(
                     )
                 },
                 trailing = {
-                    val fingerprint = value.source
-                        .let { it as? GetPasswordResult.AsyncKey }
-                        ?.keyPair?.publicKey?.fingerprint
+                    val fingerprint = when (val source = value.source) {
+                        is GetPasswordResult.AsyncKey -> source.keyPair.publicKey.fingerprint
+                        is GetPasswordResult.AsyncGpgKey -> source.gpgKey.fingerprint
+                        else -> null
+                    }
                     if (fingerprint != null) {
                         Box(
                             modifier = Modifier

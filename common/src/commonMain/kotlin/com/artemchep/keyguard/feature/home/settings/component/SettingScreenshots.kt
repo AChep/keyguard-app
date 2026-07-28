@@ -66,6 +66,7 @@ fun settingScreenshotsProvider(
             val actionSelected = allowScreenshots == variant
             val actionTitle = getAllowScreenshotsTitle(variant, context)
             FlatItemAction(
+                id = "settings.screenshots.${variant.name}",
                 title = TextHolder.Value(actionTitle),
                 selected = actionSelected,
                 onClick = {

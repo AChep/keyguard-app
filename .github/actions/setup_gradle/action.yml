@@ -21,6 +21,10 @@ runs:
     - name: "Setup JDK"
       id: setup-java
       uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654
+      # JetBrains Runtime lookup reads this env var for GitHub API auth;
+      # otherwise hosted runners share the anonymous IP rate limit.
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
       with:
         distribution: ${{ inputs.java-distribution }}
         java-version: ${{ inputs.java-version }}

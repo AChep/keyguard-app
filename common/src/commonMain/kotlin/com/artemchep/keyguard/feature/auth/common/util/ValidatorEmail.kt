@@ -44,20 +44,24 @@ suspend fun ValidationEmail.format(scope: TranslatorScope): String? =
         else -> null
     }
 
+suspend fun TranslatorScope.validatedEmail(rawEmail: String): Validated<String> {
+    val email = rawEmail
+        .trim()
+    val emailError = validateEmail(email)
+        .format(this)
+    return if (emailError != null) {
+        Validated.Failure(
+            model = email,
+            error = emailError,
+        )
+    } else {
+        Validated.Success(
+            model = email,
+        )
+    }
+}
+
 fun Flow<String>.validatedEmail(scope: TranslatorScope) = this
     .map { rawEmail ->
-        val email = rawEmail
-            .trim()
-        val emailError = validateEmail(email)
-            .format(scope)
-        if (emailError != null) {
-            Validated.Failure(
-                model = email,
-                error = emailError,
-            )
-        } else {
-            Validated.Success(
-                model = email,
-            )
-        }
+        scope.validatedEmail(rawEmail)
     }

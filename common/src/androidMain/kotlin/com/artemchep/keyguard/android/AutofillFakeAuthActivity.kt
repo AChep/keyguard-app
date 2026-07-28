@@ -134,7 +134,8 @@ class AutofillFakeAuthActivity : AppCompatActivity(), DIAware {
                 args?.cipherTotpRaw
                     .toOption()
                     .toEither {
-                        NullPointerException()
+                        val msg = "TOTP URI is missing from the autofill arguments."
+                        NullPointerException(msg)
                     }
                     .flatMap { url ->
                         TotpToken.parse(url)

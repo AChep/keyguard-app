@@ -10,7 +10,8 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
@@ -120,13 +121,12 @@ fun folderConfirmationState(
         windowCoroutineScope,
     ),
 ) {
-    val folderNameSink = mutablePersistedFlow("folder_name") {
-        ""
-    }
-    val folderNameState = mutableComposeState(folderNameSink)
-    val folderValidatedFlow = folderNameSink
-        .validatedTitle(this)
+    val folderNameHandle = textFieldHandle("folder_name")
+    val folderPairFlow = folderNameHandle.sink
+        .map { cell -> cell to validatedTitle(cell.text) }
         .shareInScreenScope()
+    val folderValidatedFlow = folderPairFlow
+        .map { it.second }
 
     val foldersFlow = getFolders()
         .map { folders ->
@@ -245,14 +245,15 @@ fun folderConfirmationState(
         selectionFlow
             .map { it.folderType }
             .distinctUntilChanged(),
-        folderValidatedFlow,
-    ) { folderType, folderNameValidated ->
+        folderPairFlow,
+    ) { folderType, (folderNameCell, folderNameValidated) ->
         when (folderType) {
-            FolderInfoType.New -> TextFieldModel2(
-                state = folderNameState,
-                text = folderNameValidated.model,
+            FolderInfoType.New -> TextFieldModel(
+                text = folderNameCell.text,
+                textRevision = folderNameCell.revision,
                 error = (folderNameValidated as? Validated.Failure)?.error,
-                onChange = folderNameState::value::set,
+                onChange = folderNameHandle::onChange,
+                onSetText = folderNameHandle::setText,
             )
 
             else -> null

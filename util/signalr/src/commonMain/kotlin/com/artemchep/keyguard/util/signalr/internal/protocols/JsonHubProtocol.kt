@@ -36,7 +36,7 @@ internal class JsonHubProtocol(
             return emptyList()
         }
         if (payloadString.last() != RECORD_SEPARATOR) {
-            throw RuntimeException("HubMessage is incomplete.")
+            throw IllegalArgumentException("HubMessage is incomplete.")
         }
 
         return payloadString

@@ -202,7 +202,7 @@ fun ColumnScope.SetupContent(
             AutofillButton(
                 key = "password",
                 password = true,
-                onValueChange = setupState.password.onChange,
+                onValueChange = setupState.password.onSetText,
             )
         },
     )

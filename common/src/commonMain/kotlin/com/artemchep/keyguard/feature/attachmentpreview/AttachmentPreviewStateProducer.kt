@@ -7,7 +7,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.AttachmentPreviewException
@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.theme.isDark
 import dev.snipme.highlights.Highlights
@@ -30,6 +31,7 @@ import dev.snipme.highlights.model.BoldHighlight
 import dev.snipme.highlights.model.ColorHighlight
 import dev.snipme.highlights.model.SyntaxLanguage
 import dev.snipme.highlights.model.SyntaxThemes
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -66,6 +68,20 @@ fun produceAttachmentPreviewState(
         downloadManager,
     ),
 ) {
+    attachmentPreviewStateProducer(
+        args = args,
+        canPreviewAttachment = canPreviewAttachment,
+        getAttachmentPreview = getAttachmentPreview,
+        downloadManager = downloadManager,
+    )
+}
+
+suspend fun RememberStateFlowScope.attachmentPreviewStateProducer(
+    args: AttachmentPreviewRoute.Args,
+    canPreviewAttachment: CanPreviewAttachment,
+    getAttachmentPreview: GetAttachmentPreview,
+    downloadManager: DownloadManager,
+): Flow<Loadable<AttachmentPreviewState>> {
     val producerScope = this
     val copyText = copier()
     val state = createAttachmentPreviewState(
@@ -76,7 +92,7 @@ fun produceAttachmentPreviewState(
         copyText = copyText,
     )
     val content = state.content as? AttachmentPreviewContent.TextLike
-    if (content?.code?.canSyntaxHighlight() != true) {
+    return if (content?.code?.canSyntaxHighlight() != true) {
         flowOf(Loadable.Ok(state))
     } else {
         flow {
@@ -156,7 +172,7 @@ internal suspend fun cachedAttachmentPreviewLocalUrl(
     args: AttachmentPreviewRoute.Args,
     downloadManager: DownloadManager,
 ): String? {
-    val tag = DownloadInfoEntity2.AttachmentDownloadTag(
+    val tag = DownloadInfoEntity.AttachmentDownloadTag(
         localCipherId = args.localCipherId,
         remoteCipherId = args.remoteCipherId,
         attachmentId = args.attachmentId,

@@ -42,6 +42,7 @@ class CipherFilterRepositoryImpl(
         private const val TYPE_IDENTITY = "identity"
         private const val TYPE_NOTE = "note"
         private const val TYPE_SSH_KEY = "sshKey"
+        private const val TYPE_GPG_KEY = "gpgKey"
         private const val TYPE_OTP = "otp"
 
         private const val DELETE_BY_IDS_CHUNK_SIZE = 900
@@ -122,6 +123,15 @@ class CipherFilterRepositoryImpl(
             state = mapOf(
                 FilterSection.TYPE.id to setOf(
                     DFilter.ByType(DSecret.Type.SshKey),
+                ),
+            ),
+        ),
+        TYPE_GPG_KEY to BaseFilterEntityMapper(
+            icon = DSecret.Type.GpgKey.iconImageVector(),
+            name = Res.string.cipher_type_gpg_key,
+            state = mapOf(
+                FilterSection.TYPE.id to setOf(
+                    DFilter.ByType(DSecret.Type.GpgKey),
                 ),
             ),
         ),

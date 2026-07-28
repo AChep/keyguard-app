@@ -25,6 +25,10 @@ dependencyResolutionManagement {
 rootProject.name = "keyguard"
 
 include ':common'
+include ':detektRules'
+include ':util:crypto'
+include ':util:foundation'
+include ':util:kdbx'
 include ':util:messagepack'
 include ':util:planeta'
 include ':util:signalr'
@@ -40,7 +44,11 @@ include ':desktopApp'
 include ':desktopLibJvm'
 include ':desktopLibNative'
 include ':desktopSshAgent'
+include ':desktopGpgAgent'
 include ':integration:wearCredentialProviderApp'
 include ':integration:webdavE2eTest'
+include ':integration:gpgE2eTest'
+include ':integration:sshE2eTest'
+include ':integration:kdbxE2eTest'
 
 project(':integration:wearCredentialProviderApp').projectDir = file('integration/wearCredentialProviderApp')

@@ -65,6 +65,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.PlainTextField
+import com.artemchep.keyguard.ui.rememberFieldBuffer
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -76,6 +77,12 @@ import org.jetbrains.compose.resources.pluralStringResource
 fun SearchTextField(
     modifier: Modifier = Modifier,
     text: String,
+    // When provided, the field adopts a remote text only when the revision
+    // changes (a programmatic write); same-revision changes are echoes of
+    // the user's own edits and never touch the buffer. When null, falls
+    // back to adopting any text that differs from the last propagated one,
+    // which is only safe if the echo is synchronous.
+    textRevision: Int? = null,
     placeholder: String,
     searchIcon: Boolean = true,
     focusRequester: FocusRequester2,
@@ -107,18 +114,12 @@ fun SearchTextField(
             focusRequester.requestFocus(showKeyboard = true)
         }
     }
-    var fieldValue by remember {
-        mutableStateOf(text.toTextFieldValue())
-    }
-    var lastPropagatedText by remember {
-        mutableStateOf(text)
-    }
-    LaunchedEffect(text) {
-        if (text != lastPropagatedText) {
-            fieldValue = text.toTextFieldValue()
-            lastPropagatedText = text
-        }
-    }
+    var fieldValue by rememberFieldBuffer(
+        text = text,
+        // No revision means there is no programmatic-write channel; the
+        // buffer then only seeds from the initial text.
+        textRevision = textRevision ?: -1,
+    )
 
     val isEmptyState = rememberUpdatedState(fieldValue.text.isEmpty())
     val isFocusedState = interactionSource.collectIsFocusedAsState()
@@ -127,7 +128,6 @@ fun SearchTextField(
 
     fun updateFieldValue(nextFieldValue: TextFieldValue) {
         fieldValue = nextFieldValue
-        lastPropagatedText = nextFieldValue.text
         updatedOnChange?.invoke(nextFieldValue.text)
     }
 

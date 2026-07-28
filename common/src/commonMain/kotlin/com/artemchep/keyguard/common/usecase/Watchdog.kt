@@ -8,13 +8,11 @@ import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 
@@ -62,26 +60,11 @@ class WatchdogImpl(
         accountTask: AccountTask,
         io: IO<T>,
     ): IO<T> = ioEffect {
-        val ids = accountIdSet
-            .joinToString { it.id }
-        logRepository.add(
-            tag = TAG,
-            message = "Adding '$accountTask' marker to accounts: $ids",
-        )
         try {
             updateState(accountIdSet, accountTask, Int::inc)
             io.bind()
         } finally {
-            try {
-                withContext(NonCancellable) {
-                    logRepository.add(
-                        tag = TAG,
-                        message = "Removing '$accountTask' marker from accounts: $ids",
-                    )
-                }
-            } finally {
-                updateState(accountIdSet, accountTask, Int::dec)
-            }
+            updateState(accountIdSet, accountTask, Int::dec)
         }
     }
 

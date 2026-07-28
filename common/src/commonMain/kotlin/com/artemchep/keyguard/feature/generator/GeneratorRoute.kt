@@ -2,15 +2,27 @@ package com.artemchep.keyguard.feature.generator
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 
 data class GeneratorRoute(
     val args: Args = Args(),
 ) : Route {
+    override val descriptor
+        get() = RouteDescriptor.Generator(
+            uris = args.context.uris.toList(),
+            username = args.username,
+            password = args.password,
+            sshKey = args.sshKey,
+            gpgKey = args.gpgKey,
+            storageKey = args.storageKey,
+        )
+
     data class Args(
         val context: Context = Context(),
         val username: Boolean = false,
         val password: Boolean = false,
         val sshKey: Boolean = false,
+        val gpgKey: Boolean = false,
         /**
          * If specified, adds a prefix to all the persisted fields
          * such as the email, configs etc.

@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
     <!-- https://developer.android.com/guide/topics/data/autobackup#xml-syntax-android-11 -->
-    <!-- do no backup anything -->
+    <!--
+      Do not back up or transfer
+      any app-owned data on Android 11 and lower.
+    -->
+    <exclude domain="root" path="." />
+    <exclude domain="file" path="." />
+    <exclude domain="database" path="." />
+    <exclude domain="sharedpref" path="." />
+    <exclude domain="external" path="." />
+    <exclude domain="device_root" path="." />
+    <exclude domain="device_file" path="." />
+    <exclude domain="device_database" path="." />
+    <exclude domain="device_sharedpref" path="." />
 </full-backup-content>

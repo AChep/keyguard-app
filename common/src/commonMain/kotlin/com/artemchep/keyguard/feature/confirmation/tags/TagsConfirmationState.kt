@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.feature.confirmation.tags
 
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 
 data class TagsConfirmationState(
     val items: List<Item> = emptyList(),
@@ -10,7 +10,7 @@ data class TagsConfirmationState(
 ) {
     data class Item(
         val key: String,
-        val field: TextFieldModel2,
+        val field: TextFieldModel,
         val onRemove: (() -> Unit)? = null,
     )
 }

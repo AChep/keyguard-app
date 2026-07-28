@@ -24,16 +24,22 @@ class DefaultSearchExecutor : SearchExecutor {
                 .coerceAtMost(MAX_SEARCH_WORKERS)
             val chunkSize = ((values.size + workers - 1) / workers)
                 .coerceAtLeast(1)
-            val deferred = values
-                .chunked(chunkSize)
-                .map { chunk ->
-                    async(Dispatchers.Default) {
-                        chunk.map { value ->
-                            block(value)
+            val deferred = List(workers) { workerIndex ->
+                val startIndex = workerIndex * chunkSize
+                val endIndex = minOf(startIndex + chunkSize, values.size)
+                async(Dispatchers.Default) {
+                    buildList(endIndex - startIndex) {
+                        for (index in startIndex until endIndex) {
+                            add(block(values[index]))
                         }
                     }
                 }
-            deferred.flatMap { it.await() }
+            }
+            buildList(values.size) {
+                deferred.forEach { worker ->
+                    addAll(worker.await())
+                }
+            }
         }
     }
 }

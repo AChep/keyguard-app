@@ -1,0 +1,11 @@
+CREATE TABLE gpgKeyserverState (
+  fingerprint TEXT NOT NULL PRIMARY KEY,
+  cipherId TEXT,
+  verificationStatus INTEGER NOT NULL,
+  lastCheckedAt INTEGER,
+  lastRefreshedAt INTEGER,
+  sourceKeyserver TEXT,
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_gpgKeyserverState_cipherId ON gpgKeyserverState(cipherId);

@@ -33,6 +33,7 @@ data class JustDeleteMeServiceViewDialogRoute(
             justDeleteMe: JustDeleteMeServiceInfo,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
+            id = "justDeleteMe.service.view",
             leading = iconSmall(Icons.Outlined.AccountBox, Icons.Outlined.Delete),
             title = Res.string.uri_action_how_to_delete_account_title.wrap(),
             onClick = {

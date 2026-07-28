@@ -6,11 +6,13 @@ import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.feature.servicedirectory.serviceDirectoryItemsFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -37,6 +39,14 @@ fun produceTwoFaServiceListState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    twoFaServiceListStateProducer(
+        getTwoFa = getTwoFa,
+    )
+}
+
+suspend fun RememberStateFlowScope.twoFaServiceListStateProducer(
+    getTwoFa: GetTwoFa,
+): Flow<Loadable<TwoFaServiceListState>> {
     val queryHandle = searchQueryHandle("query")
     searchQueryShortcuts(queryHandle)
     val queryFlow = searchFilter(queryHandle) { model, revision ->
@@ -108,7 +118,7 @@ fun produceTwoFaServiceListState(
                 }
             Loadable.Ok(contentOrException)
         }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = TwoFaServiceListState(
                 filter = queryFlow,

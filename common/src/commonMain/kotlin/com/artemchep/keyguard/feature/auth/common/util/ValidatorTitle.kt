@@ -26,20 +26,24 @@ suspend fun ValidationTitle.format(scope: TranslatorScope): String? =
         else -> null
     }
 
+suspend fun TranslatorScope.validatedTitle(rawTitle: String): Validated<String> {
+    val title = rawTitle
+        .trim()
+    val titleError = validateTitle(title)
+        .format(this)
+    return if (titleError != null) {
+        Validated.Failure(
+            model = title,
+            error = titleError,
+        )
+    } else {
+        Validated.Success(
+            model = title,
+        )
+    }
+}
+
 fun Flow<String>.validatedTitle(scope: TranslatorScope) = this
     .map { rawTitle ->
-        val title = rawTitle
-            .trim()
-        val titleError = validateTitle(title)
-            .format(scope)
-        if (titleError != null) {
-            Validated.Failure(
-                model = title,
-                error = titleError,
-            )
-        } else {
-            Validated.Success(
-                model = title,
-            )
-        }
+        scope.validatedTitle(rawTitle)
     }

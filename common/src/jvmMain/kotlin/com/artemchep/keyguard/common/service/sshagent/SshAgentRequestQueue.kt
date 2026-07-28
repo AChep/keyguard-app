@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import androidx.compose.runtime.Immutable
+import com.artemchep.keyguard.common.service.agent.completeWithLog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

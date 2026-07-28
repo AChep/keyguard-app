@@ -37,8 +37,8 @@ import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRouteFactory
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
-import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
+import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
 import com.artemchep.keyguard.feature.home.vault.watchtower
@@ -46,6 +46,7 @@ import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeService
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataServicesRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServicesRoute
@@ -104,7 +105,7 @@ fun produceWatchtowerState(
     )
 }
 
-private data class FilteredBoo<T>(
+private data class FilteredList<T>(
     val list: List<T>,
     val filterConfig: FilterHolder? = null,
 )
@@ -147,6 +148,50 @@ fun produceWatchtowerState(
         getCiphers,
     ),
 ) {
+    watchtowerStateProducer(
+        directDI = directDI,
+        args = args,
+        getCiphers = getCiphers,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getFolders = getFolders,
+        getTags = getTags,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+        getCheckPwnedPasswords = getCheckPwnedPasswords,
+        getCheckPwnedServices = getCheckPwnedServices,
+        getCheckTwoFA = getCheckTwoFA,
+        getCheckPasskeys = getCheckPasskeys,
+        getWatchtowerAlerts = getWatchtowerAlerts,
+        getWatchtowerUnreadAlerts = getWatchtowerUnreadAlerts,
+        cipherDuplicatesCheck = cipherDuplicatesCheck,
+        dismissNotificationsByChannel = dismissNotificationsByChannel,
+        foldersRouteFactory = foldersRouteFactory,
+        vaultRouteFactory = vaultRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.watchtowerStateProducer(
+    directDI: DirectDI,
+    args: WatchtowerRoute.Args,
+    getCiphers: GetCiphers,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getFolders: GetFolders,
+    getTags: GetTags,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+    getCheckPwnedPasswords: GetCheckPwnedPasswords,
+    getCheckPwnedServices: GetCheckPwnedServices,
+    getCheckTwoFA: GetCheckTwoFA,
+    getCheckPasskeys: GetCheckPasskeys,
+    getWatchtowerAlerts: GetWatchtowerAlerts,
+    getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
+    cipherDuplicatesCheck: CipherDuplicatesCheck,
+    dismissNotificationsByChannel: DismissNotificationsByChannel,
+    foldersRouteFactory: FoldersRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+): Flow<WatchtowerState> {
     // Dismiss all the notifications related to
     // the watchtower. You're on the watchtower
     // screen, so you must have seen all the alerts.
@@ -211,7 +256,7 @@ fun produceWatchtowerState(
 
     fun filteredCiphers(ciphersFlow: Flow<List<DSecret>>) = ciphersFlow
         .map {
-            FilteredBoo(
+            FilteredList(
                 list = it,
             )
         }
@@ -240,7 +285,7 @@ fun produceWatchtowerState(
 
     fun filteredFolders(foldersFlow: Flow<List<DFolder>>) = foldersFlow
         .map {
-            FilteredBoo(
+            FilteredList(
                 list = it,
             )
         }
@@ -295,7 +340,7 @@ fun produceWatchtowerState(
         foldersFlow = foldersFlow,
     )
 
-    val filterFlow = ah(
+    val filterFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = ::identity,
         outputFlow = filteredCiphersFlow
@@ -336,9 +381,22 @@ fun produceWatchtowerState(
         onFlow: CreateAlertScope.() -> Flow<T?>,
         onCreate: (R?, Int, Int) -> T,
     ): StateFlow<Loadable<T?>> {
-        val cachedCounterSink = mutablePersistedFlow(key, storage) {
-            -1
-        }
+        // The disk persistence round-trips through JSON, which has no Int/Long
+        // distinction, so a restored whole number always comes back as a Long.
+        // Type the persisted form as Number and coerce via toInt(); otherwise
+        // reading the Int-typed value forces a Long -> Int downcast that crashes
+        // (notably on Kotlin/Native, where the cast is checked).
+        //
+        // The type arguments have to be explicit: S is inferred from the serialize
+        // lambda's return type, so an identity serializer pins S to Int no matter how
+        // the deserialize parameter is declared.
+        val cachedCounterSink = mutablePersistedFlow<Int, Number>(
+            key = key,
+            storage = storage,
+            serialize = { _, value -> value },
+            deserialize = { _, value -> value.toInt() },
+            initialValue = { -1 },
+        )
         // Start with displaying cached counter, and then load
         // the actual value.
         val initialValue = kotlin.run {
@@ -389,12 +447,12 @@ fun produceWatchtowerState(
     }
 
     fun <S, T> internalCreateGenericAlertStateFlow(
-        source: Flow<FilteredBoo<S>>,
+        source: Flow<FilteredList<S>>,
         key: String,
         enabledFlow: Flow<Boolean>,
-        counterFlow: (FilteredBoo<S>) -> Flow<Int>,
-        alertsFlow: (FilteredBoo<S>) -> Flow<Int>,
-        onCreate: (FilteredBoo<S>?, Int, Int) -> T,
+        counterFlow: (FilteredList<S>) -> Flow<Int>,
+        alertsFlow: (FilteredList<S>) -> Flow<Int>,
+        onCreate: (FilteredList<S>?, Int, Int) -> T,
     ): StateFlow<Loadable<T?>> = internalCreateAlertStateFlow(
         key = key,
         enabledFlow = enabledFlow,
@@ -453,11 +511,11 @@ fun produceWatchtowerState(
     )
 
     fun <S, T> createGenericAlertStateFlow(
-        source: Flow<FilteredBoo<S>>,
+        source: Flow<FilteredList<S>>,
         key: String,
         enabledFlow: Flow<Boolean> = flowOf(true),
-        counterBlock: suspend (FilteredBoo<S>) -> Int,
-        onCreate: (FilteredBoo<S>?, Int, Int) -> T,
+        counterBlock: suspend (FilteredList<S>) -> Int,
+        onCreate: (FilteredList<S>?, Int, Int) -> T,
     ) = internalCreateGenericAlertStateFlow(
         source = source,
         key = key,
@@ -978,6 +1036,135 @@ fun produceWatchtowerState(
         },
     )
 
+    suspend fun onClickUnusableGpgKeys(
+        filter: DFilter,
+    ) {
+        val intent = NavigationIntent.NavigateToRoute(
+            vaultRouteFactory.watchtower(
+                title = translate(Res.string.watchtower_item_unusable_gpg_keys_title),
+                subtitle = translate(Res.string.watchtower_header_title),
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        DFilter.ByUnusableGpgKeys,
+                        filter,
+                        args.filter,
+                    ),
+                ),
+            ),
+        )
+        navigate(intent)
+    }
+
+    val unusableGpgKeysFlow = createCipherAlertStateFlow(
+        key = DFilter.ByUnusableGpgKeys.key,
+        type = DWatchtowerAlertType.GPG_KEY_UNUSABLE,
+        onCreate = { holder, count, new ->
+            val onClick = if (count > 0) {
+                val filter = holder?.filterConfig?.filter
+                    ?: DFilter.All
+                onClick {
+                    onClickUnusableGpgKeys(
+                        filter = filter,
+                    )
+                }
+            } else {
+                null
+            }
+            WatchtowerState.Content.UnusableGpgKeys(
+                revision = holder?.filterConfig?.id ?: 0,
+                count = count,
+                new = new,
+                onClick = onClick,
+            )
+        },
+    )
+
+    suspend fun onClickWeakGpgKeys(
+        filter: DFilter,
+    ) {
+        val intent = NavigationIntent.NavigateToRoute(
+            vaultRouteFactory.watchtower(
+                title = translate(Res.string.watchtower_item_weak_gpg_keys_title),
+                subtitle = translate(Res.string.watchtower_header_title),
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        DFilter.ByWeakGpgKeys,
+                        filter,
+                        args.filter,
+                    ),
+                ),
+            ),
+        )
+        navigate(intent)
+    }
+
+    val weakGpgKeysFlow = createCipherAlertStateFlow(
+        key = DFilter.ByWeakGpgKeys.key,
+        type = DWatchtowerAlertType.WEAK_GPG_KEY,
+        onCreate = { holder, count, new ->
+            val onClick = if (count > 0) {
+                val filter = holder?.filterConfig?.filter
+                    ?: DFilter.All
+                onClick {
+                    onClickWeakGpgKeys(
+                        filter = filter,
+                    )
+                }
+            } else {
+                null
+            }
+            WatchtowerState.Content.WeakGpgKeys(
+                revision = holder?.filterConfig?.id ?: 0,
+                count = count,
+                new = new,
+                onClick = onClick,
+            )
+        },
+    )
+
+    suspend fun onClickGpgKeyPublishing(
+        filter: DFilter,
+    ) {
+        val intent = NavigationIntent.NavigateToRoute(
+            vaultRouteFactory.watchtower(
+                title = translate(Res.string.watchtower_item_gpg_key_publishing_title),
+                subtitle = translate(Res.string.watchtower_header_title),
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        DFilter.ByGpgKeyPublishing,
+                        filter,
+                        args.filter,
+                    ),
+                ),
+            ),
+        )
+        navigate(intent)
+    }
+
+    val gpgKeyPublishingFlow = createCipherAlertStateFlow(
+        key = DFilter.ByGpgKeyPublishing.key,
+        type = DWatchtowerAlertType.GPG_KEY_PUBLISHING,
+        onCreate = { holder, count, new ->
+            val onClick = if (count > 0) {
+                val filter = holder?.filterConfig?.filter
+                    ?: DFilter.All
+                onClick {
+                    onClickGpgKeyPublishing(
+                        filter = filter,
+                    )
+                }
+            } else {
+                null
+            }
+            WatchtowerState.Content.GpgKeyPublishing(
+                revision = holder?.filterConfig?.id ?: 0,
+                count = count,
+                new = new,
+                onClick = onClick,
+            )
+        },
+    )
+
     suspend fun onClickWebsitePwned(
         filter: DFilter,
     ) {
@@ -1298,6 +1485,9 @@ fun produceWatchtowerState(
         pwnedWebsites = websitePwnedFlow,
         reused = passwordReusedFlow,
         weakSshKeys = weakSshKeysFlow,
+        unusableGpgKeys = unusableGpgKeysFlow,
+        weakGpgKeys = weakGpgKeysFlow,
+        gpgKeyPublishing = gpgKeyPublishingFlow,
         incompleteItems = incompleteItemsFlow,
         expiringItems = expiringItemsFlow,
         duplicateItems = duplicateItemsFlow,
@@ -1313,29 +1503,29 @@ fun produceWatchtowerState(
             section {
                 if (checkTwoFa) {
                     this += TwoFaServicesRoute.actionOrNull(
-                        translator = this@produceScreenState,
+                        translator = this@watchtowerStateProducer,
                         navigate = ::navigate,
                     )
                 }
                 if (checkPasskeys) {
                     this += PasskeysServicesRoute.actionOrNull(
-                        translator = this@produceScreenState,
+                        translator = this@watchtowerStateProducer,
                         navigate = ::navigate,
                     )
                 }
                 this += JustGetMyDataServicesRoute.actionOrNull(
-                    translator = this@produceScreenState,
+                    translator = this@watchtowerStateProducer,
                     navigate = ::navigate,
                 )
                 this += JustDeleteMeServicesRoute.actionOrNull(
-                    translator = this@produceScreenState,
+                    translator = this@watchtowerStateProducer,
                     navigate = ::navigate,
                 )
             }
         }
         actions
     }
-    filterFlow
+    return filterFlow
         .combine(actionsFlow) { filterState, actions ->
             WatchtowerState(
                 revision = filterState.rev,

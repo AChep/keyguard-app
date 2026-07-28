@@ -10,6 +10,9 @@ import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.usecase.GpgKeyExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
@@ -26,11 +29,13 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
+import com.artemchep.keyguard.feature.generator.gpgkey.GpgKeyActions
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passwordleak.PasswordLeakRoute
@@ -83,6 +88,9 @@ fun produceGeneratorHistoryState() = with(localDI().direct) {
         keyPairExport = instance(),
         publicKeyExport = instance(),
         privateKeyExport = instance(),
+        gpgKeyExport = instance(),
+        gpgPublicKeyExport = instance(),
+        gpgPrivateKeyExport = instance(),
         dateFormatter = instance(),
         clipboardService = instance(),
         confirmationRouteFactory = instance(),
@@ -97,6 +105,9 @@ fun produceGeneratorHistoryState(
     keyPairExport: KeyPairExport,
     publicKeyExport: KeyPublicExport,
     privateKeyExport: KeyPrivateExport,
+    gpgKeyExport: GpgKeyExport,
+    gpgPublicKeyExport: GpgKeyPublicExport,
+    gpgPrivateKeyExport: GpgKeyPrivateExport,
     dateFormatter: DateFormatter,
     clipboardService: ClipboardService,
     confirmationRouteFactory: ConfirmationRouteFactory,
@@ -111,6 +122,36 @@ fun produceGeneratorHistoryState(
         clipboardService,
     ),
 ) {
+    generatorHistoryStateProducer(
+        getGeneratorHistory = getGeneratorHistory,
+        removeGeneratorHistory = removeGeneratorHistory,
+        removeGeneratorHistoryById = removeGeneratorHistoryById,
+        keyPairExport = keyPairExport,
+        publicKeyExport = publicKeyExport,
+        privateKeyExport = privateKeyExport,
+        gpgKeyExport = gpgKeyExport,
+        gpgPublicKeyExport = gpgPublicKeyExport,
+        gpgPrivateKeyExport = gpgPrivateKeyExport,
+        dateFormatter = dateFormatter,
+        clipboardService = clipboardService,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
+    getGeneratorHistory: GetGeneratorHistory,
+    removeGeneratorHistory: RemoveGeneratorHistory,
+    removeGeneratorHistoryById: RemoveGeneratorHistoryById,
+    keyPairExport: KeyPairExport,
+    publicKeyExport: KeyPublicExport,
+    privateKeyExport: KeyPrivateExport,
+    gpgKeyExport: GpgKeyExport,
+    gpgPublicKeyExport: GpgKeyPublicExport,
+    gpgPrivateKeyExport: GpgKeyPrivateExport,
+    dateFormatter: DateFormatter,
+    clipboardService: ClipboardService,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<GeneratorHistoryState>> {
     val selectionHandle = selectionHandle("selection")
     val copyFactory = copier()
 
@@ -188,8 +229,10 @@ fun produceGeneratorHistoryState(
             val actions = buildContextItems {
                 section {
                     this += FlatItemAction(
+                        id = "passwordHistory.generator.selection.remove",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.remove_from_history.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteByItems(selectedItems)
                         },
@@ -233,6 +276,7 @@ fun produceGeneratorHistoryState(
                     }
 
                     item.isSshKey -> GeneratorHistoryItem.Value.Type.SSH_KEY
+                    item.isGpgKey -> GeneratorHistoryItem.Value.Type.GPG_KEY
 
                     else -> null
                 }
@@ -256,9 +300,13 @@ fun produceGeneratorHistoryState(
                                     GeneratorHistoryItem.Value.Type.SSH_KEY ->
                                         translate(Res.string.copy_value) to CopyText.Type.VALUE
 
+                                    GeneratorHistoryItem.Value.Type.GPG_KEY ->
+                                        translate(Res.string.copy_gpg_fingerprint) to CopyText.Type.FINGERPRINT
+
                                     null -> translate(Res.string.copy_value) to CopyText.Type.VALUE
                                 }
                                 this += copyFactory.FlatItemAction(
+                                    id = "passwordHistory.generator.item.${item.id}.copy",
                                     title = TextHolder.Value(copyTitle),
                                     value = content,
                                     hidden = item.isPassword,
@@ -267,13 +315,13 @@ fun produceGeneratorHistoryState(
                             }
                             section {
                                 this += LargeTypeRoute.showInLargeTypeActionOrNull(
-                                    translator = this@produceScreenState,
+                                    translator = this@generatorHistoryStateProducer,
                                     text = content,
                                     colorize = item.isPassword,
                                     navigate = ::navigate,
                                 )
                                 this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
-                                    translator = this@produceScreenState,
+                                    translator = this@generatorHistoryStateProducer,
                                     text = content,
                                     colorize = item.isPassword,
                                     navigate = ::navigate,
@@ -284,7 +332,7 @@ fun produceGeneratorHistoryState(
                                 // check it in the breaches.
                                 if (type == GeneratorHistoryItem.Value.Type.PASSWORD) {
                                     this += PasswordLeakRoute.checkBreachesPasswordAction(
-                                        translator = this@produceScreenState,
+                                        translator = this@generatorHistoryStateProducer,
                                         password = content,
                                         navigate = ::navigate,
                                     )
@@ -302,14 +350,27 @@ fun produceGeneratorHistoryState(
                                 copyItemFactory = copyFactory,
                             )
                         }
+
+                        is GetPasswordResult.AsyncGpgKey -> {
+                            val gpgKey = v.gpgKey
+                            GpgKeyActions.addAll(
+                                gpgKey = gpgKey,
+                                gpgKeyExport = gpgKeyExport,
+                                publicKeyExport = gpgPublicKeyExport,
+                                privateKeyExport = gpgPrivateKeyExport,
+                                copyItemFactory = copyFactory,
+                            )
+                        }
                     }
                     section {
                         val items = listOfNotNull(
                             item,
                         )
                         this += FlatItemAction(
+                            id = "passwordHistory.generator.item.${item.id}.remove",
                             leading = icon(Icons.Outlined.Delete),
                             title = Res.string.remove_from_history.wrap(),
+                            danger = true,
                             onClick = onClick {
                                 onDeleteByItems(items)
                             },
@@ -399,8 +460,10 @@ fun produceGeneratorHistoryState(
                 persistentListOf()
             } else {
                 val action = FlatItemAction(
+                    id = "passwordHistory.generator.clearHistory",
                     leading = icon(Icons.Outlined.Delete),
                     title = Res.string.generatorhistory_clear_history_title.wrap(),
+                    danger = true,
                     onClick = onClick {
                         onDeleteAll()
                     },
@@ -408,7 +471,7 @@ fun produceGeneratorHistoryState(
                 persistentListOf(action)
             }
         }
-    combine(
+    return combine(
         optionsFlow,
         selectionFlow,
         itemsFlow,

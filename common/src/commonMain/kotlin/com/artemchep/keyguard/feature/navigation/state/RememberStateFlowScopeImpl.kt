@@ -84,33 +84,7 @@ class RememberStateFlowScopeImpl(
         val sink: MutableStateFlow<T>,
         val serialize: (T) -> S,
         val deserialize: (S) -> T,
-        val composeState: ComposeState<T>,
-    ) {
-        class ComposeState<T>(
-            scope: CoroutineScope,
-            sink: MutableStateFlow<T>,
-        ) {
-            private val collectScope by lazy {
-                scope.newChildScope(::Job) + Dispatchers.Main
-            }
-
-            val mutableState by lazy {
-                val state = mutableStateOf(sink.value)
-                // Send back the data from a source of truth to the
-                // property's sink.
-                snapshotFlow { state.value }
-                    .onEach { text ->
-                        sink.value = text
-                    }
-                    .launchIn(collectScope)
-                return@lazy state
-            }
-
-            fun dispose() {
-                collectScope.cancel()
-            }
-        }
-    }
+    )
 
     override val appScope: CoroutineScope
         get() = windowCoroutineScope
@@ -269,6 +243,10 @@ class RememberStateFlowScopeImpl(
             )
     }
 
+    // This is the identity delegation that backs the plain overload, so its persisted type is
+    // the unbounded T of that overload and cannot be checked here. Safety is enforced at the
+    // call sites, which is where a concrete type is known.
+    @Suppress("MutablePersistedFlowTypeSafety")
     override fun <T> mutablePersistedFlow(
         key: String,
         storage: PersistedStorage,
@@ -298,9 +276,8 @@ class RememberStateFlowScopeImpl(
                     try {
                         val v = serializedValue as S
                         return@run deserialize(json, v)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         // Fall down.
-                        e.printStackTrace()
                     }
                 }
 
@@ -311,9 +288,8 @@ class RememberStateFlowScopeImpl(
                     try {
                         val v = storage.disk.restoredState[key] as S
                         return@run deserialize(json, v)
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         // Fall down.
-                        e.printStackTrace()
                     }
                 }
 
@@ -338,10 +314,6 @@ class RememberStateFlowScopeImpl(
                 sink = sink,
                 serialize = serialize.partially1(json),
                 deserialize = deserialize.partially1(json),
-                composeState = Entry.ComposeState(
-                    scope = screenScope,
-                    sink = sink,
-                ),
             ) as Entry<Any?, Any?>
             // Remember all the updates of the flow in the
             // persisted storage.
@@ -360,29 +332,10 @@ class RememberStateFlowScopeImpl(
         }
     }
 
-    override fun <T> asComposeState(key: String) = synchronized(lock) {
-        registry[key]!!.composeState.mutableState as MutableState<T>
-    }
-
     override fun clearPersistedFlow(key: String) {
-        val entry = synchronized(lock) {
+        synchronized(lock) {
             registry.remove(key)
         }
-        @Suppress("IfThenToSafeAccess")
-        if (entry != null) {
-            entry.composeState.dispose()
-        }
-    }
-
-    override fun <T> mutableComposeState(sink: MutableStateFlow<T>): MutableState<T> {
-        val entry = synchronized(lock) {
-            registry.values.firstOrNull { it.sink === sink }
-        }
-        requireNotNull(entry) {
-            "Provided sink must be created using mutablePersistedFlow(...)!"
-        }
-        @Suppress("UNCHECKED_CAST")
-        return entry.composeState.mutableState as MutableState<T>
     }
 
     override fun persistedState(): LeBundle {

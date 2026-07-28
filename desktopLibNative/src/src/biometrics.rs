@@ -1,11 +1,14 @@
 use crate::ffi::BiometricsVerifyCallback;
-use crate::platform;
 use std::ffi::c_char;
 
+#[cfg_attr(target_os = "macos", path = "biometrics/macos.rs")]
+#[cfg_attr(not(target_os = "macos"), path = "biometrics/stub.rs")]
+mod imp;
+
 pub(crate) fn is_supported() -> bool {
-    platform::biometrics::is_supported()
+    imp::is_supported()
 }
 
 pub(crate) fn verify(title: *const c_char, callback: BiometricsVerifyCallback) {
-    platform::biometrics::verify(title, callback);
+    imp::verify(title, callback);
 }

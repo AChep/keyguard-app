@@ -32,6 +32,7 @@ class ConfirmationRoute(
                 override val enabled: Boolean = true,
                 val title: String,
                 val text: String? = null,
+                val textMaxLines: Int = Int.MAX_VALUE,
             ) : Item<Boolean>
 
             data class StringItem(

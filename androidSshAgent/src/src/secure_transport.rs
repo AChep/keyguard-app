@@ -473,6 +473,27 @@ mod tests {
     use std::task::{Context, Poll};
     use tokio::io::{duplex, AsyncRead, ReadBuf};
 
+    #[test]
+    fn packet_cipher_matches_golden() {
+        let key = core::array::from_fn(|index| index as u8);
+        let nonce_prefix = [0xa0, 0xa1, 0xa2, 0xa3];
+        let counter = 1;
+        let plaintext = b"keyguard-ssh-agent-frame";
+        let header = build_header(FRAME_TYPE_PACKET, counter, plaintext.len() + TAG_LEN).unwrap();
+        let expected = [
+            0x4c, 0xb9, 0x4c, 0xa9, 0x2f, 0xd4, 0x28, 0x14, 0x24, 0xe0, 0xb8, 0x7c, 0x31, 0xa8,
+            0xa7, 0xcb, 0xab, 0xb7, 0x23, 0x96, 0x6a, 0xde, 0x91, 0x6e, 0xf5, 0x0e, 0xd0, 0x59,
+            0x5b, 0xcf, 0x22, 0xb4, 0xb6, 0x3c, 0xd9, 0xfd, 0x80, 0xbc, 0x49, 0x8b,
+        ];
+
+        let ciphertext = encrypt_payload(&key, &nonce_prefix, counter, &header, plaintext).unwrap();
+        assert_eq!(ciphertext, expected);
+        assert_eq!(
+            decrypt_payload(&key, &nonce_prefix, counter, &header, &expected).unwrap(),
+            plaintext,
+        );
+    }
+
     #[tokio::test]
     async fn tool_handshake_and_packet_round_trip() {
         let (tool_stream, app_stream) = duplex(64 * 1024);

@@ -8,7 +8,7 @@ import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.service.justdeleteme.JustDeleteMeServiceInfo
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import kotlinx.coroutines.flow.StateFlow
 
 data class JustDeleteMeServiceListState(
@@ -18,7 +18,7 @@ data class JustDeleteMeServiceListState(
     @Immutable
     data class Filter(
         val revision: Int,
-        val query: TextFieldModel2,
+        val query: TextFieldModel,
     ) {
         companion object
     }

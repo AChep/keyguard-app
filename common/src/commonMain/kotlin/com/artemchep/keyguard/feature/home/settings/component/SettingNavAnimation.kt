@@ -55,6 +55,7 @@ fun settingNavAnimationProvider(
             val actionSelected = navAnimationVariant == navAnimation
             val actionTitle = navAnimationVariant.title.wrap()
             FlatItemAction(
+                id = "settings.navAnimation.${navAnimationVariant.name}",
                 title = actionTitle,
                 selected = actionSelected,
                 onClick = {

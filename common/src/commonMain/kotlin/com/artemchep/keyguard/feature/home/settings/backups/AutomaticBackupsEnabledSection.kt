@@ -21,6 +21,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.theme.LocalExpressive
+import com.artemchep.keyguard.ui.theme.danger
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 
@@ -163,6 +164,7 @@ private fun automaticBackupsRetentionAction(
     maxSnapshots: Int,
     onRetentionChange: (Int) -> Unit,
 ) = FlatItemAction(
+    id = "settings.automaticBackups.retention.$option",
     title = TextHolder.Value(title),
     selected = option == maxSnapshots,
     onClick = {
@@ -177,7 +179,7 @@ private fun DisableAutomaticBackupsAction(
     LocalSettingPaneComponents.current.KgAction(
         icon = null,
         title = stringResource(Res.string.pref_item_automatic_backups_disable_title),
-        contentColor = MaterialTheme.colorScheme.error,
+        contentColor = MaterialTheme.colorScheme.danger,
         onClick = onDisableClick,
     )
 }

@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FunctionNaming:MainViewController.kt:fun MainViewController: UIViewController</ID>
+    <ID>LongMethod:IosAppModule.kt:internal fun DI.Builder.installIosAppModule</ID>
+    <ID>MagicNumber:IosAppModule.kt:20_000</ID>
+    <ID>WildcardImport:IosAppModule.kt:import com.artemchep.keyguard.common.usecase.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

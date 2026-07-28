@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:Main.kt:Main$@OptIn(ExperimentalTime::class) override fun onCreate</ID>
+    <ID>LongMethod:Main.kt:Main$@OptIn(ExperimentalTime::class) override fun onCreate</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$100</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$10_000</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$11</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$12</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$16</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$20</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$2030</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$4</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$5</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$6</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$7</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$8</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$900</ID>
+    <ID>MagicNumber:BenchmarkVaultCorpus.kt:BenchmarkVaultCorpus$90_000</ID>
+    <ID>WildcardImport:Main.kt:import com.artemchep.keyguard.common.io.*</ID>
+    <ID>WildcardImport:Main.kt:import com.artemchep.keyguard.common.usecase.*</ID>
+    <ID>WildcardImport:Main.kt:import kotlinx.coroutines.*</ID>
+    <ID>WildcardImport:Main.kt:import kotlinx.coroutines.flow.*</ID>
+    <ID>WildcardImport:Main.kt:import org.kodein.di.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

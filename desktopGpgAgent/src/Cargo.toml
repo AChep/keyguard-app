@@ -1,0 +1,49 @@
+[package]
+name = "keyguard-gpg-agent"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.94.0"
+description = "GPG agent for Keyguard password manager"
+license-file = "../../LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+publish = false
+
+[[bin]]
+name = "keyguard-gpg-agent"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+bytes = "1"
+clap = { version = "4", features = ["derive"] }
+common-gpg-agent-rust = { path = "../../commonGpgAgent" }
+keyguard-agent-identity = { path = "../../commonAgent" }
+hex = "0.4"
+prost = "0.13"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dirs = "6"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+[target.'cfg(windows)'.dependencies]
+getrandom = "0.2"
+windows-sys = { version = "0.61", features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System_Threading",
+] }
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1", features = ["test-util", "io-util", "macros", "rt"] }
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1

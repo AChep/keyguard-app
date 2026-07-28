@@ -52,7 +52,7 @@ class GetVaultSessionImpl(
                                 }
                             val subDi =
                                 subDI(di, false, Copy.None) {
-                                    import(moduleDi)
+                                    import(moduleDi, allowOverride = true)
                                 }
                             MasterSession.Key(
                                 masterKey = masterKey,

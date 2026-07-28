@@ -1,7 +1,9 @@
 package com.artemchep.keyguard.util.signalr.internal.util
 
+import com.artemchep.keyguard.util.signalr.HubConnectionHttpException
 import com.artemchep.keyguard.util.signalr.TransferFormat
 import com.artemchep.keyguard.util.signalr.internal.HubConnectionOptions
+import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.statement.bodyAsText
@@ -57,12 +59,12 @@ private suspend fun startNegotiate(
         headers = headers,
     )
     response.error?.let { error ->
-        throw RuntimeException(error)
+        throw IllegalStateException(error)
     }
 
     response.url?.let { redirectUrl ->
         if (negotiateAttempts >= MAX_NEGOTIATE_ATTEMPTS) {
-            throw RuntimeException("Negotiate redirection limit exceeded.")
+            throw IllegalStateException("Negotiate redirection limit exceeded.")
         }
 
         val newHeaders = response.accessToken
@@ -88,14 +90,14 @@ private suspend fun startNegotiate(
             )
         }
     if (!hasCompatibleTransport) {
-        throw RuntimeException("There were no compatible transports on the server.")
+        throw IllegalStateException("There were no compatible transports on the server.")
     }
 
     if (response.connectionId == null) {
-        throw RuntimeException("Missing required property 'connectionId'.")
+        throw IllegalStateException("Missing required property 'connectionId'.")
     }
     if (response.negotiateVersion > 0 && response.connectionToken == null) {
-        throw RuntimeException("Missing required property 'connectionToken'.")
+        throw IllegalStateException("Missing required property 'connectionToken'.")
     }
 
     val id = if (response.negotiateVersion > 0) {
@@ -126,6 +128,7 @@ private suspend fun handleNegotiate(
     headers: Map<String, String>,
 ): NegotiateResponse {
     val response = options.httpClient.post(resolveNegotiateUrl(url)) {
+        expectSuccess = false
         headers {
             headers.forEach { (key, value) ->
                 append(key, value)
@@ -134,8 +137,9 @@ private suspend fun handleNegotiate(
     }
 
     if (response.status != HttpStatusCode.OK) {
-        throw RuntimeException(
-            "Unexpected status code returned from negotiate: ${response.status} ${response.status.description}.",
+        throw HubConnectionHttpException(
+            statusCode = response.status,
+            message = "Unexpected status code returned from negotiate: ${response.status} ${response.status.description}.",
         )
     }
 
@@ -144,7 +148,7 @@ private suspend fun handleNegotiate(
         .parseToJsonElement(body)
         .jsonObject
     if ("ProtocolVersion" in jsonObject) {
-        throw RuntimeException(
+        throw UnsupportedOperationException(
             "Detected an ASP.NET SignalR Server. This client only supports connecting to an ASP.NET Core SignalR Server.",
         )
     }

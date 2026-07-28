@@ -46,7 +46,7 @@ import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
-import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposable
+import com.artemchep.keyguard.feature.search.filter.component.FilterChipItemComposable
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AutofillButton
@@ -235,6 +235,7 @@ private fun ConfirmationBooleanItem(
             Checkbox(
                 checked = item.value,
                 onCheckedChange = null,
+                enabled = item.enabled,
             )
         },
         content = {
@@ -249,13 +250,18 @@ private fun ConfirmationBooleanItem(
                         style = MaterialTheme.typography.bodySmall,
                         color = LocalContentColor.current
                             .combineAlpha(MediumEmphasisAlpha),
+                        maxLines = item.textMaxLines,
                     )
                 }
             }
         },
-        onClick = {
-            val newValue = !item.value
-            item.onChange.invoke(newValue)
+        onClick = if (item.enabled) {
+            {
+                val newValue = !item.value
+                item.onChange.invoke(newValue)
+            }
+        } else {
+            null
         },
     )
 }
@@ -300,6 +306,7 @@ private fun ConfirmationStringItem(
 
                 else -> KeyboardOptions.Default
             },
+            incognito = item.sensitive || item.password,
             singleLine = true,
             maxLines = 1,
             trailing = {
@@ -321,7 +328,9 @@ private fun ConfirmationStringItem(
                         key = key,
                         username = generator == ConfirmationState.Item.StringItem.Generator.Username,
                         password = generator == ConfirmationState.Item.StringItem.Generator.Password,
-                        onValueChange = item.state.onChange,
+                        // A programmatic insert: the command path bumps the
+                        // text revision so the field's edit buffer adopts it.
+                        onValueChange = item.state.onSetText,
                     )
                 }
             },
@@ -439,7 +448,7 @@ private fun ConfirmationEnumItemItem(
     modifier: Modifier = Modifier,
     item: ConfirmationState.Item.EnumItem.Item,
 ) {
-    FilterItemComposable(
+    FilterChipItemComposable(
         modifier = modifier,
         checked = item.selected,
         leading =

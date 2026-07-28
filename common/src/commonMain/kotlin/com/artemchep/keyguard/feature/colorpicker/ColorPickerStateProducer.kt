@@ -4,10 +4,12 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.util.hue
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 @Composable
@@ -19,6 +21,13 @@ fun produceColorPickerState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    colorPickerStateProducer(args, transmitter)
+}
+
+suspend fun RememberStateFlowScope.colorPickerStateProducer(
+    args: ColorPickerRoute.Args,
+    transmitter: RouteResultTransmitter<ColorPickerResult>,
+): Flow<Loadable<ColorPickerState>> {
     // Give a user a bunch of different colors
     // to choose from. This should be enough for
     // most of the users.
@@ -51,7 +60,7 @@ fun produceColorPickerState(
         }
         .toPersistentList()
 
-    indexSink
+    return indexSink
         .map { index ->
             val content = ColorPickerState.Content(
                 index = index.takeIf { it >= 0 },

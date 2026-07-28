@@ -45,6 +45,7 @@ data class LargeTypeRoute(
             split: Boolean = false,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
+            id = "largeType.show",
             leading = icon(Icons.Outlined.KeyguardLargeType),
             title = Res.string.largetype_action_show_in_large_type_title.wrap(),
             onClick = {
@@ -84,6 +85,7 @@ data class LargeTypeRoute(
             split: Boolean = false,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
+            id = "largeType.showAndLock",
             leading = iconSmall(Icons.Outlined.KeyguardLargeType, Icons.Filled.Lock),
             title = Res.string.largetype_action_show_in_large_type_and_lock_title.wrap(),
             onClick = {

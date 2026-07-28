@@ -79,6 +79,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.compose.localDI
@@ -145,6 +147,42 @@ fun produceDuplicatesListState(
         cipherDuplicatesCheck,
     ),
 ) {
+    duplicatesListStateProducer(
+        directDI = directDI,
+        args = args,
+        clipboardService = clipboardService,
+        getTotpCode = getTotpCode,
+        getConcealFields = getConcealFields,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getCiphers = getCiphers,
+        getProfiles = getProfiles,
+        getCanWrite = getCanWrite,
+        cipherToolbox = cipherToolbox,
+        cipherDuplicatesCheck = cipherDuplicatesCheck,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.duplicatesListStateProducer(
+    directDI: DirectDI,
+    args: DuplicatesRoute.Args,
+    clipboardService: ClipboardService,
+    getTotpCode: GetTotpCode,
+    getConcealFields: GetConcealFields,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getCiphers: GetCiphers,
+    getProfiles: GetProfiles,
+    getCanWrite: GetCanWrite,
+    cipherToolbox: CipherToolbox,
+    cipherDuplicatesCheck: CipherDuplicatesCheck,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<DuplicatesListState>> {
     val copy = copier()
     val sensitivitySink = mutablePersistedFlow("sensitivity") {
         CipherDuplicatesCheck.Sensitivity.NORMAL
@@ -302,7 +340,7 @@ fun produceDuplicatesListState(
                             val item = cipher.toVaultListItem(
                                 groupId = group.id,
                                 copy = copy,
-                                translator = this@produceScreenState,
+                                translator = this@duplicatesListStateProducer,
                                 getTotpCode = getTotpCode,
                                 concealFields = cfg.concealFields,
                                 appIcons = cfg.appIcons,
@@ -370,7 +408,7 @@ fun produceDuplicatesListState(
     )
         .persistingStateIn(this, SharingStarted.WhileSubscribed())
 
-    itemsFlow
+    return itemsFlow
         .combine(sensitivitySink) { items, sensitivity ->
             val state = DuplicatesListState(
                 onSelected = { key ->
@@ -382,6 +420,7 @@ fun produceDuplicatesListState(
                     .entries
                     .map { s ->
                         FlatItemAction(
+                            id = "duplicates.sensitivity.${s.name}",
                             title = s.title.wrap(),
                             onClick = {
                                 sensitivitySink.value = s
@@ -402,18 +441,45 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     confirmationRouteFactory: ConfirmationRouteFactory,
     //
     toolbox: CipherToolbox,
-) = combine(
-    ciphersFlow,
-    selectionHandle.idsFlow,
-    collectionsFlow,
-    canWriteFlow,
-) { ciphers, selectedCipherIds, collections, canWrite ->
+) = selectionHandle.idsFlow.flatMapLatest { selectedCipherIds ->
     if (selectedCipherIds.isEmpty()) {
-        return@combine null
+        return@flatMapLatest flowOf<Selection?>(null)
     }
 
+    createCipherSelectionFlow(
+        selectionHandle = selectionHandle,
+        ciphersFlow = ciphersFlow,
+        collectionsFlow = collectionsFlow,
+        canWriteFlow = canWriteFlow,
+        confirmationRouteFactory = confirmationRouteFactory,
+        toolbox = toolbox,
+        selectedCipherIds = selectedCipherIds,
+    )
+}
+
+private fun RememberStateFlowScope.createCipherSelectionFlow(
+    selectionHandle: SelectionHandle,
+    ciphersFlow: Flow<List<DSecret>>,
+    collectionsFlow: Flow<List<DCollection>>,
+    canWriteFlow: Flow<Boolean>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    toolbox: CipherToolbox,
+    selectedCipherIds: Set<String>,
+) = combine(
+    ciphersFlow,
+    collectionsFlow,
+    canWriteFlow,
+) { ciphers, collections, canWrite ->
     val selectedCiphers = ciphers
         .filter { it.id in selectedCipherIds }
+    val existingSelectedCipherIds = selectedCiphers
+        .mapTo(mutableSetOf()) { it.id }
+    if (existingSelectedCipherIds.size < selectedCipherIds.size) {
+        selectionHandle.setSelection(existingSelectedCipherIds)
+    }
+    if (selectedCiphers.isEmpty()) {
+        return@combine null
+    }
     val selectedCiphersByAccount = selectedCiphers
         .groupBy { it.accountId }
 
@@ -461,6 +527,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     // show an action to do it!
     if (canEdit && selectedCiphers.any { !it.favorite }) {
         actions += FlatItemAction(
+            id = "duplicates.selection.addToFavorites",
             icon = Icons.Outlined.KeyguardFavourite,
             title = Res.string.ciphers_action_add_to_favorites_title.wrap(),
             onClick = {
@@ -482,6 +549,7 @@ fun RememberStateFlowScope.createCipherSelectionFlow(
     // show an action to do it!
     if (canEdit && selectedCiphers.any { it.favorite }) {
         actions += FlatItemAction(
+            id = "duplicates.selection.removeFromFavorites",
             icon = Icons.Outlined.KeyguardFavouriteOutline,
             title = Res.string.ciphers_action_remove_from_favorites_title.wrap(),
             onClick = {

@@ -2,7 +2,7 @@
 title: Keyguard on Wear OS
 description: Put your vault on your wrist — setup, what works on the watch, and current limitations.
 category: guides
-order: 8
+order: 9
 ---
 
 Keyguard ships a Wear OS app, so your vault — and your one-time passwords —

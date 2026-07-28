@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.usecase.AddFolder
+import com.artemchep.keyguard.common.usecase.AddFolderRequest
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
@@ -28,19 +29,21 @@ class AddFolderImpl(
     )
 
     override fun invoke(
-        accountIdsToNames: Map<AccountId, String>,
+        requests: Collection<AddFolderRequest>,
     ): IO<Set<String>> = modifyDatabase { database ->
         val dao = database.folderQueries
         val now = Clock.System.now()
 
-        val models = accountIdsToNames
-            .map { (accountId, name) ->
+        val models = requests
+            .map { request ->
                 val folderId = cryptoGenerator.uuid()
                 BitwardenFolder(
-                    accountId = accountId.id,
+                    accountId = request.accountId.id,
                     folderId = folderId,
                     revisionDate = now,
-                    name = name,
+                    name = request.name,
+                    parentId = request.parentId,
+                    hierarchyMode = request.hierarchyMode,
                     service = BitwardenService(
                         version = BitwardenService.VERSION,
                     ),

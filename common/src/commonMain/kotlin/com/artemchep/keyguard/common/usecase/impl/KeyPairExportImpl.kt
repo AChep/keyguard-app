@@ -3,7 +3,7 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.writeText
+import com.artemchep.keyguard.util.foundation.io.writeText
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.zip.ZipConfig

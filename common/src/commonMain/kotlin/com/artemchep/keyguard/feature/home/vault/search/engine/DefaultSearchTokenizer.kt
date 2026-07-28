@@ -8,7 +8,7 @@ class DefaultSearchTokenizer(
         profile: SearchTokenizerProfile,
         config: SearchTokenizerConfig,
     ): SearchTokenization {
-        val actualConfig = if (config == SearchTokenizerConfig()) defaultConfig else config
+        val actualConfig = if (config == SearchTokenizerConfig.Default) defaultConfig else config
         val normalized =
             normalizeSearchValue(
                 value = value,
@@ -20,16 +20,24 @@ class DefaultSearchTokenizer(
                 profile = profile,
                 config = actualConfig,
             )
-        val foldedTokens =
-            tokenizeInternal(
-                value = normalized.folded,
-                profile = profile,
-                config = actualConfig,
+        val exactNormalizedText = exactTokens.joinToString(separator = " ")
+        if (normalized.folded == normalized.exact) {
+            return SearchTokenization(
+                normalizedText = exactNormalizedText,
+                terms = exactTokens,
+                exactNormalizedText = exactNormalizedText,
+                exactTerms = exactTokens,
             )
+        }
+        val foldedTokens = tokenizeInternal(
+            value = normalized.folded,
+            profile = profile,
+            config = actualConfig,
+        )
         return SearchTokenization(
             normalizedText = foldedTokens.joinToString(separator = " "),
             terms = foldedTokens,
-            exactNormalizedText = exactTokens.joinToString(separator = " "),
+            exactNormalizedText = exactNormalizedText,
             exactTerms = exactTokens,
         )
     }
@@ -39,7 +47,7 @@ class DefaultSearchTokenizer(
         profile: SearchTokenizerProfile,
         config: SearchTokenizerConfig,
     ): List<String> {
-        val normalized = value.lowercase()
+        val normalized = value
         if (profile == SearchTokenizerProfile.TEXT && requiresPlatformWordSegmentation(normalized)) {
             return tokenizeTextWithWordSegmentation(
                 value = normalized,
@@ -64,7 +72,7 @@ class DefaultSearchTokenizer(
         config: SearchTokenizerConfig,
     ): List<String> {
         val tokens = mutableListOf<String>()
-        val current = StringBuilder()
+        val current = StringBuilder(minOf(value.length, 64))
 
         fun flush() {
             if (current.isEmpty()) {

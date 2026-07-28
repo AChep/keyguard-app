@@ -18,70 +18,243 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  check-desktop-tests:
+  check-build-plugins:
+    name: Check Build Plugins
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
-      - name: "Run unit tests"
-        run: ./gradlew :common:desktopTest
-  check-android-tests:
+      - name: "Run build plugin tests"
+        run: ./gradlew -p buildPlugins test
+      - name: "Upload build plugin test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: build-plugin-test-reports
+          path: |
+            buildPlugins/build/test-results/**
+            buildPlugins/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21
+
+  check-kmp-host-tests:
+    name: Check KMP Host Tests (${{ matrix.name }})
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        api-level:
-          - 30
-          - 26
+        include:
+          - id: common-desktop
+            name: Common Desktop
+            max_workers: 2
+            tasks: >-
+              :common:desktopTest
+          - id: common-android-host
+            name: Common Android Host
+            max_workers: 2
+            tasks: >-
+              :common:testAndroidHostTest
+          - id: util-desktop
+            name: Util Desktop
+            max_workers: 2
+            tasks: >-
+              :desktopLibJvm:jvmTest
+              :util:foundation:desktopTest
+              :util:kdbx:desktopTest
+              :util:messagepack:desktopTest
+              :util:planeta:desktopTest
+              :util:signalr:desktopTest
+              :util:webdav:desktopTest
+          - id: util-android-host
+            name: Util Android Host
+            max_workers: 2
+            tasks: >-
+              :util:foundation:testAndroidHostTest
+              :util:kdbx:testAndroidHostTest
+              :util:messagepack:testAndroidHostTest
+              :util:planeta:testAndroidHostTest
+              :util:signalr:testAndroidHostTest
+              :util:webdav:testAndroidHostTest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "x86_64-unknown-linux-gnu"
+      - name: "Run KMP host tests"
+        run: >-
+          ./gradlew --continue --max-workers=${{ matrix.max_workers }}
+          ${{ matrix.tasks }}
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: kmp-host-test-reports-${{ matrix.id }}
+          path: |
+            **/build/test-results/**
+            **/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21
+
+  check-android-unit-tests:
+    name: Check Android Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+      - name: "Prepare env"
+        run: |
+          echo "${VARS_GOOGLE_SERVICES}" | base64 -d | zcat > androidApp/google-services.json
+          echo "${VARS_GOOGLE_SERVICES}" | base64 -d | zcat > wearApp/google-services.json
+        env:
+          VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
+      - name: "Run Android unit tests"
+        run: >-
+          ./gradlew --continue
+          :androidApp:testNoneDebugUnitTest
+          :androidApp:testPlayStoreDebugUnitTest
+          :wearApp:testNoneDebugUnitTest
+          :wearApp:testPlayStoreDebugUnitTest
+          :androidLibAutofill:testDebugUnitTest
+          :integration:wearCredentialProviderApp:testDebugUnitTest
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: android-unit-test-reports
+          path: |
+            **/build/test-results/**
+            **/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21
+
+  check-ios-simulator-tests:
+    name: Check iOS Simulator Tests
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-apple-ios-sim"
+      - name: "Run iOS simulator tests"
+        run: >-
+          ./gradlew --continue
+          :common:iosSimulatorArm64Test
+          :iosApp:iosSimulatorArm64Test
+          :util:foundation:iosSimulatorArm64Test
+          :util:kdbx:iosSimulatorArm64Test
+          :util:messagepack:iosSimulatorArm64Test
+          :util:planeta:iosSimulatorArm64Test
+          :util:signalr:iosSimulatorArm64Test
+          :util:webdav:iosSimulatorArm64Test
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: ios-simulator-test-reports
+          path: |
+            **/build/test-results/**
+            **/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21
+
+  check-android-instrumentation:
+    name: Check Android Instrumentation (${{ matrix.variant }}, API ${{ matrix.api-level }})
+    if: ${{ false }} # temporarily disabled
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level:
+          - 26
+          - 30
+        variant:
+          - NoneDebug
+          - PlayStoreDebug
+        include:
+          - variant: NoneDebug
+            build-flavor: None
+          - variant: PlayStoreDebug
+            build-flavor: PlayStore
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_android_ndk
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
       - uses: ./.github/actions/prepare_kvm
       - uses: ./.github/actions/prepare_disk_space
       - name: "Prepare env"
         run: |
-          echo ${VARS_GOOGLE_SERVICES} | base64 -d | zcat >> androidApp/google-services.json
+          echo "${VARS_GOOGLE_SERVICES}" | base64 -d | zcat > androidApp/google-services.json
         env:
           VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
       - uses: ./.github/actions/build_android_licenses
         with:
-          build-flavor: "PlayStore"
-      - name: "Run integration tests"
-        id: baseline-profiles
-        uses: reactivecircus/android-emulator-runner@e89f39f1abbbd05b1113a29cf4db69e7540cae5a
+          build-flavor: ${{ matrix.build-flavor }}
+      - name: "Run Android instrumentation tests"
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
         with:
           api-level: ${{ matrix.api-level }}
           arch: x86_64
           disable-animations: true
           disk-size: 4G
-          script: |
-            adb root
-            ./gradlew :androidApp:connectedPlayStoreDebugAndroidTest ; RESULT=$?
-            mkdir -p artifacts/
-            adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true
-            exit $RESULT
-      - name: 'Upload screen recordings'
+          script: >-
+            adb root || true;
+            RESULT=0;
+            ./gradlew --continue :androidApp:connected${{ matrix.variant }}AndroidTest || RESULT=$?;
+            mkdir -p artifactsScreenRecording/ || RESULT=$?;
+            adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true;
+            exit "$RESULT"
+      - name: "Upload screen recordings"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: android-${{ matrix.api-level }}-screen-recordings
-          path: |
-            artifactsScreenRecording/
+          name: android-${{ matrix.api-level }}-${{ matrix.variant }}-screen-recordings
+          path: artifactsScreenRecording/
+          if-no-files-found: ignore
           retention-days: 7
-      - name: 'Upload logs'
+      - name: "Upload test reports"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: android-${{ matrix.api-level }}-logs
+          name: android-${{ matrix.api-level }}-${{ matrix.variant }}-test-reports
           path: |
-            androidApp/outputs/androidTest-results/
-          retention-days: 7
+            androidApp/build/outputs/androidTest-results/**
+            androidApp/build/reports/androidTests/**
+          if-no-files-found: ignore
+          retention-days: 21

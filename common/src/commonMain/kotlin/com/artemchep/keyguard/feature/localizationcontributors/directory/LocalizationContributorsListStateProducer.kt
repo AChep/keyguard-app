@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.localizationcontributors.Localizati
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.keyboard.searchQueryShortcuts
 import com.artemchep.keyguard.feature.search.search.IndexedModel
@@ -24,6 +25,7 @@ import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.icons.UserIcon
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
@@ -51,6 +53,14 @@ fun produceJustDeleteMeServiceListState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    localizationContributorsListStateProducer(
+        localizationContributorsService = localizationContributorsService,
+    )
+}
+
+suspend fun RememberStateFlowScope.localizationContributorsListStateProducer(
+    localizationContributorsService: LocalizationContributorsService,
+): Flow<Loadable<LocalizationContributorsListState>> {
     val queryHandle = searchQueryHandle("query")
     searchQueryShortcuts(queryHandle)
     val queryFlow = searchFilter(queryHandle) { model, revision ->
@@ -140,7 +150,7 @@ fun produceJustDeleteMeServiceListState(
                 }
             Loadable.Ok(contentOrException)
         }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = LocalizationContributorsListState(
                 filter = queryFlow,

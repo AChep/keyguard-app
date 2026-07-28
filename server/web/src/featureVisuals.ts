@@ -17,6 +17,7 @@ export const FEATURE_VISUALS: Record<string, FeatureVisual> = {
   passkeys: { icon: 'key', chip: 'bg-cyan-500/15', ink: 'text-cyan-600 dark:text-cyan-400' },
   'flexible-unlock': { icon: 'unlock', chip: 'bg-orange-500/15', ink: 'text-orange-600 dark:text-orange-400' },
   'ssh-agent': { icon: 'terminal', chip: 'bg-purple-500/15', ink: 'text-purple-600 dark:text-purple-400' },
+  'gpg-tools': { icon: 'lock', chip: 'bg-indigo-500/15', ink: 'text-indigo-600 dark:text-indigo-400' },
   autofill: { icon: 'pen-line', chip: 'bg-green-500/15', ink: 'text-green-600 dark:text-green-400' },
   generator: { icon: 'wand', chip: 'bg-pink-500/15', ink: 'text-pink-600 dark:text-pink-400' },
   'shortcuts-placeholders': { icon: 'zap', chip: 'bg-yellow-500/15', ink: 'text-yellow-600 dark:text-yellow-400' },

@@ -17,6 +17,7 @@ fun settingCrashProvider(
     val item = SettingIi {
         SettingCrash(
             onClick = {
+                @Suppress("TooGenericExceptionThrown")
                 throw RuntimeException("Test crash.")
             },
         )

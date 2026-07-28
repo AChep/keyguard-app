@@ -9,6 +9,7 @@ import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -33,6 +34,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.MatchDetection
@@ -58,6 +60,7 @@ import com.artemchep.keyguard.common.model.create.expYear
 import com.artemchep.keyguard.common.model.create.firstName
 import com.artemchep.keyguard.common.model.create.fromMonth
 import com.artemchep.keyguard.common.model.create.fromYear
+import com.artemchep.keyguard.common.model.create.gpgKey
 import com.artemchep.keyguard.common.model.create.identity
 import com.artemchep.keyguard.common.model.create.lastName
 import com.artemchep.keyguard.common.model.create.licenseNumber
@@ -76,11 +79,30 @@ import com.artemchep.keyguard.common.model.creditCards
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.model.titleH
+import com.artemchep.keyguard.common.model.toGpgKeyMaterial
+import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportServiceUnsupported
+import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationChange
+import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationError
+import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationRequest
+import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationResult
+import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationServiceUnsupported
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
+import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
+import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportError
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.TextService
@@ -88,7 +110,9 @@ import com.artemchep.keyguard.common.service.text.readFromFileAsText
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.CopyText
+import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
+import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
@@ -98,6 +122,7 @@ import com.artemchep.keyguard.common.usecase.GetMarkdown
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.EventFlow
@@ -115,13 +140,15 @@ import com.artemchep.keyguard.feature.add.ownershipHandle
 import com.artemchep.keyguard.feature.apppicker.AppPickerResult
 import com.artemchep.keyguard.feature.apppicker.AppPickerRoute
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
 import com.artemchep.keyguard.feature.auth.common.util.format
 import com.artemchep.keyguard.feature.auth.common.util.validateUri
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
@@ -131,11 +158,19 @@ import com.artemchep.keyguard.feature.datepicker.DatePickerRoute
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.gpgkey.expiration.createLocalizedGpgKeyExpirationFailureToast
+import com.artemchep.keyguard.feature.gpgkey.expiration.requestGpgKeyExpirationChange
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachmentItemFactory
 import com.artemchep.keyguard.feature.home.vault.add.attachment.toSkeletonAttachmentOrNull
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
+import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerResult
+import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerRoute
+import com.artemchep.keyguard.feature.home.vault.link.CipherLinkTarget
+import com.artemchep.keyguard.feature.home.vault.link.cipherLinkTargetsByRemoteId
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
+import com.artemchep.keyguard.feature.home.vault.screen.toVaultItemPresentation
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
@@ -164,6 +199,9 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -182,12 +220,16 @@ import kotlinx.coroutines.flow.scan
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
-import kotlin.time.Instant
+import kotlinx.coroutines.withContext
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
 // TODO: Support hide password option
@@ -203,11 +245,17 @@ fun produceAddScreenState(
         getCollections = instance(),
         getFolders = instance(),
         getCiphers = instance(),
+        getAppIcons = instance(),
+        getWebsiteIcons = instance(),
         getTotpCode = instance(),
         getGravatarUrl = instance(),
         getMarkdown = instance(),
         textService = instance(),
+        dateFormatter = instance(),
         sshKeyImportService = instance(),
+        gpgKeyImportService = instanceOrNull() ?: GpgKeyImportServiceUnsupported,
+        gpgPublicKeyParser = instanceOrNull() ?: GpgPublicKeyParserUnsupported,
+        gpgKeyExpirationService = instanceOrNull() ?: GpgKeyExpirationServiceUnsupported,
         logRepository = instance(),
         clipboardService = instance(),
         otpMigrationService = instance(),
@@ -237,11 +285,17 @@ fun produceAddScreenState(
     getCollections: GetCollections,
     getFolders: GetFolders,
     getCiphers: GetCiphers,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
     getTotpCode: GetTotpCode,
     getGravatarUrl: GetGravatarUrl,
     getMarkdown: GetMarkdown,
     textService: TextService,
+    dateFormatter: DateFormatter,
     sshKeyImportService: SshKeyImportService,
+    gpgKeyImportService: GpgKeyImportService,
+    gpgPublicKeyParser: GpgPublicKeyParser,
+    gpgKeyExpirationService: GpgKeyExpirationService,
     logRepository: LogRepository,
     clipboardService: ClipboardService,
     otpMigrationService: OtpMigrationService,
@@ -260,9 +314,69 @@ fun produceAddScreenState(
         getCollections,
         getFolders,
         getCiphers,
+        getAppIcons,
+        getWebsiteIcons,
         getTotpCode,
     ),
 ) {
+    addCipherStateProducer(
+        args = args,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getFolders = getFolders,
+        getCiphers = getCiphers,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        getTotpCode = getTotpCode,
+        getGravatarUrl = getGravatarUrl,
+        getMarkdown = getMarkdown,
+        textService = textService,
+        dateFormatter = dateFormatter,
+        sshKeyImportService = sshKeyImportService,
+        gpgKeyImportService = gpgKeyImportService,
+        gpgPublicKeyParser = gpgPublicKeyParser,
+        gpgKeyExpirationService = gpgKeyExpirationService,
+        logRepository = logRepository,
+        clipboardService = clipboardService,
+        otpMigrationService = otpMigrationService,
+        getAutofillDefaultMatchDetection = getAutofillDefaultMatchDetection,
+        cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
+        showMessage = showMessage,
+        addCipher = addCipher,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.addCipherStateProducer(
+    args: AddRoute.Args,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getFolders: GetFolders,
+    getCiphers: GetCiphers,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    getTotpCode: GetTotpCode,
+    getGravatarUrl: GetGravatarUrl,
+    getMarkdown: GetMarkdown,
+    textService: TextService,
+    dateFormatter: DateFormatter,
+    sshKeyImportService: SshKeyImportService,
+    gpgKeyImportService: GpgKeyImportService,
+    gpgPublicKeyParser: GpgPublicKeyParser,
+    gpgKeyExpirationService: GpgKeyExpirationService,
+    logRepository: LogRepository,
+    clipboardService: ClipboardService,
+    otpMigrationService: OtpMigrationService,
+    getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
+    cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
+    showMessage: ShowMessage,
+    addCipher: AddCipher,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<AddState>> {
     val copyText = copier()
     val markdown = getMarkdown().first()
     val filePickerEvents = EventFlow<FilePickerIntent<*>>()
@@ -345,6 +459,18 @@ fun produceAddScreenState(
         filePickerIntentSink = filePickerEvents,
         confirmationRouteFactory = confirmationRouteFactory,
     )
+    val gpgKeyHolder = produceGpgKeyState(
+        args = args,
+        getCiphers = getCiphers,
+        textService = textService,
+        dateFormatter = dateFormatter,
+        gpgKeyImportService = gpgKeyImportService,
+        gpgPublicKeyParser = gpgPublicKeyParser,
+        gpgKeyExpirationService = gpgKeyExpirationService,
+        showMessage = showMessage,
+        filePickerIntentSink = filePickerEvents,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
 
     val typeFlow = kotlin.run {
         val initialValue = args.type
@@ -423,7 +549,7 @@ fun produceAddScreenState(
         },
         extra = {
             typeBasedAddItem(
-                translator = this@produceScreenState,
+                translator = this@addCipherStateProducer,
                 scope = "uri",
                 typesFlow = flowOf(
                     listOf(
@@ -495,7 +621,7 @@ fun produceAddScreenState(
         },
         extra = {
             val bitwardenUploadLimitError = translate(Res.string.error_file_must_be_500_mb_or_smaller)
-            val keePassUploadLimitError = translate(Res.string.error_file_must_be_1_mb_or_smaller)
+            val keePassUploadLimitError = translate(Res.string.error_file_must_be_500_mb_or_smaller)
 
             fun addAttachmentFile(
                 info: FilePickerResult,
@@ -532,6 +658,7 @@ fun produceAddScreenState(
                     },
                 )
                 val action = FlatItemAction(
+                    id = "addItem.attachment.add",
                     title = TextHolder.Value("Attachment"),
                     onClick = {
                         val intent = FilePickerIntent.OpenDocument { info ->
@@ -566,6 +693,9 @@ fun produceAddScreenState(
                 DSecret.Type.Card -> flowOf(cardHolder.items)
                 DSecret.Type.Identity -> flowOf(identityHolder.items)
                 DSecret.Type.SecureNote -> flowOf(noteHolder.items)
+
+                DSecret.Type.GpgKey -> flowOf(noteHolder.items + gpgKeyHolder.items)
+
                 DSecret.Type.SshKey -> flowOf(sshKeyHolder.items)
                 DSecret.Type.None -> flowOf(emptyList())
             }
@@ -583,7 +713,7 @@ fun produceAddScreenState(
         selectedFlow = noteItem.state.flow.map { it.text },
         concealed = false,
         onClick = {
-            noteItem.state.flow.value.onChange?.invoke(it)
+            noteItem.state.flow.value.onSetText?.invoke(it)
         },
     )
     val miscItems = listOfNotNull(
@@ -596,7 +726,10 @@ fun produceAddScreenState(
     val miscFlow = typeFlow
         .map { type ->
             val hasNotes = when (type) {
-                DSecret.Type.SecureNote -> true
+                DSecret.Type.SecureNote,
+                DSecret.Type.GpgKey,
+                -> true
+
                 else -> false
             }
             hasNotes
@@ -690,6 +823,55 @@ fun produceAddScreenState(
             linkedIdFactory,
         )
     }
+    val linkAccountIdFlow = ownershipFlow
+        .map { it.data.accountId }
+        .distinctUntilChanged()
+    val linkPresentationContextFlow = createCipherLinkPresentationContextFlow(
+        ciphersFlow = getCiphers(),
+        accountIdFlow = linkAccountIdFlow,
+        appIconsFlow = getAppIcons(),
+        websiteIconsFlow = getWebsiteIcons(),
+        excludedCipherId = args.initialValue?.id,
+        sharingScope = screenScope,
+    )
+    val linksFlow = foo3(
+        logRepository = logRepository,
+        scope = "link",
+        initial = canonicalizeCipherLinkIds(
+            args.initialValue
+                ?.links
+                .orEmpty()
+                .map(DSecret.Link::remoteCipherId),
+        ).map(DSecret::Link),
+        initialType = { "link" },
+        confirmationRouteFactory = confirmationRouteFactory,
+        factories = listOf(
+            AddStateItemLinkFactory(
+                presentationContextFlow = linkPresentationContextFlow,
+            ),
+        ),
+        afterList = {
+            // The add item is hidden until an account is picked, so
+            // without this the header could end up on its own.
+            if (isEmpty()) {
+                return@foo3
+            }
+
+            val header = AddStateItem.Section(
+                id = "link.section",
+                text = translate(Res.string.cipher_links_outgoing_title),
+            )
+            add(0, header)
+        },
+        extra = {
+            cipherLinkAddItem(
+                scope = this@addCipherStateProducer,
+                accountIdFlow = linkAccountIdFlow,
+                excludedCipherId = args.initialValue?.id,
+            )
+        },
+    )
+
     val fieldsFlow = foo3(
         logRepository = logRepository,
         scope = "field",
@@ -715,7 +897,7 @@ fun produceAddScreenState(
         },
         extra = {
             typeBasedAddItem(
-                translator = this@produceScreenState,
+                translator = this@addCipherStateProducer,
                 scope = "field",
                 typesFlow = typeFlow
                     .map { type ->
@@ -747,7 +929,9 @@ fun produceAddScreenState(
                             )
 
                             DSecret.Type.SshKey,
-                            DSecret.Type.SecureNote -> listOf(
+                            DSecret.Type.SecureNote,
+                            DSecret.Type.GpgKey,
+                            -> listOf(
                                 plainTextType,
                                 concealedTextType,
                                 booleanType,
@@ -782,7 +966,7 @@ fun produceAddScreenState(
         },
         extra = {
             typeBasedAddItem(
-                translator = this@produceScreenState,
+                translator = this@addCipherStateProducer,
                 scope = "tag",
                 typesFlow = flowOf(
                     listOf(
@@ -801,29 +985,29 @@ fun produceAddScreenState(
         state = LocalStateItem(
             flow = kotlin.run {
                 val key = "title"
-                val sink = mutablePersistedFlow(key) {
-                    args.name
+                val handle = textFieldHandle(
+                    key = key,
+                    initial = args.name
                         ?: args.initialValue?.name
                         ?: args.autofill?.webDomain
-                        ?: ""
-                }
-                val state = asComposeState<String>(key)
+                        ?: "",
+                )
                 combine(
-                    sink
-                        .validatedTitle(this),
+                    handle.sink
+                        .map { cell -> cell to validatedTitle(cell.text) },
                     typeFlow,
-                ) { validatedTitle, type ->
-                    TextFieldModel2.of(
-                        state = state,
+                ) { (cell, validatedTitle), type ->
+                    TextFieldModel.of(
+                        cell = cell,
+                        handle = handle,
                         hint = translate(type.titleH()),
                         validated = validatedTitle,
-                        onChange = state::value::set,
                     )
                 }
                     .persistingStateIn(
                         scope = screenScope,
                         started = SharingStarted.WhileSubscribed(1000L),
-                        initialValue = TextFieldModel2.empty,
+                        initialValue = TextFieldModel.empty,
                     )
             },
             populator = { field ->
@@ -841,7 +1025,7 @@ fun produceAddScreenState(
         selectedFlow = titleItem.state.flow.map { it.text },
         concealed = false,
         onClick = {
-            titleItem.state.flow.value.onChange?.invoke(it)
+            titleItem.state.flow.value.onSetText?.invoke(it)
         },
     )
     val items1 = listOfNotNull(
@@ -878,6 +1062,7 @@ fun produceAddScreenState(
         fieldsFlow,
         tagsFlow,
         attachmentsFlow,
+        linksFlow,
         miscFlow,
     ) { arr ->
         arr.toList().flatten()
@@ -1001,6 +1186,12 @@ fun produceAddScreenState(
             },
         )
         Loadable.Ok(state)
+    }.combine(gpgKeyHolder.saveEnabled) { state, saveEnabled ->
+        state.map { value ->
+            value.copy(
+                onSave = value.onSave.takeIf { saveEnabled },
+            )
+        }
     }.combine(attachmentsFileDragFlow) { state, fileDrag ->
         state.map { value ->
             value.copy(
@@ -1008,7 +1199,7 @@ fun produceAddScreenState(
             )
         }
     }
-    f
+    return f
 }
 
 class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment<*>, DSecret.Attachment> {
@@ -1023,17 +1214,18 @@ class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment<*>, DS
         initial: DSecret.Attachment?,
     ): AddStateItem.Attachment<CreateRequest> {
         val nameKey = "$key.name"
-        val nameSink = mutablePersistedFlow(nameKey) {
-            initial?.fileName().orEmpty()
-        }
-        val nameMutableState = asComposeState<String>(nameKey)
+        val nameHandle = textFieldHandle(
+            key = nameKey,
+            initial = initial?.fileName().orEmpty(),
+        )
 
-        val textFlow = nameSink
-            .map { uri ->
-                TextFieldModel2(
-                    text = uri,
-                    state = nameMutableState,
-                    onChange = nameMutableState::value::set,
+        val textFlow = nameHandle.sink
+            .map { cell ->
+                TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
+                    onChange = nameHandle::onChange,
+                    onSetText = nameHandle::setText,
                 )
             }
         val stateFlow = textFlow
@@ -1050,7 +1242,7 @@ class AddStateItemAttachmentFactory : Foo2Factory<AddStateItem.Attachment<*>, DS
                 started = SharingStarted.WhileSubscribed(),
                 initialValue = AddStateItem.Attachment.State(
                     id = "id",
-                    name = TextFieldModel2.empty,
+                    name = TextFieldModel.empty,
                     size = null,
                     synced = initial != null,
                 ),
@@ -1084,16 +1276,17 @@ class AddStateItemUriFactory(
         initial: DSecret.Uri?,
     ): AddStateItem.Url<CreateRequest> {
         val uriKey = "$key.uri"
-        val uriSink = mutablePersistedFlow(uriKey) {
-            initial?.uri.orEmpty()
-        }
-        val uriMutableState = asComposeState<String>(uriKey)
+        val uriHandle = textFieldHandle(
+            key = uriKey,
+            initial = initial?.uri.orEmpty(),
+        )
 
         val matchDetectionSink = mutablePersistedFlow("$key.match_detection") {
             MatchDetection.valueOf(initial?.match)
         }
 
         val actionsAppPickerItem = FlatItemAction(
+            id = "addItem.uri.matchApp",
             leading = icon(Icons.Outlined.Apps),
             title = Res.string.uri_match_app_title.wrap(),
             trailing = {
@@ -1102,7 +1295,7 @@ class AddStateItemUriFactory(
             onClick = {
                 val route = registerRouteResultReceiver(AppPickerRoute) { result ->
                     if (result is AppPickerResult.Confirm) {
-                        uriMutableState.value = result.uri
+                        uriHandle.setText(result.uri)
                         matchDetectionSink.value = MatchDetection.Default
                     }
                 }
@@ -1117,6 +1310,7 @@ class AddStateItemUriFactory(
         val actionsMatchTypeItemFlow = matchDetectionSink
             .map { selectedMatchType ->
                 FlatItemAction(
+                    id = "addItem.uri.matchDetection",
                     leading = icon(Icons.Stub),
                     title = Res.string.uri_match_detection_title.wrap(),
                     text = selectedMatchType.matchType.titleH().wrap(),
@@ -1156,12 +1350,13 @@ class AddStateItemUriFactory(
             }
 
         val defaultMatchDetection = getAutofillDefaultMatchDetection()
-        val textFlow = uriSink
-            .map { uri ->
-                TextFieldModel2(
-                    text = uri,
-                    state = uriMutableState,
-                    onChange = uriMutableState::value::set,
+        val textFlow = uriHandle.sink
+            .map { cell ->
+                TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
+                    onChange = uriHandle::onChange,
+                    onSetText = uriHandle::setText,
                 )
             }
         val stateFlow = combine(
@@ -1185,8 +1380,8 @@ class AddStateItemUriFactory(
                     if (validationUri == ValidationUri.OK) {
                         val isUnsecure = cipherUnsecureUrlCheck(text.text)
                         if (isUnsecure) {
-                            TextFieldModel2.Vl(
-                                type = TextFieldModel2.Vl.Type.WARNING,
+                            TextFieldModel.Vl(
+                                type = TextFieldModel.Vl.Type.WARNING,
                                 text = translate(Res.string.uri_unsecure),
                             )
                         } else {
@@ -1195,8 +1390,8 @@ class AddStateItemUriFactory(
                     } else {
                         validationUri.format(this)
                             ?.let { error ->
-                                TextFieldModel2.Vl(
-                                    type = TextFieldModel2.Vl.Type.WARNING,
+                                TextFieldModel.Vl(
+                                    type = TextFieldModel.Vl.Type.WARNING,
                                     text = error,
                                 )
                             }
@@ -1209,7 +1404,7 @@ class AddStateItemUriFactory(
             }
             AddStateItem.Url.State(
                 options = actions,
-                text = text.copy(vl = badge),
+                text = text.copy(state = text.state.copy(vl = badge)),
                 matchType = matchType,
                 matchTypeTitle = matchType
                     ?.let {
@@ -1222,7 +1417,7 @@ class AddStateItemUriFactory(
                 scope = screenScope,
                 started = SharingStarted.WhileSubscribed(),
                 initialValue = AddStateItem.Url.State(
-                    text = TextFieldModel2.empty,
+                    text = TextFieldModel.empty,
                     matchType = null,
                 ),
             )
@@ -1231,12 +1426,138 @@ class AddStateItemUriFactory(
             state = LocalStateItem(
                 flow = stateFlow,
                 populator = { state ->
-                    val field = DSecret.Uri(
+                    val field = createUriWithPreservedSignatures(
                         uri = state.text.text,
                         match = state.matchType,
+                        initial = initial,
                     )
                     val newUris = uris.add(field)
                     copy(uris = newUris)
+                },
+            ),
+        )
+    }
+}
+
+internal fun createUriWithPreservedSignatures(
+    uri: String,
+    match: DSecret.Uri.MatchType?,
+    initial: DSecret.Uri?,
+): DSecret.Uri {
+    val signatures = initial
+        ?.signatures
+        .orEmpty()
+        .takeIf { initial?.uri == uri }
+        .orEmpty()
+    return DSecret.Uri(
+        uri = uri,
+        match = match,
+        signatures = signatures,
+    )
+}
+
+internal data class CipherLinkPresentationContext(
+    val targetsByRemoteId: Map<String, CipherLinkTarget>,
+    val appIcons: Boolean,
+    val websiteIcons: Boolean,
+) {
+    fun presentation(remoteCipherId: String): VaultItemPresentation? =
+        targetsByRemoteId[remoteCipherId]
+            ?.cipher
+            ?.toVaultItemPresentation(
+                appIcons = appIcons,
+                websiteIcons = websiteIcons,
+            )
+}
+
+internal fun createCipherLinkPresentationContextFlow(
+    ciphersFlow: Flow<List<DSecret>>,
+    accountIdFlow: Flow<String?>,
+    appIconsFlow: Flow<Boolean>,
+    websiteIconsFlow: Flow<Boolean>,
+    excludedCipherId: String?,
+    sharingScope: CoroutineScope,
+): Flow<CipherLinkPresentationContext> = combine(
+    ciphersFlow,
+    accountIdFlow,
+    appIconsFlow,
+    websiteIconsFlow,
+) { ciphers, accountId, appIcons, websiteIcons ->
+    CipherLinkPresentationContext(
+        targetsByRemoteId = cipherLinkTargetsByRemoteId(
+            ciphers = ciphers,
+            accountId = accountId,
+            excludedCipherId = excludedCipherId,
+        ),
+        appIcons = appIcons,
+        websiteIcons = websiteIcons,
+    )
+}
+    .shareIn(
+        scope = sharingScope,
+        started = SharingStarted.WhileSubscribed(5_000L),
+        replay = 1,
+    )
+
+private class AddStateItemLinkFactory(
+    private val presentationContextFlow: Flow<CipherLinkPresentationContext>,
+) : Foo2Factory<AddStateItem.Link<*>, DSecret.Link> {
+    override val type: String = "link"
+
+    override fun RememberStateFlowScope.release(key: String) {
+        clearPersistedFlow("$key.data")
+    }
+
+    override fun RememberStateFlowScope.add(
+        key: String,
+        initial: DSecret.Link?,
+    ): AddStateItem.Link<CreateRequest> {
+        val remoteCipherIdSink = mutablePersistedFlow<String?>(
+            key = "$key.data",
+        ) {
+            initial?.remoteCipherId
+        }
+
+        fun String?.toState(
+            context: CipherLinkPresentationContext?,
+        ) = AddStateItem.Link.State(
+            link = this?.let(DSecret::Link),
+            presentation = this?.let { remoteCipherId ->
+                context?.presentation(remoteCipherId)
+            },
+        )
+
+        val stateFlow = combine(
+            remoteCipherIdSink,
+            presentationContextFlow,
+        ) { remoteCipherId, context ->
+            remoteCipherId.toState(context)
+        }
+            .persistingStateIn(
+                scope = screenScope,
+                started = SharingStarted.WhileSubscribed(),
+                // The link itself is known upfront, only its title has to wait
+                // for the ciphers to load. Seeding the state with the link
+                // keeps a save that lands before the first emission from
+                // silently dropping it.
+                initialValue = remoteCipherIdSink.value.toState(context = null),
+            )
+        return AddStateItem.Link<CreateRequest>(
+            id = key,
+            state = LocalStateItem(
+                flow = stateFlow,
+                populator = { state ->
+                    val link = state.link
+                    // Do not modify the state if the
+                    // link does not exist.
+                        ?: return@LocalStateItem this
+                    val newLinks = canonicalizeCipherLinkIds(
+                        (links + link)
+                            .map(DSecret.Link::remoteCipherId),
+                    )
+                        .map(DSecret::Link)
+                        .toPersistentList()
+                    copy(links = newLinks)
                 },
             ),
         )
@@ -1389,22 +1710,23 @@ class AddStateItemTagTextFactory(
         key: String,
         initial: String?,
     ): AddStateItem.Tag<CreateRequest> {
-        val textSink = mutablePersistedFlow("$key.text") {
-            initial.orEmpty()
-        }
-        val textMutableState = mutableComposeState(textSink)
+        val textHandle = textFieldHandle(
+            key = "$key.text",
+            initial = initial.orEmpty(),
+        )
         val textHintFlow = ioEffect {
             translate(Res.string.tag_value)
         }.asFlow()
         val textFlow = combine(
-            textSink,
+            textHandle.sink,
             textHintFlow,
-        ) { textValue, textHint ->
-            TextFieldModel2(
-                text = textValue,
+        ) { textCell, textHint ->
+            TextFieldModel(
+                text = textCell.text,
+                textRevision = textCell.revision,
                 hint = textHint,
-                state = textMutableState,
-                onChange = textMutableState::value::set,
+                onChange = textHandle::onChange,
+                onSetText = textHandle::setText,
             )
         }
 
@@ -1418,7 +1740,7 @@ class AddStateItemTagTextFactory(
                 scope = screenScope,
                 started = SharingStarted.WhileSubscribed(1000L),
                 initialValue = AddStateItem.Tag.State.Text(
-                    text = TextFieldModel2.empty,
+                    text = TextFieldModel.empty,
                 ),
             )
         return foo(
@@ -1497,41 +1819,43 @@ class AddStateItemFieldTextFactory(
         key: String,
         initial: DSecret.Field?,
     ): AddStateItem.Field<CreateRequest> {
-        val labelSink = mutablePersistedFlow("$key.label") {
-            initial?.name.orEmpty()
-        }
-        val labelMutableState = mutableComposeState(labelSink)
+        val labelHandle = textFieldHandle(
+            key = "$key.label",
+            initial = initial?.name.orEmpty(),
+        )
         val labelHintFlow = ioEffect {
             translate(Res.string.field_label)
         }.asFlow()
         val labelFlow = combine(
-            labelSink,
+            labelHandle.sink,
             labelHintFlow,
-        ) { labelValue, labelHint ->
-            TextFieldModel2(
-                text = labelValue,
+        ) { labelCell, labelHint ->
+            TextFieldModel(
+                text = labelCell.text,
+                textRevision = labelCell.revision,
                 hint = labelHint,
-                state = labelMutableState,
-                onChange = labelMutableState::value::set,
+                onChange = labelHandle::onChange,
+                onSetText = labelHandle::setText,
             )
         }
 
-        val textSink = mutablePersistedFlow("$key.text") {
-            initial?.value.orEmpty()
-        }
-        val textMutableState = mutableComposeState(textSink)
+        val textHandle = textFieldHandle(
+            key = "$key.text",
+            initial = initial?.value.orEmpty(),
+        )
         val textHintFlow = ioEffect {
             translate(Res.string.field_value)
         }.asFlow()
         val textFlow = combine(
-            textSink,
+            textHandle.sink,
             textHintFlow,
-        ) { textValue, textHint ->
-            TextFieldModel2(
-                text = textValue,
+        ) { textCell, textHint ->
+            TextFieldModel(
+                text = textCell.text,
+                textRevision = textCell.revision,
                 hint = textHint,
-                state = textMutableState,
-                onChange = textMutableState::value::set,
+                onChange = textHandle::onChange,
+                onSetText = textHandle::setText,
             )
         }
 
@@ -1543,6 +1867,7 @@ class AddStateItemFieldTextFactory(
         val actionsConcealItemFlow = concealSink
             .map { conceal ->
                 FlatItemAction(
+                    id = "addItem.field.concealValue",
                     leading = {
                         val imageVector = if (conceal) {
                             Icons.Outlined.VisibilityOff
@@ -1591,8 +1916,8 @@ class AddStateItemFieldTextFactory(
                 scope = screenScope,
                 started = SharingStarted.WhileSubscribed(1000L),
                 initialValue = AddStateItem.Field.State.Text(
-                    label = TextFieldModel2.empty,
-                    text = TextFieldModel2.empty,
+                    label = TextFieldModel.empty,
+                    text = TextFieldModel.empty,
                 ),
             )
         return foo(
@@ -1614,16 +1939,17 @@ class AddStateItemFieldBooleanFactory : AddStateItemFieldFactory() {
         key: String,
         initial: DSecret.Field?,
     ): AddStateItem.Field<CreateRequest> {
-        val labelSink = mutablePersistedFlow("$key.label") {
-            initial?.name.orEmpty()
-        }
-        val labelMutableState = mutableComposeState(labelSink)
-        val labelFlow = labelSink.map { label ->
-            TextFieldModel2(
-                text = label,
+        val labelHandle = textFieldHandle(
+            key = "$key.label",
+            initial = initial?.name.orEmpty(),
+        )
+        val labelFlow = labelHandle.sink.map { labelCell ->
+            TextFieldModel(
+                text = labelCell.text,
+                textRevision = labelCell.revision,
                 hint = "Label",
-                state = labelMutableState,
-                onChange = labelMutableState::value::set,
+                onChange = labelHandle::onChange,
+                onSetText = labelHandle::setText,
             )
         }
 
@@ -1645,7 +1971,7 @@ class AddStateItemFieldBooleanFactory : AddStateItemFieldFactory() {
                 scope = screenScope,
                 started = SharingStarted.WhileSubscribed(1000L),
                 initialValue = AddStateItem.Field.State.Switch(
-                    label = TextFieldModel2.empty,
+                    label = TextFieldModel.empty,
                 ),
             )
         return foo(
@@ -1669,16 +1995,17 @@ class AddStateItemFieldLinkedIdFactory(
         key: String,
         initial: DSecret.Field?,
     ): AddStateItem.Field<CreateRequest> {
-        val labelSink = mutablePersistedFlow("$key.label") {
-            initial?.name.orEmpty()
-        }
-        val labelMutableState = mutableComposeState(labelSink)
-        val labelFlow = labelSink.map { label ->
-            TextFieldModel2(
-                text = label,
+        val labelHandle = textFieldHandle(
+            key = "$key.label",
+            initial = initial?.name.orEmpty(),
+        )
+        val labelFlow = labelHandle.sink.map { labelCell ->
+            TextFieldModel(
+                text = labelCell.text,
+                textRevision = labelCell.revision,
                 hint = "Label",
-                state = labelMutableState,
-                onChange = labelMutableState::value::set,
+                onChange = labelHandle::onChange,
+                onSetText = labelHandle::setText,
             )
         }
 
@@ -1738,7 +2065,7 @@ class AddStateItemFieldLinkedIdFactory(
                 scope = screenScope,
                 started = SharingStarted.WhileSubscribed(1000L),
                 initialValue = AddStateItem.Field.State.LinkedId(
-                    label = TextFieldModel2.empty,
+                    label = TextFieldModel.empty,
                     value = null,
                     actions = persistentListOf(),
                 ),
@@ -1869,6 +2196,61 @@ interface FieldBakeryScope<Argument> {
     fun add(type: String, arg: Argument?)
 }
 
+/**
+ * Unlike the other lists, a link can not start out empty: the user has to
+ * pick the cipher to link to first, so the add item opens the picker
+ * instead of appending a blank entry.
+ */
+private fun FieldBakeryScope<DSecret.Link>.cipherLinkAddItem(
+    scope: RememberStateFlowScope,
+    accountIdFlow: Flow<String?>,
+    excludedCipherId: String?,
+): Flow<List<AddStateItem>> {
+    val bakery = this
+    return accountIdFlow
+        .map { accountId ->
+            if (accountId == null) {
+                return@map emptyList() // hide add item
+            }
+
+            val actions = buildContextItems {
+                this += FlatItemAction(
+                    id = "addItem.link.add",
+                    leading = icon(Icons.Outlined.Link),
+                    title = TextHolder.Res(Res.string.cipher_link_picker_action),
+                    onClick = {
+                        val pickerRoute = CipherLinkPickerRoute(
+                            args = CipherLinkPickerRoute.Args(
+                                accountId = accountId,
+                                excludedCipherId = excludedCipherId,
+                            ),
+                        )
+                        val route = with(scope) {
+                            registerRouteResultReceiver(pickerRoute) { result ->
+                                if (result is CipherLinkPickerResult.Confirm) {
+                                    bakery.add(
+                                        type = "link",
+                                        arg = DSecret.Link(
+                                            remoteCipherId = result.link.remoteCipherId,
+                                        ),
+                                    )
+                                }
+                            }
+                        }
+                        scope.navigate(NavigationIntent.NavigateToRoute(route))
+                    },
+                )
+            }
+            listOf(
+                AddStateItem.Add(
+                    id = "link.add",
+                    text = scope.translate(Res.string.list_add),
+                    actions = actions,
+                ),
+            )
+        }
+}
+
 private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
     translator: TranslatorScope,
     scope: String,
@@ -1882,6 +2264,7 @@ private fun <Argument> FieldBakeryScope<Argument>.typeBasedAddItem(
         val actions = buildContextItems {
             types.forEach { type ->
                 this += FlatItemAction(
+                    id = "addItem.$scope.add.${type.type}",
                     title = TextHolder.Value(type.name),
                     onClick = ::add
                         .partially1(type.type)
@@ -2033,6 +2416,7 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
                 val options = buildContextItems(item.options) {
                     if (index > 0) {
                         this += FlatItemAction(
+                            id = "addItem.entry.${entry.key}.moveUp",
                             icon = Icons.Outlined.ArrowUpward,
                             title = Res.string.list_move_up.wrap(),
                             onClick = ::moveUp.partially1(entry.key),
@@ -2040,14 +2424,17 @@ suspend fun <T, Argument> RememberStateFlowScope.foo(
                     }
                     if (index < state.size - 1) {
                         this += FlatItemAction(
+                            id = "addItem.entry.${entry.key}.moveDown",
                             icon = Icons.Outlined.ArrowDownward,
                             title = Res.string.list_move_down.wrap(),
                             onClick = ::moveDown.partially1(entry.key),
                         )
                     }
                     this += FlatItemAction(
+                        id = "addItem.entry.${entry.key}.remove",
                         icon = Icons.Outlined.DeleteForever,
                         title = Res.string.list_remove.wrap(),
+                        danger = true,
                         onClick = onClick {
                             val intent = createConfirmationDialogIntent(
                                 confirmationRouteFactory = confirmationRouteFactory,
@@ -2381,6 +2768,12 @@ data class TmpSshKey(
     val items: List<AddStateItem>,
 )
 
+private data class TmpGpgKey(
+    val gpgKey: AddStateItem.GpgKey<CreateRequest>,
+    val saveEnabled: Flow<Boolean>,
+    val items: List<AddStateItem>,
+)
+
 private suspend fun RememberStateFlowScope.produceLoginState(
     args: AddRoute.Args,
     profileFlow: Flow<DProfile?>,
@@ -2399,8 +2792,10 @@ private suspend fun RememberStateFlowScope.produceLoginState(
     ) = kotlin.run {
         val id = "$prefix.$key"
 
-        val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-        val state = mutableComposeState(sink)
+        val handle = textFieldHandle(
+            key = id,
+            initial = initialValue.orEmpty(),
+        )
         factory(
             id,
             LocalStateItem(
@@ -2410,16 +2805,17 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                             ?: return@map persistentListOf<String>()
                         persistentListOf(email)
                     }
-                    .combine(sink) { autocompleteOptions, value ->
-                        val model = TextFieldModel2(
-                            state = state,
-                            text = value,
+                    .combine(handle.sink) { autocompleteOptions, cell ->
+                        val model = TextFieldModel(
+                            text = cell.text,
+                            textRevision = cell.revision,
                             autocompleteOptions = autocompleteOptions,
-                            onChange = state::value::set,
+                            onChange = handle::onChange,
+                            onSetText = handle::setText,
                         )
                         AddStateItem.Username.State(
                             value = model,
-                            type = UsernameVariation2.of(getGravatarUrl, value),
+                            type = UsernameVariation2.of(getGravatarUrl, cell.text),
                         )
                     }
                     .persistingStateIn(
@@ -2427,7 +2823,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                         started = SharingStarted.WhileSubscribed(),
                         initialValue =
                         AddStateItem.Username.State(
-                            value = TextFieldModel2.empty,
+                            value = TextFieldModel.empty,
                             type = UsernameVariation2.default,
                         ),
                     ),
@@ -2439,28 +2835,31 @@ private suspend fun RememberStateFlowScope.produceLoginState(
     suspend fun <Item> createItem(
         key: String,
         initialValue: String? = null,
-        populator: CreateRequest.(TextFieldModel2) -> CreateRequest,
-        factory: (String, LocalStateItem<TextFieldModel2, CreateRequest>) -> Item,
+        populator: CreateRequest.(TextFieldModel) -> CreateRequest,
+        factory: (String, LocalStateItem<TextFieldModel, CreateRequest>) -> Item,
     ) = kotlin.run {
         val id = "$prefix.$key"
 
-        val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-        val state = mutableComposeState(sink)
+        val handle = textFieldHandle(
+            key = id,
+            initial = initialValue.orEmpty(),
+        )
         factory(
             id,
             LocalStateItem(
-                flow = sink
-                    .map { value ->
-                        TextFieldModel2(
-                            state = state,
-                            text = value,
-                            onChange = state::value::set,
+                flow = handle.sink
+                    .map { cell ->
+                        TextFieldModel(
+                            text = cell.text,
+                            textRevision = cell.revision,
+                            onChange = handle::onChange,
+                            onSetText = handle::setText,
                         )
                     }
                     .persistingStateIn(
                         scope = screenScope,
                         started = SharingStarted.WhileSubscribed(),
-                        initialValue = TextFieldModel2.empty,
+                        initialValue = TextFieldModel.empty,
                     ),
                 populator = populator,
             ),
@@ -2492,7 +2891,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
         getSuggestion = { it.login?.username },
         selectedFlow = username.state.flow.map { it.value.text },
         onClick = {
-            username.state.flow.value.value.onChange?.invoke(it)
+            username.state.flow.value.value.onSetText?.invoke(it)
         },
     )
     val password = createItem(
@@ -2519,16 +2918,17 @@ private suspend fun RememberStateFlowScope.produceLoginState(
         selectedFlow = password.state.flow.map { it.text },
         concealed = true,
         onClick = {
-            password.state.flow.value.onChange?.invoke(it)
+            password.state.flow.value.onSetText?.invoke(it)
         },
     )
 
     val totpState = kotlin.run {
-        val sink = mutablePersistedFlow("totp") {
-            args.initialValue?.login?.totp?.raw.orEmpty()
-        }
-        val state = mutableComposeState(sink)
-        val totpFlow = sink
+        val handle = textFieldHandle(
+            key = "totp",
+            initial = args.initialValue?.login?.totp?.raw.orEmpty(),
+        )
+        val totpFlow = handle.sink
+            .map { it.text }
             .debounce(80L)
             .map { raw ->
                 val token = if (raw.isBlank()) {
@@ -2543,12 +2943,13 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                 emit(initialState)
             }
         val flow = combine(
-            sink
-                .map { raw ->
-                    TextFieldModel2(
-                        state = state,
-                        text = raw,
-                        onChange = state::value::set,
+            handle.sink
+                .map { cell ->
+                    TextFieldModel(
+                        text = cell.text,
+                        textRevision = cell.revision,
+                        onChange = handle::onChange,
+                        onSetText = handle::setText,
                     )
                 },
             totpFlow,
@@ -2561,7 +2962,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                         ?.convert(uri)
                         ?.getOrNull()
                         ?: uri
-                    state.value = convertedUri
+                    handle.setText(convertedUri)
                 },
                 totpToken = totp,
             )
@@ -2572,7 +2973,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
                     scope = screenScope,
                     started = SharingStarted.WhileSubscribed(),
                     initialValue = AddStateItem.Totp.State(
-                        value = TextFieldModel2.empty,
+                        value = TextFieldModel.empty,
                         copyText = copyText,
                         totpToken = null,
                     ),
@@ -2598,7 +2999,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
         selectedFlow = totp.state.flow.map { it.value.text },
         concealed = true,
         onClick = {
-            totp.state.flow.value.value.onChange?.invoke(it)
+            totp.state.flow.value.value.onSetText?.invoke(it)
         },
     )
 
@@ -2633,26 +3034,32 @@ private suspend fun RememberStateFlowScope.produceCardState(
     ): Item {
         val id = "$prefix.$key"
 
-        val monthSink = mutablePersistedFlow("$id.month") { initialMonth.orEmpty() }
-        val monthState = mutableComposeState(monthSink)
-        val monthFlow = monthSink
-            .map { value ->
-                val model = TextFieldModel2(
-                    state = monthState,
-                    text = value,
-                    onChange = monthState::value::set,
+        val monthHandle = textFieldHandle(
+            key = "$id.month",
+            initial = initialMonth.orEmpty(),
+        )
+        val monthFlow = monthHandle.sink
+            .map { cell ->
+                val model = TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
+                    onChange = monthHandle::onChange,
+                    onSetText = monthHandle::setText,
                 )
                 model
             }
 
-        val yearSink = mutablePersistedFlow("$id.year") { initialYear.orEmpty() }
-        val yearState = mutableComposeState(yearSink)
-        val yearFlow = yearSink
-            .map { value ->
-                val model = TextFieldModel2(
-                    state = yearState,
-                    text = value,
-                    onChange = yearState::value::set,
+        val yearHandle = textFieldHandle(
+            key = "$id.year",
+            initial = initialYear.orEmpty(),
+        )
+        val yearFlow = yearHandle.sink
+            .map { cell ->
+                val model = TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
+                    onChange = yearHandle::onChange,
+                    onSetText = yearHandle::setText,
                 )
                 model
             }
@@ -2678,8 +3085,8 @@ private suspend fun RememberStateFlowScope.produceCardState(
                             ) { result ->
                                 if (result is DatePickerResult.Confirm) {
                                     val (monthValue, yearValue) = result.toMonthAndYearStrings()
-                                    monthState.value = monthValue
-                                    yearState.value = yearValue
+                                    monthHandle.setText(monthValue)
+                                    yearHandle.setText(yearValue)
                                 }
                             }
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -2691,8 +3098,8 @@ private suspend fun RememberStateFlowScope.produceCardState(
                         scope = screenScope,
                         started = SharingStarted.WhileSubscribed(),
                         initialValue = AddStateItem.DateMonthYear.State(
-                            month = TextFieldModel2.empty,
-                            year = TextFieldModel2.empty,
+                            month = TextFieldModel.empty,
+                            year = TextFieldModel.empty,
                             onClick = {
                                 val route = registerRouteResultReceiver(
                                     DatePickerRoute(
@@ -2769,13 +3176,15 @@ private suspend fun RememberStateFlowScope.produceCardState(
     ) = kotlin.run {
         val id = "$prefix.$key"
 
-        val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-        val state = mutableComposeState(sink)
+        val handle = textFieldHandle(
+            key = id,
+            initial = initialValue.orEmpty(),
+        )
         val state2 = LocalStateItem<AddStateItem.Text.State, CreateRequest>(
-            flow = sink
-                .map { value ->
+            flow = handle.sink
+                .map { cell ->
                     val isValid = kotlin.run {
-                        val n = value.replace(ff2, "")
+                        val n = cell.text.replace(ff2, "")
                         if (n.isBlank()) {
                             return@run true
                         }
@@ -2806,21 +3215,22 @@ private suspend fun RememberStateFlowScope.produceCardState(
                         t != null
                     }
                     val badge = if (!isValid) {
-                        TextFieldModel2.Vl(
-                            type = TextFieldModel2.Vl.Type.WARNING,
+                        TextFieldModel.Vl(
+                            type = TextFieldModel.Vl.Type.WARNING,
                             text = translate(Res.string.error_invalid_card_number),
                         )
                     } else {
                         null
                     }
 
-                    val model = TextFieldModel2(
-                        state = state,
-                        text = value,
+                    val model = TextFieldModel(
+                        text = cell.text,
+                        textRevision = cell.revision,
                         hint = "4111 1111 1111 1111",
                         vl = badge,
                         autocompleteOptions = autocompleteOptions,
-                        onChange = state::value::set,
+                        onChange = handle::onChange,
+                        onSetText = handle::setText,
                     )
                     AddStateItem.Text.State(
                         value = model,
@@ -2829,12 +3239,12 @@ private suspend fun RememberStateFlowScope.produceCardState(
                         keyboardOptions = keyboardOptions,
                         visualTransformation = visualTransformation,
                     )
-                }
+            }
                 .persistingStateIn(
                     scope = screenScope,
                     started = SharingStarted.WhileSubscribed(),
                     initialValue = AddStateItem.Text.State(
-                        value = TextFieldModel2.empty,
+                        value = TextFieldModel.empty,
                         label = label,
                     ),
                 ),
@@ -3260,7 +3670,7 @@ private suspend fun RememberStateFlowScope.produceIdentityState(
     )
     val companySuggestions = createItem2Txt(
         prefix = prefix,
-        key = "country",
+        key = "company",
         args = args,
         getSuggestion = { it.identity?.company },
         field = company,
@@ -3435,25 +3845,29 @@ private suspend fun RememberStateFlowScope.produceNoteState(
     val note = kotlin.run {
         val id = "$prefix.note"
 
-        val initialValue = args.initialValue?.notes
+        val initialValue = args.note
+            ?: args.initialValue?.notes
 
-        val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-        val state = mutableComposeState(sink)
-        val stateItem = LocalStateItem<TextFieldModel2, CreateRequest>(
-            flow = sink
-                .map { value ->
-                    val model = TextFieldModel2(
-                        state = state,
-                        text = value,
+        val handle = textFieldHandle(
+            key = id,
+            initial = initialValue.orEmpty(),
+        )
+        val stateItem = LocalStateItem<TextFieldModel, CreateRequest>(
+            flow = handle.sink
+                .map { cell ->
+                    val model = TextFieldModel(
+                        text = cell.text,
+                        textRevision = cell.revision,
                         hint = translate(Res.string.additem_note_placeholder),
-                        onChange = state::value::set,
+                        onChange = handle::onChange,
+                        onSetText = handle::setText,
                     )
                     model
                 }
                 .persistingStateIn(
                     scope = screenScope,
                     started = SharingStarted.WhileSubscribed(),
-                    initialValue = TextFieldModel2.empty,
+                    initialValue = TextFieldModel.empty,
                 ),
             populator = { state ->
                 CreateRequest.note.set(this, state.text)
@@ -3472,7 +3886,7 @@ private suspend fun RememberStateFlowScope.produceNoteState(
         getSuggestion = { it.notes },
         selectedFlow = note.state.flow.map { it.text },
         onClick = {
-            note.state.flow.value.onChange?.invoke(it)
+            note.state.flow.value.onSetText?.invoke(it)
         },
     )
     return TmpNote(
@@ -3499,6 +3913,20 @@ data class KeyPairDecor2Brr(
     val onChange: (KeyPair) -> Unit,
     val onImport: () -> Unit,
 )
+
+data class GpgKeyDecor2Brr(
+    val gpgKey: GeneratedGpgKey? = null,
+    val expiration: Expiration? = null,
+    val enabled: Boolean = true,
+    val onChange: (GeneratedGpgKey) -> Unit,
+    val onImport: () -> Unit,
+) {
+    data class Expiration(
+        val value: String,
+        val text: String? = null,
+        val onClick: (() -> Unit)? = null,
+    )
+}
 
 private suspend fun RememberStateFlowScope.produceSshKeyState(
     args: AddRoute.Args,
@@ -3716,6 +4144,504 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
     )
 }
 
+private suspend fun RememberStateFlowScope.produceGpgKeyState(
+    args: AddRoute.Args,
+    getCiphers: GetCiphers,
+    textService: TextService,
+    dateFormatter: DateFormatter,
+    gpgKeyImportService: GpgKeyImportService,
+    gpgPublicKeyParser: GpgPublicKeyParser,
+    gpgKeyExpirationService: GpgKeyExpirationService,
+    showMessage: ShowMessage,
+    filePickerIntentSink: EventFlow<FilePickerIntent<*>>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): TmpGpgKey {
+    val prefix = "gpgKey"
+    val expirationUpdateInProgress = MutableStateFlow(false)
+
+    val gpgKey = kotlin.run {
+        val id = "$prefix.gpgKey"
+
+        val sink = mutablePersistedFlow(
+            id,
+            serialize = { json, m: GeneratedGpgKey ->
+                json.encodeToString(m)
+            },
+            deserialize = { json, m: String ->
+                json.decodeFromString(m)
+            },
+        ) {
+            args.gpgKey
+                ?: args.gpgKeyValue?.let { gpgKey ->
+                    GeneratedGpgKey(
+                        privateKeyArmored = gpgKey.privateKeyArmored.orEmpty(),
+                        publicKeyArmored = gpgKey.publicKeyArmored.orEmpty(),
+                        fingerprint = gpgKey.fingerprint.orEmpty(),
+                        metadata = gpgKey.metadata ?: GpgAgentKeyMetadata(),
+                        userId = "",
+                        typeLabel = "",
+                    )
+                }
+                ?: args.initialValue?.gpgKey?.let { gpgKey ->
+                    GeneratedGpgKey(
+                        privateKeyArmored = gpgKey.privateKeyArmored.orEmpty(),
+                        publicKeyArmored = gpgKey.publicKeyArmored.orEmpty(),
+                        fingerprint = gpgKey.fingerprint.orEmpty(),
+                        metadata = gpgKey.metadata ?: GpgAgentKeyMetadata(),
+                        userId = args.initialValue.name,
+                        typeLabel = "",
+                    )
+                }
+                ?: GeneratedGpgKey(
+                    privateKeyArmored = "",
+                    publicKeyArmored = "",
+                    fingerprint = "",
+                    metadata = GpgAgentKeyMetadata(),
+                    userId = "",
+                    typeLabel = "",
+                )
+        }
+        val keyMutations = GpgKeyMutationGuard(sink)
+
+        suspend fun showImportConflict() {
+            val msg = createGpgKeyImportToast(
+                title = translate(Res.string.gpg_key_import_failed_title),
+                text = translate(Res.string.gpg_key_import_error_key_changed),
+            )
+            showMessage.copy(msg)
+        }
+
+        suspend fun publishImportedKey(
+            snapshot: GpgKeyMutationGuard.Snapshot,
+            imported: GeneratedGpgKey,
+        ) {
+            if (!keyMutations.commitImport(snapshot, imported)) {
+                showImportConflict()
+                return
+            }
+            showMessage.copy(
+                ToastMessage(
+                    type = ToastMessage.Type.SUCCESS,
+                    title = translate(Res.string.gpg_key_import_success_title),
+                ),
+            )
+        }
+
+        suspend fun importKey(
+            content: String,
+            fileName: String?,
+            passphrase: String?,
+            snapshot: GpgKeyMutationGuard.Snapshot,
+            onNeedsPassphrase: suspend (GpgKeyImportResult.NeedsPassphrase) -> Unit,
+        ) {
+            when (
+                val result = gpgKeyImportService.import(
+                    GpgKeyImportRequest(
+                        content = content,
+                        fileName = fileName,
+                        passphrase = passphrase,
+                    ),
+                )
+            ) {
+                is GpgKeyImportResult.Success -> {
+                    publishImportedKey(snapshot, result.gpgKey)
+                }
+
+                is GpgKeyImportResult.NeedsPassphrase -> {
+                    onNeedsPassphrase(result)
+                }
+
+                is GpgKeyImportResult.Error -> {
+                    val msg = createLocalizedGpgKeyImportErrorToast(result.reason)
+                    showMessage.copy(msg)
+                }
+            }
+        }
+
+        suspend fun onImportKeyWithPassphrase(
+            result: GpgKeyImportResult.NeedsPassphrase,
+            fileName: String?,
+            content: String,
+            snapshot: GpgKeyMutationGuard.Snapshot,
+        ) {
+            if (!keyMutations.isCurrent(snapshot)) {
+                showImportConflict()
+                return
+            }
+            val passphraseTitle = translate(Res.string.gpg_key_import_passphrase_title)
+            val passphraseHint = translate(Res.string.gpg_key_import_passphrase_hint)
+
+            val intent = createConfirmationDialogIntent(
+                confirmationRouteFactory = confirmationRouteFactory,
+                item = ConfirmationRoute.Args.Item.StringItem(
+                    key = "$id.passphrase",
+                    title = passphraseTitle,
+                    hint = passphraseHint,
+                    type = ConfirmationRoute.Args.Item.StringItem.Type.Password,
+                    canBeEmpty = false,
+                ),
+                title = translate(Res.string.gpg_key_import_passphrase_dialog_title),
+                message = translate(
+                    Res.string.gpg_key_import_passphrase_dialog_message,
+                    result.formatLabel,
+                ),
+            ) { passphrase ->
+                screenScope.launch {
+                    importKey(
+                        content = content,
+                        fileName = fileName,
+                        passphrase = passphrase,
+                        snapshot = snapshot,
+                        onNeedsPassphrase = {
+                            val msg = createLocalizedGpgKeyImportPassphraseErrorToast()
+                            showMessage.copy(msg)
+                        },
+                    )
+                }
+            }
+            navigate(intent)
+        }
+
+        suspend fun onImportKey(
+            info: FilePickerResult,
+        ) {
+            val snapshot = keyMutations.snapshot()
+            handleGpgKeyFileImport(
+                info = info,
+                readText = textService::readFromFileAsText,
+                importGpgKey = gpgKeyImportService::import,
+                onSuccess = { importedGpgKey ->
+                    publishImportedKey(snapshot, importedGpgKey)
+                },
+                onNeedsPassphrase = { result, fileName, content ->
+                    onImportKeyWithPassphrase(
+                        result = result,
+                        fileName = fileName,
+                        content = content,
+                        snapshot = snapshot,
+                    )
+                },
+                onImportError = { reason ->
+                    val msg = createLocalizedGpgKeyImportErrorToast(reason)
+                    showMessage.copy(msg)
+                },
+                onReadError = {
+                    val msg = createLocalizedGpgKeyImportReadErrorToast()
+                    showMessage.copy(msg)
+                },
+            )
+        }
+
+        fun requestImportKey() {
+            if (expirationUpdateInProgress.value) {
+                return
+            }
+            val intent = FilePickerIntent.OpenDocument(
+                mimeTypes = FilePickerIntent.mimeTypesAll,
+            ) { info ->
+                if (info == null) {
+                    return@OpenDocument
+                }
+
+                screenScope.launch {
+                    onImportKey(info)
+                }
+            }
+            filePickerIntentSink.emit(intent)
+        }
+
+        suspend fun showExpirationError(
+            reason: GpgKeyExpirationError? = null,
+        ) = showMessage.copy(
+            createLocalizedGpgKeyExpirationFailureToast(reason),
+        )
+
+        suspend fun updateExpiration(change: GpgKeyExpirationChange) {
+            if (!expirationUpdateInProgress.compareAndSet(expect = false, update = true)) {
+                return
+            }
+            val snapshot = keyMutations.snapshot()
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val candidateRevocationKeys = getCiphers()
+                            .first()
+                            .toGpgRevocationKeyCandidates()
+                        gpgKeyExpirationService.update(
+                            GpgKeyExpirationRequest(
+                                key = snapshot.key.toGpgKeyMaterial(),
+                                change = change,
+                                candidateRevocationKeys = candidateRevocationKeys,
+                            ),
+                        )
+                    }.getOrNull()
+                }
+                when (result) {
+                    is GpgKeyExpirationResult.Success -> {
+                        if (!keyMutations.commitExpiration(snapshot, result.key)) {
+                            showExpirationError()
+                            return
+                        }
+                        showMessage.copy(
+                            ToastMessage(
+                                type = ToastMessage.Type.SUCCESS,
+                                title = translate(Res.string.gpg_key_expiry_success_title),
+                                text = translate(Res.string.gpg_key_expiry_success_message),
+                            ),
+                        )
+                    }
+
+                    is GpgKeyExpirationResult.Error -> showExpirationError(result.reason)
+                    null -> showExpirationError()
+                }
+            } finally {
+                expirationUpdateInProgress.value = false
+            }
+        }
+
+        suspend fun formatExpiration(
+            expiresAt: Instant?,
+        ): String = expiresAt
+            ?.toLocalDateTime(TimeZone.currentSystemDefault())
+            ?.date
+            ?.let(dateFormatter::formatDateMedium)
+            ?: translate(Res.string.gpg_key_expiry_never)
+
+        suspend fun requestExpirationChange(
+            keyInfo: GpgPublicKeyInfo,
+        ) {
+            if (expirationUpdateInProgress.value) {
+                return
+            }
+            requestGpgKeyExpirationChange(
+                keyInfo = keyInfo,
+            ) { change ->
+                screenScope.launch {
+                    updateExpiration(change)
+                }
+            }
+        }
+
+        suspend fun createExpirationDecor(
+            value: GeneratedGpgKey,
+            keyInfo: Loadable<GpgPublicKeyInfo?>,
+            updateInProgress: Boolean,
+        ): GpgKeyDecor2Brr.Expiration? {
+            val publicKeyArmored = value.publicKeyArmored
+            if (publicKeyArmored.isBlank()) {
+                return null
+            }
+            val loadedKeyInfo = when (keyInfo) {
+                Loadable.Loading -> return null
+                is Loadable.Ok -> keyInfo.value
+            }
+            if (loadedKeyInfo == null) {
+                return GpgKeyDecor2Brr.Expiration(
+                    value = translate(Res.string.gpg_key_expiry_unknown),
+                    text = translate(
+                        if (gpgPublicKeyParser.isSupported) {
+                            Res.string.gpg_key_expiry_key_unreadable
+                        } else {
+                            Res.string.gpg_key_expiry_unavailable
+                        },
+                    ),
+                )
+            }
+            val canEdit = value.privateKeyArmored.isNotBlank() &&
+                    gpgKeyExpirationService.isSupported &&
+                    !loadedKeyInfo.revoked &&
+                    !updateInProgress
+            val supportingText = when {
+                value.privateKeyArmored.isBlank() ->
+                    translate(Res.string.gpg_key_expiry_private_key_required)
+
+                !gpgKeyExpirationService.isSupported ->
+                    translate(Res.string.gpg_key_expiry_unavailable)
+
+                loadedKeyInfo.revoked ->
+                    translate(Res.string.gpg_key_expiry_revoked_message)
+
+                loadedKeyInfo.expiresAt?.let { it <= Clock.System.now() } == true ->
+                    translate(Res.string.expired)
+
+                else -> null
+            }
+            return GpgKeyDecor2Brr.Expiration(
+                value = formatExpiration(loadedKeyInfo.expiresAt),
+                text = supportingText,
+                onClick = if (canEdit) {
+                    {
+                        screenScope.launch {
+                            requestExpirationChange(loadedKeyInfo)
+                        }
+                    }
+                } else {
+                    null
+                },
+            )
+        }
+
+        val parsedKeyFlow = sink.withLatestAsyncDecoration { value ->
+            value.publicKeyArmored
+                .takeIf { it.isNotBlank() }
+                ?.let { publicKeyArmored ->
+                    withContext(Dispatchers.Default) {
+                        gpgPublicKeyParser.parsePrimaryKeyInfo(
+                            armored = publicKeyArmored,
+                            fingerprint = value.fingerprint,
+                        )
+                    }
+                }
+        }
+        val stateItem = LocalStateItem<GpgKeyDecor2Brr, CreateRequest>(
+            flow = combine(parsedKeyFlow, expirationUpdateInProgress) { (value, keyInfo), updateInProgress ->
+                GpgKeyDecor2Brr(
+                    gpgKey = value,
+                    expiration = createExpirationDecor(
+                        value = value,
+                        keyInfo = keyInfo,
+                        updateInProgress = updateInProgress,
+                    ),
+                    enabled = !updateInProgress,
+                    onChange = {
+                        if (!expirationUpdateInProgress.value) {
+                            keyMutations.replace(it)
+                        }
+                    },
+                    onImport = ::requestImportKey,
+                )
+            }
+                .persistingStateIn(
+                    scope = screenScope,
+                    started = SharingStarted.WhileSubscribed(),
+                    initialValue = GpgKeyDecor2Brr(
+                        onChange = {
+                            // Do nothing
+                        },
+                        onImport = ::requestImportKey,
+                    ),
+                ),
+            populator = { state ->
+                val gpgKey = CreateRequest.GpgKey(
+                    privateKeyArmored = state.gpgKey?.privateKeyArmored,
+                    publicKeyArmored = state.gpgKey?.publicKeyArmored,
+                    fingerprint = state.gpgKey?.fingerprint,
+                    // The form model requires a metadata object, so ciphers
+                    // without one carry an empty placeholder; do not persist it.
+                    metadata = state.gpgKey?.metadata?.takeIf { it.keys.isNotEmpty() },
+                )
+                CreateRequest.gpgKey.set(this, gpgKey)
+            },
+        )
+        AddStateItem.GpgKey(
+            id = id,
+            fileDrop = AddStateItem.FileDrop(
+                text = translate(Res.string.gpg_key_import_drop_here),
+                onFileDrop = { info ->
+                    if (!expirationUpdateInProgress.value) {
+                        screenScope.launch {
+                            onImportKey(info)
+                        }
+                    }
+                },
+            ),
+            state = stateItem,
+        )
+    }
+    return TmpGpgKey(
+        gpgKey = gpgKey,
+        saveEnabled = expirationUpdateInProgress
+            .map { inProgress -> !inProgress }
+            .distinctUntilChanged(),
+        items = listOfNotNull<AddStateItem>(
+            gpgKey,
+        ),
+    )
+}
+
+suspend fun TranslatorScope.createLocalizedGpgKeyImportErrorToast(
+    reason: GpgKeyImportError,
+): ToastMessage = when (reason) {
+    GpgKeyImportError.Empty -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_empty),
+    )
+    GpgKeyImportError.UnsupportedFormat -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_unsupported_format),
+    )
+    GpgKeyImportError.UnsupportedPlatform -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_unsupported_platform),
+    )
+    GpgKeyImportError.InvalidPassphrase -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_invalid_passphrase),
+    )
+    GpgKeyImportError.MalformedKey -> createGpgKeyImportToast(
+        title = translate(Res.string.gpg_key_import_failed_title),
+        text = translate(Res.string.gpg_key_import_error_malformed_key),
+    )
+}
+
+suspend fun TranslatorScope.createLocalizedGpgKeyImportReadErrorToast(): ToastMessage = createGpgKeyImportToast(
+    title = translate(Res.string.gpg_key_import_failed_title),
+    text = translate(Res.string.gpg_key_import_error_read),
+)
+
+suspend fun TranslatorScope.createLocalizedGpgKeyImportPassphraseErrorToast(): ToastMessage = createGpgKeyImportToast(
+    title = translate(Res.string.gpg_key_import_failed_title),
+    text = translate(Res.string.gpg_key_import_error_passphrase_required),
+)
+
+private fun createGpgKeyImportToast(
+    title: String = "Failed to import GPG key",
+    text: String,
+): ToastMessage = ToastMessage(
+    type = ToastMessage.Type.ERROR,
+    title = title,
+    text = text,
+)
+
+internal suspend fun handleGpgKeyFileImport(
+    info: FilePickerResult,
+    readText: suspend (String) -> String,
+    importGpgKey: suspend (GpgKeyImportRequest) -> GpgKeyImportResult,
+    onSuccess: suspend (GeneratedGpgKey) -> Unit,
+    onNeedsPassphrase: suspend (GpgKeyImportResult.NeedsPassphrase, String?, String) -> Unit,
+    onImportError: suspend (GpgKeyImportError) -> Unit,
+    onReadError: suspend () -> Unit,
+) {
+    val content = kotlin.runCatching {
+        readText(info.uri.toString())
+    }.getOrElse {
+        onReadError()
+        return
+    }
+    val fileName = info.name
+    when (
+        val result = importGpgKey(
+            GpgKeyImportRequest(
+                content = content,
+                fileName = fileName,
+                passphrase = null,
+            ),
+        )
+    ) {
+        is GpgKeyImportResult.Success -> {
+            onSuccess(result.gpgKey)
+        }
+
+        is GpgKeyImportResult.NeedsPassphrase -> {
+            onNeedsPassphrase(result, fileName, content)
+        }
+
+        is GpgKeyImportResult.Error -> {
+            onImportError(result.reason)
+        }
+    }
+}
+
 suspend fun TranslatorScope.createLocalizedSshKeyImportErrorToast(
     reason: SshKeyImportError,
 ): ToastMessage = when (reason) {
@@ -3849,19 +4775,22 @@ suspend fun <Item, Request> RememberStateFlowScope.createItem(
 ): Item {
     val id = "$prefix.$key"
 
-    val sink = mutablePersistedFlow(id) { initialValue.orEmpty() }
-    val state = mutableComposeState(sink)
+    val handle = textFieldHandle(
+        key = id,
+        initial = initialValue.orEmpty(),
+    )
     return factory(
         id,
         LocalStateItem(
-            flow = sink
-                .map { value ->
-                    val model = TextFieldModel2(
-                        state = state,
-                        text = value,
+            flow = handle.sink
+                .map { cell ->
+                    val model = TextFieldModel(
+                        text = cell.text,
+                        textRevision = cell.revision,
                         hint = hint,
                         autocompleteOptions = autocompleteOptions,
-                        onChange = state::value::set,
+                        onChange = handle::onChange,
+                        onSetText = handle::setText,
                     )
                     AddStateItem.Text.State(
                         value = model,
@@ -3875,7 +4804,7 @@ suspend fun <Item, Request> RememberStateFlowScope.createItem(
                     scope = screenScope,
                     started = SharingStarted.WhileSubscribed(),
                     initialValue = AddStateItem.Text.State(
-                        value = TextFieldModel2.empty,
+                        value = TextFieldModel.empty,
                         label = label,
                     ),
                 ),
@@ -3899,7 +4828,7 @@ private suspend fun RememberStateFlowScope.createItem2Txt(
     selectedFlow = field.state.flow.map { it.value.text },
     concealed = concealed,
     onClick = {
-        field.state.flow.value.value.onChange?.invoke(it)
+        field.state.flow.value.value.onSetText?.invoke(it)
     },
 )
 

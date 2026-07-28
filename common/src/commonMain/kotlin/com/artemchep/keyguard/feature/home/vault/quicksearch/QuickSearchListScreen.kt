@@ -95,6 +95,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.PlainTextField
+import com.artemchep.keyguard.ui.rememberFieldBuffer
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.shortcut.toText
@@ -222,7 +223,8 @@ internal fun QuickSearchListScreen(
             )
         QuickSearchSearch(
             modifier = Modifier,
-            text = quickQuery.state.value,
+            text = quickQuery.text,
+            textRevision = quickQuery.textRevision,
             placeholder = stringResource(Res.string.vault_main_search_placeholder),
             focusRequester = focusRequester,
             interactionSource = searchInteractionSource,
@@ -347,6 +349,10 @@ internal fun QuickSearchListScreen(
 private fun QuickSearchSearch(
     modifier: Modifier = Modifier,
     text: String,
+    // When provided, the field adopts a remote text only when the revision
+    // changes (a programmatic write); same-revision changes are echoes of
+    // the user's own edits and never touch the buffer.
+    textRevision: Int? = null,
     placeholder: String,
     focusRequester: FocusRequester2,
     interactionSource: MutableInteractionSource,
@@ -370,18 +376,12 @@ private fun QuickSearchSearch(
             focusRequester.requestFocus(showKeyboard = true)
         }
     }
-    var fieldValue by remember {
-        mutableStateOf(text.toTextFieldValue())
-    }
-    var lastPropagatedText by remember {
-        mutableStateOf(text)
-    }
-    LaunchedEffect(text) {
-        if (text != lastPropagatedText) {
-            fieldValue = text.toTextFieldValue()
-            lastPropagatedText = text
-        }
-    }
+    var fieldValue by rememberFieldBuffer(
+        text = text,
+        // No revision means there is no programmatic-write channel; the
+        // buffer then only seeds from the initial text.
+        textRevision = textRevision ?: -1,
+    )
 
     val isFocused by interactionSource.collectIsFocusedAsState()
     val updatedOnChange by rememberUpdatedState(onTextChange)
@@ -389,7 +389,6 @@ private fun QuickSearchSearch(
 
     fun updateFieldValue(nextFieldValue: TextFieldValue) {
         fieldValue = nextFieldValue
-        lastPropagatedText = nextFieldValue.text
         updatedOnChange?.invoke(nextFieldValue.text)
     }
 
@@ -755,7 +754,9 @@ internal fun handleQuickSearchKeyEvent(
 
             QuickSearchKeyEventAction.ClearQuery -> {
                 state.onClearActionSelection()
-                state.query.onChange?.invoke("")
+                // A programmatic clear: must go through the command path so
+                // the field's local edit buffer adopts the empty text.
+                state.query.onSetText?.invoke("")
             }
         }
         true

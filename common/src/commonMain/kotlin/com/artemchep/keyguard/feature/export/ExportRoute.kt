@@ -11,6 +11,7 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
@@ -51,6 +52,9 @@ data class ExportRoute(
                 translator.translate(res)
             }
             return FlatItemAction(
+                id = if (individual) {
+                    "export.individualVault.${accountId.id}"
+                } else "export.vault.${accountId.id}",
                 icon = if (individual) {
                     Icons.Outlined.SaveAlt
                 } else {
@@ -114,6 +118,8 @@ data class ExportRoute(
         val title: String? = null,
         val filter: DFilter? = null,
     )
+
+    override val descriptor get() = RouteDescriptor.Export(args.title, args.filter)
 
     @Composable
     override fun Content() {

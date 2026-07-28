@@ -3,22 +3,33 @@
 package com.artemchep.keyguard.feature.home.vault.folders
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CreateNewFolder
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.FolderOff
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalAbsoluteTonalElevation
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
@@ -29,22 +40,24 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
-import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.AhLayout
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultSelection
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FabState
-import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.animatedNumberText
+import com.artemchep.keyguard.ui.icons.ChevronIcon
+import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.OfflineIcon
 import com.artemchep.keyguard.ui.skeleton.SkeletonItemPilled
+import com.artemchep.keyguard.ui.theme.Dimens
+import com.artemchep.keyguard.ui.theme.badgeContainer
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -78,7 +91,7 @@ fun FoldersScreenContent(
                 title = {
                     Column {
                         Text(
-                            text = stringResource(Res.string.account),
+                            text = state.text ?: stringResource(Res.string.account),
                             style = MaterialTheme.typography.labelSmall,
                             color = LocalContentColor.current
                                 .combineAlpha(MediumEmphasisAlpha),
@@ -86,7 +99,7 @@ fun FoldersScreenContent(
                             maxLines = 2,
                         )
                         Text(
-                            text = stringResource(Res.string.folders),
+                            text = state.title ?: stringResource(Res.string.folders),
                             style = MaterialTheme.typography.titleMedium,
                             overflow = TextOverflow.Ellipsis,
                             maxLines = 1,
@@ -95,6 +108,22 @@ fun FoldersScreenContent(
                 },
                 navigationIcon = {
                     NavigationIcon()
+                },
+                actions = {
+                    val onRename = state.onRename
+                    if (onRename != null) {
+                        IconButton(
+                            onClick = onRename,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = stringResource(Res.string.rename),
+                            )
+                        }
+                    }
+                    OptionsButton(
+                        actions = state.actions,
+                    )
                 },
                 scrollBehavior = scrollBehavior,
             )
@@ -143,7 +172,8 @@ fun FoldersScreenContent(
 
             is Loadable.Ok -> {
                 val items = contentState.value.items
-                if (items.isEmpty()) {
+                val ciphers = contentState.value.ciphers
+                if (items.isEmpty() && ciphers == null) {
                     item("empty") {
                         EmptyView(
                             icon = {
@@ -151,7 +181,13 @@ fun FoldersScreenContent(
                             },
                             text = {
                                 Text(
-                                    text = stringResource(Res.string.folders_empty_label),
+                                    text = stringResource(
+                                        if (contentState.value.missing) {
+                                            Res.string.error_not_found
+                                        } else {
+                                            Res.string.folders_empty_label
+                                        },
+                                    ),
                                 )
                             },
                         )
@@ -168,8 +204,64 @@ fun FoldersScreenContent(
                         item = it,
                     )
                 }
+
+                if (ciphers != null) {
+                    item("ciphers.section") {
+                        Section(
+                            expressive = true,
+                        )
+                    }
+                    item("ciphers.button") {
+                        FoldersScreenCiphersButton(
+                            ciphers = ciphers,
+                        )
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun FoldersScreenCiphersButton(
+    modifier: Modifier = Modifier,
+    ciphers: FoldersState.Content.Ciphers,
+) {
+    val onClick = rememberUpdatedState(ciphers.onClick)
+    Button(
+        modifier = modifier
+            .padding(horizontal = Dimens.buttonHorizontalPadding),
+        onClick = {
+            onClick.value()
+        },
+        colors = ButtonDefaults.filledTonalButtonColors(),
+        elevation = ButtonDefaults.filledTonalButtonElevation(),
+    ) {
+        BadgedBox(
+            badge = {
+                Badge(
+                    containerColor = MaterialTheme.colorScheme.badgeContainer,
+                ) {
+                    Text(
+                        text = animatedNumberText(ciphers.count),
+                    )
+                }
+            },
+        ) {
+            Icon(
+                modifier = Modifier
+                    .size(ButtonDefaults.IconSize),
+                imageVector = Icons.Outlined.KeyguardCipher,
+                contentDescription = null,
+            )
+        }
+        Spacer(
+            modifier = Modifier
+                .width(24.dp),
+        )
+        Text(
+            text = stringResource(Res.string.items),
+        )
     }
 }
 
@@ -206,16 +298,10 @@ private fun FoldersScreenFolderItem(
         shapeState = item.shapeState,
         dropdown = item.actions,
         leading = {
-            val pillElevation = LocalAbsoluteTonalElevation.current + 8.dp
-            val pillColor = MaterialTheme.colorScheme
-                .surfaceColorAtElevationSemi(elevation = pillElevation)
-            AhLayout(
-                modifier = modifier,
-                backgroundColor = pillColor,
-            ) {
-                val text = animatedNumberText(item.ciphers)
-                Text(text)
-            }
+            FoldersScreenFolderItemBadge(
+                foldersCount = item.folders,
+                ciphersCount = item.ciphers,
+            )
         },
         content = {
             FlatItemTextContent(
@@ -244,6 +330,11 @@ private fun FoldersScreenFolderItem(
                 )
             }
             ExpandedIfNotEmptyForRow(
+                Unit.takeIf { !item.selecting },
+            ) {
+                ChevronIcon()
+            }
+            ExpandedIfNotEmptyForRow(
                 item.selected.takeIf { item.selecting },
             ) { selected ->
                 Checkbox(
@@ -255,4 +346,48 @@ private fun FoldersScreenFolderItem(
         onClick = item.onClick,
         onLongClick = item.onLongClick,
     )
+}
+
+@Composable
+private fun FoldersScreenFolderItemBadge(
+    modifier: Modifier = Modifier,
+    foldersCount: Int,
+    ciphersCount: Int,
+) {
+    BadgedBox(
+        modifier = modifier,
+        badge = {
+            val folders = animatedNumberText(foldersCount)
+            val ciphers = animatedNumberText(ciphersCount)
+            Badge(
+                modifier = Modifier,
+                containerColor = MaterialTheme.colorScheme.badgeContainer,
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(ciphers)
+                    if (folders.isNotEmpty() && folders != "0") {
+                        Box(
+                            modifier = Modifier
+                                .width(6.dp),
+                        )
+                        Text(folders)
+                        Icon(
+                            modifier = Modifier
+                                .size(12.dp),
+                            imageVector = Icons.Outlined.Folder,
+                            contentDescription = null,
+                        )
+                    }
+                }
+            }
+        },
+    ) {
+        val imageVector = Icons.Outlined.Folder
+        Icon(
+            imageVector = imageVector,
+            contentDescription = null,
+        )
+    }
 }

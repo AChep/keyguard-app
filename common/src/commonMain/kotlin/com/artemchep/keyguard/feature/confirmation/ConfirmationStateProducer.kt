@@ -6,18 +6,22 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.add.AddState
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -52,6 +56,16 @@ fun confirmationState(
         windowCoroutineScope,
     ),
 ) {
+    confirmationStateProducer(
+        args = args,
+        transmitter = transmitter,
+    )
+}
+
+suspend fun RememberStateFlowScope.confirmationStateProducer(
+    args: ConfirmationRoute.Args,
+    transmitter: RouteResultTransmitter<ConfirmationResult>,
+): Flow<ConfirmationState> {
     fun createItemKey(key: String) = "item.$key"
 
     val filePickerIntentSink = EventFlow<FilePickerIntent<*>>()
@@ -60,159 +74,129 @@ fun confirmationState(
         filePickerIntentFlow = filePickerIntentSink,
     )
 
+    // Branch on the item type before creating the sink. `args.items` is a
+    // List<Item<Any?>>, so a shared sink would persist Any? -- which is not
+    // bundle-compatible -- and would need an unchecked cast per branch.
     val itemsFlow = args.items
         .map { item ->
-            val sink = mutablePersistedFlow(createItemKey(item.key)) {
-                item.value
-            }
-            val state = when (item) {
-                is ConfirmationRoute.Args.Item.BooleanItem -> null
-                is ConfirmationRoute.Args.Item.StringItem ->
-                    mutableComposeState<String>(sink as MutableStateFlow<String>)
+            when (item) {
+                is ConfirmationRoute.Args.Item.StringItem -> {
+                    val handle = textFieldHandle(
+                        key = createItemKey(item.key),
+                        initial = item.value,
+                    )
+                    handle.sink.map { cell ->
+                        confirmationStringItem(
+                            item = item,
+                            cell = cell,
+                            handle = handle,
+                        )
+                    }
+                }
 
-                is ConfirmationRoute.Args.Item.EnumItem -> null
-                is ConfirmationRoute.Args.Item.FileItem -> null
-            }
-            sink
-                .map { value ->
-                    when (item) {
-                        is ConfirmationRoute.Args.Item.BooleanItem -> ConfirmationState.Item.BooleanItem(
+                is ConfirmationRoute.Args.Item.BooleanItem -> {
+                    val sink = mutablePersistedFlow(createItemKey(item.key)) {
+                        item.value
+                    }
+                    sink.map { value ->
+                        ConfirmationState.Item.BooleanItem(
                             key = item.key,
                             title = item.title,
                             text = item.text,
-                            value = value as Boolean,
+                            textMaxLines = item.textMaxLines,
+                            value = value,
                             enabled = item.enabled,
                             onChange = sink::value::set,
                         )
-
-                        is ConfirmationRoute.Args.Item.StringItem -> {
-                            val fixed = value as String
-                            val error = if (item.canBeEmpty || fixed.isNotBlank()) {
-                                null
-                            } else {
-                                translate(Res.string.error_must_not_be_blank)
-                            }
-                            val sensitive =
-                                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||
-                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token
-                            val monospace =
-                                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||
-                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token ||
-                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Regex ||
-                                        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Command
-                            val password =
-                                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password
-                            val generator = when (item.type) {
-                                ConfirmationRoute.Args.Item.StringItem.Type.Username -> ConfirmationState.Item.StringItem.Generator.Username
-                                ConfirmationRoute.Args.Item.StringItem.Type.Password -> ConfirmationState.Item.StringItem.Generator.Password
-                                ConfirmationRoute.Args.Item.StringItem.Type.Token,
-                                ConfirmationRoute.Args.Item.StringItem.Type.Text,
-                                ConfirmationRoute.Args.Item.StringItem.Type.URI,
-                                ConfirmationRoute.Args.Item.StringItem.Type.Regex,
-                                ConfirmationRoute.Args.Item.StringItem.Type.Command,
-                                -> null
-                            }
-                            requireNotNull(state)
-                            val model = TextFieldModel2(
-                                state = state,
-                                text = fixed,
-                                hint = item.hint,
-                                error = error,
-                                onChange = state::value::set,
-                            )
-                            ConfirmationState.Item.StringItem(
-                                key = item.key,
-                                title = item.title,
-                                description = item.description,
-                                sensitive = sensitive,
-                                monospace = monospace,
-                                password = password,
-                                generator = generator,
-                                value = fixed,
-                                enabled = item.enabled,
-                                state = model,
-                            )
-                        }
-
-                        is ConfirmationRoute.Args.Item.EnumItem -> {
-                            val fixed = value as String
-                            ConfirmationState.Item.EnumItem(
-                                key = item.key,
-                                value = fixed,
-                                enabled = item.enabled,
-                                items = item.items
-                                    .map { el ->
-                                        ConfirmationState.Item.EnumItem.Item(
-                                            key = el.key,
-                                            title = el.title,
-                                            text = el.text,
-                                            selected = el.key == fixed,
-                                            onClick = {
-                                                sink.value = el.key
-                                            },
-                                        )
-                                    },
-                                doc = item.docs[fixed]
-                                    ?.let { doc ->
-                                        ConfirmationState.Item.EnumItem.Doc(
-                                            text = doc.text,
-                                            onLearnMore = if (doc.url != null) {
-                                                // lambda
-                                                {
-                                                    val intent =
-                                                        NavigationIntent.NavigateToBrowser(doc.url)
-                                                    navigate(intent)
-                                                }
-                                            } else {
-                                                null
-                                            },
-                                        )
-                                    },
-                            )
-                        }
-
-                        is ConfirmationRoute.Args.Item.FileItem -> {
-                            val fixed = value as ConfirmationRoute.Args.Item.FileItem.File?
-                            val error = if (fixed != null) null else "Must pick a file"
-                            ConfirmationState.Item.FileItem(
-                                key = item.key,
-                                title = item.title,
-                                value = fixed,
-                                enabled = item.enabled,
-                                error = error,
-                                onSelect = {
-                                    val intent = FilePickerIntent.OpenDocument(
-                                        mimeTypes = arrayOf(
-                                            "text/plain",
-                                            "text/wordlist",
-                                        )
-                                    ) { info ->
-                                        if (info != null) {
-                                            val file = ConfirmationRoute.Args.Item.FileItem.File(
-                                                uri = info.uri.toString(),
-                                                name = info.name,
-                                                size = info.size,
-                                            )
-                                            sink.value = file
-                                        }
-                                    }
-                                    filePickerIntentSink.emit(intent)
-                                },
-                                onClear = if (fixed != null) {
-                                    // lambda
-                                    {
-                                        sink.value = null
-                                    }
-                                } else {
-                                    null
-                                }
-                            )
-                        }
                     }
                 }
+
+                is ConfirmationRoute.Args.Item.EnumItem -> {
+                    val sink = mutablePersistedFlow(createItemKey(item.key)) {
+                        item.value
+                    }
+                    sink.map { value ->
+                        ConfirmationState.Item.EnumItem(
+                            key = item.key,
+                            value = value,
+                            enabled = item.enabled,
+                            items = item.items
+                                .map { el ->
+                                    ConfirmationState.Item.EnumItem.Item(
+                                        key = el.key,
+                                        title = el.title,
+                                        text = el.text,
+                                        selected = el.key == value,
+                                        onClick = {
+                                            sink.value = el.key
+                                        },
+                                    )
+                                },
+                            doc = item.docs[value]
+                                ?.let { doc ->
+                                    ConfirmationState.Item.EnumItem.Doc(
+                                        text = doc.text,
+                                        onLearnMore = if (doc.url != null) {
+                                            // lambda
+                                            {
+                                                val intent =
+                                                    NavigationIntent.NavigateToBrowser(doc.url)
+                                                navigate(intent)
+                                            }
+                                        } else {
+                                            null
+                                        },
+                                    )
+                                },
+                        )
+                    }
+                }
+
+                is ConfirmationRoute.Args.Item.FileItem -> {
+                    val sink = mutablePersistedFlow(createItemKey(item.key)) {
+                        item.value
+                    }
+                    sink.map { value ->
+                        val error = if (value != null) null else "Must pick a file"
+                        ConfirmationState.Item.FileItem(
+                            key = item.key,
+                            title = item.title,
+                            value = value,
+                            enabled = item.enabled,
+                            error = error,
+                            onSelect = {
+                                val intent = FilePickerIntent.OpenDocument(
+                                    mimeTypes = arrayOf(
+                                        "text/plain",
+                                        "text/wordlist",
+                                    )
+                                ) { info ->
+                                    if (info != null) {
+                                        val file = ConfirmationRoute.Args.Item.FileItem.File(
+                                            uri = info.uri.toString(),
+                                            name = info.name,
+                                            size = info.size,
+                                        )
+                                        sink.value = file
+                                    }
+                                }
+                                filePickerIntentSink.emit(intent)
+                            },
+                            onClear = if (value != null) {
+                                // lambda
+                                {
+                                    sink.value = null
+                                }
+                            } else {
+                                null
+                            }
+                        )
+                    }
+                }
+            }
         }
         .combineToList()
-    itemsFlow
+    return itemsFlow
         .map { items ->
             val valid = items.all { it.valid }
             ConfirmationState(
@@ -237,4 +221,57 @@ fun confirmationState(
                 },
             )
         }
+}
+
+
+private suspend fun RememberStateFlowScope.confirmationStringItem(
+    item: ConfirmationRoute.Args.Item.StringItem,
+    cell: TextCell,
+    handle: TextFieldHandle,
+): ConfirmationState.Item.StringItem {
+    val error = if (item.canBeEmpty || cell.text.isNotBlank()) {
+        null
+    } else {
+        translate(Res.string.error_must_not_be_blank)
+    }
+    val sensitive =
+        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||
+                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token
+    val monospace =
+        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password ||
+                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Token ||
+                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Regex ||
+                item.type == ConfirmationRoute.Args.Item.StringItem.Type.Command
+    val password =
+        item.type == ConfirmationRoute.Args.Item.StringItem.Type.Password
+    val generator = when (item.type) {
+        ConfirmationRoute.Args.Item.StringItem.Type.Username -> ConfirmationState.Item.StringItem.Generator.Username
+        ConfirmationRoute.Args.Item.StringItem.Type.Password -> ConfirmationState.Item.StringItem.Generator.Password
+        ConfirmationRoute.Args.Item.StringItem.Type.Token,
+        ConfirmationRoute.Args.Item.StringItem.Type.Text,
+        ConfirmationRoute.Args.Item.StringItem.Type.URI,
+        ConfirmationRoute.Args.Item.StringItem.Type.Regex,
+        ConfirmationRoute.Args.Item.StringItem.Type.Command,
+        -> null
+    }
+    val model = TextFieldModel(
+        text = cell.text,
+        textRevision = cell.revision,
+        hint = item.hint,
+        error = error,
+        onChange = handle::onChange,
+        onSetText = handle::setText,
+    )
+    return ConfirmationState.Item.StringItem(
+        key = item.key,
+        title = item.title,
+        description = item.description,
+        sensitive = sensitive,
+        monospace = monospace,
+        password = password,
+        generator = generator,
+        value = cell.text,
+        enabled = item.enabled,
+        state = model,
+    )
 }

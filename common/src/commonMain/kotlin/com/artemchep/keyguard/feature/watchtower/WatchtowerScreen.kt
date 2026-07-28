@@ -35,6 +35,7 @@ import androidx.compose.material.icons.outlined.CheckCircleOutline
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.NotificationsActive
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.Badge
@@ -368,6 +369,12 @@ fun WatchtowerScreen2(
                 }
 
                 state.content.RenderCard(
+                    transform = { weakGpgKeys },
+                ) { weakGpgKeys ->
+                    CardWeakGpgKeys(weakGpgKeys)
+                }
+
+                state.content.RenderCard(
                     transform = { inactiveTwoFactorAuth },
                 ) { inactiveTwoFactorAuth ->
                     CardInactiveTwoFactorAuth(inactiveTwoFactorAuth)
@@ -411,6 +418,18 @@ fun WatchtowerScreen2(
                     transform = { expiringItems },
                 ) { expiringItems ->
                     CardExpiringItems(expiringItems)
+                }
+
+                state.content.RenderCard(
+                    transform = { unusableGpgKeys },
+                ) { unusableGpgKeys ->
+                    CardUnusableGpgKeys(unusableGpgKeys)
+                }
+
+                state.content.RenderCard(
+                    transform = { gpgKeyPublishing },
+                ) { gpgKeyPublishing ->
+                    CardGpgKeyPublishing(gpgKeyPublishing)
                 }
 
                 state.content.RenderCard(
@@ -846,6 +865,66 @@ private fun CardWeakSshKeys(
         },
         text = stringResource(Res.string.watchtower_item_weak_ssh_keys_text),
         imageVector = Icons.Outlined.KeyguardSshKey,
+        onClick = state.onClick,
+    )
+}
+
+@Composable
+private fun CardUnusableGpgKeys(
+    state: WatchtowerState.Content.UnusableGpgKeys,
+) {
+    Card(
+        number = state.count,
+        new = state.new,
+        title = {
+            ContentCardsContentTitle(
+                icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
+                    ?: WatchtowerStatusIcon.OK,
+                title = stringResource(Res.string.watchtower_item_unusable_gpg_keys_title),
+            )
+        },
+        text = stringResource(Res.string.watchtower_item_unusable_gpg_keys_text),
+        imageVector = Icons.Outlined.Key,
+        onClick = state.onClick,
+    )
+}
+
+@Composable
+private fun CardWeakGpgKeys(
+    state: WatchtowerState.Content.WeakGpgKeys,
+) {
+    Card(
+        number = state.count,
+        new = state.new,
+        title = {
+            ContentCardsContentTitle(
+                icon = WatchtowerStatusIcon.ERROR.takeIf { state.count > 0 }
+                    ?: WatchtowerStatusIcon.OK,
+                title = stringResource(Res.string.watchtower_item_weak_gpg_keys_title),
+            )
+        },
+        text = stringResource(Res.string.watchtower_item_weak_gpg_keys_text),
+        imageVector = Icons.Outlined.Key,
+        onClick = state.onClick,
+    )
+}
+
+@Composable
+private fun CardGpgKeyPublishing(
+    state: WatchtowerState.Content.GpgKeyPublishing,
+) {
+    Card(
+        number = state.count,
+        new = state.new,
+        title = {
+            ContentCardsContentTitle(
+                icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
+                    ?: WatchtowerStatusIcon.OK,
+                title = stringResource(Res.string.watchtower_item_gpg_key_publishing_title),
+            )
+        },
+        text = stringResource(Res.string.watchtower_item_gpg_key_publishing_text),
+        imageVector = Icons.Outlined.Key,
         onClick = state.onClick,
     )
 }

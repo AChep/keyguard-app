@@ -1,0 +1,45 @@
+[package]
+name = "ssh-cipher"
+version = "0.2.0"
+description = """
+Pure Rust implementation of SSH symmetric encryption including support for the
+modern aes128-gcm@openssh.com/aes256-gcm@openssh.com and
+chacha20-poly1305@openssh.com algorithms as well as legacy support for older
+ciphers. Built on the pure Rust cryptography implementations maintained by the
+RustCrypto organization.
+"""
+authors = ["RustCrypto Developers"]
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/RustCrypto/SSH/tree/master/ssh-cipher"
+categories = ["cryptography", "no-std"]
+keywords = ["crypto", "encryption", "openssh", "ssh"]
+readme = "README.md"
+edition = "2021"
+rust-version = "1.60"
+
+[dependencies]
+cipher = "0.4"
+encoding = { package = "ssh-encoding", version = "0.2", path = "../ssh-encoding" }
+
+# optional dependencies
+aes = { version = "0.8", optional = true, default-features = false }
+aes-gcm = { version = "0.10", optional = true, default-features = false, features = ["aes"] }
+cbc = { version = "0.1", optional = true }
+ctr = { version = "0.9", optional = true, default-features = false }
+chacha20 = { version = "0.9", optional = true, default-features = false }
+des = { version = "0.8", optional = true, default-features = false }
+poly1305 = { version = "0.8", optional = true, default-features = false }
+subtle = { version = "2", optional = true, default-features = false }
+
+[features]
+std = []
+
+aes-cbc = ["dep:aes", "dep:cbc"]
+aes-ctr = ["dep:aes", "dep:ctr"]
+aes-gcm = ["dep:aes", "dep:aes-gcm"]
+chacha20poly1305 = ["dep:chacha20", "dep:poly1305", "dep:subtle"]
+tdes = ["dep:des", "dep:cbc"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

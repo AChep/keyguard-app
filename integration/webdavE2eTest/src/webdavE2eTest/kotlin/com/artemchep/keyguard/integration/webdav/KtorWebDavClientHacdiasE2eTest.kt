@@ -4,6 +4,7 @@ import com.artemchep.keyguard.util.webdav.KtorWebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavByteRange
 import com.artemchep.keyguard.util.webdav.WebDavException
 import com.artemchep.keyguard.util.webdav.WebDavWriteMode
+import com.artemchep.keyguard.util.webdav.WebDavWritePrecondition
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Source
 import kotlinx.io.readByteArray
@@ -177,6 +178,64 @@ class KtorWebDavClientHacdiasE2eTest {
                         bytes = "child".encodeToByteArray(),
                     )
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `conditional write replaces matching etag and rejects already stale etag`() = runTest {
+        withServer { server ->
+            server.client().use { client ->
+                val created = client.write(
+                    path = "database.kdbx",
+                    mode = WebDavWriteMode.Create,
+                    bytes = "one".encodeToByteArray(),
+                )
+                val initialEtag = assertNotNull(created.etag)
+
+                // hacdias/webdav does not enforce the MOVE If condition. The
+                // client-side stats before the upload and before the swap
+                // still reject revisions that are already stale, while the
+                // condition closes the race on servers that implement it.
+                val matching = client.write(
+                    path = "database.kdbx",
+                    mode = WebDavWriteMode.CreateOrReplace,
+                    bytes = "matching".encodeToByteArray(),
+                    precondition = WebDavWritePrecondition(initialEtag),
+                )
+                assertContentEquals(
+                    "matching".encodeToByteArray(),
+                    client.read("database.kdbx").readBytesAndClose(),
+                )
+
+                val replaced = client.write(
+                    path = "database.kdbx",
+                    mode = WebDavWriteMode.CreateOrReplace,
+                    bytes = "two".encodeToByteArray(),
+                )
+                assertContentEquals(
+                    "two".encodeToByteArray(),
+                    client.read("database.kdbx").readBytesAndClose(),
+                )
+
+                assertFailsWith<WebDavException.PreconditionFailed> {
+                    client.write(
+                        path = "database.kdbx",
+                        mode = WebDavWriteMode.CreateOrReplace,
+                        bytes = "stale".encodeToByteArray(),
+                        precondition = WebDavWritePrecondition(initialEtag),
+                    )
+                }
+                assertTrue(matching.etag != replaced.etag)
+                assertContentEquals(
+                    "two".encodeToByteArray(),
+                    client.read("database.kdbx").readBytesAndClose(),
+                )
+                assertFalse(
+                    Files.list(server.root).use { paths ->
+                        paths.anyMatch { path -> path.fileName.toString().endsWith(".tmp") }
+                    },
+                )
             }
         }
     }

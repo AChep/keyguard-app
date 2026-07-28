@@ -10,6 +10,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,12 +32,14 @@ import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExp
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.rememberFlatSurfaceExpressiveColor
 import com.artemchep.keyguard.feature.home.vault.component.surfaceShape
+import com.artemchep.keyguard.ui.AnimatedNewCounterBadge
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.LocalExpressive
+import com.artemchep.keyguard.ui.theme.badgeContainer
 
 @Stable
 interface SettingPaneComponents {
@@ -114,7 +117,9 @@ object SettingPaneComponentsDefault : SettingPaneComponents {
                     if (badge != null) {
                         BadgedBox(
                             badge = {
-                                Badge {
+                                Badge(
+                                    containerColor = MaterialTheme.colorScheme.badgeContainer,
+                                ) {
                                     Text(
                                         text = badge,
                                     )

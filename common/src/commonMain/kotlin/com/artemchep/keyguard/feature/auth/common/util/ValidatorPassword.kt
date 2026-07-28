@@ -40,24 +40,34 @@ suspend fun ValidationPassword.format(scope: TranslatorScope): String? =
         else -> null
     }
 
+suspend fun TranslatorScope.validatedPassword(
+    password: String,
+    minLength: Int = ValidationPassword.Const.MIN_LENGTH,
+): Validated<String> {
+    val passwordError = validatePassword(
+        password = password,
+        minLength = minLength,
+    )
+        .format(this)
+    return if (passwordError != null) {
+        Validated.Failure(
+            model = password,
+            error = passwordError,
+        )
+    } else {
+        Validated.Success(
+            model = password,
+        )
+    }
+}
+
 fun Flow<String>.validatedPassword(
     scope: TranslatorScope,
     minLength: Int = ValidationPassword.Const.MIN_LENGTH,
 ) = this
     .map { password ->
-        val passwordError = validatePassword(
+        scope.validatedPassword(
             password = password,
             minLength = minLength,
         )
-            .format(scope)
-        if (passwordError != null) {
-            Validated.Failure(
-                model = password,
-                error = passwordError,
-            )
-        } else {
-            Validated.Success(
-                model = password,
-            )
-        }
     }

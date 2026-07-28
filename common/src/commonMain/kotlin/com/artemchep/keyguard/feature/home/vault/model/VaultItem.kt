@@ -19,9 +19,30 @@ import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.AccentColors
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.PersistentSet
 import kotlinx.coroutines.flow.StateFlow
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
+
+@Immutable
+interface VaultItemPresentation {
+    val source: DSecret
+    val accentLight: Color get() = source.accentLight
+    val accentDark: Color get() = source.accentDark
+    val icon: VaultItemIcon
+    val title: AnnotatedString
+    val text: String?
+    val favourite: Boolean get() = source.favorite
+    val attachments: Boolean get() = source.attachments.isNotEmpty()
+}
+
+@Immutable
+data class DefaultVaultItemPresentation(
+    override val source: DSecret,
+    override val icon: VaultItemIcon,
+    override val title: AnnotatedString,
+    override val text: String?,
+) : VaultItemPresentation
 
 @Immutable
 @optics
@@ -92,9 +113,10 @@ sealed interface VaultItem2 {
     @Immutable
     data class Item(
         override val id: String,
-        val source: DSecret,
-        val accentLight: Color,
-        val accentDark: Color,
+        override val source: DSecret,
+        val interactionId: String = source.id,
+        override val accentLight: Color,
+        override val accentDark: Color,
         val tag: String? = source.accountId,
         val accountId: String,
         val groupId: String?,
@@ -105,7 +127,7 @@ sealed interface VaultItem2 {
         val score: PasswordStrength?,
         val type: String,
         val folderId: String?,
-        val icon: VaultItemIcon,
+        override val icon: VaultItemIcon,
         val feature: Feature,
         val copyText: CopyText,
         val token: TotpToken?,
@@ -115,16 +137,16 @@ sealed interface VaultItem2 {
         /**
          * The name of the item.
          */
-        val title: AnnotatedString,
-        val text: String?,
+        override val title: AnnotatedString,
+        override val text: String?,
         val searchContextBadge: SearchContextBadge? = null,
-        val favourite: Boolean,
-        val attachments: Boolean,
+        override val favourite: Boolean,
+        override val attachments: Boolean,
         val shapeState: Int = ShapeState.ALL,
         //
         val action: Action,
-        val localStateFlow: StateFlow<LocalState>,
-    ) : VaultItem2, GroupableShapeItem<Item> {
+        val localStateSource: LocalStateSource,
+    ) : VaultItem2, GroupableShapeItem<Item>, VaultItemPresentation {
         companion object;
 
         override val contentType: String get() = "item"
@@ -140,6 +162,40 @@ sealed interface VaultItem2 {
         @Immutable
         data class OpenedState(
             val isOpened: Boolean,
+        )
+
+        @Immutable
+        sealed interface LocalStateSource {
+            @Immutable
+            data class PerItem(
+                val stateFlow: StateFlow<LocalState>,
+            ) : LocalStateSource
+
+            @Immutable
+            data class Shared(
+                val stateFlow: StateFlow<SharedState>,
+                val canSelect: Boolean = true,
+                val onToggleSelection: (String) -> Unit,
+            ) : LocalStateSource
+        }
+
+        @Immutable
+        data class SharedState(
+            val selectedIds: PersistentSet<String>,
+            val openedId: String?,
+        ) {
+            fun forItem(itemId: String) = SharedItemState(
+                selecting = selectedIds.isNotEmpty(),
+                selected = itemId in selectedIds,
+                opened = itemId == openedId,
+            )
+        }
+
+        @Immutable
+        data class SharedItemState(
+            val selecting: Boolean,
+            val selected: Boolean,
+            val opened: Boolean,
         )
 
         @Immutable

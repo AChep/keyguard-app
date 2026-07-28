@@ -18,7 +18,9 @@ data class VaultViewItemRenderers(
     val quickActions: @Composable (Modifier, VaultViewItem.QuickActions) -> Unit,
     val quickBadges: @Composable (Modifier, VaultViewItem.QuickBadges) -> Unit,
     val action: @Composable (Modifier, VaultViewItem.Action) -> Unit,
+    val link: @Composable (Modifier, VaultViewItem.Link) -> Unit,
     val value: @Composable (Modifier, VaultViewItem.Value) -> Unit,
+    val table: @Composable (Modifier, VaultViewItem.Table) -> Unit,
     val switch: @Composable (Modifier, VaultViewItem.Switch) -> Unit,
     val uri: @Composable (Modifier, VaultViewItem.Uri) -> Unit,
     val button: @Composable (Modifier, VaultViewItem.Button) -> Unit,
@@ -53,7 +55,9 @@ fun VaultViewItemContent(
     is VaultViewItem.QuickActions -> renderers.quickActions(modifier, item)
     is VaultViewItem.QuickBadges -> renderers.quickBadges(modifier, item)
     is VaultViewItem.Action -> renderers.action(modifier, item)
+    is VaultViewItem.Link -> renderers.link(modifier, item)
     is VaultViewItem.Value -> renderers.value(modifier, item)
+    is VaultViewItem.Table -> renderers.table(modifier, item)
     is VaultViewItem.Switch -> renderers.switch(modifier, item)
     is VaultViewItem.Uri -> renderers.uri(modifier, item)
     is VaultViewItem.Button -> renderers.button(modifier, item)

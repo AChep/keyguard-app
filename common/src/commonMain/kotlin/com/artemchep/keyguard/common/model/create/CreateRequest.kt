@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.model.create
 
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.platform.LeUri
 import kotlinx.collections.immutable.PersistentList
@@ -18,6 +19,7 @@ data class CreateRequest(
     val favorite: Boolean? = null,
     val reprompt: Boolean? = null,
     val uris: PersistentList<DSecret.Uri> = persistentListOf(),
+    val links: PersistentList<DSecret.Link> = persistentListOf(),
     val fido2Credentials: PersistentList<DSecret.Login.Fido2Credentials> = persistentListOf(),
     val fields: PersistentList<DSecret.Field> = persistentListOf(),
     val tags: PersistentList<String> = persistentListOf(),
@@ -28,6 +30,7 @@ data class CreateRequest(
     val card: Card = Card(),
     val identity: Identity = Identity(),
     val sshKey: SshKey = SshKey(),
+    val gpgKey: GpgKey = GpgKey(),
     // other
     val now: Instant,
 ) {
@@ -144,6 +147,16 @@ data class CreateRequest(
         val privateKey: String? = null,
         val publicKey: String? = null,
         val fingerprint: String? = null,
+    ) {
+        companion object;
+    }
+
+    @optics
+    data class GpgKey(
+        val privateKeyArmored: String? = null,
+        val publicKeyArmored: String? = null,
+        val fingerprint: String? = null,
+        val metadata: GpgAgentKeyMetadata? = null,
     ) {
         companion object;
     }

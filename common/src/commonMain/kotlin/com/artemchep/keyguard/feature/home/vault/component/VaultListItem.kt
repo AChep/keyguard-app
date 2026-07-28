@@ -86,10 +86,12 @@ import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.feature.EmptyView
+import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
@@ -127,6 +129,8 @@ import com.artemchep.keyguard.ui.util.DividerColor
 import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.painterResource
 import kotlin.math.ln
 
@@ -282,6 +286,78 @@ fun LargeSection(
 }
 
 @Composable
+fun ColumnScope.VaultItemTextContent(
+    item: VaultItemPresentation,
+    textMaxLines: Int = if (item.source.type == DSecret.Type.SecureNote) 4 else 2,
+) {
+    FlatItemTextContent(
+        title = {
+            val title = item.title
+                .takeUnless { it.isEmpty() }
+            if (title != null) {
+                Text(
+                    text = title,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            } else {
+                Text(
+                    text = stringResource(Res.string.empty_value),
+                    color = LocalContentColor.current
+                        .combineAlpha(DisabledEmphasisAlpha),
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                )
+            }
+        },
+        text = item.text
+            ?.takeIf { it.isNotEmpty() }
+            ?.let {
+                // composable
+                {
+                    Text(
+                        text = it,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = textMaxLines,
+                    )
+                }
+            },
+    )
+}
+
+@Composable
+fun CompactVaultItem(
+    modifier: Modifier = Modifier,
+    item: VaultItemPresentation,
+    shapeState: Int = ShapeState.ALL,
+    padding: PaddingValues? = null,
+    trailing: (@Composable RowScope.() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    enabled: Boolean = onClick != null,
+) {
+    FlatItemLayoutExpressive(
+        modifier = modifier,
+        shapeState = shapeState,
+        padding = padding,
+        content = {
+            VaultItemTextContent(
+                item = item,
+                textMaxLines = 1,
+            )
+        },
+        leading = {
+            AccountListItemTextIcon(
+                item = item,
+            )
+        },
+        trailing = trailing,
+        onClick = onClick,
+        enabled = enabled,
+    )
+}
+
+@Composable
 fun VaultListItemText(
     modifier: Modifier = Modifier,
     item: VaultItem2.Item,
@@ -303,20 +379,53 @@ fun VaultListItemText(
         dropdownExpandedState.value = false
     }
 
-    val localState by item.localStateFlow.collectAsState()
+    val localStateSource = item.localStateSource
+    val (opened, selectableItemState) = when (localStateSource) {
+        is VaultItem2.Item.LocalStateSource.PerItem -> {
+            val localState by localStateSource.stateFlow.collectAsState()
+            localState.openedState.isOpened to localState.selectableItemState
+        }
 
-    val onClick = localState.selectableItemState.onClick
+        is VaultItem2.Item.LocalStateSource.Shared -> {
+            val interactionId = item.interactionId
+            val itemStateFlow = remember(localStateSource, interactionId) {
+                localStateSource.stateFlow
+                    .map { it.forItem(interactionId) }
+                    .distinctUntilChanged()
+            }
+            val itemState by itemStateFlow.collectAsState(
+                initial = localStateSource.stateFlow.value.forItem(interactionId),
+            )
+            val onToggleSelection = remember(localStateSource, interactionId) {
+                {
+                    localStateSource.onToggleSelection(interactionId)
+                }
+            }
+            val selectableItemState = SelectableItemState(
+                selecting = itemState.selecting,
+                selected = itemState.selected,
+                can = localStateSource.canSelect,
+                onClick = onToggleSelection.takeIf { itemState.selecting },
+                onLongClick = onToggleSelection.takeIf {
+                    !itemState.selecting && localStateSource.canSelect
+                },
+            )
+            itemState.opened to selectableItemState
+        }
+    }
+
+    val onClick = selectableItemState.onClick
     // fallback to default
         ?: when (item.action) {
             VaultItem2.Item.Action.None -> null
             is VaultItem2.Item.Action.Dropdown -> dropdownExpand
             is VaultItem2.Item.Action.Go -> item.action.onClick
-        }.takeIf { localState.selectableItemState.can }
-    val onLongClick = localState.selectableItemState.onLongClick
+        }.takeIf { selectableItemState.can }
+    val onLongClick = selectableItemState.onLongClick
 
     val backgroundColor = when {
-        localState.selectableItemState.selected -> MaterialTheme.colorScheme.primaryContainer
-        localState.openedState.isOpened ->
+        selectableItemState.selected -> MaterialTheme.colorScheme.primaryContainer
+        opened ->
             MaterialTheme.colorScheme.selectedContainer
                 .takeIf { LocalHasDetailPane.current }
                 ?: Color.Unspecified
@@ -328,40 +437,7 @@ fun VaultListItemText(
         backgroundColor = backgroundColor,
         shapeState = item.shapeState,
         content = {
-            FlatItemTextContent(
-                title = {
-                    val title = item.title
-                        .takeUnless { it.isEmpty() }
-                    if (title != null) {
-                        Text(
-                            text = title,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(Res.string.empty_value),
-                            color = LocalContentColor.current
-                                .combineAlpha(DisabledEmphasisAlpha),
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                        )
-                    }
-                },
-                text = item.text
-                    ?.takeIf { it.isNotEmpty() }
-                    ?.let {
-                        // composable
-                        {
-                            Text(
-                                text = it,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = if (item.source.type == DSecret.Type.SecureNote) 4 else 2,
-                            )
-                        }
-                    },
-            )
+            VaultItemTextContent(item = item)
 
             content?.invoke(this)
 
@@ -536,7 +612,7 @@ fun VaultListItemText(
             Spacer(modifier = Modifier.width(8.dp))
 
             val tqry = when {
-                localState.selectableItemState.selecting -> Try.CHECKBOX
+                selectableItemState.selecting -> Try.CHECKBOX
                 item.action is VaultItem2.Item.Action.Go -> Try.CHEVRON
                 else -> Try.NONE
             }
@@ -556,7 +632,7 @@ fun VaultListItemText(
                     when (it) {
                         Try.CHECKBOX -> {
                             Checkbox(
-                                checked = localState.selectableItemState.selected,
+                                checked = selectableItemState.selected,
                                 onCheckedChange = null,
                             )
                         }
@@ -614,6 +690,7 @@ internal fun resolveSearchContextBadgeIcon(field: VaultTextField?): ImageVector 
         VaultTextField.Note -> Icons.Outlined.KeyguardNote
         VaultTextField.Field -> Icons.Outlined.Info
         VaultTextField.Ssh -> Icons.Outlined.KeyguardSshKey
+        VaultTextField.Gpg -> Icons.Outlined.Key
         VaultTextField.Password -> Icons.Outlined.Password
         VaultTextField.CardNumber -> Icons.Outlined.CreditCard
         else -> Icons.Outlined.Info
@@ -882,6 +959,7 @@ fun FlatItemSimpleExpressive(
         ?: LocalContentColor.current,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
+    padding: PaddingValues? = null,
     title: @Composable () -> Unit,
     text: (@Composable () -> Unit)? = null,
     footer: (@Composable ColumnScope.() -> Unit)? = null,
@@ -897,6 +975,7 @@ fun FlatItemSimpleExpressive(
     contentColor = contentColor,
     shapeState = shapeState,
     expressive = expressive,
+    padding = padding,
     content = {
         FlatItemTextContent(
             title = title,
@@ -1290,7 +1369,7 @@ fun BoxScope.VaultItemIcon2(
 @Composable
 fun AccountListItemTextIcon(
     modifier: Modifier = Modifier,
-    item: VaultItem2.Item,
+    item: VaultItemPresentation,
 ) {
     val accent = rememberSecretAccentColor(
         accentLight = item.accentLight,

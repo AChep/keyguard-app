@@ -1,0 +1,476 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>ComplexCondition:FieldFeatureExtractor.kt:FieldFeatureExtractor$"address" in acBlob || "street-address" in acBlob || "postal-code" in acBlob || "country" in acBlob || "region" in acBlob</ID>
+    <ID>ComplexCondition:FieldFeatureExtractor.kt:FieldFeatureExtractor$"cc-number" in acBlob || "cc-csc" in acBlob || "cc-exp" in acBlob || "cc-name" in acBlob</ID>
+    <ID>CyclomaticComplexMethod:AutocompleteFieldAnalyzer.kt:AutocompleteFieldAnalyzer$override fun analyze: List&lt;FieldProposal&gt;</ID>
+    <ID>CyclomaticComplexMethod:DefaultStructureClusterBuilderV2.kt:DefaultStructureClusterBuilderV2$private fun classifyClusterType: ClusterType</ID>
+    <ID>CyclomaticComplexMethod:DefaultStructureExtractorV2.kt:DefaultStructureExtractorV2$private fun traverse: TraverseResult</ID>
+    <ID>CyclomaticComplexMethod:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun normalizeSemanticType: SemanticType</ID>
+    <ID>CyclomaticComplexMethod:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun resolveTextSignalFallback: SemanticType?</ID>
+    <ID>CyclomaticComplexMethod:FieldFeatureExtractor.kt:FieldFeatureExtractor$fun extract: DoubleArray</ID>
+    <ID>CyclomaticComplexMethod:GeneratedFieldTree.kt:GeneratedFieldTree$fun predict: Map&lt;String, Double&gt;</ID>
+    <ID>CyclomaticComplexMethod:MetaFeatureExtractor.kt:MetaFeatureExtractor$fun extract: DoubleArray</ID>
+    <ID>CyclomaticComplexMethod:TemplateFormAnalyzer.kt:TemplateFormAnalyzer$private fun classifySlot: Slot</ID>
+    <ID>CyclomaticComplexMethod:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$override fun analyze: List&lt;FieldProposal&gt;</ID>
+    <ID>LargeClass:GeneratedFieldTree.kt:GeneratedFieldTree</ID>
+    <ID>LongMethod:AutocompleteFieldAnalyzer.kt:AutocompleteFieldAnalyzer$override fun analyze: List&lt;FieldProposal&gt;</ID>
+    <ID>LongMethod:DefaultStructureExtractorV2.kt:DefaultStructureExtractorV2$private fun traverse: TraverseResult</ID>
+    <ID>LongMethod:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun resolveTextSignalFallback: SemanticType?</ID>
+    <ID>LongMethod:FieldFeatureExtractor.kt:FieldFeatureExtractor$fun extract: DoubleArray</ID>
+    <ID>LongMethod:GeneratedFieldTree.kt:GeneratedFieldTree$fun predict: Map&lt;String, Double&gt;</ID>
+    <ID>LongMethod:TemplateFormAnalyzer.kt:TemplateFormAnalyzer$private fun formActionBoosts: List&lt;FormProposal&gt;</ID>
+    <ID>LongMethod:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$override fun analyze: List&lt;FieldProposal&gt;</ID>
+    <ID>LoopWithTooManyJumpStatements:MetaFeatureExtractor.kt:MetaFeatureExtractor$for</ID>
+    <ID>MagicNumber:AutocompleteFieldAnalyzer.kt:AutocompleteFieldAnalyzer$0.85f</ID>
+    <ID>MagicNumber:AutocompleteFieldAnalyzer.kt:AutocompleteFieldAnalyzer$0.90f</ID>
+    <ID>MagicNumber:AutocompleteFieldAnalyzer.kt:AutocompleteFieldAnalyzer$0.95f</ID>
+    <ID>MagicNumber:AutocompleteFieldAnalyzer.kt:AutocompleteFieldAnalyzer$0.98f</ID>
+    <ID>MagicNumber:DefaultStructureExtractorV2.kt:DefaultStructureExtractorV2$28</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$10</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$11</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$12</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$13</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$14</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$15</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$16</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$17</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$18</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$19</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$20</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$21</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$22</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$23</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$24</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$25</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$26</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$27</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$28</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$29</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$30</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$31</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$32</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$33</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$34</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$35</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$36</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$37</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$38</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$39</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$40</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$41</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$42</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$43</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$44</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$45</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$46</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$47</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$48</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$49</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$50</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$51</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$52</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$53</ID>
+    <ID>MagicNumber:FieldFeatureExtractor.kt:FieldFeatureExtractor$54</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.071429</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.250000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.288018</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.322917</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.329710</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.375000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.387500</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.403390</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.422619</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.477273</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.500000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.527778</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.583333</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.585714</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.591667</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.605556</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.625000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.633333</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.708333</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.750000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.763889</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$0.978136</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$1.166667</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$1.171429</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$1.250000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$1.366667</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$1.500000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$1.690476</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$1.750000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$1.833333</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$1.928571</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$1.954545</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$10</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$10.500000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$100</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$101</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$102</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$103</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$104</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$105</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$106</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$107</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$108</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$109</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$11</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$110</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$111</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$112</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$113</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$114</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$115</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$116</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$117</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$118</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$119</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$12</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$120</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$121</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$122</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$123</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$124</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$125</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$126</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$127</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$128</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$129</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$13</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$130</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$131</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$132</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$133</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$134</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$135</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$136</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$137</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$138</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$139</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$14</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$140</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$141</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$142</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$143</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$144</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$145</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$146</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$147</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$148</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$149</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$15</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$150</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$151</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$152</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$153</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$154</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$155</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$156</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$157</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$158</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$159</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$16</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$160</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$161</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$162</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$163</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$164</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$165</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$166</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$167</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$168</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$169</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$17</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$170</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$171</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$172</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$173</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$174</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$175</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$176</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$177</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$178</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$179</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$18</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$180</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$181</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$182</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$183</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$184</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$185</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$186</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$187</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$188</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$189</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$19</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$190</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$191</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$192</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$193</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$194</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$195</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$196</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$197</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$198</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$199</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$2.500000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$20</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$200</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$201</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$202</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$203</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$204</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$205</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$206</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$207</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$208</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$209</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$21</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$210</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$211</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$212</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$213</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$214</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$215</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$216</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$217</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$218</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$219</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$22</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$22.750000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$220</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$221</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$222</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$223</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$224</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$225</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$226</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$227</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$228</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$229</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$23</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$230</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$231</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$232</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$233</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$234</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$235</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$236</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$237</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$238</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$239</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$24</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$240</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$241</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$242</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$243</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$244</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$245</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$246</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$247</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$248</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$249</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$25</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$250</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$251</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$252</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$253</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$254</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$255</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$256</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$257</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$258</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$259</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$26</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$260</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$261</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$262</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$263</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$264</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$265</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$266</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$267</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$268</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$269</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$27</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$28</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$29</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$3</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$3.500000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$3.750000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$3.833333</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$30</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$31</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$32</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$33</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$34</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$35</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$36</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$37</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$38</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$39</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$4</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$4.250000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$4.291667</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$4.500000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$4.833333</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$40</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$41</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$42</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$43</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$44</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$45</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$46</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$47</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$48</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$49</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$5</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$5.500000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$5.583333</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$50</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$51</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$52</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$53</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$54</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$55</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$56</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$57</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$58</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$59</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$6</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$6.250000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$6.500000</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$60</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$61</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$62</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$63</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$64</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$65</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$66</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$67</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$68</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$69</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$7</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$70</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$71</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$72</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$73</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$74</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$75</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$76</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$77</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$78</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$79</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$8</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$80</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$81</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$82</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$83</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$84</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$85</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$86</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$87</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$88</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$89</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$9</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$90</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$91</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$92</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$93</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$94</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$95</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$96</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$97</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$98</ID>
+    <ID>MagicNumber:GeneratedFieldTree.kt:GeneratedFieldTree$99</ID>
+    <ID>MagicNumber:InputTypeFieldAnalyzer.kt:InputTypeFieldAnalyzer$16</ID>
+    <ID>MagicNumber:KeywordMatcher.kt:KeywordMatcher$3</ID>
+    <ID>MagicNumber:MetaFeatureExtractor.kt:MetaFeatureExtractor$10.0</ID>
+    <ID>MagicNumber:TemplateFormAnalyzer.kt:TemplateFormAnalyzer$0.1f</ID>
+    <ID>MagicNumber:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$0.72f</ID>
+    <ID>MagicNumber:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$0.82f</ID>
+    <ID>MagicNumber:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$0.85f</ID>
+    <ID>MagicNumber:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$0.8f</ID>
+    <ID>MagicNumber:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$0.92f</ID>
+    <ID>MagicNumber:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$0.93f</ID>
+    <ID>MagicNumber:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$0.95f</ID>
+    <ID>MagicNumber:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$0.96f</ID>
+    <ID>MagicNumber:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$0.98f</ID>
+    <ID>MagicNumber:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$0.9f</ID>
+    <ID>MatchingDeclarationName:AhoCorasick.kt:AhoCorasickAutomaton</ID>
+    <ID>MaxLineLength:DefaultStructureClusterBuilderV2.kt:DefaultStructureClusterBuilderV2$private</ID>
+    <ID>MaxLineLength:FieldFeatureExtractor.kt:FieldFeatureExtractor$features[54] = if ("cc-number" in acBlob || "cc-csc" in acBlob || "cc-exp" in acBlob || "cc-name" in acBlob) 1.0 else 0.0</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("EMAIL_ADDRESS" to 0.407407, "PHONE_NUMBER" to 0.407407, "NOT_APPLICABLE" to 0.111111, "USERNAME" to 0.074074)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("EMAIL_ADDRESS" to 0.466667, "SEARCH" to 0.200000, "NOT_APPLICABLE" to 0.166667, "COMMENT" to 0.100000, "PASSWORD" to 0.033333, "GIVEN_NAME" to 0.033333)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("EMAIL_ADDRESS" to 0.781022, "USERNAME" to 0.116788, "NOT_APPLICABLE" to 0.094891, "PHONE_NUMBER" to 0.007299)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("EMAIL_ADDRESS" to 0.897727, "NOT_APPLICABLE" to 0.082386, "USERNAME" to 0.011364, "PHONE_NUMBER" to 0.008523)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("EMAIL_ADDRESS" to 0.926829, "USERNAME" to 0.024390, "PHONE_NUMBER" to 0.024390, "NOT_APPLICABLE" to 0.024390)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("EMAIL_ADDRESS" to 0.939064, "NOT_APPLICABLE" to 0.032644, "PASSWORD" to 0.018498, "USERNAME" to 0.009793)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("EMAIL_ADDRESS" to 0.965870, "NOT_APPLICABLE" to 0.026621, "USERNAME" to 0.003413, "COMMENT" to 0.002730, "OTP" to 0.000683, "GIVEN_NAME" to 0.000683)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("EMAIL_ADDRESS" to 0.994962, "NOT_APPLICABLE" to 0.002519, "USERNAME" to 0.001679, "PHONE_NUMBER" to 0.000840)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("FAMILY_NAME" to 0.328467, "NOT_APPLICABLE" to 0.321168, "GIVEN_NAME" to 0.284672, "PERSON_NAME" to 0.029197, "USERNAME" to 0.021898, "PHONE_NUMBER" to 0.007299, "EMAIL_ADDRESS" to 0.007299)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("GIVEN_NAME" to 0.447368, "NOT_APPLICABLE" to 0.421053, "PERSON_NAME" to 0.105263, "FAMILY_NAME" to 0.013158, "USERNAME" to 0.013158)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("GIVEN_NAME" to 0.548673, "NOT_APPLICABLE" to 0.371681, "PERSON_NAME" to 0.067847, "USERNAME" to 0.008850, "FAMILY_NAME" to 0.002950)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("GIVEN_NAME" to 0.796610, "NOT_APPLICABLE" to 0.131356, "PERSON_NAME" to 0.033898, "FAMILY_NAME" to 0.021186, "USERNAME" to 0.016949)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("GIVEN_NAME" to 0.815385, "NOT_APPLICABLE" to 0.138462, "PERSON_NAME" to 0.038462, "USERNAME" to 0.007692)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.366667, "PHONE_NUMBER" to 0.333333, "GIVEN_NAME" to 0.166667, "EMAIL_ADDRESS" to 0.133333)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.402738, "FAMILY_NAME" to 0.357349, "GIVEN_NAME" to 0.201009, "PERSON_NAME" to 0.023055, "USERNAME" to 0.015850)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.450867, "GIVEN_NAME" to 0.202312, "FAMILY_NAME" to 0.173410, "USERNAME" to 0.092486, "PHONE_NUMBER" to 0.046243, "PERSON_NAME" to 0.017341, "SEARCH" to 0.017341)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.454441, "FAMILY_NAME" to 0.357555, "GIVEN_NAME" to 0.115340, "PERSON_NAME" to 0.048443, "USERNAME" to 0.023068, "SEARCH" to 0.001153)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.584946, "PHONE_NUMBER" to 0.227957, "GIVEN_NAME" to 0.067742, "EMAIL_ADDRESS" to 0.050538, "USERNAME" to 0.040860, "PERSON_NAME" to 0.018280, "FAMILY_NAME" to 0.005376, "OTP" to 0.002151, "COMMENT" to 0.002151)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.684211, "FAMILY_NAME" to 0.163055, "GIVEN_NAME" to 0.104231, "PERSON_NAME" to 0.028896, "EMAIL_ADDRESS" to 0.007224, "PHONE_NUMBER" to 0.006192, "USERNAME" to 0.005160, "SEARCH" to 0.001032)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.707182, "PERSON_NAME" to 0.143646, "FAMILY_NAME" to 0.082873, "GIVEN_NAME" to 0.038674, "USERNAME" to 0.027624)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.718310, "GIVEN_NAME" to 0.211268, "PERSON_NAME" to 0.063380, "FAMILY_NAME" to 0.007042)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.769231, "FAMILY_NAME" to 0.102564, "GIVEN_NAME" to 0.064103, "EMAIL_ADDRESS" to 0.025641, "PERSON_NAME" to 0.025641, "USERNAME" to 0.012821)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.814371, "USERNAME" to 0.180763, "PHONE_NUMBER" to 0.002994, "GIVEN_NAME" to 0.001123, "OTP" to 0.000374, "EMAIL_ADDRESS" to 0.000374)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.841313, "SEARCH" to 0.153899, "USERNAME" to 0.002052, "COMMENT" to 0.002052, "PHONE_NUMBER" to 0.000684)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.845048, "GIVEN_NAME" to 0.081470, "FAMILY_NAME" to 0.044728, "PERSON_NAME" to 0.012780, "USERNAME" to 0.011182, "EMAIL_ADDRESS" to 0.004792)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.857143, "GIVEN_NAME" to 0.085714, "PERSON_NAME" to 0.028571, "FAMILY_NAME" to 0.028571)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.952898, "USERNAME" to 0.021369, "GIVEN_NAME" to 0.009174, "PHONE_NUMBER" to 0.007049, "PERSON_NAME" to 0.002909, "COMMENT" to 0.002685, "OTP" to 0.002350, "EMAIL_ADDRESS" to 0.001007, "FAMILY_NAME" to 0.000559)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.983439, "USERNAME" to 0.012568, "OTP" to 0.001479, "PHONE_NUMBER" to 0.000655, "GIVEN_NAME" to 0.000465, "FAMILY_NAME" to 0.000444, "PERSON_NAME" to 0.000338, "EMAIL_ADDRESS" to 0.000232, "PASSWORD" to 0.000190, "COMMENT" to 0.000190)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.984550, "EMAIL_ADDRESS" to 0.002664, "FAMILY_NAME" to 0.002664, "COMMENT" to 0.002664, "PHONE_NUMBER" to 0.002131, "GIVEN_NAME" to 0.001598, "PERSON_NAME" to 0.001598, "SEARCH" to 0.001598, "USERNAME" to 0.000533)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.984716, "PHONE_NUMBER" to 0.006550, "PERSON_NAME" to 0.006550, "USERNAME" to 0.002183)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("NOT_APPLICABLE" to 0.994388, "PASSWORD" to 0.004810, "PERSON_NAME" to 0.000534, "FAMILY_NAME" to 0.000267)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("PERSON_NAME" to 0.536585, "GIVEN_NAME" to 0.268293, "NOT_APPLICABLE" to 0.121951, "USERNAME" to 0.073171)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("PERSON_NAME" to 0.674679, "FAMILY_NAME" to 0.163462, "NOT_APPLICABLE" to 0.102564, "GIVEN_NAME" to 0.056090, "PHONE_NUMBER" to 0.001603, "USERNAME" to 0.001603)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("PHONE_NUMBER" to 0.500000, "NOT_APPLICABLE" to 0.272727, "EMAIL_ADDRESS" to 0.136364, "FAMILY_NAME" to 0.045455, "USERNAME" to 0.045455)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("USERNAME" to 0.728306, "NOT_APPLICABLE" to 0.258528, "PHONE_NUMBER" to 0.010772, "EMAIL_ADDRESS" to 0.002394)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("USERNAME" to 0.825073, "PHONE_NUMBER" to 0.081633, "EMAIL_ADDRESS" to 0.052478, "NOT_APPLICABLE" to 0.037901, "GIVEN_NAME" to 0.002915)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("USERNAME" to 0.947368, "PERSON_NAME" to 0.022556, "NOT_APPLICABLE" to 0.022556, "EMAIL_ADDRESS" to 0.007519)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("USERNAME" to 0.971106, "NOT_APPLICABLE" to 0.018059, "PHONE_NUMBER" to 0.010384, "EMAIL_ADDRESS" to 0.000451)</ID>
+    <ID>MaxLineLength:GeneratedFieldTree.kt:GeneratedFieldTree$mapOf("USERNAME" to 0.982394, "NOT_APPLICABLE" to 0.014085, "PHONE_NUMBER" to 0.002347, "PERSON_NAME" to 0.001174)</ID>
+    <ID>MaxLineLength:TemplateFormAnalyzer.kt:TemplateFormAnalyzer.Companion$FormTemplate(FormIntent.AUTH_COMBINED, listOf(Slot.NAME, Slot.NAME, Slot.IDENTIFIER, Slot.PASSWORD), 0.85f)</ID>
+    <ID>MaxLineLength:TemplateFormAnalyzer.kt:TemplateFormAnalyzer.Companion$FormTemplate(FormIntent.SHIPPING_ADDRESS, listOf(Slot.NAME, Slot.ADDRESS, Slot.ADDRESS, Slot.ADDRESS), 0.85f)</ID>
+    <ID>MaxLineLength:TemplateFormAnalyzer.kt:TemplateFormAnalyzer.Companion$FormTemplate(FormIntent.SIGN_UP, listOf(Slot.IDENTIFIER, Slot.PASSWORD, Slot.ADDRESS, Slot.ADDRESS, Slot.ADDRESS), 0.80f)</ID>
+    <ID>MaxLineLength:TemplateFormAnalyzer.kt:TemplateFormAnalyzer.Companion$FormTemplate(FormIntent.SIGN_UP, listOf(Slot.NAME, Slot.IDENTIFIER, Slot.PASSWORD, Slot.PASSWORD), 0.90f)</ID>
+    <ID>NestedBlockDepth:GeneratedFieldTree.kt:GeneratedFieldTree$fun predict: Map&lt;String, Double&gt;</ID>
+    <ID>ReturnCount:DefaultStructureClusterBuilderV2.kt:DefaultStructureClusterBuilderV2$private fun classifyClusterType: ClusterType</ID>
+    <ID>ReturnCount:DefaultStructureExtractorV2.kt:DefaultStructureExtractorV2$private fun isNativeButton: Boolean</ID>
+    <ID>ReturnCount:DefaultStructureExtractorV2.kt:DefaultStructureExtractorV2$private fun isNativeField: Boolean</ID>
+    <ID>ReturnCount:DefaultStructureExtractorV2.kt:DefaultStructureExtractorV2$private fun isUrlBar: Boolean</ID>
+    <ID>ReturnCount:DefaultStructureExtractorV2.kt:DefaultStructureExtractorV2$private fun traverse: TraverseResult</ID>
+    <ID>ReturnCount:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun hasStrongUsernameEvidence: Boolean</ID>
+    <ID>ReturnCount:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun isWeakPasswordHintForEmailIdentifier: Boolean</ID>
+    <ID>ReturnCount:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun looksLikeEmailIdentifier: Boolean</ID>
+    <ID>ReturnCount:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun looksLikePhoneIdentifier: Boolean</ID>
+    <ID>ReturnCount:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun looksLikeTelLoginIdentifier: Boolean</ID>
+    <ID>ReturnCount:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun resolveStructuralOverride: SemanticType?</ID>
+    <ID>ReturnCount:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun resolveTextSignalFallback: SemanticType?</ID>
+    <ID>ReturnCount:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun selectFieldType: SemanticType?</ID>
+    <ID>ReturnCount:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$private fun shouldSuppressField: Boolean</ID>
+    <ID>ReturnCount:FieldFeatureExtractor.kt:FieldFeatureExtractor$private fun isIdentifierField: Boolean</ID>
+    <ID>ReturnCount:FieldSignals.kt:private fun shouldInsertSignalBoundary: Boolean</ID>
+    <ID>ReturnCount:GeneratedFieldTree.kt:GeneratedFieldTree$fun predict: Map&lt;String, Double&gt;</ID>
+    <ID>ReturnCount:InputTypeFieldAnalyzer.kt:InputTypeFieldAnalyzer$override fun analyze: List&lt;FieldProposal&gt;</ID>
+    <ID>ReturnCount:TemplateFormAnalyzer.kt:TemplateFormAnalyzer.Companion$fun &lt;T&gt; levenshtein: Int</ID>
+    <ID>ReturnCount:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$override fun analyze: List&lt;FieldProposal&gt;</ID>
+    <ID>ReturnCount:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$private fun containsMixedCardIdentifierPhrase: Boolean</ID>
+    <ID>ReturnCount:TextSignalFieldAnalyzer.kt:TextSignalFieldAnalyzer$private fun isWeakPasswordCueWithStrongEmailIdentity: Boolean</ID>
+    <ID>TooManyFunctions:DefaultStructureResolverV2.kt:DefaultStructureResolverV2 : StructureResolverV2</ID>
+    <ID>UnusedParameter:TemplateFormAnalyzer.kt:TemplateFormAnalyzer$fields: List&lt;FieldNode&gt;</ID>
+    <ID>VariableNaming:DefaultStructureResolverV2.kt:DefaultStructureResolverV2$/** Maps meta-classifier class index to [SemanticType]. */ private val META_CLASS_TO_TYPE = arrayOf( SemanticType.EMAIL_ADDRESS, // 0 SemanticType.PASSWORD, // 1 SemanticType.USERNAME, // 2 SemanticType.PHONE_NUMBER, // 3 null, // 4 = NONE )</ID>
+  </CurrentIssues>
+</SmellBaseline>

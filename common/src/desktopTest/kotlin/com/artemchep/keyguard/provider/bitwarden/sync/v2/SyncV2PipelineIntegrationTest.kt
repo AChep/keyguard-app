@@ -18,6 +18,9 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.BitwardenSyncV2TestServ
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.BitwardenSyncV2TestServer.Companion.INSTANT_2
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.BitwardenSyncV2TestServer.Companion.INSTANT_4
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.BitwardenSyncV2TestServer.TestHttpFailure
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.fetchServerRevisionDateOrNull
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.requiresAuthenticationForSyncFailure
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.shouldSkipFullSyncForRevision
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncExecutionResult
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncResult
@@ -28,7 +31,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateEnt
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateResult
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.RemoteWriteOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.SyncCoordinator
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.strategy.FolderSyncStrategy
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.FolderSyncStrategy
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode

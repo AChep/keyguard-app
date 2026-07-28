@@ -10,13 +10,17 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.retry
 import com.artemchep.keyguard.common.io.shared
+import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
+import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.database.AfterVersionWithTransaction
 import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
+import com.artemchep.keyguard.common.service.database.EnumCodeToLongAdapter
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
 import com.artemchep.keyguard.common.service.database.ObjectToStringAdapter
-import com.artemchep.keyguard.common.service.database.SshUsageHistoryRequestTypeToLongAdapter
-import com.artemchep.keyguard.common.service.database.SshUsageHistoryResponseTypeToLongAdapter
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCollection
@@ -31,6 +35,8 @@ import com.artemchep.keyguard.data.BarcodeUsageHistory
 import com.artemchep.keyguard.data.CipherFilter
 import com.artemchep.keyguard.data.CipherUsageHistory
 import com.artemchep.keyguard.data.Database
+import com.artemchep.keyguard.data.GpgKeyserverState
+import com.artemchep.keyguard.data.GpgUsageHistory
 import com.artemchep.keyguard.data.GeneratorWordlist
 import com.artemchep.keyguard.data.GeneratorEmailRelay
 import com.artemchep.keyguard.data.GeneratorHistory
@@ -87,16 +93,26 @@ class VaultDatabaseManagerImpl(
     private val hibpAccountBreachToStringAdapter = HibpAccountBreachToStringAdapter(json)
 
     private val dbIo = io(masterKey)
-        .effectMap { masterKey ->
+        .effectMap(Dispatchers.IO) { masterKey ->
             val databaseFactory = { driver: SqlDriver ->
                 Database(
                     driver = driver,
                     barcodeUsageHistoryAdapter = BarcodeUsageHistory.Adapter(InstantToLongAdapter),
                     cipherUsageHistoryAdapter = CipherUsageHistory.Adapter(InstantToLongAdapter),
                     sshUsageHistoryAdapter = SshUsageHistory.Adapter(
-                        requestAdapter = SshUsageHistoryRequestTypeToLongAdapter,
-                        responseAdapter = SshUsageHistoryResponseTypeToLongAdapter,
+                        requestAdapter = EnumCodeToLongAdapter(SshUsageHistoryRequestType::of) { it.code },
+                        responseAdapter = EnumCodeToLongAdapter(SshUsageHistoryResponseType::of) { it.code },
                         createdAtAdapter = InstantToLongAdapter,
+                    ),
+                    gpgUsageHistoryAdapter = GpgUsageHistory.Adapter(
+                        requestAdapter = EnumCodeToLongAdapter(GpgUsageHistoryRequestType::of) { it.code },
+                        responseAdapter = EnumCodeToLongAdapter(GpgUsageHistoryResponseType::of) { it.code },
+                        createdAtAdapter = InstantToLongAdapter,
+                    ),
+                    gpgKeyserverStateAdapter = GpgKeyserverState.Adapter(
+                        verificationStatusAdapter = EnumCodeToLongAdapter(GpgKeyserverVerificationStatus::of) { it.code },
+                        lastCheckedAtAdapter = InstantToLongAdapter,
+                        lastRefreshedAtAdapter = InstantToLongAdapter,
                     ),
                     cipherFilterAdapter = CipherFilter.Adapter(
                         updatedAtAdapter = InstantToLongAdapter,

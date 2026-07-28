@@ -32,16 +32,19 @@ object SshKeyActions {
         with(contextItemBuilder) {
             section {
                 this += copyItemFactory.FlatItemAction(
+                    id = "sshKey.copyPublicKey",
                     title = Res.string.copy_ssh_public_key.wrap(),
                     value = keyPair.publicKey.ssh,
                     type = CopyText.Type.PUBLIC_KEY,
                 )
                 this += copyItemFactory.FlatItemAction(
+                    id = "sshKey.copyFingerprint",
                     title = Res.string.copy_ssh_fingerprint.wrap(),
                     value = keyPair.publicKey.fingerprint,
                     type = CopyText.Type.FINGERPRINT,
                 )
                 this += copyItemFactory.FlatItemAction(
+                    id = "sshKey.copyPrivateKey",
                     title = Res.string.copy_ssh_unencrypted_private_key.wrap(),
                     value = keyPair.privateKey.ssh,
                     type = CopyText.Type.PRIVATE_KEY,
@@ -58,6 +61,7 @@ object SshKeyActions {
                     privateKeyExport = privateKeyExport,
                 )
                 this += FlatItemAction(
+                    id = "sshKey.saveKeyPair",
                     leading = icon(Icons.Outlined.Save),
                     title = Res.string.ssh_key_action_save_unencrypted_keys_title.wrap(),
                     onClick = {
@@ -83,6 +87,7 @@ object SshKeyActions {
         publicKeyExport: KeyPublicExport,
     ): FlatItemAction = with(stateScope) {
         FlatItemAction(
+            id = "sshKey.savePublicKey",
             leading = icon(Icons.Outlined.Save),
             title = Res.string.ssh_key_action_save_public_key_title.wrap(),
             onClick = {
@@ -106,6 +111,7 @@ object SshKeyActions {
         privateKeyExport: KeyPrivateExport,
     ): FlatItemAction = with(stateScope) {
         FlatItemAction(
+            id = "sshKey.savePrivateKey",
             leading = icon(Icons.Outlined.Save),
             title = Res.string.ssh_key_action_save_unencrypted_private_key_title.wrap(),
             onClick = {

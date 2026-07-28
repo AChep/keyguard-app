@@ -283,6 +283,13 @@ object SyncDiffer {
                 // ("no folder").
                 val folderIdDiffers =
                     localItem.localFolderId != serverItem.localFolderId
+                val folderHierarchyDiffers =
+                    localItem.folderHierarchyMode != null &&
+                        serverItem.folderHierarchyMode != null &&
+                        (
+                            localItem.parentFolderId != serverItem.parentFolderId ||
+                                localItem.folderHierarchyMode != serverItem.folderHierarchyMode
+                        )
                 val favoriteDiffers =
                     localItem.favorite != null &&
                         serverItem.favorite != null &&
@@ -313,6 +320,7 @@ object SyncDiffer {
                     dateRoundingError ||
                         localItem.requiresLocalRefreshWhenDatesMatch ||
                         folderIdDiffers ||
+                        folderHierarchyDiffers ||
                         favoriteDiffers ||
                         collectionIdsDiffer ||
                         pendingRemoteAttachmentDeletionAlreadyApplied ||

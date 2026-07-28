@@ -33,6 +33,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.NotificationsImpl
 import net.zetetic.database.sqlcipher.SQLiteDatabase
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import org.kodein.di.DI
+import org.kodein.di.allInstances
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 
@@ -74,7 +75,10 @@ actual fun DI.Builder.createSubDi(
     }
     bindSingleton<GetSuggestions<Any?>> {
         GetSuggestionsImpl(
-            directDI = this,
+            androidExtractors = allInstances(),
+            getAutofillDefaultMatchDetection = instance(),
+            getUrlBlocks = instance(),
+            cipherUrlCheck = instance(),
         )
     }
 }
@@ -104,7 +108,12 @@ class DatabaseSqlManagerInFileAndroid<Database>(
                 .noBackupDirectory(true)
                 .build(),
         )
-        val driver: SqlDriver = AndroidSqliteDriver(openHelper)
+        // Opening SQLCipher through AndroidSqliteDriver is otherwise deferred until the first
+        // query. Session repositories start together, so they can all block dispatcher threads on
+        // the driver's synchronized database lazy while one thread performs the expensive open.
+        // Open once while creating the shared helper, before those repository flows are released.
+        val writableDatabase = openHelper.writableDatabase
+        val driver: SqlDriver = AndroidSqliteDriver(writableDatabase)
         val database = databaseFactory(driver)
         onCreate(database)
             .bind()

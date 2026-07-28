@@ -227,6 +227,25 @@ internal fun coldFieldValues(
         .takeIf(List<String>::isNotEmpty)
         ?.let { put(VaultTextField.Ssh, it) }
 
+    buildList {
+        source.gpgKey?.privateKeyArmored
+            ?.takeIf(String::isNotBlank)
+            ?.let(::add)
+        source.gpgKey?.publicKeyArmored
+            ?.takeIf(String::isNotBlank)
+            ?.let(::add)
+        source.gpgKey?.fingerprint
+            ?.takeIf(String::isNotBlank)
+            ?.let(::add)
+        source.gpgKey?.metadata?.keys?.forEach { key ->
+            key.fingerprint
+                .takeIf(String::isNotBlank)
+                ?.let(::add)
+        }
+    }
+        .takeIf(List<String>::isNotEmpty)
+        ?.let { put(VaultTextField.Gpg, it) }
+
     source.login?.password
         ?.takeIf { !source.reprompt && it.isNotBlank() }
         ?.let { put(VaultTextField.Password, listOf(it)) }
@@ -238,19 +257,25 @@ internal fun coldFieldValues(
 
 internal fun searchFingerprint(
     source: DSecret,
-): Int = buildList<String> {
+): Int {
+    var hash = 1
+
+    fun add(value: String) {
+        hash = 31 * hash + value.hashCode()
+    }
+
     add(source.id)
     add(source.accountId)
     add(source.folderId.orEmpty())
     add(source.organizationId.orEmpty())
-    addAll(source.collectionIds.sorted())
+    source.collectionIds.sorted().forEach(::add)
     add(source.revisionDate.toString())
     add(source.name)
     add(source.notes)
     add(source.favorite.toString())
     add(source.reprompt.toString())
     add(source.type.name)
-    addAll(source.tags)
+    source.tags.forEach(::add)
     source.uris.forEach { uri ->
         add(uri.uri)
     }
@@ -308,7 +333,16 @@ internal fun searchFingerprint(
         add(sshKey.publicKey.orEmpty())
         add(sshKey.fingerprint.orEmpty())
     }
-}.hashCode()
+    source.gpgKey?.let { gpgKey ->
+        add(gpgKey.privateKeyArmored.orEmpty())
+        add(gpgKey.publicKeyArmored.orEmpty())
+        add(gpgKey.fingerprint.orEmpty())
+        gpgKey.metadata?.keys?.forEach { key ->
+            add(key.fingerprint)
+        }
+    }
+    return hash
+}
 
 private fun joinSearchParts(
     vararg parts: String?,

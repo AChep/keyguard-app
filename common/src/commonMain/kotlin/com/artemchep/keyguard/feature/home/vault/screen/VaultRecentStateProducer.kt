@@ -31,8 +31,10 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.tabs.CallsTabs
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -111,6 +113,87 @@ fun vaultRecentScreenState(
         clipboardService,
     ),
 ) {
+    vaultRecentScreenStateProducer(
+        directDI = directDI,
+        highlightBackgroundColor = highlightBackgroundColor,
+        highlightContentColor = highlightContentColor,
+        getAccounts = getAccounts,
+        getCanWrite = getCanWrite,
+        getCiphers = getCiphers,
+        getProfiles = getProfiles,
+        getFolders = getFolders,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+        getTotpCode = getTotpCode,
+        getConcealFields = getConcealFields,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        getPasswordStrength = getPasswordStrength,
+        getCipherOpenedHistory = getCipherOpenedHistory,
+        clearVaultSession = clearVaultSession,
+        toolbox = toolbox,
+        queueSyncAll = queueSyncAll,
+        syncSupervisor = syncSupervisor,
+        dateFormatter = dateFormatter,
+        clipboardService = clipboardService,
+    )
+}
+
+suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer(
+    directDI: DirectDI,
+    highlightBackgroundColor: Color,
+    highlightContentColor: Color,
+): Flow<Loadable<VaultRecentState>> = with(directDI) {
+    vaultRecentScreenStateProducer(
+        directDI = directDI,
+        highlightBackgroundColor = highlightBackgroundColor,
+        highlightContentColor = highlightContentColor,
+        clearVaultSession = instance(),
+        getAccounts = instance(),
+        getCanWrite = instance(),
+        getCiphers = instance(),
+        getProfiles = instance(),
+        getFolders = instance(),
+        getCollections = instance(),
+        getOrganizations = instance(),
+        getTotpCode = instance(),
+        getConcealFields = instance(),
+        getAppIcons = instance(),
+        getWebsiteIcons = instance(),
+        getPasswordStrength = instance(),
+        getCipherOpenedHistory = instance(),
+        toolbox = instance(),
+        queueSyncAll = instance(),
+        syncSupervisor = instance(),
+        dateFormatter = instance(),
+        clipboardService = instance(),
+    )
+}
+
+internal suspend fun RememberStateFlowScope.vaultRecentScreenStateProducer(
+    directDI: DirectDI,
+    highlightBackgroundColor: Color,
+    highlightContentColor: Color,
+    getAccounts: GetAccounts,
+    getCanWrite: GetCanWrite,
+    getCiphers: GetCiphers,
+    getProfiles: GetProfiles,
+    getFolders: GetFolders,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+    getTotpCode: GetTotpCode,
+    getConcealFields: GetConcealFields,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    getPasswordStrength: GetPasswordStrength,
+    getCipherOpenedHistory: GetCipherOpenedHistory,
+    clearVaultSession: ClearVaultSession,
+    toolbox: CipherToolbox,
+    queueSyncAll: QueueSyncAll,
+    syncSupervisor: SupervisorRead,
+    dateFormatter: DateFormatter,
+    clipboardService: ClipboardService,
+): Flow<Loadable<VaultRecentState>> {
     val storage = kotlin.run {
         val disk = loadDiskHandle("vault.recent")
         PersistedStorage.InDisk(disk)
@@ -206,7 +289,7 @@ fun vaultRecentScreenState(
                 .map { secret ->
                     secret.toVaultListItem(
                         copy = copy,
-                        translator = this,
+                        translator = this@vaultRecentScreenStateProducer,
                         getTotpCode = getTotpCode,
                         concealFields = cfg.concealFields,
                         appIcons = cfg.appIcons,
@@ -255,5 +338,5 @@ fun vaultRecentScreenState(
             selectCipherFlow = cipherSink,
         ),
     )
-    flowOf(Loadable.Ok(defaultState))
+    return flowOf(Loadable.Ok(defaultState))
 }

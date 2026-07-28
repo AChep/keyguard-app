@@ -1,20 +1,27 @@
 package com.artemchep.test.feature
 
-import android.content.Context
 import android.content.Intent
-import androidx.test.core.app.ApplicationProvider
-import androidx.test.uiautomator.By
-import androidx.test.uiautomator.UiDevice
+import android.view.accessibility.AccessibilityWindowInfo
+import androidx.test.uiautomator.UiAutomatorTestScope
 import androidx.test.uiautomator.UiObject2
-import androidx.test.uiautomator.Until
-import java.util.regex.Pattern
+import androidx.test.uiautomator.waitForStable
+
+private const val PASSWORD_FIELD_RESOURCE_NAME = "field:password"
+private const val GO_BUTTON_RESOURCE_NAME = "btn:go"
+
+private const val ROOT_SCREEN_TIMEOUT_MS = 30_000L
+private const val SCREEN_CONTENT_TIMEOUT_MS = 30_000L
+private const val APP_VISIBILITY_TIMEOUT_MS = 10_000L
+private const val NAVIGATION_TIMEOUT_MS = 10_000L
+private const val DESTINATION_STABILITY_TIMEOUT_MS = 10_000L
+private const val INPUT_METHOD_TIMEOUT_MS = 1_000L
 
 @JvmInline
 value class FeatureCore(
-    val device: UiDevice,
+    val scope: UiAutomatorTestScope,
 )
 
-val UiDevice.coreFeature get() = FeatureCore(this)
+val UiAutomatorTestScope.coreFeature get() = FeatureCore(this)
 
 enum class RootScreen(
     val res: String,
@@ -37,14 +44,11 @@ fun FeatureCore.waitForRootScreen(
         "You must provide at least one screen to wait for!"
     }
 
-    val selector = kotlin.run {
-        val variants = screens
-            .joinToString(separator = "|") { it.res }
-        val pattern = Pattern.compile("nav:($variants)")
-        val selector = By.res(pattern)
-        Until.findObject(selector)
+    val resourceNames = screens
+        .mapTo(mutableSetOf(), RootScreen::resourceName)
+    scope.onElementOrNull(timeoutMs = ROOT_SCREEN_TIMEOUT_MS) {
+        viewIdResourceName in resourceNames
     }
-    device.wait(selector, 30_000)
 }
 
 fun FeatureCore.ensureMainScreen(): UiObject2 = kotlin.run {
@@ -53,41 +57,50 @@ fun FeatureCore.ensureMainScreen(): UiObject2 = kotlin.run {
         RootScreen.UNLOCK,
         RootScreen.SETUP,
     )
-    requireNotNull(screen) {
-        "Could not find root screen! " +
-                "Is the app really open?"
-    }
+    requireNotNull(screen) { missingRootScreenMessage() }
 
     when (screen.resourceName) {
         RootScreen.UNLOCK.resourceName(),
         RootScreen.SETUP.resourceName(),
             -> {
             // Create or unlock existing vault
-            val password = screen
-                .findObject(By.res("field:password"))
-            password.text = "111111"
-            val btn = screen
-                .findObject(By.res("btn:go"))
-            btn.wait(Until.enabled(true), 10_000L)
-            btn.wait(Until.clickable(true), 10_000L)
-            require(
-                value = btn.isEnabled &&
-                        btn.isClickable,
-            ) {
-                "Unlock / Create vault button is not yet " +
-                        "active!"
-            }
-            btn.click()
+            enterPasswordAndFindButton(password = "111111").click()
 
             // Wait till main screen is loaded
             val mainScreen = waitForRootScreen(
                 RootScreen.MAIN,
             )
-            requireNotNull(mainScreen)
+            requireNotNull(mainScreen) { missingRootScreenMessage(RootScreen.MAIN) }
         }
 
         else -> screen
+    }.also { mainScreen ->
+        mainScreen.waitForStable(requireStableScreenshot = false)
     }
+}
+
+fun FeatureCore.enterPasswordAndFindButton(
+    password: String,
+): UiObject2 {
+    scope
+        .onElement(timeoutMs = SCREEN_CONTENT_TIMEOUT_MS) {
+            viewIdResourceName == PASSWORD_FIELD_RESOURCE_NAME
+        }
+        .setText(password)
+
+    // A focused IME owns the active accessibility window on some emulators. Dismiss it before
+    // waiting for the Compose navigation transition, but only when it is actually visible.
+    val inputMethodVisible = scope.onElementOrNull(timeoutMs = INPUT_METHOD_TIMEOUT_MS) {
+        window?.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD
+    } != null
+    if (inputMethodVisible) {
+        scope.pressBack()
+    }
+
+    return scope
+        .onElement(timeoutMs = SCREEN_CONTENT_TIMEOUT_MS) {
+            viewIdResourceName == GO_BUTTON_RESOURCE_NAME && isEnabled && isClickable
+        }
 }
 
 /**
@@ -97,29 +110,53 @@ fun FeatureCore.ensureMainScreen(): UiObject2 = kotlin.run {
 fun FeatureCore.launchDefaultActivityAndWait(
     packageName: String,
 ) {
-    // Launch the app
-    val context = ApplicationProvider.getApplicationContext<Context>()
-    val intent = context.packageManager.getLaunchIntentForPackage(packageName)?.apply {
-        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
-    }
-    context.startActivity(intent)
-
-    // Wait for the app to appear
-    device.wait(
-        Until.hasObject(By.pkg(packageName).depth(0)),
-        10_000,
+    scope.startApp(
+        packageName = packageName,
+        intentFlags = listOf(Intent.FLAG_ACTIVITY_CLEAR_TASK),
     )
+    check(scope.waitForAppToBeVisible(packageName, APP_VISIBILITY_TIMEOUT_MS)) {
+        "App '$packageName' did not become visible. ${windowSummary()}"
+    }
 }
 
 fun FeatureCore.launchScreen(
     actionButtonResource: String,
 ) {
-    val actionButtonSelector = By.res(actionButtonResource)
-    val actionButton = device.wait(
-        Until.findObject(actionButtonSelector),
-        5_000L,
-    )
+    scope
+        .onElement(timeoutMs = NAVIGATION_TIMEOUT_MS) {
+            viewIdResourceName == actionButtonResource && isEnabled && isClickable
+        }
+        .click()
+    scope
+        .onElement(timeoutMs = NAVIGATION_TIMEOUT_MS) {
+            viewIdResourceName == actionButtonResource && isSelected
+        }
+    scope.waitForDestinationScreenToStabilize()
+}
 
-    actionButton.click()
-    device.waitForIdle()
+internal fun UiAutomatorTestScope.waitForDestinationScreenToStabilize() {
+    waitForStableInActiveWindow(
+        stableTimeoutMs = DESTINATION_STABILITY_TIMEOUT_MS,
+        requireStableScreenshot = false,
+    )
+}
+
+private fun FeatureCore.missingRootScreenMessage(
+    vararg expected: RootScreen,
+): String {
+    val expectedText = if (expected.isNotEmpty()) {
+        expected.joinToString(transform = RootScreen::resourceName)
+    } else {
+        RootScreen.entries.joinToString(transform = RootScreen::resourceName)
+    }
+    return "Could not find root screen [$expectedText]. ${windowSummary()}"
+}
+
+private fun FeatureCore.windowSummary(): String {
+    val windows = scope.windows()
+        .joinToString(prefix = "Windows=[", postfix = "]") { window ->
+            "title=${window.title},type=${window.type}," +
+                    "active=${window.isActive},focused=${window.isFocused},root=${window.root != null}"
+        }
+    return windows
 }

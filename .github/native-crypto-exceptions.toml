@@ -1,0 +1,9 @@
+version = 1
+
+[[exceptions]]
+advisory = "RUSTSEC-2023-0071"
+owner = "Keyguard"
+expires = "2026-10-13"
+tracking-issue = "https://github.com/RustCrypto/RSA/issues/626"
+scope = "OpenPGP read/write, mutation, and agent operations through the AWS-LC private-RSA boundary"
+rationale = "rPGP RSA remains dependency-reachable, while all private RSA operations are routed through the reviewed AWS-LC boundary"

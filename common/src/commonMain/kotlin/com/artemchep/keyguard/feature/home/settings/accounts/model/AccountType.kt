@@ -17,12 +17,16 @@ enum class AccountType(
     val descriptionRes: StringResource,
     val beta: Boolean = false,
     val local: Boolean = false,
+    val capabilities: ProviderCapabilities,
     val logoImageRes: DrawableResource,
     val iconImageVector: ImageVector,
 ) {
     BITWARDEN(
         fullName = "Bitwarden",
         descriptionRes = Res.string.addaccount_description_short_bitwarden_text,
+        capabilities = ProviderCapabilities(
+            supportsSends = true,
+        ),
         logoImageRes = Res.drawable.ic_logo_bitwarden,
         iconImageVector = Icons.Outlined.Cloud,
     ),
@@ -31,7 +35,14 @@ enum class AccountType(
         descriptionRes = Res.string.addaccount_description_short_keepass_text,
         beta = true,
         local = true,
+        capabilities = ProviderCapabilities(
+            supportsSends = false,
+        ),
         logoImageRes = Res.drawable.ic_logo_keepass,
         iconImageVector = Icons.Outlined.FilePresent,
     ),
 }
+
+data class ProviderCapabilities(
+    val supportsSends: Boolean,
+)

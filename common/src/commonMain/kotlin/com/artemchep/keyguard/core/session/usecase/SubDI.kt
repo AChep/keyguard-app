@@ -8,6 +8,10 @@ import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryReposit
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.SshUsageHistoryRepository
 import com.artemchep.keyguard.android.downloader.journal.SshUsageHistoryRepositoryImpl
+import com.artemchep.keyguard.android.downloader.journal.GpgUsageHistoryRepository
+import com.artemchep.keyguard.android.downloader.journal.GpgUsageHistoryRepositoryImpl
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
+import com.artemchep.keyguard.common.service.gpgkeyserver.impl.GpgKeyserverStateRepositoryImpl
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
@@ -50,6 +54,9 @@ import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageD
 import com.artemchep.keyguard.common.service.hibp.passwords.impl.PasswordPwnageRepositoryImpl
 import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.SqlDelightVaultSettingsKeyValueStore
+import com.artemchep.keyguard.common.service.licensekey.LicenseManager
+import com.artemchep.keyguard.common.service.licensekey.impl.LicenseManagerImpl
+import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.settings.VaultSettingsReadRepository
 import com.artemchep.keyguard.common.service.settings.VaultSettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.settings.impl.VaultSettingsRepositoryImpl
@@ -57,6 +64,10 @@ import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepo
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepositoryImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeySyncerImpl
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeySyncer
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentPublicKeySyncerImpl
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
+import com.artemchep.keyguard.common.service.gpgkeyserver.impl.GpgKeyserverRefreshWorkerImpl
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepository
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepositoryImpl
 import com.artemchep.keyguard.common.service.urloverride.UrlOverrideRepository
@@ -73,6 +84,7 @@ import com.artemchep.keyguard.common.usecase.AddCredentialCipher
 import com.artemchep.keyguard.common.usecase.AddPrivilegedApp
 import com.artemchep.keyguard.common.usecase.AddSend
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
+import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.AddUriCipher
 import com.artemchep.keyguard.common.usecase.AddUrlBlock
 import com.artemchep.keyguard.common.usecase.AddUrlOverride
@@ -81,6 +93,7 @@ import com.artemchep.keyguard.common.usecase.BackupSettings
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
 import com.artemchep.keyguard.common.usecase.ChangeCipherTagsById
+import com.artemchep.keyguard.common.usecase.ChangeGpgKeyExpirationById
 import com.artemchep.keyguard.common.usecase.CheckHibpApiToken
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
@@ -100,6 +113,7 @@ import com.artemchep.keyguard.common.usecase.CipherToolboxImpl
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlAutoFix
 import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
+import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.ExportLogs
@@ -114,6 +128,7 @@ import com.artemchep.keyguard.common.usecase.GetBreachesLatestDate
 import com.artemchep.keyguard.common.usecase.GetCanAddAccount
 import com.artemchep.keyguard.common.usecase.GetCipherOpenedCount
 import com.artemchep.keyguard.common.usecase.GetCipherOpenedHistory
+import com.artemchep.keyguard.common.usecase.GetCipherSnapshots
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetWordlists
@@ -128,8 +143,11 @@ import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.GetHibpApiToken
+import com.artemchep.keyguard.common.usecase.GetClaimedLicenseEntitlement
+import com.artemchep.keyguard.common.usecase.GetLicenseEntitlement
+import com.artemchep.keyguard.common.usecase.GetLicensePremium
 import com.artemchep.keyguard.common.usecase.GetMetas
-import com.artemchep.keyguard.common.usecase.GetNavHiddenSend
+import com.artemchep.keyguard.common.usecase.GetNavItemsConfig
 import com.artemchep.keyguard.common.usecase.GetOrganizations
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetProfiles
@@ -137,6 +155,8 @@ import com.artemchep.keyguard.common.usecase.GetSends
 import com.artemchep.keyguard.common.usecase.GetShouldRequestAppReview
 import com.artemchep.keyguard.common.usecase.GetSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetSshUsageHistoryCount
+import com.artemchep.keyguard.common.usecase.GetGpgUsageHistory
+import com.artemchep.keyguard.common.usecase.GetGpgUsageHistoryCount
 import com.artemchep.keyguard.common.usecase.GetTags
 import com.artemchep.keyguard.common.usecase.GetUrlBlocks
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
@@ -160,7 +180,9 @@ import com.artemchep.keyguard.common.usecase.PutAccountNameById
 import com.artemchep.keyguard.common.usecase.PutBarcodeUsageHistory
 import com.artemchep.keyguard.common.usecase.PutHibpApiToken
 import com.artemchep.keyguard.common.usecase.PutProfileHidden
+import com.artemchep.keyguard.common.usecase.RedeemLicenseKey
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
+import com.artemchep.keyguard.common.usecase.RefreshLicense
 import com.artemchep.keyguard.common.usecase.RemoveAccountById
 import com.artemchep.keyguard.common.usecase.RemoveAccounts
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
@@ -172,8 +194,11 @@ import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
 import com.artemchep.keyguard.common.usecase.RemovePrivilegedAppById
 import com.artemchep.keyguard.common.usecase.RemoveSendById
 import com.artemchep.keyguard.common.usecase.RemoveSshUsageHistory
+import com.artemchep.keyguard.common.usecase.RemoveGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveUrlBlockById
 import com.artemchep.keyguard.common.usecase.RemoveUrlOverrideById
+import com.artemchep.keyguard.common.usecase.RemoveLicense
+import com.artemchep.keyguard.common.usecase.RefreshGpgPublicKeys
 import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.common.usecase.ResetAllWatchtowerAlert
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
@@ -184,9 +209,12 @@ import com.artemchep.keyguard.common.usecase.SendToolboxImpl
 import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.SyncAll
 import com.artemchep.keyguard.common.usecase.SyncById
+import com.artemchep.keyguard.common.usecase.SyncLicense
 import com.artemchep.keyguard.common.usecase.TrashCipherByFolderId
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
+import com.artemchep.keyguard.common.usecase.UploadGpgPublicKey
+import com.artemchep.keyguard.common.usecase.VerifyGpgPublicKey
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.usecase.WatchdogImpl
 import com.artemchep.keyguard.common.usecase.impl.AddWordlistImpl
@@ -196,10 +224,11 @@ import com.artemchep.keyguard.common.usecase.impl.AddUrlBlockImpl
 import com.artemchep.keyguard.common.usecase.impl.AddUrlOverrideImpl
 import com.artemchep.keyguard.common.usecase.impl.BackupSettingsImpl
 import com.artemchep.keyguard.common.usecase.impl.CheckHibpApiTokenImpl
-import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentImpl2
+import com.artemchep.keyguard.common.usecase.impl.DownloadAttachmentMetadataImpl2
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAttachmentPreviewImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBarcodeUsageHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBreachesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBreachesLatestDateImpl
@@ -207,7 +236,10 @@ import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
 import com.artemchep.keyguard.common.usecase.impl.GetEnvSendUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.GetHibpApiTokenImpl
-import com.artemchep.keyguard.common.usecase.impl.GetNavHiddenSendImpl
+import com.artemchep.keyguard.common.usecase.impl.GetClaimedLicenseEntitlementImpl
+import com.artemchep.keyguard.common.usecase.impl.GetLicenseEntitlementImpl
+import com.artemchep.keyguard.common.usecase.impl.GetLicensePremiumImpl
+import com.artemchep.keyguard.common.usecase.impl.GetNavItemsConfigImpl
 import com.artemchep.keyguard.common.usecase.impl.GetShouldRequestAppReviewImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchIndexImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSearchQualifierCatalogImpl
@@ -216,9 +248,19 @@ import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryByIdImpl
 import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.PutBarcodeUsageHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.PutHibpApiTokenImpl
+import com.artemchep.keyguard.common.usecase.impl.RedeemLicenseKeyImpl
+import com.artemchep.keyguard.common.usecase.impl.RefreshLicenseImpl
+import com.artemchep.keyguard.common.usecase.impl.RemoveLicenseImpl
+import com.artemchep.keyguard.common.usecase.impl.SyncLicenseImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.RefreshGpgPublicKeysImpl
+import com.artemchep.keyguard.common.usecase.impl.UploadGpgPublicKeyImpl
+import com.artemchep.keyguard.common.usecase.impl.VerifyGpgPublicKeyImpl
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerBroadUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerDuplicateUris
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerExpiring
+import com.artemchep.keyguard.common.usecase.impl.GpgWatchtowerPolicy
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerGpgKeyPublishing
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerGpgKeyUnusable
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerIncomplete
@@ -226,6 +268,7 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordPwned
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordStrength
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshKeyStrength
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerUnsecureWebsite
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerWeakGpgKey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerWebsitePwned
 import com.artemchep.keyguard.feature.home.vault.search.engine.Bm25SearchScorer
 import com.artemchep.keyguard.feature.home.vault.search.engine.DefaultSearchExecutor
@@ -277,11 +320,13 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.AddCredentialCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddPrivilegedAppImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddSendImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddSshUsageHistoryImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.AddGpgUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddUriCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ArchiveCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ChangeCipherNameByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ChangeCipherPasswordByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ChangeCipherTagsByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.ChangeGpgKeyExpirationByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CheckPasswordLeakImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CheckPasswordSetLeakImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CheckUsernameLeakImpl
@@ -303,6 +348,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetAccountsHasErrorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetAccountsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCipherOpenedCountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCipherOpenedHistoryImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetCipherSnapshotsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCiphersImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCollectionsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetWordlistsImpl
@@ -320,6 +366,8 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetProfilesImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetSendsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetSshUsageHistoryCountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetSshUsageHistoryImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetGpgUsageHistoryCountImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetGpgUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetTagsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetUrlBlocksImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetUrlOverridesImpl
@@ -338,13 +386,16 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountColorByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountMasterPasswordHintByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountNameByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutBitwardenAccountColorByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutBitwardenAccountMasterPasswordHintByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutBitwardenAccountNameByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountColorById
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountColorByIdImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountMasterPasswordHintById
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountMasterPasswordHintByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountNameById
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeePassAccountNameByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutProfileHiddenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RePromptCipherByIdImpl
-import com.artemchep.keyguard.provider.bitwarden.usecase.createPutKeePassAccountColorById
-import com.artemchep.keyguard.provider.bitwarden.usecase.createPutKeePassAccountNameById
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveAccountByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveAccountsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveCipherByIdImpl
@@ -354,6 +405,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemovePrivilegedAppByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveSendByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveSshUsageHistoryImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveGpgUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveUrlBlockByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveUrlOverrideByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RenameFolderByIdImpl
@@ -368,13 +420,15 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.UnarchiveCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountUseCase
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.SyncByBitwardenTokenV2Impl
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.SyncByBitwardenTokenV2Impl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassToken
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassTokenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByTokenImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
@@ -412,6 +466,33 @@ fun DI.Builder.createSubDi2(
     bindProvider<VaultSettingsReadWriteRepository> {
         instance<VaultSettingsRepositoryImpl>()
     }
+    bindSingleton<LicenseManager> {
+        LicenseManagerImpl(this)
+    }
+    bindSingleton<LicenseSyncer>() {
+        LicenseSyncer(this)
+    }
+    bindSingleton<GetLicenseEntitlement> {
+        GetLicenseEntitlementImpl(this)
+    }
+    bindSingleton<GetLicensePremium>(overrides = true) {
+        GetLicensePremiumImpl(this)
+    }
+    bindSingleton<GetClaimedLicenseEntitlement> {
+        GetClaimedLicenseEntitlementImpl(this)
+    }
+    bindSingleton<RedeemLicenseKey> {
+        RedeemLicenseKeyImpl(this)
+    }
+    bindSingleton<RefreshLicense> {
+        RefreshLicenseImpl(this)
+    }
+    bindSingleton<SyncLicense> {
+        SyncLicenseImpl(this)
+    }
+    bindSingleton<RemoveLicense> {
+        RemoveLicenseImpl(this)
+    }
     bindSingleton<HibpRepository> {
         HibpRepositoryImpl(this)
     }
@@ -434,10 +515,10 @@ fun DI.Builder.createSubDi2(
         DownloadAttachmentImpl2(this)
     }
     bindSingleton<DownloadAttachmentMetadata> {
-        createDownloadAttachmentMetadata(this)
+        DownloadAttachmentMetadataImpl2(this)
     }
     bindSingleton<GetAttachmentPreview> {
-        createGetAttachmentPreview(this)
+        GetAttachmentPreviewImpl(this)
     }
     bindSingleton<CanPreviewAttachment> {
         CanPreviewAttachmentImpl()
@@ -450,8 +531,8 @@ fun DI.Builder.createSubDi2(
             directDI = this,
         )
     }
-    bindSingleton<GetNavHiddenSend> {
-        GetNavHiddenSendImpl(
+    bindSingleton<GetNavItemsConfig> {
+        GetNavItemsConfigImpl(
             directDI = this,
         )
     }
@@ -533,11 +614,29 @@ fun DI.Builder.createSubDi2(
     bindSingleton<GetAccountHasError> {
         GetAccountHasErrorImpl(this)
     }
+    bindSingleton<GetCipherSnapshots> {
+        GetCipherSnapshotsImpl(this)
+    }
     bindSingleton<GetCiphers> {
         GetCiphersImpl(this)
     }
     bindSingleton<SshAgentPublicKeySyncer> {
         SshAgentPublicKeySyncerImpl(this)
+    }
+    bindSingleton<GpgAgentPublicKeySyncer> {
+        GpgAgentPublicKeySyncerImpl(this)
+    }
+    bindSingleton<UploadGpgPublicKey> {
+        UploadGpgPublicKeyImpl(this)
+    }
+    bindSingleton<RefreshGpgPublicKeys> {
+        RefreshGpgPublicKeysImpl(this)
+    }
+    bindSingleton<GpgKeyserverRefreshWorker> {
+        GpgKeyserverRefreshWorkerImpl(this)
+    }
+    bindSingleton<VerifyGpgPublicKey> {
+        VerifyGpgPublicKeyImpl(this)
     }
     bindSingleton<GetSends> {
         GetSendsImpl(this)
@@ -637,7 +736,7 @@ fun DI.Builder.createSubDi2(
         AddAccountImpl(this)
     }
     bindSingleton<AddKeePassAccount> {
-        createAddKeePassAccount(this)
+        AddKeePassAccountImpl(this)
     }
     bindSingleton<ImportCompanionBitwardenAccount> {
         ImportCompanionBitwardenAccountImpl(this)
@@ -710,6 +809,9 @@ fun DI.Builder.createSubDi2(
     bindSingleton<ChangeCipherNameById> {
         ChangeCipherNameByIdImpl(this)
     }
+    bindSingleton<ChangeGpgKeyExpirationById> {
+        ChangeGpgKeyExpirationByIdImpl(this)
+    }
     bindSingleton<ChangeCipherTagsById> {
         ChangeCipherTagsByIdImpl(this)
     }
@@ -755,6 +857,26 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<WatchtowerSshKeyStrength>() {
         WatchtowerSshKeyStrength(
+            directDI = this,
+        )
+    }
+    bindSingleton<GpgWatchtowerPolicy> {
+        GpgWatchtowerPolicy(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerGpgKeyUnusable>() {
+        WatchtowerGpgKeyUnusable(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerWeakGpgKey>() {
+        WatchtowerWeakGpgKey(
+            directDI = this,
+        )
+    }
+    bindSingleton<WatchtowerGpgKeyPublishing>() {
+        WatchtowerGpgKeyPublishing(
             directDI = this,
         )
     }
@@ -823,10 +945,16 @@ fun DI.Builder.createSubDi2(
         PutBitwardenAccountColorByIdImpl(this)
     }
     bindSingleton<PutKeePassAccountColorById> {
-        createPutKeePassAccountColorById(this)
+        PutKeePassAccountColorByIdImpl(this)
     }
     bindSingleton<PutAccountColorById> {
         PutAccountColorByIdImpl(this)
+    }
+    bindSingleton<PutBitwardenAccountMasterPasswordHintByIdImpl> {
+        PutBitwardenAccountMasterPasswordHintByIdImpl(this)
+    }
+    bindSingleton<PutKeePassAccountMasterPasswordHintById> {
+        PutKeePassAccountMasterPasswordHintByIdImpl()
     }
     bindSingleton<PutAccountMasterPasswordHintById> {
         PutAccountMasterPasswordHintByIdImpl(this)
@@ -835,7 +963,7 @@ fun DI.Builder.createSubDi2(
         PutBitwardenAccountNameByIdImpl(this)
     }
     bindSingleton<PutKeePassAccountNameById> {
-        createPutKeePassAccountNameById(this)
+        PutKeePassAccountNameByIdImpl(this)
     }
     bindSingleton<PutAccountNameById> {
         PutAccountNameByIdImpl(this)
@@ -900,6 +1028,18 @@ fun DI.Builder.createSubDi2(
     bindSingleton<RemoveSshUsageHistory> {
         RemoveSshUsageHistoryImpl(this)
     }
+    bindSingleton<AddGpgUsageHistory> {
+        AddGpgUsageHistoryImpl(this)
+    }
+    bindSingleton<GetGpgUsageHistory> {
+        GetGpgUsageHistoryImpl(this)
+    }
+    bindSingleton<GetGpgUsageHistoryCount> {
+        GetGpgUsageHistoryCountImpl(this)
+    }
+    bindSingleton<RemoveGpgUsageHistory> {
+        RemoveGpgUsageHistoryImpl(this)
+    }
     bindSingleton<GetCipherOpenedHistory> {
         GetCipherOpenedHistoryImpl(this)
     }
@@ -917,6 +1057,12 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<SshUsageHistoryRepository> {
         SshUsageHistoryRepositoryImpl(this)
+    }
+    bindSingleton<GpgUsageHistoryRepository> {
+        GpgUsageHistoryRepositoryImpl(this)
+    }
+    bindSingleton<GpgKeyserverStateRepository> {
+        GpgKeyserverStateRepositoryImpl(this)
     }
     bindSingleton<GeneratorHistoryRepository> {
         GeneratorHistoryRepositoryImpl(this)
@@ -1028,7 +1174,7 @@ fun DI.Builder.createSubDi2(
         SyncByBitwardenTokenV2Impl(this)
     }
     bindSingleton<SyncByKeePassToken> {
-        createSyncByKeePassToken(this)
+        SyncByKeePassTokenImpl(this)
     }
     bindSingleton<WatchdogImpl> {
         WatchdogImpl(this)

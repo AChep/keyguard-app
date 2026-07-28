@@ -4,7 +4,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BINARY_NAME="keyguard-android-ssh-agent"
-BUILD_DIR="${SCRIPT_DIR}/build/bin"
+BUILD_DIR="${SCRIPT_DIR}/build/compiled-binaries"
 ADB_BIN="${ADB_BIN:-adb}"
 REMOTE_PATH="/sdcard/Download/${BINARY_NAME}"
 SERIAL=""
@@ -31,7 +31,7 @@ Supported targets:
 
 Notes:
   - The matching binary must already exist under:
-      androidSshAgent/build/bin/<rust-target>/${BINARY_NAME}
+      androidSshAgent/build/compiled-binaries/<rust-target>/${BINARY_NAME}
   - This script is intended for Termux deployment, not direct adb-shell execution.
   - adb usually cannot write directly into Termux's private app directory,
     so the binary is pushed to shared storage first.

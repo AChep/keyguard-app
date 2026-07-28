@@ -1,0 +1,35 @@
+[package]
+name = "polyval"
+version = "0.6.2"
+authors = ["RustCrypto Developers"]
+license = "Apache-2.0 OR MIT"
+description = """
+POLYVAL is a GHASH-like universal hash over GF(2^128) useful for constructing
+a Message Authentication Code (MAC)
+"""
+documentation = "https://docs.rs/polyval"
+repository = "https://github.com/RustCrypto/universal-hashes"
+readme = "README.md"
+keywords = ["aes-gcm", "aes-gcm-siv", "crypto", "ghash", "universal-hashing"]
+categories = ["cryptography", "no-std"]
+rust-version = "1.56"
+edition = "2021"
+
+[dependencies]
+cfg-if = "1"
+opaque-debug = "0.3"
+universal-hash = { version = "0.5", default-features = false }
+zeroize = { version = "1", optional = true, default-features = false }
+
+[target.'cfg(any(target_arch = "aarch64", target_arch = "x86_64", target_arch = "x86"))'.dependencies]
+cpufeatures = "0.2"
+
+[dev-dependencies]
+hex-literal = "0.3"
+
+[features]
+std = ["universal-hash/std"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

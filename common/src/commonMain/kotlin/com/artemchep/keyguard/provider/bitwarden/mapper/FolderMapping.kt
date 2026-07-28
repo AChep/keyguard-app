@@ -10,6 +10,8 @@ fun BitwardenFolder.toDomain(): DFolder {
         revisionDate = revisionDate,
         service = service,
         name = name,
+        parentId = parentId,
+        hierarchyMode = hierarchyMode,
         deleted = service.deleted,
         synced = !service.deleted &&
                 revisionDate == service.remote?.revisionDate,

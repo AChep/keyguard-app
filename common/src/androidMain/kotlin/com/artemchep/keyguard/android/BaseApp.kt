@@ -28,6 +28,7 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.lifecycle.toCommon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.lock_reason_screen_off
+import com.artemchep.keyguard.util.foundation.crypto.ensurePlatformCryptoReady
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
@@ -44,12 +45,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.kodein.di.DIAware
 import org.kodein.di.allInstances
 import org.kodein.di.direct
 import org.kodein.di.instance
-import java.security.Security
 import kotlin.getValue
 import kotlin.time.Clock
 
@@ -59,8 +58,7 @@ abstract class BaseApp : Application() {
     }
 
     init {
-        val bcProvider = BouncyCastleProvider()
-        Security.addProvider(bcProvider)
+        ensurePlatformCryptoReady()
     }
 
     override fun attachBaseContext(base: Context) {

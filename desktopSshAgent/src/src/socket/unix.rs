@@ -58,31 +58,36 @@ pub async fn serve<K: KeyProvider>(
         "SSH agent listening on Unix socket"
     );
 
-    // Use ssh-agent-lib's listen() free function.
-    // We provide a custom Agent factory so we can capture per-connection
-    // caller identity (peer credentials) from the accepted Unix socket.
-    tokio::select! {
-        result = ssh_agent_lib::agent::listen(listener, agent) => {
-            result.map_err(|e| anyhow::anyhow!("SSH agent server error: {}", e))?;
-        }
-        reason = wait_for_shutdown_request(parent_stdin_closed) => {
-            info!(reason, "Stopping SSH agent listener");
-        }
-    }
+    // Use the local bounded server so untrusted protocol frames and client
+    // connections cannot grow process resources without limit. The custom
+    // Agent factory still captures per-connection peer credentials.
+    let result = super::server::listen_until(
+        listener,
+        agent,
+        wait_for_shutdown_request(parent_stdin_closed),
+    )
+    .await
+    .map_err(|e| anyhow::anyhow!("SSH agent server error: {}", e));
 
+    // Always remove the socket, including when the accept loop fails.
     cleanup_socket_file(socket_path.to_path_buf());
+
+    let reason = result?;
+    info!(reason, "Stopping SSH agent listener");
 
     Ok(())
 }
 
 fn ensure_socket_parent_dir(socket_path: &Path) -> Result<()> {
-    #[cfg(target_os = "linux")]
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
     {
+        // SAFETY: `getuid` has no preconditions and only reads the real
+        // user ID maintained by the operating system for this process.
         let uid = unsafe { libc::getuid() };
-        return ensure_socket_parent_dir_for_uid(socket_path, uid);
+        ensure_socket_parent_dir_for_uid(socket_path, uid)
     }
 
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         if let Some(parent) = socket_path.parent() {
             fs::create_dir_all(parent).with_context(|| {
@@ -96,13 +101,13 @@ fn ensure_socket_parent_dir(socket_path: &Path) -> Result<()> {
     }
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn ensure_socket_parent_dir_for_uid(socket_path: &Path, uid: libc::uid_t) -> Result<()> {
     if is_linux_fallback_socket_path_for_uid(socket_path, uid) {
         let fallback_socket_path = crate::config::linux_fallback_ssh_agent_socket_path(uid);
-        let fallback_parent = fallback_socket_path.parent().context(
-            "Linux fallback SSH agent socket path does not have a parent directory",
-        )?;
+        let fallback_parent = fallback_socket_path
+            .parent()
+            .context("Linux fallback SSH agent socket path does not have a parent directory")?;
         ensure_safe_linux_fallback_parent_dir(fallback_parent, uid)?;
         return Ok(());
     }
@@ -118,12 +123,12 @@ fn ensure_socket_parent_dir_for_uid(socket_path: &Path, uid: libc::uid_t) -> Res
     Ok(())
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn is_linux_fallback_socket_path_for_uid(socket_path: &Path, uid: libc::uid_t) -> bool {
     socket_path == crate::config::linux_fallback_ssh_agent_socket_path(uid)
 }
 
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn ensure_safe_linux_fallback_parent_dir(parent: &Path, uid: libc::uid_t) -> Result<()> {
     use std::io::ErrorKind;
     use std::os::unix::fs::{DirBuilderExt, MetadataExt, PermissionsExt};
@@ -249,6 +254,8 @@ mod tests {
     use tempfile::tempdir;
 
     fn current_uid() -> libc::uid_t {
+        // SAFETY: `getuid` has no preconditions and only reads the real
+        // user ID maintained by the operating system for this process.
         unsafe { libc::getuid() }
     }
 
@@ -326,7 +333,10 @@ mod tests {
         let fallback_socket_path = crate::config::linux_fallback_ssh_agent_socket_path(uid);
         let non_fallback_socket_path = PathBuf::from(format!("/tmp/keyguard-{uid}/other.sock"));
 
-        assert!(is_linux_fallback_socket_path_for_uid(&fallback_socket_path, uid));
+        assert!(is_linux_fallback_socket_path_for_uid(
+            &fallback_socket_path,
+            uid
+        ));
         assert!(!is_linux_fallback_socket_path_for_uid(
             &non_fallback_socket_path,
             uid

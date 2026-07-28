@@ -1,7 +1,13 @@
-use crate::platform;
+#[cfg_attr(target_os = "macos", path = "accent/macos.rs")]
+#[cfg_attr(target_os = "windows", path = "accent/windows.rs")]
+#[cfg_attr(
+    not(any(target_os = "macos", target_os = "windows")),
+    path = "accent/stub.rs"
+)]
+mod imp;
 
 pub(crate) fn get_system_accent_color() -> i32 {
-    platform::accent::get_system_accent_color()
+    imp::get_system_accent_color()
 }
 
 #[allow(dead_code)]

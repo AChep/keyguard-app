@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FunctionNaming:SshAgentEndToEndTest.kt:SshAgentEndToEndTest$@Test fun `ed25519 signs and verifies with real ssh-keygen`</ID>
+    <ID>FunctionNaming:SshAgentEndToEndTest.kt:SshAgentEndToEndTest$@Test fun `rsa signs and verifies with real ssh-keygen`</ID>
+    <ID>FunctionNaming:SshAgentEndToEndTest.kt:SshAgentEndToEndTest$@Test fun `ssh-add lists generated identities`</ID>
+    <ID>MagicNumber:KeyguardSshAgentLauncher.kt:KeyguardSshAgentLauncher$250</ID>
+    <ID>MagicNumber:KeyguardSshAgentLauncher.kt:KeyguardSshAgentLauncher$3</ID>
+    <ID>MagicNumber:KeyguardSshAgentLauncher.kt:KeyguardSshAgentLauncher$50</ID>
+    <ID>MagicNumber:KeyguardSshAgentLauncher.kt:KeyguardSshAgentLauncher$5_000</ID>
+    <ID>ReturnCount:KeyguardSshAgentLauncher.kt:KeyguardSshAgentLauncher$private fun canConnectToSocket: Boolean</ID>
+    <ID>TooGenericExceptionCaught:KeyguardSshAgentLauncher.kt:KeyguardSshAgentLauncher$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:TestSshAgentRequestProcessor.kt:TestSshAgentRequestProcessor$e: Exception</ID>
+  </CurrentIssues>
+</SmellBaseline>

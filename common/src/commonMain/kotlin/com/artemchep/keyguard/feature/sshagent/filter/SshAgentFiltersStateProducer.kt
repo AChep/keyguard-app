@@ -18,12 +18,14 @@ import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
 import com.artemchep.keyguard.feature.home.vault.screen.CreateFilterResult
 import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
-import com.artemchep.keyguard.feature.home.vault.screen.ah
+import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -70,6 +72,32 @@ fun produceSshAgentFiltersState(
     key = "ssh_agent_filters",
     initial = Loadable.Loading,
 ) {
+    sshAgentFiltersStateProducer(
+        directDI = directDI,
+        getSshAgentFilter = getSshAgentFilter,
+        putSshAgentFilter = putSshAgentFilter,
+        getCiphers = getCiphers,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getTags = getTags,
+        getFolders = getFolders,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+    )
+}
+
+suspend fun RememberStateFlowScope.sshAgentFiltersStateProducer(
+    directDI: DirectDI,
+    getSshAgentFilter: GetSshAgentFilter,
+    putSshAgentFilter: PutSshAgentFilter,
+    getCiphers: GetCiphers,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getTags: GetTags,
+    getFolders: GetFolders,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+): Flow<Loadable<SshAgentFiltersState>> {
     val savedFilterFlow = getSshAgentFilter()
         .map { it.normalize() }
         .distinctUntilChanged()
@@ -156,7 +184,7 @@ fun produceSshAgentFiltersState(
         }
         .distinctUntilChanged()
 
-    val filterListFlow = ah(
+    val filterListFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = ::identity,
         outputFlow = filteredSshKeysFlow,
@@ -188,7 +216,7 @@ fun produceSshAgentFiltersState(
         .map { it.isActive }
         .distinctUntilChanged()
 
-    combine(
+    return combine(
         filterListFlow,
         filteredSshKeysFlow.map { it.size }.distinctUntilChanged(),
         combine(

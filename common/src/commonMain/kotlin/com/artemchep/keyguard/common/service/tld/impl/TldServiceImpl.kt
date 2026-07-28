@@ -3,11 +3,11 @@ package com.artemchep.keyguard.common.service.tld.impl
 import arrow.core.partially1
 import com.artemchep.keyguard.build.FileHashes
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.io.effectMap
-import com.artemchep.keyguard.common.io.map
+import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.sharedSoftRef
-import com.artemchep.keyguard.common.io.useLines
+import com.artemchep.keyguard.util.foundation.io.useLines
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug
@@ -18,6 +18,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import kotlin.time.measureTimedValue
 
 private const val PREFIX_EXCEPTION = "!"
 
@@ -36,7 +37,7 @@ class TldServiceImpl(
         .partially1(textService)
         .measure { duration, node ->
             logRepository.postDebug(TAG) {
-                val totalCount = node.count()
+                val totalCount = node.descendantCount()
                 "Loaded TLD tree in $duration, and it has $totalCount leaves."
             }
         }
@@ -51,44 +52,63 @@ class TldServiceImpl(
 
     override fun getDomainName(
         host: String,
-    ): IO<String> = dataIo
-        .effectMap { node ->
-            val parts = host.trim().lowercase().split(".").asReversed()
-            val length = node.match(parts)
-            parts
-                // Take N parts of TLD and then one
-                // custom domain.
-                .take(length + 1)
-                .asReversed()
-                .joinToString(separator = ".")
-        }
-        .map { domain ->
+    ): IO<String> = ioEffect {
+        val timedValue = measureTimedValue {
+            val node = dataIo.bind()
+            val domain = kotlin.run {
+                val normalizedHost = host.trim().lowercase()
+                val start = node
+                    .findDomainStart(normalizedHost)
+                if (start >= 0) {
+                    normalizedHost.substring(start)
+                } else {
+                    ""
+                }
+            }
             // We could not find an appropriate domain
             // for the host. This means that the host is
             // most likely not valid. For the sake of ease
             // of use - report back the original host as
             // the domain.
             if (domain.isEmpty()) {
-                return@map host
-            }
-
-            domain
-        }
-        .measure { duration, result ->
-            logRepository.postDebug(TAG) {
-                "Found '$result' from the host '$host' in $duration"
+                host
+            } else {
+                domain
             }
         }
 
-    private fun Node.count(): Int = children.values
-        .fold(children.values.size) { y, x -> y + x.count() }
+        logRepository.postDebug(TAG) {
+            "Found '${timedValue.value}' from the host '$host' " +
+                    "in ${timedValue.duration}"
+        }
+        timedValue.value
+    }
 }
 
-private data class Node(
+private class Node(
     var leaf: Boolean = false,
     var exception: Boolean = false,
-    val children: MutableMap<String, Node> = mutableMapOf(),
-)
+) {
+    private var children: HashMap<String, Node>? = null
+
+    fun findChild(key: String): Node? = children?.get(key)
+
+    fun getOrCreateChild(key: String): Node {
+        val children = children
+            ?: HashMap<String, Node>(2).also { this.children = it }
+        return children.getOrPut(key) { Node() }
+    }
+
+    fun descendantCount(): Int {
+        val children = children
+            ?: return 0
+        return children
+            .values
+            .fold(children.size) { count, child ->
+                count + child.descendantCount()
+            }
+    }
+}
 
 /**
  * Loads a TLD list from a local resource file into a
@@ -126,35 +146,45 @@ private suspend fun loadTld(
         }
 }
 
-private fun Node.match(parts: List<String>): Int =
-    _match(
-        parts = parts,
-        offset = 0,
-    )
+private fun Node.findDomainStart(host: String): Int {
+    var node = this
+    var labelEnd = host.length
+    var fallbackStart = -1
 
-private fun Node._match(
-    parts: List<String>,
-    offset: Int,
-): Int {
-    if (exception) {
-        return offset - 1
-    }
-    if (offset >= parts.size) {
-        return if (leaf) offset else -1
-    }
-    val key = parts[offset]
-    val next = children[key]
-        ?: children["*"]
-        ?: kotlin.run {
-            // It only counts as a valid path if the
-            // node is a leaf.
-            return if (leaf) offset else -1
+    while (true) {
+        val separator = host.lastIndexOf(
+            char = '.',
+            startIndex = labelEnd - 1,
+        )
+        val labelStart = separator + 1
+
+        if (node.leaf) {
+            // This node remains the prevailing rule if a deeper path fails.
+            // The current label is therefore the registrable label to retain.
+            fallbackStart = labelStart
         }
-    return next._match(parts, offset + 1)
-        .let {
-            it.takeIf { it >= 0 }
-                ?: if (leaf) offset else -1
+
+        val key = host.substring(labelStart, labelEnd)
+        node = node.findChild(key)
+            ?: node.findChild("*")
+            ?: return fallbackStart
+
+        if (node.exception) {
+            // An exception removes its leftmost label from the public suffix,
+            // so that label becomes the registrable label in the result.
+            return labelStart
         }
+
+        if (separator < 0) {
+            return if (node.leaf) {
+                0
+            } else {
+                fallbackStart
+            }
+        }
+
+        labelEnd = separator
+    }
 }
 
 private tailrec fun Node.append(
@@ -165,7 +195,7 @@ private tailrec fun Node.append(
         return
     }
     val key = parts.first()
-    val next = getOrPut(key)
+    val next = getOrCreateChild(key)
     // Side effect:
     // Mark the node as the possible leaf of
     // the tree. This means it is one of the
@@ -192,6 +222,3 @@ private tailrec fun Node.append(
         exception = exception,
     )
 }
-
-private fun Node.getOrPut(key: String): Node = children
-    .getOrPut(key) { Node() }

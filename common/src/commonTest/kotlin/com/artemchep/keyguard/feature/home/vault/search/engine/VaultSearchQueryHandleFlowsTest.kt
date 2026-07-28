@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.search.engine
 
+import com.artemchep.keyguard.feature.auth.common.TextCell
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierCatalog
 import com.artemchep.keyguard.feature.home.vault.search.query.defaultVaultSearchQualifierCatalog
@@ -62,7 +63,7 @@ class VaultSearchQueryHandleFlowsTest {
 
     @Test
     fun `blank query emits null immediately`() = runTest {
-        val result = flowOf("" to "")
+        val result = flowOf(TextCell("") to "")
             .vaultSearchDebouncedQueryFlow()
             .first()
 
@@ -71,7 +72,7 @@ class VaultSearchQueryHandleFlowsTest {
 
     @Test
     fun `short query uses long debounce`() = runTest {
-        val queryFlow = MutableSharedFlow<Pair<String, String>>(extraBufferCapacity = 1)
+        val queryFlow = MutableSharedFlow<Pair<TextCell, String>>(extraBufferCapacity = 1)
         val values = mutableListOf<String?>()
         val job = launch {
             queryFlow
@@ -80,7 +81,7 @@ class VaultSearchQueryHandleFlowsTest {
         }
 
         runCurrent()
-        assertTrue(queryFlow.tryEmit("ab" to "ab"))
+        assertTrue(queryFlow.tryEmit(TextCell("ab") to "ab"))
         runCurrent()
         advanceTimeBy(SEARCH_DEBOUNCE_LONG - 1)
         assertEquals(emptyList(), values)
@@ -93,7 +94,7 @@ class VaultSearchQueryHandleFlowsTest {
 
     @Test
     fun `long query uses short debounce`() = runTest {
-        val queryFlow = MutableSharedFlow<Pair<String, String>>(extraBufferCapacity = 1)
+        val queryFlow = MutableSharedFlow<Pair<TextCell, String>>(extraBufferCapacity = 1)
         val values = mutableListOf<String?>()
         val job = launch {
             queryFlow
@@ -102,7 +103,7 @@ class VaultSearchQueryHandleFlowsTest {
         }
 
         runCurrent()
-        assertTrue(queryFlow.tryEmit("abcd" to "abcd"))
+        assertTrue(queryFlow.tryEmit(TextCell("abcd") to "abcd"))
         runCurrent()
         advanceTimeBy(SEARCH_DEBOUNCE - 1)
         assertEquals(emptyList(), values)
@@ -127,6 +128,57 @@ class VaultSearchQueryHandleFlowsTest {
 
         assertNull(result)
         assertEquals(0, searchIndexFlow.subscriptionCount.value)
+    }
+
+    @Test
+    fun `empty query presentation bypasses the qualifier catalog`() = runTest {
+        val qualifierCatalogFlow = MutableSharedFlow<VaultSearchQualifierCatalog>()
+        val highlighter = RecordingQueryHighlighter()
+
+        val highlighting = flowOf(TextCell(""))
+            .vaultSearchQueryHighlightingFlow(
+                qualifierCatalogFlow = qualifierCatalogFlow,
+                searchBy = VaultRoute.Args.SearchBy.ALL,
+                queryHighlighter = highlighter,
+            )
+            .first()
+        val suggestion = flowOf(TextCell("   "))
+            .vaultSearchQualifierSuggestionFlow(
+                qualifierCatalogFlow = qualifierCatalogFlow,
+            )
+            .first()
+
+        assertEquals(QueryHighlighting.Empty, highlighting)
+        assertNull(suggestion)
+        assertEquals(0, qualifierCatalogFlow.subscriptionCount.value)
+        assertEquals(emptyList(), highlighter.calls)
+    }
+
+    @Test
+    fun `non-empty query presentation waits for the qualifier catalog`() = runTest {
+        val qualifierCatalogFlow = MutableSharedFlow<VaultSearchQualifierCatalog>()
+        val highlighter = RecordingQueryHighlighter()
+        val result = async {
+            flowOf(TextCell("alice"))
+                .vaultSearchQueryHighlightingFlow(
+                    qualifierCatalogFlow = qualifierCatalogFlow,
+                    searchBy = VaultRoute.Args.SearchBy.ALL,
+                    queryHighlighter = highlighter,
+                )
+                .first()
+        }
+
+        runCurrent()
+        assertEquals(1, qualifierCatalogFlow.subscriptionCount.value)
+        assertFalse(result.isCompleted)
+
+        qualifierCatalogFlow.emit(defaultVaultSearchQualifierCatalog)
+
+        assertNotNull(result.await())
+        assertEquals(
+            listOf("alice" to VaultRoute.Args.SearchBy.ALL),
+            highlighter.calls,
+        )
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.backup
 
-import com.artemchep.keyguard.common.io.readByteArrayAndClose
+import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
+import kotlin.jvm.JvmInline
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -197,6 +198,17 @@ sealed class BackupObjectStoreException(
         key = null,
         retryable = false,
         message = "Backup object store authentication failed.",
+        cause = cause,
+    )
+
+    class AtomicWriteUnsupported(
+        key: BackupObjectKey? = null,
+        cause: Throwable? = null,
+    ) : BackupObjectStoreException(
+        operation = BackupObjectStoreOperation.Write,
+        key = key,
+        retryable = false,
+        message = "Backup object store does not support atomic writes.",
         cause = cause,
     )
 

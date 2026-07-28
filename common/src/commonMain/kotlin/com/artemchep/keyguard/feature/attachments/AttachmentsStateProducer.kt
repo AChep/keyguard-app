@@ -13,8 +13,8 @@ import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
 import arrow.core.identity
 import arrow.core.partially1
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
+import com.artemchep.keyguard.common.service.download.DownloadRepository
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.launchIn
@@ -45,13 +45,14 @@ import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.OurFilterResult
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRouteFactory
-import com.artemchep.keyguard.feature.home.vault.screen.ah
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
+import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.home.vault.util.AlphabeticalSortMinItemsSize
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -73,6 +74,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -121,7 +123,7 @@ private data class ItemCipher(
     val attachment: DSecret.Attachment.Remote,
 )
 
-private data class FilteredBoo<T>(
+private data class FilteredList<T>(
     val count: Int,
     val list: List<T>,
     val filterConfig: FilterHolder? = null,
@@ -152,6 +154,43 @@ fun produceAttachmentsScreenState(
     ),
     initial = Loadable.Loading,
 ) {
+    attachmentsScreenStateProducer(
+        directDI = directDI,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getCiphers = getCiphers,
+        getFolders = getFolders,
+        getTags = getTags,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+        downloadRepository = downloadRepository,
+        downloadManager = downloadManager,
+        downloadAttachment = downloadAttachment,
+        removeAttachment = removeAttachment,
+        canPreviewAttachment = canPreviewAttachment,
+        attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
+        vaultViewRouteFactory = vaultViewRouteFactory,
+    )
+}
+
+@OptIn(ExperimentalCoroutinesApi::class)
+suspend fun RememberStateFlowScope.attachmentsScreenStateProducer(
+    directDI: DirectDI,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getCiphers: GetCiphers,
+    getFolders: GetFolders,
+    getTags: GetTags,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+    downloadRepository: DownloadRepository,
+    downloadManager: DownloadManager,
+    downloadAttachment: DownloadAttachment,
+    removeAttachment: RemoveAttachment,
+    canPreviewAttachment: CanPreviewAttachment,
+    attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
+    vaultViewRouteFactory: VaultViewRouteFactory,
+): Flow<Loadable<AttachmentsState>> {
     val selectionHandle = selectionHandle("selection")
 
     val filterResult = createFilter(directDI)
@@ -172,7 +211,7 @@ fun produceAttachmentsScreenState(
                                 cipher = cipher,
                                 attachment = attachment,
                             )
-                            val tag = DownloadInfoEntity2.AttachmentDownloadTag(
+                            val tag = DownloadInfoEntity.AttachmentDownloadTag(
                                 localCipherId = cipher.id,
                                 remoteCipherId = cipher.service.remote?.id,
                                 attachmentId = attachment.id,
@@ -191,7 +230,7 @@ fun produceAttachmentsScreenState(
             it
                 .asSequence()
                 .map {
-                    DownloadInfoEntity2.AttachmentDownloadTag(
+                    DownloadInfoEntity.AttachmentDownloadTag(
                         localCipherId = it.localCipherId,
                         remoteCipherId = it.remoteCipherId,
                         attachmentId = it.attachmentId,
@@ -350,6 +389,7 @@ fun produceAttachmentsScreenState(
             val actions = mutableListOf<FlatItemAction>()
             if (selectedItemsAllCancelable) {
                 actions += FlatItemAction(
+                    id = "attachments.selection.cancel",
                     leading = icon(Icons.Outlined.Cancel),
                     title = Res.string.cancel.wrap(),
                     onClick = {
@@ -359,6 +399,7 @@ fun produceAttachmentsScreenState(
             }
             if (selectedItemsAllDownloadable) {
                 actions += FlatItemAction(
+                    id = "attachments.selection.download",
                     leading = icon(Icons.Outlined.Download),
                     title = Res.string.download.wrap(),
                     onClick = {
@@ -373,8 +414,10 @@ fun produceAttachmentsScreenState(
                     Res.string.file_action_delete_local_title.wrap()
                 }
                 actions += FlatItemAction(
+                    id = "attachments.selection.deleteLocal",
                     leading = icon(Icons.Outlined.Delete),
                     title = title,
+                    danger = true,
                     onClick = {
                         removeIo.launchIn(appScope)
                     },
@@ -400,7 +443,7 @@ fun produceAttachmentsScreenState(
 
     val itemsFilteredFlow = itemsRawFlow
         .map { attachments ->
-            FilteredBoo(
+            FilteredList(
                 count = attachments.size,
                 list = attachments,
             )
@@ -430,7 +473,7 @@ fun produceAttachmentsScreenState(
         }
         .shareInScreenScope()
 
-    val filterListFlow = ah(
+    val filterListFlow = createFilterItemsFlow(
         directDI = directDI,
         outputGetter = { it.cipher },
         outputFlow = itemsFilteredFlow
@@ -505,7 +548,7 @@ fun produceAttachmentsScreenState(
                 )
                 out += wrappedItem
             }
-            FilteredBoo(
+            FilteredList(
                 count = state.list.size,
                 list = out,
                 filterConfig = state.filterConfig,
@@ -536,7 +579,7 @@ fun produceAttachmentsScreenState(
         )
         Loadable.Ok(state)
     }
-    state
+    return state
 }
 
 private fun itemKeyForAttachment(key: String) = "attachment.$key"
@@ -600,6 +643,7 @@ fun foo(
         section {
             if (previewRoute != null) {
                 this += FlatItemAction(
+                    id = "attachment.preview",
                     leading = icon(Icons.Outlined.Visibility),
                     trailing = {
                         ChevronIcon()
@@ -618,6 +662,7 @@ fun foo(
             when (status) {
                 is FooStatus.None -> {
                     this += FlatItemAction(
+                        id = "attachment.download",
                         icon = Icons.Outlined.Download,
                         title = Res.string.download.wrap(),
                         onClick = ::performDownload,
@@ -627,6 +672,7 @@ fun foo(
 
                 is FooStatus.Loading -> {
                     this += FlatItemAction(
+                        id = "attachment.cancelDownload",
                         leading = icon(Icons.Outlined.Cancel),
                         title = Res.string.cancel.wrap(),
                         onClick = ::performRemove,
@@ -635,11 +681,13 @@ fun foo(
 
                 is FooStatus.Failed -> {
                     this += FlatItemAction(
+                        id = "attachment.cancelFailedDownload",
                         leading = icon(Icons.Outlined.Cancel),
                         title = Res.string.cancel.wrap(),
                         onClick = ::performRemove,
                     )
                     this += FlatItemAction(
+                        id = "attachment.retryDownload",
                         leading = icon(Icons.Outlined.Refresh),
                         title = Res.string.download.wrap(),
                         onClick = ::performDownload,
@@ -654,6 +702,7 @@ fun foo(
                 is FooStatus.Downloaded -> {
                     val fileUrl = status.localUrl
                     this += FlatItemAction(
+                        id = "attachment.openWith",
                         leading = icon(Icons.Outlined.FileOpen),
                         trailing = {
                             ChevronIcon()
@@ -670,6 +719,7 @@ fun foo(
                     )
                     if (CurrentPlatform is Platform.Desktop) {
                         this += FlatItemAction(
+                            id = "attachment.openInFileManager",
                             leading = iconSmall(Icons.Outlined.FileOpen, Icons.Outlined.FolderOpen),
                             trailing = {
                                 ChevronIcon()
@@ -686,6 +736,7 @@ fun foo(
                     }
                     if (CurrentPlatform is Platform.Mobile) {
                         this += FlatItemAction(
+                            id = "attachment.sendWith",
                             leading = icon(Icons.AutoMirrored.Outlined.Send),
                             trailing = {
                                 ChevronIcon()
@@ -701,8 +752,10 @@ fun foo(
                         )
                     }
                     this += FlatItemAction(
+                        id = "attachment.deleteLocal",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.file_action_delete_local_title.wrap(),
+                        danger = true,
                         onClick = ::performRemove,
                     )
                 }
@@ -711,6 +764,7 @@ fun foo(
         if (launchViewCipherData != null) {
             section {
                 this += FlatItemAction(
+                    id = "attachment.viewCipher",
                     leading = icon(Icons.AutoMirrored.Outlined.OpenInNew),
                     trailing = {
                         ChevronIcon()

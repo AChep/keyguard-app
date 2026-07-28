@@ -1,0 +1,35 @@
+[package]
+name = "ssh-encoding"
+version = "0.2.0"
+description = """
+Pure Rust implementation of SSH data type decoders/encoders as described
+in RFC4251
+"""
+authors = ["RustCrypto Developers"]
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/RustCrypto/SSH/tree/master/ssh-encoding"
+categories = ["authentication", "cryptography", "encoding", "no-std", "parser-implementations"]
+keywords = ["crypto", "certificate", "key", "openssh", "ssh"]
+readme = "README.md"
+edition = "2021"
+rust-version = "1.60"
+
+[dependencies]
+base64 = { package = "base64ct", version = "1.4", optional = true }
+bytes = { version = "1", optional = true, default-features = false }
+pem = { package = "pem-rfc7468", version = "0.7", optional = true }
+sha2 = { version = "0.10", optional = true, default-features = false }
+
+[dev-dependencies]
+hex-literal = "0.4.1"
+
+[features]
+alloc = ["base64?/alloc", "pem?/alloc"]
+std = ["alloc", "base64?/std", "pem?/std", "sha2?/std"]
+
+bytes = ["alloc", "dep:bytes"]
+pem = ["base64", "dep:pem"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

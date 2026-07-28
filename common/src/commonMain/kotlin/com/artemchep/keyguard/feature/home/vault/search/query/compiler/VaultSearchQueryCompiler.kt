@@ -38,6 +38,7 @@ enum class VaultTextField(
     Note("note"),
     Field("field"),
     Ssh("ssh"),
+    Gpg("gpg"),
     Password("password"),
     CardNumber("card-number"),
 }
@@ -85,6 +86,13 @@ data class CompiledHotTextClause(
                 ?: tokenizations.values.first()
 
     fun tokenizationFor(field: VaultTextField): SearchTokenization = tokenizations.getValue(field.profile())
+
+    val titleHighlightTerms: Set<String> =
+        if (VaultTextField.Title in fields) {
+            tokenizationFor(VaultTextField.Title).terms.toSet()
+        } else {
+            emptySet()
+        }
 }
 
 data class CompiledColdTextClause(

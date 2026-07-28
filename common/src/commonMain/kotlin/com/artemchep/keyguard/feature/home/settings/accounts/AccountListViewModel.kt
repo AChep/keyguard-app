@@ -38,6 +38,7 @@ import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.CurrentPlatform
@@ -54,6 +55,7 @@ import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -111,6 +113,36 @@ fun accountListScreenState(
         getCanAddAccount,
     ),
 ) {
+    accountListScreenStateProducer(
+        rootRouterName = rootRouterName,
+        queueSyncById = queueSyncById,
+        syncSupervisor = syncSupervisor,
+        removeAccountById = removeAccountById,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getAccountHasError = getAccountHasError,
+        getCanAddAccount = getCanAddAccount,
+        vaultRouteFactory = vaultRouteFactory,
+        accountViewRouteFactory = accountViewRouteFactory,
+        confirmationRouteFactory = confirmationRouteFactory,
+        windowCoroutineScope = windowCoroutineScope,
+    )
+}
+
+suspend fun RememberStateFlowScope.accountListScreenStateProducer(
+    rootRouterName: String?,
+    queueSyncById: QueueSyncById,
+    syncSupervisor: SupervisorRead,
+    removeAccountById: RemoveAccountById,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getAccountHasError: GetAccountHasError,
+    getCanAddAccount: GetCanAddAccount,
+    vaultRouteFactory: VaultRouteFactory,
+    accountViewRouteFactory: AccountViewRouteFactory,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    windowCoroutineScope: WindowCoroutineScope,
+): Flow<AccountListStateWrapper> {
     val selectionHandle = selectionHandle("selection")
     val selectedAccountsFlow = getAccounts()
         .combine(selectionHandle.idsFlow) { accounts, selectedAccountIds ->
@@ -205,6 +237,7 @@ fun accountListScreenState(
                 // An option to view all the items that belong
                 // to these folders.
                 this += FlatItemAction(
+                    id = "accounts.selection.viewItems",
                     leading = icon(Icons.Outlined.KeyguardCipher),
                     title = Res.string.items.wrap(),
                     onClick = onClick {
@@ -217,8 +250,10 @@ fun accountListScreenState(
             }
             section {
                 this += FlatItemAction(
+                    id = "accounts.selection.logOut",
                     icon = Icons.AutoMirrored.Outlined.Logout,
                     title = Res.string.account_action_log_out_title.wrap(),
+                    danger = true,
                     onClick = onClick {
                         onDelete(f)
                     },
@@ -312,7 +347,7 @@ fun accountListScreenState(
                 .sortedWith(StringComparatorIgnoreCase { it.text })
         }
 
-    combine(
+    return combine(
         combine(
             getAccounts(),
             getProfiles(),
@@ -341,6 +376,7 @@ fun accountListScreenState(
             val addNewAccountOptions = if (canAddAccount && selection == null) {
                 buildContextItems {
                     this += FlatItemAction(
+                        id = "accounts.add.${AccountType.BITWARDEN.name}",
                         leading = icon(Icons.Outlined.Cloud),
                         title = TextHolder.Value(AccountType.BITWARDEN.fullName),
                         text = TextHolder.Res(Res.string.addaccount_description_short_bitwarden_text),
@@ -354,6 +390,7 @@ fun accountListScreenState(
                             .partially1(AccountType.BITWARDEN),
                     )
                     this += FlatItemAction(
+                        id = "accounts.add.${AccountType.KEEPASS.name}",
                         leading = icon(Icons.Outlined.FilePresent),
                         title = TextHolder.Value(AccountType.KEEPASS.fullName),
                         text = TextHolder.Res(Res.string.addaccount_description_short_keepass_text),

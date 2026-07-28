@@ -35,6 +35,7 @@ data class EmailLeakRoute(
             email: String,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
+            id = "watchtower.checkEmailLeak",
             leading = icon(Icons.AutoMirrored.Outlined.FactCheck),
             title = Res.string.email_action_check_data_breach_title.wrap(),
             onClick = {
@@ -67,6 +68,7 @@ data class EmailLeakRoute(
             username: String,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
+            id = "watchtower.checkUsernameLeak",
             leading = icon(Icons.AutoMirrored.Outlined.FactCheck),
             title = Res.string.username_action_check_data_breach_title.wrap(),
             onClick = {

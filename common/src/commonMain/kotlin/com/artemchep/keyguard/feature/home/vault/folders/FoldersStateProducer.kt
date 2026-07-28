@@ -6,14 +6,16 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.runtime.Composable
 import arrow.core.partially1
+import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.usecase.AddFolder
+import com.artemchep.keyguard.common.usecase.AddFolderRequest
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetFolders
@@ -27,15 +29,13 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
-import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.by
-import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
-import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -51,6 +51,8 @@ import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -75,6 +77,7 @@ fun foldersScreenState(
         mergeFolderById = instance(),
         removeFolderById = instance(),
         renameFolderById = instance(),
+        foldersRouteFactory = instance(),
         vaultRouteFactory = instance(),
     )
 }
@@ -90,6 +93,7 @@ fun foldersScreenState(
     mergeFolderById: MergeFolderById,
     removeFolderById: RemoveFolderById,
     renameFolderById: RenameFolderById,
+    foldersRouteFactory: FoldersRouteFactory,
     vaultRouteFactory: VaultRouteFactory,
 ): FoldersState = produceScreenState(
     key = "folders",
@@ -105,11 +109,53 @@ fun foldersScreenState(
         renameFolderById,
     ),
 ) {
+    foldersScreenStateProducer(
+        args = args,
+        directDI = directDI,
+        getFolders = getFolders,
+        getCiphers = getCiphers,
+        getCanWrite = getCanWrite,
+        addFolder = addFolder,
+        mergeFolderById = mergeFolderById,
+        removeFolderById = removeFolderById,
+        renameFolderById = renameFolderById,
+        foldersRouteFactory = foldersRouteFactory,
+        vaultRouteFactory = vaultRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.foldersScreenStateProducer(
+    args: FoldersRoute.Args,
+    directDI: DirectDI,
+    getFolders: GetFolders,
+    getCiphers: GetCiphers,
+    getCanWrite: GetCanWrite,
+    addFolder: AddFolder,
+    mergeFolderById: MergeFolderById,
+    removeFolderById: RemoveFolderById,
+    renameFolderById: RenameFolderById,
+    foldersRouteFactory: FoldersRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+): Flow<FoldersState> {
     val confirmationRouteFactory: ConfirmationRouteFactory = directDI.instance()
 
-    data class FolderWithCiphers(
-        val folder: DFolder,
-        val ciphers: List<DSecret>,
+    data class NodeWithCiphers(
+        val node: FolderBrowseNode,
+        val directCiphers: List<DSecret>,
+        val subtreeCiphers: List<DSecret>,
+    )
+
+    data class TreeWithCiphers(
+        val tree: FolderBrowseTree,
+        val current: NodeWithCiphers?,
+        val items: List<NodeWithCiphers>,
+    )
+
+    data class ScreenContent(
+        val tree: FolderBrowseTree,
+        val current: NodeWithCiphers?,
+        val content: FoldersState.Content,
+        val canWrite: Boolean,
     )
 
     val foldersComparator = Comparator { a: DFolder, b: DFolder ->
@@ -118,45 +164,88 @@ fun foldersScreenState(
     val foldersFilter = args.filter ?: DFilter.All
     val foldersFlow = getFolders()
         .map { folders ->
-            val predicate = foldersFilter.prepareFolders(directDI, folders)
             folders
-                .filter { predicate(it) }
                 .sortedWith(foldersComparator)
         }
         .shareIn(screenScope, SharingStarted.Lazily, replay = 1)
-    val foldersWithCiphersFolder = getCiphers()
+    val ciphersByFolderFlow = getCiphers()
         .map { ciphers ->
             ciphers
                 .filter { it.deletedDate == null }
                 .groupBy { it.folderId }
         }
-        .combine(foldersFlow) { ciphersByFolder, folders ->
+        .shareIn(screenScope, SharingStarted.Lazily, replay = 1)
+    val visibleFolderIdsFlow = foldersFlow
+        .combine(ciphersByFolderFlow) { folders, ciphersByFolder ->
+            val predicate = foldersFilter.prepareFolders(directDI, folders)
             folders
-                .map { folder ->
-                    val ciphers = ciphersByFolder[folder.id].orEmpty()
-                    FolderWithCiphers(
-                        folder = folder,
-                        ciphers = ciphers,
-                    )
+                .asSequence()
+                .filter { predicate(it) }
+                .filter { folder ->
+                    !args.empty || ciphersByFolder[folder.id].orEmpty().isEmpty()
                 }
-                .run {
-                    if (args.empty) {
-                        filter { it.ciphers.isEmpty() }
-                    } else {
-                        this
-                    }
-                }
+                .map { it.id }
+                .toSet()
         }
+        .distinctUntilChanged()
+        .shareIn(screenScope, SharingStarted.Lazily, replay = 1)
+    val browseTreeFlow = foldersFlow
+        .combine(visibleFolderIdsFlow) { folders, visibleFolderIds ->
+            buildFolderBrowseTree(
+                folders = folders,
+                visibleFolderIds = visibleFolderIds,
+                parent = args.parent,
+            )
+        }
+        .shareIn(screenScope, SharingStarted.Lazily, replay = 1)
+    val nodesWithCiphersFlow = browseTreeFlow
+        .combine(ciphersByFolderFlow) { tree, ciphersByFolder ->
+            fun FolderBrowseNode.withCiphers() = NodeWithCiphers(
+                node = this,
+                directCiphers = directFolderIds
+                    .asSequence()
+                    .flatMap { folderId ->
+                        ciphersByFolder[folderId].orEmpty()
+                    }
+                    .distinctBy { it.id }
+                    .toList(),
+                subtreeCiphers = descendantFolderIds
+                    .asSequence()
+                    .flatMap { folderId ->
+                        ciphersByFolder[folderId].orEmpty()
+                    }
+                    .distinctBy { it.id }
+                    .toList(),
+            )
+
+            TreeWithCiphers(
+                tree = tree,
+                current = tree.current?.withCiphers(),
+                items = tree.items.map { it.withCiphers() },
+            )
+        }
+        .shareIn(screenScope, SharingStarted.Lazily, replay = 1)
 
     val selectionHandle = selectionHandle("selection")
-    val selectedFoldersWithCiphersFlow = foldersWithCiphersFolder
-        .combine(selectionHandle.idsFlow) { foldersWithCiphers, selectedFolderIds ->
-            selectedFolderIds
-                .mapNotNull { selectedFolderId ->
-                    val folderWithCiphers = foldersWithCiphers
-                        .firstOrNull { it.folder.id == selectedFolderId }
+    screenScope.launch {
+        nodesWithCiphersFlow.collect { treeWithCiphers ->
+            val availableNodeKeys = treeWithCiphers.items
+                .mapTo(mutableSetOf()) { it.node.key }
+            val selectedNodeKeys = selectionHandle.idsFlow.value
+            val retainedNodeKeys = selectedNodeKeys.intersect(availableNodeKeys)
+            if (retainedNodeKeys.size < selectedNodeKeys.size) {
+                selectionHandle.setSelection(retainedNodeKeys)
+            }
+        }
+    }
+    val selectedNodesWithCiphersFlow = nodesWithCiphersFlow
+        .combine(selectionHandle.idsFlow) { treeWithCiphers, selectedNodeKeys ->
+            selectedNodeKeys
+                .mapNotNull { selectedNodeKey ->
+                    val nodeWithCiphers = treeWithCiphers.items
+                        .firstOrNull { it.node.key == selectedNodeKey }
                         ?: return@mapNotNull null
-                    selectedFolderId to folderWithCiphers
+                    selectedNodeKey to nodeWithCiphers
                 }
                 .toMap()
         }
@@ -169,12 +258,28 @@ fun foldersScreenState(
         }
         ?.id
 
-    suspend fun onAdd() {
-        accountId
-            ?: // Should not happen, we should not
-            // call this function if the account id
-            // is null.
-            return
+    suspend fun onAdd(
+        parent: FolderBrowseNode?,
+    ) {
+        fun createRequest(name: String): AddFolderRequest? {
+            val requestInfo = parent
+                ?.folder
+                ?.createAddFolderRequest(name)
+                ?: AddFolderRequestInfo(
+                    accountId = accountId
+                        ?: return null,
+                    name = name,
+                    parentId = null,
+                    hierarchyMode = FolderHierarchyMode.Path,
+                )
+            return AddFolderRequest(
+                accountId = AccountId(requestInfo.accountId),
+                name = requestInfo.name,
+                parentId = requestInfo.parentId,
+                hierarchyMode = requestInfo.hierarchyMode,
+            )
+        }
+
         val intent = createConfirmationDialogIntent(
             confirmationRouteFactory = confirmationRouteFactory,
             item = ConfirmationRoute.Args.Item.StringItem(
@@ -185,33 +290,35 @@ fun foldersScreenState(
             ),
             title = translate(Res.string.folder_action_create_title),
         ) { name ->
-            val accountIdsToNames = mapOf(
-                AccountId(accountId) to name,
-            )
-            addFolder(accountIdsToNames)
+            val request = createRequest(name)
+                ?: return@createConfirmationDialogIntent
+            addFolder(listOf(request))
                 .launchIn(appScope)
         }
         navigate(intent)
     }
 
     suspend fun onRename(
-        folders: List<DFolder>,
+        nodes: List<FolderBrowseNode>,
     ) {
+        if (nodes.isEmpty()) {
+            return
+        }
         val route = confirmationRouteFactory.registerRouteResultReceiver(
             args = ConfirmationRoute.Args(
                 icon = icon(Icons.Outlined.Edit),
-                title = if (folders.size > 1) {
+                title = if (nodes.size > 1) {
                     translate(Res.string.folder_action_change_names_title)
                 } else {
                     translate(Res.string.folder_action_change_name_title)
                 },
-                items = folders
+                items = nodes
                     .sortedWith(StringComparatorIgnoreCase { it.name })
-                    .map { folder ->
+                    .map { node ->
                         ConfirmationRoute.Args.Item.StringItem(
-                            key = folder.id,
-                            value = folder.name,
-                            title = folder.name,
+                            key = node.key,
+                            value = node.name,
+                            title = node.name,
                             type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
                             canBeEmpty = false,
                         )
@@ -219,10 +326,18 @@ fun foldersScreenState(
             ),
         ) {
             if (it is ConfirmationResult.Confirm) {
-                val folderIdsToNames = it.data
-                    .mapValues { it.value as String }
-                renameFolderById(folderIdsToNames)
-                    .launchIn(appScope)
+                val folderIdsToNames = kotlin.run {
+                    val namesByNodeKey = it.data
+                        .mapValues { it.value as String }
+                    createFolderRenameMap(
+                        nodes = nodes,
+                        namesByNodeKey = namesByNodeKey,
+                    )
+                }
+                if (folderIdsToNames.isNotEmpty()) {
+                    renameFolderById(folderIdsToNames)
+                        .launchIn(appScope)
+                }
             }
         }
         val intent = NavigationIntent.NavigateToRoute(route)
@@ -270,6 +385,7 @@ fun foldersScreenState(
          * `false` otherwise.
          */
         hasCiphers: Boolean,
+        navigateToParent: Boolean = false,
     ) {
         val cascadeRemoveKey = "cascade_remove"
         val cascadeRemoveItem = if (hasCiphers) {
@@ -306,7 +422,14 @@ fun foldersScreenState(
                         RemoveFolderById.OnCiphersConflict.IGNORE
                     }
                 }
-                removeFolderById(folderIds, onCiphersConflict)
+                val removeIo = removeFolderById(folderIds, onCiphersConflict)
+                if (navigateToParent) {
+                    removeIo.effectTap {
+                        navigatePopSelf()
+                    }
+                } else {
+                    removeIo
+                }
                     .launchIn(appScope)
             }
         }
@@ -315,26 +438,24 @@ fun foldersScreenState(
     }
 
     val selectionFlow = combine(
-        foldersFlow
-            .map { folders ->
-                folders
-                    .map { it.id }
-                    .toSet()
-            }
-            .distinctUntilChanged(),
-        selectedFoldersWithCiphersFlow,
+        nodesWithCiphersFlow,
+        selectedNodesWithCiphersFlow,
         getCanWrite(),
-    ) { folderIds, selectedFolders, canWrite ->
-        if (selectedFolders.isEmpty()) {
+    ) { treeWithCiphers, selectedNodes, canWrite ->
+        if (selectedNodes.isEmpty()) {
             return@combine null
         }
 
-        val selectedFolderIds = selectedFolders.keys
+        val nodeKeys = treeWithCiphers.items
+            .mapTo(mutableSetOf()) { it.node.key }
+        val selectedNodeKeys = selectedNodes.keys
         // Find folders that have some limitations
-        val hasCanNotEditFolders = selectedFolders.values
-            .any { !it.folder.service.canEdit() }
-        val hasCanNotDeleteFolders = selectedFolders.values
-            .any { !it.folder.service.canDelete() }
+        val hasCanNotEditFolders = selectedNodes.values
+            .flatMap { it.node.descendantFolders }
+            .any { !it.service.canEdit() }
+        val hasCanNotDeleteFolders = selectedNodes.values
+            .flatMap { it.node.descendantFolders }
+            .any { !it.service.canDelete() }
 
         val canEdit = canWrite && !hasCanNotEditFolders
         val canDelete = canWrite && !hasCanNotDeleteFolders
@@ -343,24 +464,24 @@ fun foldersScreenState(
             section {
                 // An option to view all the items that belong
                 // to these folders.
-                val ciphersCount = selectedFolders
+                val ciphersCount = selectedNodes
                     .asSequence()
-                    .flatMap { it.value.ciphers }
-                    .distinct()
+                    .flatMap { it.value.directCiphers }
+                    .distinctBy { it.id }
                     .count()
                 if (ciphersCount > 0) {
                     this += FlatItemAction(
+                        id = "folders.selection.viewItems",
                         icon = Icons.Outlined.KeyguardCipher,
                         title = Res.string.items.wrap(),
                         trailing = {
                             ChevronIcon()
                         },
                         onClick = onClick {
-                            val folders = selectedFolders.values
-                                .map { it.folder }
-                            val route = vaultRouteFactory.by(
-                                folders = folders,
-                            )
+                            val folders = selectedNodes.values
+                                .flatMap { it.node.directFolders }
+                                .distinctBy { it.id }
+                            val route = vaultRouteFactory.by(folders = folders)
                             val intent = NavigationIntent.NavigateToRoute(route)
                             navigate(intent)
                         },
@@ -370,22 +491,32 @@ fun foldersScreenState(
             section {
                 if (canEdit) {
                     this += FlatItemAction(
+                        id = "folders.selection.rename",
                         icon = Icons.Outlined.Edit,
                         title = Res.string.rename.wrap(),
                         onClick = onClick {
-                            val folders = selectedFolders.values
-                                .map { it.folder }
-                            onRename(folders)
+                            val nodes = selectedNodes.values
+                                .map { it.node }
+                            onRename(nodes)
                         },
                     )
-                    if (selectedFolders.size > 1) {
-                        val folderAccountId = selectedFolders.values.first().folder.accountId
-                        val singleAccount = selectedFolders.values
-                            .all { it.folder.accountId == folderAccountId }
+                    if (selectedNodes.size > 1) {
+                        val directFolders = selectedNodes.values
+                            .flatMap { it.node.directFolders }
+                            .distinctBy { it.id }
+                        val folderAccountId = directFolders.firstOrNull()?.accountId
+                        val singleAccount = folderAccountId != null &&
+                                directFolders.all { it.accountId == folderAccountId } &&
+                                directFolders.size >= selectedNodes.size
                         if (singleAccount) {
-                            val folderName =
-                                selectedFolders.values.maxBy { it.ciphers.size }.folder.name
+                            val folderName = selectedNodes.values
+                                .maxBy { it.directCiphers.size }
+                                .node
+                                .name
+                            val selectedFolderIds = directFolders
+                                .mapTo(mutableSetOf()) { it.id }
                             this += FlatItemAction(
+                                id = "folders.selection.merge",
                                 icon = Icons.Outlined.Merge,
                                 title = Res.string.folder_action_merge_title.wrap(),
                                 onClick = onClick {
@@ -396,10 +527,15 @@ fun foldersScreenState(
                     }
                 }
                 if (canDelete) {
-                    val hasCiphers = selectedFolders.any { it.value.ciphers.isNotEmpty() }
+                    val selectedFolderIds = selectedNodes.values
+                        .flatMap { it.node.descendantFolderIds }
+                        .toSet()
+                    val hasCiphers = selectedNodes.any { it.value.subtreeCiphers.isNotEmpty() }
                     this += FlatItemAction(
+                        id = "folders.selection.delete",
                         icon = Icons.Outlined.Delete,
                         title = Res.string.delete.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDelete(selectedFolderIds, hasCiphers)
                         },
@@ -409,37 +545,40 @@ fun foldersScreenState(
         }
 
         Selection(
-            count = selectedFolders.size,
+            count = selectedNodes.size,
             actions = actions.toImmutableList(),
             onSelectAll = selectionHandle::setSelection
-                .partially1(folderIds)
+                .partially1(nodeKeys)
                 .takeIf {
-                    folderIds.size > selectedFolderIds.size
+                    nodeKeys.size > selectedNodeKeys.size
                 },
             onClear = selectionHandle::clearSelection,
         )
     }
     val contentFlow = combine(
-        foldersWithCiphersFolder,
-        selectedFoldersWithCiphersFlow,
+        nodesWithCiphersFlow,
+        selectedNodesWithCiphersFlow,
         getCanWrite(),
-    ) { foldersWithCiphers, selectedFolderIds, canWrite ->
-        val selecting = selectedFolderIds.isNotEmpty()
-        val items = foldersWithCiphers
-            .map { folderWithCiphers ->
-                val folder = folderWithCiphers.folder
-                val ciphers = folderWithCiphers.ciphers
-                val selected = folder.id in selectedFolderIds
+    ) { treeWithCiphers, selectedNodes, canWrite ->
+        val selecting = selectedNodes.isNotEmpty()
+        val items = treeWithCiphers.items
+            .map { nodeWithCiphers ->
+                val node = nodeWithCiphers.node
+                val selected = node.key in selectedNodes
 
-                val canEdit = canWrite && folder.service.canEdit()
-                val canDelete = canWrite && folder.service.canDelete()
+                val canEdit = canWrite && node.descendantFolders.all { it.service.canEdit() }
+                val canDelete = canWrite && node.descendantFolders.all { it.service.canDelete() }
 
                 val actions = buildContextItems {
                     section {
                         // An option to view all the items that belong
                         // to this cipher.
-                        if (!folder.deleted && ciphers.isNotEmpty()) {
+                        if (!node.deleted &&
+                            node.directFolders.isNotEmpty() &&
+                            nodeWithCiphers.directCiphers.isNotEmpty()
+                        ) {
                             this += FlatItemAction(
+                                id = "folder.${node.key}.viewItems",
                                 icon = Icons.Outlined.KeyguardCipher,
                                 title = Res.string.items.wrap(),
                                 trailing = {
@@ -447,7 +586,7 @@ fun foldersScreenState(
                                 },
                                 onClick = onClick {
                                     val route = vaultRouteFactory.by(
-                                        folder = folder,
+                                        folders = node.directFolders,
                                     )
                                     val intent = NavigationIntent.NavigateToRoute(route)
                                     navigate(intent)
@@ -456,25 +595,28 @@ fun foldersScreenState(
                         }
                     }
                     section {
-                        if (!folder.deleted && canEdit) {
+                        if (!node.deleted && canEdit) {
                             this += FlatItemAction(
+                                id = "folder.${node.key}.rename",
                                 icon = Icons.Outlined.Edit,
                                 title = Res.string.rename.wrap(),
                                 onClick = onClick {
                                     onRename(
-                                        folders = listOf(folder),
+                                        nodes = listOf(node),
                                     )
                                 },
                             )
                         }
-                        if (!folder.deleted && canDelete) {
+                        if (!node.deleted && canDelete) {
                             this += FlatItemAction(
+                                id = "folder.${node.key}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
+                                danger = true,
                                 onClick = onClick {
                                     onDelete(
-                                        folderIds = setOf(folder.id),
-                                        hasCiphers = folderWithCiphers.ciphers.isNotEmpty(),
+                                        folderIds = node.descendantFolderIds,
+                                        hasCiphers = nodeWithCiphers.subtreeCiphers.isNotEmpty(),
                                     )
                                 },
                             )
@@ -482,17 +624,20 @@ fun foldersScreenState(
                     }
                 }
                 FoldersState.Content.Item.Folder(
-                    key = folder.id,
-                    title = folder.name,
-                    ciphers = folderWithCiphers.ciphers.size,
+                    key = node.key,
+                    title = node.name,
+                    ciphers = nodeWithCiphers.directCiphers.size,
+                    folders = node.visibleChildFolderCount,
                     selecting = selecting,
                     selected = selected,
-                    synced = folder.synced,
-                    failed = folder.service.error.exists(folder.revisionDate),
-                    onViewItemsClick = if (!folder.deleted) {
+                    synced = node.descendantFolders.all { it.synced },
+                    failed = node.descendantFolders
+                        .any { it.service.error.exists(it.revisionDate) },
+                    hasChildren = node.hasVisibleChildren,
+                    onViewItemsClick = if (!node.deleted && node.directFolders.isNotEmpty()) {
                         onClick {
                             val route = vaultRouteFactory.by(
-                                folder = folder,
+                                folders = node.directFolders,
                             )
                             val intent = NavigationIntent.NavigateToRoute(route)
                             navigate(intent)
@@ -501,17 +646,23 @@ fun foldersScreenState(
                         null
                     },
                     actions = actions.toImmutableList(),
-                    onClick = if (!folder.deleted && selecting) {
-                        // lambda
-                        selectionHandle::toggleSelection.partially1(folder.id)
-                    } else {
-                        null
+                    onClick = when {
+                        node.deleted -> null
+                        selecting -> selectionHandle::toggleSelection.partially1(node.key)
+                        else -> onClick {
+                            val route = foldersRouteFactory.create(
+                                args = args.copy(
+                                    parent = node.anchor,
+                                ),
+                            )
+                            val intent = NavigationIntent.NavigateToRoute(route)
+                            navigate(intent)
+                        }
                     },
-                    onLongClick = if (folder.deleted || selecting) {
+                    onLongClick = if (node.deleted || selecting) {
                         null
                     } else {
-                        // lambda
-                        selectionHandle::toggleSelection.partially1(folder.id)
+                        selectionHandle::toggleSelection.partially1(node.key)
                     },
                 )
             }
@@ -519,20 +670,95 @@ fun foldersScreenState(
         val itemsReShaped = items
             .mapListShape()
             .toImmutableList()
-        FoldersState.Content(
-            items = itemsReShaped,
+        val current = treeWithCiphers.current
+        val ciphers = current
+            ?.takeUnless { it.node.deleted }
+            ?.let { currentFolder ->
+                FoldersState.Content.Ciphers(
+                    count = currentFolder.directCiphers.size,
+                    onClick = onClick {
+                        val route = vaultRouteFactory.by(
+                            folders = currentFolder.node.directFolders,
+                        )
+                        val intent = NavigationIntent.NavigateToRoute(route)
+                        navigate(intent)
+                    },
+                )
+            }
+        ScreenContent(
+            tree = treeWithCiphers.tree,
+            current = current,
+            content = FoldersState.Content(
+                items = itemsReShaped,
+                ciphers = ciphers,
+                missing = treeWithCiphers.tree.missing,
+            ),
+            canWrite = canWrite,
         )
     }
-    combine(
+    return combine(
         selectionFlow,
         contentFlow,
-    ) { selection, content ->
+    ) { selection, screenContent ->
+        val currentFolder = screenContent.current
+            ?.takeUnless { it.node.deleted }
+            ?.takeUnless { selection != null }
+        val canRename = screenContent.canWrite &&
+                currentFolder?.node?.descendantFolders
+                    ?.all { it.service.canEdit() } == true
+        val canDelete = screenContent.canWrite &&
+                currentFolder?.node?.descendantFolders
+                    ?.all { it.service.canDelete() } == true
+        val onRenameClick = currentFolder
+            ?.takeIf { canRename }
+            ?.let { folder ->
+                onClick {
+                    onRename(
+                        nodes = listOf(folder.node),
+                    )
+                }
+            }
+        val actions = buildContextItems {
+            section {
+                val folder = currentFolder
+                    ?.takeIf { canDelete }
+                    ?: return@section
+                this += FlatItemAction(
+                    id = "folder.${folder.node.key}.delete",
+                    icon = Icons.Outlined.Delete,
+                    title = Res.string.delete.wrap(),
+                    danger = true,
+                    onClick = onClick {
+                        onDelete(
+                            folderIds = folder.node.descendantFolderIds,
+                            hasCiphers = folder.subtreeCiphers.isNotEmpty(),
+                            navigateToParent = true,
+                        )
+                    },
+                )
+            }
+        }
         FoldersState(
+            title = screenContent.tree.title
+                ?: translate(Res.string.folders),
+            text = if (args.parent == null) {
+                translate(Res.string.account)
+            } else {
+                translate(Res.string.folders)
+            },
             selection = selection,
-            content = Loadable.Ok(content),
+            content = Loadable.Ok(screenContent.content),
+            onRename = onRenameClick,
+            actions = actions.toImmutableList(),
             onAdd = onClick {
-                onAdd()
-            }.takeUnless { selection != null || accountId == null },
+                onAdd(currentFolder?.node)
+            }.takeIf {
+                selection == null &&
+                        when {
+                            args.parent == null -> accountId != null
+                            else -> currentFolder != null
+                        }
+            },
         )
     }
 }

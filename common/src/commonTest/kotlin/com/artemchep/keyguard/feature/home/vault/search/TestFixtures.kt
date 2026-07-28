@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.search
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
@@ -29,6 +30,9 @@ internal fun createSecret(
     type: DSecret.Type = DSecret.Type.Login,
     favorite: Boolean = false,
     reprompt: Boolean = false,
+    synced: Boolean = true,
+    service: BitwardenService = BitwardenService(),
+    ignoredAlerts: Map<DWatchtowerAlertType, Instant> = emptyMap(),
     notes: String = "",
     uris: List<DSecret.Uri> = emptyList(),
     fields: List<DSecret.Field> = emptyList(),
@@ -46,12 +50,13 @@ internal fun createSecret(
     createdDate = TEST_INSTANT,
     archivedDate = null,
     deletedDate = null,
-    service = BitwardenService(),
+    service = service,
     name = name,
     notes = notes,
     favorite = favorite,
     reprompt = reprompt,
-    synced = true,
+    synced = synced,
+    ignoredAlerts = ignoredAlerts,
     tags = tags,
     uris = uris,
     fields = fields,
@@ -92,14 +97,16 @@ internal fun createItem(
     favourite = source.favorite,
     attachments = source.attachments.isNotEmpty(),
     action = VaultItem2.Item.Action.None,
-    localStateFlow = MutableStateFlow(
-        VaultItem2.Item.LocalState(
-            openedState = VaultItem2.Item.OpenedState(isOpened = false),
-            selectableItemState = SelectableItemState(
-                selecting = false,
-                selected = false,
-                onClick = null,
-                onLongClick = null,
+    localStateSource = VaultItem2.Item.LocalStateSource.PerItem(
+        MutableStateFlow(
+            VaultItem2.Item.LocalState(
+                openedState = VaultItem2.Item.OpenedState(isOpened = false),
+                selectableItemState = SelectableItemState(
+                    selecting = false,
+                    selected = false,
+                    onClick = null,
+                    onLongClick = null,
+                ),
             ),
         ),
     ),

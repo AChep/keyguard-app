@@ -124,7 +124,10 @@ private class HybridTrustManager(
         }
 
         val finalException = lastException
-            ?: IllegalStateException()
+            ?: kotlin.run {
+                val msg = "No trust manager could validate the certificate."
+                IllegalStateException(msg)
+            }
         throw finalException
     }
 

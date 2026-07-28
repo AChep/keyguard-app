@@ -14,28 +14,33 @@ jobs:
         include:
           - runner: ubuntu-latest
             arch: x86_64
+            rust-target: x86_64-unknown-linux-gnu
           - runner: ubuntu-24.04-arm
             arch: aarch64
+            rust-target: aarch64-unknown-linux-gnu
     steps:
       - name: "Checkout"
-        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           lfs: true
           submodules: recursive
           persist-credentials: false
       - uses: ./.github/actions/setup_gradle
       - name: "Setup Rust toolchain"
-        uses: dtolnay/rust-toolchain@3c5f7ea28cd621ae0bf5283f0e981fb97b8a7af9
+        uses: ./.github/actions/setup_rust
         with:
-          toolchain: stable
-      - name: "Setup Protobuf Compiler"
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y protobuf-compiler libx11-dev
+          targets: ${{ matrix.rust-target }}
+      - name: "Prefetch locked native crypto graph"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+      - uses: ./.github/actions/setup_protobuf
+      - uses: ./.github/actions/setup_linux_desktop
       - uses: ./.github/actions/setup_python
       - uses: ./.github/actions/build_desktop_licenses
       - name: "Build"
-        run: ./gradlew :desktopApp:packageReleaseDistributable
+        run: >-
+          ./gradlew
+          :desktopApp:packageReleaseDistributable
+          -Pkeyguard.nativeCrypto.cargoOffline=true
       - name: 'Upload .tar'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -46,6 +51,17 @@ jobs:
         run: |
           mkdir -p desktopApp/flatpak/app-${{ matrix.arch }}/
           tar -xvzf $(find . -type f -regex '\./desktopApp/build/distributions/.*\.tar.gz') -C desktopApp/flatpak/app-${{ matrix.arch }}/ --strip-components=1
+      - name: "Inspect packaged native crypto"
+        shell: bash
+        run: |
+          mapfile -t libraries < <(find desktopApp/flatpak/app-${{ matrix.arch }} -type f -name 'libkeyguard_crypto_jni.so')
+          test "${#libraries[@]}" -eq 1
+          python scripts/inspect_native_crypto_desktop.py "${libraries[0]}"
+          python scripts/check_bouncycastle_policy.py --artifact desktopApp/flatpak/app-${{ matrix.arch }}
+      - name: "Call native crypto through packaged Desktop resources"
+        run: >-
+          python3 scripts/run_native_crypto_desktop_package_smoke.py
+          desktopApp/flatpak/app-${{ matrix.arch }}
       - name: "Get Flatpak runtime version -install dependencies"
         run: pip install -r .github/get_flatpak_runtime_version.requirements.txt
       - name: "Get Flatpak runtime version"

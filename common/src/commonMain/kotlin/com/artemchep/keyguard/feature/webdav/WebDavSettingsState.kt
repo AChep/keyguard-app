@@ -13,6 +13,7 @@ data class WebDavSettingsState(
 ) {
     enum class Error {
         UrlRequired,
+        FileUrlRequired,
         PasswordRequiresUsername,
     }
 }

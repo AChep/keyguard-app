@@ -3,7 +3,7 @@ package com.artemchep.keyguard.feature.changepassword
 import androidx.compose.runtime.Immutable
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -17,8 +17,8 @@ data class ChangePasswordState(
     @Immutable
     @optics
     data class Password(
-        val current: TextFieldModel2,
-        val new: TextFieldModel2,
+        val current: TextFieldModel,
+        val new: TextFieldModel,
     ) {
         companion object
     }

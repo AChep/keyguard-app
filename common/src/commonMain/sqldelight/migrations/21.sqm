@@ -1,0 +1,15 @@
+CREATE TABLE gpgUsageHistory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cipherId TEXT,
+  sessionId TEXT NOT NULL,
+  caller TEXT,
+  request INTEGER NOT NULL,
+  response INTEGER NOT NULL,
+  fingerprint TEXT,
+  keygrip TEXT,
+  createdAt INTEGER NOT NULL,
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_gpgUsageHistory_createdAt ON gpgUsageHistory(createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_gpgUsageHistory_cipherId_createdAt ON gpgUsageHistory(cipherId, createdAt DESC);

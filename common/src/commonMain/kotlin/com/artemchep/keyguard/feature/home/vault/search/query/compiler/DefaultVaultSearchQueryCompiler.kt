@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.search.query.compiler
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.search.engine.SearchTokenizer
 import com.artemchep.keyguard.feature.home.vault.search.engine.SearchTokenizerProfile
+import com.artemchep.keyguard.feature.home.vault.search.engine.SearchTokenization
 import com.artemchep.keyguard.feature.home.vault.search.engine.profile
 import com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierCatalog
 import com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierDefinition
@@ -215,7 +216,7 @@ class DefaultVaultSearchQueryCompiler(
                     tokenizer.tokenize(
                         value = value.value,
                         profile = profile,
-                    )
+                    ).forCompiledQuery()
                 }
         if (tokenizations.values.all { it.terms.isEmpty() }) {
             return null
@@ -236,6 +237,7 @@ class DefaultVaultSearchQueryCompiler(
         val profile =
             when (field) {
                 VaultTextField.Ssh,
+                VaultTextField.Gpg,
                 VaultTextField.Password,
                 VaultTextField.CardNumber,
                 -> SearchTokenizerProfile.SENSITIVE
@@ -246,7 +248,7 @@ class DefaultVaultSearchQueryCompiler(
             tokenizer.tokenize(
                 value = value.value,
                 profile = profile,
-            )
+            ).forCompiledQuery()
         if (tokenization.terms.isEmpty()) {
             return null
         }
@@ -313,3 +315,8 @@ class DefaultVaultSearchQueryCompiler(
             .replace("-", "")
             .replace(" ", "")
 }
+
+private fun SearchTokenization.forCompiledQuery(): SearchTokenization = copy(
+    terms = terms.distinct(),
+    exactTerms = exactTerms.distinct(),
+)

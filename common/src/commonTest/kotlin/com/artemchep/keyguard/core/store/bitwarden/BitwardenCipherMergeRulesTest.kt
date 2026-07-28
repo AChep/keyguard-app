@@ -282,6 +282,55 @@ class BitwardenCipherMergeRulesTest {
     }
 
     @Test
+    fun `merge unions signatures for same android uri`() {
+        val baseUri = BitwardenCipher.Login.Uri(
+            uri = "androidapp://com.example.app",
+            match = BitwardenCipher.Login.Uri.MatchType.Exact,
+        )
+        val oldRemote = loginCipher(
+            uris = listOf(baseUri),
+        )
+        val currentLocal = oldRemote.copy(
+            revisionDate = LOCAL_REVISION,
+            login = oldRemote.login?.copy(
+                uris = listOf(
+                    baseUri.copy(
+                        signatures = listOf(
+                            BitwardenCipher.Login.Uri.Signature(FINGERPRINT_A),
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val currentRemote = oldRemote.copy(
+            revisionDate = REMOTE_REVISION,
+            login = oldRemote.login?.copy(
+                uris = listOf(
+                    baseUri.copy(
+                        signatures = listOf(
+                            BitwardenCipher.Login.Uri.Signature(FINGERPRINT_B),
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+        val merged = merge(
+            oldRemote = oldRemote,
+            currentLocal = currentLocal,
+            currentRemote = currentRemote,
+        )
+
+        assertEquals(
+            listOf(
+                FINGERPRINT_A,
+                FINGERPRINT_B,
+            ),
+            merged.login?.uris?.single()?.signatures?.map { it.certFingerprintSha256 },
+        )
+    }
+
+    @Test
     fun `merge keeps local password removal and remote totp setup`() {
         val oldRemote = loginCipher(
             password = "mail-password-2023",
@@ -547,6 +596,12 @@ class BitwardenCipherMergeRulesTest {
         fields: List<BitwardenCipher.Field> = emptyList(),
         fido2Credentials: List<BitwardenCipher.Login.Fido2Credentials> = emptyList(),
         reprompt: BitwardenCipher.RepromptType = BitwardenCipher.RepromptType.Password,
+        uris: List<BitwardenCipher.Login.Uri> = listOf(
+            BitwardenCipher.Login.Uri(
+                uri = "https://mail.proton.me",
+                match = BitwardenCipher.Login.Uri.MatchType.Host,
+            ),
+        ),
     ) = BitwardenCipher(
         accountId = "account-1",
         cipherId = "cipher-1",
@@ -570,12 +625,7 @@ class BitwardenCipherMergeRulesTest {
             username = "alice@example.com",
             password = password,
             passwordRevisionDate = passwordRevisionDate,
-            uris = listOf(
-                BitwardenCipher.Login.Uri(
-                    uri = "https://mail.proton.me",
-                    match = BitwardenCipher.Login.Uri.MatchType.Host,
-                ),
-            ),
+            uris = uris,
             fido2Credentials = fido2Credentials,
             totp = totp,
         ),
@@ -644,6 +694,10 @@ class BitwardenCipherMergeRulesTest {
         val PASSKEY_CREATED_REMOTE = Instant.parse("2024-01-11T10:30:00Z")
 
         const val TOTP = "JBSWY3DPEHPK3PXP"
+        const val FINGERPRINT_A =
+            "00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF"
+        const val FINGERPRINT_B =
+            "AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99"
     }
 
 }

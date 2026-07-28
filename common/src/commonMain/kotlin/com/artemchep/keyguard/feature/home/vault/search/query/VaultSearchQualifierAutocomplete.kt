@@ -337,6 +337,12 @@ private val vaultSearchQualifierDefinitionSpecs =
             coldTextField = VaultTextField.Ssh,
         ),
         VaultSearchQualifierDefinitionSpec(
+            canonicalName = "gpg",
+            aliases = emptySet(),
+            semanticKind = VaultQueryClauseSemanticKind.Text,
+            coldTextField = VaultTextField.Gpg,
+        ),
+        VaultSearchQualifierDefinitionSpec(
             canonicalName = "password",
             aliases = emptySet(),
             semanticKind = VaultQueryClauseSemanticKind.Text,

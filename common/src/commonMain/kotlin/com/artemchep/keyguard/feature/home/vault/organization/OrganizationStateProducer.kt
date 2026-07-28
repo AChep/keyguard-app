@@ -3,8 +3,10 @@ package com.artemchep.keyguard.feature.home.vault.organization
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.GetOrganizations
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
@@ -34,6 +36,16 @@ fun organizationScreenState(
         getOrganizations,
     ),
 ) {
+    organizationScreenStateProducer(
+        args = args,
+        getOrganizations = getOrganizations,
+    )
+}
+
+suspend fun RememberStateFlowScope.organizationScreenStateProducer(
+    args: OrganizationRoute.Args,
+    getOrganizations: GetOrganizations,
+): Flow<OrganizationState> {
     fun onClose() {
         navigatePopSelf()
     }
@@ -56,7 +68,7 @@ fun organizationScreenState(
                 config = config,
             )
         }
-    contentFlow
+    return contentFlow
         .map { content ->
             OrganizationState(
                 content = Loadable.Ok(content),

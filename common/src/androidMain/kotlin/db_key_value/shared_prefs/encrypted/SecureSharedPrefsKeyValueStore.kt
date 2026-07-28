@@ -5,18 +5,20 @@ import android.content.Context
 import android.os.Build
 import android.security.keystore.StrongBoxUnavailableException
 import androidx.annotation.RequiresApi
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.artemchep.keyguard.platform.recordLog
-import java.io.IOException
-import java.security.GeneralSecurityException
-import java.security.KeyStore
-import androidx.core.content.edit
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.platform.recordLog
+import db_key_value.encrypted.isMalformedTinkKeyset
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
 import db_key_value.shared_prefs.getSharedPrefsFile
+import kotlinx.coroutines.delay
+import java.io.IOException
+import java.security.GeneralSecurityException
+import java.security.KeyStore
 
 class SecureSharedPrefsKeyValueStore(
     context: Context,
@@ -41,38 +43,65 @@ class SecureSharedPrefsKeyValueStore(
     )
 
 @SuppressLint("ApplySharedPref")
-private fun getEncryptedSharedPrefsOrRecreate(
+private suspend fun getEncryptedSharedPrefsOrRecreate(
     context: Context,
     file: String,
-) = run {
-    lateinit var exception: Throwable
+) = retrySecureSharedPrefs(
+    clear = {
+        clearSharedPreferences(
+            context = context,
+            file = file,
+        )
+        clearKeystore(alias = file)
+    },
+    block = {
+        getEncryptedSharedPrefs(context, file)
+    },
+)
 
-    val retryCount = 3
-    for (i in 0 until retryCount) {
+internal suspend fun <T> retrySecureSharedPrefs(
+    maxAttempts: Int = 3,
+    delayForRetry: suspend (Long) -> Unit = { delay(it) },
+    clear: () -> Unit,
+    block: () -> T,
+): T {
+    require(maxAttempts > 0) { "maxAttempts must be positive" }
+    lateinit var exception: Exception
+    repeat(maxAttempts) { index ->
         try {
-            return@run getEncryptedSharedPrefs(context, file)
-        } catch (e: Exception) {
-            if (
-                e is IOException ||
-                e is GeneralSecurityException ||
-                // For some reason once in a while I get a device that
-                // crashes here. Maybe for some the exception is not the
-                // default one.
-                "KeyStore" in e.message.orEmpty()
-            ) {
-                exception = e
-                clearSharedPreferences(
-                    context = context,
-                    file = file,
-                )
-                clearKeystore(alias = file)
-            } else {
-                recordLog("Failed to read the shared preferences!")
-                throw e
+            return block()
+        } catch (failure: Exception) {
+            exception = failure
+            when {
+                // Tink reports malformed keysets as IOException subtypes. Invalid hex
+                // and invalid protobuf are definitive corruption rather than transient
+                // disk failures, so retain the legacy wipe-and-recreate behavior.
+                failure.isMalformedTinkKeyset() -> {
+                    clear()
+                }
+
+                // Transient storage errors must never destroy data. A bounded delay
+                // gives the storage subsystem time to recover before the next attempt.
+                failure is IOException -> {
+                    if (index < maxAttempts - 1) {
+                        delayForRetry(200L)
+                    }
+                }
+
+                // For some reason once in a while I get a device that crashes here.
+                // Maybe for some the exception is not the default one.
+                failure is GeneralSecurityException ||
+                        "KeyStore" in failure.message.orEmpty() -> {
+                    clear()
+                }
+
+                else -> {
+                    recordLog("Failed to read the shared preferences!")
+                    throw failure
+                }
             }
         }
     }
-
     throw exception
 }
 

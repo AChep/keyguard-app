@@ -219,6 +219,70 @@ fun accountState(
         accountId,
     ),
 ) {
+    accountStateProducer(
+        queueSyncById = queueSyncById,
+        syncSupervisor = syncSupervisor,
+        getGravatarUrl = getGravatarUrl,
+        clipboardService = clipboardService,
+        dateFormatter = dateFormatter,
+        removeAccountById = removeAccountById,
+        getFingerprint = getFingerprint,
+        putAccountNameById = putAccountNameById,
+        putAccountColorById = putAccountColorById,
+        putAccountMasterPasswordHintById = putAccountMasterPasswordHintById,
+        putProfileHidden = putProfileHidden,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getCiphers = getCiphers,
+        getSends = getSends,
+        getEquivalentDomains = getEquivalentDomains,
+        getFolders = getFolders,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+        getMetas = getMetas,
+        bitwardenLoginRouteFactory = bitwardenLoginRouteFactory,
+        confirmationRouteFactory = confirmationRouteFactory,
+        vaultRouteFactory = vaultRouteFactory,
+        sendRouteFactory = sendRouteFactory,
+        collectionsRouteFactory = collectionsRouteFactory,
+        foldersRouteFactory = foldersRouteFactory,
+        organizationsRouteFactory = organizationsRouteFactory,
+        db = db,
+        accountId = accountId,
+    )
+}
+
+suspend fun RememberStateFlowScope.accountStateProducer(
+    queueSyncById: QueueSyncById,
+    syncSupervisor: SupervisorRead,
+    getGravatarUrl: GetGravatarUrl,
+    clipboardService: ClipboardService,
+    dateFormatter: DateFormatter,
+    removeAccountById: RemoveAccountById,
+    getFingerprint: GetFingerprintByAccount,
+    putAccountNameById: PutAccountNameById,
+    putAccountColorById: PutAccountColorById,
+    putAccountMasterPasswordHintById: PutAccountMasterPasswordHintById,
+    putProfileHidden: PutProfileHidden,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getCiphers: GetCiphers,
+    getSends: GetSends,
+    getEquivalentDomains: GetEquivalentDomains,
+    getFolders: GetFolders,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+    getMetas: GetMetas,
+    bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+    sendRouteFactory: SendRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
+    foldersRouteFactory: FoldersRouteFactory,
+    organizationsRouteFactory: OrganizationsRouteFactory,
+    db: VaultDatabaseManager,
+    accountId: AccountId,
+): Flow<AccountViewState> {
     fun doReLogin(
         accountId: AccountId,
         email: String,
@@ -443,6 +507,7 @@ fun accountState(
                 }
 
                 this += FlatItemAction(
+                    id = "account.sync",
                     leading = {
                         SyncIcon(rotating = syncing)
                     },
@@ -465,6 +530,7 @@ fun accountState(
                 val onCheckedChange = ::doHideProfileById
                     .partially1(profileOrNull.profileId)
                 this += FlatItemAction(
+                    id = "account.hideProfile",
                     leading = {
                         Icon(
                             Icons.Outlined.VisibilityOff,
@@ -488,8 +554,10 @@ fun accountState(
                 }
 
                 this += FlatItemAction(
+                    id = "account.signOut",
                     icon = Icons.AutoMirrored.Outlined.Logout,
                     title = Res.string.account_action_sign_out_title.wrap(),
+                    danger = true,
                     onClick = if (busy) {
                         null
                     } else {
@@ -502,7 +570,7 @@ fun accountState(
             }
         }
     }
-    combine(
+    return combine(
         accountFlow,
         actionsFlow,
         itemsFlow,
@@ -988,6 +1056,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
 
     val id = "name"
     val nameEditActionItem = FlatItemAction(
+        id = "account.name.edit",
         icon = Icons.Outlined.Edit,
         title = Res.string.account_action_change_name_title.wrap(),
         onClick = scope.onClick {
@@ -995,6 +1064,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
         },
     )
     val colorEditActionItem = FlatItemAction(
+        id = "account.name.editColor",
         leading = iconSmall(Icons.Outlined.Edit, Icons.Outlined.ColorLens),
         trailing = {
             val accentColor = if (MaterialTheme.colorScheme.isDark) {
@@ -1047,6 +1117,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitName(
             dropdown = buildContextItems {
                 section {
                     this += copyText.FlatItemAction(
+                        id = "account.name.copy",
                         title = Res.string.copy.wrap(),
                         value = name,
                     )
@@ -1139,6 +1210,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
             dropdown = buildContextItems {
                 section {
                     this += copyText.FlatItemAction(
+                        id = "account.email.copy",
                         title = Res.string.copy.wrap(),
                         value = email,
                         type = CopyText.Type.EMAIL,
@@ -1159,6 +1231,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitEmail(
                 if (profile.emailVerified == false) {
                     section {
                         this += FlatItemAction(
+                            id = "account.email.verifyInstructions",
                             leading = icon(Icons.Outlined.VerifiedUser),
                             title = Res.string.account_action_email_verify_instructions_title.wrap(),
                             onClick = null,
@@ -1269,6 +1342,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
 
     val id = "master_password_hint"
     val hintEditActionItem = FlatItemAction(
+        id = "account.masterPasswordHint.edit",
         icon = Icons.Outlined.Edit,
         title = Res.string.account_action_change_master_password_hint_title.wrap(),
         onClick = scope.onClick {
@@ -1290,6 +1364,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitMasterPasswordHint(
                 if (!hint.isNullOrBlank()) {
                     section {
                         this += copyText.FlatItemAction(
+                            id = "account.masterPasswordHint.copy",
                             title = Res.string.copy.wrap(),
                             value = hint,
                         )
@@ -1333,6 +1408,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitFingerprint(
             dropdown = buildContextItems {
                 section {
                     this += copyText.FlatItemAction(
+                        id = "account.fingerprint.copy",
                         title = Res.string.copy.wrap(),
                         value = fingerprint,
                     )
@@ -1353,6 +1429,7 @@ private suspend fun FlowCollector<VaultViewItem>.emitFingerprint(
                 }
                 section {
                     this += FlatItemAction(
+                        id = "account.fingerprint.help",
                         icon = Icons.AutoMirrored.Outlined.HelpOutline,
                         title = Res.string.fingerprint_phrase_help_title.wrap(),
                         trailing = {

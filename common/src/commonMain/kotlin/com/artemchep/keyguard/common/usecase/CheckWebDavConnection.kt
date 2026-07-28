@@ -1,11 +1,6 @@
 package com.artemchep.keyguard.common.usecase
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.model.WebDavLocation
 
-data class CheckWebDavConnectionRequest(
-    val url: String,
-    val username: String?,
-    val password: String?,
-)
-
-interface CheckWebDavConnection : (CheckWebDavConnectionRequest) -> IO<Unit>
+interface CheckWebDavConnection : (WebDavLocation) -> IO<Unit>

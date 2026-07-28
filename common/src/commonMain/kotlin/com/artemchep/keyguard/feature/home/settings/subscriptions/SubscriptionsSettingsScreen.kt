@@ -37,6 +37,13 @@ fun rememberSettingsSubscriptionsItems(
                     SettingPaneItem.Item(Setting.APK),
                 ),
             ),
+            SettingPaneItem.Group(
+                key = "sharing",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.LICENSE_CLAIM),
+                    SettingPaneItem.Item(Setting.LICENSE_REDEEM),
+                ),
+            ),
         )
     }
 }

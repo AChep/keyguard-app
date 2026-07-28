@@ -37,6 +37,7 @@ import androidx.compose.material.icons.outlined.CloudDone
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.Button
@@ -80,14 +81,16 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GetPasswordResult
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.UsernameVariationIcon
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.model.titleH
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
+import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
@@ -125,6 +128,7 @@ import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.PasswordPwnedBadge
+import com.artemchep.keyguard.ui.rememberFieldBuffer
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
 import com.artemchep.keyguard.ui.TagFlatTextField
 import com.artemchep.keyguard.ui.UrlFlatTextField
@@ -207,6 +211,7 @@ fun getAnyFieldShapeState(
         is AddStateItem.Passkey<*> -> ::getAnyFieldShapeStatePasskeyPredicate
         is AddStateItem.Attachment<*> -> ::getAnyFieldShapeStateAttachmentPredicate
         is AddStateItem.Url<*> -> ::getAnyFieldShapeStateUrlPredicate
+        is AddStateItem.Link<*> -> ::getAnyFieldShapeStateLinkPredicate
         is AddStateItem.Field<*> -> ::getAnyFieldShapeStateFieldPredicate
         is AddStateItem.Tag<*> -> ::getAnyFieldShapeStateTagPredicate
         else -> ::getAnyFieldShapeStateOtherPredicate
@@ -252,6 +257,11 @@ private fun getAnyFieldShapeStateUrlPredicate(
     item: AddStateItem,
     index: Int,
 ) = item is AddStateItem.Url<*>
+
+private fun getAnyFieldShapeStateLinkPredicate(
+    item: AddStateItem,
+    index: Int,
+) = item is AddStateItem.Link<*>
 
 private fun getAnyFieldShapeStateFieldPredicate(
     item: AddStateItem,
@@ -315,6 +325,14 @@ fun AnyField(
         )
     }
 
+    is AddStateItem.Link<*> -> {
+        LinkField(
+            modifier = modifier,
+            item = item,
+            shapeState = shapeState,
+        )
+    }
+
     is AddStateItem.Attachment<*> -> {
         AttachmentTextField(
             modifier = modifier,
@@ -341,6 +359,14 @@ fun AnyField(
 
     is AddStateItem.SshKey<*> -> {
         SshKeyField(
+            modifier = modifier,
+            item = item,
+            shapeState = shapeState,
+        )
+    }
+
+    is AddStateItem.GpgKey<*> -> {
+        GpgKeyField(
             modifier = modifier,
             item = item,
             shapeState = shapeState,
@@ -535,7 +561,7 @@ private fun UsernameTextField(
                     addScope
                         .obtainUriContext()
                 },
-                onValueChange = field.onChange,
+                onValueChange = field.onSetText,
             )
         },
     )
@@ -560,7 +586,7 @@ private fun AddScreenScope.obtainUriContext(): ImmutableList<String> {
                 if (discarded) {
                     return@mapNotNull null
                 }
-                val rawUrl = state.text.state.value
+                val rawUrl = state.text.text
                 return@mapNotNull rawUrl
             }
 
@@ -597,12 +623,12 @@ private fun PasswordTextField(
                     addScope
                         .obtainUriContext()
                 },
-                onValueChange = field.onChange,
+                onValueChange = field.onSetText,
             )
         },
         content = {
             ExpandedIfNotEmpty(
-                valueOrNull = Unit.takeIf { field.state.value.isNotEmpty() && field.error == null },
+                valueOrNull = Unit.takeIf { field.text.isNotEmpty() && field.error == null },
             ) {
                 FlowRow(
                     modifier = Modifier
@@ -615,10 +641,10 @@ private fun PasswordTextField(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     PasswordStrengthBadge(
-                        password = field.state.value,
+                        password = field.text,
                     )
                     PasswordPwnedBadge(
-                        password = field.state.value,
+                        password = field.text,
                     )
                 }
             }
@@ -888,6 +914,121 @@ private fun SshKeyField(
 
 context(addScope: AddScreenScope)
 @Composable
+private fun GpgKeyField(
+    modifier: Modifier = Modifier,
+    item: AddStateItem.GpgKey<*>,
+    shapeState: Int,
+) {
+    val state by item.state.flow.collectAsState()
+    FileDropField(
+        modifier = modifier,
+        containerPadding = defaultFlatItemPaddingValues(),
+        fileDrop = item.fileDrop,
+    ) {
+        val expiration = state.expiration
+        Column {
+            FlatItemLayoutExpressive(
+                backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                leading = icon<RowScope>(Icons.Outlined.Key),
+                shapeState = if (expiration != null) {
+                    shapeState and ShapeState.END.inv()
+                } else {
+                    shapeState
+                },
+                padding = PaddingValues(0.dp),
+                content = {
+                    val fingerprint = state.gpgKey?.fingerprint
+                    if (!fingerprint.isNullOrEmpty()) {
+                        FlatItemTextContent(
+                            title = {
+                                Text(
+                                    text = fingerprint,
+                                )
+                            },
+                        )
+                    } else {
+                        FlatItemTextContent(
+                            title = {
+                                Text(
+                                    modifier = Modifier
+                                        .alpha(DisabledEmphasisAlpha),
+                                    text = stringResource(Res.string.key_gpg_value_placeholder),
+                                )
+                            },
+                        )
+                    }
+                },
+                trailing = {
+                    AutofillButton(
+                        key = "gpgKey",
+                        gpgKey = true,
+                        provideUris = {
+                            addScope
+                                .obtainUriContext()
+                        },
+                        onResultChange = if (state.enabled) {
+                            {
+                                if (it is GetPasswordResult.AsyncGpgKey) {
+                                    state.onChange(it.gpgKey)
+                                }
+                            }
+                        } else {
+                            null
+                        },
+                    )
+                    IconButton(
+                        enabled = state.enabled,
+                        onClick = state.onImport,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FileUpload,
+                            contentDescription = stringResource(Res.string.gpg_key_import_title),
+                        )
+                    }
+                },
+                enabled = state.enabled,
+            )
+            if (expiration != null) {
+                FlatItemSimpleExpressive(
+                    modifier = Modifier
+                        .padding(top = 3.dp),
+                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                    shapeState = shapeState and ShapeState.START.inv(),
+                    padding = PaddingValues(0.dp),
+                    title = {
+                        Text(text = stringResource(Res.string.gpg_key_expiry_title))
+                    },
+                    text = {
+                        Column {
+                            Text(text = expiration.value)
+                            expiration.text?.let { text ->
+                                Text(
+                                    modifier = Modifier.alpha(MediumEmphasisAlpha),
+                                    text = text,
+                                )
+                            }
+                        }
+                    },
+                    trailing = if (expiration.onClick != null) {
+                        {
+                            Icon(
+                                imageVector = Icons.Outlined.ArrowDropDown,
+                                contentDescription = null,
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                    onClick = expiration.onClick,
+                    enabled = expiration.onClick != null,
+                )
+            }
+        }
+    }
+}
+
+context(addScope: AddScreenScope)
+@Composable
 private fun UrlTextField(
     modifier: Modifier = Modifier,
     item: AddStateItem.Url<*>,
@@ -927,7 +1068,7 @@ private fun UrlTextField(
                 valueOrNull = state.matchTypeTitle,
             ) { matchType ->
                 FlatTextFieldBadge(
-                    type = TextFieldModel2.Vl.Type.INFO,
+                    type = TextFieldModel.Vl.Type.INFO,
                     text = matchType,
                 )
             }
@@ -1019,6 +1160,60 @@ private fun AttachmentTextField(
             },
         )
     }
+}
+
+context(addScope: AddScreenScope)
+@Composable
+private fun LinkField(
+    modifier: Modifier = Modifier,
+    item: AddStateItem.Link<*>,
+    shapeState: Int,
+) {
+    val state by item.state.flow.collectAsState()
+    val presentation = state.presentation
+    if (presentation != null) {
+        CompactVaultItem(
+            modifier = modifier,
+            item = presentation,
+            shapeState = shapeState,
+            trailing = {
+                OptionsButton(
+                    actions = item.options,
+                )
+            },
+            enabled = true,
+        )
+        return
+    }
+
+    FlatItemLayoutExpressive(
+        modifier = modifier,
+        shapeState = shapeState,
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(
+                        text = stringResource(Res.string.cipher_link_unavailable_title),
+                        color = LocalContentColor.current
+                            .combineAlpha(DisabledEmphasisAlpha),
+                    )
+                },
+                text = {
+                    Text(
+                        text = state.link?.remoteCipherId.orEmpty(),
+                        color = LocalContentColor.current
+                            .combineAlpha(DisabledEmphasisAlpha),
+                    )
+                },
+            )
+        },
+        trailing = {
+            OptionsButton(
+                actions = item.options,
+            )
+        },
+        enabled = true,
+    )
 }
 
 context(addScope: AddScreenScope)
@@ -1237,6 +1432,7 @@ private fun FieldTextField(
         } else {
             PasswordVisualTransformation()
         },
+        valueIncognito = state.hidden,
         trailing = {
             ExpandedIfNotEmptyForRow(
                 valueOrNull = Unit.takeIf { state.hidden },
@@ -1253,7 +1449,7 @@ private fun FieldTextField(
                     addScope
                         .obtainUriContext()
                 },
-                onValueChange = state.text.onChange,
+                onValueChange = state.text.onSetText,
             )
             OptionsButton(
                 actions = actions,
@@ -1296,6 +1492,10 @@ private fun FieldLinkedIdField(
     shapeState: Int,
 ) {
     val label = state.label
+    val labelBuffer = rememberFieldBuffer(
+        text = label.text,
+        textRevision = label.textRevision,
+    )
 
     val labelInteractionSource = remember { MutableInteractionSource() }
     val valueInteractionSource = remember { MutableInteractionSource() }
@@ -1310,10 +1510,10 @@ private fun FieldLinkedIdField(
     }
 
     val isEmpty = remember(
-        label.state,
+        labelBuffer,
     ) {
         derivedStateOf {
-            label.state.value.isBlank()
+            labelBuffer.value.text.isBlank()
         }
     }
 
@@ -1352,6 +1552,7 @@ private fun FieldLinkedIdField(
         label = {
             BiFlatTextFieldLabel(
                 label = label,
+                buffer = labelBuffer,
                 interactionSource = labelInteractionSource,
             )
         },
@@ -1455,13 +1656,13 @@ private fun DateMonthYearField(
     shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
-    val isEmpty = state.month.state.value.isEmpty() &&
-            state.year.state.value.isEmpty()
-    val onClear = remember {
+    val isEmpty = state.month.text.isEmpty() &&
+            state.year.text.isEmpty()
+    val onClear: () -> Unit = remember {
         // lambda
         {
-            state.month.state.value = ""
-            state.year.state.value = ""
+            state.month.onSetText?.invoke("")
+            state.year.onSetText?.invoke("")
         }
     }
     FakeFlatTextField(

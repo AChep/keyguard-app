@@ -6,11 +6,15 @@ import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
+import com.artemchep.keyguard.common.model.GpgAgentFilter
+import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
-import kotlin.time.Instant
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 /**
  * @author Artem Chepurnyi
@@ -132,8 +136,8 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         premium: Boolean,
     ): IO<Unit>
 
-    fun setCacheHiddenSend(
-        hiddenSend: Boolean,
+    fun setCacheNavItemsConfig(
+        config: NavItemsConfig?,
     ): IO<Unit>
 
     fun setAppIcons(
@@ -156,12 +160,52 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration,
     ): IO<Unit>
 
+    fun setSshAgentApprovalCachePolicy(
+        policy: AgentApprovalCachePolicy,
+    ): IO<Unit>
+
     fun setSshAgentDisplayKeyNames(
         displayKeyNames: Boolean,
     ): IO<Unit>
 
     fun setSshAgentFilter(
         filter: SshAgentFilter,
+    ): IO<Unit>
+
+    fun setGpgAgent(
+        gpgAgent: Boolean,
+    ): IO<Unit>
+
+    fun setGpgAgentApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setGpgAgentApprovalCachePolicy(
+        policy: AgentApprovalCachePolicy,
+    ): IO<Unit>
+
+    fun setGpgAgentDisplayKeyNames(
+        displayKeyNames: Boolean,
+    ): IO<Unit>
+
+    fun setGpgAgentFilter(
+        filter: GpgAgentFilter,
+    ): IO<Unit>
+
+    fun setGpgKeyserverConfig(
+        config: GpgKeyserverConfig,
+    ): IO<Unit>
+
+    fun setGpgKeyserverAutoRefresh(
+        autoRefresh: Boolean,
+    ): IO<Unit>
+
+    fun setGpgKeyserverRefreshInterval(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setGpgKeyserverLastRefresh(
+        instant: Instant?,
     ): IO<Unit>
 
     fun setAppVersionLog(
@@ -180,8 +224,8 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         visible: Boolean,
     ): IO<Unit>
 
-    fun setNavHiddenSend(
-        hidden: Boolean,
+    fun setNavItemsConfig(
+        config: NavItemsConfig?,
     ): IO<Unit>
 
     fun setFont(

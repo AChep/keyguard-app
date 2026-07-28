@@ -15,7 +15,7 @@ class EntitySyncExecutorDiagnosticsV2Test {
     fun `coordinator emits entity plan diagnostics`() = runTest {
         val logRepository = TestLogRepository()
         val diagnostics =
-            BitwardenSyncV2Diagnostics(
+            SyncDiagnostics(
                 logRepository = logRepository,
                 enabled = true,
             )
@@ -44,7 +44,7 @@ class EntitySyncExecutorDiagnosticsV2Test {
     fun `executor emits phase and occ skip diagnostics`() = runTest {
         val logRepository = TestLogRepository()
         val diagnostics =
-            BitwardenSyncV2Diagnostics(
+            SyncDiagnostics(
                 logRepository = logRepository,
                 enabled = true,
             )
@@ -89,7 +89,7 @@ class EntitySyncExecutorDiagnosticsV2Test {
     fun `executor emits bulk fallback diagnostics`() = runTest {
         val logRepository = TestLogRepository()
         val diagnostics =
-            BitwardenSyncV2Diagnostics(
+            SyncDiagnostics(
                 logRepository = logRepository,
                 enabled = true,
             )

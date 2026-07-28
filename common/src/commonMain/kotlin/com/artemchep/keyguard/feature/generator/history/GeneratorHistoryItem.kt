@@ -51,6 +51,7 @@ sealed interface GeneratorHistoryItem {
             EMAIL,
             EMAIL_RELAY,
             SSH_KEY,
+            GPG_KEY,
         }
 
         override fun withShape(shape: Int) = copy(shapeState = shape)

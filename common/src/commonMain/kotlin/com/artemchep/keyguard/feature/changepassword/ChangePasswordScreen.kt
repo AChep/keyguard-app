@@ -197,7 +197,7 @@ private fun ChangePasswordNewPasswordItem(
             AutofillButton(
                 key = "password",
                 password = true,
-                onValueChange = state.password.new.onChange,
+                onValueChange = state.password.new.onSetText,
             )
         },
     )

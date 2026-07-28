@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -24,7 +23,7 @@ import com.artemchep.keyguard.feature.confirmation.folder.CreateNewFolder
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
-import com.artemchep.keyguard.feature.search.filter.component.FilterItemComposable
+import com.artemchep.keyguard.feature.search.filter.component.FilterChipItemComposable
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -159,7 +158,7 @@ private fun ColumnScope.FolderSection(
             ) {
                 l.items.forEach { item ->
                     key(item.key) {
-                        FilterItemComposable(
+                        FilterChipItemComposable(
                             modifier = Modifier,
                             checked = item.selected,
                             leading = item.icon,

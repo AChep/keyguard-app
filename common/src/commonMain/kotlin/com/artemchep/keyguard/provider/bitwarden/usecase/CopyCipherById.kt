@@ -8,8 +8,10 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.usecase.AddFolder
+import com.artemchep.keyguard.common.usecase.AddFolderRequest
 import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.CipherSourceDataReconciler
 import com.artemchep.keyguard.core.store.bitwarden.attachments
 import com.artemchep.keyguard.core.store.bitwarden.name
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
@@ -44,8 +46,11 @@ class CopyCipherByIdImpl(
                     is FolderInfo.None -> null
                     is FolderInfo.New -> {
                         val accountId = AccountId(value.accountId!!)
-                        val rq = mapOf(
-                            accountId to folder.name,
+                        val rq = listOf(
+                            AddFolderRequest(
+                                accountId = accountId,
+                                name = folder.name,
+                            ),
                         )
                         val rs = addFolder(rq)
                             .bind()
@@ -94,6 +99,14 @@ class CopyCipherByIdImpl(
                 folderId = folderId,
                 organizationId = organizationId,
                 collectionIds = collectionIds,
+            ),
+        )
+        new = new.copy(
+            data_ = new.data_.copy(
+                sourceData = CipherSourceDataReconciler.onCopy(
+                    source = model.data_,
+                    target = new.data_,
+                ),
             ),
         )
         new = new.copy(

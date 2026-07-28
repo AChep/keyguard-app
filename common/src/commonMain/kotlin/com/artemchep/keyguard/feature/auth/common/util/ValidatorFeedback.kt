@@ -30,20 +30,24 @@ suspend fun ValidationFeedback.format(scope: TranslatorScope): String? =
         else -> null
     }
 
+suspend fun TranslatorScope.validatedFeedback(rawFeedback: String): Validated<String> {
+    val feedback = rawFeedback
+        .trim(' ')
+    val feedbackError = validateFeedback(feedback)
+        .format(this)
+    return if (feedbackError != null) {
+        Validated.Failure(
+            model = feedback,
+            error = feedbackError,
+        )
+    } else {
+        Validated.Success(
+            model = feedback,
+        )
+    }
+}
+
 fun Flow<String>.validatedFeedback(scope: TranslatorScope) = this
     .map { rawFeedback ->
-        val feedback = rawFeedback
-            .trim(' ')
-        val feedbackError = validateFeedback(feedback)
-            .format(scope)
-        if (feedbackError != null) {
-            Validated.Failure(
-                model = feedback,
-                error = feedbackError,
-            )
-        } else {
-            Validated.Success(
-                model = feedback,
-            )
-        }
+        scope.validatedFeedback(rawFeedback)
     }

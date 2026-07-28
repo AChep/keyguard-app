@@ -84,5 +84,6 @@ class BackHandler(
 }
 
 val LocalNavigationBackHandler = compositionLocalOf<BackHandler> {
-    throw IllegalStateException()
+    val msg = "LocalNavigationBackHandler is not provided."
+    throw IllegalStateException(msg)
 }

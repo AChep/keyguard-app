@@ -10,4 +10,5 @@ data class DGeneratorHistory(
     val isUsername: Boolean,
     val isEmailRelay: Boolean,
     val isSshKey: Boolean,
+    val isGpgKey: Boolean,
 )

@@ -1,0 +1,14 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>FunctionParameterNaming:notification.kt:NotificationsPortal$parent_window: String</ID>
+    <ID>MatchingDeclarationName:DesktopLibInterop.kt:BiometricsCallbackRetention</ID>
+    <ID>ReturnCount:DesktopLibJna.kt:internal fun findLibBinaryPathOrNull: java.nio.file.Path?</ID>
+    <ID>ReturnCount:globalHotKey.kt:internal fun mapNativeGlobalHotKeySpec: NativeGlobalHotKeySpec?</ID>
+    <ID>ReturnCount:globalHotKey.kt:internal fun registerGlobalHotKey: GlobalHotKeyRegistrationResult</ID>
+    <ID>TooGenericExceptionCaught:DesktopLibInterop.kt:e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:MacPopupOverlay.kt:Dispatch$e: RuntimeException</ID>
+    <ID>TooManyFunctions:DesktopLibJna.kt:DesktopLibJna : Library</ID>
+  </CurrentIssues>
+</SmellBaseline>

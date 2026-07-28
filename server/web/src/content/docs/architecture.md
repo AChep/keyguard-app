@@ -2,7 +2,7 @@
 title: Architecture
 description: A high-level overview of how Keyguard is built.
 category: help
-order: 4
+order: 2
 ---
 
 A high-level overview of how Keyguard is built: the core technologies and how
@@ -11,7 +11,7 @@ the parts of the app interact. For the details, see the
 
 ## One codebase, every platform
 
-Keyguard is by far a **Kotlin Multiplatform** project. The UI, the business logic,
+Keyguard is a **Kotlin Multiplatform** project. The UI, the business logic,
 the sync engine, and the database live in one shared module called `common`.
 The apps you install are thin shells around it:
 

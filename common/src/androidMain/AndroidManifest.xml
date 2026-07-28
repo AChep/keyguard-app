@@ -6,6 +6,10 @@
         android:name="android.software.credentials"
         android:required="false" />
     <!--
+        I need this permission to read whether supported browsers
+        use Android's third-party autofill service. -->
+    <uses-permission android:name="android.permission.READ_USER_DICTIONARY" />
+    <!--
         I need this permission to be able to check if linked app is installed on the
         system or not. -->
     <uses-permission

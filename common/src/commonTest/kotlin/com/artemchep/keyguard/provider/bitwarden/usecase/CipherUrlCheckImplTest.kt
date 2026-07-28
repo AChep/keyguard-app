@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.service.tld.TldService
@@ -618,6 +619,7 @@ class CipherUrlCheckImplTest {
                 cipherUrlCheck = cipherUrlCheck,
             )
         } catch (e: Throwable) {
+            e.throwIfFatalOrCancellation()
             return
         }
 

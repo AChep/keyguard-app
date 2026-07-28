@@ -1,0 +1,29 @@
+config:
+  validation: true
+  warningsAsErrors: true
+
+complexity:
+  LongParameterList:
+    ignoreDefaultParameters: true
+  TooManyFunctions:
+    ignoreAnnotatedFunctions:
+      - 'Preview'
+
+naming:
+  FunctionNaming:
+    # Composable functions are PascalCase by Compose convention.
+    ignoreAnnotated:
+      - 'Composable'
+
+style:
+  MagicNumber:
+    ignoreAnnotation: true
+  UnusedPrivateFunction:
+    ignoreAnnotated:
+      - 'Preview'
+  WildcardImport:
+    excludeImports:
+      - 'java.util.*'
+      # Generated Compose resource accessors; a screen references dozens of the string
+      # resources, so we usually collapse those to the wildcard.
+      - 'com.artemchep.keyguard.res.*'

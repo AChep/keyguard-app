@@ -10,10 +10,12 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import org.kodein.di.compose.localDI
@@ -46,6 +48,22 @@ fun producePasskeysCredentialViewState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    passkeysCredentialViewStateProducer(
+        args = args,
+        mode = mode,
+        getCiphers = getCiphers,
+        passkeyTargetCheck = passkeyTargetCheck,
+        dateFormatter = dateFormatter,
+    )
+}
+
+suspend fun RememberStateFlowScope.passkeysCredentialViewStateProducer(
+    args: PasskeysCredentialViewRoute.Args,
+    mode: AppMode,
+    getCiphers: GetCiphers,
+    passkeyTargetCheck: PasskeyTargetCheck,
+    dateFormatter: DateFormatter,
+): Flow<Loadable<PasskeysCredentialViewState>> {
     val contentFlow = getCiphers()
         .map { ciphers ->
             val cipherOrNull = ciphers.firstOrNull { it.id == args.cipherId }
@@ -94,7 +112,7 @@ fun producePasskeysCredentialViewState(
             )
             content.right()
         }
-    contentFlow
+    return contentFlow
         .map { contentResult ->
             val state = PasskeysCredentialViewState(
                 content = contentResult,

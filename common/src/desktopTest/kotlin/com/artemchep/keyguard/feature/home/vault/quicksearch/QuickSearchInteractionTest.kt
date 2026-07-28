@@ -3,7 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.quicksearch
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.platform.Platform
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -191,7 +191,7 @@ private fun createQuickSearchState(
     selectedActionIndex: Int? = null,
     defaultAction: QuickSearchActionType? = null,
 ) = QuickSearchState(
-    query = TextFieldModel2(mutableStateOf(query)),
+    query = TextFieldModel(text = query),
     actions = actions,
     selectedActionIndex = selectedActionIndex,
     defaultAction = defaultAction,

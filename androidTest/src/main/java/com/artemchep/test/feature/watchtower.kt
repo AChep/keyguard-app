@@ -1,15 +1,15 @@
 package com.artemchep.test.feature
 
-import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.UiAutomatorTestScope
 
 @JvmInline
 value class FeatureWatchtower(
-    val device: UiDevice,
+    val scope: UiAutomatorTestScope,
 )
 
-val UiDevice.watchtowerFeature get() = FeatureWatchtower(this)
+val UiAutomatorTestScope.watchtowerFeature get() = FeatureWatchtower(this)
 
 fun FeatureWatchtower.ensureWatchtowerScreen() =
-    device.coreFeature.launchScreen(
+    scope.coreFeature.launchScreen(
         actionButtonResource = "nav_bar:watchtower",
     )

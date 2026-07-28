@@ -8,10 +8,13 @@ import com.artemchep.keyguard.common.model.CheckUsernameLeakRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.CheckUsernameLeak
 import com.artemchep.keyguard.common.usecase.DateFormatter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
@@ -37,6 +40,18 @@ fun produceEmailLeakState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    emailLeakStateProducer(
+        args = args,
+        checkUsernameLeak = checkUsernameLeak,
+        dateFormatter = dateFormatter,
+    ).map { state -> Loadable.Ok(state) }
+}
+
+suspend fun RememberStateFlowScope.emailLeakStateProducer(
+    args: EmailLeakRoute.Args,
+    checkUsernameLeak: CheckUsernameLeak,
+    dateFormatter: DateFormatter,
+): Flow<EmailLeakState> {
     val request = CheckUsernameLeakRequest(
         accountId = args.accountId,
         username = args.email,
@@ -73,5 +88,5 @@ fun produceEmailLeakState(
             navigatePopSelf()
         },
     )
-    flowOf(Loadable.Ok(state))
+    return flowOf(state)
 }

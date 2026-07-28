@@ -690,13 +690,13 @@ class KeyguardAutofillService : AutofillService(), DIAware {
             )
 
             builder.setAuthentication(pi.intentSender)
-        } catch (e: Exception) {
-            // Ignored
+        } catch (_: Exception) {
+            // Authentication is optional; return the fillable dataset without it.
         }
 
         return try {
             builder.build()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null // not a single value set
         }
     }

@@ -19,7 +19,7 @@ import androidx.work.Operation
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.artemchep.keyguard.android.Notifications
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
+import com.artemchep.keyguard.common.service.download.DownloadRepository
 import com.artemchep.keyguard.android.downloader.receiver.AttachmentDownloadActionReceiver
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt

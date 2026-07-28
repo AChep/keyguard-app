@@ -5,6 +5,14 @@ const val PROTOCOL_IOS_APP = "iosapp://"
 
 val REGEX_ANDROID_APP = "androidapp://([a-zA-Z]+[a-zA-Z0-9_]*)(\\.[a-zA-Z]+[a-zA-Z0-9_]*)*".toRegex()
 
+internal fun parseAndroidAppPackageNameOrNull(uri: String): String? {
+    val normalizedUri = uri.trim()
+    if (!REGEX_ANDROID_APP.matches(normalizedUri)) {
+        return null
+    }
+    return normalizedUri.removePrefix(PROTOCOL_ANDROID_APP)
+}
+
 fun ensureUrlScheme(url: String): String =
     if (url.isBlank() || url.contains("://")) {
         url

@@ -477,7 +477,7 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
                 val customTabs = CustomTabsIntent.Builder()
                     .build()
                 customTabs.launchUrl(this, parsedUrl)
-            } catch (e: ActivityNotFoundException) {
+            } catch (_: ActivityNotFoundException) {
                 Intent(Intent.ACTION_VIEW, parsedUrl)
                     // launch activity
                     .let(::startActivity)

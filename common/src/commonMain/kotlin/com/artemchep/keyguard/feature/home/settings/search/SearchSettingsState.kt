@@ -4,11 +4,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.ShapeState
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 
 data class SearchSettingsState(
     val revision: Int = 0,
-    val query: TextFieldModel2 = TextFieldModel2(mutableStateOf("")),
+    val query: TextFieldModel = TextFieldModel(text = ""),
     val items: List<Item> = emptyList(),
 ) {
     sealed interface Item {

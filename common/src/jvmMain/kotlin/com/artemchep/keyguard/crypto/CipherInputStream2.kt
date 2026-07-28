@@ -1,8 +1,6 @@
 package com.artemchep.keyguard.crypto
 
-import org.bouncycastle.crypto.DataLengthException
-import org.bouncycastle.crypto.InvalidCipherTextException
-import org.bouncycastle.util.Arrays
+import com.artemchep.keyguard.nativecrypto.NATIVE_CRYPTO_STREAM_CHUNK_BYTES
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -17,13 +15,13 @@ import java.io.InputStream
  * CipherInputStream will attempt to read in data and decrypt them,
  * before returning the decrypted data.
  */
-class CipherInputStream2 @JvmOverloads constructor(
+internal class CipherInputStream2 @JvmOverloads constructor(
     `is`: InputStream?,
     private val decoder: Decoder,
     bufSize: Int = INPUT_BUF_SIZE,
 ) : FilterInputStream(`is`) {
     interface Decoder {
-        @Throws(DataLengthException::class, IllegalStateException::class)
+        @Throws(IllegalStateException::class)
         fun processBytes(
             `in`: ByteArray,
             inOff: Int,
@@ -32,11 +30,7 @@ class CipherInputStream2 @JvmOverloads constructor(
             outOff: Int,
         ): Int
 
-        @Throws(
-            DataLengthException::class,
-            IllegalStateException::class,
-            InvalidCipherTextException::class,
-        )
+        @Throws(IllegalStateException::class)
         fun doFinal(
             out: ByteArray,
             outOff: Int,
@@ -51,15 +45,12 @@ class CipherInputStream2 @JvmOverloads constructor(
         ): Int
     }
 
-    private val inBuf: ByteArray
+    private val inBuf: ByteArray = ByteArray(bufSize)
+
     private var buf: ByteArray? = null
     private var bufOff = 0
     private var maxBuf = 0
     private var finalized = false
-
-    init {
-        inBuf = ByteArray(bufSize)
-    }
 
     /**
      * Read data from underlying stream and process with cipher until end of stream or some data is
@@ -74,6 +65,7 @@ class CipherInputStream2 @JvmOverloads constructor(
         }
         bufOff = 0
         maxBuf = 0
+        var consecutiveZeroReads = 0
 
         // Keep reading until EOF or cipher processing produces data
         while (maxBuf == 0) {
@@ -86,6 +78,14 @@ class CipherInputStream2 @JvmOverloads constructor(
                     maxBuf
                 }
             }
+            if (read == 0) {
+                consecutiveZeroReads += 1
+                if (consecutiveZeroReads > MAX_CONSECUTIVE_ZERO_READS) {
+                    throw IOException("Input stream made no progress while reading")
+                }
+                continue
+            }
+            consecutiveZeroReads = 0
             maxBuf = try {
                 ensureCapacity(read, false)
                 decoder.processBytes(inBuf, 0, read, buf!!, 0)
@@ -102,8 +102,6 @@ class CipherInputStream2 @JvmOverloads constructor(
             finalized = true
             ensureCapacity(0, true)
             maxBuf = decoder.doFinal(buf!!, 0)
-        } catch (e: InvalidCipherTextException) {
-            throw IOException("Error finalising cipher", e)
         } catch (e: Exception) {
             throw IOException("Error finalising cipher ", e)
         }
@@ -176,12 +174,18 @@ class CipherInputStream2 @JvmOverloads constructor(
         off: Int,
         len: Int,
     ): Int {
+        if (off < 0 || len < 0 || len > b.size - off) {
+            throw IndexOutOfBoundsException(
+                "Invalid read range: buffer=${b.size}, offset=$off, length=$len",
+            )
+        }
+        if (len == 0) return 0
         if (bufOff >= maxBuf) {
             if (nextChunk() < 0) {
                 return -1
             }
         }
-        val toSupply = Math.min(len, available())
+        val toSupply = len.coerceAtMost(available())
         System.arraycopy(buf!!, bufOff, b, off, toSupply)
         bufOff += toSupply
         return toSupply
@@ -204,8 +208,7 @@ class CipherInputStream2 @JvmOverloads constructor(
      * @param finalOutput `true` if this the cipher is to be finalised.
      */
     private fun ensureCapacity(updateSize: Int, finalOutput: Boolean) {
-        val bufLen: Int
-        bufLen = if (finalOutput) {
+        val bufLen: Int = if (finalOutput) {
             decoder.getOutputSize(updateSize)
         } else {
             decoder.getUpdateOutputSize(updateSize)
@@ -224,22 +227,37 @@ class CipherInputStream2 @JvmOverloads constructor(
      */
     @Throws(IOException::class)
     override fun close() {
+        var inputCloseFailure: Throwable? = null
         try {
-            `in`.close()
-        } finally {
-            if (!finalized) {
-                // Reset the cipher, discarding any data buffered in it
-                // Errors in cipher finalisation trump I/O error closing input
-                finaliseCipher()
+            try {
+                `in`.close()
+            } catch (failure: Throwable) {
+                inputCloseFailure = failure
             }
+
+            try {
+                if (!finalized) {
+                    // Reset the cipher, discarding any data buffered in it
+                    // Errors in cipher finalisation trump I/O error closing input
+                    finaliseCipher()
+                }
+            } catch (finalizationFailure: Throwable) {
+                inputCloseFailure
+                    ?.takeIf { it !== finalizationFailure }
+                    ?.let(finalizationFailure::addSuppressed)
+                throw finalizationFailure
+            }
+
+            inputCloseFailure?.let { throw it }
+        } finally {
+            bufOff = 0
+            maxBuf = 0
+            if (buf != null) {
+                buf?.fill(0)
+                buf = null
+            }
+            inBuf.fill(0)
         }
-        bufOff = 0
-        maxBuf = bufOff
-        if (buf != null) {
-            Arrays.fill(buf, 0.toByte())
-            buf = null
-        }
-        Arrays.fill(inBuf, 0.toByte())
     }
 
     /**
@@ -263,6 +281,7 @@ class CipherInputStream2 @JvmOverloads constructor(
     }
 
     companion object {
-        private const val INPUT_BUF_SIZE = 2048
+        private const val INPUT_BUF_SIZE = NATIVE_CRYPTO_STREAM_CHUNK_BYTES
+        private const val MAX_CONSECUTIVE_ZERO_READS = 16
     }
 }

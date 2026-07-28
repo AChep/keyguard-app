@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.mapper
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
+import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
@@ -38,7 +39,7 @@ fun KeePassToken.toDomain(): DAccount {
         username = null,
         host = host,
         webVaultUrl = null,
-        localVaultUrl = files.databaseUri,
+        localVaultUrl = (database.location as? FileLocation.Local)?.uri,
         type = AccountType.KEEPASS,
         faviconServer = null,
     )
@@ -47,12 +48,9 @@ fun KeePassToken.toDomain(): DAccount {
 fun KeePassToken.getHostName(): String = kotlin.run {
     // Focus on the dedicated file name
     // property if it is available.
-    if (files.databaseFileName.isNotEmpty()) {
-        return@run files.databaseFileName
+    if (database.fileName.isNotEmpty()) {
+        return@run database.fileName
     }
 
-    val regex = ".*/(.+)\\??.*".toRegex()
-    val result = regex.matchEntire(files.databaseUri)
-    result?.groupValues?.getOrNull(1)
-        ?: files.databaseUri
+    database.location.displayName
 }

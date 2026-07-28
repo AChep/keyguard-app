@@ -10,26 +10,23 @@ import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
-import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.permission.Permission
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.permission.PermissionState
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.ExportLogs
-import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.GetInMemoryLogs
 import com.artemchep.keyguard.common.usecase.GetInMemoryLogsEnabled
 import com.artemchep.keyguard.common.usecase.PutInMemoryLogsEnabled
-import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
-import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
-import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsState
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -69,6 +66,26 @@ fun produceLogsState(
         clipboardService,
     ),
 ) {
+    logsStateProducer(
+        dateFormatter = dateFormatter,
+        clipboardService = clipboardService,
+        getInMemoryLogs = getInMemoryLogs,
+        getInMemoryLogsEnabled = getInMemoryLogsEnabled,
+        putInMemoryLogsEnabled = putInMemoryLogsEnabled,
+        permissionService = permissionService,
+        exportLogs = exportLogs,
+    )
+}
+
+suspend fun RememberStateFlowScope.logsStateProducer(
+    dateFormatter: DateFormatter,
+    clipboardService: ClipboardService,
+    getInMemoryLogs: GetInMemoryLogs,
+    getInMemoryLogsEnabled: GetInMemoryLogsEnabled,
+    putInMemoryLogsEnabled: PutInMemoryLogsEnabled,
+    permissionService: PermissionService,
+    exportLogs: ExportLogs,
+): Flow<Loadable<LogsState>> {
     fun onExport(
     ) {
         exportLogs()
@@ -163,5 +180,5 @@ fun produceLogsState(
         switchFlow = switchFlow,
         exportFlow = exportFlow,
     )
-    flowOf(Loadable.Ok(state))
+    return flowOf(Loadable.Ok(state))
 }

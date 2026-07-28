@@ -3,14 +3,18 @@ package com.artemchep.keyguard.di
 import com.artemchep.keyguard.common.service.backup.BackupRepository
 import com.artemchep.keyguard.common.service.backup.BackupRepositoryZipImpl
 import com.artemchep.keyguard.common.service.backup.BackupRunService
-import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
-import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
-import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
-import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandJvm
+import com.artemchep.keyguard.common.service.licensekey.EcdsaP256LicenseSignatureVerifier
+import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.zip.ZipService
@@ -19,6 +23,9 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAppBuildDate
 import com.artemchep.keyguard.common.usecase.GetAppBuildRef
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.common.usecase.TestBackupLocation
@@ -39,11 +46,12 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
-import com.artemchep.keyguard.crypto.CipherEncryptorImpl
-import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptorJvm
-import com.artemchep.keyguard.crypto.KeyPairGeneratorJvm
-import com.artemchep.keyguard.crypto.SshKeyImportServiceJvm
+import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.NativeGpgKeyExpirationService
+import com.artemchep.keyguard.crypto.NativeGpgKeyImportService
+import com.artemchep.keyguard.crypto.NativeGpgOpenPgpVerifier
+import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
 import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
@@ -62,7 +70,9 @@ import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -82,6 +92,17 @@ fun globalModuleJvm() = DI.Module(
 
     bindProvider<CoroutineDispatcher>(tag = DatabaseDispatcher) {
         Dispatchers.IO
+    }
+    bindSingleton<SshAgentApprovalWindowMemory> {
+        SshAgentApprovalWindowMemory(
+            getSshAgentApprovalWindow = instance<GetSshAgentApprovalWindow>(),
+            getVaultSession = instance<GetVaultSession>(),
+            scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+            getSshAgentApprovalCachePolicy = instance<GetSshAgentApprovalCachePolicy>(),
+        )
+    }
+    bindSingleton<LicenseSignatureVerifier> {
+        EcdsaP256LicenseSignatureVerifier()
     }
     bindSingleton<Base64Service> {
         Base64ServiceJvm(
@@ -131,11 +152,6 @@ fun globalModuleJvm() = DI.Module(
                 }
             }
         }
-    }
-    bindSingleton<CipherEncryptor> {
-        CipherEncryptorImpl(
-            directDI = this,
-        )
     }
     bindSingleton<FileEncryptor> {
         FileEncryptorJvm(
@@ -197,18 +213,20 @@ fun globalModuleJvm() = DI.Module(
             directDI = this,
         )
     }
-    bindSingleton<CryptoGenerator> {
-        CryptoGeneratorJvm()
+    bindSingleton<GpgKeyGenerator> {
+        NativeGpgKeyGenerator
     }
-    bindSingleton<KeyPairGenerator> {
-        KeyPairGeneratorJvm(
-            directDI = this,
-        )
+    bindSingleton<GpgKeyExpirationService> {
+        NativeGpgKeyExpirationService
     }
-    bindSingleton<SshKeyImportService> {
-        SshKeyImportServiceJvm(
-            directDI = this,
-        )
+    bindSingleton<GpgKeyImportService> {
+        NativeGpgKeyImportService
+    }
+    bindSingleton<GpgOpenPgpService> {
+        NativeGpgOpenPgpService
+    }
+    bindSingleton<GpgOpenPgpVerifier> {
+        NativeGpgOpenPgpVerifier
     }
     bindSingleton<HttpClient> {
         val json: Json = instance()

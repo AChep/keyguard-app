@@ -3,6 +3,7 @@ package com.artemchep.keyguard.util.signalr.internal
 import com.artemchep.keyguard.util.signalr.HubConnectionCloseReason
 import com.artemchep.keyguard.util.signalr.HubMessage
 import com.artemchep.keyguard.util.signalr.internal.util.EstablishedConnection
+import kotlinx.coroutines.CompletableDeferred
 
 internal sealed interface HubConnectionCommand {
     data object Start : HubConnectionCommand
@@ -10,11 +11,12 @@ internal sealed interface HubConnectionCommand {
     data class ConnectSucceeded(
         val sessionId: Long,
         val connection: EstablishedConnection,
+        val ownershipAccepted: CompletableDeferred<Boolean>,
     ) : HubConnectionCommand
 
     data class ConnectFailed(
         val sessionId: Long,
-        val cause: Throwable,
+        val reason: HubConnectionCloseReason,
     ) : HubConnectionCommand
 
     data class SessionClosed(

@@ -7,7 +7,6 @@ mod ffi;
 mod hotkey;
 mod keychain;
 mod notification;
-mod platform;
 
 use ffi::{BiometricsVerifyCallback, HotKeyPressedCallback};
 use std::ffi::c_char;
@@ -99,12 +98,12 @@ pub extern "C" fn registerNativeGlobalHotKey(
         "registerNativeGlobalHotKey",
         hotkey::REGISTER_STATUS_INTERNAL_ERROR,
         || {
-        let callback = callback.ok_or("callback pointer was null")?;
-        Ok(hotkey::register(
-            native_key_code as u32,
-            native_modifiers as u32,
-            Some(callback),
-        ) as c_int)
+            let callback = callback.ok_or("callback pointer was null")?;
+            Ok(hotkey::register(
+                native_key_code as u32,
+                native_modifiers as u32,
+                Some(callback),
+            ) as c_int)
         },
     )
 }

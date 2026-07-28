@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:WearPhoneLoginStateProducer.kt:@Composable @OptIn(ExperimentalCoroutinesApi::class) internal fun wearPhoneLoginScreenState: WearPhoneLoginState</ID>
+    <ID>CyclomaticComplexMethod:WearSendListStateProducer.kt:@Composable fun wearSendListScreenState: WearSendListState</ID>
+    <ID>CyclomaticComplexMethod:WearVaultListStateProducer.kt:@Composable internal fun wearVaultListScreenState: WearVaultListState</ID>
+    <ID>CyclomaticComplexMethod:WearVaultListStateProducer.kt:private fun createFilteredCiphersFlow</ID>
+    <ID>ForbiddenComment:WearGeneratorScreen.kt:// TODO: Would be nice to add a better UI here. Need to re-check how the</ID>
+    <ID>FunctionNaming:WearBitwardenLoginTwofaScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginTwofaCodeSection</ID>
+    <ID>FunctionNaming:WearBitwardenLoginTwofaScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginTwofaStateContent</ID>
+    <ID>FunctionNaming:WearChangePasswordScreen.kt:private fun TransformingLazyColumnScope.WearChangePasswordContent</ID>
+    <ID>FunctionNaming:WearCreateVault.kt:private fun TransformingLazyColumnScope.WearCreateVaultContent</ID>
+    <ID>FunctionNaming:WearGeneratorScreen.kt:private fun TransformingLazyColumnScope.WearGeneratorContent</ID>
+    <ID>FunctionNaming:WearManualLoginScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginContent</ID>
+    <ID>FunctionNaming:WearManualLoginScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginItems</ID>
+    <ID>FunctionNaming:WearPasskeysCredentialViewScreen.kt:private fun TransformingLazyColumnScope.WearPasskeysCredentialViewContent</ID>
+    <ID>FunctionNaming:WearUnlockVault.kt:private fun TransformingLazyColumnScope.WearUnlockVaultContent</ID>
+    <ID>LongMethod:VaultViewCardItem.kt:@Composable fun WearVaultViewCardItem</ID>
+    <ID>LongMethod:VaultViewErrorItem.kt:@Composable fun WearVaultViewErrorItem</ID>
+    <ID>LongMethod:VaultViewInfoItem.kt:@Composable fun WearVaultViewInfoItem</ID>
+    <ID>LongMethod:VaultViewTotpItemBadgeState.kt:@Composable private fun RowScope.VaultViewTotpCodeDigits</ID>
+    <ID>LongMethod:VaultViewValueItem.kt:@Composable fun WearVaultViewValueItem</ID>
+    <ID>LongMethod:WearAccountViewScreen.kt:@Composable fun WearVaultViewHeader</ID>
+    <ID>LongMethod:WearAccountViewScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ) @Composable fun AccountViewScaffold</ID>
+    <ID>LongMethod:WearAttachmentPreviewScreen.kt:@Composable private fun WearAttachmentPreviewScaffold</ID>
+    <ID>LongMethod:WearBitwardenLoginTwofaScreen.kt:@Composable fun WearBitwardenLoginTwofaProviderScreen</ID>
+    <ID>LongMethod:WearBitwardenLoginTwofaScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginTwofaStateContent</ID>
+    <ID>LongMethod:WearChangePasswordScreen.kt:private fun TransformingLazyColumnScope.WearChangePasswordContent</ID>
+    <ID>LongMethod:WearConfirmationRoute.kt:@Composable private fun WearConfirmationEnumItem</ID>
+    <ID>LongMethod:WearConfirmationRoute.kt:@Composable private fun WearConfirmationScreen</ID>
+    <ID>LongMethod:WearCredentialProviderUi.kt:@Composable private fun WearUserVerificationContent</ID>
+    <ID>LongMethod:WearDataSafetyScreen.kt:@Composable private fun TransformingLazyColumnItemScope.WearDataSafetyItem</ID>
+    <ID>LongMethod:WearGeneratorScreen.kt:private fun TransformingLazyColumnScope.WearGeneratorContent</ID>
+    <ID>LongMethod:WearGeneratorStateTest.kt:WearGeneratorStateTest$@Test fun `wear generator settings keep only supported controls`</ID>
+    <ID>LongMethod:WearHomeStateProducer.kt:@Composable internal fun wearHomeScreenState: WearHomeState</ID>
+    <ID>LongMethod:WearHomeStateProducer.kt:internal fun createWearHomeContentSpec: WearHomeContentSpec</ID>
+    <ID>LongMethod:WearListItems.kt:@Composable fun WearListCard</ID>
+    <ID>LongMethod:WearLoginMethodRoute.kt:@Composable private fun WearLoginMethodScreen</ID>
+    <ID>LongMethod:WearManualLoginScreen.kt:@Composable fun WearManualLoginScreen</ID>
+    <ID>LongMethod:WearManualLoginScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginContent</ID>
+    <ID>LongMethod:WearPasskeysCredentialViewScreen.kt:private fun TransformingLazyColumnScope.WearPasskeysCredentialViewContent</ID>
+    <ID>LongMethod:WearPhoneLoginStateProducer.kt:@Composable @OptIn(ExperimentalCoroutinesApi::class) internal fun wearPhoneLoginScreenState: WearPhoneLoginState</ID>
+    <ID>LongMethod:WearPrivilegedAppListScreen.kt:@Composable fun WearPrivilegedAppListScreen</ID>
+    <ID>LongMethod:WearSendListStateProducer.kt:@Composable fun wearSendListScreenState: WearSendListState</ID>
+    <ID>LongMethod:WearSendListStateProducer.kt:private fun createFilteredSendsFlow</ID>
+    <ID>LongMethod:WearSettingsPane.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ) @Composable fun WearSettingsPaneScaffold</ID>
+    <ID>LongMethod:WearSettingsScreen.kt:@Composable fun WearSettingsScreen</ID>
+    <ID>LongMethod:WearUnlockVault.kt:private fun TransformingLazyColumnScope.WearUnlockVaultContent</ID>
+    <ID>LongMethod:WearValueViewScreen.kt:@Composable fun WearValueViewScreen</ID>
+    <ID>LongMethod:WearVaultListItem.kt:@Composable fun VaultListItemText</ID>
+    <ID>LongMethod:WearVaultListStateProducer.kt:@Composable internal fun wearVaultListScreenState: WearVaultListState</ID>
+    <ID>LongMethod:WearVaultListStateProducer.kt:private fun createFilteredCiphersFlow</ID>
+    <ID>LongMethod:defaultNavigationModule.kt:fun wearNavigationModule</ID>
+    <ID>MagicNumber:VaultViewErrorItem.kt:0.1f</ID>
+    <ID>MagicNumber:VaultViewTotpItemBadgeState.kt:3</ID>
+    <ID>MagicNumber:WearAccountViewScreen.kt:0.22f</ID>
+    <ID>MagicNumber:WearAccountViewScreen.kt:0.34f</ID>
+    <ID>MagicNumber:WearCredentialProviderUi.kt:80L</ID>
+    <ID>MagicNumber:WearRows.kt:3</ID>
+    <ID>MagicNumber:WearVaultItemPresentation.kt:4</ID>
+    <ID>MagicNumber:WearViewSkeleton.kt:0.15f</ID>
+    <ID>MagicNumber:WearViewSkeleton.kt:0.38f</ID>
+    <ID>MatchingDeclarationName:AboutTeamRouteFactory.kt:AboutTeamRouteFactoryWear : AboutTeamRouteFactory</ID>
+    <ID>MatchingDeclarationName:AccountViewRouteFactory.kt:AccountViewRouteFactoryWear : AccountViewRouteFactory</ID>
+    <ID>MatchingDeclarationName:AttachmentPreviewRouteFactory.kt:AttachmentPreviewRouteFactoryWear : AttachmentPreviewRouteFactory</ID>
+    <ID>MatchingDeclarationName:AutofillSettingsRouteFactory.kt:AutofillSettingsRouteFactoryWear : AutofillSettingsRouteFactory</ID>
+    <ID>MatchingDeclarationName:BitwardenLoginRouteFactory.kt:BitwardenLoginRouteFactoryWear : BitwardenLoginRouteFactory</ID>
+    <ID>MatchingDeclarationName:BitwardenLoginTwofaRouteFactory.kt:BitwardenLoginTwofaRouteFactoryWear : BitwardenLoginTwofaRouteFactory</ID>
+    <ID>MatchingDeclarationName:ChangePasswordRouteFactory.kt:ChangePasswordRouteFactoryWear : ChangePasswordRouteFactory</ID>
+    <ID>MatchingDeclarationName:CollectionsRouteFactory.kt:CollectionsRouteFactoryWear : CollectionsRouteFactory</ID>
+    <ID>MatchingDeclarationName:ConfirmationRouteFactory.kt:ConfirmationRouteFactoryWear : ConfirmationRouteFactory</ID>
+    <ID>MatchingDeclarationName:DataSafetyRouteFactory.kt:DataSafetyRouteFactoryWear : DataSafetyRouteFactory</ID>
+    <ID>MatchingDeclarationName:FoldersRouteFactory.kt:FoldersRouteFactoryWear : FoldersRouteFactory</ID>
+    <ID>MatchingDeclarationName:LicenseRouteFactory.kt:LicenseRouteFactoryWear : LicenseRouteFactory</ID>
+    <ID>MatchingDeclarationName:OnboardingRouteFactory.kt:OnboardingRouteFactoryWear : OnboardingRouteFactory</ID>
+    <ID>MatchingDeclarationName:OrganizationsRouteFactory.kt:OrganizationsRouteFactoryWear : OrganizationsRouteFactory</ID>
+    <ID>MatchingDeclarationName:OtherSettingsRouteFactory.kt:OtherSettingsRouteFactoryWear : OtherSettingsRouteFactory</ID>
+    <ID>MatchingDeclarationName:PasskeysCredentialViewRouteFactory.kt:PasskeysCredentialViewRouteFactoryWear : PasskeysCredentialViewRouteFactory</ID>
+    <ID>MatchingDeclarationName:PrivilegedAppListRouteFactory.kt:PrivilegedAppListRouteFactoryWear : PrivilegedAppListRouteFactory</ID>
+    <ID>MatchingDeclarationName:SecuritySettingsRouteFactory.kt:SecuritySettingsRouteFactoryWear : SecuritySettingsRouteFactory</ID>
+    <ID>MatchingDeclarationName:SendListRouteFactory.kt:SendListRouteFactoryWear : SendRouteFactory</ID>
+    <ID>MatchingDeclarationName:SendViewRouteFactory.kt:SendViewRouteFactoryWear : SendViewRouteFactory</ID>
+    <ID>MatchingDeclarationName:UiSettingsRouteFactory.kt:UiSettingsRouteFactoryWear : UiSettingsRouteFactory</ID>
+    <ID>MatchingDeclarationName:VaultRouteFactory.kt:VaultRouteFactoryWear : VaultRouteFactory</ID>
+    <ID>MatchingDeclarationName:VaultViewRouteFactory.kt:VaultViewRouteFactoryWear : VaultViewRouteFactory</ID>
+    <ID>MatchingDeclarationName:WearRows.kt:WearSectionHeaderEmptyBehavior</ID>
+    <ID>MaxLineLength:VaultViewItem.kt:inactivePasskey = { modifier, item -&gt; WearVaultViewInactivePasskeyItem(modifier, item, transformation = transformation) }</ID>
+    <ID>MaxLineLength:VaultViewItem.kt:reusedPassword = { modifier, item -&gt; WearVaultViewReusedPasswordItem(modifier, item, transformation = transformation) }</ID>
+    <ID>ReturnCount:WearVaultListStateProducer.kt:PasswordDecorator$override suspend fun getOrNull: VaultItem2?</ID>
+    <ID>ReturnCount:WearVaultListStateProducer.kt:PasswordStrengthDecorator$override suspend fun getOrNull: VaultItem2?</ID>
+    <ID>TopLevelPropertyNaming:VaultViewQrItem.kt:private const val MinBarcodeSizePx = 129</ID>
+    <ID>TopLevelPropertyNaming:WearCreateVault.kt:private const val AppTitle = "Keyguard"</ID>
+    <ID>TopLevelPropertyNaming:WearUnlockVault.kt:private const val AppTitle = "Keyguard"</ID>
+    <ID>TopLevelPropertyNaming:WearValueViewScreen.kt:private const val MinBarcodeSizePx = 129</ID>
+    <ID>UnusedParameter:VaultViewInactivePasskeyItem.kt:item: VaultViewItem.InactivePasskey</ID>
+    <ID>UnusedParameter:VaultViewInactiveTotpItem.kt:item: VaultViewItem.InactiveTotp</ID>
+    <ID>UnusedParameter:VaultViewQuickActionsItem.kt:item: VaultViewItem.QuickActions</ID>
+    <ID>UnusedParameter:VaultViewQuickActionsItem.kt:modifier: Modifier = Modifier</ID>
+    <ID>UnusedParameter:VaultViewQuickActionsItem.kt:transformation: SurfaceTransformation? = null</ID>
+    <ID>UnusedParameter:VaultViewQuickBadgesItem.kt:item: VaultViewItem.QuickBadges</ID>
+    <ID>UnusedParameter:VaultViewQuickBadgesItem.kt:modifier: Modifier = Modifier</ID>
+    <ID>UnusedParameter:VaultViewQuickBadgesItem.kt:transformation: SurfaceTransformation? = null</ID>
+    <ID>UnusedParameter:VaultViewReusedPasswordItem.kt:item: VaultViewItem.ReusedPassword</ID>
+    <ID>UnusedParameter:VaultViewSpacerItem.kt:transformation: SurfaceTransformation? = null</ID>
+    <ID>UnusedParameter:VaultViewTotpItemBadgeState.kt:copyText: CopyText</ID>
+    <ID>UnusedParameter:WearDataSafetyScreen.kt:secondary: Boolean</ID>
+    <ID>UnusedParameter:WearListItems.kt:dropdown: List&lt;ContextItem&gt;</ID>
+    <ID>UnusedParameter:WearListItems.kt:trailing: @Composable (RowScope.() -&gt; Unit)?</ID>
+    <ID>UnusedParameter:WearManualLoginScreen.kt:shapeState: Int</ID>
+    <ID>UnusedParameter:WearScaffold.kt:containerColor: Color = LocalSurfaceColor.current</ID>
+    <ID>UnusedParameter:WearVaultListItem.kt:content: (@Composable ColumnScope.() -&gt; Unit)? = null</ID>
+    <ID>UnusedParameter:WearVaultListStateProducer.kt:passkeyTargetCheck: PasskeyTargetCheck</ID>
+    <ID>UnusedParameter:WearVaultListStateProducer.kt:syncSupervisor: SupervisorRead</ID>
+  </CurrentIssues>
+</SmellBaseline>

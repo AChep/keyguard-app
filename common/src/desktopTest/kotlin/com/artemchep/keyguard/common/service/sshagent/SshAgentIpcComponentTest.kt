@@ -2,6 +2,8 @@ package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
+import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
@@ -34,7 +36,10 @@ import kotlin.test.assertTrue
  * a client, and exchange actual length-prefixed protobuf messages to verify
  * the full I/O path works end-to-end.
  */
-@OptIn(ExperimentalSerializationApi::class)
+@OptIn(
+    ExperimentalSerializationApi::class,
+    TestOnlyUnverifiedAgentIpcApi::class,
+)
 class SshAgentIpcComponentTest {
     private val protoBuf = ProtoBuf
     private val authToken = ByteArray(32) { it.toByte() }
@@ -74,6 +79,7 @@ class SshAgentIpcComponentTest {
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
+                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
             )
 
             // Start server in background.
@@ -95,7 +101,10 @@ class SshAgentIpcComponentTest {
                 // Send authenticate request.
                 val authRequest = SshAgentMessages.IpcRequest(
                     id = 1L,
-                    authenticate = SshAgentMessages.AuthenticateRequest(token = authToken.copyOf()),
+                    authenticate = SshAgentMessages.AuthenticateRequest(
+                        token = authToken.copyOf(),
+                        protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                    ),
                 )
                 sendMessage(client, authRequest)
                 val authResponse = readResponseWithTimeout(client, "authenticate response")
@@ -124,6 +133,7 @@ class SshAgentIpcComponentTest {
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
+                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
             )
 
             val serverJob = serverScope.launch {
@@ -146,6 +156,7 @@ class SshAgentIpcComponentTest {
                         id = 1L,
                         authenticate = SshAgentMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
+                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -186,6 +197,7 @@ class SshAgentIpcComponentTest {
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
+                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
             )
 
             val serverJob = serverScope.launch {
@@ -207,7 +219,10 @@ class SshAgentIpcComponentTest {
                     client,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(token = badToken),
+                        authenticate = SshAgentMessages.AuthenticateRequest(
+                            token = badToken,
+                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                        ),
                     ),
                 )
                 val authResponse = readResponseWithTimeout(client, "authenticate response")
@@ -236,6 +251,7 @@ class SshAgentIpcComponentTest {
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
+                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
             )
 
             val serverJob = serverScope.launch {
@@ -288,6 +304,7 @@ class SshAgentIpcComponentTest {
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
+                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
             )
 
             val serverJob = serverScope.launch {
@@ -310,6 +327,7 @@ class SshAgentIpcComponentTest {
                         id = 1L,
                         authenticate = SshAgentMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
+                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -365,6 +383,7 @@ class SshAgentIpcComponentTest {
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
+                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
                 onApprovalRequest = { _, _, _ -> false },
             )
 
@@ -388,6 +407,7 @@ class SshAgentIpcComponentTest {
                         id = 1L,
                         authenticate = SshAgentMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
+                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -430,6 +450,7 @@ class SshAgentIpcComponentTest {
                 getSshAgentFilter = sshAgentFilter,
                 authToken = authToken,
                 scope = serverScope,
+                testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
                 maxConcurrentConnections = 1,
             )
 
@@ -459,6 +480,7 @@ class SshAgentIpcComponentTest {
                         id = 1L,
                         authenticate = SshAgentMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
+                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )

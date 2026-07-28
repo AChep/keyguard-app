@@ -20,6 +20,7 @@ import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogInten
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
 import com.artemchep.keyguard.feature.decorator.forEachWithDecorUniqueSectionsOnly
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
@@ -30,6 +31,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -77,6 +79,26 @@ fun produceSshAgentHistoryState(
         json,
     ),
 ) {
+    sshAgentHistoryStateProducer(
+        cipherId = cipherId,
+        getSshUsageHistory = getSshUsageHistory,
+        removeSshUsageHistory = removeSshUsageHistory,
+        getCiphers = getCiphers,
+        dateFormatter = dateFormatter,
+        confirmationRouteFactory = confirmationRouteFactory,
+        json = json,
+    )
+}
+
+suspend fun RememberStateFlowScope.sshAgentHistoryStateProducer(
+    cipherId: String?,
+    getSshUsageHistory: GetSshUsageHistory,
+    removeSshUsageHistory: RemoveSshUsageHistory,
+    getCiphers: GetCiphers,
+    dateFormatter: DateFormatter,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    json: Json,
+): Flow<Loadable<SshAgentHistoryState>> {
     val mode = cipherId
         ?.let(SshUsageHistoryMode::Cipher)
         ?: SshUsageHistoryMode.Recent
@@ -105,8 +127,10 @@ fun produceSshAgentHistoryState(
             } else {
                 persistentListOf(
                     FlatItemAction(
+                        id = "sshAgentHistory.clearHistory",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.ssh_agent_history_clear_history_title.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteAll()
                         },
@@ -166,7 +190,7 @@ fun produceSshAgentHistoryState(
             .toImmutableList()
     }
 
-    combine(
+    return combine(
         subtitleFlow,
         optionsFlow,
         itemsFlow,
@@ -236,6 +260,9 @@ private suspend fun TranslatorScope.title(request: SshUsageHistoryRequestType): 
 
     SshUsageHistoryRequestType.AGENT_SIGN_DATA ->
         translate(Res.string.ssh_agent_history_request_sign_data)
+
+    SshUsageHistoryRequestType.UNKNOWN ->
+        translate(Res.string.cipher_type_unknown)
 }
 
 private suspend fun TranslatorScope.title(response: SshUsageHistoryResponseType): String = when (response) {
@@ -250,4 +277,7 @@ private suspend fun TranslatorScope.title(response: SshUsageHistoryResponseType)
 
     SshUsageHistoryResponseType.FAILURE ->
         translate(Res.string.ssh_agent_history_response_failure)
+
+    SshUsageHistoryResponseType.UNKNOWN ->
+        translate(Res.string.cipher_type_unknown)
 }

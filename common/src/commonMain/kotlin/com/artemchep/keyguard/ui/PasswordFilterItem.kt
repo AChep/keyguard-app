@@ -115,6 +115,7 @@ data class FlatItemAction(
     val type: Type? = null,
     val shortcut: KeyShortcut? = null,
     val selected: Boolean = false,
+    val danger: Boolean = false,
     val onClick: (() -> Unit)? = {},
 ) : ContextItem {
     companion object;
@@ -197,6 +198,7 @@ fun CopyText.FlatItemAction(
     shortcut: KeyShortcut? = null,
     hidden: Boolean = false,
     type: CopyText.Type = CopyText.Type.VALUE,
+    id: String? = null,
 ) = value?.let {
     FlatItemAction(
         title = title,
@@ -204,6 +206,7 @@ fun CopyText.FlatItemAction(
         shortcut = shortcut,
         hidden = hidden,
         type = type,
+        id = id,
     )
 }
 
@@ -214,7 +217,9 @@ fun CopyText.FlatItemAction(
     shortcut: KeyShortcut? = null,
     hidden: Boolean = false,
     type: CopyText.Type = CopyText.Type.VALUE,
+    id: String? = null,
 ) = FlatItemAction(
+    id = id,
     leading = leading,
     icon = Icons.Outlined.ContentCopy,
     title = title,

@@ -81,6 +81,10 @@ sealed interface PasswordGeneratorConfigBuilder2 {
     data class KeyPair(
         val config: KeyPairConfig,
     ) : PasswordGeneratorConfigBuilder2
+
+    data class GpgKey(
+        val config: GpgKeyConfig,
+    ) : PasswordGeneratorConfigBuilder2
 }
 
 fun PasswordGeneratorConfigBuilder2.build(): PasswordGeneratorConfig = when (this) {
@@ -94,6 +98,7 @@ fun PasswordGeneratorConfigBuilder2.build(): PasswordGeneratorConfig = when (thi
     is PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing -> build()
     is PasswordGeneratorConfigBuilder2.EmailRelay -> build()
     is PasswordGeneratorConfigBuilder2.KeyPair -> build()
+    is PasswordGeneratorConfigBuilder2.GpgKey -> build()
 }
 
 fun PasswordGeneratorConfigBuilder2.Value.build(): PasswordGeneratorConfig {
@@ -246,6 +251,12 @@ fun PasswordGeneratorConfigBuilder2.EmailRelay.build(): PasswordGeneratorConfig 
 
 fun PasswordGeneratorConfigBuilder2.KeyPair.build(): PasswordGeneratorConfig {
     return PasswordGeneratorConfig.KeyPair(
+        config = config,
+    )
+}
+
+fun PasswordGeneratorConfigBuilder2.GpgKey.build(): PasswordGeneratorConfig {
+    return PasswordGeneratorConfig.GpgKey(
         config = config,
     )
 }

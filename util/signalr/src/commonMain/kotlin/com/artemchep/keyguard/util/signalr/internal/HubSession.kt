@@ -12,7 +12,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -69,14 +71,17 @@ internal fun CoroutineScope.launchHubSession(
         suspend fun reportFailure(
             cause: Throwable,
         ) {
-            if (cause is CancellationException) {
-                throw cause
+            val reason = if (cause is CancellationException) {
+                currentCoroutineContext().ensureActive()
+                HubConnectionCloseReason.TransportClosed
+            } else {
+                HubConnectionCloseReason.Failed(cause)
             }
 
             events.sendCommand(
                 HubConnectionCommand.SessionClosed(
                     sessionId = id,
-                    reason = HubConnectionCloseReason.Failed(cause),
+                    reason = reason,
                 ),
             )
         }
@@ -103,8 +108,6 @@ internal fun CoroutineScope.launchHubSession(
                         logger = logger,
                     )
                 }
-            } catch (ex: CancellationException) {
-                throw ex
             } catch (ex: Throwable) {
                 reportFailure(ex)
             }
@@ -131,8 +134,6 @@ internal fun CoroutineScope.launchHubSession(
                         reason = HubConnectionCloseReason.TransportClosed,
                     ),
                 )
-            } catch (ex: CancellationException) {
-                throw ex
             } catch (ex: Throwable) {
                 reportFailure(ex)
             } finally {

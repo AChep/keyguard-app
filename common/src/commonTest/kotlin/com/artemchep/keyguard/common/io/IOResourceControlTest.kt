@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.common.io
 
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -11,92 +10,11 @@ import kotlinx.coroutines.test.runTest
 import kotlin.math.max
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration
 
 class IOResourceControlTest {
-    @Test
-    fun `bracket calls release after successful use`() = runTest {
-        var released: Int? = null
-        val result = io(10).bracket(
-            release = { resource ->
-                ioEffect {
-                    released = resource
-                }
-            },
-            use = { resource ->
-                io(resource + 1)
-            },
-        ).bind()
-
-        assertEquals(11, result)
-        assertEquals(10, released)
-    }
-
-    @Test
-    fun `bracket calls release after failed use`() = runTest {
-        var released: Int? = null
-
-        assertFailsWith<IllegalStateException> {
-            io(20).bracket(
-                release = { resource ->
-                    ioEffect {
-                        released = resource
-                    }
-                },
-                use = {
-                    ioRaise<Int>(IllegalStateException("use failed"))
-                },
-            ).bind()
-        }
-
-        assertEquals(20, released)
-    }
-
-    @Test
-    fun `bracket propagates use failure after release`() = runTest {
-        val e = IllegalStateException("use failed")
-        var releaseCalled = false
-
-        val thrown = assertFailsWith<IllegalStateException> {
-            io(30).bracket(
-                release = {
-                    ioEffect {
-                        releaseCalled = true
-                    }
-                },
-                use = {
-                    ioRaise<Int>(e)
-                },
-            ).bind()
-        }
-
-        assertTrue(releaseCalled)
-        assertEquals(e.message, thrown.message)
-    }
-
-    @Test
-    fun `bracket still runs release when caller is cancelled`() = runTest {
-        val released = CompletableDeferred<Unit>()
-
-        assertFailsWith<CancellationException> {
-            io(40).bracket(
-                release = {
-                    ioEffect {
-                        released.complete(Unit)
-                    }
-                },
-                use = {
-                    ioRaise<Int>(CancellationException("cancel"))
-                },
-            ).bind()
-        }
-
-        released.await()
-    }
-
     @Test
     fun `dispatchOn executes IO and preserves value`() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)

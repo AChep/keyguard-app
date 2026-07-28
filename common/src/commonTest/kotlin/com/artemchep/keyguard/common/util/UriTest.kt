@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.util
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 class UriTest {
     @Test
@@ -24,5 +25,20 @@ class UriTest {
     @Test
     fun `keeps existing scheme separator behavior for non hierarchical schemes`() {
         assertEquals("https://mailto:test@example.com", ensureUrlScheme("mailto:test@example.com"))
+    }
+
+    @Test
+    fun `parses exact android app package`() {
+        assertEquals(
+            "com.example.app",
+            parseAndroidAppPackageNameOrNull("  androidapp://com.example.app  "),
+        )
+    }
+
+    @Test
+    fun `rejects malformed android app uri`() {
+        assertNull(parseAndroidAppPackageNameOrNull("androidapp://com.example.app/path"))
+        assertNull(parseAndroidAppPackageNameOrNull("https://com.example.app"))
+        assertNull(parseAndroidAppPackageNameOrNull("androidapp://com.example.app.evil?x=1"))
     }
 }

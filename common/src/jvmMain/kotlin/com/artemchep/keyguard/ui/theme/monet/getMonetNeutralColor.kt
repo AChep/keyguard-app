@@ -28,7 +28,7 @@ private fun MonetColorScheme.getMonetNeutralColor(
     val monetColor = when (type) {
         1 -> this.neutral1[shade]
         else -> this.neutral2[shade]
-    }?.toArgb() ?: throw Exception("Neutral$type shade $shade doesn't exist")
+    }?.toArgb() ?: throw IllegalStateException("Neutral$type shade $shade doesn't exist")
     return Color(monetColor)
 }
 
@@ -40,7 +40,7 @@ private fun MonetColorScheme.getMonetAccentColor(
         1 -> this.accent1[shade]
         2 -> this.accent2[shade]
         else -> this.accent3[shade]
-    }?.toArgb() ?: throw Exception("Accent$type shade $shade doesn't exist")
+    }?.toArgb() ?: throw IllegalStateException("Accent$type shade $shade doesn't exist")
     return Color(monetColor)
 }
 

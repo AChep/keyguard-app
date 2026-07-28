@@ -48,7 +48,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.artemchep.keyguard.common.model.TotpCode
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
@@ -64,49 +63,11 @@ import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
-import com.artemchep.keyguard.ui.totp.formatCode2
-import com.artemchep.keyguard.ui.totp.remainingProgressAt
+import com.artemchep.keyguard.ui.totp.TotpCodeState
+import com.artemchep.keyguard.ui.totp.totpCodeFlow
 import kotlinx.collections.immutable.PersistentList
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
-import kotlin.time.Clock
 import org.kodein.di.compose.rememberInstance
-import kotlin.math.roundToInt
-
-private sealed interface VaultViewTotpItemBadgeState {
-    data object Loading : VaultViewTotpItemBadgeState
-
-    data object Error : VaultViewTotpItemBadgeState
-
-    data class Success(
-        val codes: PersistentList<PersistentList<String>>,
-        val codeRaw: String,
-        val counter: Counter,
-    ) : VaultViewTotpItemBadgeState {
-        sealed interface Counter {
-            val text: String
-        }
-
-        data class TimeBasedCounter(
-            val time: String,
-            val progress: Float,
-        ) : Counter {
-            override val text: String
-                get() = time
-        }
-
-        data class IncrementBasedCounter(
-            val counter: String,
-        ) : Counter {
-            override val text: String
-                get() = counter
-        }
-    }
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -217,8 +178,8 @@ fun VaultViewTotpBadge2(
         modifier = modifier
             .clip(MaterialTheme.shapes.small)
             .background(tintColor)
-            .clickable(enabled = state is VaultViewTotpItemBadgeState.Success) {
-                val code = (state as? VaultViewTotpItemBadgeState.Success)
+            .clickable(enabled = state is TotpCodeState.Success) {
+                val code = (state as? TotpCodeState.Success)
                     ?.codeRaw ?: return@clickable
                 copyText.copy(
                     text = code,
@@ -237,7 +198,7 @@ fun VaultViewTotpBadge2(
     ) {
         // Draw an explicit error state. This should only happen if the
         // TOTP token is invalid.
-        if (state is VaultViewTotpItemBadgeState.Error) {
+        if (state is TotpCodeState.Error) {
             Icon(
                 imageVector = Icons.Outlined.ErrorOutline,
                 contentDescription = null,
@@ -255,7 +216,7 @@ fun VaultViewTotpBadge2(
 
         VaultViewTotpCodeContent(
             totp = totpToken,
-            codes = (state as? VaultViewTotpItemBadgeState.Success?)
+            codes = (state as? TotpCodeState.Success?)
                 ?.codes,
         )
         ExpandedIfNotEmptyForRow(
@@ -373,7 +334,7 @@ private fun RowScope.VaultViewTotpCodeContent(
 
 @Composable
 private fun VaultViewTotpRemainderBadge(
-    state: VaultViewTotpItemBadgeState?,
+    state: TotpCodeState?,
 ) {
     ExpandedIfNotEmptyForRow(
         valueOrNull = state,
@@ -386,26 +347,26 @@ private fun VaultViewTotpRemainderBadge(
 
 @Composable
 private fun VaultViewTotpRemainderBadgeLayout(
-    state: VaultViewTotpItemBadgeState,
+    state: TotpCodeState,
 ) {
     val score = when (state) {
-        is VaultViewTotpItemBadgeState.Loading -> null
-        is VaultViewTotpItemBadgeState.Error -> null
+        is TotpCodeState.Loading -> null
+        is TotpCodeState.Error -> null
 
-        is VaultViewTotpItemBadgeState.Success -> when (val counter = state.counter) {
-            is VaultViewTotpItemBadgeState.Success.TimeBasedCounter -> counter.progress.coerceIn(
+        is TotpCodeState.Success -> when (val counter = state.counter) {
+            is TotpCodeState.Success.TimeBasedCounter -> counter.progress.coerceIn(
                 0f,
                 1f,
             )
 
-            is VaultViewTotpItemBadgeState.Success.IncrementBasedCounter -> null
+            is TotpCodeState.Success.IncrementBasedCounter -> null
         }
     }
     AhContainer(
         score = score
             ?: 1f,
     ) {
-        val time = (state as? VaultViewTotpItemBadgeState.Success)?.counter?.text.orEmpty()
+        val time = (state as? TotpCodeState.Success)?.counter?.text.orEmpty()
         VaultViewTotpRemainderBadgeContent(
             progress = it.takeIf { score != null },
             text = time,
@@ -454,60 +415,13 @@ private fun RowScope.VaultViewTotpRemainderBadgeContent(
 private fun produceTotpCode(
     totpToken: TotpToken,
     offset: Int = 0,
-): State<VaultViewTotpItemBadgeState?> {
+): State<TotpCodeState?> {
     val getTotpCode by rememberInstance<GetTotpCodeWithOffset>()
     return remember(totpToken, offset) {
-        getTotpCode(totpToken, offset)
-            .flatMapLatest { result ->
-                val totpCode = result.getOrNull()
-                    ?: return@flatMapLatest flowOf(VaultViewTotpItemBadgeState.Error)
-                // Format the totp code, so it's easier to
-                // read for the user.
-                val codes = totpCode.formatCode2()
-                when (val counter = totpCode.counter) {
-                    is TotpCode.TimeBasedCounter -> flow<VaultViewTotpItemBadgeState.Success> {
-                        while (true) {
-                            val now = Clock.System.now()
-                            val remainingDuration = counter.expiration - now
-
-                            val time = remainingDuration
-                                .inWholeMilliseconds
-                                .toFloat()
-                                .div(1000F)
-                                .roundToInt()
-                                .coerceAtLeast(0)
-                                .toString()
-                            val progress = counter.remainingProgressAt(now)
-                            val c = VaultViewTotpItemBadgeState.Success.TimeBasedCounter(
-                                time = time,
-                                progress = progress,
-                            )
-                            val s = VaultViewTotpItemBadgeState.Success(
-                                codes = codes,
-                                codeRaw = totpCode.code,
-                                counter = c,
-                            )
-                            emit(s)
-
-                            val dt = remainingDuration
-                                .inWholeMilliseconds
-                                .rem(1000L)
-                            delay(dt + 1L)
-                        }
-                    }
-
-                    is TotpCode.IncrementBasedCounter -> {
-                        val c = VaultViewTotpItemBadgeState.Success.IncrementBasedCounter(
-                            counter = counter.counter.toString(),
-                        )
-                        val s = VaultViewTotpItemBadgeState.Success(
-                            codes = codes,
-                            codeRaw = totpCode.code,
-                            counter = c,
-                        )
-                        flowOf(s)
-                    }
-                }
-            }
-    }.collectAsState(initial = VaultViewTotpItemBadgeState.Loading)
+        totpCodeFlow(
+            getTotpCode = getTotpCode,
+            totpToken = totpToken,
+            offset = offset,
+        )
+    }.collectAsState(initial = TotpCodeState.Loading)
 }

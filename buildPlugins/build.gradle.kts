@@ -12,6 +12,8 @@ java {
 dependencies {
     implementation("com.android.tools.build:gradle:${libs.versions.androidPlugin.get()}")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${libs.versions.kotlin.get()}")
+    compileOnly("dev.detekt:detekt-gradle-plugin:${libs.versions.detekt.get()}")
+    testImplementation("junit:junit:${libs.versions.junit.get()}")
 }
 
 gradlePlugin {
@@ -27,6 +29,18 @@ gradlePlugin {
         register("androidSshAgent") {
             id = "keyguard.android-ssh-agent"
             implementationClass = "com.artemchep.keyguard.buildplugins.androidssh.AndroidSshAgentPlugin"
+        }
+        register("nativeCryptoConsumer") {
+            id = "keyguard.native-crypto-consumer"
+            implementationClass = "com.artemchep.keyguard.buildplugins.nativecrypto.NativeCryptoConsumerPlugin"
+        }
+        register("cryptoDependencyPolicy") {
+            id = "keyguard.crypto-dependency-policy"
+            implementationClass = "com.artemchep.keyguard.buildplugins.nativecrypto.CryptoDependencyPolicyPlugin"
+        }
+        register("detektCustomRules") {
+            id = "keyguard.detekt-custom-rules"
+            implementationClass = "com.artemchep.keyguard.buildplugins.detekt.DetektCustomRulesPlugin"
         }
     }
 }

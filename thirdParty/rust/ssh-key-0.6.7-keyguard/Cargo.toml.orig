@@ -1,0 +1,85 @@
+[package]
+name = "ssh-key"
+version = "0.6.7"
+description = """
+Pure Rust implementation of SSH key file format decoders/encoders as described
+in RFC4251/RFC4253 and OpenSSH key formats, as well as "sshsig" signatures and
+certificates (including certificate validation and certificate authority support),
+with further support for the `authorized_keys` and `known_hosts` file formats.
+"""
+authors = ["RustCrypto Developers"]
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/RustCrypto/SSH/tree/master/ssh-key"
+categories = ["authentication", "cryptography", "encoding", "no-std", "parser-implementations"]
+keywords = ["crypto", "certificate", "openssh", "ssh", "sshsig"]
+readme = "README.md"
+edition = "2021"
+rust-version = "1.65"
+
+[dependencies]
+cipher = { package = "ssh-cipher", version = "0.2", path = "../ssh-cipher" }
+encoding = { package = "ssh-encoding", version = "0.2", features = ["base64", "pem", "sha2"], path = "../ssh-encoding" }
+sha2 = { version = "0.10.8", default-features = false }
+signature = { version = "2", default-features = false }
+subtle = { version = "2", default-features = false }
+zeroize = { version = "1", default-features = false }
+
+# optional dependencies
+bcrypt-pbkdf = { version = "0.10", optional = true, default-features = false, features = ["alloc"] }
+bigint = { package = "num-bigint-dig", version = "0.8", optional = true, default-features = false }
+dsa = { version = "0.6", optional = true, default-features = false }
+ed25519-dalek = { version = "2", optional = true, default-features = false }
+p256 = { version = "0.13", optional = true, default-features = false, features = ["ecdsa"] }
+p384 = { version = "0.13", optional = true, default-features = false, features = ["ecdsa"] }
+p521 = { version = "0.13.3", optional = true, default-features = false, features = ["ecdsa", "getrandom"] } # TODO(tarcieri): RFC6979
+rand_core = { version = "0.6.4", optional = true, default-features = false }
+rsa = { version = "0.9", optional = true, default-features = false, features = ["sha2"] }
+sec1 = { version = "0.7.3", optional = true, default-features = false, features = ["point"] }
+serde = { version = "1", optional = true }
+sha1 = { version = "0.10", optional = true, default-features = false }
+
+[dev-dependencies]
+hex-literal = "0.4.1"
+rand_chacha = "0.3"
+
+[features]
+default = ["ecdsa", "rand_core", "std"]
+alloc = [
+    "encoding/alloc",
+    "signature/alloc",
+    "zeroize/alloc",
+]
+std = [
+    "alloc",
+    "encoding/std",
+    "p256?/std",
+    "p384?/std",
+    "p521?/std",
+    "rsa?/std",
+    "sec1?/std",
+    "signature/std"
+]
+
+crypto = ["ed25519", "p256", "p384", "p521", "rsa"] # NOTE: `dsa` is obsolete/weak
+dsa = ["dep:bigint", "dep:dsa", "dep:sha1", "alloc", "signature/rand_core"]
+ecdsa = ["dep:sec1"]
+ed25519 = ["dep:ed25519-dalek", "rand_core"]
+encryption = [
+    "dep:bcrypt-pbkdf",
+    "alloc",
+    "cipher/aes-cbc",
+    "cipher/aes-ctr",
+    "cipher/aes-gcm",
+    "cipher/chacha20poly1305",
+    "rand_core"
+]
+getrandom = ["rand_core/getrandom"]
+p256 = ["dep:p256", "ecdsa"]
+p384 = ["dep:p384", "ecdsa"]
+p521 = ["dep:p521", "ecdsa"]
+rsa = ["dep:bigint", "dep:rsa", "alloc", "rand_core"]
+tdes = ["cipher/tdes", "encryption"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

@@ -22,7 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -121,8 +121,8 @@ fun YubiKeyManual(
         }
         val fieldState = remember(textState) {
             derivedStateOf {
-                TextFieldModel2(
-                    state = textState,
+                TextFieldModel(
+                    text = textState.value,
                     onChange = textState::value::set,
                 )
             }

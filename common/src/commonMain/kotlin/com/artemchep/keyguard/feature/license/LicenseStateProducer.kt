@@ -5,7 +5,9 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.license.LicenseService
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -29,6 +31,14 @@ fun produceLicenseState(
         licenseService,
     ),
 ) {
+    licenseStateProducer(
+        licenseService = licenseService,
+    )
+}
+
+suspend fun RememberStateFlowScope.licenseStateProducer(
+    licenseService: LicenseService,
+): Flow<Loadable<LicenseState>> {
     val request = licenseService.get()
         .attempt()
         .bind()
@@ -45,5 +55,5 @@ fun produceLicenseState(
     val state = LicenseState(
         content = content,
     )
-    flowOf(Loadable.Ok(state))
+    return flowOf(Loadable.Ok(state))
 }

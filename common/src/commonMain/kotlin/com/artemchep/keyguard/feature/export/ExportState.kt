@@ -3,7 +3,7 @@ package com.artemchep.keyguard.feature.export
 import androidx.compose.runtime.Immutable
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.permission.PermissionState
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import kotlinx.coroutines.flow.StateFlow
 
@@ -20,7 +20,7 @@ data class ExportState(
     )
 
     data class Password(
-        val model: TextFieldModel2,
+        val model: TextFieldModel,
     )
 
     @Immutable

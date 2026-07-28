@@ -31,6 +31,7 @@ data class WebsiteLeakRoute(
             host: String,
             navigate: (NavigationIntent) -> Unit,
         ) = FlatItemAction(
+            id = "watchtower.checkWebsiteLeak",
             leading = icon(Icons.AutoMirrored.Outlined.FactCheck),
             title = Res.string.website_action_check_data_breach_title.wrap(),
             onClick = {

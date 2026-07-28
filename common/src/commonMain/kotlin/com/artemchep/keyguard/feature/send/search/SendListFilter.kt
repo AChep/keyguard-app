@@ -11,10 +11,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import arrow.core.partially1
 import arrow.core.widen
-import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.DSendFilter
+import com.artemchep.keyguard.common.model.DSendFilterPresence
+import com.artemchep.keyguard.common.model.existsIn
 import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.iconImageVector
 import com.artemchep.keyguard.common.model.titleH
@@ -27,7 +28,6 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.icons.AccentColors
 import com.artemchep.keyguard.ui.icons.IconBox
-import com.artemchep.keyguard.ui.icons.generateAccentColorsByAccountId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -36,7 +36,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.serialization.encodeToString
 import org.kodein.di.DirectDI
 
 private fun <T, R> mapCiphers(
@@ -119,7 +118,7 @@ data class FilterParams(
 suspend fun <
         Output : Any,
         Secret,
-        > RememberStateFlowScope.ah(
+        > RememberStateFlowScope.createFilterItemsFlow(
     directDI: DirectDI,
     outputGetter: (Output) -> DSend,
     outputFlow: Flow<List<Output>>,
@@ -148,11 +147,11 @@ suspend fun <
         }
     }
 
-    val outputCipherFlow = outputFlow
+    val outputPresenceFlow = outputFlow
         .map { list ->
-            list
-                .map { outputGetter(it) }
+            DSendFilterPresence.of(list, outputGetter)
         }
+        .distinctUntilChanged()
 
     val filterTypesWithCiphers = mapCiphers(cipherFlow) { cipherGetter(it).type }
     val filterAccountsWithCiphers = mapCiphers(cipherFlow) { cipherGetter(it).accountId }
@@ -165,7 +164,7 @@ suspend fun <
         flowOf(emptyList())
     }
 
-    fun Flow<List<SendFilterItem.Item>>.aaa(
+    fun Flow<List<SendFilterItem.ChipItem>>.asFilterSection(
         sectionId: String,
         sectionTitle: String,
         collapse: Boolean = true,
@@ -195,7 +194,7 @@ suspend fun <
             }
 
             items
-                .widen<SendFilterItem, SendFilterItem.Item>()
+                .widen<SendFilterItem, SendFilterItem.ChipItem>()
                 .toMutableList()
                 .apply {
                     val sectionItem = SendFilterItem.Section(
@@ -223,7 +222,7 @@ suspend fun <
         text: String? = null,
         tint: AccentColors? = null,
         icon: ImageVector? = null,
-    ) = SendFilterItem.Item(
+    ) = SendFilterItem.ChipItem(
         sectionId = sectionId,
         filterSectionId = filterSectionId,
         filters = filter,
@@ -264,8 +263,6 @@ suspend fun <
             .partially1(filterSectionId)
             .partially1(filter),
         checked = false,
-        fill = false,
-        indent = 0,
     )
 
     fun createAccountFilterAction(
@@ -327,7 +324,7 @@ suspend fun <
                         }
                 }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = accountSectionId,
             sectionTitle = translate(Res.string.account),
         )
@@ -348,20 +345,20 @@ suspend fun <
                 item.takeIf { type in types }
             }
         }
-        .aaa(
+        .asFilterSection(
             sectionId = typeSectionId,
             sectionTitle = translate(Res.string.type),
         )
         .filterSection(params.section.type)
 
-    val filterMiscAll = listOf<SendFilterItem.Item>(
+    val filterMiscAll = listOf<SendFilterItem.ChipItem>(
     )
 
     val filterMiscListFlow = flowOf(Unit)
         .map {
             filterMiscAll
         }
-        .aaa(
+        .asFilterSection(
             sectionId = miscSectionId,
             sectionTitle = translate(Res.string.misc),
             collapse = false,
@@ -395,13 +392,13 @@ suspend fun <
             }
             out
         }
-        .combine(outputCipherFlow) { items, outputCiphers ->
+        .combine(outputPresenceFlow) { items, presence ->
             val checkedSectionIds = items
                 .asSequence()
                 .mapNotNull {
                     when (it) {
                         is SendFilterItem.Section -> null
-                        is SendFilterItem.Item -> it.takeIf { it.checked }
+                        is SendFilterItem.ChipItem -> it.takeIf { it.checked }
                             ?.sectionId
                     }
                 }
@@ -411,15 +408,16 @@ suspend fun <
             items.forEach { item ->
                 when (item) {
                     is SendFilterItem.Section -> out += item
-                    is SendFilterItem.Item -> {
+                    is SendFilterItem.ChipItem -> {
                         val fastEnabled = item.checked || item.sectionId in checkedSectionIds
-                        val enabled = fastEnabled || kotlin.run {
-                            item.filters
-                                .any { filter ->
-                                    val filterPredicate = filter.prepare(directDI, outputCiphers)
-                                    outputCiphers.any(filterPredicate)
-                                }
-                        }
+                        // Every primitive this factory creates is indexable, so
+                        // `existsIn` never returns null here; the `?: true` only
+                        // guards against a hypothetical future non-indexable one.
+                        val enabled = fastEnabled || item.filters
+                            .any { filter ->
+                                filter.existsIn(presence)
+                                    ?: true
+                            }
 
                         if (enabled) {
                             out += item

@@ -10,9 +10,11 @@ import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.UsernameVariation2
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.home.vault.add.GpgKeyDecor2Brr
 import com.artemchep.keyguard.feature.home.vault.add.KeyPairDecor2Brr
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -46,8 +48,8 @@ sealed interface AddStateItem {
     @Stable
     data class Title<Request>(
         override val id: String,
-        override val state: LocalStateItem<TextFieldModel2, Request>,
-    ) : AddStateItem, HasState<TextFieldModel2, Request>
+        override val state: LocalStateItem<TextFieldModel, Request>,
+    ) : AddStateItem, HasState<TextFieldModel, Request>
 
     @Stable
     data class Username<Request>(
@@ -55,7 +57,7 @@ sealed interface AddStateItem {
         override val state: LocalStateItem<State, Request>,
     ) : AddStateItem, HasState<Username.State, Request> {
         data class State(
-            val value: TextFieldModel2,
+            val value: TextFieldModel,
             val type: UsernameVariation2,
         )
     }
@@ -64,8 +66,8 @@ sealed interface AddStateItem {
     data class Password<Request>(
         override val id: String,
         val label: String? = null,
-        override val state: LocalStateItem<TextFieldModel2, Request>,
-    ) : AddStateItem, HasState<TextFieldModel2, Request>
+        override val state: LocalStateItem<TextFieldModel, Request>,
+    ) : AddStateItem, HasState<TextFieldModel, Request>
 
     @Stable
     data class Text<Request>(
@@ -75,7 +77,7 @@ sealed interface AddStateItem {
         override val state: LocalStateItem<State, Request>,
     ) : AddStateItem, HasState<Text.State, Request> {
         data class State(
-            val value: TextFieldModel2,
+            val value: TextFieldModel,
             val label: String? = null,
             val singleLine: Boolean = false,
             val keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -107,7 +109,7 @@ sealed interface AddStateItem {
     ) : AddStateItem, HasState<Totp.State, Request> {
         data class State(
             val copyText: CopyText,
-            val value: TextFieldModel2,
+            val value: TextFieldModel,
             val onScanned: ((String) -> Unit)? = null,
             val totpToken: TotpToken? = null,
         )
@@ -143,7 +145,7 @@ sealed interface AddStateItem {
 
         data class State(
             val id: String,
-            val name: TextFieldModel2,
+            val name: TextFieldModel,
             val size: String? = null,
             /**
              * `true` if the attachment is already uploaded to the server,
@@ -166,7 +168,7 @@ sealed interface AddStateItem {
 
         data class State(
             override val options: ImmutableList<ContextItem> = persistentListOf(),
-            val text: TextFieldModel2,
+            val text: TextFieldModel,
             val matchType: DSecret.Uri.MatchType? = null,
             val matchTypeTitle: String? = null,
         ) : HasOptions<State> {
@@ -176,6 +178,27 @@ sealed interface AddStateItem {
                 options = options,
             )
         }
+    }
+
+    data class Link<Request>(
+        override val id: String,
+        override val options: ImmutableList<ContextItem> = persistentListOf(),
+        override val state: LocalStateItem<State, Request>,
+    ) : AddStateItem, HasOptions<Link<*>>, HasState<Link.State, Request> {
+        override fun withOptions(
+            options: ImmutableList<ContextItem>,
+        ) = copy(
+            options = options,
+        )
+
+        data class State(
+            val link: DSecret.Link? = null,
+            /**
+             * Presentation of the cipher the link points to, `null` if it
+             * can not be resolved.
+             */
+            val presentation: VaultItemPresentation? = null,
+        )
     }
 
     data class Field<Request>(
@@ -192,8 +215,8 @@ sealed interface AddStateItem {
         sealed interface State : HasOptions<State> {
             data class Text(
                 override val options: ImmutableList<ContextItem> = persistentListOf(),
-                val label: TextFieldModel2,
-                val text: TextFieldModel2,
+                val label: TextFieldModel,
+                val text: TextFieldModel,
                 val hidden: Boolean = false,
             ) : State {
                 override fun withOptions(
@@ -207,7 +230,7 @@ sealed interface AddStateItem {
                 override val options: ImmutableList<ContextItem> = persistentListOf(),
                 val checked: Boolean = false,
                 val onCheckedChange: ((Boolean) -> Unit)? = null,
-                val label: TextFieldModel2,
+                val label: TextFieldModel,
             ) : State {
                 override fun withOptions(
                     options: ImmutableList<ContextItem>,
@@ -220,7 +243,7 @@ sealed interface AddStateItem {
                 override val options: ImmutableList<ContextItem> = persistentListOf(),
                 val value: DSecret.Field.LinkedId?,
                 val actions: ImmutableList<ContextItem>,
-                val label: TextFieldModel2,
+                val label: TextFieldModel,
             ) : State {
                 override fun withOptions(
                     options: ImmutableList<ContextItem>,
@@ -245,7 +268,7 @@ sealed interface AddStateItem {
         sealed interface State : HasOptions<State> {
             data class Text(
                 override val options: ImmutableList<ContextItem> = persistentListOf(),
-                val text: TextFieldModel2,
+                val text: TextFieldModel,
             ) : State {
                 override fun withOptions(
                     options: ImmutableList<ContextItem>,
@@ -258,15 +281,21 @@ sealed interface AddStateItem {
 
     data class Note<Request>(
         override val id: String,
-        override val state: LocalStateItem<TextFieldModel2, Request>,
+        override val state: LocalStateItem<TextFieldModel, Request>,
         val markdown: Boolean,
-    ) : AddStateItem, HasState<TextFieldModel2, Request>
+    ) : AddStateItem, HasState<TextFieldModel, Request>
 
     data class SshKey<Request>(
         override val id: String,
         val fileDrop: FileDrop? = null,
         override val state: LocalStateItem<KeyPairDecor2Brr, Request>,
     ) : AddStateItem, HasState<KeyPairDecor2Brr, Request>
+
+    data class GpgKey<Request>(
+        override val id: String,
+        val fileDrop: FileDrop? = null,
+        override val state: LocalStateItem<GpgKeyDecor2Brr, Request>,
+    ) : AddStateItem, HasState<GpgKeyDecor2Brr, Request>
 
     data class Enum<Request>(
         override val id: String,
@@ -305,8 +334,8 @@ sealed interface AddStateItem {
         val label: String,
     ) : AddStateItem, HasState<DateMonthYear.State, Request> {
         data class State(
-            val month: TextFieldModel2,
-            val year: TextFieldModel2,
+            val month: TextFieldModel,
+            val year: TextFieldModel,
             val onClick: () -> Unit,
         )
     }
@@ -321,7 +350,7 @@ sealed interface AddStateItem {
             val value: LocalDateTime,
             val date: String,
             val time: String,
-            val badge: TextFieldModel2.Vl? = null,
+            val badge: TextFieldModel.Vl? = null,
             val onSelectDate: () -> Unit,
             val onSelectTime: () -> Unit,
         )

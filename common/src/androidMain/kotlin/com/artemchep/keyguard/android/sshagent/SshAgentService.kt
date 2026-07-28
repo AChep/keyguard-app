@@ -16,15 +16,18 @@ import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
-import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
+import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
-import com.artemchep.keyguard.common.service.sshagent.buildAndroidSshAgentCallerIdentity
-import com.artemchep.keyguard.common.service.sshagent.launchSshAgentProxyBridge
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorJvm
+import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
+import com.artemchep.keyguard.common.service.sshagent.androidBridgeAuthorization
+import com.artemchep.keyguard.common.service.sshagent.buildAndroidSshAgentCallerIdentity
+import com.artemchep.keyguard.common.service.sshagent.launchSshAgentProxyBridge
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.decodeOrNull
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -52,6 +55,8 @@ class SshAgentService : Service(), DIAware {
         private const val TAG = "SshAgentService"
         private const val EXTRA_SENDER_APP_NAME = "com.artemchep.keyguard.extra.SSH_AGENT_SENDER_APP_NAME"
         private const val EXTRA_SENDER_APP_PACKAGE = "com.artemchep.keyguard.extra.SSH_AGENT_SENDER_APP_PACKAGE"
+        private const val EXTRA_SENDER_APP_PRINCIPAL =
+            "com.artemchep.keyguard.extra.SSH_AGENT_SENDER_APP_PRINCIPAL"
 
         fun getIntent(
             context: Context,
@@ -61,6 +66,7 @@ class SshAgentService : Service(), DIAware {
             sessionSecret: String?,
             senderAppName: String? = null,
             senderAppPackageName: String? = null,
+            senderAppPrincipalFingerprint: ByteArray? = null,
         ): Intent = Intent(context, SshAgentService::class.java).apply {
             action = SshAgentContract.ACTION_RUN_ANDROID_SSH_AGENT
             putExtra(SshAgentContract.EXTRA_PROTOCOL_VERSION, protocolVersion)
@@ -69,6 +75,7 @@ class SshAgentService : Service(), DIAware {
             putExtra(SshAgentContract.EXTRA_SESSION_SECRET, sessionSecret)
             putExtra(EXTRA_SENDER_APP_NAME, senderAppName)
             putExtra(EXTRA_SENDER_APP_PACKAGE, senderAppPackageName)
+            putExtra(EXTRA_SENDER_APP_PRINCIPAL, senderAppPrincipalFingerprint)
         }
     }
 
@@ -82,8 +89,10 @@ class SshAgentService : Service(), DIAware {
     private val base64Service: Base64Service by instance()
     private val getVaultSession: GetVaultSession by instance()
     private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow by instance()
+    private val getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy by instance()
     private val getSshAgentFilter: GetSshAgentFilter by instance()
     private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository by instance()
+    private val approvalWindowMemory: SshAgentApprovalWindowMemory by instance()
 
     private val notificationIdPool = Notifications.sshAgent
     private var notificationId: Int? = null
@@ -124,8 +133,10 @@ class SshAgentService : Service(), DIAware {
             logRepository = logRepository,
             getVaultSession = getVaultSession,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
+            getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
+            approvalWindowMemory = approvalWindowMemory,
             sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
             sessionId = sessionId,
             onApprovalRequest = { caller, keyName, keyFingerprint ->
@@ -199,6 +210,9 @@ class SshAgentService : Service(), DIAware {
         val senderAppInfo = buildAndroidSshAgentCallerIdentity(
             appName = intent.getStringExtra(EXTRA_SENDER_APP_NAME),
             appBundlePath = intent.getStringExtra(EXTRA_SENDER_APP_PACKAGE),
+            authorization = androidBridgeAuthorization(
+                intent.getByteArrayExtra(EXTRA_SENDER_APP_PRINCIPAL),
+            ),
         )
 
         if (
@@ -209,53 +223,130 @@ class SshAgentService : Service(), DIAware {
             sessionSecret?.size != SshAgentTcpProtocol.SESSION_SECRET_LENGTH
         ) {
             Log.w(TAG, "Ignoring invalid SSH agent request")
+            notificationTag?.let { sessionIdValue ->
+                sshAgentBridgeAdmission.reject(
+                    sessionId = sessionIdValue,
+                    outcome = SshAgentContract.BroadcastOutcome.INVALID,
+                )
+            }
             bridgeTracker.requestStop(startId)?.let { stopStartId ->
                 stopSelfResult(stopStartId)
             }
             return START_NOT_STICKY
         }
 
-        startForegroundWithType(
-            notificationId = requireNotNull(notificationId),
-            notification = SshAgentNotifications.createForegroundNotification(
-                context = this,
-                contentText = getString(R.string.notification_termux_ssh_content),
-            ),
-        )
-
-        val requestFlow = createRequestFlow(notificationTag)
-        val requestProcessor = createRequestProcessor(
-            requestFlow = requestFlow,
-            sessionId = sessionId.toHex(),
-            notificationTag = notificationTag,
-        )
-        val bridgeFailureHandler = CoroutineExceptionHandler { _, error ->
-            if (error is CancellationException) {
-                return@CoroutineExceptionHandler
+        try {
+            startForegroundWithType(
+                notificationId = requireNotNull(notificationId),
+                notification = SshAgentNotifications.createForegroundNotification(
+                    context = this,
+                    contentText = getString(R.string.notification_termux_ssh_content),
+                ),
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to promote SSH agent bridge service", e)
+            sshAgentBridgeAdmission.reject(
+                sessionId = notificationTag,
+                outcome = SshAgentContract.BroadcastOutcome.START_FAILED,
+            )
+            bridgeTracker.requestStop(startId)?.let { stopStartId ->
+                stopSelfResult(stopStartId)
             }
-
-            Log.w(TAG, "Failed to connect to SSH agent proxy port=$proxyPort", error)
-            showBridgeErrorToast(error)
+            return START_NOT_STICKY
         }
-        val bridgeJob = scope.launchSshAgentProxyBridge(
-            requestProcessor = requestProcessor,
-            proxyPort = proxyPort,
-            sessionId = sessionId,
-            sessionSecret = sessionSecret,
-            senderAppInfo = senderAppInfo,
-            context = Dispatchers.IO + bridgeFailureHandler,
-            start = CoroutineStart.LAZY,
-        )
-        bridgeTracker.onBridgeStarted(
+
+        if (!sshAgentBridgeAdmission.canStart(notificationTag)) {
+            Log.w(TAG, "Rejecting SSH agent bridge: admission reservation is unavailable")
+            val exception = kotlin.run {
+                val msg = "SSH agent bridge admission is unavailable."
+                IllegalStateException(msg)
+            }
+            showBridgeErrorToast(exception)
+            bridgeTracker.requestStop(startId)?.let { stopStartId ->
+                stopSelfResult(stopStartId)
+            }
+            return START_NOT_STICKY
+        }
+
+        if (!bridgeTracker.tryReserve(startId)) {
+            Log.w(TAG, "Rejecting duplicate SSH agent service start")
+            sshAgentBridgeAdmission.reject(
+                sessionId = notificationTag,
+                outcome = SshAgentContract.BroadcastOutcome.START_FAILED,
+            )
+            bridgeTracker.requestStop(startId)?.let { stopStartId ->
+                stopSelfResult(stopStartId)
+            }
+            return START_NOT_STICKY
+        }
+
+        val bridgeJob = try {
+            val requestFlow = createRequestFlow(notificationTag)
+            val requestProcessor = createRequestProcessor(
+                requestFlow = requestFlow,
+                sessionId = sessionId.toHex(),
+                notificationTag = notificationTag,
+            )
+            val bridgeFailureHandler = CoroutineExceptionHandler { _, error ->
+                if (error is CancellationException) {
+                    return@CoroutineExceptionHandler
+                }
+
+                Log.w(TAG, "Failed to connect to SSH agent proxy port=$proxyPort", error)
+                showBridgeErrorToast(error)
+            }
+            scope.launchSshAgentProxyBridge(
+                requestProcessor = requestProcessor,
+                proxyPort = proxyPort,
+                sessionId = sessionId,
+                sessionSecret = sessionSecret,
+                senderAppInfo = senderAppInfo,
+                context = Dispatchers.IO + bridgeFailureHandler,
+                start = CoroutineStart.LAZY,
+            )
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to create SSH agent bridge", e)
+            sshAgentBridgeAdmission.reject(
+                sessionId = notificationTag,
+                outcome = SshAgentContract.BroadcastOutcome.START_FAILED,
+            )
+            bridgeTracker.onReservationCancelled(startId)?.let { stopStartId ->
+                stopSelfResult(stopStartId)
+            }
+            return START_NOT_STICKY
+        }
+
+        val registered = bridgeTracker.onBridgeStarted(
             startId = startId,
             bridge = bridgeJob,
         )
+        if (!registered) {
+            bridgeJob.cancel()
+            Log.w(TAG, "Rejecting SSH agent bridge: reservation was lost")
+            sshAgentBridgeAdmission.reject(
+                sessionId = notificationTag,
+                outcome = SshAgentContract.BroadcastOutcome.START_FAILED,
+            )
+            bridgeTracker.requestStop(startId)?.let { stopStartId ->
+                stopSelfResult(stopStartId)
+            }
+            return START_NOT_STICKY
+        }
         bridgeJob.invokeOnCompletion {
+            sshAgentBridgeAdmission.release(notificationTag)
             bridgeTracker.onBridgeFinished(bridgeJob)?.let { stopStartId ->
                 stopSelfResult(stopStartId)
             }
         }
-        bridgeJob.start()
+        if (!sshAgentBridgeAdmission.markActive(notificationTag)) {
+            Log.w(TAG, "Rejecting SSH agent bridge: admission reservation was lost")
+            bridgeJob.cancel()
+            return START_NOT_STICKY
+        }
+        if (!bridgeJob.start()) {
+            Log.w(TAG, "Failed to start the admitted SSH agent bridge")
+            bridgeJob.cancel()
+        }
 
         return START_NOT_STICKY
     }
@@ -396,19 +487,40 @@ class SshAgentService : Service(), DIAware {
 public class SshAgentServiceBridgeTracker<T> {
     private val lock = Any()
     private val activeBridges = linkedSetOf<T>()
+    private val pendingStarts = linkedSetOf<Int>()
 
     // `stopSelfResult(startId)` only stops the service if `startId` is the most recent start.
     // Keep the highest seen id so any delayed bridge completion can stop the correct instance.
     private var latestStartId = 0
 
+    /**
+     * Tracks a pending Android service start before its bridge job is created.
+     * Bridge resource admission is owned by [SshAgentBridgeAdmission].
+     */
+    fun tryReserve(
+        startId: Int,
+    ): Boolean = synchronized(lock) {
+        latestStartId = maxOf(latestStartId, startId)
+        if (startId in pendingStarts) {
+            false
+        } else {
+            pendingStarts += startId
+            true
+        }
+    }
+
     fun onBridgeStarted(
         startId: Int,
         bridge: T,
-    ) {
-        synchronized(lock) {
+    ): Boolean = synchronized(lock) {
+        latestStartId = maxOf(latestStartId, startId)
+        if (startId !in pendingStarts || bridge in activeBridges) {
+            false
+        } else {
+            pendingStarts -= startId
             activeBridges += bridge
+            true
         }
-        onStart(startId)
     }
 
     fun onStart(
@@ -426,9 +538,20 @@ public class SshAgentServiceBridgeTracker<T> {
         bridge: T,
     ): Int? = synchronized(lock) {
         val removed = activeBridges.remove(bridge)
-        if (removed && activeBridges.isEmpty()) {
+        if (removed && activeBridges.isEmpty() && pendingStarts.isEmpty()) {
             // Once the last bridge finishes, stop the newest known start rather than the bridge's
             // original start id. This protects newer overlapping requests from being torn down.
+            latestStartId
+        } else {
+            null
+        }
+    }
+
+    fun onReservationCancelled(
+        startId: Int,
+    ): Int? = synchronized(lock) {
+        val removed = pendingStarts.remove(startId)
+        if (removed && pendingStarts.isEmpty() && activeBridges.isEmpty()) {
             latestStartId
         } else {
             null
@@ -438,13 +561,14 @@ public class SshAgentServiceBridgeTracker<T> {
     fun drainActiveBridges(): List<T> = synchronized(lock) {
         activeBridges.toList().also {
             activeBridges.clear()
+            pendingStarts.clear()
         }
     }
 
     fun requestStop(
         startId: Int,
     ): Int? = synchronized(lock) {
-        if (activeBridges.isEmpty()) {
+        if (activeBridges.isEmpty() && pendingStarts.isEmpty()) {
             // A stop may race with a newer `onStartCommand()`. Returning the max id keeps the
             // caller aligned with Android's "latest start wins" service-stop semantics.
             maxOf(latestStartId, startId)

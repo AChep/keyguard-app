@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcProtocol
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.ServerSocketChannel
@@ -21,7 +22,7 @@ class SshAgentIpcProtocolTest {
 
             val serverJob = async(Dispatchers.IO) {
                 server.accept().use { socket ->
-                    val channel = SshAgentIpcProtocol.open(socket)
+                    val channel = AgentIpcProtocol.open(socket)
                     val packet = requireNotNull(channel.readPacket())
                     channel.writePacket(packet.reversedArray())
                 }
@@ -29,7 +30,7 @@ class SshAgentIpcProtocolTest {
 
             SocketChannel.open().use { client ->
                 client.connect(InetSocketAddress("127.0.0.1", server.socket().localPort))
-                val channel = SshAgentIpcProtocol.open(client)
+                val channel = AgentIpcProtocol.open(client)
                 channel.writePacket(byteArrayOf(1, 2, 3, 4))
                 val response = requireNotNull(channel.readPacket())
                 assertContentEquals(byteArrayOf(4, 3, 2, 1), response)
@@ -46,7 +47,7 @@ class SshAgentIpcProtocolTest {
 
             val serverJob = async(Dispatchers.IO) {
                 server.accept().use { socket ->
-                    val channel = SshAgentIpcProtocol.open(socket)
+                    val channel = AgentIpcProtocol.open(socket)
                     val error = assertFailsWith<IllegalArgumentException> {
                         channel.readPacket()
                     }

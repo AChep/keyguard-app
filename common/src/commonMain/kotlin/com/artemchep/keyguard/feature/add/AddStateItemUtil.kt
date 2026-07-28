@@ -2,9 +2,9 @@ package com.artemchep.keyguard.feature.add
 
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
-import com.artemchep.keyguard.feature.datedaypicker.DateDayPickerResult
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.datedaypicker.DateDayPickerRoute
+import com.artemchep.keyguard.feature.datedaypicker.createDateDayPickerDialogIntent
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
@@ -50,7 +50,7 @@ suspend fun <Request> AddStateItem.DateTime.Companion.produceItemFlow(
     initialValue: LocalDateTime?,
     selectableDates: ClosedRange<LocalDate>? = null,
     dateFormatter: DateFormatter,
-    badge: ((LocalDateTime) -> TextFieldModel2.Vl?)? = null,
+    badge: ((LocalDateTime) -> TextFieldModel.Vl?)? = null,
     populator: Request.(AddStateItem.DateTime.State) -> Request,
     factory: (String, LocalStateItem<AddStateItem.DateTime.State, Request>) -> AddStateItem.DateTime<Request>,
 ): AddStateItem.DateTime<Request> = with(stateScope) {
@@ -70,24 +70,19 @@ suspend fun <Request> AddStateItem.DateTime.Companion.produceItemFlow(
                     time = localTimeFormatted,
                     badge = badge?.invoke(localDateTime),
                     onSelectDate = {
-                        val route = registerRouteResultReceiver(
-                            DateDayPickerRoute(
-                                DateDayPickerRoute.Args(
-                                    initialDate = localDateTime.date,
-                                    selectableDates = selectableDates,
-                                ),
+                        val intent = createDateDayPickerDialogIntent(
+                            args = DateDayPickerRoute.Args(
+                                initialDate = localDateTime.date,
+                                selectableDates = selectableDates,
                             ),
-                        ) { result ->
-                            if (result is DateDayPickerResult.Confirm) {
-                                localDateTimeSink.update {
-                                    LocalDateTime(
-                                        date = result.localDate,
-                                        time = localDateTime.time,
-                                    )
-                                }
+                        ) { date ->
+                            localDateTimeSink.update {
+                                LocalDateTime(
+                                    date = date,
+                                    time = localDateTime.time,
+                                )
                             }
                         }
-                        val intent = NavigationIntent.NavigateToRoute(route)
                         navigate(intent)
                     },
                     onSelectTime = {

@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LoopWithTooManyJumpStatements:KotlinxIoExt.kt:while</ID>
+    <ID>MagicNumber:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest$15</ID>
+    <ID>MagicNumber:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest$16</ID>
+    <ID>MagicNumber:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest$17</ID>
+    <ID>MagicNumber:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest$24</ID>
+    <ID>MagicNumber:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest$32</ID>
+    <ID>MagicNumber:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest$4</ID>
+    <ID>MagicNumber:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest$4_096</ID>
+    <ID>MagicNumber:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest$4_097</ID>
+    <ID>MagicNumber:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest$64</ID>
+    <ID>MagicNumber:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest$95</ID>
+    <ID>ReturnCount:AdaptiveSpool.kt:ChunkedMemoryRawSource$override fun readAtMostTo: Long</ID>
+    <ID>ReturnCount:ByteArrayExtConstantTimeEquals.ios.kt:@OptIn(ExperimentalForeignApi::class) actual fun ByteArray.constantTimeEquals: Boolean</ID>
+    <ID>TooGenericExceptionCaught:AdaptiveSpool.kt:AdaptiveSpool$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AdaptiveSpool.kt:AdaptiveSpool$error: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AdaptiveSpool.kt:AdaptiveSpool.&lt;no name provided&gt;$e: Throwable</ID>
+    <ID>TooManyFunctions:BouncyCastleDifferentialTest.kt:BouncyCastleDifferentialTest</ID>
+    <ID>TooManyFunctions:CryptoFunctions.kt:com.artemchep.keyguard.util.foundation.crypto.CryptoFunctions.kt</ID>
+    <ID>TooManyFunctions:CryptoPrimitives.kt:CryptoPrimitives</ID>
+    <ID>TooManyFunctions:PlatformCryptoPrimitives.kt:PlatformCryptoPrimitives : CryptoPrimitives</ID>
+  </CurrentIssues>
+</SmellBaseline>

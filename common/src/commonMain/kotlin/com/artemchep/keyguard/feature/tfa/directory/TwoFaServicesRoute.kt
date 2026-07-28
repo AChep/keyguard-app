@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -29,6 +30,7 @@ object TwoFaServicesRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
+        id = "watchtower.twoFaServices",
         leading = iconSmall(Icons.Outlined.Folder, Icons.Outlined.KeyguardTwoFa),
         title = Res.string.tfa_directory_title.wrap(),
         text = Res.string.tfa_directory_text.wrap(),
@@ -41,6 +43,8 @@ object TwoFaServicesRoute : Route {
             navigate(intent)
         },
     )
+
+    override val descriptor get() = RouteDescriptor.TwoFaServices
 
     @Composable
     override fun Content() {

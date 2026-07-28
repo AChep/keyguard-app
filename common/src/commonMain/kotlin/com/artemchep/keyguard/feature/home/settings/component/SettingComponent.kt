@@ -39,6 +39,11 @@ fun getSettingsButtonStartPadding(): Dp {
 }
 
 @Composable
+fun getSettingsTextStartPadding(): Dp {
+    return Dimens.contentPadding + 40.dp
+}
+
+@Composable
 fun SettingListItem(
     title: String,
     text: String? = null,

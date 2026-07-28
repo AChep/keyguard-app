@@ -2,13 +2,17 @@ package com.artemchep.keyguard.util.signalr.internal
 
 import com.artemchep.keyguard.util.signalr.internal.protocols.MessagePackHubProtocol
 import com.artemchep.keyguard.util.signalr.internal.util.handshake as performHandshake
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.time.Duration.Companion.seconds
@@ -93,6 +97,21 @@ class HubHandshakerTest {
         )
     }
 
+    @Test
+    fun `handshake timeout is reported as a connection failure`() = runTest {
+        val transport = FakeHandshakeTransport(response = null)
+
+        val exception = assertFailsWith<RuntimeException> {
+            handshake(transport)
+        }
+
+        assertFalse(exception is CancellationException)
+        assertEquals(
+            "Server timeout elapsed without receiving a handshake response.",
+            exception.message,
+        )
+    }
+
     private suspend fun handshake(
         transport: Transport,
     ) = performHandshake(
@@ -104,7 +123,7 @@ class HubHandshakerTest {
 }
 
 private class FakeHandshakeTransport(
-    private val response: ByteArray,
+    private val response: ByteArray?,
 ) : Transport {
     val sentTextMessages = mutableListOf<String>()
 
@@ -118,7 +137,9 @@ private class FakeHandshakeTransport(
         sentTextMessages += message
     }
 
-    override fun receive(): Flow<ByteArray> = flowOf(response)
+    override fun receive(): Flow<ByteArray> = response
+        ?.let(::flowOf)
+        ?: flow { awaitCancellation() }
 
     override suspend fun stop() = Unit
 }

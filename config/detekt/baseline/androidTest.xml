@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>MatchingDeclarationName:generator.kt:FeatureGenerator</ID>
+    <ID>MatchingDeclarationName:sends.kt:FeatureSends</ID>
+    <ID>MatchingDeclarationName:settings.kt:FeatureSettings</ID>
+    <ID>MatchingDeclarationName:watchtower.kt:FeatureWatchtower</ID>
+    <ID>NewLineAtEndOfFile:screen.kt:com.artemchep.test.feature.screen.kt</ID>
+  </CurrentIssues>
+</SmellBaseline>

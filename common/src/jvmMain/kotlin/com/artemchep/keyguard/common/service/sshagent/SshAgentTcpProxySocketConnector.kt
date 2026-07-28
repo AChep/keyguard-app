@@ -25,12 +25,6 @@ private class ProxyConnectionException(
     cause: Throwable?,
 ) : Exception(message, cause)
 
-private suspend fun defaultDelayMs(
-    millis: Long,
-) {
-    delay(millis)
-}
-
 internal suspend fun <T> withAndroidSshAgentProxySocket(
     proxyPort: Int,
     connectHostCandidates: List<String> = DEFAULT_CONNECT_HOST_CANDIDATES,
@@ -39,7 +33,11 @@ internal suspend fun <T> withAndroidSshAgentProxySocket(
     connectRetryDelayMs: Long = DEFAULT_CONNECT_RETRY_DELAY_MS,
     socketFactory: () -> Socket = ::Socket,
     monotonicTimeMs: () -> Long = { System.nanoTime() / 1_000_000L },
-    delayMs: suspend (Long) -> Unit = ::defaultDelayMs,
+    // Nullable with a `null` default (not `= { delay(it) }`): a suspend-functional
+    // parameter whose default-lambda body itself suspends crashes the Kotlin 2.4.0
+    // JVM backend (AddContinuationLowering.retargetToSuspendView). `null` means
+    // "use the built-in delay"; resolved at the call site below.
+    delayMs: (suspend (Long) -> Unit)? = null,
     block: suspend (Socket) -> T,
 ): T = coroutineScope {
     val deadlineAt = monotonicTimeMs() + connectDeadlineMs
@@ -104,7 +102,7 @@ internal suspend fun <T> withAndroidSshAgentProxySocket(
 
         if (monotonicTimeMs() < deadlineAt) {
             coroutineContext.ensureActive()
-            delayMs(connectRetryDelayMs)
+            if (delayMs != null) delayMs(connectRetryDelayMs) else delay(connectRetryDelayMs)
         }
     }
 

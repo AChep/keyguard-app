@@ -1,0 +1,485 @@
+package com.artemchep.keyguard.common.usecase.impl
+
+import com.artemchep.keyguard.common.model.DGpgKeyserverState
+import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.DWatchtowerAlertType
+import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
+import com.artemchep.keyguard.common.model.ignores
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmored
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPublicKeyArmored
+import com.artemchep.keyguard.common.service.gpgagent.isUsableAgentKey
+import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverStateRepository
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNull
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import org.kodein.di.DirectDI
+import org.kodein.di.instance
+import kotlin.time.Clock
+import kotlin.time.Instant
+
+private const val GPG_KEYS_VERSION = "1"
+private const val GPG_KEYSERVER_STALE_DAYS = 30L
+private const val SECONDS_IN_DAY = 86_400L
+private const val PARSE_CACHE_MAX_SIZE = 512
+
+class WatchtowerGpgKeyUnusable internal constructor(
+    private val policy: GpgWatchtowerPolicy,
+) : WatchtowerClientTyped {
+    override val type: Long
+        get() = DWatchtowerAlertType.GPG_KEY_UNUSABLE.value
+
+    constructor(directDI: DirectDI) : this(
+        policy = directDI.instance(),
+    )
+
+    override fun version(): Flow<String> = gpgWatchtowerDailyVersion(GPG_KEYS_VERSION)
+
+    override suspend fun process(
+        ciphers: List<DSecret>,
+    ): List<WatchtowerClientResult> {
+        val now = Clock.System.now()
+        return ciphers.map { cipher ->
+            val value = if (cipher.ignores(DWatchtowerAlertType.GPG_KEY_UNUSABLE)) {
+                null
+            } else {
+                policy.assess(cipher, now)
+                    ?.unusableIssues
+                    ?.joinToWatchtowerValue()
+            }
+            WatchtowerClientResult(
+                value = value,
+                threat = value != null,
+                cipher = cipher,
+            )
+        }
+    }
+}
+
+class WatchtowerWeakGpgKey internal constructor(
+    private val policy: GpgWatchtowerPolicy,
+) : WatchtowerClientTyped {
+    override val type: Long
+        get() = DWatchtowerAlertType.WEAK_GPG_KEY.value
+
+    constructor(directDI: DirectDI) : this(
+        policy = directDI.instance(),
+    )
+
+    // Weakness can be expiry-driven, so re-evaluate daily like the sibling
+    // WatchtowerGpgKeyUnusable rather than emitting a single static version.
+    override fun version(): Flow<String> = gpgWatchtowerDailyVersion(GPG_KEYS_VERSION)
+
+    override suspend fun process(
+        ciphers: List<DSecret>,
+    ): List<WatchtowerClientResult> {
+        val now = Clock.System.now()
+        return ciphers.map { cipher ->
+            val value = if (cipher.ignores(DWatchtowerAlertType.WEAK_GPG_KEY)) {
+                null
+            } else {
+                policy.assess(cipher, now)
+                    ?.weakIssues
+                    ?.joinToWatchtowerValue()
+            }
+            WatchtowerClientResult(
+                value = value,
+                threat = value != null,
+                cipher = cipher,
+            )
+        }
+    }
+}
+
+class WatchtowerGpgKeyPublishing(
+    private val keyserverStateRepository: GpgKeyserverStateRepository,
+) : WatchtowerClientTyped {
+    override val type: Long
+        get() = DWatchtowerAlertType.GPG_KEY_PUBLISHING.value
+
+    constructor(directDI: DirectDI) : this(
+        keyserverStateRepository = directDI.instance(),
+    )
+
+    override fun version(): Flow<String> = keyserverStateRepository
+        .getAll()
+        .map { states ->
+            val day = Clock.System.now().epochSeconds / SECONDS_IN_DAY
+            val stateVersion = states
+                .sortedWith(compareBy<DGpgKeyserverState> { it.fingerprint }.thenBy { it.cipherId })
+                .joinToString(separator = "|") { state ->
+                    listOf(
+                        state.fingerprint,
+                        state.cipherId.orEmpty(),
+                        state.verificationStatus.code.toString(),
+                        state.lastCheckedAt?.toString().orEmpty(),
+                        state.lastRefreshedAt?.toString().orEmpty(),
+                    ).joinToString(separator = ":")
+                }
+            "$GPG_KEYS_VERSION|$day|$stateVersion"
+        }
+
+    override suspend fun process(
+        ciphers: List<DSecret>,
+    ): List<WatchtowerClientResult> {
+        val now = Clock.System.now()
+        val states = keyserverStateRepository
+            .getAll()
+            .first()
+        val statesByCipherId = states
+            .filter { it.cipherId != null }
+            .groupBy { it.cipherId.orEmpty() }
+        val statesByFingerprint = states
+            .associateBy { it.fingerprint.normalizeGpgFingerprint() }
+
+        return ciphers.map { cipher ->
+            val value = if (cipher.ignores(DWatchtowerAlertType.GPG_KEY_PUBLISHING)) {
+                null
+            } else {
+                gpgKeyPublishingIssue(
+                    cipher = cipher,
+                    statesByCipherId = statesByCipherId,
+                    statesByFingerprint = statesByFingerprint,
+                    now = now,
+                )
+            }
+            WatchtowerClientResult(
+                value = value,
+                threat = value != null,
+                cipher = cipher,
+            )
+        }
+    }
+}
+
+internal class GpgWatchtowerPolicy(
+    private val parser: GpgPublicKeyParser,
+) {
+    constructor(directDI: DirectDI) : this(
+        parser = directDI.instance(),
+    )
+
+    private val cacheMutex = Mutex()
+    private val parseCache = mutableMapOf<String, GpgPublicKeyParseResult>()
+
+    private suspend fun parseCached(
+        publicKeyArmored: String,
+    ): GpgPublicKeyParseResult = cacheMutex.withLock {
+        if (parseCache.size > PARSE_CACHE_MAX_SIZE) {
+            parseCache.clear()
+        }
+        parseCache.getOrPut(publicKeyArmored) {
+            parser.parse(publicKeyArmored)
+        }
+    }
+
+    suspend fun assess(
+        cipher: DSecret,
+        now: Instant,
+    ): GpgWatchtowerAssessment? {
+        if (!cipher.isGpgWatchtowerTarget()) {
+            return null
+        }
+
+        val metadata = cipher.parseGpgAgentMetadataOrNull()
+        val privateKeyArmored = cipher.getGpgAgentPrivateKeyArmored()
+            ?.takeIf { it.isNotBlank() }
+        val publicKeyArmored = cipher.getGpgAgentPublicKeyArmored()
+            ?.takeIf { it.isNotBlank() }
+        if (publicKeyArmored == null) {
+            val issues = if (privateKeyArmored != null || metadata != null) {
+                listOf(GpgWatchtowerIssue.MISSING_PUBLIC_KEY.code)
+            } else {
+                emptyList()
+            }
+            return GpgWatchtowerAssessment(
+                fingerprint = cipher.gpgWatchtowerFingerprint(),
+                unusableIssues = issues,
+            )
+        }
+
+        val keys = when (val result = parseCached(publicKeyArmored)) {
+            is GpgPublicKeyParseResult.Success -> result.keys
+            is GpgPublicKeyParseResult.Error -> {
+                if (result.reason == GpgPublicKeyParseError.Unsupported) {
+                    return null
+                }
+                return GpgWatchtowerAssessment(
+                    fingerprint = cipher.gpgWatchtowerFingerprint(),
+                    unusableIssues = listOf(GpgWatchtowerIssue.MALFORMED_PUBLIC_KEY.code),
+                )
+            }
+        }
+        if (keys.isEmpty()) {
+            return GpgWatchtowerAssessment(
+                fingerprint = cipher.gpgWatchtowerFingerprint(),
+                unusableIssues = listOf(GpgWatchtowerIssue.MALFORMED_PUBLIC_KEY.code),
+            )
+        }
+
+        val expectedFingerprint = cipher.gpgWatchtowerFingerprint()
+        val key = expectedFingerprint
+            ?.let { expected ->
+                keys.firstOrNull { key ->
+                    key.fingerprint.normalizeGpgFingerprint() == expected
+                }
+            }
+            ?: keys.first()
+        if (expectedFingerprint != null &&
+            key.fingerprint.normalizeGpgFingerprint() != expectedFingerprint
+        ) {
+            return GpgWatchtowerAssessment(
+                fingerprint = expectedFingerprint,
+                unusableIssues = listOf(GpgWatchtowerIssue.FINGERPRINT_MISMATCH.code),
+            )
+        }
+
+        return GpgWatchtowerAssessment(
+            fingerprint = key.fingerprint.normalizeGpgFingerprint(),
+            unusableIssues = buildUnusableIssues(
+                key = key,
+                metadata = metadata,
+                privateKeyArmored = privateKeyArmored,
+                now = now,
+            ),
+            weakIssues = buildWeakIssues(key),
+        )
+    }
+
+    private fun buildUnusableIssues(
+        key: GpgPublicKeyInfo,
+        metadata: GpgAgentKeyMetadata?,
+        privateKeyArmored: String?,
+        now: Instant,
+    ): List<String> = buildList {
+        val primaryActive = !key.revoked && !key.isExpired(now)
+        if (key.revoked) {
+            add(GpgWatchtowerIssue.KEY_REVOKED.code)
+        }
+        if (key.isExpired(now)) {
+            add(GpgWatchtowerIssue.KEY_EXPIRED.code)
+        }
+
+        val metadataKeys = metadata?.keys.orEmpty()
+        val expectedSign = metadataKeys
+            .takeIf { it.isNotEmpty() }
+            ?.any { it.canSign }
+            ?: key.canSign
+        val expectedDecrypt = metadataKeys
+            .takeIf { it.isNotEmpty() }
+            ?.any { it.canDecrypt }
+            ?: key.canEncrypt
+
+        if (!expectedSign && !expectedDecrypt) {
+            add(GpgWatchtowerIssue.NO_CAPABILITY.code)
+        }
+
+        if (privateKeyArmored != null) {
+            if (metadata == null) {
+                add(GpgWatchtowerIssue.MISSING_AGENT_METADATA.code)
+            } else {
+                val hasAgentKey = metadataKeys.any { it.isUsableAgentKey }
+                if (!hasAgentKey) {
+                    add(GpgWatchtowerIssue.MISSING_AGENT_KEY.code)
+                }
+                val publicFingerprints = key.publicPartFingerprints()
+                val missingMetadataFingerprints = metadataKeys
+                    .asSequence()
+                    .mapNotNull { it.fingerprint.normalizeGpgFingerprint().takeIf(String::isNotEmpty) }
+                    .any { it !in publicFingerprints }
+                if (missingMetadataFingerprints) {
+                    add(GpgWatchtowerIssue.METADATA_MISMATCH.code)
+                }
+            }
+        }
+
+        val usableSign = primaryActive && key.hasUsableSignKey(now)
+        val usableDecrypt = primaryActive && key.hasUsableEncryptionKey(now)
+        if (expectedSign && !usableSign) {
+            add(GpgWatchtowerIssue.NO_SIGNING_KEY.code)
+        }
+        if (expectedDecrypt && !usableDecrypt) {
+            add(GpgWatchtowerIssue.NO_DECRYPTION_KEY.code)
+        }
+    }.distinct()
+
+    private fun buildWeakIssues(
+        key: GpgPublicKeyInfo,
+    ): List<String> = buildList {
+        weakIssueFor(
+            algorithm = key.algorithm,
+            bitStrength = key.bitStrength,
+        )?.let(::add)
+        key.subKeys.forEach { subKey ->
+            weakIssueFor(
+                algorithm = subKey.algorithm,
+                bitStrength = subKey.bitStrength,
+            )?.let(::add)
+        }
+    }.distinct()
+
+    private fun weakIssueFor(
+        algorithm: String,
+        bitStrength: Int?,
+    ): String? {
+        val normalized = algorithm.uppercase()
+        return when {
+            normalized == "RSA" && bitStrength != null && bitStrength < 2048 ->
+                "rsa_$bitStrength"
+
+            normalized == "DSA" ->
+                GpgWatchtowerIssue.DSA.code
+
+            normalized == "ELGAMAL" ->
+                GpgWatchtowerIssue.ELGAMAL.code
+
+            normalized.startsWith("ALGO_") ->
+                "unknown_algorithm_$normalized"
+
+            else -> null
+        }
+    }
+}
+
+internal data class GpgWatchtowerAssessment(
+    val fingerprint: String?,
+    val unusableIssues: List<String> = emptyList(),
+    val weakIssues: List<String> = emptyList(),
+)
+
+private enum class GpgWatchtowerIssue(
+    val code: String,
+) {
+    MISSING_PUBLIC_KEY("missing_public_key"),
+    MALFORMED_PUBLIC_KEY("malformed_public_key"),
+    FINGERPRINT_MISMATCH("fingerprint_mismatch"),
+    KEY_REVOKED("revoked"),
+    KEY_EXPIRED("expired"),
+    NO_CAPABILITY("no_capability"),
+    MISSING_AGENT_METADATA("missing_agent_metadata"),
+    MISSING_AGENT_KEY("missing_agent_key"),
+    METADATA_MISMATCH("metadata_mismatch"),
+    NO_SIGNING_KEY("no_signing_key"),
+    NO_DECRYPTION_KEY("no_decryption_key"),
+    DSA("dsa"),
+    ELGAMAL("elgamal"),
+}
+
+private fun gpgWatchtowerDailyVersion(
+    version: String,
+): Flow<String> = flow {
+    val seconds = Clock.System.now().epochSeconds
+    val days = seconds / SECONDS_IN_DAY
+    emit("$version|$days")
+}
+
+private fun gpgKeyPublishingIssue(
+    cipher: DSecret,
+    statesByCipherId: Map<String, List<DGpgKeyserverState>>,
+    statesByFingerprint: Map<String, DGpgKeyserverState>,
+    now: Instant,
+): String? {
+    if (!cipher.isGpgWatchtowerTarget()) {
+        return null
+    }
+    val fingerprint = cipher.gpgWatchtowerFingerprint()
+    val state = statesByCipherId[cipher.id]
+        ?.firstOrNull { state ->
+            fingerprint == null ||
+                    state.fingerprint.normalizeGpgFingerprint() == fingerprint
+        }
+        ?: fingerprint?.let(statesByFingerprint::get)
+        ?: return "unknown"
+    return when (state.verificationStatus) {
+        GpgKeyserverVerificationStatus.REVOKED -> "revoked"
+        GpgKeyserverVerificationStatus.UNKNOWN -> "unknown"
+        GpgKeyserverVerificationStatus.NOT_FOUND -> "not_found"
+        GpgKeyserverVerificationStatus.FOUND_UNVERIFIED -> "unverified"
+        GpgKeyserverVerificationStatus.VERIFIED -> {
+            val lastCheckedAt = state.lastCheckedAt
+                ?: return "stale"
+            val ageSeconds = now.epochSeconds - lastCheckedAt.epochSeconds
+            "stale".takeIf { ageSeconds >= GPG_KEYSERVER_STALE_DAYS * SECONDS_IN_DAY }
+        }
+    }
+}
+
+internal fun DSecret.isGpgWatchtowerTarget(): Boolean =
+    type == DSecret.Type.GpgKey ||
+            getGpgAgentPrivateKeyArmored()?.isNotBlank() == true ||
+            getGpgAgentPublicKeyArmored()?.isNotBlank() == true ||
+            getGpgAgentFingerprint()?.isNotBlank() == true ||
+            parseGpgAgentMetadataOrNull()?.keys?.isNotEmpty() == true
+
+private fun DSecret.gpgWatchtowerFingerprint(): String? =
+    getGpgAgentFingerprint()
+        ?.normalizeGpgFingerprint()
+        ?.takeIf(String::isNotEmpty)
+        ?: parseGpgAgentMetadataOrNull()
+            ?.keys
+            ?.firstNotNullOfOrNull { key ->
+                key.fingerprint
+                    .normalizeGpgFingerprint()
+                    .takeIf(String::isNotEmpty)
+            }
+
+private fun GpgPublicKeyInfo.publicPartFingerprints(): Set<String> =
+    buildSet {
+        add(fingerprint.normalizeGpgFingerprint())
+        subKeys.forEach { subKey ->
+            add(subKey.fingerprint.normalizeGpgFingerprint())
+        }
+    }
+
+private fun GpgPublicKeyInfo.hasUsableSignKey(
+    now: Instant,
+): Boolean {
+    if (!canSign) {
+        return false
+    }
+    val signSubKeys = subKeys.filter { it.canSign }
+    if (signSubKeys.isEmpty()) {
+        return true
+    }
+    return signSubKeys.any { it.isUsable(now) }
+}
+
+private fun GpgPublicKeyInfo.hasUsableEncryptionKey(
+    now: Instant,
+): Boolean {
+    if (!canEncrypt) {
+        return false
+    }
+    val encryptionSubKeys = subKeys.filter { it.canEncrypt }
+    if (encryptionSubKeys.isEmpty()) {
+        return true
+    }
+    return encryptionSubKeys.any { it.isUsable(now) }
+}
+
+private fun GpgPublicSubKeyInfo.isUsable(
+    now: Instant,
+): Boolean = !revoked && !isExpired(now)
+
+private fun GpgPublicKeyInfo.isExpired(
+    now: Instant,
+): Boolean = expiresAt?.let { it <= now } == true
+
+private fun GpgPublicSubKeyInfo.isExpired(
+    now: Instant,
+): Boolean = expiresAt?.let { it <= now } == true
+
+private fun List<String>.joinToWatchtowerValue(): String? =
+    takeIf { it.isNotEmpty() }
+        ?.joinToString(separator = ",")

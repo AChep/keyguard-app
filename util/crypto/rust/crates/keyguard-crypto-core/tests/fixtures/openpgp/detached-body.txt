@@ -1,0 +1,2 @@
+Independent OpenPGP verification fixture.
+Second line.

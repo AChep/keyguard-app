@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
 import kotlinx.coroutines.flow.Flow
 
@@ -17,7 +17,7 @@ data class ElevatedAccessState(
     @Immutable
     data class Content(
         val sideEffects: UnlockState.SideEffects,
-        val password: TextFieldModel2,
+        val password: TextFieldModel,
         val biometric: Biometric? = null,
         val yubiKey: YubiKey? = null,
         val isLoading: Boolean = false,

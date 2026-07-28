@@ -4,8 +4,10 @@ import androidx.compose.runtime.Composable
 import arrow.core.right
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
@@ -30,6 +32,14 @@ fun produceTwoFaServiceViewState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    twoFaServiceViewStateProducer(
+        args = args,
+    )
+}
+
+suspend fun RememberStateFlowScope.twoFaServiceViewStateProducer(
+    args: TwoFaServiceViewDialogRoute.Args,
+): Flow<Loadable<TwoFaServiceViewState>> {
     val content = TwoFaServiceViewState.Content(
         model = args.model,
     )
@@ -40,5 +50,5 @@ fun produceTwoFaServiceViewState(
             navigatePopSelf()
         },
     )
-    flowOf(Loadable.Ok(state))
+    return flowOf(Loadable.Ok(state))
 }

@@ -1,15 +1,15 @@
 package com.artemchep.keyguard.feature.add.attachment
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.add.AddStateItem
 import com.artemchep.keyguard.feature.add.LocalStateItem
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.Validated
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 
@@ -21,27 +21,28 @@ internal data class AttachmentItemStateConfig(
 )
 
 internal fun attachmentNameTextField(
-    name: String,
+    cell: TextCell,
     editable: Boolean,
-    state: MutableState<String>,
+    handle: TextFieldHandle,
     validated: Validated<String> = Validated.Success(
-        model = name,
+        model = cell.text,
     ),
-): TextFieldModel2 = if (editable) {
-    TextFieldModel2.of(
-        state = state,
+): TextFieldModel = if (editable) {
+    TextFieldModel.of(
+        cell = cell,
+        handle = handle,
         validated = validated,
-        onChange = state::value::set,
     )
 } else {
-    TextFieldModel2(
-        state = mutableStateOf(name),
+    TextFieldModel(
+        text = cell.text,
+        textRevision = cell.revision,
         onChange = null,
     )
 }
 
 internal fun attachmentState(
-    name: TextFieldModel2,
+    name: TextFieldModel,
     config: AttachmentItemStateConfig,
 ): AddStateItem.Attachment.State = AddStateItem.Attachment.State(
     id = config.id,
@@ -61,7 +62,7 @@ context(stateScope: RememberStateFlowScope)
 internal fun <Request> createAttachmentStateItem(
     key: String,
     initialName: String,
-    nameSink: MutableStateFlow<String>? = null,
+    nameHandle: TextFieldHandle? = null,
     initialConfig: AttachmentItemStateConfig,
     configFlow: Flow<AttachmentItemStateConfig>,
     validateName: (String) -> Validated<String> = {
@@ -72,23 +73,20 @@ internal fun <Request> createAttachmentStateItem(
     populator: Request.(AddStateItem.Attachment.State) -> Request,
 ): LocalStateItem<AddStateItem.Attachment.State, Request> = with(stateScope) {
     val nameKey = "$key.name"
-    val resolvedNameSink = nameSink
-        ?: mutablePersistedFlow(nameKey) {
-        initialName
-    }
-    val nameState = mutableComposeState(resolvedNameSink)
-    val initialStateName = resolvedNameSink.value
+    val resolvedNameHandle = nameHandle
+        ?: textFieldHandle(nameKey, initial = initialName)
+    val initialStateCell = resolvedNameHandle.sink.value
 
     val stateFlow = combine(
-        resolvedNameSink,
+        resolvedNameHandle.sink,
         configFlow,
-    ) { name, config ->
+    ) { cell, config ->
         attachmentState(
             name = attachmentNameTextField(
-                name = name,
+                cell = cell,
                 editable = config.editable,
-                state = nameState,
-                validated = validateName(name),
+                handle = resolvedNameHandle,
+                validated = validateName(cell.text),
             ),
             config = config,
         )
@@ -98,10 +96,10 @@ internal fun <Request> createAttachmentStateItem(
             started = SharingStarted.WhileSubscribed(),
             initialValue = attachmentState(
                 name = attachmentNameTextField(
-                    name = initialStateName,
+                    cell = initialStateCell,
                     editable = initialConfig.editable,
-                    state = nameState,
-                    validated = validateName(initialStateName),
+                    handle = resolvedNameHandle,
+                    validated = validateName(initialStateCell.text),
                 ),
                 config = initialConfig,
             ),

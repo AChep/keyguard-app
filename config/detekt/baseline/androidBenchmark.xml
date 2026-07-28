@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>LongMethod:VaultUnlockMemoryBenchmark.kt:ArtGarbageCollectionMetric$override fun getMeasurements: List&lt;Metric.Measurement&gt;</ID>
+    <ID>MagicNumber:VaultUnlockMemoryBenchmark.kt:ArtGarbageCollectionMetric$1_000_000.0</ID>
+  </CurrentIssues>
+</SmellBaseline>

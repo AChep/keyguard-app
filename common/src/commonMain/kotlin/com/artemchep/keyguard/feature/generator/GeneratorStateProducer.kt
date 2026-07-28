@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.AlternateEmail
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Domain
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Info
@@ -43,7 +45,10 @@ import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
 import com.artemchep.keyguard.common.model.DGeneratorHistory
 import com.artemchep.keyguard.common.model.DGeneratorWordlist
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GetPasswordResult
+import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.model.GpgKeyExpiry
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyPairConfig
 import com.artemchep.keyguard.common.model.Loadable
@@ -53,6 +58,9 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.isExpensive
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.usecase.GpgKeyExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
@@ -61,6 +69,7 @@ import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
 import com.artemchep.keyguard.common.usecase.CopyText
+import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
@@ -73,17 +82,27 @@ import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.feature.auth.common.IntFieldModel
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
+import com.artemchep.keyguard.feature.auth.common.toModel
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_DOMAIN
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
 import com.artemchep.keyguard.feature.auth.common.util.validateUri
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
+import com.artemchep.keyguard.feature.datedaypicker.DateDayPickerRoute
+import com.artemchep.keyguard.feature.datedaypicker.createDateDayPickerDialogIntent
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListRoute
+import com.artemchep.keyguard.feature.generator.gpgkey.GpgKeyActions
 import com.artemchep.keyguard.feature.generator.history.GeneratorHistoryRoute
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
 import com.artemchep.keyguard.feature.generator.util.findBestUserEmailOrNull
 import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
+import com.artemchep.keyguard.feature.gpgkey.GpgKeyExpiryPreset
+import com.artemchep.keyguard.feature.gpgkey.defaultGpgKeyExpirationDate
+import com.artemchep.keyguard.feature.gpgkey.gpgKeyExpirationDateRange
+import com.artemchep.keyguard.feature.gpgkey.normalizeGpgKeyCustomExpiryDate
+import com.artemchep.keyguard.feature.gpgkey.shortDescription
+import com.artemchep.keyguard.feature.gpgkey.titleResource
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -138,6 +157,11 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import com.artemchep.keyguard.platform.leAllInstances
 import org.kodein.di.compose.localDI
@@ -191,6 +215,8 @@ private const val EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_MIN = 3
 private const val EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_MAX = 10
 
 private const val KEY_PAIR_RSA_LENGTH_DEFAULT = "4096"
+private val GPG_KEY_RSA_LENGTH_DEFAULT = GpgKeyConfig.RsaLength.default.size.toString()
+private val GPG_KEY_EXPIRY_DEFAULT = GpgKeyExpiryPreset.default.key
 
 private const val PIN_CODE_LENGTH_DEFAULT = 4L
 private const val PIN_CODE_LENGTH_MIN = 3
@@ -220,7 +246,11 @@ fun produceGeneratorState(
         keyPairExport = instance(),
         publicKeyExport = instance(),
         privateKeyExport = instance(),
+        gpgKeyExport = instance(),
+        gpgPublicKeyExport = instance(),
+        gpgPrivateKeyExport = instance(),
         numberFormatter = instance(),
+        dateFormatter = instance(),
         getCanWrite = instance(),
         tldService = instance(),
         clipboardService = instance(),
@@ -237,6 +267,7 @@ private const val PREFIX_EMAIL_CATCH_ALL = "email_catch_all"
 private const val PREFIX_EMAIL_PLUS_ADDRESSING = "email_plus_addressing"
 private const val PREFIX_EMAIL_SUBDOMAIN_ADDRESSING = "email_subdomain_addressing"
 private const val PREFIX_KEY_PAIR = "key_pair"
+private const val PREFIX_GPG_KEY = "gpg_key"
 private const val PREFIX_PIN_CODE = "pin_code"
 
 private data class WordlistResult(
@@ -261,7 +292,11 @@ fun produceGeneratorState(
     keyPairExport: KeyPairExport,
     publicKeyExport: KeyPublicExport,
     privateKeyExport: KeyPrivateExport,
+    gpgKeyExport: GpgKeyExport,
+    gpgPublicKeyExport: GpgKeyPublicExport,
+    gpgPrivateKeyExport: GpgKeyPrivateExport,
     numberFormatter: NumberFormatter,
+    dateFormatter: DateFormatter,
     getCanWrite: GetCanWrite,
     tldService: TldService,
     clipboardService: ClipboardService,
@@ -275,8 +310,62 @@ fun produceGeneratorState(
         getPasswordStrength,
         getCanWrite,
         clipboardService,
+        dateFormatter,
     ),
 ) {
+    generatorStateProducer(
+        mode = mode,
+        args = args,
+        key = key,
+        addGeneratorHistory = addGeneratorHistory,
+        getPassword = getPassword,
+        getPasswordStrength = getPasswordStrength,
+        getProfiles = getProfiles,
+        getEmailRelays = getEmailRelays,
+        getWordlists = getWordlists,
+        getWordlistPrimitive = getWordlistPrimitive,
+        cryptoGenerator = cryptoGenerator,
+        keyPairExport = keyPairExport,
+        publicKeyExport = publicKeyExport,
+        privateKeyExport = privateKeyExport,
+        gpgKeyExport = gpgKeyExport,
+        gpgPublicKeyExport = gpgPublicKeyExport,
+        gpgPrivateKeyExport = gpgPrivateKeyExport,
+        numberFormatter = numberFormatter,
+        dateFormatter = dateFormatter,
+        getCanWrite = getCanWrite,
+        tldService = tldService,
+        clipboardService = clipboardService,
+        emailRelays = emailRelays,
+    )
+}
+
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalMaterial3Api::class)
+suspend fun RememberStateFlowScope.generatorStateProducer(
+    mode: AppMode,
+    args: GeneratorRoute.Args,
+    key: String? = null,
+    addGeneratorHistory: AddGeneratorHistory?,
+    getPassword: GetPassword,
+    getPasswordStrength: GetPasswordStrength,
+    getProfiles: GetProfiles?,
+    getEmailRelays: GetEmailRelays?,
+    getWordlists: GetWordlists?,
+    getWordlistPrimitive: GetWordlistPrimitive?,
+    cryptoGenerator: CryptoGenerator,
+    keyPairExport: KeyPairExport,
+    publicKeyExport: KeyPublicExport,
+    privateKeyExport: KeyPrivateExport,
+    gpgKeyExport: GpgKeyExport,
+    gpgPublicKeyExport: GpgKeyPublicExport,
+    gpgPrivateKeyExport: GpgKeyPrivateExport,
+    numberFormatter: NumberFormatter,
+    dateFormatter: DateFormatter,
+    getCanWrite: GetCanWrite,
+    tldService: TldService,
+    clipboardService: ClipboardService,
+    emailRelays: List<EmailRelay>,
+): Flow<Loadable<GeneratorState>> {
     val generatorContext = mode.generatorTarget
     val copyItemFactory = copier()
 
@@ -294,6 +383,7 @@ fun produceGeneratorState(
     fun checkTypeMatchesArgs(type: GeneratorType2) =
         (type.password && args.password) ||
                 (type.sshKey && args.sshKey) ||
+                (type.gpgKey && args.gpgKey) ||
                 (type.username && args.username)
 
     val typesAllStatic = listOf(
@@ -305,6 +395,7 @@ fun produceGeneratorState(
         GeneratorType2.EmailPlusAddressing,
         GeneratorType2.EmailSubdomainAddressing,
         GeneratorType2.SshKey,
+        GeneratorType2.GpgKey,
     ).filter(::checkTypeMatchesArgs)
     val typesRelayFlow = if (getEmailRelays != null && args.username) {
         getEmailRelays()
@@ -366,7 +457,7 @@ fun produceGeneratorState(
         getProfiles()
             .toIO()
     } else {
-        val e = RuntimeException()
+        val e = RuntimeException("Profiles are not available in this environment.")
         ioRaise(e)
     }
         .map { profiles ->
@@ -411,13 +502,15 @@ fun produceGeneratorState(
         .onEach { items ->
             val shouldAutoSelect = items.none { it.key == typeSink.value }
             if (shouldAutoSelect) {
-                typeSink.value = typeDefaultName
+                typeSink.value = items.firstOrNull()?.key
+                    ?: typeDefaultName
             }
         }
         .launchIn(screenScope)
     val typeFlow = typeSink
         .combine(typesAllFlow) { typeKey, items ->
             items.firstOrNull { it.key == typeKey }
+                ?: items.firstOrNull()
                 ?: GeneratorType2.Password
         }
     val tipVisibleSink = mutablePersistedFlow(
@@ -466,6 +559,7 @@ fun produceGeneratorState(
                 )
                 val selected = wordlistId == null || wordlistId <= 0L
                 this += FlatItemAction(
+                    id = "generator.wordlist.default",
                     title = TextHolder.Value(defaultWordlistName),
                     text = TextHolder.Value(text),
                     selected = selected,
@@ -483,6 +577,7 @@ fun produceGeneratorState(
                         numberFormatter.formatNumber(quantity),
                     )
                     this += FlatItemAction(
+                        id = "generator.wordlist.${wordlist.idRaw}",
                         title = TextHolder.Value(wordlist.name),
                         leading = {
                             val backgroundColor = if (MaterialTheme.colorScheme.isDark) {
@@ -583,11 +678,11 @@ fun produceGeneratorState(
         key = "$PREFIX_PASSPHRASE.length",
         storage = storage,
     ) { PASSPHRASE_LENGTH_DEFAULT }
-    val passphraseDelimiterSink = mutablePersistedFlow(
+    val passphraseDelimiterHandle = textFieldHandle(
         key = "$PREFIX_PASSPHRASE.delimiter",
+        initial = PASSPHRASE_DELIMITER_DEFAULT,
         storage = storage,
-    ) { PASSPHRASE_DELIMITER_DEFAULT }
-    val passphraseDelimiterState = mutableComposeState(passphraseDelimiterSink)
+    )
     val passphraseCapitalizeSink = mutablePersistedFlow(
         key = "$PREFIX_PASSPHRASE.capitalize",
         storage = storage,
@@ -611,11 +706,11 @@ fun produceGeneratorState(
         key = "$PREFIX_USERNAME.length",
         storage = storage,
     ) { USERNAME_LENGTH_DEFAULT }
-    val usernameDelimiterSink = mutablePersistedFlow(
+    val usernameDelimiterHandle = textFieldHandle(
         key = "$PREFIX_USERNAME.delimiter",
+        initial = USERNAME_DELIMITER_DEFAULT,
         storage = storage,
-    ) { USERNAME_DELIMITER_DEFAULT }
-    val usernameDelimiterState = mutableComposeState(usernameDelimiterSink)
+    )
     val usernameCapitalizeSink = mutablePersistedFlow(
         key = "$PREFIX_USERNAME.capitalize",
         storage = storage,
@@ -624,11 +719,11 @@ fun produceGeneratorState(
         key = "$PREFIX_USERNAME.include_number",
         storage = storage,
     ) { USERNAME_NUMBER_DEFAULT }
-    val usernameCustomWordSink = mutablePersistedFlow(
+    val usernameCustomWordHandle = textFieldHandle(
         key = "$PREFIX_USERNAME.custom_word",
+        initial = USERNAME_CUSTOM_WORD_DEFAULT,
         storage = storage,
-    ) { USERNAME_CUSTOM_WORD_DEFAULT }
-    val usernameCustomWordState = mutableComposeState(usernameCustomWordSink)
+    )
     val usernameWordlistIdSink = mutablePersistedFlow(
         key = "$PREFIX_USERNAME.wordlist_id",
         storage = storage,
@@ -639,46 +734,46 @@ fun produceGeneratorState(
         key = "$PREFIX_EMAIL_CATCH_ALL.length",
         storage = storage,
     ) { EMAIL_CATCH_ALL_LENGTH_DEFAULT }
-    val emailCatchAllDomainSink = mutablePersistedFlow(
+    val emailCatchAllDomainHandle = textFieldHandle(
         key = "$PREFIX_EMAIL_CATCH_ALL.domain",
         storage = storage,
-    ) { "" }
-    val emailCatchAllDomainState = mutableComposeState(emailCatchAllDomainSink)
-    if (emailCatchAllDomainState.value.isEmpty()) {
-        emailCatchAllDomainState.value =
-            getUserDomainDefaultIo.attempt().bind().getOrNull().orEmpty()
+    )
+    if (emailCatchAllDomainHandle.sink.value.text.isEmpty()) {
+        emailCatchAllDomainHandle.setText(
+            getUserDomainDefaultIo.attempt().bind().getOrNull().orEmpty(),
+        )
     }
     // email plus addressing
     val emailPlusAddressingLengthSink = mutablePersistedFlow(
         key = "$PREFIX_EMAIL_PLUS_ADDRESSING.length",
         storage = storage,
     ) { EMAIL_PLUS_ADDRESSING_LENGTH_DEFAULT }
-    val emailPlusAddressingEmailSink = mutablePersistedFlow(
+    val emailPlusAddressingEmailHandle = textFieldHandle(
         key = "$PREFIX_EMAIL_PLUS_ADDRESSING.email",
         storage = storage,
-    ) { "" }
-    val emailPlusAddressingEmailState = mutableComposeState(emailPlusAddressingEmailSink)
-    if (emailPlusAddressingEmailState.value.isEmpty()) {
-        emailPlusAddressingEmailState.value =
-            getUserEmailDefaultIo.attempt().bind().getOrNull().orEmpty()
+    )
+    if (emailPlusAddressingEmailHandle.sink.value.text.isEmpty()) {
+        emailPlusAddressingEmailHandle.setText(
+            getUserEmailDefaultIo.attempt().bind().getOrNull().orEmpty(),
+        )
     }
     // email subdomain addressing
     val emailSubdomainAddressingLengthSink = mutablePersistedFlow(
         key = "$PREFIX_EMAIL_SUBDOMAIN_ADDRESSING.length",
         storage = storage,
     ) { EMAIL_SUBDOMAIN_ADDRESSING_LENGTH_DEFAULT }
-    val emailSubdomainAddressingEmailSink = mutablePersistedFlow(
+    val emailSubdomainAddressingEmailHandle = textFieldHandle(
         key = "$PREFIX_EMAIL_SUBDOMAIN_ADDRESSING.email",
         storage = storage,
-    ) { "" }
-    val emailSubdomainAddressingEmailState = mutableComposeState(emailSubdomainAddressingEmailSink)
-    if (emailSubdomainAddressingEmailState.value.isEmpty()) {
-        emailSubdomainAddressingEmailState.value =
+    )
+    if (emailSubdomainAddressingEmailHandle.sink.value.text.isEmpty()) {
+        emailSubdomainAddressingEmailHandle.setText(
             getUserEmailDefaultIo.attempt().bind().getOrNull().orEmpty()
                 .takeIf { email ->
                     email.substringAfterLast('@', "") !in Emails
                 }
-                .orEmpty()
+                .orEmpty(),
+        )
     }
     // key pair
     val keyPairTypeSink = mutablePersistedFlow(
@@ -689,6 +784,100 @@ fun produceGeneratorState(
         key = "$PREFIX_KEY_PAIR.rsa.length",
         storage = storage,
     ) { KEY_PAIR_RSA_LENGTH_DEFAULT }
+    // gpg key
+    val gpgKeyTypeSink = mutablePersistedFlow(
+        key = "$PREFIX_GPG_KEY.type",
+        storage = storage,
+    ) { GpgKeyConfig.Type.default.key }
+    val gpgKeyRsaLengthSink = mutablePersistedFlow(
+        key = "$PREFIX_GPG_KEY.rsa.length",
+        storage = storage,
+    ) { GPG_KEY_RSA_LENGTH_DEFAULT }
+    val gpgKeyExpiryOptionSink = mutablePersistedFlow(
+        key = "$PREFIX_GPG_KEY.expiry.option",
+        storage = storage,
+    ) { GPG_KEY_EXPIRY_DEFAULT }
+
+    fun currentGpgKeyExpiryDate(timeZone: TimeZone): LocalDate = Clock.System.now()
+        .toLocalDateTime(timeZone)
+        .date
+
+    val initialGpgKeyExpiryTimeZone = TimeZone.currentSystemDefault()
+    val initialGpgKeyExpiryDate = currentGpgKeyExpiryDate(initialGpgKeyExpiryTimeZone)
+    val gpgKeyCustomExpiryDateSink = mutablePersistedFlow(
+        key = "$PREFIX_GPG_KEY.expiry.custom_date",
+        storage = storage,
+    ) {
+        defaultGpgKeyExpirationDate(initialGpgKeyExpiryDate).toString()
+    }
+    val gpgKeyNameHandle = textFieldHandle(
+        key = "$PREFIX_GPG_KEY.name",
+        storage = storage,
+    )
+    val gpgKeyEmailHandle = textFieldHandle(
+        key = "$PREFIX_GPG_KEY.email",
+        storage = storage,
+    )
+    if (gpgKeyEmailHandle.sink.value.text.isEmpty()) {
+        gpgKeyEmailHandle.setText(
+            getUserEmailDefaultIo.attempt().bind().getOrNull().orEmpty()
+        )
+    }
+
+    // Persisted generator settings can outlive their selected date. Normalize an
+    // invalid or elapsed value immediately so the filter and generated key agree.
+    //
+    // TODO: Do not consume the `gpgKeyCustomExpiryDateSink` directly, as it might have
+    //  an outdated custom date set. Instead consume a flow with a pair of custom and normalized
+    //  date so we can show an error on the UI if that date is now invalid.
+    val normalizedGpgKeyCustomExpiryDate = normalizeGpgKeyCustomExpiryDate(
+        rawDate = gpgKeyCustomExpiryDateSink.value,
+        currentDate = initialGpgKeyExpiryDate,
+    )
+    if (gpgKeyCustomExpiryDateSink.value != normalizedGpgKeyCustomExpiryDate.toString()) {
+        gpgKeyCustomExpiryDateSink.value = normalizedGpgKeyCustomExpiryDate.toString()
+    }
+
+    fun gpgKeyExpiry(
+        rawOption: String,
+        rawCustomDate: String,
+    ): GpgKeyExpiry {
+        val preset = GpgKeyExpiryPreset.getOrDefault(rawOption)
+        val customDate = if (preset == GpgKeyExpiryPreset.Custom) {
+            val timeZone = TimeZone.currentSystemDefault()
+            normalizeGpgKeyCustomExpiryDate(
+                rawDate = rawCustomDate,
+                currentDate = currentGpgKeyExpiryDate(timeZone),
+            )
+        } else {
+            null
+        }
+        return preset.toPolicy(customDate)
+            ?: GpgKeyExpiry.default
+    }
+
+    fun selectCustomGpgKeyExpiryDate() {
+        val timeZone = TimeZone.currentSystemDefault()
+        val today = currentGpgKeyExpiryDate(timeZone)
+        val selectableDates = gpgKeyExpirationDateRange(
+            currentDate = today,
+            maximumDate = today.plus(100, DateTimeUnit.YEAR),
+        ) ?: return
+        val current = normalizeGpgKeyCustomExpiryDate(
+            rawDate = gpgKeyCustomExpiryDateSink.value,
+            currentDate = today,
+        )
+        val intent = createDateDayPickerDialogIntent(
+            args = DateDayPickerRoute.Args(
+                initialDate = current,
+                selectableDates = selectableDates,
+            ),
+        ) { date ->
+            gpgKeyCustomExpiryDateSink.value = date.toString()
+            gpgKeyExpiryOptionSink.value = GpgKeyExpiryPreset.Custom.key
+        }
+        navigate(intent)
+    }
 
     suspend fun keyPairTypeFilterItem(
         keyType: String?,
@@ -700,6 +889,7 @@ fun produceGeneratorState(
                     val selected = keyType == type.key
                     val title = TextHolder.Value(type.title)
                     this += FlatItemAction(
+                        id = "generator.keyPairType.${type.key}",
                         title = title,
                         text = type.shortDescription,
                         selected = selected,
@@ -726,6 +916,7 @@ fun produceGeneratorState(
                     val selected = length == keyType
                     val title = translate(Res.string.generator_key_length_item, length)
                     this += FlatItemAction(
+                        id = "generator.keyPairRsaLength.$length",
                         title = TextHolder.Value(title),
                         selected = selected,
                         onClick = onSelect
@@ -737,6 +928,101 @@ fun produceGeneratorState(
         val title = translate(Res.string.generator_key_length_item, keyType)
         return GeneratorState.Filter.Item.Enum.Model(
             value = title,
+            dropdown = dropdown,
+        )
+    }
+
+    suspend fun gpgKeyTypeFilterItem(
+        keyType: String?,
+        onSelect: (String) -> Unit,
+    ): GeneratorState.Filter.Item.Enum.Model {
+        val dropdown = buildContextItems {
+            section {
+                GpgKeyConfig.Type.entries.forEach { type ->
+                    val selected = keyType == type.key
+                    this += FlatItemAction(
+                        id = "generator.gpgKeyType.${type.key}",
+                        title = TextHolder.Value(type.title),
+                        text = type.shortDescription,
+                        selected = selected,
+                        onClick = onSelect
+                            .partially1(type.key),
+                    )
+                }
+            }
+        }
+        return GeneratorState.Filter.Item.Enum.Model(
+            value = GpgKeyConfig.Type.getOrDefault(keyType).title,
+            dropdown = dropdown,
+        )
+    }
+
+    suspend fun gpgKeyRsaLengthFilterItem(
+        keyType: String,
+        onSelect: (String) -> Unit,
+    ): GeneratorState.Filter.Item.Enum.Model {
+        val dropdown = buildContextItems {
+            section {
+                GpgKeyConfig.RsaLength.entries.forEach { entityLength ->
+                    val length = entityLength.size.toString()
+                    val selected = length == keyType
+                    val title = translate(Res.string.generator_key_length_item, length)
+                    this += FlatItemAction(
+                        id = "generator.gpgKeyRsaLength.$length",
+                        title = TextHolder.Value(title),
+                        selected = selected,
+                        onClick = onSelect
+                            .partially1(length),
+                    )
+                }
+            }
+        }
+        val title = translate(Res.string.generator_key_length_item, keyType)
+        return GeneratorState.Filter.Item.Enum.Model(
+            value = title,
+            dropdown = dropdown,
+        )
+    }
+
+    suspend fun gpgKeyExpiryFilterItem(
+        rawOption: String,
+        rawCustomDate: String,
+    ): GeneratorState.Filter.Item.Enum.Model {
+        val option = GpgKeyExpiryPreset.getOrDefault(rawOption)
+
+        suspend fun title(item: GpgKeyExpiryPreset): String = translate(item.titleResource())
+
+        val dropdown = buildContextItems {
+            section {
+                GpgKeyExpiryPreset.entries.forEach { item ->
+                    val itemTitle = title(item)
+                    this += FlatItemAction(
+                        id = "generator.gpgKeyExpiry.${item.key}",
+                        title = TextHolder.Value(itemTitle),
+                        selected = item == option,
+                        onClick = if (item == GpgKeyExpiryPreset.Custom) {
+                            ::selectCustomGpgKeyExpiryDate
+                        } else {
+                            gpgKeyExpiryOptionSink::value::set
+                                .partially1(item.key)
+                        },
+                    )
+                }
+            }
+        }
+        val value = title(option).let { title ->
+            if (option == GpgKeyExpiryPreset.Custom) {
+                val customDateTitle = runCatching { LocalDate.parse(rawCustomDate) }
+                    .getOrNull()
+                    ?.let(dateFormatter::formatDateMedium)
+                    ?: rawCustomDate
+                "$title · $customDateTitle"
+            } else {
+                title
+            }
+        }
+        return GeneratorState.Filter.Item.Enum.Model(
+            value = value,
             dropdown = dropdown,
         )
     }
@@ -801,11 +1087,7 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_PASSPHRASE.delimiter",
                 title = translate(Res.string.generator_passphrase_delimiter_title),
-                model = TextFieldModel2(
-                    state = passphraseDelimiterState,
-                    text = config.delimiter,
-                    onChange = passphraseDelimiterState::value::set,
-                ),
+                model = passphraseDelimiterHandle.toModel(),
             ),
         )
         return GeneratorState.Filter(
@@ -886,20 +1168,12 @@ fun produceGeneratorState(
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_USERNAME.custom_word",
                 title = translate(Res.string.generator_username_custom_word_title),
-                model = TextFieldModel2(
-                    state = usernameCustomWordState,
-                    text = config.customWord,
-                    onChange = usernameCustomWordState::value::set,
-                ),
+                model = usernameCustomWordHandle.toModel(),
             ),
             GeneratorState.Filter.Item.Text(
                 key = "$PREFIX_USERNAME.delimiter",
                 title = translate(Res.string.generator_username_delimiter_title),
-                model = TextFieldModel2(
-                    state = usernameDelimiterState,
-                    text = config.delimiter,
-                    onChange = usernameDelimiterState::value::set,
-                ),
+                model = usernameDelimiterHandle.toModel(),
             ),
         )
         return GeneratorState.Filter(
@@ -1043,9 +1317,7 @@ fun produceGeneratorState(
                 key = "$PREFIX_EMAIL_CATCH_ALL.domain",
                 title = translate(Res.string.generator_email_catch_all_domain_title),
                 icon = Icons.Outlined.Domain,
-                model = TextFieldModel2(
-                    state = emailCatchAllDomainState,
-                    text = config.domain,
+                model = emailCatchAllDomainHandle.toModel(
                     hint = "example.com",
                     error = when {
                         config.domain.isEmpty() ->
@@ -1059,7 +1331,6 @@ fun produceGeneratorState(
 
                         else -> null
                     },
-                    onChange = emailCatchAllDomainState::value::set,
                 ),
             ),
         )
@@ -1098,9 +1369,7 @@ fun produceGeneratorState(
                 key = "$PREFIX_EMAIL_PLUS_ADDRESSING.email",
                 title = translate(Res.string.generator_email_plus_addressing_email_title),
                 icon = Icons.Outlined.Email,
-                model = TextFieldModel2(
-                    state = emailPlusAddressingEmailState,
-                    text = config.email,
+                model = emailPlusAddressingEmailHandle.toModel(
                     hint = PLACEHOLDER_EMAIL,
                     error = when {
                         config.email.isEmpty() ->
@@ -1111,7 +1380,6 @@ fun produceGeneratorState(
 
                         else -> null
                     },
-                    onChange = emailPlusAddressingEmailState::value::set,
                 ),
             ),
         )
@@ -1150,9 +1418,7 @@ fun produceGeneratorState(
                 key = "$PREFIX_EMAIL_SUBDOMAIN_ADDRESSING.email",
                 title = translate(Res.string.generator_email_subdomain_addressing_email_title),
                 icon = Icons.Outlined.Email,
-                model = TextFieldModel2(
-                    state = emailSubdomainAddressingEmailState,
-                    text = config.email,
+                model = emailSubdomainAddressingEmailHandle.toModel(
                     hint = PLACEHOLDER_EMAIL,
                     error = when {
                         config.email.isEmpty() ->
@@ -1166,7 +1432,6 @@ fun produceGeneratorState(
 
                         else -> null
                     },
-                    onChange = emailSubdomainAddressingEmailState::value::set,
                 ),
             ),
         )
@@ -1262,6 +1527,103 @@ fun produceGeneratorState(
         )
     }
 
+    val gpgKeyModernFilterTip = GeneratorState.Filter.Tip(
+        text = translate(Res.string.generator_gpg_key_modern_note),
+        onHide = ::hideTip,
+    )
+    val gpgKeyRsaFilterTip = GeneratorState.Filter.Tip(
+        text = translate(Res.string.generator_key_rsa_note),
+        onHide = ::hideTip,
+        onLearnMore = {
+            val url = "https://en.wikipedia.org/wiki/RSA_(cryptosystem)"
+            val intent = NavigationIntent.NavigateToBrowser(url)
+            navigate(intent)
+        },
+    )
+
+    suspend fun createFilter(
+        config: PasswordGeneratorConfigBuilder2.GpgKey,
+    ): GeneratorState.Filter {
+        val userId = config.config.userId
+        val rawName = userId.substringBefore('<').trim()
+        val rawEmail = userId.substringAfter('<', "")
+            .substringBefore('>', "")
+            .trim()
+        val tip = when (config.config) {
+            is GpgKeyConfig.Modern -> gpgKeyModernFilterTip
+            is GpgKeyConfig.Rsa -> gpgKeyRsaFilterTip
+        }
+
+        val items = mutableListOf<GeneratorState.Filter.Item>(
+            GeneratorState.Filter.Item.Enum(
+                key = "$PREFIX_GPG_KEY.type",
+                icon = Icons.Outlined.Key,
+                title = translate(Res.string.key_type),
+                model = gpgKeyTypeFilterItem(
+                    keyType = config.config.type.key,
+                    onSelect = gpgKeyTypeSink::value::set,
+                ),
+            ),
+            GeneratorState.Filter.Item.Enum(
+                key = "$PREFIX_GPG_KEY.expiry",
+                icon = Icons.Outlined.CalendarMonth,
+                title = translate(Res.string.gpg_key_expiry_title),
+                model = gpgKeyExpiryFilterItem(
+                    rawOption = gpgKeyExpiryOptionSink.value,
+                    rawCustomDate = gpgKeyCustomExpiryDateSink.value,
+                ),
+            ),
+            GeneratorState.Filter.Item.Text(
+                key = "$PREFIX_GPG_KEY.name",
+                title = translate(Res.string.generator_gpg_key_name_title),
+                icon = Icons.Outlined.AccountBox,
+                model = gpgKeyNameHandle.toModel(
+                    error = when {
+                        rawName.isEmpty() ->
+                            translate(Res.string.error_must_not_be_empty)
+
+                        else -> null
+                    },
+                ),
+            ),
+            GeneratorState.Filter.Item.Text(
+                key = "$PREFIX_GPG_KEY.email",
+                title = translate(Res.string.generator_gpg_key_email_title),
+                icon = Icons.Outlined.Email,
+                model = gpgKeyEmailHandle.toModel(
+                    hint = PLACEHOLDER_EMAIL,
+                    error = when {
+                        rawEmail.isNotEmpty() && !REGEX_EMAIL.matches(rawEmail) ->
+                            translate(Res.string.error_invalid_email)
+
+                        else -> null
+                    },
+                ),
+            ),
+        )
+        when (val cfg = config.config) {
+            is GpgKeyConfig.Modern -> {
+                // Do nothing
+            }
+
+            is GpgKeyConfig.Rsa -> {
+                items += GeneratorState.Filter.Item.Enum(
+                    key = "$PREFIX_GPG_KEY.rsa.length",
+                    title = translate(Res.string.generator_key_length_title),
+                    model = gpgKeyRsaLengthFilterItem(
+                        keyType = cfg.length.size.toString(),
+                        onSelect = gpgKeyRsaLengthSink::value::set,
+                    ),
+                )
+            }
+        }
+        return GeneratorState.Filter(
+            tip = tip,
+            length = null,
+            items = items.toPersistentList(),
+        )
+    }
+
     suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2,
     ) = when (config) {
@@ -1275,6 +1637,7 @@ fun produceGeneratorState(
         is PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.EmailRelay -> createFilter(config)
         is PasswordGeneratorConfigBuilder2.KeyPair -> createFilter(config)
+        is PasswordGeneratorConfigBuilder2.GpgKey -> createFilter(config)
     }
 
     fun createLoginWithUsername(
@@ -1319,10 +1682,42 @@ fun produceGeneratorState(
         navigate(intent)
     }
 
+    fun createGpgKeyWithKey(
+        gpgKey: GeneratedGpgKey,
+    ) {
+        val type = DSecret.Type.GpgKey
+        val name = gpgKey.userId
+            .substringBefore('<')
+            .trim()
+            .ifBlank { gpgKey.fingerprint.takeLast(16) }
+        val route = LeAddRoute(
+            args = AddRoute.Args(
+                type = type,
+                name = name,
+                gpgKey = gpgKey,
+            ),
+        )
+        val intent = NavigationIntent.NavigateToRoute(route)
+        navigate(intent)
+    }
+
     val refreshValueSink = EventFlow<String>()
     val refreshValue: () -> Unit = {
         val eventId = cryptoGenerator.uuid()
         refreshValueSink.emit(eventId)
+    }
+
+    fun buildGpgUserId(
+        name: String,
+        email: String,
+    ): String {
+        val nameNormalized = name.trim()
+        val emailNormalized = email.trim()
+        return if (emailNormalized.isNotEmpty()) {
+            "$nameNormalized <$emailNormalized>"
+        } else {
+            nameNormalized
+        }
     }
 
     val configBuilderFlow = typeFlow
@@ -1369,7 +1764,7 @@ fun produceGeneratorState(
 
                 is GeneratorType2.Passphrase -> combine(
                     passphraseLengthSink,
-                    passphraseDelimiterSink,
+                    passphraseDelimiterHandle.sink.map { it.text },
                     passphraseCapitalizeSink,
                     passphraseIncludeNumberSink,
                     passphraseWordlistFlow,
@@ -1404,10 +1799,10 @@ fun produceGeneratorState(
 
                 is GeneratorType2.Username -> combine(
                     usernameLengthSink,
-                    usernameDelimiterSink,
+                    usernameDelimiterHandle.sink.map { it.text },
                     usernameCapitalizeSink,
                     usernameIncludeNumberSink,
-                    usernameCustomWordSink,
+                    usernameCustomWordHandle.sink.map { it.text },
                     usernameWordlistFlow,
                     customWordlistsFlow,
                 ) { array ->
@@ -1432,7 +1827,7 @@ fun produceGeneratorState(
 
                 is GeneratorType2.EmailCatchAll -> combine(
                     emailCatchAllLengthSink,
-                    emailCatchAllDomainSink,
+                    emailCatchAllDomainHandle.sink.map { it.text },
                 ) { length, domain ->
                     PasswordGeneratorConfigBuilder2.EmailCatchAll(
                         payload = PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated(
@@ -1444,7 +1839,7 @@ fun produceGeneratorState(
 
                 is GeneratorType2.EmailPlusAddressing -> combine(
                     emailPlusAddressingLengthSink,
-                    emailPlusAddressingEmailSink,
+                    emailPlusAddressingEmailHandle.sink.map { it.text },
                 ) { length, email ->
                     PasswordGeneratorConfigBuilder2.EmailPlusAddressing(
                         payload = PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated(
@@ -1456,7 +1851,7 @@ fun produceGeneratorState(
 
                 is GeneratorType2.EmailSubdomainAddressing -> combine(
                     emailSubdomainAddressingLengthSink,
-                    emailSubdomainAddressingEmailSink,
+                    emailSubdomainAddressingEmailHandle.sink.map { it.text },
                 ) { length, email ->
                     PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing(
                         payload = PasswordGeneratorConfigBuilder2.EmailPayload.RandomlyGenerated(
@@ -1493,6 +1888,56 @@ fun produceGeneratorState(
                         )
                         flowOf(model)
                     }
+
+                is GeneratorType2.GpgKey -> gpgKeyTypeSink
+                    .flatMapLatest { gpgKeyType ->
+                        when (GpgKeyConfig.Type.getOrDefault(gpgKeyType)) {
+                            GpgKeyConfig.Type.MODERN -> combine(
+                                gpgKeyNameHandle.sink,
+                                gpgKeyEmailHandle.sink,
+                                gpgKeyExpiryOptionSink,
+                                gpgKeyCustomExpiryDateSink,
+                            ) { name, email, rawExpiryOption, rawCustomExpiryDate ->
+                                val userId = buildGpgUserId(
+                                    name = name.text,
+                                    email = email.text,
+                                )
+                                PasswordGeneratorConfigBuilder2.GpgKey(
+                                    config = GpgKeyConfig.Modern(
+                                        userId = userId,
+                                        expiry = gpgKeyExpiry(
+                                            rawOption = rawExpiryOption,
+                                            rawCustomDate = rawCustomExpiryDate,
+                                        ),
+                                    ),
+                                )
+                            }
+
+                            GpgKeyConfig.Type.RSA -> combine(
+                                gpgKeyNameHandle.sink,
+                                gpgKeyEmailHandle.sink,
+                                gpgKeyRsaLengthSink,
+                                gpgKeyExpiryOptionSink,
+                                gpgKeyCustomExpiryDateSink,
+                            ) { name, email, rawLength, rawExpiryOption, rawCustomExpiryDate ->
+                                val length = GpgKeyConfig.RsaLength.getOrDefault(rawLength)
+                                val userId = buildGpgUserId(
+                                    name = name.text,
+                                    email = email.text,
+                                )
+                                PasswordGeneratorConfigBuilder2.GpgKey(
+                                    config = GpgKeyConfig.Rsa(
+                                        userId = userId,
+                                        length = length,
+                                        expiry = gpgKeyExpiry(
+                                            rawOption = rawExpiryOption,
+                                            rawCustomDate = rawCustomExpiryDate,
+                                        ),
+                                    ),
+                                )
+                            }
+                        }
+                    }
             }.map { it to type }
         }
         .distinctUntilChanged()
@@ -1519,11 +1964,7 @@ fun produceGeneratorState(
         .map { (configBuilder, type) ->
             val config = configBuilder.build()
             val factory = getPassword(generatorContext, config)
-            Triple(
-                config,
-                factory,
-                type,
-            )
+            Triple(config, factory, type)
         }
         .flatMapLatest { (config, factory, type) ->
             val generateOnInit = !config.isExpensive()
@@ -1611,6 +2052,7 @@ fun produceGeneratorState(
                     isUsername = type.username && args.username,
                     isEmailRelay = type is GeneratorType2.EmailRelay,
                     isSshKey = type is GeneratorType2.SshKey,
+                    isGpgKey = type is GeneratorType2.GpgKey,
                 )
                 addGeneratorHistory(model)
                     .crashlyticsTap()
@@ -1653,6 +2095,7 @@ fun produceGeneratorState(
                         val password = passwordw.value
                         val dropdown = buildContextItems {
                             this += copyItemFactory.FlatItemAction(
+                                id = "generator.value.copyPassword",
                                 title = Res.string.copy.wrap(),
                                 value = password,
                                 type = CopyText.Type.PASSWORD,
@@ -1660,6 +2103,7 @@ fun produceGeneratorState(
                             section {
                                 if (canWrite && hasAccounts && type.username) {
                                     this += FlatItemAction(
+                                        id = "generator.value.createItemWithUsername",
                                         leading = icon(Icons.Outlined.Add),
                                         title = Res.string.generator_create_item_with_username_title.wrap(),
                                         onClick = ::createLoginWithUsername.partially1(password),
@@ -1667,6 +2111,7 @@ fun produceGeneratorState(
                                 }
                                 if (canWrite && hasAccounts && type.password) {
                                     this += FlatItemAction(
+                                        id = "generator.value.createItemWithPassword",
                                         leading = icon(Icons.Outlined.Add),
                                         title = Res.string.generator_create_item_with_password_title.wrap(),
                                         onClick = ::createLoginWithPassword.partially1(password),
@@ -1713,6 +2158,7 @@ fun produceGeneratorState(
                             section {
                                 if (canWrite && hasAccounts && type.sshKey) {
                                     this += FlatItemAction(
+                                        id = "generator.value.createItemWithSshKey",
                                         leading = icon(Icons.Outlined.Add),
                                         title = Res.string.generator_create_item_with_ssh_key_title.wrap(),
                                         onClick = ::createSshKeyWithKeyPair.partially1(keyPair),
@@ -1732,6 +2178,39 @@ fun produceGeneratorState(
                             onRefresh = refreshValue,
                         )
                     }
+
+                    is GetPasswordResult.AsyncGpgKey -> {
+                        val gpgKey = passwordw.gpgKey
+                        val dropdown = buildContextItems {
+                            GpgKeyActions.addAll(
+                                gpgKey = gpgKey,
+                                gpgKeyExport = gpgKeyExport,
+                                publicKeyExport = gpgPublicKeyExport,
+                                privateKeyExport = gpgPrivateKeyExport,
+                                copyItemFactory = copyItemFactory,
+                            )
+                            section {
+                                if (canWrite && hasAccounts && type.gpgKey) {
+                                    this += FlatItemAction(
+                                        leading = icon(Icons.Outlined.Add),
+                                        title = Res.string.generator_create_item_with_gpg_key_title.wrap(),
+                                        onClick = ::createGpgKeyWithKey.partially1(gpgKey),
+                                    )
+                                }
+                            }
+                        }
+                        GeneratorState.Value(
+                            title = gpgKey.typeLabel,
+                            password = gpgKey.fingerprint,
+                            source = passwordw,
+                            strength = false,
+                            length = false,
+                            dropdown = dropdown,
+                            actions = persistentListOf(),
+                            onCopy = null,
+                            onRefresh = refreshValue,
+                        )
+                    }
                 }
             },
         )
@@ -1739,13 +2218,13 @@ fun produceGeneratorState(
     val optionsStatic = buildContextItems {
         if (getEmailRelays != null) {
             this += EmailRelayListRoute.actionOrNull(
-                translator = this@produceScreenState,
+                translator = this@generatorStateProducer,
                 navigate = ::navigate,
             )
         }
         if (getWordlists != null) {
             this += WordlistsRoute.actionOrNull(
-                translator = this@produceScreenState,
+                translator = this@generatorStateProducer,
                 navigate = ::navigate,
             )
         }
@@ -1753,6 +2232,7 @@ fun produceGeneratorState(
     val optionsFlow = tipVisibleSink
         .map { tipVisible ->
             FlatItemAction(
+                id = "generator.showTips",
                 title = Res.string.generator_show_tips_title.wrap(),
                 icon = Icons.Outlined.Info,
                 trailing = {
@@ -1898,7 +2378,7 @@ fun produceGeneratorState(
         ).attempt().bind().getOrNull()
 
         return combine(
-            emailCatchAllDomainSink,
+            emailCatchAllDomainHandle.sink.map { it.text },
             webUriContextWordsFlow,
         ) { domain, hosts ->
             hosts
@@ -1928,7 +2408,7 @@ fun produceGeneratorState(
         ).attempt().bind().getOrNull()
 
         return combine(
-            emailPlusAddressingEmailSink,
+            emailPlusAddressingEmailHandle.sink.map { it.text },
             webUriContextWordsFlow,
         ) { email, hosts ->
             hosts
@@ -1958,7 +2438,7 @@ fun produceGeneratorState(
         ).attempt().bind().getOrNull()
 
         return combine(
-            emailSubdomainAddressingEmailSink,
+            emailSubdomainAddressingEmailHandle.sink.map { it.text },
             webUriContextWordsFlow,
         ) { email, hosts ->
             hosts
@@ -2036,6 +2516,11 @@ fun produceGeneratorState(
                         val value = passwordResult.keyPair.publicKey.fingerprint
                         value
                     }
+
+                    is GetPasswordResult.AsyncGpgKey -> {
+                        val value = passwordResult.gpgKey.fingerprint
+                        value
+                    }
                 }
                 // lambda
                 {
@@ -2049,7 +2534,7 @@ fun produceGeneratorState(
         ) to flowOf(refreshValue::invoke),
     )
 
-    optionsFlow
+    return optionsFlow
         .map { options ->
             val state = GeneratorState(
                 onOpenHistory = ::onOpenHistory
@@ -2076,6 +2561,7 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
         onClick: () -> Unit,
     ): FlatItemAction {
         return FlatItemAction(
+            id = "generator.type.emailRelay.${emailRelay.id ?: emailRelay.name}",
             leading = {
                 val backgroundColor = if (MaterialTheme.colorScheme.isDark) {
                     emailRelay.accentColor.dark
@@ -2103,6 +2589,7 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
             type is GeneratorType2.PinCode -> Icons.Outlined.Numbers
             type.password -> Icons.Outlined.Password
             type.sshKey -> Icons.Outlined.Terminal
+            type.gpgKey -> Icons.Outlined.Key
             type is GeneratorType2.Username -> Icons.Outlined.AlternateEmail
             else -> Icons.Outlined.Mail
         }
@@ -2111,6 +2598,7 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
             else -> null
         }
         return FlatItemAction(
+            id = "generator.type.${type.key}",
             title = type.title,
             leading = iconSmall(primaryIcon, secondaryIcon),
             selected = selected,
@@ -2188,6 +2676,7 @@ private fun RememberStateFlowScope.flowOfGeneratorType(
         }
         GeneratorState.Type(
             title = typeTitle,
+            showPicker = allTypes.size > 1,
             items = typeItems,
         )
     }

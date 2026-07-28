@@ -33,6 +33,10 @@ fun FilterSectionComposable(
             horizontal = 0.dp,
             vertical = 0.dp,
         ),
+        contentPadding = PaddingValues(
+            horizontal = 8.dp,
+            vertical = 0.dp,
+        ),
         trailing = {
             if (!expandable) {
                 return@FlatItem

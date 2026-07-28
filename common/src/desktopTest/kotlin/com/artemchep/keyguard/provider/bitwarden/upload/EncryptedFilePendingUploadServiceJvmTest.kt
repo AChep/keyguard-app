@@ -1,10 +1,10 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
 import com.artemchep.keyguard.common.service.crypto.FileEncryptor
+import com.artemchep.keyguard.common.service.crypto.StreamingFileDecryptor
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.toLocalPath
-import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
 import kotlin.io.path.createTempDirectory
@@ -149,7 +149,7 @@ private class ManagedSourceFileService : FileService {
     }
 }
 
-private class CopyingFileEncryptor : FileEncryptor {
+private class CopyingFileEncryptor : FileEncryptor, StreamingFileDecryptor {
     override fun decode(
         input: ByteArray,
         key: ByteArray,
@@ -158,7 +158,7 @@ private class CopyingFileEncryptor : FileEncryptor {
     override fun decode(
         input: InputStream,
         key: ByteArray,
-    ): InputStream = ByteArrayInputStream(input.readBytes())
+    ): InputStream = input
 
     override fun encode(
         data: ByteArray,

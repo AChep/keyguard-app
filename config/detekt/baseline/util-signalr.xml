@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:HubConnectionController.kt:internal suspend fun runHubConnectionController</ID>
+    <ID>CyclomaticComplexMethod:HubMessage.kt:HubMessage.MessageSerializer$override fun selectDeserializer: DeserializationStrategy&lt;HubMessage&gt;</ID>
+    <ID>CyclomaticComplexMethod:HubSession.kt:internal fun CoroutineScope.launchHubSession: Job</ID>
+    <ID>CyclomaticComplexMethod:MessagePackHubProtocolTest.kt:MessagePackHubProtocolTest$private fun payloadFor: Map&lt;String, Any?&gt;</ID>
+    <ID>LargeClass:MessagePackHubProtocolTest.kt:MessagePackHubProtocolTest</ID>
+    <ID>LongMethod:HubNegotiation.kt:private suspend fun startNegotiate: HubNegotiation</ID>
+    <ID>LongMethod:JsonHubProtocolTest.kt:JsonHubProtocolTest$@Test fun `write emits reference-compatible json for v1 hub message shapes`</ID>
+    <ID>LongMethod:MessagePackHubProtocolTest.kt:MessagePackHubProtocolTest$@Test fun `parse accepts all SignalR hub message types`</ID>
+    <ID>LongMethod:MessagePackHubProtocolTest.kt:MessagePackHubProtocolTest$@Test fun `write matches ASP NET Core MessagePack baselines for v1 hub messages`</ID>
+    <ID>LongMethod:MessagePackHubProtocolTest.kt:MessagePackHubProtocolTest$private fun payloadFor: Map&lt;String, Any?&gt;</ID>
+    <ID>MagicNumber:HubMessageType.kt:HubMessageType.CANCEL_INVOCATION$5</ID>
+    <ID>MagicNumber:HubMessageType.kt:HubMessageType.CLOSE$7</ID>
+    <ID>MagicNumber:HubMessageType.kt:HubMessageType.COMPLETION$3</ID>
+    <ID>MagicNumber:HubMessageType.kt:HubMessageType.PING$6</ID>
+    <ID>MagicNumber:HubMessageType.kt:HubMessageType.STREAM_INVOCATION$4</ID>
+    <ID>MagicNumber:MessagePackHubProtocol.kt:MessagePackHubProtocol$3</ID>
+    <ID>MagicNumber:MessagePackHubProtocol.kt:MessagePackHubProtocol$4</ID>
+    <ID>MagicNumber:MessagePackHubProtocol.kt:MessagePackHubProtocol$5</ID>
+    <ID>MatchingDeclarationName:HubConnection.kt:DefaultHubConnection : HubConnection</ID>
+    <ID>MatchingDeclarationName:HubConnectionBuilderTest.kt:HubConnectionConfigTest</ID>
+    <ID>MaxLineLength:HubNegotiation.kt:"Detected an ASP.NET SignalR Server. This client only supports connecting to an ASP.NET Core SignalR Server."</ID>
+    <ID>MaxLineLength:HubNegotiation.kt:message = "Unexpected status code returned from negotiate: ${response.status} ${response.status.description}."</ID>
+    <ID>MaxLineLength:JsonHubProtocolTest.kt:JsonHubProtocolTest$parseSingle("""{"type":1,"invocationId":"123","target":"Target","arguments":[1],"streamIds":["stream-1"]}""")</ID>
+    <ID>MaxLineLength:KtorTransport.kt:message = "Unexpected status code returned from WebSocket upgrade: $status ${status.description}."</ID>
+    <ID>NewLineAtEndOfFile:HubMessageType.kt:com.artemchep.keyguard.util.signalr.HubMessageType.kt</ID>
+    <ID>NewLineAtEndOfFile:Logger.kt:com.artemchep.keyguard.util.signalr.logger.Logger.kt</ID>
+    <ID>ReturnCount:MessagePackHubProtocol.kt:MessagePackHubProtocol$private fun readHubMessage: HubMessage?</ID>
+    <ID>ThrowsCount:HubHandshaker.kt:internal suspend fun handshake: ByteArray?</ID>
+    <ID>ThrowsCount:HubNegotiation.kt:private suspend fun startNegotiate: HubNegotiation</ID>
+    <ID>TooGenericExceptionCaught:HubConnectionController.kt:ex: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HubConnector.kt:ex: Throwable</ID>
+    <ID>TooGenericExceptionCaught:HubSession.kt:ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:HubSession.kt:ex: Throwable</ID>
+    <ID>TooGenericExceptionCaught:JsonHubProtocol.kt:JsonHubProtocol$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:KtorTransport.kt:cause: Throwable</ID>
+    <ID>TooManyFunctions:MessagePackHubProtocol.kt:MessagePackHubProtocol : HubProtocol</ID>
+  </CurrentIssues>
+</SmellBaseline>

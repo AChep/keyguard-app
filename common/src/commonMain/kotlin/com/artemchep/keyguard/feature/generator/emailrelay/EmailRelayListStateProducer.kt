@@ -9,7 +9,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Email
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -17,7 +16,6 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
 import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.usecase.AddEmailRelay
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
@@ -32,13 +30,12 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
-import com.artemchep.keyguard.feature.home.vault.collections.CollectionsState
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
@@ -48,12 +45,13 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
-import com.artemchep.keyguard.ui.icons.IconBox2
+import com.artemchep.keyguard.ui.icons.IconBoxContainer
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -98,6 +96,22 @@ fun produceEmailRelayListState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    emailRelayListStateProducer(
+        emailRelays = emailRelays,
+        confirmationRouteFactory = confirmationRouteFactory,
+        addEmailRelay = addEmailRelay,
+        removeEmailRelayById = removeEmailRelayById,
+        getEmailRelays = getEmailRelays,
+    )
+}
+
+suspend fun RememberStateFlowScope.emailRelayListStateProducer(
+    emailRelays: List<EmailRelay>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    addEmailRelay: AddEmailRelay,
+    removeEmailRelayById: RemoveEmailRelayById,
+    getEmailRelays: GetEmailRelays,
+): Flow<Loadable<EmailRelayListState>> {
     val selectionHandle = selectionHandle("selection")
 
     suspend fun onEdit(model: EmailRelay, entity: DGeneratorEmailRelay?) {
@@ -132,10 +146,10 @@ fun produceEmailRelayListState(
         val route = confirmationRouteFactory.registerRouteResultReceiver(
             args = ConfirmationRoute.Args(
                 icon = {
-                    IconBox2(
+                    IconBoxContainer(
                         main = {
                             val resource = model.iconRes
-                                ?: return@IconBox2
+                                ?: return@IconBoxContainer
                             Image(
                                 modifier = Modifier
                                     .size(24.dp),
@@ -275,8 +289,10 @@ fun produceEmailRelayListState(
             val actions = buildContextItems {
                 section {
                     this += FlatItemAction(
+                        id = "emailRelay.selection.delete",
                         leading = icon(Icons.Outlined.Delete),
                         title = Res.string.delete.wrap(),
+                        danger = true,
                         onClick = onClick {
                             onDeleteByItems(selectedItems)
                         },
@@ -309,6 +325,7 @@ fun produceEmailRelayListState(
                         section {
                             if (relay != null) {
                                 this += FlatItemAction(
+                                    id = "emailRelay.item.${it.id}.edit",
                                     icon = Icons.Outlined.Edit,
                                     title = Res.string.edit.wrap(),
                                     onClick = onClick {
@@ -320,6 +337,7 @@ fun produceEmailRelayListState(
                                 )
                             }
                             this += FlatItemAction(
+                                id = "emailRelay.item.${it.id}.duplicate",
                                 icon = Icons.Outlined.CopyAll,
                                 title = Res.string.duplicate.wrap(),
                                 onClick = onClick {
@@ -327,8 +345,10 @@ fun produceEmailRelayListState(
                                 },
                             )
                             this += FlatItemAction(
+                                id = "emailRelay.item.${it.id}.delete",
                                 icon = Icons.Outlined.Delete,
                                 title = Res.string.delete.wrap(),
+                                danger = true,
                                 onClick = onClick {
                                     onDeleteByItems(listOf(it))
                                 },
@@ -412,7 +432,7 @@ fun produceEmailRelayListState(
             }
         Loadable.Ok(contentOrException)
     }
-    contentFlow
+    return contentFlow
         .map { content ->
             val state = EmailRelayListState(
                 content = content,

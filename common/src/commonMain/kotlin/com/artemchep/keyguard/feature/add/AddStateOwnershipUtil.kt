@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.coroutines.flow.Flow
@@ -26,7 +27,11 @@ interface OwnershipHandle<T : OwnershipState> {
     val stateSink: MutableStateFlow<T>
 }
 
-interface OwnershipState {
+/**
+ * [LeParcelable] because the state is persisted through `mutablePersistedFlow`, which requires
+ * a bundle-compatible type.
+ */
+interface OwnershipState : LeParcelable {
     val accountId: String?
 }
 

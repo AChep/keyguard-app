@@ -3,10 +3,6 @@ package com.artemchep.keyguard.core.session
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
-import com.artemchep.keyguard.android.downloader.DownloadClientAndroid
-import com.artemchep.keyguard.android.downloader.DownloadManagerImpl
-import com.artemchep.keyguard.android.downloader.DownloadTaskAndroid
-import com.artemchep.keyguard.android.downloader.journal.DownloadRepository
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
@@ -30,17 +26,27 @@ import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.service.download.DownloadRepository
 import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.download.DownloadTaskAndroid
+import com.artemchep.keyguard.common.service.download.DownloadManagerImpl
+import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundScheduler
+import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundSchedulerAndroid
+import com.artemchep.keyguard.common.service.download.store.DownloadFileStore
+import com.artemchep.keyguard.common.service.download.store.DownloadFileStoreAndroid
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoOp
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
+import com.artemchep.keyguard.common.service.licensekey.LicenseClaimSource
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceStatelessProxy
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
@@ -86,10 +92,11 @@ import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.toLocalPath
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderAndroid
-import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
-import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import db_key_value.datastore.DataStoreKeyValueStore
+import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
+import db_key_value.datastore.encrypted.SecureStorageCoordinator
 import db_key_value.shared_prefs.SharedPrefsKeyValueStore
+import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -254,6 +261,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindSingleton<SshAgentStatusService> {
         SshAgentStatusServiceStatelessProxy(this)
     }
+    bindSingleton<GpgAgentStatusService> {
+        GpgAgentStatusServiceImpl()
+    }
     bindSingleton<ReviewService> {
         ReviewServiceAndroid(
             directDI = this,
@@ -262,8 +272,13 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindProvider<PackageManager> {
         instance<Application>().packageManager
     }
-    bindSingleton<DownloadClientAndroid> {
-        DownloadClientAndroid(
+    bindSingleton<DownloadFileStore> {
+        DownloadFileStoreAndroid(
+            directDI = this,
+        )
+    }
+    bindSingleton<DownloadBackgroundScheduler> {
+        DownloadBackgroundSchedulerAndroid(
             directDI = this,
         )
     }
@@ -287,10 +302,16 @@ fun diFingerprintRepositoryModule() = DI.Module(
             directDI = this,
         )
     }
-    bindSingleton<SubscriptionService> {
+    bindSingleton<SubscriptionServiceAndroid> {
         SubscriptionServiceAndroid(
             directDI = this,
         )
+    }
+    bindProvider<SubscriptionService> {
+        instance<SubscriptionServiceAndroid>()
+    }
+    bindProvider<LicenseClaimSource> {
+        instance<SubscriptionServiceAndroid>()
     }
     bindSingleton<ClearData> {
         ClearDataAndroid(
@@ -320,6 +341,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
             context = instance<Application>(),
             file = arg.key.filename,
             logRepository = instance(),
+            secureStorageCoordinator = instance(),
             backingStore = arg.store,
         )
     }
@@ -339,6 +361,12 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindProvider<SharedPreferencesStoreFactory> {
         instance<SharedPreferencesStoreFactoryV2>()
+    }
+    bindSingleton<SecureStorageCoordinator> {
+        SecureStorageCoordinator.create(
+            context = instance<Application>(),
+            logRepository = instance(),
+        )
     }
     bindSingleton<DownloadDatabaseManager> {
         DownloadDatabaseManager(

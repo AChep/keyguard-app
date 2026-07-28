@@ -1,17 +1,14 @@
 package com.artemchep.keyguard.feature.home.settings
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
@@ -80,8 +77,8 @@ import com.artemchep.keyguard.feature.home.settings.component.settingMarkdownPro
 import com.artemchep.keyguard.feature.home.settings.component.settingMasterPasswordProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMinimizeOnCopyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavAnimationProvider
-import com.artemchep.keyguard.feature.home.settings.component.settingNavHiddenSendProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingNavLabelProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingNavigationItemsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingOpenSourceLicensesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingPermissionCameraProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingPermissionDetailsProvider
@@ -90,6 +87,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingPermissionP
 import com.artemchep.keyguard.feature.home.settings.component.settingPermissionWriteExternalStorageProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingPrivacyPolicyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingRateAppProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingRedeemLicenseProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingRequireMasterPasswordProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingResetWatchtowerAlerts
 import com.artemchep.keyguard.feature.home.settings.component.settingRotateDeviceId
@@ -98,15 +96,32 @@ import com.artemchep.keyguard.feature.home.settings.component.settingScreenshots
 import com.artemchep.keyguard.feature.home.settings.component.settingSectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocaleProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalCachePolicyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentDisplayKeyNamesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentLocalStorageInfoProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalCachePolicyProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentDisplayKeyNamesProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentLocalStorageInfoProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentFiltersProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentHistoryProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverSearchProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverUrlProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverProtocolProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverAutoRefreshProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverRefreshIntervalProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsDebug
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsPlayStoreProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingLicenseClaimProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeExpressiveProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeUseAmoledDarkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutLandscapeProvider
@@ -127,8 +142,6 @@ import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
-import com.artemchep.keyguard.ui.theme.GlobalExpressive
-import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import kotlinx.collections.immutable.toImmutableList
@@ -156,7 +169,7 @@ object Setting {
     const val AUTOFILL_COPY_TOTP = "autofill_copy_totp"
     const val NAV_ANIMATION = "nav_animation"
     const val NAV_LABEL = "nav_label"
-    const val NAV_HIDDEN_SEND = "nav_hidden_send"
+    const val NAV_ITEMS = "nav_items"
     const val FONT = "font"
     const val LOCALE = "locale"
     const val COLOR_SCHEME = "color_scheme"
@@ -208,13 +221,29 @@ object Setting {
     const val LOGS = "logs"
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
+    const val SSH_SETTINGS = "ssh_settings"
     const val SSH_AGENT = "ssh_agent"
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
+    const val SSH_AGENT_APPROVAL_CACHE_POLICY = "ssh_agent_approval_cache_policy"
     const val SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent_display_key_names"
     const val SSH_AGENT_LOCAL_STORAGE_INFO = "ssh_agent_local_storage_info"
     const val SSH_AGENT_SETUP = "ssh_agent_setup"
     const val SSH_AGENT_FILTERS = "ssh_agent_filters"
     const val SSH_AGENT_HISTORY = "ssh_agent_history"
+    const val GPG_SETTINGS = "gpg_settings"
+    const val GPG_AGENT = "gpg_agent"
+    const val GPG_AGENT_APPROVAL_WINDOW = "gpg_agent_approval_window"
+    const val GPG_AGENT_APPROVAL_CACHE_POLICY = "gpg_agent_approval_cache_policy"
+    const val GPG_AGENT_DISPLAY_KEY_NAMES = "gpg_agent_display_key_names"
+    const val GPG_AGENT_LOCAL_STORAGE_INFO = "gpg_agent_local_storage_info"
+    const val GPG_AGENT_SETUP = "gpg_agent_setup"
+    const val GPG_AGENT_FILTERS = "gpg_agent_filters"
+    const val GPG_AGENT_HISTORY = "gpg_agent_history"
+    const val GPG_KEYSERVER_SEARCH = "gpg_keyserver_search"
+    const val GPG_KEYSERVER_URL = "gpg_keyserver_url"
+    const val GPG_KEYSERVER_PROTOCOL = "gpg_keyserver_protocol"
+    const val GPG_KEYSERVER_AUTO_REFRESH = "gpg_keyserver_auto_refresh"
+    const val GPG_KEYSERVER_REFRESH_INTERVAL = "gpg_keyserver_refresh_interval"
     const val RATE_APP = "rate_app"
     const val CONCEAL = "conceal"
     const val MARKDOWN = "markdown"
@@ -239,6 +268,8 @@ object Setting {
     const val SUBSCRIPTIONS = "subscriptions"
     const val SUBSCRIPTIONS_IN_STORE = "subscriptions_in_store"
     const val SUBSCRIPTIONS_DEBUG = "subscriptions_debug"
+    const val LICENSE_CLAIM = "license_claim"
+    const val LICENSE_REDEEM = "license_redeem"
     const val SCREEN_DELAY = "screen_delay"
     const val KEEP_SCREEN_ON = "keep_screen_on"
 }
@@ -267,7 +298,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.AUTOFILL_COPY_TOTP to ::settingAutofillCopyTotpProvider,
     Setting.NAV_ANIMATION to ::settingNavAnimationProvider,
     Setting.NAV_LABEL to ::settingNavLabelProvider,
-    Setting.NAV_HIDDEN_SEND to ::settingNavHiddenSendProvider,
+    Setting.NAV_ITEMS to ::settingNavigationItemsProvider,
     Setting.FONT to ::settingFontProvider,
     Setting.LOCALE to ::settingSelectLocaleProvider,
     Setting.COLOR_SCHEME to ::settingColorSchemeProvider,
@@ -319,13 +350,29 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.LOGS to ::settingLogsProvider,
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
+    Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
+    Setting.SSH_AGENT_APPROVAL_CACHE_POLICY to ::settingSshAgentApprovalCachePolicyProvider,
     Setting.SSH_AGENT_DISPLAY_KEY_NAMES to ::settingSshAgentDisplayKeyNamesProvider,
     Setting.SSH_AGENT_LOCAL_STORAGE_INFO to ::settingSshAgentLocalStorageInfoProvider,
     Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
     Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,
     Setting.SSH_AGENT_HISTORY to ::settingSshAgentHistoryProvider,
+    Setting.GPG_SETTINGS to ::settingGpgSettingsProvider,
+    Setting.GPG_AGENT to ::settingGpgAgentProvider,
+    Setting.GPG_AGENT_APPROVAL_WINDOW to ::settingGpgAgentApprovalWindowProvider,
+    Setting.GPG_AGENT_APPROVAL_CACHE_POLICY to ::settingGpgAgentApprovalCachePolicyProvider,
+    Setting.GPG_AGENT_DISPLAY_KEY_NAMES to ::settingGpgAgentDisplayKeyNamesProvider,
+    Setting.GPG_AGENT_LOCAL_STORAGE_INFO to ::settingGpgAgentLocalStorageInfoProvider,
+    Setting.GPG_AGENT_SETUP to ::settingGpgAgentSetupProvider,
+    Setting.GPG_AGENT_FILTERS to ::settingGpgAgentFiltersProvider,
+    Setting.GPG_AGENT_HISTORY to ::settingGpgAgentHistoryProvider,
+    Setting.GPG_KEYSERVER_SEARCH to ::settingGpgKeyserverSearchProvider,
+    Setting.GPG_KEYSERVER_URL to ::settingGpgKeyserverUrlProvider,
+    Setting.GPG_KEYSERVER_PROTOCOL to ::settingGpgKeyserverProtocolProvider,
+    Setting.GPG_KEYSERVER_AUTO_REFRESH to ::settingGpgKeyserverAutoRefreshProvider,
+    Setting.GPG_KEYSERVER_REFRESH_INTERVAL to ::settingGpgKeyserverRefreshIntervalProvider,
     Setting.RATE_APP to ::settingRateAppProvider,
     Setting.DIVIDER to ::settingSectionProvider,
     Setting.CONCEAL to ::settingConcealFieldsProvider,
@@ -351,6 +398,8 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.SUBSCRIPTIONS to ::settingSubscriptionsProvider,
     Setting.SUBSCRIPTIONS_IN_STORE to ::settingSubscriptionsPlayStoreProvider,
     Setting.SUBSCRIPTIONS_DEBUG to ::settingSubscriptionsDebug,
+    Setting.LICENSE_CLAIM to ::settingLicenseClaimProvider,
+    Setting.LICENSE_REDEEM to ::settingRedeemLicenseProvider,
     Setting.SCREEN_DELAY to ::settingScreenDelay,
     Setting.KEEP_SCREEN_ON to ::settingKeepScreenOnProvider,
 )

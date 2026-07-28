@@ -1,9 +1,10 @@
 package com.artemchep.keyguard.feature.send.add
 
-import androidx.compose.runtime.mutableStateOf
 import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.create.CreateSendRequest
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.feature.auth.common.TextCell
+import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.fileupload.BITWARDEN_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.platform.leParseUri
@@ -139,10 +140,9 @@ class SendAddStateProducerTest {
     }
 
     @Test
-    fun `apply selected send file updates attachment name sink`() {
+    fun `apply selected send file updates attachment name handle`() {
         val uriSink = MutableStateFlow<String?>(null)
-        val nameSink = MutableStateFlow("")
-        val nameState = mutableStateOf("")
+        val nameHandle = TextFieldHandle(MutableStateFlow(TextCell("")))
         val sizeSink = MutableStateFlow<Long?>(null)
 
         applySelectedSendFile(
@@ -152,22 +152,22 @@ class SendAddStateProducerTest {
                 size = 2048L,
             ),
             uriSink = uriSink,
-            nameSink = nameSink,
-            nameState = nameState,
+            nameHandle = nameHandle,
             sizeSink = sizeSink,
         )
 
         assertEquals("content://send/file", uriSink.value)
-        assertEquals("invoice.pdf", nameSink.value)
-        assertEquals("invoice.pdf", nameState.value)
+        assertEquals("invoice.pdf", nameHandle.sink.value.text)
+        // A programmatic write bumps the revision so the UI edit
+        // buffer adopts the new name unconditionally.
+        assertEquals(1, nameHandle.sink.value.revision)
         assertEquals(2048L, sizeSink.value)
     }
 
     @Test
     fun `apply selected send file over bitwarden upload limit keeps existing selection`() {
         val uriSink = MutableStateFlow<String?>("content://send/old")
-        val nameSink = MutableStateFlow("old.txt")
-        val nameState = mutableStateOf("old.txt")
+        val nameHandle = TextFieldHandle(MutableStateFlow(TextCell("old.txt")))
         val sizeSink = MutableStateFlow<Long?>(128L)
 
         val applied = applySelectedSendFile(
@@ -177,22 +177,21 @@ class SendAddStateProducerTest {
                 size = BITWARDEN_FILE_UPLOAD_MAX_BYTES + 1L,
             ),
             uriSink = uriSink,
-            nameSink = nameSink,
-            nameState = nameState,
+            nameHandle = nameHandle,
             sizeSink = sizeSink,
         )
 
         assertFalse(applied)
         assertEquals("content://send/old", uriSink.value)
-        assertEquals("old.txt", nameSink.value)
-        assertEquals("old.txt", nameState.value)
+        assertEquals("old.txt", nameHandle.sink.value.text)
+        assertEquals(0, nameHandle.sink.value.revision)
         assertEquals(128L, sizeSink.value)
     }
 
     @Test
     fun `apply selected send file replaces existing local selection`() {
         val uriSink = MutableStateFlow<String?>("content://send/old")
-        val nameSink = MutableStateFlow("old.txt")
+        val nameHandle = TextFieldHandle(MutableStateFlow(TextCell("old.txt")))
         val sizeSink = MutableStateFlow<Long?>(128L)
 
         applySelectedSendFile(
@@ -202,20 +201,19 @@ class SendAddStateProducerTest {
                 size = 512L,
             ),
             uriSink = uriSink,
-            nameSink = nameSink,
+            nameHandle = nameHandle,
             sizeSink = sizeSink,
         )
 
         assertEquals("content://send/new", uriSink.value)
-        assertEquals("new.txt", nameSink.value)
+        assertEquals("new.txt", nameHandle.sink.value.text)
         assertEquals(512L, sizeSink.value)
     }
 
     @Test
     fun `apply selected send file without picker name uses blank attachment name`() {
         val uriSink = MutableStateFlow<String?>(null)
-        val nameSink = MutableStateFlow("old.txt")
-        val nameState = mutableStateOf("old.txt")
+        val nameHandle = TextFieldHandle(MutableStateFlow(TextCell("old.txt")))
         val sizeSink = MutableStateFlow<Long?>(null)
 
         applySelectedSendFile(
@@ -225,14 +223,13 @@ class SendAddStateProducerTest {
                 size = 2048L,
             ),
             uriSink = uriSink,
-            nameSink = nameSink,
-            nameState = nameState,
+            nameHandle = nameHandle,
             sizeSink = sizeSink,
         )
 
         assertEquals("content://send/file", uriSink.value)
-        assertEquals("", nameSink.value)
-        assertEquals("", nameState.value)
+        assertEquals("", nameHandle.sink.value.text)
+        assertEquals(1, nameHandle.sink.value.revision)
         assertEquals(2048L, sizeSink.value)
     }
 

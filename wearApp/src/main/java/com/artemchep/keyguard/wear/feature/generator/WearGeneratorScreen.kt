@@ -36,8 +36,12 @@ import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.relays.api.EmailRelay
 import com.artemchep.keyguard.common.service.tld.TldService
+import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetPassword
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.usecase.GpgKeyExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
+import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
@@ -381,6 +385,7 @@ private fun wearGeneratorScreenState(
             password = config.args.password,
             username = config.args.username,
             sshKey = config.args.sshKey,
+            gpgKey = config.args.gpgKey,
         ),
         key = "wear_generator",
         addGeneratorHistory = null,
@@ -394,7 +399,11 @@ private fun wearGeneratorScreenState(
         keyPairExport = instance<KeyPairExport>(),
         publicKeyExport = instance<KeyPublicExport>(),
         privateKeyExport = instance<KeyPrivateExport>(),
+        gpgKeyExport = instance<GpgKeyExport>(),
+        gpgPublicKeyExport = instance<GpgKeyPublicExport>(),
+        gpgPrivateKeyExport = instance<GpgKeyPrivateExport>(),
         numberFormatter = instance<NumberFormatter>(),
+        dateFormatter = instance<DateFormatter>(),
         getCanWrite = GetCanWriteStub(),
         tldService = instance<TldService>(),
         clipboardService = instance<ClipboardService>(),

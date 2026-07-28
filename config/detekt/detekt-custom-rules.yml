@@ -1,0 +1,11 @@
+config:
+  validation: true
+  warningsAsErrors: true
+
+keyguard:
+  MutablePersistedFlowTypeSafety:
+    active: true
+    severity: error
+  MutablePersistedFlowDuplicateKey:
+    active: true
+    severity: error

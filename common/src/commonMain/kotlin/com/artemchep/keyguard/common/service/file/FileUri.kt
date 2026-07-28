@@ -2,6 +2,9 @@ package com.artemchep.keyguard.common.service.file
 
 import com.artemchep.keyguard.platform.LocalPath
 
+fun LocalPath.toFileUriString(): String =
+    "file://" + value.encodeFileUriPath()
+
 fun String.toLocalPathFromFileUriOrNull(): LocalPath? = runCatching {
     val schemeSeparatorIndex = indexOf(':')
     require(schemeSeparatorIndex >= 0)
@@ -62,3 +65,35 @@ private fun decodePercentEncoded(value: String): String {
 private fun Char.hexValue(): Int =
     digitToIntOrNull(radix = 16)
         ?: error("Expected a hex digit: $this")
+
+private fun String.encodeFileUriPath(): String {
+    val builder = StringBuilder(length)
+    forEach { char ->
+        when {
+            char.isFileUriPathChar() -> builder.append(char)
+            else -> {
+                char.toString()
+                    .encodeToByteArray()
+                    .forEach { byte ->
+                        val int = byte.toInt() and 0xff
+                        builder.append('%')
+                        builder.append(
+                            int
+                                .toString(radix = 16)
+                                .uppercase()
+                                .padStart(length = 2, padChar = '0'),
+                        )
+                    }
+            }
+        }
+    }
+    return builder.toString()
+}
+
+private fun Char.isFileUriPathChar(): Boolean = when (this) {
+    '/', ':', '-', '.', '_', '~' -> true
+    in '0'..'9' -> true
+    in 'A'..'Z' -> true
+    in 'a'..'z' -> true
+    else -> false
+}

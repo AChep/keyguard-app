@@ -6,7 +6,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.FolderOff
 import androidx.compose.material.icons.outlined.Tag
 import androidx.compose.runtime.Composable
-import arrow.core.partially1
 import arrow.core.right
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.Loadable
@@ -27,6 +26,7 @@ import com.artemchep.keyguard.feature.filter.util.addShortcutActionOrNull
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.screen.FilterSection
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
@@ -40,7 +40,6 @@ import com.artemchep.keyguard.ui.icons.iconSmall
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -89,6 +88,36 @@ fun produceCipherFilterViewState(
     initial = Loadable.Loading,
     args = arrayOf(),
 ) {
+    cipherFilterViewStateProducer(
+        args = args,
+        getCipherFilters = getCipherFilters,
+        removeCipherFilterById = removeCipherFilterById,
+        renameCipherFilter = renameCipherFilter,
+        getAccounts = getAccounts,
+        getProfiles = getProfiles,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getTags = getTags,
+        getFolders = getFolders,
+        getCiphers = getCiphers,
+        confirmationRouteFactory = confirmationRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.cipherFilterViewStateProducer(
+    args: CipherFilterViewDialogRoute.Args,
+    getCipherFilters: GetCipherFilters,
+    removeCipherFilterById: RemoveCipherFilterById,
+    renameCipherFilter: RenameCipherFilter,
+    getAccounts: GetAccounts,
+    getProfiles: GetProfiles,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getTags: GetTags,
+    getFolders: GetFolders,
+    getCiphers: GetCiphers,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+): Flow<Loadable<CipherFilterViewState>> {
     val filterFlow = getCipherFilters()
         .map { filters ->
             filters
@@ -157,8 +186,8 @@ fun produceCipherFilterViewState(
                     leading: (@Composable () -> Unit)?,
                     title: String,
                     text: String? = null,
-                ): FilterItem.Item {
-                    return FilterItem.Item(
+                ): FilterItem.ChipItem {
+                    return FilterItem.ChipItem(
                         sectionId = filterSection.id,
                         filterSectionId = filterSection.id,
                         filter = FilterItem.Item.Filter.Toggle(
@@ -166,7 +195,6 @@ fun produceCipherFilterViewState(
                         ),
                         checked = false,
                         enabled = true,
-                        fill = false,
                         leading = leading,
                         title = title,
                         text = text,
@@ -302,6 +330,7 @@ fun produceCipherFilterViewState(
                     }
                     section {
                         this += FlatItemAction(
+                            id = "cipherFilter.edit",
                             icon = Icons.Outlined.Edit,
                             title = Res.string.edit.wrap(),
                             onClick = onClick {
@@ -318,8 +347,10 @@ fun produceCipherFilterViewState(
                             filter,
                         )
                         this += FlatItemAction(
+                            id = "cipherFilter.delete",
                             icon = Icons.Outlined.Delete,
                             title = Res.string.delete.wrap(),
+                            danger = true,
                             onClick = onClick {
                                 CipherFilterUtil.onDeleteByItems(
                                     confirmationRouteFactory = confirmationRouteFactory,
@@ -338,7 +369,7 @@ fun produceCipherFilterViewState(
         }
         .stateIn(screenScope)
 
-    filterFlow
+    return filterFlow
         .map { model ->
             val content = CipherFilterViewState.Content(
                 model = model,

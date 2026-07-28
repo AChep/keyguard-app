@@ -60,7 +60,9 @@ data class AppPickerComparatorHolder(
     val reversed: Boolean = false,
 ) : LeParcelable {
     companion object {
-        fun of(map: Map<String, Any?>): AppPickerComparatorHolder {
+        // Accepts Map<*, *> so that a state persisted by an older version, which stored the
+        // flag as a real Boolean, still restores.
+        fun of(map: Map<*, *>): AppPickerComparatorHolder {
             return AppPickerComparatorHolder(
                 comparator = AppPickerSort.valueOf(map["comparator"].toString())
                     ?: AppPickerAlphabeticalSort,
@@ -69,9 +71,11 @@ data class AppPickerComparatorHolder(
         }
     }
 
-    fun toMap() = mapOf(
+    // Homogeneous Map<String, String>: a Map<String, Any?> is neither bundle-safe nor
+    // JSON-safe, because Any? tells the persistence layer nothing about the values.
+    fun toMap(): Map<String, String> = mapOf(
         "comparator" to comparator.id,
-        "reversed" to reversed,
+        "reversed" to reversed.toString(),
     )
 }
 
@@ -429,7 +433,7 @@ private fun getApps(
             try {
                 packageInfo = pm.getPackageInfo(info.activityInfo.packageName, 0)
                 applicationInfo = pm.getApplicationInfo(info.activityInfo.packageName, 0)
-            } catch (e: NameNotFoundException) {
+            } catch (_: NameNotFoundException) {
                 // The app was removed in-between querying the list
                 // of activities and querying the info about each
                 // of the app.

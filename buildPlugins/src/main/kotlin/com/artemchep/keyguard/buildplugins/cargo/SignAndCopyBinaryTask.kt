@@ -1,12 +1,17 @@
 package com.artemchep.keyguard.buildplugins.cargo
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.RegularFile
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
@@ -17,11 +22,26 @@ abstract class SignAndCopyBinaryTask : DefaultTask() {
     @get:Inject
     abstract val execOperations: ExecOperations
 
+    @get:Inject
+    abstract val fileSystemOperations: FileSystemOperations
+
     @get:InputFile
     abstract val sourceBinary: RegularFileProperty
 
-    @get:OutputFile
-    abstract val destinationBinary: RegularFileProperty
+    /**
+     * Directory owned exclusively by this task. It is wiped on every run, so that a binary
+     * produced under a previously configured name cannot survive into consumers that publish
+     * the whole directory as an artifact.
+     */
+    @get:OutputDirectory
+    abstract val destinationDirectory: DirectoryProperty
+
+    @get:Input
+    abstract val destinationRelativePath: Property<String>
+
+    @get:Internal
+    val destinationBinary: Provider<RegularFile>
+        get() = destinationDirectory.file(destinationRelativePath)
 
     @get:Input
     @get:Optional
@@ -47,6 +67,10 @@ abstract class SignAndCopyBinaryTask : DefaultTask() {
 
         require(source.exists()) {
             "Binary must exist before sign-and-copy task is started!"
+        }
+
+        fileSystemOperations.delete {
+            delete(destinationDirectory)
         }
 
         val destination = destinationBinary.get().asFile

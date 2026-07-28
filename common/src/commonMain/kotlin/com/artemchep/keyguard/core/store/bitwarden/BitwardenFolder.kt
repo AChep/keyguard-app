@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.core.store.bitwarden
 
 import arrow.optics.optics
+import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 
@@ -18,6 +19,8 @@ data class BitwardenFolder(
     override val service: BitwardenService,
     // common
     val name: String,
+    val parentId: String? = null,
+    val hierarchyMode: FolderHierarchyMode = FolderHierarchyMode.Path,
 ) : BitwardenService.Has<BitwardenFolder> {
     companion object;
 

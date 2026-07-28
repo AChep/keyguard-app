@@ -56,8 +56,9 @@ import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.Validated
+import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
@@ -89,6 +90,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -501,7 +503,7 @@ data class UserVerificationState(
     @Immutable
     data class Content(
         val sideEffects: UnlockState.SideEffects,
-        val password: TextFieldModel2,
+        val password: TextFieldModel,
         val biometric: Biometric? = null,
         val yubiKey: YubiKey? = null,
         val isLoading: Boolean = false,
@@ -558,8 +560,7 @@ fun produceUserVerificationState(
 ) {
     val executor = screenExecutor()
 
-    val passwordSink = mutablePersistedFlow("password") { DEFAULT_PASSWORD }
-    val passwordState = mutableComposeState(passwordSink)
+    val passwordHandle = textFieldHandle("password", initial = DEFAULT_PASSWORD)
     val yubiKeyRequest = confirmAccessByYubiKeyUseCase()
         .attempt()
         .bind()
@@ -651,10 +652,10 @@ fun produceUserVerificationState(
     }
 
     combine(
-        passwordSink
-            .validatedPassword(this),
+        passwordHandle.sink
+            .map { cell -> cell to validatedPassword(cell.text) },
         executor.isExecutingFlow,
-    ) { validatedPassword, taskExecuting ->
+    ) { (passwordCell, validatedPassword), taskExecuting ->
         val error = (validatedPassword as? Validated.Failure)?.error
         val canCreateVault = error == null && !taskExecuting
         val content = UserVerificationState.Content(
@@ -672,8 +673,9 @@ fun produceUserVerificationState(
                 showBiometricPromptFlow = biometricPromptFlow,
                 showYubiKeyPromptFlow = yubiKeyPromptFlow,
             ),
-            password = TextFieldModel2.of(
-                state = passwordState,
+            password = TextFieldModel.of(
+                cell = passwordCell,
+                handle = passwordHandle,
                 validated = validatedPassword,
             ),
             isLoading = taskExecuting,

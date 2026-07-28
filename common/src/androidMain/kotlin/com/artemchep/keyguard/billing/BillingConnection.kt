@@ -1,9 +1,7 @@
 package com.artemchep.keyguard.billing
 
-import android.app.Activity
 import com.android.billingclient.api.AcknowledgePurchaseParams
 import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
@@ -19,7 +17,7 @@ interface BillingConnection {
     val clientLiveFlow: MutableStateFlow<RichResult<BillingClient>>
 
     /**
-     * Perform a network query to get SKU details and
+     * Perform a network query to get product details and
      * return the result asynchronously.
      */
     fun productDetailsFlow(params: QueryProductDetailsParams): Flow<RichResult<List<ProductDetails>>>
@@ -35,7 +33,7 @@ interface BillingConnection {
      */
     fun purchasesFlow(params: QueryPurchasesParams): Flow<RichResult<List<Purchase>>>
 
-    fun launchBillingFlow(activity: Activity, billingFlowParams: BillingFlowParams)
+    fun requestPurchasesRefresh()
 
     fun acknowledgePurchase(acknowledgePurchaseParams: AcknowledgePurchaseParams)
 }

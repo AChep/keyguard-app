@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.strategy
 
+import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.canRetry
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.LocalItemMeta
@@ -21,6 +22,8 @@ internal fun buildLocalItemMeta(
     isMergeable: Boolean,
     attachmentIds: Set<String>? = null,
     localFolderId: String? = null,
+    parentFolderId: String? = null,
+    folderHierarchyMode: FolderHierarchyMode? = null,
     favorite: Boolean? = null,
     collectionIds: Set<String>? = null,
     requiresLocalRefreshWhenDatesMatch: Boolean = false,
@@ -45,6 +48,8 @@ internal fun buildLocalItemMeta(
         canRetryError = error?.canRetry(effectiveDate) != false,
         attachmentIds = attachmentIds,
         localFolderId = localFolderId,
+        parentFolderId = parentFolderId,
+        folderHierarchyMode = folderHierarchyMode,
         favorite = favorite,
         collectionIds = collectionIds,
         requiresLocalRefreshWhenDatesMatch = requiresLocalRefreshWhenDatesMatch,

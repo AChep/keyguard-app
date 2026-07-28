@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.model.TotpToken
+import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.hasPendingAttachmentMutations
@@ -15,10 +16,15 @@ suspend fun BitwardenCipher.toDomain(
 ): DSecret {
     val type: DSecret.Type = when (type) {
         BitwardenCipher.Type.Login -> DSecret.Type.Login
-        BitwardenCipher.Type.SecureNote -> DSecret.Type.SecureNote
+        BitwardenCipher.Type.SecureNote -> if (gpgKey != null) {
+            DSecret.Type.GpgKey
+        } else {
+            DSecret.Type.SecureNote
+        }
         BitwardenCipher.Type.Card -> DSecret.Type.Card
         BitwardenCipher.Type.Identity -> DSecret.Type.Identity
         BitwardenCipher.Type.SshKey -> DSecret.Type.SshKey
+        BitwardenCipher.Type.GpgKey -> DSecret.Type.GpgKey
     }
     val ignoredAlerts = ignoredAlerts
         .map { (key, value) ->
@@ -40,6 +46,7 @@ suspend fun BitwardenCipher.toDomain(
         service = service,
         // common
         keyBase64 = keyBase64,
+        customIcon = customIcon,
         name = name.orEmpty(),
         notes = notes.orEmpty(),
         favorite = favorite,
@@ -50,6 +57,9 @@ suspend fun BitwardenCipher.toDomain(
                 !hasPendingAttachmentMutations(),
         ignoredAlerts = ignoredAlerts,
         uris = login?.uris.orEmpty().map(BitwardenCipher.Login.Uri::toDomain),
+        links = canonicalizeCipherLinkIds(
+            links.map(BitwardenCipher.Link::remoteCipherId),
+        ).map(DSecret::Link),
         tags = tags.map(BitwardenCipher.Tag::toDomain),
         fields = fields.map(BitwardenCipher.Field::toDomain),
         attachments = attachments
@@ -70,6 +80,7 @@ suspend fun BitwardenCipher.toDomain(
         card = card?.toDomain(),
         identity = identity?.toDomain(),
         sshKey = sshKey?.toDomain(),
+        gpgKey = gpgKey?.toDomain(),
         // other
         passwordHistory = passwordHistory.map(BitwardenCipher.Login.PasswordHistory::toDomain),
     )
@@ -78,6 +89,11 @@ suspend fun BitwardenCipher.toDomain(
 fun BitwardenCipher.Login.Uri.toDomain() = DSecret.Uri(
     uri = uri.orEmpty(),
     match = match?.toDomain(),
+    signatures = signatures.map(BitwardenCipher.Login.Uri.Signature::toDomain),
+)
+
+fun BitwardenCipher.Login.Uri.Signature.toDomain() = DSecret.Uri.Signature(
+    certFingerprintSha256 = certFingerprintSha256,
 )
 
 fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
@@ -93,6 +109,9 @@ fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
     BitwardenCipher.IgnoreAlertType.INCOMPLETE -> DWatchtowerAlertType.INCOMPLETE
     BitwardenCipher.IgnoreAlertType.EXPIRING -> DWatchtowerAlertType.EXPIRING
     BitwardenCipher.IgnoreAlertType.WEAK_SSH_KEY -> DWatchtowerAlertType.WEAK_SSH_KEY
+    BitwardenCipher.IgnoreAlertType.GPG_KEY_UNUSABLE -> DWatchtowerAlertType.GPG_KEY_UNUSABLE
+    BitwardenCipher.IgnoreAlertType.WEAK_GPG_KEY -> DWatchtowerAlertType.WEAK_GPG_KEY
+    BitwardenCipher.IgnoreAlertType.GPG_KEY_PUBLISHING -> DWatchtowerAlertType.GPG_KEY_PUBLISHING
 }
 
 fun BitwardenCipher.Login.Uri.MatchType.toDomain() = when (this) {
@@ -268,6 +287,13 @@ fun BitwardenCipher.SshKey.toDomain() = DSecret.SshKey(
     privateKey = privateKey.oh(),
     publicKey = publicKey.oh(),
     fingerprint = fingerprint.oh(),
+)
+
+fun BitwardenCipher.GpgKey.toDomain() = DSecret.GpgKey(
+    privateKeyArmored = privateKeyArmored.oh(),
+    publicKeyArmored = publicKeyArmored.oh(),
+    fingerprint = fingerprint.oh(),
+    metadata = metadata,
 )
 
 private fun String?.oh() = this?.takeIf { it.isNotBlank() }

@@ -138,7 +138,7 @@ fun ChangePasswordScreen(
                     )
 
                     val query = filterState.value?.query
-                    val queryText = query?.state?.value.orEmpty()
+                    val queryText = query?.text.orEmpty()
 
                     val count = loadableState
                         .getOrNull()
@@ -150,6 +150,7 @@ fun ChangePasswordScreen(
                     SearchTextField(
                         modifier = Modifier,
                         text = queryText,
+                        textRevision = query?.textRevision,
                         placeholder = stringResource(Res.string.apppicker_search_placeholder),
                         searchIcon = false,
                         focusRequester = focusRequester,

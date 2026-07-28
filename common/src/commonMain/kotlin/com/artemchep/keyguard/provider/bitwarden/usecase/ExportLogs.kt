@@ -3,7 +3,7 @@ package com.artemchep.keyguard.provider.bitwarden.usecase
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.toSource
+import com.artemchep.keyguard.util.foundation.io.toSource
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.zip.ZipConfig
 import com.artemchep.keyguard.common.service.zip.ZipEntry

@@ -40,7 +40,7 @@ private val BITWARDEN_AAGUID = byteArrayOf(
     0x49.toByte(),
 )
 
-internal class WebAuthnAuthenticatorDataFactory(
+class WebAuthnAuthenticatorDataFactory(
     private val cryptoService: CryptoGenerator,
 ) {
     fun encodeAuthenticatorData(

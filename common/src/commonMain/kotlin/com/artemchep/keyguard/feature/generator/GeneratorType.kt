@@ -17,6 +17,7 @@ sealed interface GeneratorType2 {
     val username: Boolean get() = false
     val password: Boolean get() = false
     val sshKey: Boolean get() = false
+    val gpgKey: Boolean get() = false
 
     data object Password : GeneratorType2 {
         override val key: String = "PASSWORD"
@@ -86,5 +87,13 @@ sealed interface GeneratorType2 {
         override val title: TextHolder =
             TextHolder.Res(Res.string.key_ssh)
         override val sshKey: Boolean = true
+    }
+
+    data object GpgKey : GeneratorType2 {
+        override val key: String = "GPG_KEY"
+        override val group: String = GENERATOR_TYPE_GROUP_KEY_PAIR
+        override val title: TextHolder =
+            TextHolder.Res(Res.string.key_gpg)
+        override val gpgKey: Boolean = true
     }
 }

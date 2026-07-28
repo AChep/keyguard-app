@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:Main.kt:@OptIn(ExperimentalTime::class) private fun runKeyguardApplication</ID>
+    <ID>CyclomaticComplexMethod:WindowStateManager.kt:WindowStateManager.SaveableWindowState.Companion$fun of: SaveableWindowState</ID>
+    <ID>ForbiddenComment:WindowStateManager.kt:WindowStateManager$// TODO: Add a support for window positioning via</ID>
+    <ID>LongMethod:MacPopupComposeWindow.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable internal fun MacOwnerlessPopupComposeWindow</ID>
+    <ID>LongMethod:Main.kt:@OptIn(ExperimentalTime::class) private fun runKeyguardApplication</ID>
+    <ID>LongMethod:QuickSearchWindow.kt:@OptIn(ExperimentalComposeUiApi::class) @Composable internal fun ApplicationScope.QuickSearchWindow</ID>
+    <ID>MagicNumber:MacPopupOverlayEffect.kt:10</ID>
+    <ID>MagicNumber:Main.kt:0.12f</ID>
+    <ID>MagicNumber:Main.kt:21</ID>
+    <ID>ReturnCount:Desktop.kt:fun getAwtDesktopOrNull: Desktop?</ID>
+    <ID>ThrowsCount:Main.kt:@OptIn(ExperimentalTime::class) private fun runKeyguardApplication</ID>
+    <ID>TooGenericExceptionCaught:Main.kt:e: Exception</ID>
+    <ID>TooManyFunctions:Main.kt:com.artemchep.keyguard.Main.kt</ID>
+    <ID>TooManyFunctions:NavigateDesktop.kt:com.artemchep.keyguard.desktop.util.NavigateDesktop.kt</ID>
+    <ID>UnusedParameter:NavigateDesktop.kt:intent: NavigationIntent.NavigateToApp</ID>
+    <ID>UnusedParameter:NavigateDesktop.kt:intent: NavigationIntent.NavigateToLargeType</ID>
+    <ID>UnusedParameter:NavigateDesktop.kt:intent: NavigationIntent.NavigateToPhone</ID>
+    <ID>UnusedParameter:NavigateDesktop.kt:intent: NavigationIntent.NavigateToSend</ID>
+    <ID>UnusedParameter:NavigateDesktop.kt:intent: NavigationIntent.NavigateToShare</ID>
+    <ID>UnusedParameter:NavigateDesktop.kt:intent: NavigationIntent.NavigateToSms</ID>
+    <ID>UnusedParameter:NavigateDesktop.kt:showMessage: ShowMessage</ID>
+  </CurrentIssues>
+</SmellBaseline>

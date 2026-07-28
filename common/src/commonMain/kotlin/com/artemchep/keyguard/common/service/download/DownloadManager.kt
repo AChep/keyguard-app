@@ -1,31 +1,23 @@
 package com.artemchep.keyguard.common.service.download
 
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
 import kotlinx.coroutines.flow.Flow
 
 interface DownloadManager {
     fun statusByDownloadId2(downloadId: String): Flow<DownloadProgress>
 
-    fun statusByTag(tag: DownloadInfoEntity2.AttachmentDownloadTag): Flow<DownloadProgress>
+    fun statusByTag(tag: DownloadInfoEntity.AttachmentDownloadTag): Flow<DownloadProgress>
 
     class QueueResult(
-        val info: DownloadInfoEntity2,
+        val info: DownloadInfoEntity,
         val flow: Flow<DownloadProgress>,
     )
 
     suspend fun queue(
-        downloadInfo: DownloadInfoEntity2,
+        downloadInfo: DownloadInfoEntity,
     ): QueueResult
 
     suspend fun queue(
-        tag: DownloadInfoEntity2.AttachmentDownloadTag,
-        url: String,
-        urlIsOneTime: Boolean,
-        name: String,
-        data: ByteArray? = null,
-        key: ByteArray? = null,
-        attempt: Int = 0,
-        worker: Boolean = false,
+        request: DownloadQueueRequest,
     ): QueueResult
 
     suspend fun removeByDownloadId(
@@ -33,6 +25,6 @@ interface DownloadManager {
     )
 
     suspend fun removeByTag(
-        tag: DownloadInfoEntity2.AttachmentDownloadTag,
+        tag: DownloadInfoEntity.AttachmentDownloadTag,
     )
 }

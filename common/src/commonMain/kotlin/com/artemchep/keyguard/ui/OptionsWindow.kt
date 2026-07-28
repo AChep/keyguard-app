@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.component.Section
+import com.artemchep.keyguard.ui.theme.danger
 import com.artemchep.keyguard.ui.theme.selectedContainer
 
 @Composable
@@ -97,6 +98,8 @@ fun DropdownScope.DropdownMenuItemFlat(
             if (action.selected) {
                 val background = MaterialTheme.colorScheme.selectedContainer
                 contentColorFor(background)
+            } else if (action.danger) {
+                MaterialTheme.colorScheme.danger
             } else {
                 LocalContentColor.current
             }

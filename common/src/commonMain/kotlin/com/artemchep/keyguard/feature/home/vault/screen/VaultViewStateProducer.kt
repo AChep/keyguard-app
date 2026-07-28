@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import arrow.core.getOrElse
 import com.artemchep.keyguard.AppMode
-import com.artemchep.keyguard.android.downloader.journal.room.DownloadInfoEntity2
+import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -91,13 +91,23 @@ import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayPars
 import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
+import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
-import com.artemchep.keyguard.common.usecase.KeyPrivateExport
-import com.artemchep.keyguard.common.usecase.KeyPublicExport
+import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.service.extract.LinkInfoRegistry
+import com.artemchep.keyguard.common.service.gpgagent.chunkedGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmored
+import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPublicKeyArmored
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNull
+import com.artemchep.keyguard.common.service.gpgkeyserver.isEligibleForGpgKeyserverRefresh
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.create
@@ -108,6 +118,7 @@ import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.ChangeCipherNameById
 import com.artemchep.keyguard.common.usecase.ChangeCipherPasswordById
+import com.artemchep.keyguard.common.usecase.ChangeGpgKeyExpirationById
 import com.artemchep.keyguard.common.usecase.CheckPasswordLeak
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherFieldSwitchToggle
@@ -139,17 +150,22 @@ import com.artemchep.keyguard.common.usecase.GetTwoFa
 import com.artemchep.keyguard.common.usecase.GetUrlOverrides
 import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadAlerts
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
+import com.artemchep.keyguard.common.usecase.KeyPrivateExport
+import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
 import com.artemchep.keyguard.common.usecase.PatchWatchtowerAlertCipher
 import com.artemchep.keyguard.common.usecase.RePromptCipherById
+import com.artemchep.keyguard.common.usecase.RefreshGpgPublicKeys
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
 import com.artemchep.keyguard.common.usecase.RemoveCipherById
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
+import com.artemchep.keyguard.common.usecase.UploadGpgPublicKey
+import com.artemchep.keyguard.common.usecase.VerifyGpgPublicKey
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactivePasskey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
@@ -179,11 +195,14 @@ import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRouteFactory
 import com.artemchep.keyguard.feature.home.vault.component.UrlAppStoreListings
 import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
+import com.artemchep.keyguard.feature.home.vault.link.CipherRelations
+import com.artemchep.keyguard.feature.home.vault.link.resolveCipherRelations
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.home.vault.search.sort.PasswordSort
 import com.artemchep.keyguard.feature.home.vault.util.cipherArchiveAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherChangeGpgKeyExpiryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangeNameAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherChangePasswordAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherCopyToAction
@@ -192,10 +211,13 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherDisableConfirmAccess
 import com.artemchep.keyguard.feature.home.vault.util.cipherEnableConfirmAccessAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherExportAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherMoveToFolderAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherRefreshGpgPublicKeyAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherRestoreAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherSendAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherTrashAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherUnarchiveAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherUploadGpgPublicKeyAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherVerifyGpgPublicKeyAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewSshAgentHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
@@ -235,7 +257,7 @@ import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.colorizePassword
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.IconBox
-import com.artemchep.keyguard.ui.icons.IconBox2
+import com.artemchep.keyguard.ui.icons.IconBoxContainer
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.selection.SelectionHandle
@@ -256,6 +278,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -272,10 +295,10 @@ import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringResource
 import com.artemchep.keyguard.platform.leAllInstances
 import com.artemchep.keyguard.ui.FingerprintPlaneta
-import com.artemchep.keyguard.util.planeta.Planeta
 import org.kodein.di.compose.localDI
 import org.kodein.di.direct
 import org.kodein.di.instance
+import org.kodein.di.instanceOrNull
 
 typealias RevealConcealFlow = Flow<Unit>
 
@@ -309,6 +332,8 @@ fun vaultViewScreenState(
         markWatchtowerAlertAsRead = instance(),
         cryptoGenerator = instance(),
         keyPairGenerator = instance(),
+        gpgPublicKeyParser = instanceOrNull<GpgPublicKeyParser>()
+            ?: GpgPublicKeyParserUnsupported,
         keyPrivateExport = instance(),
         keyPublicExport = instance(),
         cipherUnsecureUrlCheck = instance(),
@@ -321,7 +346,11 @@ fun vaultViewScreenState(
         rePromptCipherById = instance(),
         changeCipherNameById = instance(),
         changeCipherPasswordById = instance(),
+        changeGpgKeyExpirationById = instance(),
         checkPasswordLeak = instance(),
+        uploadGpgPublicKey = instance(),
+        refreshGpgPublicKeys = instance(),
+        verifyGpgPublicKey = instance(),
         retryCipher = instance(),
         executeCommand = instance(),
         copyCipherById = instance(),
@@ -412,6 +441,7 @@ fun vaultViewScreenState(
     markWatchtowerAlertAsRead: MarkWatchtowerAlertAsRead,
     cryptoGenerator: CryptoGenerator,
     keyPairGenerator: KeyPairGenerator,
+    gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
@@ -424,7 +454,11 @@ fun vaultViewScreenState(
     rePromptCipherById: RePromptCipherById,
     changeCipherNameById: ChangeCipherNameById,
     changeCipherPasswordById: ChangeCipherPasswordById,
+    changeGpgKeyExpirationById: ChangeGpgKeyExpirationById,
     checkPasswordLeak: CheckPasswordLeak,
+    uploadGpgPublicKey: UploadGpgPublicKey,
+    refreshGpgPublicKeys: RefreshGpgPublicKeys,
+    verifyGpgPublicKey: VerifyGpgPublicKey,
     retryCipher: RetryCipher,
     executeCommand: ExecuteCommand,
     copyCipherById: CopyCipherById,
@@ -476,12 +510,174 @@ fun vaultViewScreenState(
         downloadAttachment,
         clipboardService,
         dateFormatter,
+        gpgPublicKeyParser,
+        verifyGpgPublicKey,
         windowCoroutineScope,
         linkInfoExtractors,
         itemId,
         accountId,
     ),
 ) {
+    vaultViewScreenStateProducer(
+        mode = mode,
+        contentColor = contentColor,
+        disabledContentColor = disabledContentColor,
+        getAccounts = getAccounts,
+        getCanWrite = getCanWrite,
+        getCiphers = getCiphers,
+        getCollections = getCollections,
+        getOrganizations = getOrganizations,
+        getFolders = getFolders,
+        getFolderTreeById = getFolderTreeById,
+        getConcealFields = getConcealFields,
+        getMarkdown = getMarkdown,
+        getAppIcons = getAppIcons,
+        getWebsiteIcons = getWebsiteIcons,
+        getPasskeys = getPasskeys,
+        getTwoFa = getTwoFa,
+        getTotpCode = getTotpCode,
+        getPasswordStrength = getPasswordStrength,
+        getUrlOverrides = getUrlOverrides,
+        passkeyTargetCheck = passkeyTargetCheck,
+        getWatchtowerUnreadAlerts = getWatchtowerUnreadAlerts,
+        markWatchtowerAlertAsRead = markWatchtowerAlertAsRead,
+        cryptoGenerator = cryptoGenerator,
+        keyPairGenerator = keyPairGenerator,
+        gpgPublicKeyParser = gpgPublicKeyParser,
+        keyPrivateExport = keyPrivateExport,
+        keyPublicExport = keyPublicExport,
+        cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
+        cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
+        cipherFieldSwitchToggle = cipherFieldSwitchToggle,
+        moveCipherToFolderById = moveCipherToFolderById,
+        tldService = tldService,
+        equivalentDomainsBuilderFactory = equivalentDomainsBuilderFactory,
+        patchWatchtowerAlertCipher = patchWatchtowerAlertCipher,
+        rePromptCipherById = rePromptCipherById,
+        changeCipherNameById = changeCipherNameById,
+        changeCipherPasswordById = changeCipherPasswordById,
+        changeGpgKeyExpirationById = changeGpgKeyExpirationById,
+        checkPasswordLeak = checkPasswordLeak,
+        uploadGpgPublicKey = uploadGpgPublicKey,
+        refreshGpgPublicKeys = refreshGpgPublicKeys,
+        verifyGpgPublicKey = verifyGpgPublicKey,
+        retryCipher = retryCipher,
+        executeCommand = executeCommand,
+        copyCipherById = copyCipherById,
+        restoreCipherById = restoreCipherById,
+        trashCipherById = trashCipherById,
+        unarchiveCipherById = unarchiveCipherById,
+        archiveCipherById = archiveCipherById,
+        removeCipherById = removeCipherById,
+        favouriteCipherById = favouriteCipherById,
+        downloadManager = downloadManager,
+        downloadAttachment = downloadAttachment,
+        removeAttachment = removeAttachment,
+        canPreviewAttachment = canPreviewAttachment,
+        attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
+        passkeysCredentialViewRouteFactory = passkeysCredentialViewRouteFactory,
+        vaultViewRouteFactory = vaultViewRouteFactory,
+        vaultRouteFactory = vaultRouteFactory,
+        collectionsRouteFactory = collectionsRouteFactory,
+        cipherExpiringCheck = cipherExpiringCheck,
+        cipherIncompleteCheck = cipherIncompleteCheck,
+        clipboardService = clipboardService,
+        getGravatarUrl = getGravatarUrl,
+        dateFormatter = dateFormatter,
+        addCipherOpenedHistory = addCipherOpenedHistory,
+        getJustDeleteMeByUrl = getJustDeleteMeByUrl,
+        getJustGetMyDataByUrl = getJustGetMyDataByUrl,
+        iosAppAppStoreParser = iosAppAppStoreParser,
+        androidAppGooglePlayParser = androidAppGooglePlayParser,
+        androidAppFDroidParser = androidAppFDroidParser,
+        windowCoroutineScope = windowCoroutineScope,
+        placeholderFactories = placeholderFactories,
+        linkInfoExtractors = linkInfoExtractors,
+        confirmationRouteFactory = confirmationRouteFactory,
+        itemId = itemId,
+        accountId = accountId,
+    )
+}
+
+suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
+    mode: AppMode,
+    contentColor: Color,
+    disabledContentColor: Color,
+    getAccounts: GetAccounts,
+    getCanWrite: GetCanWrite,
+    getCiphers: GetCiphers,
+    getCollections: GetCollections,
+    getOrganizations: GetOrganizations,
+    getFolders: GetFolders,
+    getFolderTreeById: GetFolderTreeById,
+    getConcealFields: GetConcealFields,
+    getMarkdown: GetMarkdown,
+    getAppIcons: GetAppIcons,
+    getWebsiteIcons: GetWebsiteIcons,
+    getPasskeys: GetPasskeys,
+    getTwoFa: GetTwoFa,
+    getTotpCode: GetTotpCode,
+    getPasswordStrength: GetPasswordStrength,
+    getUrlOverrides: GetUrlOverrides,
+    passkeyTargetCheck: PasskeyTargetCheck,
+    getWatchtowerUnreadAlerts: GetWatchtowerUnreadAlerts,
+    markWatchtowerAlertAsRead: MarkWatchtowerAlertAsRead,
+    cryptoGenerator: CryptoGenerator,
+    keyPairGenerator: KeyPairGenerator,
+    gpgPublicKeyParser: GpgPublicKeyParser,
+    keyPrivateExport: KeyPrivateExport,
+    keyPublicExport: KeyPublicExport,
+    cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
+    cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
+    cipherFieldSwitchToggle: CipherFieldSwitchToggle,
+    moveCipherToFolderById: MoveCipherToFolderById,
+    tldService: TldService,
+    equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
+    patchWatchtowerAlertCipher: PatchWatchtowerAlertCipher,
+    rePromptCipherById: RePromptCipherById,
+    changeCipherNameById: ChangeCipherNameById,
+    changeCipherPasswordById: ChangeCipherPasswordById,
+    changeGpgKeyExpirationById: ChangeGpgKeyExpirationById,
+    checkPasswordLeak: CheckPasswordLeak,
+    uploadGpgPublicKey: UploadGpgPublicKey,
+    refreshGpgPublicKeys: RefreshGpgPublicKeys,
+    verifyGpgPublicKey: VerifyGpgPublicKey,
+    retryCipher: RetryCipher,
+    executeCommand: ExecuteCommand,
+    copyCipherById: CopyCipherById,
+    restoreCipherById: RestoreCipherById,
+    trashCipherById: TrashCipherById,
+    unarchiveCipherById: UnarchiveCipherById,
+    archiveCipherById: ArchiveCipherById,
+    removeCipherById: RemoveCipherById,
+    favouriteCipherById: FavouriteCipherById,
+    downloadManager: DownloadManager,
+    downloadAttachment: DownloadAttachment,
+    removeAttachment: RemoveAttachment,
+    canPreviewAttachment: CanPreviewAttachment,
+    attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
+    passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
+    vaultViewRouteFactory: VaultViewRouteFactory,
+    vaultRouteFactory: VaultRouteFactory,
+    collectionsRouteFactory: CollectionsRouteFactory,
+    cipherExpiringCheck: CipherExpiringCheck,
+    cipherIncompleteCheck: CipherIncompleteCheck,
+    clipboardService: ClipboardService,
+    getGravatarUrl: GetGravatarUrl,
+    dateFormatter: DateFormatter,
+    addCipherOpenedHistory: AddCipherOpenedHistory,
+    getJustDeleteMeByUrl: GetJustDeleteMeByUrl,
+    getJustGetMyDataByUrl: GetJustGetMyDataByUrl,
+    iosAppAppStoreParser: IosAppAppStoreParser,
+    androidAppGooglePlayParser: AndroidAppGooglePlayParser,
+    androidAppFDroidParser: AndroidAppFDroidParser,
+    windowCoroutineScope: WindowCoroutineScope,
+    placeholderFactories: List<Placeholder.Factory>,
+    linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    itemId: String,
+    accountId: String,
+): Flow<VaultViewState> {
     addCipherOpenedHistory(
         AddCipherOpenedHistoryRequest(
             accountId = accountId,
@@ -805,6 +1001,7 @@ fun vaultViewScreenState(
                         ?: pairUnlessEmpty(cipher?.identity?.email, CopyText.Type.EMAIL)
                         ?: pairUnlessEmpty(cipher?.identity?.phone, CopyText.Type.PHONE_NUMBER)
                         ?: pairUnlessEmpty(cipher?.sshKey?.publicKey, CopyText.Type.PUBLIC_KEY)
+                        ?: pairUnlessEmpty(cipher?.getGpgAgentPublicKeyArmored(), CopyText.Type.PUBLIC_KEY)
                         ?: pairUnlessEmpty(cipher?.notes, CopyText.Type.VALUE)
                 if (primaryFieldPair == null) {
                     return@map null
@@ -827,6 +1024,7 @@ fun vaultViewScreenState(
                     pairUnlessEmpty(cipher?.login?.password, CopyText.Type.PASSWORD)
                         ?: pairUnlessEmpty(cipher?.card?.code, CopyText.Type.CARD_CVV)
                         ?: pairUnlessEmpty(cipher?.sshKey?.privateKey, CopyText.Type.PRIVATE_KEY)
+                        ?: pairUnlessEmpty(cipher?.getGpgAgentPrivateKeyArmored(), CopyText.Type.PRIVATE_KEY)
                 if (secretFieldPair == null) {
                     return@map null
                 }
@@ -1033,7 +1231,7 @@ fun vaultViewScreenState(
             },
     )
 
-    combine(
+    return combine(
         accountFlow,
         cipherExtraFlow,
         folderFlow,
@@ -1102,6 +1300,7 @@ fun vaultViewScreenState(
                     is AppMode.QuickSearch -> null
                     is AppMode.Pick -> {
                         FlatItemAction(
+                            id = "cipher.primary.autofill",
                             title = Res.string.autofill.wrap(),
                             leading = icon(Icons.Outlined.AutoAwesome),
                             onClick = {
@@ -1115,6 +1314,7 @@ fun vaultViewScreenState(
                     is AppMode.Save -> null
                     is AppMode.SavePasskey -> {
                         FlatItemAction(
+                            id = "cipher.primary.savePasskey",
                             title = Res.string.passkey_save.wrap(),
                             leading = icon(Icons.Outlined.Save),
                             onClick = {
@@ -1125,6 +1325,7 @@ fun vaultViewScreenState(
                     }
                     is AppMode.SavePassword -> {
                         FlatItemAction(
+                            id = "cipher.primary.savePassword",
                             title = Res.string.password_save.wrap(),
                             leading = icon(Icons.Outlined.Save),
                             onClick = {
@@ -1210,6 +1411,46 @@ fun vaultViewScreenState(
                             patchWatchtowerAlertCipher = patchWatchtowerAlertCipher,
                             ciphers = listOf(secretOrNull),
                         ),
+                        cipherChangeGpgKeyExpiryAction(
+                            gpgPublicKeyParser = gpgPublicKeyParser,
+                            changeGpgKeyExpirationById = changeGpgKeyExpirationById,
+                            cipher = secretOrNull,
+                        )
+                            .takeIf {
+                                canEdit &&
+                                        secretOrNull.type == DSecret.Type.GpgKey &&
+                                        secretOrNull.getGpgAgentPrivateKeyArmored()?.isNotBlank() == true &&
+                                        secretOrNull.getGpgAgentPublicKeyArmored()?.isNotBlank() == true &&
+                                        gpgPublicKeyParser.isSupported &&
+                                        changeGpgKeyExpirationById.isSupported
+                            }
+                            ?.verify(verify),
+                        cipherVerifyGpgPublicKeyAction(
+                            verifyGpgPublicKey = verifyGpgPublicKey,
+                            cipher = secretOrNull,
+                        )
+                            .takeIf {
+                                secretOrNull.getGpgAgentPublicKeyArmored()?.isNotBlank() == true &&
+                                        secretOrNull.getGpgAgentFingerprint()?.isNotBlank() == true
+                            }
+                            ?.verify(verify),
+                        cipherRefreshGpgPublicKeyAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
+                            refreshGpgPublicKeys = refreshGpgPublicKeys,
+                            cipher = secretOrNull,
+                        )
+                            .takeIf {
+                                canEdit &&
+                                        secretOrNull.isEligibleForGpgKeyserverRefresh()
+                            }
+                            ?.verify(verify),
+                        cipherUploadGpgPublicKeyAction(
+                            confirmationRouteFactory = confirmationRouteFactory,
+                            uploadGpgPublicKey = uploadGpgPublicKey,
+                            cipher = secretOrNull,
+                        )
+                            .takeIf { secretOrNull.getGpgAgentPublicKeyArmored()?.isNotBlank() == true }
+                            ?.verify(verify),
                         cipherExportAction(
                             ciphers = listOf(secretOrNull),
                         ),
@@ -1270,6 +1511,7 @@ fun vaultViewScreenState(
                         passkeysCredentialViewRouteFactory = passkeysCredentialViewRouteFactory,
                         cryptoGenerator = cryptoGenerator,
                         keyPairGenerator = keyPairGenerator,
+                        gpgPublicKeyParser = gpgPublicKeyParser,
                         keyPrivateExport = keyPrivateExport,
                         keyPublicExport = keyPublicExport,
                         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
@@ -1280,6 +1522,7 @@ fun vaultViewScreenState(
                         executeCommand = executeCommand,
                         markdown = markdown,
                         concealFields = concealFields || secretOrNull.reprompt,
+                        appIcons = appIcons,
                         websiteIcons = websiteIcons,
                         getGravatarUrl = getGravatarUrl,
                         copy = copy,
@@ -1339,6 +1582,7 @@ private fun RememberStateFlowScope.oh(
     passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
     cryptoGenerator: CryptoGenerator,
     keyPairGenerator: KeyPairGenerator,
+    gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
@@ -1349,6 +1593,7 @@ private fun RememberStateFlowScope.oh(
     executeCommand: ExecuteCommand,
     markdown: Boolean,
     concealFields: Boolean,
+    appIcons: Boolean,
     websiteIcons: Boolean,
     getGravatarUrl: GetGravatarUrl,
     copy: CopyText,
@@ -1374,6 +1619,11 @@ private fun RememberStateFlowScope.oh(
     androidAppFDroidParser: AndroidAppFDroidParser,
     verify: ((() -> Unit) -> Unit)?,
 ) = flow<VaultViewItem> {
+    val cipherRelations = resolveCipherRelations(
+        cipher = cipher,
+        ciphers = ciphers,
+    )
+
     val hasWiFi = kotlin.run {
         val ssid = cipher.login?.username
             ?: cipher.fields
@@ -1517,6 +1767,28 @@ private fun RememberStateFlowScope.oh(
         emit(model)
     }
 
+    val gpgFingerprint = cipher.getGpgAgentFingerprint()
+        ?.normalizeGpgFingerprint()
+        ?.takeIf { it.isNotEmpty() }
+
+    createGpgKeyItems(
+        copy = copy,
+        cryptoGenerator = cryptoGenerator,
+        cipher = cipher,
+        accountId = account.id,
+        gpgFingerprint = gpgFingerprint,
+        now = now,
+        gpgPublicKeyParser = gpgPublicKeyParser,
+        dateFormatter = dateFormatter,
+        concealFields = concealFields,
+        hasCanNotSeePassword = hasCanNotSeePassword,
+        visibilityGlobalConfig = visibilityGlobalConfig,
+        visibilityGlobalUserTransform = visibilityGlobalUserTransform,
+        verify = verify,
+    ).forEach { item ->
+        emit(item)
+    }
+
     val sshKey = cipher.sshKey
     if (sshKey != null) {
         val keyPair = kotlin.run {
@@ -1638,23 +1910,21 @@ private fun RememberStateFlowScope.oh(
         }
         if (keyPair != null) {
             val keyLength = keyPairGenerator.getPrivateKeyLengthOrNull(keyPair)
-            val keyDesc = kotlin.run {
-                if (keyLength != null) {
-                    val bits = translate(Res.string.generator_key_length_item, keyLength)
-                    return@run "${keyPair.type.title}, $bits"
-                }
-
-                keyPair.type.title
-            }
-            val typeItem = create(
-                copy = copy,
-                cryptoGenerator = cryptoGenerator,
-                cipherLocalId = cipher.id,
-                id = "sshKey.keyType",
-                accountId = account.id,
+            val rows = mutableListOf<VaultViewItem.Table.Row>()
+            rows += VaultViewItem.Table.Row(
                 title = translate(Res.string.key_type),
-                value = keyDesc,
-                elevated = true,
+                value = keyPair.type.title,
+            )
+            if (keyLength != null) {
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.length),
+                    value = translate(Res.string.generator_key_length_item, keyLength),
+                )
+            }
+            val typeItem = VaultViewItem.Table(
+                id = "sshKey.keyType",
+                elevation = 1.dp,
+                rows = rows,
             )
             emit(typeItem)
         }
@@ -1890,10 +2160,12 @@ private fun RememberStateFlowScope.oh(
                             val dropdown = buildContextItems {
                                 section {
                                     this += copy.FlatItemAction(
+                                        id = "cipher.totp.copyCode",
                                         title = Res.string.copy_otp_code.wrap(),
                                         value = code.code,
                                     )
                                     this += copy.FlatItemAction(
+                                        id = "cipher.totp.copySecret",
                                         leading = iconSmall(Icons.Outlined.ContentCopy, Icons.Outlined.Key),
                                         title = Res.string.copy_otp_secret_code.wrap(),
                                         value = cipherLoginTotp.token.raw,
@@ -2081,6 +2353,7 @@ private fun RememberStateFlowScope.oh(
             val actions = mutableListOf<FlatItemAction>()
             if (cipherIdentity.phone != null) {
                 actions += FlatItemAction(
+                    id = "cipher.identity.callPhone",
                     icon = Icons.Outlined.Call,
                     title = Res.string.vault_view_call_phone_action.wrap(),
                     onClick = {
@@ -2091,6 +2364,7 @@ private fun RememberStateFlowScope.oh(
                     },
                 )
                 actions += FlatItemAction(
+                    id = "cipher.identity.textPhone",
                     icon = Icons.Outlined.Textsms,
                     title = Res.string.vault_view_text_phone_action.wrap(),
                     onClick = {
@@ -2103,6 +2377,7 @@ private fun RememberStateFlowScope.oh(
             }
             if (cipherIdentity.email != null) {
                 actions += FlatItemAction(
+                    id = "cipher.identity.email",
                     icon = Icons.Outlined.Email,
                     title = Res.string.vault_view_email_action.wrap(),
                     onClick = {
@@ -2123,6 +2398,7 @@ private fun RememberStateFlowScope.oh(
                 cipherIdentity.country != null
             ) {
                 actions += FlatItemAction(
+                    id = "cipher.identity.navigate",
                     icon = Icons.Outlined.Directions,
                     title = Res.string.vault_view_navigate_action.wrap(),
                     onClick = {
@@ -2436,6 +2712,7 @@ private fun RememberStateFlowScope.oh(
                 fun createAction(
                     value: Boolean,
                 ) = FlatItemAction(
+                    id = "cipher.field.$index.toggleBoolean",
                     title = TextHolder.Res(Res.string.custom_field_toggle_boolean_value),
                     trailing = {
                         Switch(
@@ -2542,6 +2819,14 @@ private fun RememberStateFlowScope.oh(
             emit(m)
         }
     }
+    emitAll(
+        cipherRelationItems(
+            cipherRelations = cipherRelations,
+            vaultViewRouteFactory = vaultViewRouteFactory,
+            appIcons = appIcons,
+            websiteIcons = websiteIcons,
+        ),
+    )
     if (cipher.type != DSecret.Type.SecureNote && cipher.notes.isNotEmpty()) {
         val section = VaultViewItem.Section(
             id = "note",
@@ -2590,7 +2875,7 @@ private fun RememberStateFlowScope.oh(
                     }
 
                     val actualItem = createAttachmentItem(
-                        tag = DownloadInfoEntity2.AttachmentDownloadTag(
+                        tag = DownloadInfoEntity.AttachmentDownloadTag(
                             localCipherId = cipher.id,
                             remoteCipherId = cipher.service.remote?.id,
                             attachmentId = attachment.id,
@@ -2867,6 +3152,70 @@ private fun RememberStateFlowScope.oh(
     }
 }
 
+private fun RememberStateFlowScope.cipherRelationItems(
+    cipherRelations: CipherRelations,
+    vaultViewRouteFactory: VaultViewRouteFactory,
+    appIcons: Boolean,
+    websiteIcons: Boolean,
+) = flow<VaultViewItem> {
+    if (cipherRelations.outgoingTargets.isNotEmpty()) {
+        emit(
+            VaultViewItem.Section(
+                id = "cipher_links.outgoing",
+                text = translate(Res.string.cipher_links_outgoing_title),
+            ),
+        )
+        cipherRelations.outgoingTargets.forEachIndexed { index, target ->
+            val presentation = target
+                ?.toVaultItemPresentation(
+                    appIcons = appIcons,
+                    websiteIcons = websiteIcons,
+                )
+                ?: return@forEachIndexed
+            emit(
+                VaultViewItem.Link(
+                    id = "cipher_links.outgoing.$index",
+                    presentation = presentation,
+                    onClick = {
+                        val route = vaultViewRouteFactory.create(
+                            itemId = target.id,
+                            accountId = target.accountId,
+                        )
+                        navigate(NavigationIntent.NavigateToRoute(route))
+                    },
+                ),
+            )
+        }
+    }
+    if (cipherRelations.incomingSources.isNotEmpty()) {
+        emit(
+            VaultViewItem.Section(
+                id = "cipher_links.incoming",
+                text = translate(Res.string.cipher_links_incoming_title),
+            ),
+        )
+        cipherRelations.incomingSources.forEach { source ->
+            val presentation = source.toVaultItemPresentation(
+                appIcons = appIcons,
+                websiteIcons = websiteIcons,
+            )
+            emit(
+                VaultViewItem.Link(
+                    id = "cipher_links.incoming.${source.id}",
+                    presentation = presentation,
+                    onClick = {
+                        val route = vaultViewRouteFactory.create(
+                            itemId = source.id,
+                            accountId = source.accountId,
+                        )
+                        navigate(NavigationIntent.NavigateToRoute(route))
+                    },
+                ),
+            )
+        }
+    }
+}
+
 private suspend fun RememberStateFlowScope.createUriItem(
     canEdit: Boolean,
     contentColor: Color,
@@ -3107,7 +3456,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                     if (canLuanch != null && canLuanch.apps.size == 1) {
                         val icon = canLuanch.apps.first().icon
                         if (icon != null) {
-                            IconBox2(
+                            IconBoxContainer(
                                 main = {
                                     Image(
                                         modifier = Modifier
@@ -3214,12 +3563,14 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     val dropdown = buildContextItems {
                         section {
                             this += copy.FlatItemAction(
+                                id = "cipher.uri.android.copyPackageName",
                                 title = Res.string.copy_package_name.wrap(),
                                 value = platformMarker.packageName,
                             )
                         }
                         section {
                             this += FlatItemAction(
+                                id = "cipher.uri.android.launchApp",
                                 leading = {
                                     Image(
                                         modifier = Modifier
@@ -3266,6 +3617,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     val dropdown = buildContextItems {
                         section {
                             this += copy.FlatItemAction(
+                                id = "cipher.uri.android.copyPackageName",
                                 title = Res.string.copy_package_name.wrap(),
                                 value = platformMarker.packageName,
                             )
@@ -3300,6 +3652,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
+                        id = "cipher.uri.ios.copyBundleId",
                         title = Res.string.copy_bundle_id.wrap(),
                         value = platformMarker.bundleId,
                     )
@@ -3330,12 +3683,14 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
+                        id = "cipher.uri.web.copyUrl",
                         title = Res.string.copy_url.wrap(),
                         value = url,
                     )
                 }
                 section {
                     this += FlatItemAction(
+                        id = "cipher.uri.web.launchBrowser",
                         icon = Icons.AutoMirrored.Outlined.Launch,
                         title = Res.string.uri_action_launch_browser_title.wrap(),
                         text = TextHolder.Value(url),
@@ -3353,6 +3708,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     ) {
                         val launchUrl = platformMarker.frontPageUrl.toString()
                         this += FlatItemAction(
+                            id = "cipher.uri.web.launchBrowserMainPage",
                             icon = Icons.AutoMirrored.Outlined.Launch,
                             title = Res.string.uri_action_launch_browser_main_page_title.wrap(),
                             text = TextHolder.Value(launchUrl),
@@ -3369,6 +3725,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                 if (isUnsecure && canEdit) {
                     section {
                         this += FlatItemAction(
+                            id = "cipher.uri.web.autofixUnsecure",
                             icon = Icons.Outlined.AutoAwesome,
                             title = Res.string.uri_action_autofix_unsecure_title.wrap(),
                             text = Res.string.uri_action_autofix_unsecure_text.wrap(),
@@ -3428,6 +3785,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
             val dropdown = buildContextItems {
                 section {
                     this += copy.FlatItemAction(
+                        id = "cipher.uri.other.copy",
                         title = Res.string.copy.wrap(),
                         value = uri,
                     )
@@ -3435,6 +3793,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                 section {
                     if (canExecute != null) {
                         this += FlatItemAction(
+                            id = "cipher.uri.other.execute",
                             icon = Icons.Outlined.Terminal,
                             title = Res.string.execute_command.wrap(),
                             trailing = {
@@ -3449,6 +3808,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     if (canLuanch != null) {
                         if (canLuanch.apps.size > 1) {
                             this += FlatItemAction(
+                                id = "cipher.uri.other.launchInChooser",
                                 icon = Icons.AutoMirrored.Outlined.Launch,
                                 title = Res.string.uri_action_launch_in_smth_title.wrap(),
                                 trailing = {
@@ -3462,6 +3822,7 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                         } else {
                             val icon = canLuanch.apps.first().icon
                             this += FlatItemAction(
+                                id = "cipher.uri.other.launchInApp",
                                 leading = {
                                     if (icon != null) {
                                         Image(
@@ -3611,6 +3972,8 @@ suspend fun RememberStateFlowScope.create(
     trailing: (@Composable RowScope.() -> Unit)? = null,
     verify: ((() -> Unit) -> Unit)? = null,
     onBuildActions: (ContextItemBuilder.() -> Unit)? = null,
+    copyTitle: TextHolder = Res.string.copy.wrap(),
+    copyType: CopyText.Type = CopyText.Type.VALUE,
     maxLines: Int = 64,
     password: Boolean = false,
     username: Boolean = false,
@@ -3622,10 +3985,12 @@ suspend fun RememberStateFlowScope.create(
         buildContextItems {
             section {
                 this += copy.FlatItemAction(
-                    title = Res.string.copy.wrap(),
+                    id = "cipher.value.$id.copy",
+                    title = copyTitle,
                     value = value,
                     shortcut = shortcut,
                     hidden = visibility.concealed,
+                    type = copyType,
                 )
             }
             if (onBuildActions != null) {
@@ -3736,15 +4101,18 @@ suspend fun RememberStateFlowScope.createExpDate(
     val dropdown = buildContextItems {
         section {
             this += copy.FlatItemAction(
+                id = "cipher.expDate.$id.copyRaw",
                 title = Res.string.copy.wrap(),
                 value = valueRaw,
             )
             this += copy.FlatItemAction(
+                id = "cipher.expDate.$id.copyMonth",
                 title = Res.string.copy_expiration_month.wrap(),
                 value = month,
                 type = CopyText.Type.CARD_EXP_MONTH,
             )
             this += copy.FlatItemAction(
+                id = "cipher.expDate.$id.copyYear",
                 title = Res.string.copy_expiration_year.wrap(),
                 value = year,
                 type = CopyText.Type.CARD_EXP_YEAR,
@@ -3779,6 +4147,7 @@ private suspend fun RememberStateFlowScope.create(
     val dropdown = buildContextItems {
         section {
             this += copy.FlatItemAction(
+                id = "cipher.card.$id.copyNumber",
                 title = Res.string.copy_card_number.wrap(),
                 value = data.number,
                 shortcut = copyShortcut,
@@ -3786,6 +4155,7 @@ private suspend fun RememberStateFlowScope.create(
                 type = CopyText.Type.CARD_NUMBER,
             )?.verify(verify)
             this += copy.FlatItemAction(
+                id = "cipher.card.$id.copyCardholderName",
                 title = Res.string.copy_cardholder_name.wrap(),
                 value = data.cardholderName,
                 type = CopyText.Type.CARD_CARDHOLDER_NAME,
@@ -3839,6 +4209,355 @@ private suspend fun RememberStateFlowScope.create(
         visibility = visibility,
         elevation = 1.dp,
     )
+}
+
+private suspend fun RememberStateFlowScope.createGpgKeyItems(
+    copy: CopyText,
+    cryptoGenerator: CryptoGenerator,
+    cipher: DSecret,
+    accountId: AccountId,
+    gpgFingerprint: String?,
+    now: Instant,
+    gpgPublicKeyParser: GpgPublicKeyParser,
+    dateFormatter: DateFormatter,
+    concealFields: Boolean,
+    hasCanNotSeePassword: Boolean,
+    visibilityGlobalConfig: Visibility.Global,
+    visibilityGlobalUserTransform: (Boolean, (Boolean) -> Unit) -> Unit,
+    verify: ((() -> Unit) -> Unit)?,
+): List<VaultViewItem> {
+    val gpgPublicKeyArmored = cipher.getGpgAgentPublicKeyArmored()
+        ?.takeIf { it.isNotBlank() }
+    val gpgPrivateKeyArmored = cipher.getGpgAgentPrivateKeyArmored()
+        ?.takeIf { it.isNotBlank() }
+    val gpgMetadataKeys = cipher.parseGpgAgentMetadataOrNull()
+        ?.keys
+        .orEmpty()
+    val parsedGpgKey = gpgPublicKeyArmored
+        ?.let { armored ->
+            ioEffect(Dispatchers.Default) {
+                gpgPublicKeyParser.parsePrimaryKeyInfo(
+                    armored = armored,
+                    fingerprint = gpgFingerprint,
+                )
+            }
+                .attempt()
+                .bind()
+                .getOrNull()
+        }
+    val hasGpgKey = gpgPublicKeyArmored != null ||
+            gpgPrivateKeyArmored != null ||
+            gpgFingerprint != null ||
+            gpgMetadataKeys.isNotEmpty()
+    if (!hasGpgKey) {
+        return emptyList()
+    }
+
+    val items = mutableListOf<VaultViewItem>()
+
+    val gpgRevoked = parsedGpgKey?.revoked == true
+    val gpgExpired = parsedGpgKey?.expiresAt?.let { it <= now } == true
+    when {
+        gpgRevoked -> {
+            items += VaultViewItem.Info(
+                id = "info.gpg.revoked",
+                name = translate(Res.string.revoked),
+                message = translate(Res.string.gpg_key_status_revoked_text),
+            )
+        }
+
+        gpgExpired -> {
+            items += VaultViewItem.Info(
+                id = "info.gpg.expired",
+                name = translate(Res.string.expired),
+                message = translate(Res.string.gpg_key_status_expired_text),
+            )
+        }
+    }
+
+    val gpgUserIds = parsedGpgKey
+        ?.userIds
+        .orEmpty()
+        .ifEmpty { parsedGpgKey?.emails.orEmpty() }
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .distinct()
+
+    val effectiveGpgFingerprint = gpgFingerprint
+        ?: parsedGpgKey
+            ?.fingerprint
+            ?.normalizeGpgFingerprint()
+            ?.takeIf { it.isNotEmpty() }
+        ?: gpgMetadataKeys.firstNotNullOfOrNull { key ->
+            key.fingerprint
+                .normalizeGpgFingerprint()
+                .takeIf { it.isNotEmpty() }
+        }
+    if (effectiveGpgFingerprint != null) {
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.fingerprint",
+            accountId = accountId,
+            title = translate(Res.string.fingerprint),
+            value = effectiveGpgFingerprint.chunkedGpgFingerprint(),
+            maxLines = 2,
+            monospace = true,
+            colorize = true,
+            elevated = true,
+        )
+    }
+
+    val gpgKeyId = parsedGpgKey
+        ?.keyId
+        ?.normalizeGpgFingerprint()
+        ?.takeIf { it.isNotEmpty() }
+    if (gpgKeyId != null) {
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.keyId",
+            accountId = accountId,
+            title = translate(Res.string.key_id),
+            value = gpgKeyId.chunkedGpgFingerprint(),
+            maxLines = 1,
+            monospace = true,
+            colorize = true,
+            elevated = true,
+        )
+    }
+
+    if (gpgPublicKeyArmored != null) {
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.publicKeyArmored",
+            accountId = accountId,
+            title = translate(Res.string.public_key),
+            value = gpgPublicKeyArmored,
+            shortcut = KeyShortcut(
+                Key.C,
+                isCtrlPressed = true,
+            ),
+            copyTitle = Res.string.copy_gpg_public_key.wrap(),
+            copyType = CopyText.Type.PUBLIC_KEY,
+            maxLines = 4,
+            monospace = true,
+            elevated = true,
+        )
+    }
+    if (gpgPrivateKeyArmored != null) {
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.privateKeyArmored",
+            accountId = accountId,
+            title = translate(Res.string.private_key),
+            value = gpgPrivateKeyArmored,
+            shortcut = KeyShortcut(
+                Key.C,
+                isCtrlPressed = true,
+                isShiftPressed = true,
+            ),
+            verify = verify.takeIf { concealFields },
+            copyTitle = Res.string.copy_gpg_unencrypted_private_key.wrap(),
+            copyType = CopyText.Type.PRIVATE_KEY,
+            maxLines = 4,
+            monospace = true,
+            elevated = true,
+            visibility = Visibility(
+                concealed = concealFields,
+                hidden = hasCanNotSeePassword,
+                transformUserEvent = visibilityGlobalUserTransform,
+                globalConfig = visibilityGlobalConfig,
+            ),
+        )
+    }
+
+    val signCapability = translate(Res.string.gpg_keys_capability_sign)
+    val encryptDecryptCapability = translate(Res.string.gpg_key_capability_encrypt_decrypt)
+    val gpgCapabilities = buildList {
+        if (parsedGpgKey?.canSign == true || gpgMetadataKeys.any { it.canSign }) {
+            this += signCapability
+        }
+        if (parsedGpgKey?.canEncrypt == true || gpgMetadataKeys.any { it.canDecrypt }) {
+            this += encryptDecryptCapability
+        }
+    }.distinct()
+    val gpgAlgorithms = buildList {
+        parsedGpgKey
+            ?.formatGpgAlgorithm()
+            ?.let { this += it }
+        gpgMetadataKeys.forEach { key ->
+            key.algorithm
+                .takeIf { it.isNotBlank() }
+                ?.let { this += it }
+        }
+    }.distinct()
+    val gpgDetailRows = mutableListOf<VaultViewItem.Table.Row>()
+    if (gpgAlgorithms.isNotEmpty()) {
+        gpgDetailRows += VaultViewItem.Table.Row(
+            title = translate(Res.string.algorithm),
+            value = gpgAlgorithms.joinToString(separator = "\n"),
+        )
+    }
+    parsedGpgKey?.createdAt?.let { createdAt ->
+        gpgDetailRows += VaultViewItem.Table.Row(
+            title = translate(Res.string.created),
+            value = dateFormatter.formatDate(createdAt),
+        )
+    }
+    if (parsedGpgKey != null) {
+        val expiresAt = parsedGpgKey.expiresAt
+        gpgDetailRows += VaultViewItem.Table.Row(
+            title = translate(Res.string.expires),
+            value = expiresAt
+                ?.let(dateFormatter::formatDate)
+                ?: translate(Res.string.gpg_key_does_not_expire),
+        )
+    }
+    if (gpgCapabilities.isNotEmpty()) {
+        gpgDetailRows += VaultViewItem.Table.Row(
+            title = translate(Res.string.capabilities),
+            value = gpgCapabilities.joinToString(),
+        )
+    }
+    val gpgKeyMaterialText = when {
+        gpgPrivateKeyArmored != null && gpgPublicKeyArmored != null -> "sec/pub"
+        gpgPrivateKeyArmored != null -> "sec"
+        gpgPublicKeyArmored != null -> "pub"
+        else -> null
+    }
+    if (gpgKeyMaterialText != null) {
+        gpgDetailRows += VaultViewItem.Table.Row(
+            title = translate(Res.string.gpg_key_sec_pub),
+            value = gpgKeyMaterialText,
+        )
+    }
+    if (gpgDetailRows.isNotEmpty()) {
+        items += VaultViewItem.Table(
+            id = "gpg.details",
+            elevation = 1.dp,
+            rows = gpgDetailRows,
+        )
+    }
+
+    val gpgSubKeyItems = parsedGpgKey
+        ?.subKeys
+        .orEmpty()
+        .mapIndexedNotNull { index, subKey ->
+            val subKeyCapabilities = buildList {
+                if (subKey.canSign) {
+                    this += signCapability
+                }
+                if (subKey.canEncrypt) {
+                    this += encryptDecryptCapability
+                }
+            }.distinct()
+            val subKeyFingerprint = subKey.fingerprint
+                .normalizeGpgFingerprint()
+                .takeIf { it.isNotEmpty() }
+            val subKeyKeyId = subKey.keyId
+                .normalizeGpgFingerprint()
+                .takeIf { it.isNotEmpty() }
+            val rows = mutableListOf<VaultViewItem.Table.Row>()
+            if (subKeyFingerprint != null) {
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.fingerprint),
+                    value = subKeyFingerprint.chunkedGpgFingerprint(),
+                )
+            }
+            if (subKeyKeyId != null && subKeyKeyId != subKeyFingerprint) {
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.key_id),
+                    value = subKeyKeyId.chunkedGpgFingerprint(),
+                )
+            }
+            subKey.formatGpgAlgorithm()?.let { algorithm ->
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.algorithm),
+                    value = algorithm,
+                )
+            }
+            if (subKeyCapabilities.isNotEmpty()) {
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.capabilities),
+                    value = subKeyCapabilities.joinToString(),
+                )
+            }
+            if (subKey.revoked) {
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.gpg_key_status),
+                    value = translate(Res.string.revoked),
+                )
+            }
+            subKey.expiresAt?.let { expiresAt ->
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.expires),
+                    value = dateFormatter.formatDate(expiresAt),
+                )
+            }
+            if (rows.isEmpty()) {
+                return@mapIndexedNotNull null
+            }
+            VaultViewItem.Table(
+                id = "gpg.subKey.$index",
+                elevation = 1.dp,
+                title = translate(Res.string.gpg_key_subkey_n, index + 1),
+                rows = rows,
+            )
+        }
+    if (gpgSubKeyItems.isNotEmpty()) {
+        items += VaultViewItem.Section(
+            id = "gpg.subKeys.section",
+            text = translate(Res.string.subkeys),
+        )
+        items += gpgSubKeyItems
+    }
+
+    if (gpgUserIds.isNotEmpty()) {
+        items += VaultViewItem.Section(
+            id = "gpg.userIds.section",
+            text = translate(Res.string.gpg_key_user_ids),
+        )
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.userIds",
+            accountId = accountId,
+            title = null,
+            value = gpgUserIds.joinToString(separator = "\n"),
+            maxLines = 4,
+            elevated = true,
+        )
+    }
+
+    return items
+}
+
+private fun GpgPublicKeyInfo.formatGpgAlgorithm(): String? {
+    val values = listOfNotNull(
+        algorithm.takeIf { it.isNotBlank() },
+        bitStrength?.let { "$it-bit" },
+    )
+    return values
+        .joinToString(separator = " ")
+        .takeIf { it.isNotBlank() }
+}
+
+private fun GpgPublicSubKeyInfo.formatGpgAlgorithm(): String? {
+    val values = listOfNotNull(
+        algorithm.takeIf { it.isNotBlank() },
+        bitStrength?.let { "$it-bit" },
+    )
+    return values
+        .joinToString(separator = " ")
+        .takeIf { it.isNotBlank() }
 }
 
 @JvmName("verifyContextItemList")

@@ -10,7 +10,6 @@ import com.artemchep.keyguard.common.model.isAttachmentPreviewSupported
 import com.artemchep.keyguard.common.model.isMarkdownAttachmentPreview
 import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.feature.navigation.Route
-import com.artemchep.keyguard.platform.Platform
 import dev.snipme.highlights.model.SyntaxLanguage
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -159,7 +158,7 @@ class AttachmentPreviewTypesTest {
     }
 
     @Test
-    fun `route is created for remote previewable attachments on android wear and desktop`() {
+    fun `route is created for remote previewable attachments on android wear ios and desktop`() {
         val attachment = remoteAttachment(fileName = "diagram.png")
 
         val androidRoute = assertIs<AttachmentPreviewRoute>(
@@ -168,13 +167,7 @@ class AttachmentPreviewTypesTest {
                     localCipherId = "local-cipher",
                     remoteCipherId = "remote-cipher",
                     attachment = attachment,
-                    canPreviewAttachment = CanPreviewAttachmentImpl(
-                        platform = Platform.Mobile.Android(
-                            isChromebook = false,
-                            isWatch = false,
-                            sdk = 35,
-                        ),
-                    ),
+                    canPreviewAttachment = CanPreviewAttachmentImpl(),
                     attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
                 ),
             ),
@@ -187,18 +180,25 @@ class AttachmentPreviewTypesTest {
                     localCipherId = "local-cipher",
                     remoteCipherId = "remote-cipher",
                     attachment = attachment,
-                    canPreviewAttachment = CanPreviewAttachmentImpl(
-                        platform = Platform.Mobile.Android(
-                            isChromebook = false,
-                            isWatch = true,
-                            sdk = 35,
-                        ),
-                    ),
+                    canPreviewAttachment = CanPreviewAttachmentImpl(),
                     attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
                 ),
             ),
         )
         assertEquals(1L, wearRoute.args.encryptedSize)
+
+        val iosRoute = assertIs<AttachmentPreviewRoute>(
+            assertNotNull(
+                createAttachmentPreviewRouteOrNull(
+                    localCipherId = "local-cipher",
+                    remoteCipherId = "remote-cipher",
+                    attachment = attachment,
+                    canPreviewAttachment = CanPreviewAttachmentImpl(),
+                    attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
+                ),
+            ),
+        )
+        assertEquals(1L, iosRoute.args.encryptedSize)
 
         val desktopRoute = assertIs<AttachmentPreviewRoute>(
             assertNotNull(
@@ -206,9 +206,7 @@ class AttachmentPreviewTypesTest {
                     localCipherId = "local-cipher",
                     remoteCipherId = "remote-cipher",
                     attachment = attachment,
-                    canPreviewAttachment = CanPreviewAttachmentImpl(
-                        platform = Platform.Desktop.MacOS,
-                    ),
+                    canPreviewAttachment = CanPreviewAttachmentImpl(),
                     attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
                 ),
             ),
@@ -226,9 +224,7 @@ class AttachmentPreviewTypesTest {
                 localCipherId = "local-cipher",
                 remoteCipherId = "remote-cipher",
                 attachment = attachment,
-                canPreviewAttachment = CanPreviewAttachmentImpl(
-                    platform = Platform.Desktop.MacOS,
-                ),
+                canPreviewAttachment = CanPreviewAttachmentImpl(),
                 attachmentPreviewRouteFactory = factory,
             ),
         )
@@ -239,7 +235,7 @@ class AttachmentPreviewTypesTest {
     }
 
     @Test
-    fun `route is not created for local unsupported ios or too large attachments`() {
+    fun `route is not created for local unsupported or too large attachments`() {
         assertNull(
             createAttachmentPreviewRouteOrNull(
                 localCipherId = "local-cipher",
@@ -249,9 +245,7 @@ class AttachmentPreviewTypesTest {
                     url = "file:///tmp/file.txt",
                     fileName = "file.txt",
                 ),
-                canPreviewAttachment = CanPreviewAttachmentImpl(
-                    platform = Platform.Desktop.MacOS,
-                ),
+                canPreviewAttachment = CanPreviewAttachmentImpl(),
                 attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
         )
@@ -260,20 +254,7 @@ class AttachmentPreviewTypesTest {
                 localCipherId = "local-cipher",
                 remoteCipherId = "remote-cipher",
                 attachment = remoteAttachment(fileName = "archive.zip"),
-                canPreviewAttachment = CanPreviewAttachmentImpl(
-                    platform = Platform.Desktop.MacOS,
-                ),
-                attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
-            ),
-        )
-        assertNull(
-            createAttachmentPreviewRouteOrNull(
-                localCipherId = "local-cipher",
-                remoteCipherId = "remote-cipher",
-                attachment = remoteAttachment(fileName = "notes.txt"),
-                canPreviewAttachment = CanPreviewAttachmentImpl(
-                    platform = Platform.Mobile.Ios,
-                ),
+                canPreviewAttachment = CanPreviewAttachmentImpl(),
                 attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
         )
@@ -285,9 +266,7 @@ class AttachmentPreviewTypesTest {
                     fileName = "notes.txt",
                     size = AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES + 1,
                 ),
-                canPreviewAttachment = CanPreviewAttachmentImpl(
-                    platform = Platform.Desktop.MacOS,
-                ),
+                canPreviewAttachment = CanPreviewAttachmentImpl(),
                 attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
         )
@@ -295,15 +274,9 @@ class AttachmentPreviewTypesTest {
 
     @Test
     fun `policy classifies preview availability`() {
-        val desktopPolicy = CanPreviewAttachmentImpl(platform = Platform.Desktop.MacOS)
-        val androidPolicy = CanPreviewAttachmentImpl(
-            platform = Platform.Mobile.Android(
-                isChromebook = false,
-                isWatch = false,
-                sdk = 35,
-            ),
-        )
-        val iosPolicy = CanPreviewAttachmentImpl(platform = Platform.Mobile.Ios)
+        val desktopPolicy = CanPreviewAttachmentImpl()
+        val androidPolicy = CanPreviewAttachmentImpl()
+        val iosPolicy = CanPreviewAttachmentImpl()
 
         assertEquals(
             AttachmentPreviewPolicy.Previewable,
@@ -320,7 +293,7 @@ class AttachmentPreviewTypesTest {
             ),
         )
         assertEquals(
-            AttachmentPreviewPolicy.UnsupportedPlatform,
+            AttachmentPreviewPolicy.Previewable,
             iosPolicy(
                 fileName = "notes.txt",
                 encryptedSize = 1L,

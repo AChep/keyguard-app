@@ -3,7 +3,6 @@ package com.artemchep.keyguard.wear.feature.vault
 import androidx.compose.runtime.mutableStateOf
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel2
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.model.SortItem

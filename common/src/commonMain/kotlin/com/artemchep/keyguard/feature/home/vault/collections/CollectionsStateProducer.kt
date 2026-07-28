@@ -20,6 +20,7 @@ import com.artemchep.keyguard.feature.home.vault.by
 import com.artemchep.keyguard.feature.home.vault.collection.CollectionRoute
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.search.search.mapListShape
@@ -32,6 +33,7 @@ import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardCipher
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -76,6 +78,24 @@ fun collectionsScreenState(
         getCanWrite,
     ),
 ) {
+    collectionsScreenStateProducer(
+        args = args,
+        getOrganizations = getOrganizations,
+        getCollections = getCollections,
+        getCiphers = getCiphers,
+        getCanWrite = getCanWrite,
+        vaultRouteFactory = vaultRouteFactory,
+    )
+}
+
+suspend fun RememberStateFlowScope.collectionsScreenStateProducer(
+    args: CollectionsRoute.Args,
+    getOrganizations: GetOrganizations,
+    getCollections: GetCollections,
+    getCiphers: GetCiphers,
+    getCanWrite: GetCanWrite,
+    vaultRouteFactory: VaultRouteFactory,
+): Flow<CollectionsState> {
     fun checkAccountId(accountId: String) = accountId == args.accountId.id
 
     fun checkOrganizationId(organizationId: String?) =
@@ -210,6 +230,7 @@ fun collectionsScreenState(
             .count()
         if (ciphersCount > 0) {
             actions += FlatItemAction(
+                id = "collections.selection.viewItems",
                 icon = Icons.Outlined.KeyguardCipher,
                 title = Res.string.items.wrap(),
                 trailing = {
@@ -263,6 +284,7 @@ fun collectionsScreenState(
                         // to this cipher.
                         if (ciphers.isNotEmpty()) {
                             this += FlatItemAction(
+                                id = "collection.${collection.id}.viewItems",
                                 icon = Icons.Outlined.KeyguardCipher,
                                 title = Res.string.items.wrap(),
                                 onClick = onClick {
@@ -277,6 +299,7 @@ fun collectionsScreenState(
                     }
                     section {
                         this += FlatItemAction(
+                            id = "collection.${collection.id}.info",
                             icon = Icons.Outlined.Info,
                             title = Res.string.info.wrap(),
                             onClick = {
@@ -337,7 +360,7 @@ fun collectionsScreenState(
             items = itemsReShaped,
         )
     }
-    combine(
+    return combine(
         selectionFlow,
         contentFlow,
     ) { selection, content ->

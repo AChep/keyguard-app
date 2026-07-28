@@ -4,7 +4,7 @@ export const SITE = {
   name: 'Keyguard',
   tagline: "Secure password manager that's also nice to use",
   description:
-    'Keyguard is a third-party client for the Bitwarden platform and KeePass (KDBX) files. It autofills your logins, supports passkeys, works offline, and runs a Watchtower that finds leaked and reused passwords and other issues.',
+    'Keyguard is a client for the Bitwarden platform and KeePass (KDBX) files. It autofills your logins, supports passkeys, works offline, and runs a Watchtower that finds leaked and reused passwords and other issues.',
 };
 
 export const NAV = [

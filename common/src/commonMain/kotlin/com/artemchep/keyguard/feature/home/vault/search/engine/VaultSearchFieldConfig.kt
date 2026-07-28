@@ -30,6 +30,7 @@ internal fun VaultTextField.profile(): SearchTokenizerProfile =
         VaultTextField.Phone -> SearchTokenizerProfile.IDENTIFIER
 
         VaultTextField.Ssh,
+        VaultTextField.Gpg,
         VaultTextField.Password,
         VaultTextField.CardNumber,
         -> SearchTokenizerProfile.SENSITIVE
@@ -63,6 +64,7 @@ internal fun VaultTextField.boost(): Double =
         VaultTextField.AttachmentName -> 0.75
 
         VaultTextField.Ssh,
+        VaultTextField.Gpg,
         VaultTextField.Password,
         VaultTextField.CardNumber,
         -> 0.8

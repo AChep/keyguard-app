@@ -1,0 +1,43 @@
+<Entry>
+    <UUID>Cl/o+ocRasTa/O83hwvz4A==</UUID>
+    <IconID>0</IconID>
+    <ForegroundColor/>
+    <BackgroundColor/>
+    <OverrideURL/>
+    <Tags/>
+    <QualityCheck>True</QualityCheck>
+    <Times>
+        <CreationTime>2025-07-06T17:15:57Z</CreationTime>
+        <LastAccessTime>2025-07-06T17:31:05Z</LastAccessTime>
+        <LastModificationTime>2025-07-06T17:31:05Z</LastModificationTime>
+        <LocationChanged>2025-07-06T17:15:57Z</LocationChanged>
+        <ExpiryTime>2025-07-06T17:15:57Z</ExpiryTime>
+        <Expires>False</Expires>
+        <UsageCount>0</UsageCount>
+    </Times>
+    <String>
+        <Key>Title</Key>
+        <Value/>
+    </String>
+    <String>
+        <Key>UserName</Key>
+        <Value>Test User</Value>
+    </String>
+    <String>
+        <Key>Password</Key>
+        <Value ProtectInMemory="True"/>
+    </String>
+    <String>
+        <Key>URL</Key>
+        <Value/>
+    </String>
+    <String>
+        <Key>Notes</Key>
+        <Value/>
+    </String>
+    <AutoType>
+        <Enabled>True</Enabled>
+        <DataTransferObfuscation>0</DataTransferObfuscation>
+        <DefaultSequence/>
+    </AutoType>
+</Entry>

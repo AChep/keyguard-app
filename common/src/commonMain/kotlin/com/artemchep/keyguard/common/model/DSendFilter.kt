@@ -33,7 +33,7 @@ sealed interface DSendFilter {
             target: KClass<*>,
             predicate: (T) -> Boolean = { true },
         ): Either<Unit, T?> = when (filter) {
-            is Or<*> -> {
+            is Or -> {
                 when (filter.filters.size) {
                     0 -> Either.Right(null)
                     1 -> {
@@ -45,7 +45,7 @@ sealed interface DSendFilter {
                 }
             }
 
-            is And<*> -> {
+            is And -> {
                 val results = filter
                     .filters
                     .map { f ->
@@ -94,8 +94,8 @@ sealed interface DSendFilter {
 
     @Serializable
     @SerialName("or")
-    data class Or<out T : DSendFilter>(
-        val filters: Collection<T>,
+    data class Or(
+        val filters: Collection<DSendFilter>,
     ) : DSendFilter {
         override suspend fun prepare(
             directDI: DirectDI,
@@ -111,8 +111,8 @@ sealed interface DSendFilter {
 
     @Serializable
     @SerialName("and")
-    data class And<out T : DSendFilter>(
-        val filters: Collection<T>,
+    data class And(
+        val filters: Collection<DSendFilter>,
     ) : DSendFilter {
         override suspend fun prepare(
             directDI: DirectDI,

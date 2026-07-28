@@ -6,7 +6,14 @@ data class WebDavClientConfig(
     val baseUrl: String,
     val authorization: WebDavAuthorization? = null,
     val userAgent: String? = null,
+    val noCache: Boolean = false,
+    val writeStrategy: WebDavWriteStrategy = WebDavWriteStrategy.RequireAtomic,
 )
+
+enum class WebDavWriteStrategy {
+    RequireAtomic,
+    AllowLossy,
+}
 
 sealed interface WebDavAuthorization {
     data class Basic(
@@ -45,6 +52,16 @@ data class WebDavByteRange(
 enum class WebDavWriteMode {
     Create,
     CreateOrReplace,
+}
+
+data class WebDavWritePrecondition(
+    val destinationEtag: String,
+) {
+    init {
+        require(destinationEtag.isNotBlank()) {
+            "WebDAV destination ETag precondition must not be blank."
+        }
+    }
 }
 
 data class WebDavResource(
@@ -104,6 +121,20 @@ sealed class WebDavException(
         cause = cause,
     )
 
+    class PreconditionFailed(
+        operation: WebDavOperation,
+        path: String?,
+        statusCode: Int? = null,
+        cause: Throwable? = null,
+    ) : WebDavException(
+        operation = operation,
+        path = path,
+        statusCode = statusCode,
+        retryable = false,
+        message = webDavMessage(operation, path, statusCode, "resource precondition failed"),
+        cause = cause,
+    )
+
     class InvalidRange(
         operation: WebDavOperation,
         path: String?,
@@ -159,6 +190,24 @@ sealed class WebDavException(
         cause = cause,
     )
 
+    class AtomicWriteUnsupported(
+        path: String?,
+        statusCode: Int? = null,
+        cause: Throwable? = null,
+    ) : WebDavException(
+        operation = WebDavOperation.Write,
+        path = path,
+        statusCode = statusCode,
+        retryable = false,
+        message = webDavMessage(
+            WebDavOperation.Write,
+            path,
+            statusCode,
+            "server does not support atomic writes",
+        ),
+        cause = cause,
+    )
+
     class Transient(
         operation: WebDavOperation,
         path: String?,
@@ -179,15 +228,27 @@ sealed class WebDavException(
         statusCode: Int? = null,
         message: String,
         cause: Throwable? = null,
+        retryable: Boolean = false,
     ) : WebDavException(
         operation = operation,
         path = path,
         statusCode = statusCode,
-        retryable = false,
+        retryable = retryable,
         message = webDavMessage(operation, path, statusCode, message),
         cause = cause,
     )
 }
+
+/**
+ * Whether a failed read is worth retrying from scratch after a short delay:
+ * transient failures, protocol inconsistencies from a stale or torn remote
+ * representation, and a not-found race right after a write can all heal on
+ * a fresh attempt.
+ */
+val WebDavException.isRetryableRead: Boolean
+    get() = retryable ||
+        this is WebDavException.Protocol ||
+        this is WebDavException.NotFound
 
 private fun webDavMessage(
     operation: WebDavOperation,

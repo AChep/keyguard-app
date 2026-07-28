@@ -58,14 +58,6 @@ class PasswordPwnageRepositoryImpl(
         .flatMap { localPwnage ->
             localPwnage?.let { entity ->
                 val localIo = io(entity)
-                    .effectTap { pwnage ->
-                        val msg = kotlin.run {
-                            val passwordPrefix = password.take(2)
-                            val passwordOccurrences = pwnage.count
-                            "Obtained local pwnage report for '$passwordPrefix****', $passwordOccurrences occurrences."
-                        }
-                        logRepository.post(TAG, msg)
-                    }
                     .map {
                         PasswordPwnage(
                             occurrences = it.count.toInt(),
@@ -187,13 +179,6 @@ class PasswordPwnageRepositoryImpl(
                 localDataSource
                     .put(entity)
                     .bind()
-            }
-        }
-        .measure { duration, remotePwnage ->
-            logRepository.postDebug(TAG) {
-                val prefix = password.take(4)
-                val count = remotePwnage.occurrences
-                "Obtained remote pwnage report for '$prefix****': $count occurrences, took $duration."
             }
         }
 }

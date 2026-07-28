@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
+import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -29,6 +30,7 @@ object JustDeleteMeServicesRoute : Route {
         translator: TranslatorScope,
         navigate: (NavigationIntent) -> Unit,
     ) = FlatItemAction(
+        id = "watchtower.justDeleteMe",
         leading = iconSmall(Icons.Outlined.AccountBox, Icons.Outlined.Delete),
         title = Res.string.uri_action_how_to_delete_account_title.wrap(),
         trailing = {
@@ -40,6 +42,8 @@ object JustDeleteMeServicesRoute : Route {
             navigate(intent)
         },
     )
+
+    override val descriptor get() = RouteDescriptor.JustDeleteMeServices
 
     @Composable
     override fun Content() {

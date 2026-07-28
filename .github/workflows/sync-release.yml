@@ -1,0 +1,171 @@
+name: "Sync upstream release"
+
+on:
+  schedule:
+    - cron: "0 10 * * *"  # Daily at 10:00 UTC
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Upstream tag to sync (e.g. d20260124)"
+        required: false
+
+permissions:
+  contents: write
+
+env:
+  UPSTREAM_REPO: AChep/keyguard-app
+  LOCAL_REPO: Elnix90/keyguard-app
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Fetch upstream releases"
+        id: upstream
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+            echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            # Get latest upstream release tag
+            TAG=$(gh release list -R "$UPSTREAM_REPO" --limit 5 --json tagName,publishedAt \
+              --jq 'sort_by(.publishedAt) | reverse | .[0].tagName // empty')
+            if [ -n "$TAG" ]; then
+              echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+              echo "found=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "found=false" >> "$GITHUB_OUTPUT"
+            fi
+          fi
+
+      - name: "Check if already synced"
+        if: steps.upstream.outputs.found == 'true'
+        id: synced
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.upstream.outputs.tag }}"
+          # Check if tag exists locally
+          EXISTS=$(gh release list -R "$LOCAL_REPO" --limit 50 --json tagName \
+            --jq --arg t "$TAG" '[.[] | select(.tagName == $t)] | length')
+          if [ "$EXISTS" -gt 0 ]; then
+            echo "already_synced=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_synced=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: "Checkout"
+        if: steps.synced.outputs.already_synced == 'false'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Setup Gradle"
+        if: steps.synced.outputs.already_synced == 'false'
+        uses: ./.github/actions/setup_gradle
+
+      - name: "Setup Rust toolchain"
+        if: steps.synced.outputs.already_synced == 'false'
+        uses: ./.github/actions/setup_rust
+
+      - name: "Prefetch native crypto"
+        if: steps.synced.outputs.already_synced == 'false'
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+
+      - name: "Fetch upstream code at tag"
+        if: steps.synced.outputs.already_synced == 'false'
+        env:
+          TAG: ${{ steps.upstream.outputs.tag }}
+        run: |
+          git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
+          git fetch upstream --tags
+          git checkout "$TAG"
+
+      - name: "Apply crack patches"
+        if: steps.synced.outputs.already_synced == 'false'
+        run: |
+          git checkout master -- patches/
+          chmod +x patches/apply-crack.sh
+          ./patches/apply-crack.sh
+
+      - name: "Prepare version"
+        if: steps.synced.outputs.already_synced == 'false'
+        env:
+          TAG: ${{ steps.upstream.outputs.tag }}
+        run: |
+          # Extract version from tag (remove leading 'd' or 'r')
+          APP_VERSION=$(echo "$TAG" | sed 's/^[dr]//')
+          echo "" >> gradle.properties
+          echo "versionRef=$TAG" >> gradle.properties
+          echo "buildkonfig.flavor=release" >> gradle.properties
+          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: "Build APK"
+        if: steps.synced.outputs.already_synced == 'false'
+        run: >-
+          ./gradlew :androidApp:assembleNoneRelease
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+
+      - name: "Build DEB + RPM"
+        if: steps.synced.outputs.already_synced == 'false'
+        run: >-
+          ./gradlew
+          :desktopApp:packageReleaseDeb
+          :desktopApp:packageReleaseDistributable
+          -Pkeyguard.nativeCrypto.cargoOffline=true
+
+      - name: "Install rpmbuild"
+        if: steps.synced.outputs.already_synced == 'false'
+        run: sudo apt-get update && sudo apt-get install -y rpm
+
+      - name: "Build RPM"
+        if: steps.synced.outputs.already_synced == 'false'
+        env:
+          TAG: ${{ steps.upstream.outputs.tag }}
+        run: |
+          APP_VERSION=$(echo "$TAG" | sed 's/^[dr]//')
+          TARBALL=$(ls desktopApp/build/compose/binaries/main/release/Keyguard-*.tar.gz)
+          SOURCES="$PWD/rpmbuild/SOURCES"
+          mkdir -p "$SOURCES"
+          cp "$TARBALL" "$SOURCES/keyguard-${APP_VERSION}.tar.gz"
+
+          rpmbuild -ba packaging/keyguard.spec \
+            --define "_app_version ${APP_VERSION}" \
+            --define "_topdir $PWD/rpmbuild" \
+            --define "_sourcedir $SOURCES"
+
+      - name: "Create GitHub release"
+        if: steps.synced.outputs.already_synced == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.upstream.outputs.tag }}
+        run: |
+          APK=$(ls androidApp/build/outputs/apk/none/release/*.apk 2>/dev/null | head -1)
+          DEB=$(ls desktopApp/build/compose/binaries/main/deb/*.deb 2>/dev/null | head -1)
+          RPM=$(ls rpmbuild/RPMS/**/*.rpm 2>/dev/null | head -1)
+
+          ASSETS=""
+          [ -n "$APK" ] && ASSETS="$ASSETS $APK"
+          [ -n "$DEB" ] && ASSETS="$ASSETS $DEB"
+          [ -n "$RPM" ] && ASSETS="$ASSETS $RPM"
+
+          gh release create "$TAG" \
+            --repo "$LOCAL_REPO" \
+            --title "$TAG" \
+            --notes "Cracked release synced from $UPSTREAM_REPO" \
+            $ASSETS
+
+      - name: "Push code to master"
+        if: steps.synced.outputs.already_synced == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B master
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "chore: sync upstream ${{ steps.upstream.outputs.tag }} with crack"
+          git push origin master

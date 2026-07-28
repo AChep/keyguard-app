@@ -9,17 +9,25 @@ import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
+import com.artemchep.keyguard.common.model.GpgAgentFilter
+import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
+import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.Files
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigProvider
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigState
+import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
+import com.artemchep.keyguard.common.service.keyvalue.RealKeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.asDuration
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupUtil
 import com.artemchep.keyguard.common.service.keyvalue.getEnumNullable
 import com.artemchep.keyguard.common.service.keyvalue.getObject
 import com.artemchep.keyguard.common.service.keyvalue.getSerializable
+import com.artemchep.keyguard.common.service.keyvalue.mapToObjectPreference
 import com.artemchep.keyguard.common.service.keyvalue.setAndCommit
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.settings.entity.VersionLogEntity
@@ -30,14 +38,15 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlin.time.Instant
 import kotlinx.serialization.json.Json
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.time.Duration
+import kotlin.time.Instant
 
 /**
  * @author Artem Chepurnyi
@@ -76,17 +85,28 @@ class SettingsRepositoryImpl(
         private const val KEY_DEBUG_PREMIUM = "debug_premium"
         private const val KEY_DEBUG_SCREEN_DELAY = "debug_screen_delay"
         private const val KEY_CACHE_PREMIUM = "cache_premium"
-        private const val KEY_CACHE_HIDDEN_SEND = "cache_hidden_send"
+        private const val KEY_CACHE_NAV_ITEMS_CONFIG = "cache_nav_items_config"
         private const val KEY_APP_ICONS = "app_icons"
         private const val KEY_WEBSITE_ICONS = "website_icons"
         private const val KEY_MARKDOWN = "markdown"
         private const val KEY_SSH_AGENT = "ssh_agent"
         private const val KEY_SSH_AGENT_APPROVAL_WINDOW = "ssh_agent.approval_window"
+        private const val KEY_SSH_AGENT_APPROVAL_CACHE_POLICY = "ssh_agent.approval_cache_policy"
+        private const val KEY_SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent.display_key_names"
         private const val KEY_SSH_AGENT_FILTER = "ssh_agent.filters"
+        private const val KEY_GPG_AGENT = "gpg_agent"
+        private const val KEY_GPG_AGENT_APPROVAL_WINDOW = "gpg_agent.approval_window"
+        private const val KEY_GPG_AGENT_APPROVAL_CACHE_POLICY = "gpg_agent.approval_cache_policy"
+        private const val KEY_GPG_AGENT_DISPLAY_KEY_NAMES = "gpg_agent.display_key_names"
+        private const val KEY_GPG_AGENT_FILTER = "gpg_agent.filters"
+        private const val KEY_GPG_KEYSERVER_CONFIG = "gpg_agent.keyserver"
+        private const val KEY_GPG_KEYSERVER_AUTO_REFRESH = "gpg_agent.keyserver_auto_refresh"
+        private const val KEY_GPG_KEYSERVER_REFRESH_INTERVAL = "gpg_agent.keyserver_refresh_interval"
+        private const val KEY_GPG_KEYSERVER_LAST_REFRESH = "gpg_agent.keyserver_last_refresh"
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
         private const val KEY_NAV_LABEL = "nav_label"
-        private const val KEY_NAV_HIDDEN_SEND = "nav_hidden_send"
+        private const val KEY_NAV_ITEMS_CONFIG = "nav_items_config"
         private const val KEY_TWO_PANEL_LAYOUT_LANDSCAPE = "two_panel_layout_landscape"
         private const val KEY_TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
         private const val KEY_USE_EXTERNAL_BROWSER = "use_external_browser"
@@ -193,9 +213,6 @@ class SettingsRepositoryImpl(
         store.getBoolean(KEY_CACHE_PREMIUM, false)
 //        store.getBoolean("randomvaluetoavoiditbeeingset2", true)
 
-    private val cacheHiddenSendPref =
-        store.getBoolean(KEY_CACHE_HIDDEN_SEND, true)
-
     private val appIconsPref =
         store.getBoolean(KEY_APP_ICONS, true)
 
@@ -208,19 +225,188 @@ class SettingsRepositoryImpl(
     private val sshAgentPref =
         store.getBoolean(KEY_SSH_AGENT, false)
 
-    private val sshAgentApprovalWindowPref =
+    private val defaultAgentApprovalWindow = with(Duration) {
+        5L.minutes
+    }
+
+    private val sshAgentApprovalWindowRawPref =
         store.getLong(
             key = KEY_SSH_AGENT_APPROVAL_WINDOW,
-            with(Duration) {
-                5L.minutes
-            }.inWholeMilliseconds,
+            defaultValue = defaultAgentApprovalWindow.inWholeMilliseconds,
         )
+
+    private val sshAgentApprovalCachePolicyRawPref =
+        store.getString(
+            key = KEY_SSH_AGENT_APPROVAL_CACHE_POLICY,
+            defaultValue = AgentApprovalCachePolicy.Default.storageKey,
+        )
+
+    private val sshAgentApprovalCacheConfigState =
+        AgentApprovalCacheConfigState(
+            loadApprovalWindow = {
+                with(Duration) {
+                    sshAgentApprovalWindowRawPref.first().milliseconds
+                }
+            },
+            loadCachePolicy = {
+                sshAgentApprovalCachePolicyRawPref
+                    .first()
+                    .let(AgentApprovalCachePolicy::fromStorageKey)
+            },
+        )
+
+    private val sshAgentApprovalWindowPref = sshAgentApprovalWindowRawPref
+        .coordinated(
+            set = { value, persist ->
+                sshAgentApprovalCacheConfigState.updateApprovalWindow(
+                    approvalWindow = with(Duration) { value.milliseconds },
+                    persist = persist,
+                )
+            },
+            delete = { persist ->
+                sshAgentApprovalCacheConfigState.updateApprovalWindow(
+                    approvalWindow = defaultAgentApprovalWindow,
+                    persist = persist,
+                )
+            },
+        )
+
+    private val sshAgentApprovalCachePolicyPref = sshAgentApprovalCachePolicyRawPref
+        .coordinated(
+            set = { value, persist ->
+                sshAgentApprovalCacheConfigState.updateCachePolicy(
+                    cachePolicy = AgentApprovalCachePolicy.fromStorageKey(value),
+                    persist = persist,
+                )
+            },
+            delete = { persist ->
+                sshAgentApprovalCacheConfigState.updateCachePolicy(
+                    cachePolicy = AgentApprovalCachePolicy.Default,
+                    persist = persist,
+                )
+            },
+        )
+        .mapToObjectPreference(
+            serialize = AgentApprovalCachePolicy::storageKey,
+            deserialize = AgentApprovalCachePolicy::fromStorageKey,
+        )
+
+    private val sshAgentDisplayKeyNamesPref =
+        store.getBoolean(KEY_SSH_AGENT_DISPLAY_KEY_NAMES, false)
 
     private val sshAgentFilterPref =
         store.getSerializable(
             json,
             KEY_SSH_AGENT_FILTER,
             defaultValue = SshAgentFilter(),
+        )
+
+    private val gpgAgentPref =
+        store.getBoolean(KEY_GPG_AGENT, false)
+
+    private val gpgAgentApprovalWindowRawPref =
+        store.getLong(
+            key = KEY_GPG_AGENT_APPROVAL_WINDOW,
+            defaultValue = defaultAgentApprovalWindow.inWholeMilliseconds,
+        )
+
+    private val gpgAgentApprovalCachePolicyRawPref =
+        store.getString(
+            key = KEY_GPG_AGENT_APPROVAL_CACHE_POLICY,
+            defaultValue = AgentApprovalCachePolicy.Default.storageKey,
+        )
+
+    private val gpgAgentApprovalCacheConfigState =
+        AgentApprovalCacheConfigState(
+            loadApprovalWindow = {
+                with(Duration) {
+                    gpgAgentApprovalWindowRawPref.first().milliseconds
+                }
+            },
+            loadCachePolicy = {
+                gpgAgentApprovalCachePolicyRawPref
+                    .first()
+                    .let(AgentApprovalCachePolicy::fromStorageKey)
+            },
+        )
+
+    private val gpgAgentApprovalWindowPref = gpgAgentApprovalWindowRawPref
+        .coordinated(
+            set = { value, persist ->
+                gpgAgentApprovalCacheConfigState.updateApprovalWindow(
+                    approvalWindow = with(Duration) { value.milliseconds },
+                    persist = persist,
+                )
+            },
+            delete = { persist ->
+                gpgAgentApprovalCacheConfigState.updateApprovalWindow(
+                    approvalWindow = defaultAgentApprovalWindow,
+                    persist = persist,
+                )
+            },
+        )
+
+    private val gpgAgentApprovalCachePolicyPref = gpgAgentApprovalCachePolicyRawPref
+        .coordinated(
+            set = { value, persist ->
+                gpgAgentApprovalCacheConfigState.updateCachePolicy(
+                    cachePolicy = AgentApprovalCachePolicy.fromStorageKey(value),
+                    persist = persist,
+                )
+            },
+            delete = { persist ->
+                gpgAgentApprovalCacheConfigState.updateCachePolicy(
+                    cachePolicy = AgentApprovalCachePolicy.Default,
+                    persist = persist,
+                )
+            },
+        )
+        .mapToObjectPreference(
+            serialize = AgentApprovalCachePolicy::storageKey,
+            deserialize = AgentApprovalCachePolicy::fromStorageKey,
+        )
+
+    private val gpgAgentDisplayKeyNamesPref =
+        store.getBoolean(KEY_GPG_AGENT_DISPLAY_KEY_NAMES, false)
+
+    private val gpgAgentFilterPref =
+        store.getSerializable(
+            json,
+            KEY_GPG_AGENT_FILTER,
+            defaultValue = GpgAgentFilter(),
+        )
+
+    private val gpgKeyserverConfigPref =
+        store.getSerializable(
+            json,
+            KEY_GPG_KEYSERVER_CONFIG,
+            defaultValue = GpgKeyserverConfig(),
+        )
+
+    private val gpgKeyserverAutoRefreshPref =
+        store.getBoolean(KEY_GPG_KEYSERVER_AUTO_REFRESH, false)
+
+    private val gpgKeyserverRefreshIntervalPref =
+        store.getLong(
+            key = KEY_GPG_KEYSERVER_REFRESH_INTERVAL,
+            with(Duration) {
+                7L.days
+            }.inWholeMilliseconds,
+        )
+
+    private val gpgKeyserverLastRefreshInstantPref =
+        store.getObject<Instant?>(
+            KEY_GPG_KEYSERVER_LAST_REFRESH,
+            defaultValue = null,
+            serialize = { instant ->
+                val millis = instant?.toEpochMilliseconds()
+                millis?.toString().orEmpty()
+            },
+            deserialize = { millis ->
+                millis
+                    .toLongOrNull()
+                    ?.let(Instant::fromEpochMilliseconds)
+            },
         )
 
     private val themeUseAmoledDarkPref =
@@ -238,8 +424,19 @@ class SettingsRepositoryImpl(
     private val navLabelPref =
         store.getBoolean(KEY_NAV_LABEL, true)
 
-    private val navHiddenSendPref =
-        store.getBoolean(KEY_NAV_HIDDEN_SEND, false)
+    private val navItemsConfigPref =
+        store.getSerializable<NavItemsConfig?>(
+            json,
+            KEY_NAV_ITEMS_CONFIG,
+            defaultValue = null,
+        )
+
+    private val cacheNavItemsConfigPref =
+        store.getSerializable<NavItemsConfig?>(
+            json,
+            KEY_CACHE_NAV_ITEMS_CONFIG,
+            defaultValue = null,
+        )
 
     private val allowTwoPanelLayoutInLandscapePref =
         store.getBoolean(KEY_TWO_PANEL_LAYOUT_LANDSCAPE, true)
@@ -313,10 +510,11 @@ class SettingsRepositoryImpl(
         KEY_DEBUG_PREMIUM,
         KEY_DEBUG_SCREEN_DELAY,
         KEY_CACHE_PREMIUM,
-        KEY_CACHE_HIDDEN_SEND,
+        KEY_CACHE_NAV_ITEMS_CONFIG,
         KEY_ONBOARDING_LAST_VISIT,
         KEY_VERSION_LOG,
         KEY_DATABASE_EXPOSED_KEY,
+        KEY_GPG_KEYSERVER_LAST_REFRESH,
     )
 
     private val allPrefs by lazy {
@@ -351,12 +549,24 @@ class SettingsRepositoryImpl(
             markdownPref,
             sshAgentPref,
             sshAgentApprovalWindowPref,
+            sshAgentApprovalCachePolicyPref,
+            sshAgentDisplayKeyNamesPref,
             sshAgentFilterPref,
+            gpgAgentPref,
+            gpgAgentApprovalWindowPref,
+            gpgAgentApprovalCachePolicyPref,
+            gpgAgentDisplayKeyNamesPref,
+            gpgAgentFilterPref,
+            gpgKeyserverConfigPref,
+            gpgKeyserverAutoRefreshPref,
+            gpgKeyserverRefreshIntervalPref,
+            gpgKeyserverLastRefreshInstantPref,
             themeUseAmoledDarkPref,
             keepScreenOnPref,
             gravatarPref,
             navLabelPref,
-            navHiddenSendPref,
+            navItemsConfigPref,
+            cacheNavItemsConfigPref,
             allowTwoPanelLayoutInLandscapePref,
             allowTwoPanelLayoutInPortraitPref,
             useExternalBrowserPref,
@@ -574,10 +784,10 @@ class SettingsRepositoryImpl(
 
     override fun getCachePremium() = cachePremiumPref
 
-    override fun setCacheHiddenSend(hiddenSend: Boolean) = cacheHiddenSendPref
-        .setAndCommit(hiddenSend)
+    override fun setCacheNavItemsConfig(config: NavItemsConfig?) = cacheNavItemsConfigPref
+        .setAndCommit(config)
 
-    override fun getCacheHiddenSend() = cacheHiddenSendPref
+    override fun getCacheNavItemsConfig() = cacheNavItemsConfigPref
 
     override fun setAppIcons(appIcons: Boolean) = appIconsPref
         .setAndCommit(appIcons)
@@ -602,14 +812,79 @@ class SettingsRepositoryImpl(
     override fun setSshAgentApprovalWindow(duration: Duration) = sshAgentApprovalWindowPref
         .setAndCommit(duration)
 
-    override fun getSshAgentApprovalWindow() = sshAgentApprovalWindowPref
-        .asDuration()
-        .map { it ?: Duration.ZERO }
+    override fun getSshAgentApprovalWindow() = sshAgentApprovalCacheConfigState
+        .approvalWindow()
+
+    override fun setSshAgentApprovalCachePolicy(policy: AgentApprovalCachePolicy) =
+        sshAgentApprovalCachePolicyPref.setAndCommit(policy)
+
+    override fun getSshAgentApprovalCachePolicy() = sshAgentApprovalCacheConfigState
+        .cachePolicy()
+
+    override fun getSshAgentApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
+        sshAgentApprovalCacheConfigState
+
+    override fun setSshAgentDisplayKeyNames(displayKeyNames: Boolean) = sshAgentDisplayKeyNamesPref
+        .setAndCommit(displayKeyNames)
+
+    override fun getSshAgentDisplayKeyNames() = sshAgentDisplayKeyNamesPref
 
     override fun setSshAgentFilter(filter: SshAgentFilter) = sshAgentFilterPref
         .setAndCommit(filter)
 
     override fun getSshAgentFilter() = sshAgentFilterPref
+
+    override fun setGpgAgent(gpgAgent: Boolean) = gpgAgentPref
+        .setAndCommit(gpgAgent)
+
+    override fun getGpgAgent() = gpgAgentPref
+
+    override fun setGpgAgentApprovalWindow(duration: Duration) = gpgAgentApprovalWindowPref
+        .setAndCommit(duration)
+
+    override fun getGpgAgentApprovalWindow() = gpgAgentApprovalCacheConfigState
+        .approvalWindow()
+
+    override fun setGpgAgentApprovalCachePolicy(policy: AgentApprovalCachePolicy) =
+        gpgAgentApprovalCachePolicyPref.setAndCommit(policy)
+
+    override fun getGpgAgentApprovalCachePolicy() = gpgAgentApprovalCacheConfigState
+        .cachePolicy()
+
+    override fun getGpgAgentApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
+        gpgAgentApprovalCacheConfigState
+
+    override fun setGpgAgentDisplayKeyNames(displayKeyNames: Boolean) = gpgAgentDisplayKeyNamesPref
+        .setAndCommit(displayKeyNames)
+
+    override fun getGpgAgentDisplayKeyNames() = gpgAgentDisplayKeyNamesPref
+
+    override fun setGpgAgentFilter(filter: GpgAgentFilter) = gpgAgentFilterPref
+        .setAndCommit(filter)
+
+    override fun getGpgAgentFilter() = gpgAgentFilterPref
+
+    override fun setGpgKeyserverConfig(config: GpgKeyserverConfig) = gpgKeyserverConfigPref
+        .setAndCommit(config)
+
+    override fun getGpgKeyserverConfig() = gpgKeyserverConfigPref
+
+    override fun setGpgKeyserverAutoRefresh(autoRefresh: Boolean) = gpgKeyserverAutoRefreshPref
+        .setAndCommit(autoRefresh)
+
+    override fun getGpgKeyserverAutoRefresh() = gpgKeyserverAutoRefreshPref
+
+    override fun setGpgKeyserverRefreshInterval(duration: Duration) = gpgKeyserverRefreshIntervalPref
+        .setAndCommit(duration)
+
+    override fun getGpgKeyserverRefreshInterval() = gpgKeyserverRefreshIntervalPref
+        .asDuration()
+        .map { it ?: Duration.ZERO }
+
+    override fun setGpgKeyserverLastRefresh(instant: Instant?) = gpgKeyserverLastRefreshInstantPref
+        .setAndCommit(instant)
+
+    override fun getGpgKeyserverLastRefresh() = gpgKeyserverLastRefreshInstantPref
 
     override fun setAppVersionLog(log: List<AppVersionLog>) =
         ioEffect {
@@ -641,10 +916,10 @@ class SettingsRepositoryImpl(
 
     override fun getNavLabel() = navLabelPref
 
-    override fun setNavHiddenSend(hidden: Boolean) = navHiddenSendPref
-        .setAndCommit(hidden)
+    override fun setNavItemsConfig(config: NavItemsConfig?) = navItemsConfigPref
+        .setAndCommit(config)
 
-    override fun getNavHiddenSend() = navHiddenSendPref
+    override fun getNavItemsConfig() = navItemsConfigPref
 
     override fun setFont(font: AppFont?) = fontPref
         .setAndCommit(font)
@@ -724,4 +999,23 @@ class SettingsRepositoryImpl(
         .setAndCommit(key)
 
     override fun getExposedDatabaseKey() = databaseExposedPref
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : Any> KeyValuePreference<T>.coordinated(
+    set: (value: T, persist: IO<Unit>) -> IO<Unit>,
+    delete: (persist: IO<Unit>) -> IO<Unit>,
+): RealKeyValuePreference<T> {
+    val delegate = this as? RealKeyValuePreference<T>
+        ?: error("Preference '$key' must be backed by a real preference.")
+    return object : RealKeyValuePreference<T> by delegate {
+        override fun setAndCommit(value: T): IO<Unit> = set(
+            value,
+            delegate.setAndCommit(value),
+        )
+
+        override fun deleteAndCommit(): IO<Unit> = delete(
+            delegate.deleteAndCommit(),
+        )
+    }
 }

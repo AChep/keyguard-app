@@ -96,3 +96,7 @@
 # Kodein's inline instance lookup can leave a reference to a compiler-generated
 # class that is not emitted into the published artifact.
 -dontwarn org.kodein.di.compose.RetrievingKt$rememberNamedInstance$1$1$invoke$$inlined$instance-**
+
+# Skiko/Skia API references changed between Compose versions.
+-dontwarn com.kdroid.composetray.**
+-dontwarn io.github.vinceglb.filekit.**

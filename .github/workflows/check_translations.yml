@@ -2,18 +2,6 @@ name: "✔️ Check Translations"
 
 on:
   workflow_dispatch:
-    inputs:
-      source-file:
-        description: 'Path to source strings.xml'
-        required: true
-        default: 'common/src/commonMain/composeResources/values/strings.xml'
-      translated-file:
-        description: 'Path to translated strings.xml'
-        required: true
-      language:
-        description: 'Target language'
-        required: true
-
 permissions:
   contents: read
 

@@ -2,13 +2,6 @@ name: "🕒 Synchronize Two-factor auth"
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      # Configuration.
-      - '.github/update_twofactorauth.py'
-
 permissions:
   contents: read
 

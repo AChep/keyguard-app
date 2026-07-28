@@ -2,10 +2,6 @@ name: "Build .deb and .rpm"
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - "d*"
-
 permissions:
   contents: read
 

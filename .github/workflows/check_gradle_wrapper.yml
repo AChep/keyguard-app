@@ -2,19 +2,6 @@ name: "✔️ Check Gradle wrapper"
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      - 'gradlew*'
-      - 'gradle/wrapper/**'
-  pull_request:
-    branches:
-      - master
-    paths:
-      - 'gradlew*'
-      - 'gradle/wrapper/**'
-
 permissions:
   contents: read
 

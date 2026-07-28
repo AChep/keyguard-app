@@ -2,19 +2,6 @@ name: "✔️ Check Lint"
 
 on:
   workflow_dispatch:
-    inputs:
-      cache-write-only:
-        description: 'Cache write only'
-        required: false
-        default: false
-        type: boolean
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
-
 permissions:
   contents: read
 

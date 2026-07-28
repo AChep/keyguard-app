@@ -2,14 +2,6 @@ name: "🕒 Synchronize Just delete me"
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      # Configuration.
-      - '.github/update_justdeleteme.py'
-      - '.github/update_justdeleteme.requirements.txt'
-
 permissions:
   contents: read
 

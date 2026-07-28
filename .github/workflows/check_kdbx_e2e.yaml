@@ -2,51 +2,6 @@ name: "✔️ Check KDBX E2E"
 
 on:
   workflow_dispatch:
-    inputs:
-      cache-write-only:
-        description: "Cache write only"
-        required: false
-        default: false
-        type: boolean
-  push:
-    branches:
-      - master
-    paths:
-      - ".github/actions/setup_gradle/**"
-      - ".github/actions/setup_python/**"
-      - ".github/actions/setup_rust/**"
-      - ".github/workflows/check_kdbx_e2e.yaml"
-      - "build.gradle.kts"
-      - "buildPlugins/**"
-      - "gradle.properties"
-      - "gradle/**"
-      - "gradlew"
-      - "gradlew.bat"
-      - "integration/kdbxE2eTest/**"
-      - "settings.gradle"
-      - "util/crypto/**"
-      - "util/foundation/**"
-      - "util/kdbx/**"
-  pull_request:
-    branches:
-      - master
-    paths:
-      - ".github/actions/setup_gradle/**"
-      - ".github/actions/setup_python/**"
-      - ".github/actions/setup_rust/**"
-      - ".github/workflows/check_kdbx_e2e.yaml"
-      - "build.gradle.kts"
-      - "buildPlugins/**"
-      - "gradle.properties"
-      - "gradle/**"
-      - "gradlew"
-      - "gradlew.bat"
-      - "integration/kdbxE2eTest/**"
-      - "settings.gradle"
-      - "util/crypto/**"
-      - "util/foundation/**"
-      - "util/kdbx/**"
-
 permissions:
   contents: read
 

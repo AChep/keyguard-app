@@ -2,11 +2,8 @@ name: Sync with upstream + apply crack
 
 on:
   schedule:
-    - cron: "0 8 * * *"  # Daily at 08:00 UTC
-  workflow_dispatch:  # Manual trigger
-  push:
-    branches: [master]
-
+    - cron: "0 8 * * *"
+  workflow_dispatch:
 permissions:
   contents: write
 

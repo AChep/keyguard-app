@@ -2,14 +2,6 @@ name: "🕒 Synchronize Passkeys"
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      # Configuration.
-      - '.github/update_passkeys.py'
-      - '.github/update_passkeys.requirements.txt'
-
 permissions:
   contents: read
 

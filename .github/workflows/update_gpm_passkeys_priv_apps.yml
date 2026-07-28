@@ -2,14 +2,6 @@ name: "🕒 Synchronize GPM Credential Privileged Apps"
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      # Configuration.
-      - '.github/update_gpm_passkeys_priv_apps.py'
-      - '.github/update_gpm_passkeys_priv_apps.requirements.txt'
-
 permissions:
   contents: read
 

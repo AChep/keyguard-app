@@ -2,16 +2,6 @@ name: "🌐 Synchronize Localization"
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      - 'common/src/commonMain/composeResources/values/*.xml'
-      - 'listing/google/base/*.html'
-      - 'listing/google/base/*.xml'
-      # Configuration.
-      - 'crowdin.yml'
-
 permissions:
   contents: read
 

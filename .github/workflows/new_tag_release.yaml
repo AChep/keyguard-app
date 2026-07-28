@@ -1,10 +1,7 @@
 name: "🎉 Release tag -> GitHub release"
 
 on:
-  push:
-    tags:
-      - 'r*'
-
+  workflow_dispatch:
 jobs:
   # Generates variations of the changelog
   #   - changelog-raw.md: all git commits

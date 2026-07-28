@@ -2,15 +2,6 @@ name: "🌐 Upload Google Play Store listing"
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - master
-    paths:
-      - 'listing/google/**'
-      # Configuration.
-      - '.github/update_google_play_listing.py'
-      - '.github/update_google_play_listing.requirements.py'
-
 permissions:
   contents: read
 

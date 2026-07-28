@@ -2,13 +2,8 @@ name: "Sync upstream release"
 
 on:
   schedule:
-    - cron: "0 10 * * *"  # Daily at 10:00 UTC
+    - cron: "0 8 * * *"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Upstream tag to sync (e.g. d20260124)"
-        required: false
-
 permissions:
   contents: write
 

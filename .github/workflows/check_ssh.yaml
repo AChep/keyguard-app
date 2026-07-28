@@ -2,51 +2,6 @@ name: "✔️ Check SSH Agent"
 
 on:
   workflow_dispatch:
-    inputs:
-      cache-write-only:
-        description: 'Cache write only'
-        required: false
-        default: false
-        type: boolean
-  push:
-    branches:
-      - master
-    paths:
-      - 'commonSshAgent/**'
-      - 'commonAgent/**'
-      - 'androidSshAgent/**'
-      - 'desktopSshAgent/**'
-      - 'util/crypto/**'
-      - 'thirdParty/rust/**'
-      - 'integration/sshE2eTest/**'
-      - 'common/src/**/sshagent/**'
-      - 'common/src/**/service/agent/**'
-      - 'common/src/**/*Ssh*'
-      - 'common/src/desktopTest/**/ssh-import-corpus/**'
-      - 'common/src/**/crypto/KeyPairGenerator*'
-      - '.github/actions/setup_protobuf/**'
-      - '.github/actions/setup_rust/**'
-      - '.github/workflows/check_ssh.yaml'
-  pull_request:
-    branches:
-      - master
-    paths:
-      - 'commonSshAgent/**'
-      - 'commonAgent/**'
-      - 'androidSshAgent/**'
-      - 'desktopSshAgent/**'
-      - 'util/crypto/**'
-      - 'thirdParty/rust/**'
-      - 'integration/sshE2eTest/**'
-      - 'common/src/**/sshagent/**'
-      - 'common/src/**/service/agent/**'
-      - 'common/src/**/*Ssh*'
-      - 'common/src/desktopTest/**/ssh-import-corpus/**'
-      - 'common/src/**/crypto/KeyPairGenerator*'
-      - '.github/actions/setup_protobuf/**'
-      - '.github/actions/setup_rust/**'
-      - '.github/workflows/check_ssh.yaml'
-
 permissions:
   contents: read
 

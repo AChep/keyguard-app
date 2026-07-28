@@ -2,45 +2,6 @@ name: "✔️ Check WebDAV E2E"
 
 on:
   workflow_dispatch:
-    inputs:
-      cache-write-only:
-        description: 'Cache write only'
-        required: false
-        default: false
-        type: boolean
-  push:
-    branches:
-      - master
-    paths:
-      - '.github/actions/setup_gradle/**'
-      - '.github/actions/setup_rust/**'
-      - '.github/workflows/check_webdav_e2e.yaml'
-      - 'build.gradle.kts'
-      - 'buildPlugins/**'
-      - 'gradle.properties'
-      - 'gradle/**'
-      - 'gradlew'
-      - 'gradlew.bat'
-      - 'integration/webdavE2eTest/**'
-      - 'settings.gradle'
-      - 'util/webdav/**'
-  pull_request:
-    branches:
-      - master
-    paths:
-      - '.github/actions/setup_gradle/**'
-      - '.github/actions/setup_rust/**'
-      - '.github/workflows/check_webdav_e2e.yaml'
-      - 'build.gradle.kts'
-      - 'buildPlugins/**'
-      - 'gradle.properties'
-      - 'gradle/**'
-      - 'gradlew'
-      - 'gradlew.bat'
-      - 'integration/webdavE2eTest/**'
-      - 'settings.gradle'
-      - 'util/webdav/**'
-
 permissions:
   contents: read
 

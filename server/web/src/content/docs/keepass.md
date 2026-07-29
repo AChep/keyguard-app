@@ -18,9 +18,11 @@ Google Drive, or Dropbox.
 ## Opening and creating databases
 
 When adding an account, choose KeePass and either **open an existing
-database** or **create a new one**. The database is a local file picked
-through the system file picker — Keyguard does not fetch KDBX files from a
-URL or cloud service itself. New databases are created in the **KDBX 4**
+database** or **create a new one**. Keyguard supports these file providers:
+- file system;
+- WebDAV.
+
+- New databases are created in the **KDBX 4**
 format.
 
 To unlock a database you enter its **master password** and, if the database

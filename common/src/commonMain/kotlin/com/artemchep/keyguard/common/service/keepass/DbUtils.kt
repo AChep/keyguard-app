@@ -301,7 +301,7 @@ suspend fun getKeePassDatabaseMetadata(
     storage.stat()
 }
 
-private fun createKeePassCredentials(
+internal fun createKeePassCredentials(
     passphrase: EncryptedValue,
     keyData: ByteArray?,
 ): Credentials =
@@ -369,7 +369,7 @@ private fun createKeePassDatabase(
     credentials = credentials,
 )
 
-private val keePassCipherProviders = BaseCiphers.entries + TwofishCipher
+internal val keePassCipherProviders = BaseCiphers.entries + TwofishCipher
 
 private fun loadKeePassKeyData(
     fileService: FileService,
@@ -406,7 +406,7 @@ private fun createKeePassDatabaseStorage(
         )
     }
 
-private fun createKeePassDatabaseStorage(
+internal fun createKeePassDatabaseStorage(
     fileService: FileService,
     token: KeePassToken,
     webDavClientFactory: WebDavClientFactory?,

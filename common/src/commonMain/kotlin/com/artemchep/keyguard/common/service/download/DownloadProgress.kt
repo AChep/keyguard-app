@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.common.service.download
 
 import arrow.core.Either
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.last
 
 sealed interface DownloadProgress {
     data object None : DownloadProgress
@@ -21,4 +23,16 @@ sealed interface DownloadProgress {
     data class Complete(
         val result: Either<Throwable, String?>,
     ) : DownloadProgress
+}
+
+/**
+ * Awaits the terminal event of a download flow and returns its result.
+ * Fails if the flow finishes without a [DownloadProgress.Complete] event.
+ */
+suspend fun Flow<DownloadProgress>.awaitCompleteResult(): Either<Throwable, String?> {
+    val complete = last()
+    check(complete is DownloadProgress.Complete) {
+        "Download did not complete."
+    }
+    return complete.result
 }

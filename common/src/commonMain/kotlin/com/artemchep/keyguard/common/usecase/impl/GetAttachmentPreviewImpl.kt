@@ -11,6 +11,9 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
+import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
+import com.artemchep.keyguard.common.service.download.DownloadWriter
+import com.artemchep.keyguard.common.service.download.awaitCompleteResult
 import com.artemchep.keyguard.common.service.download.util.downloadToByteArray
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
@@ -19,6 +22,8 @@ import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.io.Buffer
+import kotlinx.io.RawSink
+import kotlinx.io.buffered
 import kotlinx.io.readByteArray
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -30,12 +35,14 @@ class GetAttachmentPreviewImpl(
     private val fileEncryptionCodec: FileEncryptionCodec,
     private val fileService: FileService,
     private val httpClient: HttpClient,
+    private val downloadAttachmentSourceLoader: DownloadAttachmentSourceLoader,
 ) : GetAttachmentPreview {
     constructor(directDI: DirectDI) : this(
         downloadAttachmentMetadata = directDI.instance(),
         fileEncryptionCodec = directDI.instance(),
         fileService = directDI.instance(),
         httpClient = directDI.instance(),
+        downloadAttachmentSourceLoader = directDI.instance(),
     )
 
     override fun invoke(
@@ -66,6 +73,11 @@ class GetAttachmentPreviewImpl(
             }
 
             is DownloadAttachmentRequestData.UrlSource -> downloadUrlToByteArray(source.url)
+
+            is DownloadAttachmentRequestData.KeePassSource -> {
+                source.expectedSize?.let(::ensureWithinLimit)
+                downloadKeePassToByteArray(metadata)
+            }
         }
         val plainBytes = metadata.encryptionKey
             ?.let { key ->
@@ -145,6 +157,36 @@ class GetAttachmentPreviewImpl(
     } catch (e: Throwable) {
         e.throwIfFatalOrCancellation()
         throw AttachmentPreviewException.NetworkFailed(e)
+    }
+
+    private suspend fun downloadKeePassToByteArray(
+        metadata: DownloadAttachmentRequestData,
+    ): ByteArray {
+        val output = Buffer()
+        var size = 0L
+        val limitedOutput = object : RawSink {
+            override fun write(
+                source: Buffer,
+                byteCount: Long,
+            ) {
+                val nextSize = size + byteCount
+                ensureWithinLimit(nextSize)
+                output.write(source, byteCount)
+                size = nextSize
+            }
+
+            override fun flush() = Unit
+
+            override fun close() = Unit
+        }.buffered()
+        downloadAttachmentSourceLoader
+            .fileLoader(
+                request = metadata,
+                writer = DownloadWriter.SinkWriter(limitedOutput),
+            )
+            .awaitCompleteResult()
+            .onLeft { error -> throw error }
+        return output.readByteArray()
     }
 
     private fun ensureWithinLimit(

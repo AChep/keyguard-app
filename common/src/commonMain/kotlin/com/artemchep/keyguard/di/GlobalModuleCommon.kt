@@ -25,6 +25,8 @@ import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.service.deeplink.impl.DeeplinkServiceImpl
+import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
+import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoaderImpl
 import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.service.download.DownloadServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.CxfExportService
@@ -549,6 +551,11 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<DownloadTask> {
         DownloadTaskImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<DownloadAttachmentSourceLoader> {
+        DownloadAttachmentSourceLoaderImpl(
             directDI = this,
         )
     }

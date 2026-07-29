@@ -69,6 +69,7 @@ internal class DefaultStagingSpoolFactory private constructor(
         StagingPurpose.DownloadSinkPlaintext,
         StagingPurpose.PendingUploadPlaintext,
         StagingPurpose.OpenPgpPlaintext,
+        StagingPurpose.KeePassAttachmentPlaintext,
         -> ByteStoreFactory {
             EncryptedTemporarySpillStorage.create(scratchStorageFactory())
         }

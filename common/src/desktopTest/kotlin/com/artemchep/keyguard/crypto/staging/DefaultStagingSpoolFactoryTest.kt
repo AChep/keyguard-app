@@ -26,6 +26,7 @@ class DefaultStagingSpoolFactoryTest {
             StagingPurpose.DownloadSinkPlaintext,
             StagingPurpose.PendingUploadPlaintext,
             StagingPurpose.OpenPgpPlaintext,
+            StagingPurpose.KeePassAttachmentPlaintext,
         )
 
         purposes.forEach { purpose ->

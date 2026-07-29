@@ -17,6 +17,8 @@ import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepositoryImpl
 import com.artemchep.keyguard.common.service.backup.BackupRunner
+import com.artemchep.keyguard.common.service.download.KeePassAttachmentSourceLoader
+import com.artemchep.keyguard.common.service.download.KeePassAttachmentSourceLoaderImpl
 import com.artemchep.keyguard.common.service.export.ExportVaultDataService
 import com.artemchep.keyguard.common.service.export.ExportVaultDataServiceImpl
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
@@ -508,6 +510,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<CheckHibpApiToken> {
         CheckHibpApiTokenImpl(this)
+    }
+    bindSingleton<KeePassAttachmentSourceLoader> {
+        KeePassAttachmentSourceLoaderImpl(this)
     }
     bindSingleton<ExportVaultDataService> {
         ExportVaultDataServiceImpl(this)

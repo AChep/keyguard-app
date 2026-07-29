@@ -1,11 +1,17 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import arrow.core.right
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AttachmentPreviewException
 import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
+import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
+import com.artemchep.keyguard.common.service.download.DownloadProgress
+import com.artemchep.keyguard.common.service.download.DownloadWriter
+import com.artemchep.keyguard.common.service.download.locationUri
+import com.artemchep.keyguard.common.service.download.writeBytes
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
@@ -18,6 +24,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
 import java.io.File
 import kotlin.test.Test
@@ -29,6 +36,12 @@ class GetAttachmentPreviewImplTest {
     private val fileEncryptionCodec = FileEncryptionCodecJvm(
         cryptoGenerator = CryptoGeneratorJvm(),
     )
+    private val unusedSourceLoader = object : DownloadAttachmentSourceLoader {
+        override fun fileLoader(
+            request: DownloadAttachmentRequestData,
+            writer: DownloadWriter,
+        ) = error("Unexpected attachment source loader call.")
+    }
 
     @Test
     fun `local file source is read before resolving remote metadata`() = runTest {
@@ -49,6 +62,7 @@ class GetAttachmentPreviewImplTest {
                         error("Unexpected network request.")
                     },
                 ),
+                downloadAttachmentSourceLoader = unusedSourceLoader,
             )
 
             val payload = useCase(
@@ -200,6 +214,65 @@ class GetAttachmentPreviewImplTest {
         }
     }
 
+    @Test
+    fun `keepass source rejects known size above limit before extraction`() = runTest {
+        val useCase = useCase(
+            metadata = metadata(
+                source = DownloadAttachmentRequestData.KeePassSource(
+                    hashRef = "hashref://oversized",
+                    expectedSize = AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES + 1,
+                ),
+            ),
+            sourceLoader = object : DownloadAttachmentSourceLoader {
+                override fun fileLoader(
+                    request: DownloadAttachmentRequestData,
+                    writer: DownloadWriter,
+                ) = error("Oversized source must not be extracted.")
+            },
+        )
+
+        assertFailsWith<AttachmentPreviewException.TooLarge> {
+            useCase(request)()
+        }
+    }
+
+    @Test
+    fun `keepass source enforces limit while replaying verified attachment`() = runTest {
+        val bytes = ByteArray(AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES.toInt() + 1)
+        val useCase = useCase(
+            metadata = metadata(
+                source = DownloadAttachmentRequestData.KeePassSource(
+                    hashRef = "hashref://streamed",
+                    expectedSize = null,
+                ),
+            ),
+            sourceLoader = sourceLoader(bytes),
+        )
+
+        assertFailsWith<AttachmentPreviewException.TooLarge> {
+            useCase(request)()
+        }
+    }
+
+    @Test
+    fun `keepass source returns verified attachment below limit`() = runTest {
+        val bytes = "verified keepass preview".encodeToByteArray()
+        val useCase = useCase(
+            metadata = metadata(
+                source = DownloadAttachmentRequestData.KeePassSource(
+                    hashRef = "hashref://preview",
+                    expectedSize = bytes.size.toLong(),
+                ),
+            ),
+            sourceLoader = sourceLoader(bytes),
+        )
+
+        val payload = useCase(request)()
+
+        assertEquals(bytes.size.toLong(), payload.encryptedSize)
+        assertContentEquals(bytes, payload.bytes)
+    }
+
     private fun useCase(
         metadata: DownloadAttachmentRequestData,
         fileService: FileService = FileServiceImpl(),
@@ -208,12 +281,26 @@ class GetAttachmentPreviewImplTest {
                 error("Unexpected network request.")
             },
         ),
+        sourceLoader: DownloadAttachmentSourceLoader = unusedSourceLoader,
     ) = GetAttachmentPreviewImpl(
         downloadAttachmentMetadata = FakeDownloadAttachmentMetadata(metadata),
         fileEncryptionCodec = fileEncryptionCodec,
         fileService = fileService,
         httpClient = httpClient,
+        downloadAttachmentSourceLoader = sourceLoader,
     )
+
+    private fun sourceLoader(
+        bytes: ByteArray,
+    ) = object : DownloadAttachmentSourceLoader {
+        override fun fileLoader(
+            request: DownloadAttachmentRequestData,
+            writer: DownloadWriter,
+        ) = flow {
+            writer.writeBytes(bytes)
+            emit(DownloadProgress.Complete(writer.locationUri().right()))
+        }
+    }
 
     private fun metadata(
         source: DownloadAttachmentRequestData.Source,

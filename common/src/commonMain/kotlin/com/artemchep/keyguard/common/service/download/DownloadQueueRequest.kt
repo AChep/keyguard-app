@@ -41,6 +41,13 @@ data class DownloadQueueRequest(
             override val urlIsOneTime: Boolean,
         ) : Source
 
+        data class KeePass(
+            override val url: String,
+            val expectedSize: Long?,
+        ) : Source {
+            override val urlIsOneTime: Boolean = false
+        }
+
         data class Direct(
             override val url: String,
             override val urlIsOneTime: Boolean,

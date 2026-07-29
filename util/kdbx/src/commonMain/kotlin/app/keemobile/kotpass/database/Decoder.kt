@@ -292,7 +292,7 @@ private fun decodeVer4x(
     }
 }
 
-private fun validateHeader(header: DatabaseHeader) {
+internal fun validateHeader(header: DatabaseHeader) {
     if (header.signature.base != Signature.Base) {
         throw FormatError.UnknownFormat("File has unexpected signature.")
     }
@@ -320,7 +320,7 @@ internal fun resolveCipher(
     return cipher
 }
 
-private fun Source.decodeCompression(
+internal fun Source.decodeCompression(
     compression: Compression,
     limits: KdbxReadLimits,
 ): Source =
@@ -329,7 +329,7 @@ private fun Source.decodeCompression(
         Compression.GZip -> gunzipSource(limits.maximumContentBytes)
     }
 
-private fun BufferedSource.drainAndVerify() {
+internal fun BufferedSource.drainAndVerify() {
     val discard = Buffer()
     while (true) {
         val read = read(discard, STREAM_BUFFER_SIZE.toLong())

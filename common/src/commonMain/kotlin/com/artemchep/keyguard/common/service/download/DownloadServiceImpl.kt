@@ -48,9 +48,15 @@ class DownloadServiceImpl(
                     data = source.data,
                 )
             }
+
             is DownloadAttachmentRequestData.UrlSource -> DownloadQueueRequest.Source.Url(
                 url = source.url,
                 urlIsOneTime = source.urlIsOneTime,
+            )
+
+            is DownloadAttachmentRequestData.KeePassSource -> DownloadQueueRequest.Source.KeePass(
+                url = source.hashRef,
+                expectedSize = source.expectedSize,
             )
         }
         downloadManager.queue(

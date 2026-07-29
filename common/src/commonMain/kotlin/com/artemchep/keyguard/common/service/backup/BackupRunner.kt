@@ -7,26 +7,26 @@ import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
 import com.artemchep.keyguard.common.service.download.DownloadProgress
-import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.download.DownloadWriter
+import com.artemchep.keyguard.common.service.download.awaitCompleteResult
 import com.artemchep.keyguard.common.service.export.ExportVaultDataService
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import kotlinx.coroutines.NonCancellable
-import kotlin.time.Clock
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Instant
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Instant
 
 /**
  * Creates backup snapshots from exported vault data,
@@ -39,7 +39,7 @@ class BackupRunner(
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
     private val dateFormatter: DateFormatter,
-    private val downloadTask: DownloadTask,
+    private val downloadSourceLoader: DownloadAttachmentSourceLoader,
     private val downloadAttachmentMetadata: DownloadAttachmentMetadata,
     private val diagnostics: BackupDiagnostics = BackupDiagnostics.NoOp,
 ) {
@@ -52,7 +52,7 @@ class BackupRunner(
         cryptoGenerator = directDI.instance(),
         base64Service = directDI.instance(),
         dateFormatter = directDI.instance(),
-        downloadTask = directDI.instance(),
+        downloadSourceLoader = directDI.instance(),
         downloadAttachmentMetadata = directDI.instance(),
         diagnostics = BackupDiagnostics(logRepository = directDI.instance<LogRepository>()),
     )
@@ -629,52 +629,31 @@ class BackupRunner(
             )
             val meta = downloadAttachmentMetadata(request)
                 .bind()
-            val flow = when (val source = meta.source) {
-                is DownloadAttachmentRequestData.DirectSource -> {
-                    sourceType = "direct"
-                    diagnostics.backupAttachmentDownloadStarted(
-                        localCipherId = cipher.id,
-                        remoteCipherId = attachment.remoteCipherId,
-                        attachmentId = attachment.id,
-                        attachmentName = attachment.fileName,
-                        sourceType = sourceType,
-                        plainSize = attachment.size,
-                    )
-                    downloadTask.fileLoader(
-                        data = source.data,
-                        key = meta.encryptionKey,
-                        writer = writer,
-                    )
-                }
-
-                is DownloadAttachmentRequestData.UrlSource -> {
-                    sourceType = "url"
-                    diagnostics.backupAttachmentDownloadStarted(
-                        localCipherId = cipher.id,
-                        remoteCipherId = attachment.remoteCipherId,
-                        attachmentId = attachment.id,
-                        attachmentName = attachment.fileName,
-                        sourceType = sourceType,
-                        plainSize = attachment.size,
-                    )
-                    downloadTask.fileLoader(
-                        url = source.url,
-                        key = meta.encryptionKey,
-                        writer = writer,
-                    )
-                }
+            sourceType = when (meta.source) {
+                is DownloadAttachmentRequestData.DirectSource -> "direct"
+                is DownloadAttachmentRequestData.UrlSource -> "url"
+                is DownloadAttachmentRequestData.KeePassSource -> "keepass"
             }
-            val complete = flow
+            diagnostics.backupAttachmentDownloadStarted(
+                localCipherId = cipher.id,
+                remoteCipherId = attachment.remoteCipherId,
+                attachmentId = attachment.id,
+                attachmentName = attachment.fileName,
+                sourceType = sourceType,
+                plainSize = attachment.size,
+            )
+            val flow = downloadSourceLoader.fileLoader(
+                request = meta,
+                writer = writer,
+            )
+            val result = flow
                 .onEach { progress ->
                     if (progress is DownloadProgress.Loading) {
                         onProgress(progress)
                     }
                 }
-                .last()
-            require(complete is DownloadProgress.Complete) {
-                "Attachment download did not complete."
-            }
-            complete.result.fold(
+                .awaitCompleteResult()
+            result.fold(
                 ifLeft = { error ->
                     throw error.toBackupAttachmentDecryptionExceptionOrSelf(
                         localCipherId = cipher.id,

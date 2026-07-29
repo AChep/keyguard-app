@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.common.usecase.impl
 
-import app.keemobile.kotpass.database.BinaryIndex
-import app.keemobile.kotpass.database.modifiers.binaries
 import com.artemchep.keyguard.common.exception.isUnknownHostException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
@@ -12,15 +10,9 @@ import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.service.file.FileService
-import com.artemchep.keyguard.common.service.keepass.KeePassUtil
-import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
-import com.artemchep.keyguard.common.service.keepass.parseAttachmentUrl
-import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
-import com.artemchep.keyguard.common.service.text.Base32Service
+import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
-import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
@@ -44,9 +36,7 @@ class DownloadAttachmentMetadataImpl2(
     private val databaseManager: VaultDatabaseManager,
     private val cipherEncryptor: CipherEncryptor,
     private val cryptoGenerator: CryptoGenerator,
-    private val base32Service: Base32Service,
     private val base64Service: Base64Service,
-    private val fileService: FileService,
     private val json: Json,
     private val httpClient: HttpClient,
 ) : DownloadAttachmentMetadata {
@@ -58,9 +48,7 @@ class DownloadAttachmentMetadataImpl2(
         databaseManager = directDI.instance(),
         cipherEncryptor = directDI.instance(),
         cryptoGenerator = directDI.instance(),
-        base32Service = directDI.instance(),
         base64Service = directDI.instance(),
-        fileService = directDI.instance(),
         json = directDI.instance(),
         httpClient = directDI.instance(),
     )
@@ -129,7 +117,6 @@ class DownloadAttachmentMetadataImpl2(
 
         when (token) {
             is KeePassToken -> getLatestAttachmentDataKeePass(
-                token = token,
                 attachment = attachment,
             )
 
@@ -144,33 +131,11 @@ class DownloadAttachmentMetadataImpl2(
     }
 
     private fun getLatestAttachmentDataKeePass(
-        token: KeePassToken,
         attachment: BitwardenCipher.Attachment.Remote,
     ): IO<AttachmentMetadataData> = ioEffect {
-        val keePassDb = openKeePassDatabase(
-            token = token,
-            fileService = fileService,
-            base64Service = base64Service,
-            webDavClientFactory = KtorWebDavClientFactory(
-                httpClient = httpClient,
-            ),
-        )
-
-        val hash = KeePassUtil.parseAttachmentUrl(
-            url = requireNotNull(attachment.url),
-            base32Service = base32Service,
-        )
-
-        val data = BinaryIndex(keePassDb.binaries)
-            .findByContentSha256(hash)
-            ?.data
-            // failed to find the attachment data
-            ?: kotlin.run {
-                val msg = "Could not find requested attachment data!"
-                throw IllegalStateException(msg)
-            }
-        val source = DownloadAttachmentRequestData.DirectSource(
-            data = data.getContent(),
+        val source = DownloadAttachmentRequestData.KeePassSource(
+            hashRef = requireNotNull(attachment.url),
+            expectedSize = attachment.size,
         )
         AttachmentMetadataData(
             source = source,

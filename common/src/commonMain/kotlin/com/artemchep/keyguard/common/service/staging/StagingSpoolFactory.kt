@@ -15,6 +15,7 @@ internal enum class StagingPurpose {
     PendingUploadPlaintext,
     OpenPgpPlaintext,
     KeePassDatabase,
+    KeePassAttachmentPlaintext,
 }
 
 /**

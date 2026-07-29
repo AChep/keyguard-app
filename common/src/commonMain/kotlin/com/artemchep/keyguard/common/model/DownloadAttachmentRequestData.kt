@@ -36,6 +36,16 @@ data class DownloadAttachmentRequestData(
         }
     }
 
+    /**
+     * A binary embedded in the current KeePass database. The hash reference is
+     * stable; the session-bound loader resolves the database and validates
+     * the current attachment before reading it.
+     */
+    data class KeePassSource(
+        val hashRef: String,
+        val expectedSize: Long?,
+    ) : Source
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (this::class != other?.let { it::class }) return false

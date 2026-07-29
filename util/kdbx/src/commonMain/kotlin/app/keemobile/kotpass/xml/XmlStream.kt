@@ -3,9 +3,9 @@ package app.keemobile.kotpass.xml
 import app.keemobile.kotpass.errors.FormatError
 import nl.adaptivity.xmlutil.EventType
 import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
-import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.core.KtXmlReader
 import nl.adaptivity.xmlutil.core.KtXmlWriter
@@ -59,29 +59,37 @@ internal fun xmlReader(
 ): XmlReader {
     // Entity expansion is deliberately disabled. OkioInOutBuffer feeds UTF-8
     // lazily, so large documents are not duplicated as an intermediate String.
+    val input = OkioInOutBuffer(source, limits.maxDocumentBytes)
     val delegate = KtXmlReader(
-        OkioInOutBuffer(source, limits.maxDocumentBytes),
+        input,
         encoding = "utf-8",
         relaxed = false,
         expandEntities = false,
     )
-    return LimitedXmlReader(delegate, limits)
+    return LimitedXmlReader(delegate, input, limits)
 }
 
 private class LimitedXmlReader(
     private val delegate: XmlReader,
+    private val input: OkioInOutBuffer,
     private val limits: XmlReadLimits,
-) : XmlReader by delegate, ScalarLimitAware {
+) : XmlReader by delegate,
+    ScalarLimitAware,
+    StreamingTextAware {
     private var elements = 0L
 
     override val maxScalarChars: Int
         get() = limits.maxScalarChars
+
+    override fun readTextChunk(maximumChars: Int): String? =
+        input.readTextChunk(maximumChars)
 
     override fun next(): EventType {
         val event = delegate.next()
         when (event) {
             EventType.DOCDECL ->
                 throw FormatError.InvalidXml("Document type declarations are not allowed.")
+
             EventType.START_ELEMENT -> {
                 elements++
                 if (elements > limits.maxElements) {
@@ -110,6 +118,7 @@ private class LimitedXmlReader(
                     }
                 }
             }
+
             else -> Unit
         }
         return event
@@ -120,8 +129,15 @@ internal interface ScalarLimitAware {
     val maxScalarChars: Int
 }
 
+internal interface StreamingTextAware {
+    fun readTextChunk(maximumChars: Int): String?
+}
+
 internal fun XmlReader.scalarCharLimit(): Int =
     (this as? ScalarLimitAware)?.maxScalarChars ?: Int.MAX_VALUE
+
+internal fun XmlReader.readStreamingTextChunk(maximumChars: Int): String? =
+    (this as? StreamingTextAware)?.readTextChunk(maximumChars)
 
 /**
  * Advances the reader to the document's root element and returns its

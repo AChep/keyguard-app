@@ -12,7 +12,7 @@ import okio.BufferedSink
 import okio.BufferedSource
 import okio.ByteString
 
-private object InnerHeaderFieldId {
+internal object InnerHeaderFieldId {
     const val Terminator = 0x00
     const val StreamId = 0x01
     const val StreamKey = 0x02

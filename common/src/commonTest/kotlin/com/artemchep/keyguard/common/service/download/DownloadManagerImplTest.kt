@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.Argon2Mode
 import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
+import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundScheduler
 import com.artemchep.keyguard.common.service.download.store.DownloadFileStore
@@ -164,6 +165,33 @@ class DownloadManagerImplTest {
     }
 
     @Test
+    fun `unavailable vault session does not consume restart attempt budget`() = runTest {
+        val repository = DownloadRepositoryInMemory()
+        val manager = createManager(
+            repository = repository,
+            task = FakeDownloadTask {
+                flowOf(
+                    DownloadProgress.Complete(
+                        DownloadAttachmentSessionUnavailableException().left(),
+                    ),
+                )
+            },
+            scope = backgroundScope,
+        )
+
+        val queue = manager.queue(
+            downloadQueueRequest(attempt = 3),
+        )
+        queue.flow
+            .filterIsInstance<DownloadProgress.Complete>()
+            .first()
+
+        val error = repository.getById(queue.info.id).bind()?.error
+        assertEquals(3, error?.attempt)
+        assertEquals(true, error?.canRetry())
+    }
+
+    @Test
     fun `status falls back to stored downloaded file`() = runTest {
         val repository = DownloadRepositoryInMemory()
         val fileStore = FakeDownloadFileStore().apply {
@@ -203,6 +231,38 @@ class DownloadManagerImplTest {
         assertEquals(listOf("download-1"), fileStore.deletedIds)
     }
 
+    @Test
+    fun `restart reconstructs hashref as keepass source without http task`() = runTest {
+        val requests = mutableListOf<DownloadAttachmentRequestData>()
+        val sourceLoader = object : DownloadAttachmentSourceLoader {
+            override fun fileLoader(
+                request: DownloadAttachmentRequestData,
+                writer: DownloadWriter,
+            ): Flow<DownloadProgress> {
+                requests += request
+                return flowOf(DownloadProgress.Complete("file://download-1".right()))
+            }
+        }
+        val manager = createManager(
+            sourceLoader = sourceLoader,
+            scope = backgroundScope,
+        )
+        val info = downloadInfo().copy(
+            url = "hashref://restartable-content-hash",
+            urlIsOneTime = false,
+        )
+
+        manager.queue(info).flow
+            .filterIsInstance<DownloadProgress.Complete>()
+            .first()
+
+        val source = assertIs<DownloadAttachmentRequestData.KeePassSource>(
+            requests.single().source,
+        )
+        assertEquals(info.url, source.hashRef)
+        assertEquals(null, source.expectedSize)
+    }
+
     private fun createManager(
         repository: DownloadRepository = DownloadRepositoryInMemory(),
         fileStore: DownloadFileStore = FakeDownloadFileStore(),
@@ -210,11 +270,12 @@ class DownloadManagerImplTest {
         task: DownloadTask = FakeDownloadTask {
             flowOf(DownloadProgress.Complete("file://download-1".right()))
         },
+        sourceLoader: DownloadAttachmentSourceLoader = task.asSourceLoader(),
         scope: CoroutineScope,
     ) = DownloadManagerImpl(
         windowCoroutineScope = TestWindowCoroutineScope(scope),
         downloadRepository = repository,
-        downloadTask = task,
+        sourceLoader = sourceLoader,
         downloadFileStore = fileStore,
         downloadBackgroundScheduler = scheduler,
         base64Service = Base64ServiceImpl(),

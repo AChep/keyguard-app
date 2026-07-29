@@ -7,6 +7,9 @@ import kotlinx.coroutines.withContext
 
 private const val SCHEME = "hashref://"
 
+fun String.isKeePassAttachmentUrl(): Boolean =
+    startsWith(SCHEME, ignoreCase = true)
+
 suspend fun KeePassUtil.generateAttachmentUrl(
     data: ByteArray,
     cryptoGenerator: CryptoGenerator,
@@ -26,7 +29,7 @@ suspend fun KeePassUtil.parseAttachmentUrl(
     base32Service: Base32Service,
 ): ByteArray = withContext(Dispatchers.Default) {
     when {
-        url.startsWith(SCHEME, ignoreCase = true) -> {
+        url.isKeePassAttachmentUrl() -> {
             val hashDataStr = url.substring(SCHEME.length)
             val hashData = base32Service
                 .decode(hashDataStr)

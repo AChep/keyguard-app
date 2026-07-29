@@ -30,6 +30,21 @@ internal const val DOWNLOAD_PLAINTEXT_MAXIMUM_BYTES: Long = 16L * 1024L * 1024L 
 private const val DOWNLOAD_TRANSFER_BUFFER_BYTES = 64 * 1024
 private const val MAX_CONSECUTIVE_ZERO_READS = 16
 
+private val DOWNLOAD_ATOMIC_WRITE_OPTIONS = AtomicWriteOptions(
+    publication = AtomicPublicationPolicy.Replace(
+        access = ReplacementAccessPolicy.UseRequestedPermissions(
+            permissions = AtomicFilePermissions.ProcessDefault,
+        ),
+    ),
+    parentDirectories = ParentDirectoryPolicy.CreateMissing(
+        permissions = AtomicDirectoryPermissions.ProcessDefault,
+    ),
+    existingParentLinks = ExistingParentLinkPolicy.Reject,
+    synchronization = SynchronizationPolicy.Required(
+        SyncLevel.FileSynchronized,
+    ),
+)
+
 sealed interface DownloadWriter {
     data class LocalPathWriter(
         val destination: AtomicFileDestination,
@@ -46,25 +61,9 @@ sealed interface DownloadWriter {
 fun DownloadWriter.writeBytes(data: ByteArray) {
     when (this) {
         is DownloadWriter.LocalPathWriter -> {
-            writeFileAtomically(
-                destination = destination,
-                options = AtomicWriteOptions(
-                    publication = AtomicPublicationPolicy.Replace(
-                        access = ReplacementAccessPolicy.UseRequestedPermissions(
-                            permissions = AtomicFilePermissions.ProcessDefault,
-                        ),
-                    ),
-                    parentDirectories = ParentDirectoryPolicy.CreateMissing(
-                        permissions = AtomicDirectoryPermissions.ProcessDefault,
-                    ),
-                    existingParentLinks = ExistingParentLinkPolicy.Reject,
-                    synchronization = SynchronizationPolicy.Required(
-                        SyncLevel.FileSynchronized,
-                    ),
-                ),
-            ) { sink ->
+            writeAtomically { sink ->
                 sink.write(data)
-            }.receipt.requireCleanupComplete()
+            }
         }
 
         is DownloadWriter.SinkWriter -> {
@@ -79,6 +78,40 @@ fun DownloadWriter.locationUri(): String? = when (this) {
     is DownloadWriter.SinkWriter -> null
 }
 
+/**
+ * Publishes a source whose authenticity and completeness have already been
+ * established by its producer. Unlike [writeSource], sink destinations do not
+ * need another provisional-plaintext spool.
+ */
+internal fun DownloadWriter.writeVerifiedSource(
+    source: Source,
+    checkCancellation: () -> Unit = {},
+    onProgress: (downloaded: Long) -> Unit = {},
+) {
+    // The copy loop already checks for cancellation before every read, so the
+    // destination sink does not need its own cancellation-checking wrapper.
+    fun copyVerifiedTo(output: Sink) {
+        source.copyTo(
+            output = output,
+            checkCancellation = checkCancellation,
+            onProgress = onProgress,
+        )
+        output.flush()
+    }
+
+    when (this) {
+        is DownloadWriter.LocalPathWriter -> {
+            writeAtomically { output ->
+                copyVerifiedTo(output)
+            }
+        }
+
+        is DownloadWriter.SinkWriter -> {
+            copyVerifiedTo(sink)
+        }
+    }
+}
+
 internal fun DownloadWriter.writeSource(
     source: Source,
     key: ByteArray?,
@@ -88,23 +121,7 @@ internal fun DownloadWriter.writeSource(
 ) {
     when (this) {
         is DownloadWriter.LocalPathWriter -> {
-            writeFileAtomically(
-                destination = destination,
-                options = AtomicWriteOptions(
-                    publication = AtomicPublicationPolicy.Replace(
-                        access = ReplacementAccessPolicy.UseRequestedPermissions(
-                            permissions = AtomicFilePermissions.ProcessDefault,
-                        ),
-                    ),
-                    parentDirectories = ParentDirectoryPolicy.CreateMissing(
-                        permissions = AtomicDirectoryPermissions.ProcessDefault,
-                    ),
-                    existingParentLinks = ExistingParentLinkPolicy.Reject,
-                    synchronization = SynchronizationPolicy.Required(
-                        SyncLevel.FileSynchronized,
-                    ),
-                ),
-            ) { sink ->
+            writeAtomically { sink ->
                 sink.withCancellationChecks(checkCancellation).use { output ->
                     source.writePlaintextTo(
                         output = output,
@@ -113,7 +130,7 @@ internal fun DownloadWriter.writeSource(
                         checkCancellation = checkCancellation,
                     )
                 }
-            }.receipt.requireCleanupComplete()
+            }
         }
 
         is DownloadWriter.SinkWriter -> {
@@ -174,9 +191,11 @@ private fun Source.writePlaintextTo(
 private fun Source.copyTo(
     output: Sink,
     checkCancellation: () -> Unit,
+    onProgress: (downloaded: Long) -> Unit = {},
 ) {
     val buffer = ByteArray(DOWNLOAD_TRANSFER_BUFFER_BYTES)
     var consecutiveZeroReads = 0
+    var downloaded = 0L
     try {
         while (true) {
             checkCancellation()
@@ -190,11 +209,23 @@ private fun Source.copyTo(
             } else {
                 consecutiveZeroReads = 0
                 output.write(buffer, 0, length)
+                downloaded += length
+                onProgress(downloaded)
             }
         }
     } finally {
         buffer.fill(0)
     }
+}
+
+private fun DownloadWriter.LocalPathWriter.writeAtomically(
+    write: (Sink) -> Unit,
+) {
+    writeFileAtomically(
+        destination = destination,
+        options = DOWNLOAD_ATOMIC_WRITE_OPTIONS,
+        write = write,
+    ).receipt.requireCleanupComplete()
 }
 
 private fun Sink.withCancellationChecks(

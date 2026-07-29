@@ -84,6 +84,22 @@ class HashKatTest {
     }
 
     @Test
+    fun incrementalSha256MatchesOneShotDigest() {
+        val first = ByteArray(96 * 1024 + 3) { index -> index.toByte() }
+        val second = ByteArray(65 * 1024 + 7) { index -> (index * 17).toByte() }
+        val state = createSha256()
+        state.update(first)
+        state.update(second, offset = 3, length = second.size - 9)
+
+        val expectedInput = first + second.copyOfRange(3, second.size - 6)
+
+        assertEquals(
+            crypto.sha256(expectedInput).toHex(),
+            state.doFinal().toHex(),
+        )
+    }
+
+    @Test
     fun digestLengths() {
         val x = "abc".encodeToByteArray()
         assertEquals(20, crypto.sha1(x).size)

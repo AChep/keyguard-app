@@ -27,6 +27,7 @@ internal class OkioInOutBuffer(
     private var copyState = InOutBuffer.State.INACTIVE
     private var copyStartOffset = 0
     private var copyBuilder: StringBuilder? = null
+    private var isCData = false
 
     init {
         if (charAt(0) == '\uFEFF') currentOffset = 1
@@ -171,6 +172,102 @@ internal class OkioInOutBuffer(
 
     override fun readToCopyBuffer() {
         check(read() >= 0) { "End of stream while adding character to copy buffer" }
+    }
+
+    /**
+     * Reads a bounded chunk of element character data without asking the XML
+     * parser to materialize the complete text event. The parser and this
+     * buffer share the same cursor, so its next event starts at the markup or
+     * entity boundary left behind here.
+     */
+    internal fun readTextChunk(maximumChars: Int): String? {
+        require(maximumChars > 0)
+        check(copyState == InOutBuffer.State.INACTIVE) {
+            "Cannot stream XML text while a parser copy sequence is active"
+        }
+        val result = StringBuilder(minOf(maximumChars, INPUT_CHUNK_SIZE))
+        while (result.length < maximumChars) {
+            if (isCData) {
+                readCDataChar(result)
+                continue
+            }
+
+            when {
+                startsWith("<![CDATA[") -> {
+                    skip(9)
+                    isCData = true
+                }
+
+                startsWith("]]>") ->
+                    throw FormatError.InvalidXml(
+                        "Unexpected CDATA terminator in element text.",
+                    )
+
+                else -> {
+                    if (appendPlainTextRun(result, maximumChars)) continue
+                    when (val value = peek()) {
+                        -1, '<'.code, '&'.code ->
+                            return result.takeIf { it.isNotEmpty() }?.toString()
+
+                        else -> {
+                            read()
+                            result.append(value.toChar())
+                        }
+                    }
+                }
+            }
+        }
+        return result.toString()
+    }
+
+    /** Consumes one character of a CDATA section, or its `]]>` terminator. */
+    private fun readCDataChar(result: StringBuilder) {
+        if (startsWith("]]>")) {
+            skip(3)
+            isCData = false
+            return
+        }
+        val value = read()
+        if (value < 0) {
+            throw FormatError.InvalidXml("Unexpected end of CDATA section.")
+        }
+        result.append(value.toChar())
+    }
+
+    /**
+     * Bulk-appends the buffered run of characters that need no markup, CDATA
+     * or line-break handling, so large text bodies skip the per-character
+     * peek/read path. Returns false when the next character (or EOF) needs
+     * the caller's boundary handling.
+     */
+    private fun appendPlainTextRun(result: StringBuilder, maximumChars: Int): Boolean {
+        var local = currentOffset - inputBase
+        if (local !in 0 until inputLength) {
+            ensureAvailable(currentOffset)
+            local = currentOffset - inputBase
+        }
+        if (local !in 0 until inputLength) return false
+        val limit = minOf(inputLength, local + (maximumChars - result.length))
+        var end = local
+        while (end < limit && input[end].isPlainTextChar()) end++
+        val appended = end > local
+        if (appended) {
+            result.appendRange(input, local, end)
+            currentOffset += end - local
+            if (currentOffset - inputBase >= COMPACT_THRESHOLD) compact()
+        }
+        return appended
+    }
+
+    private fun Char.isPlainTextChar(): Boolean =
+        this != '<' && this != '&' && this != ']' &&
+            this != '\r' && this != '\n' && this != '\u0085' && this != '\u2028'
+
+    private fun startsWith(value: String): Boolean {
+        value.indices.forEach { index ->
+            if (peek(index) != value[index].code) return false
+        }
+        return true
     }
 
     private fun normalizedLineBreak(newOffset: Int) {

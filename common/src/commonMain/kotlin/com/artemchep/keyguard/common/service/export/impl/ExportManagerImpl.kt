@@ -3,7 +3,6 @@ package com.artemchep.keyguard.common.service.export.impl
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
@@ -11,14 +10,14 @@ import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
-import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.dirs.DirsService
+import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
 import com.artemchep.keyguard.common.service.download.DownloadProgress
-import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.download.DownloadWriter
+import com.artemchep.keyguard.common.service.download.awaitCompleteResult
 import com.artemchep.keyguard.common.service.export.ExportManager
 import com.artemchep.keyguard.common.service.export.ExportVaultDataService
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
@@ -30,6 +29,7 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
+import com.artemchep.keyguard.util.io.toSource
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -46,7 +46,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
@@ -58,12 +57,12 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.concurrent.Volatile
 import kotlin.concurrent.atomics.AtomicLong
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.time.Clock
 
 open class ExportManagerBase(
     private val directDI: DirectDI,
@@ -73,7 +72,7 @@ open class ExportManagerBase(
     private val dirsService: DirsService,
     private val zipService: ZipService,
     private val dateFormatter: DateFormatter,
-    private val downloadTask: DownloadTask,
+    private val downloadSourceLoader: DownloadAttachmentSourceLoader,
     private val downloadAttachmentMetadata: DownloadAttachmentMetadata,
     private val vaultSessionLocker: VaultSessionLocker,
     private val onLaunch: ExportManager.(String) -> Unit,
@@ -100,7 +99,7 @@ open class ExportManagerBase(
         dirsService = directDI.instance(),
         zipService = directDI.instance(),
         dateFormatter = directDI.instance(),
-        downloadTask = directDI.instance(),
+        downloadSourceLoader = directDI.instance(),
         downloadAttachmentMetadata = directDI.instance(),
         vaultSessionLocker = directDI.instance(),
         onLaunch = onLaunch,
@@ -320,23 +319,11 @@ open class ExportManagerBase(
             val meta = downloadAttachmentMetadata(request)
                 .bind()
 
-            val fileLoaderFlow = when (val source = meta.source) {
-                is DownloadAttachmentRequestData.DirectSource -> {
-                    downloadTask.fileLoader(
-                        data = source.data,
-                        key = meta.encryptionKey,
-                        writer = writer,
-                    )
-                }
-                is DownloadAttachmentRequestData.UrlSource -> {
-                    downloadTask.fileLoader(
-                        url = source.url,
-                        key = meta.encryptionKey,
-                        writer = writer,
-                    )
-                }
-            }
-            val complete = fileLoaderFlow
+            val fileLoaderFlow = downloadSourceLoader.fileLoader(
+                request = meta,
+                writer = writer,
+            )
+            val result = fileLoaderFlow
                 .onEach { progress ->
                     val downloaded = when (progress) {
                         is DownloadProgress.Loading -> {
@@ -351,11 +338,8 @@ open class ExportManagerBase(
                         onDownloadUpdated()
                     }
                 }
-                .last()
-            require(complete is DownloadProgress.Complete) {
-                "Attachment download did not complete."
-            }
-            complete.result.fold(
+                .awaitCompleteResult()
+            result.fold(
                 ifLeft = { error ->
                     throw error
                 },

@@ -291,6 +291,24 @@ public object NativeCryptoPrimitives {
     public fun createHmacSha256(key: ByteArray): NativeCryptoSession =
         createHmac(key, NativeHashAlgorithm.SHA_256)
 
+    /**
+     * Opens an incremental digest session.
+     *
+     * Updates return no output; [NativeCryptoSession.finish] returns the final
+     * digest and closes the native session.
+     */
+    public fun createDigest(
+        algorithm: NativeHashAlgorithm,
+    ): NativeCryptoSession =
+        NativeCrypto.openDigest(algorithm.toProto())
+            .withExpectedFinalOutputSize(
+                operation = "digest.stream_finish",
+                expectedSize = algorithm.outputSizeBytes(),
+            )
+
+    public fun createSha256(): NativeCryptoSession =
+        createDigest(NativeHashAlgorithm.SHA_256)
+
     public fun sha1(data: ByteArray): ByteArray = digest(NativeHashAlgorithm.SHA_1, data)
 
     public fun sha256(data: ByteArray): ByteArray = digest(NativeHashAlgorithm.SHA_256, data)

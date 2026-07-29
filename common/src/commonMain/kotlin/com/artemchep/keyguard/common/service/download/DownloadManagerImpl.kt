@@ -1,9 +1,11 @@
 package com.artemchep.keyguard.common.service.download
 
 import arrow.core.right
+import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundScheduler
 import com.artemchep.keyguard.common.service.download.store.DownloadFileStore
+import com.artemchep.keyguard.common.service.keepass.isKeePassAttachmentUrl
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.getHttpCode
@@ -34,7 +36,7 @@ import org.kodein.di.instance
 class DownloadManagerImpl(
     private val windowCoroutineScope: WindowCoroutineScope,
     private val downloadRepository: DownloadRepository,
-    private val downloadTask: DownloadTask,
+    private val sourceLoader: DownloadAttachmentSourceLoader,
     private val downloadFileStore: DownloadFileStore,
     private val downloadBackgroundScheduler: DownloadBackgroundScheduler,
     private val base64Service: Base64Service,
@@ -60,7 +62,7 @@ class DownloadManagerImpl(
     ) : this(
         windowCoroutineScope = directDI.instance(),
         downloadRepository = directDI.instance(),
-        downloadTask = directDI.instance(),
+        sourceLoader = directDI.instance(),
         downloadFileStore = directDI.instance(),
         downloadBackgroundScheduler = directDI.instance(),
         base64Service = directDI.instance(),
@@ -94,10 +96,17 @@ class DownloadManagerImpl(
     ): DownloadManager.QueueResult = queue(
         DownloadQueueRequest(
             tag = downloadInfo.downloadTag(),
-            source = DownloadQueueRequest.Source.Url(
-                url = downloadInfo.url,
-                urlIsOneTime = downloadInfo.urlIsOneTime,
-            ),
+            source = if (downloadInfo.url.isKeePassAttachmentUrl()) {
+                DownloadQueueRequest.Source.KeePass(
+                    url = downloadInfo.url,
+                    expectedSize = null,
+                )
+            } else {
+                DownloadQueueRequest.Source.Url(
+                    url = downloadInfo.url,
+                    urlIsOneTime = downloadInfo.urlIsOneTime,
+                )
+            },
             name = downloadInfo.name,
             key = downloadInfo.encryptionKeyBase64?.let(base64Service::decode),
             attempt = downloadInfo.error?.attempt ?: 0,
@@ -119,19 +128,32 @@ class DownloadManagerImpl(
         val flow = if (downloadFileStore.exists(info)) {
             existingFileFlow(info)
         } else {
-            when (source) {
-                is DownloadQueueRequest.Source.Direct -> downloadTask.fileLoader(
-                    data = source.data,
-                    key = request.key,
-                    writer = downloadFileStore.writer(info),
-                )
+            sourceLoader.fileLoader(
+                request = DownloadAttachmentRequestData(
+                    localCipherId = request.tag.localCipherId,
+                    remoteCipherId = request.tag.remoteCipherId,
+                    attachmentId = request.tag.attachmentId,
+                    source = when (source) {
+                        is DownloadQueueRequest.Source.Direct ->
+                            DownloadAttachmentRequestData.DirectSource(source.data)
 
-                is DownloadQueueRequest.Source.Url -> downloadTask.fileLoader(
-                    url = source.url,
-                    key = request.key,
-                    writer = downloadFileStore.writer(info),
-                )
-            }
+                        is DownloadQueueRequest.Source.Url ->
+                            DownloadAttachmentRequestData.UrlSource(
+                                url = source.url,
+                                urlIsOneTime = source.urlIsOneTime,
+                            )
+
+                        is DownloadQueueRequest.Source.KeePass ->
+                            DownloadAttachmentRequestData.KeePassSource(
+                                hashRef = source.url,
+                                expectedSize = source.expectedSize,
+                            )
+                    },
+                    name = request.name,
+                    encryptionKey = request.key,
+                ),
+                writer = downloadFileStore.writer(info),
+            )
         }
 
         val downloadScope = windowCoroutineScope + SupervisorJob()
@@ -202,7 +224,14 @@ class DownloadManagerImpl(
                             error = DownloadInfoEntity.Error(
                                 code = e.getHttpCode(),
                                 message = e.message,
-                                attempt = attempt + 1,
+                                attempt = if (
+                                    e is DownloadAttachmentSessionUnavailableException
+                                ) {
+                                    // Waiting for the vault must not consume a transfer attempt.
+                                    attempt
+                                } else {
+                                    attempt + 1
+                                },
                             ),
                         )
                     },

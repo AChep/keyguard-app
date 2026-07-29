@@ -11,9 +11,11 @@ import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.download.DownloadWriter
+import com.artemchep.keyguard.common.service.download.asSourceLoader
 import com.artemchep.keyguard.common.service.download.writeBytes
 import com.artemchep.keyguard.common.service.export.ExportVaultData
 import com.artemchep.keyguard.common.service.export.ExportVaultDataService
@@ -1011,7 +1013,7 @@ class BackupRunnerTest {
         cryptoGenerator = cryptoGenerator,
         base64Service = Base64ServiceImpl(),
         dateFormatter = FixedDateFormatter,
-        downloadTask = downloadTask,
+        downloadSourceLoader = downloadTask.asSourceLoader(),
         downloadAttachmentMetadata = FakeDownloadAttachmentMetadata,
         diagnostics = diagnostics,
     )

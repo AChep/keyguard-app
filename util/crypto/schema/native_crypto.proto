@@ -4,6 +4,8 @@ package keyguard.nativecrypto.v1;
 
 message NativeRequest {
   uint32 protocol_version = 1;
+  reserved 47;
+  reserved "ssh_key_export_pkcs8";
 
   oneof operation {
     HkdfSha256Request hkdf_sha256 = 10;
@@ -43,6 +45,10 @@ message NativeRequest {
     OpenPgpAgentDecryptRequest open_pgp_agent_decrypt = 44;
     AesCbcPkcs7HmacSha256EncryptRequest aes_cbc_pkcs7_hmac_sha256_encrypt = 45;
     AesCbcPkcs7HmacSha256DecryptRequest aes_cbc_pkcs7_hmac_sha256_decrypt = 46;
+    PasskeyKeyGenerateRequest passkey_key_generate = 48;
+    PasskeyKeyInspectRequest passkey_key_inspect = 49;
+    PasskeySignRequest passkey_sign = 50;
+    SshKeyExportCxfRequest ssh_key_export_cxf = 51;
   }
 }
 
@@ -315,11 +321,81 @@ message SshAgentSignRequest {
   uint32 flags = 4;
 }
 
+message SshKeyExportCxfRequest {
+  // Stored PEM text: OpenSSH-armored (either algorithm), PKCS#8, or PKCS#1.
+  string private_key_pem = 1;
+  // Stored OpenSSH public key. Required to validate the key pair and to
+  // complete legacy RSA records whose PKCS#1 public exponent is zero.
+  string public_key_openssh = 2;
+}
+
+message SshKeyExportCxfResult {
+  SshKeyType type = 1;
+  bytes private_key_pkcs8 = 2;
+}
+
 message SshPrivateKeyImportRequest {
   string content = 1;
   // UTF-8 bytes are used instead of a protobuf string so both native and
   // Kotlin callers can erase the owned passphrase buffer after the call.
   optional bytes passphrase_utf8 = 2;
+}
+
+enum PasskeyAlgorithm {
+  PASSKEY_ALGORITHM_UNSPECIFIED = 0;
+  PASSKEY_ALGORITHM_ES256 = 1;
+}
+
+enum PasskeyKeyProfile {
+  PASSKEY_KEY_PROFILE_UNSPECIFIED = 0;
+  PASSKEY_KEY_PROFILE_EC_P256 = 1;
+}
+
+enum PasskeyKeyError {
+  PASSKEY_KEY_ERROR_UNSPECIFIED = 0;
+  PASSKEY_KEY_ERROR_MALFORMED = 1;
+  PASSKEY_KEY_ERROR_UNSUPPORTED = 2;
+  PASSKEY_KEY_ERROR_RESOURCE_LIMIT = 3;
+}
+
+message PasskeyKeyGenerateRequest {
+  PasskeyAlgorithm algorithm = 1;
+}
+
+message PasskeyKeyInspectRequest {
+  bytes private_key_pkcs8 = 1;
+}
+
+message PasskeySignRequest {
+  PasskeyAlgorithm algorithm = 1;
+  bytes private_key_pkcs8 = 2;
+  bytes data = 3;
+}
+
+// Domain payload returned by passkey generation and successful inspection.
+message PasskeyKeyMaterial {
+  PasskeyKeyProfile profile = 1;
+  bytes private_key_pkcs8 = 2;
+  bytes public_key_x = 3;
+  bytes public_key_y = 4;
+  bytes public_key_spki = 5;
+}
+
+// Exactly one of key_material and error must be populated.
+message PasskeyKeyInspection {
+  optional PasskeyKeyMaterial key_material = 1;
+  PasskeyKeyError error = 2;
+}
+
+message PasskeySignature {
+  PasskeyAlgorithm algorithm = 1;
+  bytes signature_der = 2;
+}
+
+// Exactly one of signature and error must be populated.
+message PasskeySignResult {
+  optional PasskeySignature signature = 1;
+  PasskeyKeyError error = 2;
 }
 
 // Domain payload returned inside NativeResponse.bytes_value.

@@ -16,7 +16,11 @@ import androidx.credentials.webauthn.PublicKeyCredentialRequestOptions
 import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
+import com.artemchep.keyguard.common.service.crypto.PasskeySignResult
+import com.artemchep.keyguard.common.service.crypto.PasskeySignatureAlgorithm
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.service.text.decodeOrNull
 import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
 import com.artemchep.keyguard.common.service.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.common.service.webauthn.WebAuthnEncodingException
@@ -32,15 +36,15 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.put
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.security.KeyFactory
-import java.security.Signature
-import java.security.spec.PKCS8EncodedKeySpec
+
+private const val MAX_ENCODED_PASSKEY_KEY_CHARS = 5_464
 
 class PasskeyProviderGetRequest(
     private val context: Context,
     private val json: Json,
     private val base64Service: Base64Service,
     private val cryptoService: CryptoGenerator,
+    private val passkeyCrypto: PasskeyCrypto,
     private val passkeyUtils: PasskeyUtils,
 ) {
     constructor(
@@ -50,6 +54,7 @@ class PasskeyProviderGetRequest(
         json = directDI.instance(),
         base64Service = directDI.instance(),
         cryptoService = directDI.instance(),
+        passkeyCrypto = directDI.instance(),
         passkeyUtils = directDI.instance(),
     )
 
@@ -86,13 +91,6 @@ class PasskeyProviderGetRequest(
         )
 
         val credentialIdBytes = PasskeyCredentialId.encode(credential.credentialId)
-
-        val factory: KeyFactory = KeyFactory.getInstance("EC")
-        val privateKey = run {
-            val privateKeyData = base64Service.decode(credential.keyValue)
-            val privateKeySpec = PKCS8EncodedKeySpec(privateKeyData)
-            factory.generatePrivate(privateKeySpec)
-        }
 
         val counter = kotlin.run {
             val tmp = credential.counter ?: 0
@@ -132,19 +130,37 @@ class PasskeyProviderGetRequest(
             ?: cryptoService.hashSha256(clientDataJsonBytes)
 
         val signature = kotlin.run {
+            requireSignableStoredKey(credential)
             val dataToSign = defaultAuthenticatorData + clientDataJsonHash
-            val sig = Signature.getInstance("SHA256withECDSA")
-            sig.initSign(privateKey)
-            sig.update(dataToSign)
-            sig.sign()
+            val privateKeyPkcs8 = base64Service.decodeOrNull(credential.keyValue)
+                ?: throw storedPasskeyKeyEncodingError()
+            val result = try {
+                passkeyCrypto.sign(
+                    algorithm = PasskeySignatureAlgorithm.ES256,
+                    privateKeyPkcs8 = privateKeyPkcs8,
+                    data = dataToSign,
+                )
+            } finally {
+                privateKeyPkcs8.fill(0)
+                dataToSign.fill(0)
+            }
+            when (result) {
+                is PasskeySignResult.Success -> result.signatureDer
+                is PasskeySignResult.Error -> throw storedPasskeyKeyEncodingError()
+            }
+        }
+        val encodedSignature = try {
+            PasskeyBase64.encodeToString(signature)
+        } finally {
+            signature.fill(0)
         }
 
-        val r = buildJsonObject {
-            put("clientDataJSON", clientDataJsonBytes)
-            put("authenticatorData", defaultAuthenticatorData)
-            put("signature", PasskeyBase64.encodeToString(signature))
-            put("userHandle", credential.userHandle)
-        }
+        val r = assertionResponseJson(
+            clientDataJson = PasskeyBase64.encodeToString(clientDataJsonBytes),
+            authenticatorData = PasskeyBase64.encodeToString(defaultAuthenticatorData),
+            signature = encodedSignature,
+            userHandle = credential.userHandle,
+        )
         val authenticationResponse = buildJsonObject {
             put("id", PasskeyBase64.encodeToString(credentialIdBytes))
             put("rawId", credentialIdBytes)
@@ -156,6 +172,23 @@ class PasskeyProviderGetRequest(
         val authenticationResponseJson = json.encodeToString(authenticationResponse)
         val passkeyCredential = PublicKeyCredential(authenticationResponseJson)
         return GetCredentialResponse(passkeyCredential)
+    }
+
+    /**
+     * Rejects a stored credential this provider cannot produce an assertion
+     * for: only an ES256 key — `public-key` / `ECDSA` / `P-256` — is signable
+     * here, and the encoded key is length-capped before it reaches the Base64
+     * decoder so a malformed vault entry cannot turn into an unbounded decode.
+     */
+    private fun requireSignableStoredKey(
+        credential: DSecret.Login.Fido2Credentials,
+    ) {
+        val isEs256 = credential.keyType == "public-key" &&
+            credential.keyAlgorithm == "ECDSA" &&
+            credential.keyCurve == "P-256"
+        if (!isEs256 || credential.keyValue.length > MAX_ENCODED_PASSKEY_KEY_CHARS) {
+            throw storedPasskeyKeyEncodingError()
+        }
     }
 
     private fun requestRpIdOrNull(
@@ -174,6 +207,25 @@ class PasskeyProviderGetRequest(
     private fun JsonObjectBuilder.put(key: String, data: ByteArray) {
         put(key, PasskeyBase64.encodeToString(data))
     }
+}
+
+private fun storedPasskeyKeyEncodingError() = GetPublicKeyCredentialDomException(
+    domError = EncodingError(),
+    errorMessage = "The stored passkey key is malformed or unsupported.",
+)
+
+internal fun assertionResponseJson(
+    clientDataJson: String,
+    authenticatorData: String,
+    signature: String,
+    userHandle: String?,
+): JsonObject = buildJsonObject {
+    put("clientDataJSON", clientDataJson)
+    put("authenticatorData", authenticatorData)
+    put("signature", signature)
+    userHandle
+        ?.takeIf { it.isNotEmpty() }
+        ?.let { put("userHandle", it) }
 }
 
 internal fun requireCredentialRpIdMatchesRequest(

@@ -211,6 +211,34 @@ internal data class SshPrivateKeyImportOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
+@SerialName("ssh_key_export_cxf")
+internal data class SshKeyExportCxfOperationProto(
+    @ProtoNumber(51)
+    val value: SshKeyExportCxfRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("passkey_key_generate")
+internal data class PasskeyKeyGenerateOperationProto(
+    @ProtoNumber(48)
+    val value: PasskeyKeyGenerateRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("passkey_key_inspect")
+internal data class PasskeyKeyInspectOperationProto(
+    @ProtoNumber(49)
+    val value: PasskeyKeyInspectRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("passkey_sign")
+internal data class PasskeySignOperationProto(
+    @ProtoNumber(50)
+    val value: PasskeySignRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
 @SerialName("open_pgp_public_key_parse")
 internal data class OpenPgpPublicKeyParseOperationProto(
     @ProtoNumber(34)
@@ -796,6 +824,115 @@ internal data class SshPrivateKeyImportRequestProto(
     val content: String,
     @ProtoNumber(2)
     val passphraseUtf8: ByteArray? = null,
+)
+
+@Serializable
+internal data class SshKeyExportCxfRequestProto(
+    @ProtoNumber(1)
+    val privateKeyPem: String,
+    @ProtoNumber(2)
+    val publicKeyOpenSsh: String,
+)
+
+@Serializable
+internal data class SshKeyExportCxfResultProto(
+    @ProtoNumber(1)
+    val type: SshKeyTypeProto,
+    @ProtoNumber(2)
+    val privateKeyPkcs8: ByteArray,
+)
+
+@Serializable
+internal enum class PasskeyAlgorithmProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    ES256,
+}
+
+@Serializable
+internal enum class PasskeyKeyProfileProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    EC_P256,
+}
+
+@Serializable
+internal enum class PasskeyKeyErrorProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    MALFORMED,
+
+    @ProtoNumber(2)
+    UNSUPPORTED,
+
+    @ProtoNumber(3)
+    RESOURCE_LIMIT,
+}
+
+@Serializable
+internal data class PasskeyKeyGenerateRequestProto(
+    @ProtoNumber(1)
+    val algorithm: PasskeyAlgorithmProto,
+)
+
+@Serializable
+internal data class PasskeyKeyInspectRequestProto(
+    @ProtoNumber(1)
+    val privateKeyPkcs8: ByteArray,
+)
+
+@Serializable
+internal data class PasskeySignRequestProto(
+    @ProtoNumber(1)
+    val algorithm: PasskeyAlgorithmProto,
+    @ProtoNumber(2)
+    val privateKeyPkcs8: ByteArray,
+    @ProtoNumber(3)
+    val data: ByteArray,
+)
+
+@Serializable
+internal data class PasskeyKeyMaterialProto(
+    @ProtoNumber(1)
+    val profile: PasskeyKeyProfileProto = PasskeyKeyProfileProto.UNSPECIFIED,
+    @ProtoNumber(2)
+    val privateKeyPkcs8: ByteArray = byteArrayOf(),
+    @ProtoNumber(3)
+    val publicKeyX: ByteArray = byteArrayOf(),
+    @ProtoNumber(4)
+    val publicKeyY: ByteArray = byteArrayOf(),
+    @ProtoNumber(5)
+    val publicKeySpki: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class PasskeyKeyInspectionProto(
+    @ProtoNumber(1)
+    val keyMaterial: PasskeyKeyMaterialProto? = null,
+    @ProtoNumber(2)
+    val error: PasskeyKeyErrorProto = PasskeyKeyErrorProto.UNSPECIFIED,
+)
+
+@Serializable
+internal data class PasskeySignatureProto(
+    @ProtoNumber(1)
+    val algorithm: PasskeyAlgorithmProto = PasskeyAlgorithmProto.UNSPECIFIED,
+    @ProtoNumber(2)
+    val signatureDer: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class PasskeySignResultProto(
+    @ProtoNumber(1)
+    val signature: PasskeySignatureProto? = null,
+    @ProtoNumber(2)
+    val error: PasskeyKeyErrorProto = PasskeyKeyErrorProto.UNSPECIFIED,
 )
 
 @Serializable

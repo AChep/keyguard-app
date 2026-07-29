@@ -137,7 +137,9 @@ being locked to a single piece of hardware.
   and browsers can create and use passkeys through it. See the
   [autofill & passkeys guide](/docs/autofill/) for setup.
 - On **Wear OS**, you can sign in with passkeys already in your vault.
-- You can **view** a passkey's details and **export** it to a file.
+- You can **view** a passkey's details and **export** it to a file. On Android,
+  passkeys can also move to or from another app through
+  [credential exchange](/docs/credential-exchange/).
 - [Watchtower](/docs/watchtower/) flags inactive passkeys and points out sites
   that support passkeys where you haven't created one yet.
 

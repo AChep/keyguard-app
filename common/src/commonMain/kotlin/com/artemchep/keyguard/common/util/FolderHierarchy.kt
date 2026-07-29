@@ -17,13 +17,16 @@ data class FolderHierarchyNode<T : Any>(
  * topmost root down to [folder] itself (inclusive).
  *
  * Invariants:
+ * - Ancestors are resolved only among folders using the same
+ *   [FolderHierarchyMode] as [folder]; a mode boundary re-roots.
  * - [FolderHierarchyMode.Path] derives the parent by stripping the last
  *   path segment of the name. If that path belongs to multiple folders, the
  *   first matching folder in [allFolders] owns the child.
  * - [FolderHierarchyMode.ParentId] follows the [parentId] chain. A dangling
- *   parent (not present in [allFolders]) terminates the walk, re-rooting the
- *   folder. The walk is cycle-guarded by a visited set, so a self-parent or a
- *   loop terminates instead of recursing forever.
+ *   parent (not present in [allFolders], or present but in another mode)
+ *   terminates the walk, re-rooting the folder. The walk is cycle-guarded by a
+ *   visited set, so a self-parent or a loop terminates instead of recursing
+ *   forever.
  */
 fun <T : Any> createFolderHierarchy(
     lens: (T) -> String,
@@ -31,21 +34,30 @@ fun <T : Any> createFolderHierarchy(
     folder: T,
     id: (T) -> String = lens,
     parentId: (T) -> String? = { null },
-    hierarchyMode: FolderHierarchyMode = FolderHierarchyMode.Path,
-): FolderHierarchy<T> = when (hierarchyMode) {
-    FolderHierarchyMode.Path -> createPathFolderHierarchy(
-        lens = lens,
-        allFolders = allFolders,
-        folder = folder,
-    )
+    hierarchyMode: (T) -> FolderHierarchyMode = { FolderHierarchyMode.Path },
+): FolderHierarchy<T> {
+    // A hierarchy edge never crosses hierarchy modes: a Path folder is keyed by
+    // its path and a ParentId folder by its id, so a cross-mode edge would point
+    // at a key no node carries (see FolderHierarchyIndex).
+    val mode = hierarchyMode(folder)
+    val eligible: (T) -> Boolean = { hierarchyMode(it) == mode }
+    return when (mode) {
+        FolderHierarchyMode.Path -> createPathFolderHierarchy(
+            lens = lens,
+            allFolders = allFolders,
+            folder = folder,
+            eligible = eligible,
+        )
 
-    FolderHierarchyMode.ParentId -> createParentIdFolderHierarchy(
-        lens = lens,
-        id = id,
-        parentId = parentId,
-        allFolders = allFolders,
-        folder = folder,
-    )
+        FolderHierarchyMode.ParentId -> createParentIdFolderHierarchy(
+            lens = lens,
+            id = id,
+            parentId = parentId,
+            allFolders = allFolders,
+            folder = folder,
+            eligible = eligible,
+        )
+    }
 }
 
 /**
@@ -94,10 +106,12 @@ private fun <T : Any> createPathFolderHierarchy(
     lens: (T) -> String,
     allFolders: Collection<T>,
     folder: T,
+    eligible: (T) -> Boolean,
 ): FolderHierarchy<T> {
     val rawHierarchy = folder.hierarchyIn(
         lens = lens,
         folders = allFolders,
+        eligible = eligible,
     )
         .toList()
         .asReversed()
@@ -128,8 +142,13 @@ private fun <T : Any> createParentIdFolderHierarchy(
     parentId: (T) -> String?,
     allFolders: Collection<T>,
     folder: T,
+    eligible: (T) -> Boolean,
 ): FolderHierarchy<T> {
-    val foldersById = allFolders.associateBy(id)
+    // Only same-mode rows may be adopted through a parent id.
+    val foldersById = allFolders
+        .asSequence()
+        .filter(eligible)
+        .associateBy(id)
     val rawHierarchy = mutableListOf<T>()
     val visited = mutableSetOf<String>()
     var current: T? = folder
@@ -160,11 +179,13 @@ private fun <T : Any> createParentIdFolderHierarchy(
 private fun <T : Any> T.hierarchyIn(
     lens: (T) -> String,
     folders: Collection<T>,
+    eligible: (T) -> Boolean,
 ) = generateSequence(this) {
     findFolderParentOrNull(
         lens = lens,
         folders = folders,
         folder = it,
+        eligible = eligible,
     )
 }
 
@@ -172,16 +193,19 @@ private fun <T : Any> findFolderParentOrNull(
     lens: (T) -> String,
     folders: Collection<T>,
     folder: T,
+    eligible: (T) -> Boolean,
 ) = findFolderParentByNameOrNull(
     lens = lens,
     folders = folders,
     name = lens(folder),
+    eligible = eligible,
 )
 
 private tailrec fun <T : Any> findFolderParentByNameOrNull(
     lens: (T) -> String,
     folders: Collection<T>,
     name: String,
+    eligible: (T) -> Boolean,
 ): T? {
     val index = name.indexOfLast { it == FOLDER_HIERARCHY_DELIMITER }
     if (index == -1) {
@@ -190,10 +214,11 @@ private tailrec fun <T : Any> findFolderParentByNameOrNull(
 
     val parentName = name.substring(0, index)
     return folders
-        .firstOrNull { lens(it) == parentName }
+        .firstOrNull { eligible(it) && lens(it) == parentName }
         ?: findFolderParentByNameOrNull(
             lens = lens,
             folders = folders,
             name = parentName,
+            eligible = eligible,
         )
 }

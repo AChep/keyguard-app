@@ -383,6 +383,32 @@ fn normalize_openssh_key(
     Ok(material)
 }
 
+/// Converts an OpenSSH-armored RSA keypair into canonical RSA PKCS#8 DER.
+///
+/// Used by [`ssh_keys::export_cxf`]: a synced RSA key is stored OpenSSH-armored
+/// rather than as PKCS#1 or PKCS#8. The OpenSSH record carries `d`, `p`, `q`
+/// and `iqmp`, so the CRT parameters can be completed before the PKCS#1 is
+/// wrapped.
+pub(crate) fn rsa_openssh_to_pkcs8(
+    keypair: &RsaKeypair,
+) -> Result<Zeroizing<Vec<u8>>, PrimitiveError> {
+    let mut material = rsa_material_from_openssh(keypair).map_err(map_import_error)?;
+    // Move the key out so it keeps zeroizing ownership; what stays behind in
+    // the material is an empty vec and the public key.
+    Ok(Zeroizing::new(std::mem::take(&mut material.private_key)))
+}
+
+const fn map_import_error(error: ImportError) -> PrimitiveError {
+    match error {
+        ImportError::ResourceLimit => PrimitiveError::ResourceLimit,
+        ImportError::BackendFailure => PrimitiveError::CryptoFailure,
+        ImportError::UnsupportedFormat
+        | ImportError::UnsupportedAlgorithm
+        | ImportError::InvalidPassphrase
+        | ImportError::MalformedKey => PrimitiveError::InvalidArgument,
+    }
+}
+
 fn rsa_material_from_openssh(keypair: &RsaKeypair) -> Result<SshKeyMaterial, ImportError> {
     let modulus = positive_mpint(&keypair.public.n)?;
     let public_exponent = positive_mpint(&keypair.public.e)?;
@@ -1308,7 +1334,7 @@ mod tests {
     };
 
     use super::*;
-    use crate::protocol::SshFormattedPrivateKey;
+    use crate::protocol::{SshFormattedPrivateKey, SshKeyDescription, SshKeyExportCxfResult};
 
     const OPENSSH_NONE: &str = include_str!(
         "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/openssh/id_ed25519"
@@ -1754,6 +1780,72 @@ mod tests {
                 SshPrivateKeyImportErrorReason::InvalidPassphrase,
             );
         }
+    }
+
+    #[test]
+    fn every_supported_container_family_normalizes_to_a_cxf_exportable_key() {
+        let fixtures: [(&str, &str, Option<&[u8]>); 6] = [
+            ("OpenSSH Ed25519", OPENSSH_NONE, None),
+            (
+                "OpenSSH RSA",
+                include_str!(
+                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/openssh/id_rsa_3072"
+                ),
+                None,
+            ),
+            (
+                "PuTTY Ed25519",
+                include_str!(
+                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-ed25519-none.ppk"
+                ),
+                None,
+            ),
+            (
+                "encrypted PuTTY RSA",
+                include_str!(
+                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-rsa-argon2id-aes256-cbc.ppk"
+                ),
+                Some(b"changeit"),
+            ),
+            (
+                "PKCS#1 PEM RSA",
+                include_str!(
+                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/pem/pkcs1-rsa-none.pem"
+                ),
+                None,
+            ),
+            (
+                "encrypted PKCS#8 PEM RSA",
+                include_str!(
+                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/pem/pkcs8-rsa-encrypted.pem"
+                ),
+                Some(b"passphrase"),
+            ),
+        ];
+
+        for (label, document, passphrase) in fixtures {
+            let material = success(document, passphrase);
+            let expected_type = material.r#type;
+            let exported = export_imported_material_for_cxf(material);
+
+            assert_eq!(exported.r#type, expected_type, "{label}");
+            PrivateKeyInfo::from_der(&exported.private_key_pkcs8)
+                .unwrap_or_else(|_| panic!("{label} did not export PKCS#8"));
+        }
+    }
+
+    #[test]
+    fn cxf_ed25519_pkcs8_reimports_and_reexports() {
+        let exported = export_imported_material_for_cxf(success(OPENSSH_NONE, None));
+        let exported_info =
+            PrivateKeyInfo::from_der(&exported.private_key_pkcs8).expect("Ed25519 PKCS#8 v1");
+        assert_eq!(exported_info.algorithm.oid, ED25519_OID);
+        assert!(exported_info.public_key.is_none());
+        let pem = encode_test_pem("PRIVATE KEY", &exported.private_key_pkcs8);
+        let reexported = export_imported_material_for_cxf(success(&pem, None));
+
+        assert_eq!(reexported.r#type, SshKeyType::Ed25519 as i32);
+        assert_eq!(reexported.private_key_pkcs8, exported.private_key_pkcs8,);
     }
 
     #[test]
@@ -2289,6 +2381,24 @@ mod tests {
                 )
             }
         }
+    }
+
+    fn export_imported_material_for_cxf(mut material: SshKeyMaterial) -> SshKeyExportCxfResult {
+        let key_type = SshKeyType::try_from(material.r#type).expect("supported SSH key type");
+        let description_payload = ssh_keys::describe(
+            key_type,
+            std::mem::take(&mut material.private_key),
+            std::mem::take(&mut material.public_key),
+        )
+        .expect("stored SSH key description");
+        let mut description = SshKeyDescription::decode(description_payload.as_slice())
+            .expect("SSH key description payload");
+        let exported_payload = ssh_keys::export_cxf(
+            std::mem::take(&mut description.private_key_pem),
+            std::mem::take(&mut description.public_key_openssh),
+        )
+        .expect("CXF export");
+        SshKeyExportCxfResult::decode(exported_payload.as_slice()).expect("CXF export payload")
     }
 
     fn assert_needs_passphrase(document: &str, expected_label: &str) {

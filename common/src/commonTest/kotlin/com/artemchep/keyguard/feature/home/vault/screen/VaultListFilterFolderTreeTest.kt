@@ -124,6 +124,33 @@ class VaultListFilterFolderTreeTest {
         assertFalse(tree.useNestedUi)
     }
 
+    @Test
+    fun `a path folder colliding with a parent-id folder keeps its full path`() {
+        // acc-1 holds a KeePass-style ParentId group "Personal" and a path
+        // folder "Personal/Bank"; acc-2 holds an unrelated root folder "Bank".
+        // The path folder must keep its full path, otherwise it would show up as
+        // a root titled "Bank" and the cross-account merge would fuse it with
+        // acc-2's genuine "Bank".
+        val group = folder(
+            id = "g",
+            accountId = "acc-1",
+            name = "Personal",
+            hierarchyMode = FolderHierarchyMode.ParentId,
+        )
+        val bank = folder(id = "b", accountId = "acc-1", name = "Personal/Bank")
+        val otherBank = folder(id = "ob", accountId = "acc-2", name = "Bank")
+        val tree = buildFolderFilterTree(
+            folders = listOf(group, bank, otherBank),
+            folderIdsWithCiphers = setOf("g", "b", "ob"),
+        )
+
+        val node = tree.nodes.single { it.path == listOf("Personal/Bank") }
+        assertEquals(setOf("b"), node.folderIds)
+        // Cross-account merging still applies: acc-2's "Bank" stays its own node.
+        val plainBank = tree.nodes.single { it.path == listOf("Bank") }
+        assertEquals(setOf("ob"), plainBank.folderIds)
+    }
+
     private fun folder(
         id: String,
         accountId: String = Companion.accountId,

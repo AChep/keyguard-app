@@ -11,12 +11,15 @@ use aws_lc_rs::{
 use base64ct::{Base64, Encoding};
 use keyguard_crypto_sensitive::{
     RsaCrtComponents, RsaPrivateComponents, RsaSignatureHash, SensitiveRsaError,
-    generate_rsa_pkcs1_der, sign_rsa_pkcs1_v1_5,
+    complete_rsa_pkcs1_der_from_components, generate_rsa_pkcs1_der, sign_rsa_pkcs1_v1_5,
 };
-use pkcs1::RsaPrivateKey;
+use pkcs1::{RsaPrivateKey, RsaPublicKey as Pkcs1RsaPublicKey};
 use pkcs8::{
-    ObjectIdentifier, PrivateKeyInfo,
-    der::{Decode as _, asn1::OctetStringRef},
+    AlgorithmIdentifierRef, ObjectIdentifier, PrivateKeyInfo,
+    der::{
+        Decode as _, Encode as _,
+        asn1::{AnyRef, OctetStringRef},
+    },
 };
 use prost::Message;
 use ssh_key::{
@@ -30,7 +33,8 @@ use crate::{
     MAX_CONTROL_ENVELOPE_BYTES,
     primitives::PrimitiveError,
     protocol::{
-        SshFormattedPrivateKey, SshKeyDescription, SshKeyMaterial, SshKeyType, SshSignature,
+        SshFormattedPrivateKey, SshKeyDescription, SshKeyExportCxfResult, SshKeyMaterial,
+        SshKeyType, SshSignature,
     },
 };
 
@@ -159,6 +163,124 @@ pub(crate) fn sign(
     Ok(signature.encode_to_vec())
 }
 
+/// Validates a persisted SSH key pair and exports its private key for CXF.
+///
+/// This path accepts legacy `n/e/d` RSA records by completing their CRT
+/// components in the sensitive backend. The stored public key is mandatory: it
+/// binds the exported algorithm and public identity to the private material
+/// before any secret leaves the native boundary. Output is canonical for CXF:
+/// Ed25519 uses RFC 8410 PKCS#8 v1 and RSA uses explicit NULL parameters.
+pub(crate) fn export_cxf(
+    private_key_pem: String,
+    public_key_openssh: String,
+) -> Result<Vec<u8>, PrimitiveError> {
+    let private_key_pem = Zeroizing::new(private_key_pem);
+    bound_text(&private_key_pem)?;
+    bound_text(&public_key_openssh)?;
+    let decoded = decode_private_pem(&private_key_pem)?;
+    let public_key = PublicKey::from_openssh(&public_key_openssh)
+        .map_err(|_| PrimitiveError::InvalidArgument)?;
+    let key_type = validate_key_pair(&decoded, &public_key)?;
+
+    let mut der = if let Ok(key) = PrivateKey::from_bytes(&decoded) {
+        match key.key_data() {
+            KeypairData::Ed25519(keypair) => ed25519_openssh_to_pkcs8(keypair)?,
+            KeypairData::Rsa(keypair) => crate::ssh_import::rsa_openssh_to_pkcs8(keypair)?.to_vec(),
+            _ => return Err(PrimitiveError::InvalidArgument),
+        }
+    } else if let Ok(info) = PrivateKeyInfo::from_der(&decoded) {
+        match info.algorithm.oid {
+            RSA_ENCRYPTION_OID => {
+                if let Some(embedded_public_key) = info.public_key {
+                    validate_rsa_pkcs8_public_key(embedded_public_key, &public_key)?;
+                }
+                let complete = complete_rsa_pkcs1_for_cxf(info.private_key, &public_key)?;
+                // Always discard optional PKCS#8 extensions after validating
+                // the v2 publicKey field. CXF only needs the private key, and
+                // emitting v1 avoids preserving unrecognized metadata.
+                encode_rsa_pkcs8(&complete)?
+            }
+            ED25519_OID => canonicalize_ed25519_pkcs8(&decoded)?,
+            _ => return Err(PrimitiveError::InvalidArgument),
+        }
+    } else {
+        let complete = complete_rsa_pkcs1_for_cxf(&decoded, &public_key)?;
+        encode_rsa_pkcs8(&complete)?
+    };
+
+    if der.len() > MAX_KEY_BYTES {
+        der.zeroize();
+        return Err(PrimitiveError::ResourceLimit);
+    }
+    Ok(SshKeyExportCxfResult {
+        r#type: key_type as i32,
+        private_key_pkcs8: der,
+    }
+    .encode_to_vec())
+}
+
+fn ed25519_openssh_to_pkcs8(keypair: &Ed25519Keypair) -> Result<Vec<u8>, PrimitiveError> {
+    // The vendored `ssh-key` crate only cross-checks a record's public half
+    // against its seed under its `ed25519` feature, which this dependency graph
+    // does not enable, so nothing upstream of here binds the two. Re-derive the
+    // identity through AWS-LC before accepting the private record for export.
+    Ed25519KeyPair::from_seed_and_public_key(keypair.private.as_ref(), keypair.public.as_ref())
+        .map_err(|_| PrimitiveError::InvalidArgument)?;
+    encode_ed25519_pkcs8_v1(keypair.private.as_ref())
+}
+
+/// Accepts either RFC 8410 PKCS#8 shape, validates an optional attached public
+/// half, and emits the interoperable v1 form. The separately supplied OpenSSH
+/// public key has already been bound by [`validate_key_pair`].
+fn canonicalize_ed25519_pkcs8(private_key: &[u8]) -> Result<Vec<u8>, PrimitiveError> {
+    let parsed = parse_ed25519_pkcs8(private_key).ok_or(PrimitiveError::InvalidArgument)?;
+    let derived = Ed25519KeyPair::from_seed_unchecked(parsed.seed)
+        .map_err(|_| PrimitiveError::InvalidArgument)?;
+    if parsed
+        .public_key
+        .is_some_and(|embedded| embedded != derived.public_key().as_ref())
+    {
+        return Err(PrimitiveError::InvalidArgument);
+    }
+    encode_ed25519_pkcs8_v1(parsed.seed)
+}
+
+/// RFC 8410 wraps the 32-byte seed in a nested OCTET STRING. Omitting the
+/// optional RFC 5958 publicKey field keeps the document at version v1, which is
+/// the most broadly importable PKCS#8 representation.
+fn encode_ed25519_pkcs8_v1(seed: &[u8]) -> Result<Vec<u8>, PrimitiveError> {
+    let inner = Zeroizing::new(
+        OctetStringRef::new(seed)
+            .and_then(|octet| octet.to_der())
+            .map_err(|_| PrimitiveError::CryptoFailure)?,
+    );
+    PrivateKeyInfo::new(
+        AlgorithmIdentifierRef {
+            oid: ED25519_OID,
+            parameters: None,
+        },
+        &inner,
+    )
+    .to_der()
+    .map_err(|_| PrimitiveError::CryptoFailure)
+}
+
+/// Wraps a PKCS#1 `RSAPrivateKey` in a `PrivateKeyInfo`. rsaEncryption takes an
+/// explicit NULL parameter (RFC 3279 2.3.1), so every export path emits that
+/// deterministic canonical shape even when an accepted import used another
+/// AlgorithmIdentifier encoding.
+fn encode_rsa_pkcs8(pkcs1_der: &[u8]) -> Result<Vec<u8>, PrimitiveError> {
+    PrivateKeyInfo::new(
+        AlgorithmIdentifierRef {
+            oid: RSA_ENCRYPTION_OID,
+            parameters: Some(AnyRef::NULL),
+        },
+        pkcs1_der,
+    )
+    .to_der()
+    .map_err(|_| PrimitiveError::CryptoFailure)
+}
+
 fn generate_rsa(bits: u32) -> Result<SshKeyMaterial, PrimitiveError> {
     if !matches!(bits, 1024 | 2048 | 3072 | 4096) {
         return Err(PrimitiveError::InvalidArgument);
@@ -247,6 +369,47 @@ fn sign_rsa(
         ("ssh-rsa", RsaSignatureHash::Sha1)
     };
 
+    let components = rsa_private_components(parts);
+    let signature = sign_rsa_pkcs1_v1_5(&components, hash, data).map_err(sensitive_rsa_error)?;
+    Ok(SshSignature {
+        algorithm: algorithm.to_owned(),
+        signature,
+    })
+}
+
+fn complete_rsa_pkcs1_for_cxf(
+    private_key: &[u8],
+    public_key: &PublicKey,
+) -> Result<Zeroizing<Vec<u8>>, PrimitiveError> {
+    let mut parts = rsa_parts_from_pkcs1(private_key).ok_or(PrimitiveError::InvalidArgument)?;
+    resolve_rsa_public(&mut parts, Some(public_key))?;
+    complete_rsa_pkcs1_der_from_components(&rsa_private_components(parts))
+        .map_err(sensitive_rsa_error)
+}
+
+fn validate_rsa_pkcs8_public_key(
+    embedded_public_key: &[u8],
+    supplied_public_key: &PublicKey,
+) -> Result<(), PrimitiveError> {
+    let embedded = Pkcs1RsaPublicKey::from_der(embedded_public_key)
+        .map_err(|_| PrimitiveError::InvalidArgument)?;
+    let supplied = supplied_public_key
+        .key_data()
+        .rsa()
+        .ok_or(PrimitiveError::InvalidArgument)?;
+    let supplied_modulus = positive_mpint(&supplied.n)?;
+    let supplied_exponent = positive_mpint(&supplied.e)?;
+
+    if strip_leading_zeroes(embedded.modulus.as_bytes()) != strip_leading_zeroes(&supplied_modulus)
+        || strip_leading_zeroes(embedded.public_exponent.as_bytes())
+            != strip_leading_zeroes(&supplied_exponent)
+    {
+        return Err(PrimitiveError::InvalidArgument);
+    }
+    Ok(())
+}
+
+fn rsa_private_components(mut parts: RsaParts) -> RsaPrivateComponents {
     let crt = parts.crt.take().map(|mut crt| {
         RsaCrtComponents::new(
             std::mem::take(&mut crt.prime_p),
@@ -256,17 +419,12 @@ fn sign_rsa(
             std::mem::take(&mut crt.coefficient),
         )
     });
-    let components = RsaPrivateComponents::new(
+    RsaPrivateComponents::new(
         std::mem::take(&mut parts.modulus),
         std::mem::take(&mut parts.public_exponent),
         std::mem::take(&mut parts.private_exponent),
         crt,
-    );
-    let signature = sign_rsa_pkcs1_v1_5(&components, hash, data).map_err(sensitive_rsa_error)?;
-    Ok(SshSignature {
-        algorithm: algorithm.to_owned(),
-        signature,
-    })
+    )
 }
 
 fn validate_key_pair(
@@ -685,13 +843,7 @@ mod tests {
         RSA_PKCS1_1024_8192_SHA256_FOR_LEGACY_USE_ONLY,
         RSA_PKCS1_1024_8192_SHA512_FOR_LEGACY_USE_ONLY, RsaPublicKeyComponents, UnparsedPublicKey,
     };
-    use pkcs8::{
-        AlgorithmIdentifierRef,
-        der::{
-            Encode as _,
-            asn1::{AnyRef, UintRef},
-        },
-    };
+    use pkcs8::der::asn1::UintRef;
 
     use super::*;
 
@@ -1092,6 +1244,432 @@ mod tests {
         assert_eq!(private_key_rsa_bits(vec![0xa5; MAX_KEY_BYTES + 1]), 0);
     }
 
+    // Ed25519 OpenSSH key generated with `ssh-keygen -t ed25519`. The expected
+    // DER below is the RFC 8410 PKCS#8 v1 template assembled independently from
+    // the key's 32-byte seed.
+    const ED25519_GOLDEN_OPENSSH_PEM: &str = concat!(
+        "-----BEGIN OPENSSH PRIVATE KEY-----\n",
+        "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n",
+        "QyNTUxOQAAACCRW3vhbnH4ErsDEybqMu75IyghrTkyzDa30aKoSWgnkgAAAJBlR0JRZUdC\n",
+        "UQAAAAtzc2gtZWQyNTUxOQAAACCRW3vhbnH4ErsDEybqMu75IyghrTkyzDa30aKoSWgnkg\n",
+        "AAAEBJ9Y0pa8/Bvf2KAtsI7ulbNYoG6KAFTolkWkCCiMFaFJFbe+FucfgSuwMTJuoy7vkj\n",
+        "KCGtOTLMNrfRoqhJaCeSAAAADWtleWd1YXJkLXRlc3Q=\n",
+        "-----END OPENSSH PRIVATE KEY-----\n",
+    );
+    const ED25519_GOLDEN_PUBLIC_OPENSSH: &str =
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJFbe+FucfgSuwMTJuoy7vkjKCGtOTLMNrfRoqhJaCeS";
+
+    #[test]
+    fn ed25519_cxf_export_matches_the_independent_pkcs8_v1_golden_vector() {
+        let payload = export_cxf(
+            ED25519_GOLDEN_OPENSSH_PEM.to_owned(),
+            ED25519_GOLDEN_PUBLIC_OPENSSH.to_owned(),
+        )
+        .expect("Ed25519 CXF export");
+        let exported =
+            SshKeyExportCxfResult::decode(payload.as_slice()).expect("CXF export payload");
+        let expected = decode_hex(
+            "302e020100300506032b65700422042049f58d296bcfc1bdfd8a02db08eee95b\
+             358a06e8a0054e89645a408288c15a14",
+        );
+        assert_eq!(exported.private_key_pkcs8, expected);
+        let info = PrivateKeyInfo::from_der(&exported.private_key_pkcs8).expect("PKCS#8 v1 parses");
+        assert!(info.public_key.is_none());
+        assert!(is_ed25519_pkcs8(&exported.private_key_pkcs8));
+    }
+
+    #[test]
+    fn cxf_export_completes_legacy_rsa_using_the_matching_public_key() {
+        let rsa = material(generate(SshKeyType::Rsa, 1024).expect("RSA generation"));
+        let expected = rsa_parts_from_pkcs1(&rsa.private_key).expect("complete PKCS#1 parts");
+        let incomplete = incomplete_pkcs8_rsa(&rsa.private_key);
+        let private_pem =
+            format_private_key_text(SshKeyType::Rsa, &incomplete).expect("incomplete PKCS#8 PEM");
+        let public_key =
+            format_public_key_text(SshKeyType::Rsa, &rsa.public_key).expect("OpenSSH public key");
+
+        let payload = export_cxf(private_pem, public_key).expect("CXF RSA export");
+        let result = SshKeyExportCxfResult::decode(payload.as_slice()).expect("CXF export payload");
+        assert_eq!(result.r#type, SshKeyType::Rsa as i32);
+        let info =
+            PrivateKeyInfo::from_der(&result.private_key_pkcs8).expect("exported PKCS#8 parses");
+        assert_eq!(info.algorithm.oid, RSA_ENCRYPTION_OID);
+        let completed = rsa_parts_from_pkcs1(info.private_key).expect("complete PKCS#1 parts");
+        assert_eq!(completed.modulus, expected.modulus);
+        assert_eq!(completed.public_exponent, expected.public_exponent);
+        assert!(completed.crt.is_some());
+    }
+
+    #[test]
+    fn cxf_export_rejects_a_public_key_from_a_different_pair() {
+        let first = material(generate(SshKeyType::Ed25519, 0).expect("first Ed25519 generation"));
+        let second = material(generate(SshKeyType::Ed25519, 0).expect("second Ed25519 generation"));
+        let private_pem = format_private_key_text(SshKeyType::Ed25519, &first.private_key)
+            .expect("OpenSSH private key");
+        let public_key = format_public_key_text(SshKeyType::Ed25519, &second.public_key)
+            .expect("different OpenSSH public key");
+
+        assert_eq!(
+            export_cxf(private_pem, public_key),
+            Err(PrimitiveError::InvalidArgument),
+        );
+    }
+
+    #[test]
+    fn cxf_export_rejects_unconvertible_keys() {
+        assert_eq!(
+            export_cxf(
+                "not a key".to_owned(),
+                ED25519_GOLDEN_PUBLIC_OPENSSH.to_owned(),
+            ),
+            Err(PrimitiveError::InvalidArgument),
+        );
+        assert_eq!(
+            export_cxf(String::new(), ED25519_GOLDEN_PUBLIC_OPENSSH.to_owned(),),
+            Err(PrimitiveError::InvalidArgument),
+        );
+
+        // Encrypted OpenSSH decodes to `KeypairData::Encrypted`, never a keypair.
+        assert_eq!(
+            export_cxf(
+                ED25519_OPENSSH_ENCRYPTED_PEM.to_owned(),
+                ED25519_GOLDEN_PUBLIC_OPENSSH.to_owned(),
+            ),
+            Err(PrimitiveError::InvalidArgument),
+        );
+    }
+
+    #[test]
+    fn cxf_rsa_openssh_pem_exports_a_complete_canonical_pkcs8_document() {
+        // A synced RSA key is stored OpenSSH-armored, so this is its ordinary
+        // shape. The record carries n, e, d, p, q and iqmp, so the CRT exponents
+        // PKCS#1 requires are derivable and the key need not be skipped.
+        let decoded = decode_private_pem(RSA_OPENSSH_UNENCRYPTED_PEM).expect("OpenSSH PEM");
+        let private = PrivateKey::from_bytes(&decoded).expect("OpenSSH private key");
+        let public_key = private
+            .public_key()
+            .to_openssh()
+            .expect("OpenSSH public key");
+        let payload = export_cxf(RSA_OPENSSH_UNENCRYPTED_PEM.to_owned(), public_key.clone())
+            .expect("OpenSSH RSA CXF export");
+        let exported =
+            SshKeyExportCxfResult::decode(payload.as_slice()).expect("CXF export payload");
+
+        let info =
+            PrivateKeyInfo::from_der(&exported.private_key_pkcs8).expect("exported PKCS#8 parses");
+        assert_eq!(info.algorithm.oid, RSA_ENCRYPTION_OID);
+        assert_eq!(info.algorithm.parameters, Some(AnyRef::NULL));
+        let parts = rsa_parts_from_pkcs1(info.private_key).expect("inner PKCS#1 parts");
+        assert!(parts.crt.is_some());
+        // `ssh-keygen -t rsa -b 2048` — the modulus must survive intact.
+        assert_eq!(parts.modulus.len(), 256);
+        assert_eq!(parts.public_exponent, &[0x01, 0x00, 0x01]);
+
+        let pem = format_private_key_text(SshKeyType::Rsa, &exported.private_key_pkcs8)
+            .expect("exported PKCS#8 PEM");
+        let repeat = SshKeyExportCxfResult::decode(
+            export_cxf(pem, public_key)
+                .expect("CXF RSA re-export")
+                .as_slice(),
+        )
+        .expect("CXF re-export payload");
+        assert_eq!(repeat.private_key_pkcs8, exported.private_key_pkcs8);
+    }
+
+    #[test]
+    fn ed25519_openssh_export_rejects_a_public_half_that_does_not_match_the_seed() {
+        let seed = [0x11_u8; 32];
+        let honest = encode_ed25519_material(&seed, 0x0102_0304).expect("Ed25519 material");
+        let honest_pem =
+            format_private_key_text(SshKeyType::Ed25519, &honest.private_key).expect("private PEM");
+        let honest_public =
+            format_public_key_text(SshKeyType::Ed25519, &honest.public_key).expect("public key");
+        export_cxf(honest_pem, honest_public.clone())
+            .expect("a self-consistent record still exports");
+
+        let unrelated =
+            Ed25519KeyPair::from_seed_unchecked(&[0x22_u8; 32]).expect("unrelated Ed25519 key");
+        let unrelated_public: [u8; 32] = unrelated
+            .public_key()
+            .as_ref()
+            .try_into()
+            .expect("32-byte Ed25519 public key");
+        let substituted = PrivateKey::new_with_checkint(
+            Ed25519Keypair {
+                public: Ed25519PublicKey(unrelated_public),
+                private: Ed25519PrivateKey::from_bytes(&seed),
+            }
+            .into(),
+            "",
+            0x0102_0304,
+        )
+        .expect("substituted OpenSSH record");
+        let substituted_bytes = substituted.to_bytes().expect("substituted OpenSSH bytes");
+        // `ssh-key` keeps its seed/public consistency check behind the
+        // `ed25519` feature, which this graph disables, so the substituted
+        // record decodes cleanly and reaches the exporter intact.
+        assert!(PrivateKey::from_bytes(&substituted_bytes).is_ok());
+        let substituted_pem = format_private_key_text(SshKeyType::Ed25519, &substituted_bytes)
+            .expect("substituted private PEM");
+        assert_eq!(
+            export_cxf(substituted_pem, honest_public),
+            Err(PrimitiveError::InvalidArgument),
+        );
+    }
+
+    #[test]
+    fn cxf_ed25519_pkcs8_v1_and_v2_normalize_to_the_same_v1_document() {
+        let seed = [0x24_u8; 32];
+        let derived = Ed25519KeyPair::from_seed_unchecked(&seed).expect("Ed25519 key pair");
+        let derived_public: &[u8] = derived.public_key().as_ref();
+        let public = PublicKey::new(
+            KeyData::Ed25519(Ed25519PublicKey(
+                derived_public.try_into().expect("32-byte public key"),
+            )),
+            "",
+        )
+        .to_openssh()
+        .expect("OpenSSH public key");
+        let v1 = ed25519_pkcs8(&seed, None, None);
+        let v2 = ed25519_pkcs8(&seed, None, Some(derived_public));
+
+        for input in [&v1, &v2] {
+            let pem = format_private_key_text(SshKeyType::Rsa, input).expect("Ed25519 PKCS#8 PEM");
+            let result = SshKeyExportCxfResult::decode(
+                export_cxf(pem, public.clone())
+                    .expect("Ed25519 CXF export")
+                    .as_slice(),
+            )
+            .expect("CXF export payload");
+            assert_eq!(result.private_key_pkcs8, v1);
+            assert!(
+                PrivateKeyInfo::from_der(&result.private_key_pkcs8)
+                    .expect("canonical Ed25519 PKCS#8")
+                    .public_key
+                    .is_none(),
+            );
+        }
+    }
+
+    #[test]
+    fn cxf_ed25519_pkcs8_rejects_an_attached_public_half_from_another_key() {
+        let seed = [0x24_u8; 32];
+        let derived = Ed25519KeyPair::from_seed_unchecked(&seed).expect("Ed25519 key pair");
+        let derived_public: &[u8] = derived.public_key().as_ref();
+        let public = PublicKey::new(
+            KeyData::Ed25519(Ed25519PublicKey(
+                derived_public.try_into().expect("32-byte public key"),
+            )),
+            "",
+        )
+        .to_openssh()
+        .expect("OpenSSH public key");
+
+        let substituted = ed25519_pkcs8(&seed, None, Some(&[0x77_u8; 32]));
+        assert!(
+            is_ed25519_pkcs8(&substituted),
+            "the shape check alone accepts a substituted public half",
+        );
+        let substituted_pem = format_private_key_text(SshKeyType::Rsa, &substituted)
+            .expect("substituted Ed25519 PKCS#8 PEM");
+        assert_eq!(
+            export_cxf(substituted_pem, public),
+            Err(PrimitiveError::InvalidArgument),
+        );
+    }
+
+    #[test]
+    fn cxf_export_canonicalizes_all_accepted_rsa_encryption_parameters() {
+        let rsa = material(generate(SshKeyType::Rsa, 1024).expect("RSA generation"));
+        let expected = rsa_parts_from_pkcs1(&rsa.private_key).expect("source PKCS#1 parts");
+        let public_key =
+            format_public_key_text(SshKeyType::Rsa, &rsa.public_key).expect("OpenSSH public key");
+        let parameter_der = [0x04, 0x01, 0x01];
+        let non_null = AnyRef::from_der(&parameter_der).expect("OCTET STRING parameter");
+
+        for parameters in [None, Some(AnyRef::NULL), Some(non_null)] {
+            let input = PrivateKeyInfo::new(
+                AlgorithmIdentifierRef {
+                    oid: RSA_ENCRYPTION_OID,
+                    parameters,
+                },
+                &rsa.private_key,
+            )
+            .to_der()
+            .expect("RSA PKCS#8 document");
+            let private_pem =
+                format_private_key_text(SshKeyType::Rsa, &input).expect("RSA PKCS#8 PEM");
+            let payload = export_cxf(private_pem, public_key.clone()).expect("CXF RSA export");
+            let result =
+                SshKeyExportCxfResult::decode(payload.as_slice()).expect("CXF export payload");
+            let info = PrivateKeyInfo::from_der(&result.private_key_pkcs8)
+                .expect("exported PKCS#8 parses");
+            assert_eq!(info.algorithm.parameters, Some(AnyRef::NULL));
+            let parts = rsa_parts_from_pkcs1(info.private_key).expect("inner PKCS#1 parts");
+            assert_eq!(parts.modulus, expected.modulus);
+            assert_eq!(parts.public_exponent, expected.public_exponent);
+            assert!(parts.crt.is_some());
+
+            let canonical_pem = format_private_key_text(SshKeyType::Rsa, &result.private_key_pkcs8)
+                .expect("canonical PKCS#8 PEM");
+            let repeat = SshKeyExportCxfResult::decode(
+                export_cxf(canonical_pem, public_key.clone())
+                    .expect("CXF RSA re-export")
+                    .as_slice(),
+            )
+            .expect("CXF re-export payload");
+            assert_eq!(repeat.private_key_pkcs8, result.private_key_pkcs8);
+        }
+    }
+
+    #[test]
+    fn cxf_rsa_pkcs8_v2_validates_its_public_key_and_normalizes_to_v1() {
+        let rsa = material(generate(SshKeyType::Rsa, 1024).expect("RSA generation"));
+        let private = RsaPrivateKey::from_der(&rsa.private_key).expect("complete PKCS#1 key");
+        let embedded_public = Pkcs1RsaPublicKey {
+            modulus: private.modulus,
+            public_exponent: private.public_exponent,
+        }
+        .to_der()
+        .expect("PKCS#1 public key");
+        let v2 = rsa_pkcs8_with_public_key(&rsa.private_key, &embedded_public);
+        let private_pem = format_private_key_text(SshKeyType::Rsa, &v2).expect("RSA PKCS#8 v2 PEM");
+        let public_key =
+            format_public_key_text(SshKeyType::Rsa, &rsa.public_key).expect("OpenSSH public key");
+
+        let payload = export_cxf(private_pem, public_key).expect("CXF RSA export");
+        let result = SshKeyExportCxfResult::decode(payload.as_slice()).expect("CXF export payload");
+        let info =
+            PrivateKeyInfo::from_der(&result.private_key_pkcs8).expect("exported PKCS#8 parses");
+        assert!(info.public_key.is_none());
+        assert_eq!(info.algorithm.parameters, Some(AnyRef::NULL));
+        assert_eq!(
+            result.private_key_pkcs8,
+            encode_rsa_pkcs8(&rsa.private_key).expect("canonical PKCS#8 v1"),
+        );
+    }
+
+    #[test]
+    fn cxf_rsa_pkcs8_v2_rejects_a_mismatched_public_key() {
+        let rsa = material(generate(SshKeyType::Rsa, 1024).expect("RSA generation"));
+        let other = material(generate(SshKeyType::Rsa, 1024).expect("other RSA generation"));
+        let private = RsaPrivateKey::from_der(&rsa.private_key).expect("complete PKCS#1 key");
+        let other_private =
+            RsaPrivateKey::from_der(&other.private_key).expect("other complete PKCS#1 key");
+        let wrong_exponent_bytes = [3_u8];
+        let mismatches = [
+            Pkcs1RsaPublicKey {
+                modulus: other_private.modulus,
+                public_exponent: private.public_exponent,
+            }
+            .to_der()
+            .expect("wrong-modulus PKCS#1 public key"),
+            Pkcs1RsaPublicKey {
+                modulus: private.modulus,
+                public_exponent: UintRef::new(&wrong_exponent_bytes).expect("wrong exponent"),
+            }
+            .to_der()
+            .expect("wrong-exponent PKCS#1 public key"),
+        ];
+        let public_key =
+            format_public_key_text(SshKeyType::Rsa, &rsa.public_key).expect("OpenSSH public key");
+
+        for embedded_public in mismatches {
+            let v2 = rsa_pkcs8_with_public_key(&rsa.private_key, &embedded_public);
+            let private_pem =
+                format_private_key_text(SshKeyType::Rsa, &v2).expect("RSA PKCS#8 v2 PEM");
+            assert_eq!(
+                export_cxf(private_pem, public_key.clone()),
+                Err(PrimitiveError::InvalidArgument),
+            );
+        }
+    }
+
+    #[test]
+    fn cxf_rsa_pkcs8_v2_rejects_a_non_pkcs1_public_key() {
+        let rsa = material(generate(SshKeyType::Rsa, 1024).expect("RSA generation"));
+        let public_key =
+            format_public_key_text(SshKeyType::Rsa, &rsa.public_key).expect("OpenSSH public key");
+
+        for embedded_public in [&[0x30, 0x00][..], rsa.public_key.as_slice()] {
+            let v2 = rsa_pkcs8_with_public_key(&rsa.private_key, embedded_public);
+            let private_pem =
+                format_private_key_text(SshKeyType::Rsa, &v2).expect("RSA PKCS#8 v2 PEM");
+            assert_eq!(
+                export_cxf(private_pem, public_key.clone()),
+                Err(PrimitiveError::InvalidArgument),
+            );
+        }
+    }
+
+    #[test]
+    fn cxf_export_rejects_rsa_with_a_mutated_crt_coefficient() {
+        let rsa = material(generate(SshKeyType::Rsa, 1024).expect("RSA generation"));
+        let private = RsaPrivateKey::from_der(&rsa.private_key).expect("complete PKCS#1 key");
+        let mut coefficient = private.coefficient.as_bytes().to_vec();
+        *coefficient.last_mut().expect("non-empty coefficient") ^= 1;
+        let corrupted = RsaPrivateKey {
+            coefficient: UintRef::new(&coefficient).expect("mutated coefficient"),
+            ..private
+        }
+        .to_der()
+        .expect("corrupted PKCS#1 document");
+        let corrupted_pkcs8 = encode_rsa_pkcs8(&corrupted).expect("corrupted PKCS#8 document");
+        let private_pem = format_private_key_text(SshKeyType::Rsa, &corrupted_pkcs8)
+            .expect("corrupted PKCS#8 PEM");
+        let public_key =
+            format_public_key_text(SshKeyType::Rsa, &rsa.public_key).expect("OpenSSH public key");
+
+        assert_eq!(
+            export_cxf(private_pem, public_key),
+            Err(PrimitiveError::InvalidArgument),
+        );
+    }
+
+    // OpenSSH RSA key generated with `ssh-keygen -t rsa -b 2048`.
+    const RSA_OPENSSH_UNENCRYPTED_PEM: &str = concat!(
+        "-----BEGIN OPENSSH PRIVATE KEY-----\n",
+        "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\n",
+        "-----END OPENSSH PRIVATE KEY-----\n",
+    );
+
+    // Passphrase-encrypted Ed25519 key generated with
+    // `ssh-keygen -t ed25519 -N <passphrase>`.
+    const ED25519_OPENSSH_ENCRYPTED_PEM: &str = concat!(
+        "-----BEGIN OPENSSH PRIVATE KEY-----\n",
+        "b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABCnDxDxS5\n",
+        "BFo8Jeur/T/HZrAAAAGAAAAAEAAAAzAAAAC3NzaC1lZDI1NTE5AAAAIBSzAtbmXa39qqmQ\n",
+        "VUO/M4RXU9aZMla7+8LZQeXQnToyAAAAoIYiAjze9Iy89L8TYDrdHq4Dh7wz4haqKfKZg9\n",
+        "dk6AzWCNdCEoxC6BpL9L/KJpUuYah/c3cdi0o9GICJSZ02do/tL/TydB6W3B1v3b4goEmh\n",
+        "ANg0kr8QmeDUe43QBTxne7xpuLaOwKTvyeLsUR+bvsAO0nueJxIyDDwiTXlYgZY+NRFiNz\n",
+        "xsDxulncpVuEaudogpRWO7riU/bOchAMIat9k=\n",
+        "-----END OPENSSH PRIVATE KEY-----\n",
+    );
+
     fn material(payload: Vec<u8>) -> SshKeyMaterial {
         SshKeyMaterial::decode(payload.as_slice()).expect("SSH key material payload")
     }
@@ -1126,6 +1704,18 @@ mod tests {
         )
         .to_der()
         .expect("incomplete PKCS#8 document")
+    }
+
+    fn rsa_pkcs8_with_public_key(private_key: &[u8], public_key: &[u8]) -> Vec<u8> {
+        let mut info = PrivateKeyInfo::new(
+            AlgorithmIdentifierRef {
+                oid: RSA_ENCRYPTION_OID,
+                parameters: Some(AnyRef::NULL),
+            },
+            private_key,
+        );
+        info.public_key = Some(public_key);
+        info.to_der().expect("RSA PKCS#8 v2 document")
     }
 
     fn ed25519_pkcs8(

@@ -5,6 +5,7 @@ import app.keemobile.kotpass.database.getEntries
 import app.keemobile.kotpass.models.Group
 import com.artemchep.keyguard.common.exception.KeePassDatabaseModifiedExternallyException
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.throwIfCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
@@ -38,7 +39,6 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops.KeePassCiph
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops.KeePassFolderSyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy.KeePassCipherSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.strategy.KeePassFolderSyncStrategy
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds

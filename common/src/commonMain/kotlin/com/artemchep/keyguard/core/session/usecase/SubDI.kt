@@ -62,6 +62,8 @@ import com.artemchep.keyguard.common.service.settings.VaultSettingsReadWriteRepo
 import com.artemchep.keyguard.common.service.settings.impl.VaultSettingsRepositoryImpl
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepository
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepositoryImpl
+import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountSyncer
+import com.artemchep.keyguard.common.service.exposedaccount.impl.ExposedAccountSyncerImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeySyncerImpl
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeySyncer
@@ -619,6 +621,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<GetCiphers> {
         GetCiphersImpl(this)
+    }
+    bindSingleton<ExposedAccountSyncer> {
+        ExposedAccountSyncerImpl(this)
     }
     bindSingleton<SshAgentPublicKeySyncer> {
         SshAgentPublicKeySyncerImpl(this)

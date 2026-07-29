@@ -35,13 +35,18 @@ k256 = { version = "=0.13.4", default-features = false, features = ["ecdsa"] }
 num-bigint-dig = { version = "=0.8.6", default-features = false, features = ["zeroize"] }
 num-integer = { version = "=0.1.46", default-features = false }
 ocb3 = { version = "=0.1.0", default-features = false, features = ["alloc", "zeroize"] }
-p256 = { version = "=0.13.2", default-features = false, features = ["ecdh", "ecdsa"] }
+# `alloc` is what gates `EncodePublicKey` alongside `pkcs8`; passkeys.rs relies
+# on it directly, so declare it rather than inherit it from `pgp`'s defaults.
+p256 = { version = "=0.13.2", default-features = false, features = ["alloc", "ecdh", "ecdsa", "pkcs8"] }
 p384 = { version = "=0.13.1", default-features = false, features = ["ecdh", "ecdsa"] }
 p521 = { version = "=0.13.3", default-features = false, features = ["ecdh", "ecdsa"] }
 pkcs8 = { version = "=0.10.2", default-features = false }
 pgp = { version = "=0.20.0", default-features = false }
 prost = { version = "=0.13.5", default-features = false, features = ["derive", "std"] }
 rand = { version = "=0.8.7", default-features = false }
+# `EcParameters`/`EcPrivateKey` live behind `der`; passkeys.rs imports both, so
+# declare it rather than inherit it from `pgp`'s defaults.
+sec1 = { version = "=0.7.3", default-features = false, features = ["alloc", "der"] }
 rc2 = { version = "=0.8.1", features = ["zeroize"] }
 salsa20 = { version = "=0.10.2", default-features = false, features = ["zeroize"] }
 thiserror = "=2.0.18"

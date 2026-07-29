@@ -1159,6 +1159,7 @@ dependencies = [
  "rand 0.8.7",
  "rc2",
  "salsa20",
+ "sec1",
  "ssh-key",
  "thiserror 2.0.18",
  "twofish",

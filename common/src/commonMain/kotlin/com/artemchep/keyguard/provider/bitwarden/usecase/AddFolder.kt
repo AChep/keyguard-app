@@ -30,7 +30,7 @@ class AddFolderImpl(
 
     override fun invoke(
         requests: Collection<AddFolderRequest>,
-    ): IO<Set<String>> = modifyDatabase { database ->
+    ): IO<List<String>> = modifyDatabase { database ->
         val dao = database.folderQueries
         val now = Clock.System.now()
 
@@ -52,7 +52,7 @@ class AddFolderImpl(
         if (models.isEmpty()) {
             return@modifyDatabase ModifyDatabase.Result(
                 changedAccountIds = emptySet(),
-                value = emptySet(),
+                value = emptyList(),
             )
         }
         dao.transaction {
@@ -70,10 +70,9 @@ class AddFolderImpl(
             .toSet()
         ModifyDatabase.Result(
             changedAccountIds = changedAccountIds,
-            // pass the set of folder ids back
-            value = models
-                .map { it.folderId }
-                .toSet(),
+            // Follows the request order,
+            // as the interface promises.
+            value = models.map { it.folderId },
         )
     }
 }

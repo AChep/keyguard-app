@@ -21,6 +21,7 @@ import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.feature.auth.userverification.UserVerificationRoute
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading

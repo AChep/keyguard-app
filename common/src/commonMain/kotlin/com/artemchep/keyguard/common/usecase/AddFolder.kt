@@ -11,10 +11,12 @@ import com.artemchep.keyguard.common.model.FolderHierarchyMode
  * folder. In particular, two requests with the same [AddFolderRequest.name] but
  * a different [AddFolderRequest.parentId] are intentionally treated as distinct
  * folders.
+ *
+ * The returned ids are in request order.
  */
 interface AddFolder : (
     Collection<AddFolderRequest>,
-) -> IO<Set<String>>
+) -> IO<List<String>>
 
 data class AddFolderRequest(
     val accountId: AccountId,

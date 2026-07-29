@@ -19,7 +19,9 @@ import com.artemchep.keyguard.common.service.backup.BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeImportTransportAndroid
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
+import com.artemchep.keyguard.common.service.credentialexchange.CredentialExchangeImportTransport
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManagerImpl
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
@@ -222,6 +224,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<ConnectivityService> {
         ConnectivityServiceAndroid(this)
+    }
+    bindSingleton<CredentialExchangeImportTransport> {
+        CredentialExchangeImportTransportAndroid(this)
     }
     bindSingleton<DirsService> {
         DirsServiceAndroid(this)

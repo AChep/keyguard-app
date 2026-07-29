@@ -12,7 +12,9 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
+import com.artemchep.keyguard.common.service.crypto.SshKeyPkcs8Exporter
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
@@ -23,6 +25,10 @@ import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.service.deeplink.impl.DeeplinkServiceImpl
 import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.service.download.DownloadServiceImpl
+import com.artemchep.keyguard.common.service.credentialexchange.CxfExportService
+import com.artemchep.keyguard.common.service.credentialexchange.CxfImportService
+import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfExportServiceImpl
+import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
 import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
@@ -412,6 +418,8 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerSyncerImpl
 import com.artemchep.keyguard.common.usecase.impl.WindowCoroutineScopeImpl
 import com.artemchep.keyguard.common.usecase.impl.PasswordGeneratorDiceware
 import com.artemchep.keyguard.common.service.similarity.impl.SimilarityServiceImpl
+import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountRepository
+import com.artemchep.keyguard.common.service.exposedaccount.impl.ExposedAccountRepositoryImpl
 import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockRepositoryExposed
 import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
@@ -504,7 +512,9 @@ import com.artemchep.keyguard.crypto.NativeCryptoGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
 import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
+import com.artemchep.keyguard.crypto.NativePasskeyCrypto
 import com.artemchep.keyguard.crypto.NativeSshKeyImportService
+import com.artemchep.keyguard.crypto.NativeSshKeyPkcs8Exporter
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadCoordinatorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
@@ -535,8 +545,14 @@ fun globalModuleCommon() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<PasskeyCrypto> {
+        NativePasskeyCrypto
+    }
     bindSingleton<SshKeyImportService> {
         NativeSshKeyImportService
+    }
+    bindSingleton<SshKeyPkcs8Exporter> {
+        NativeSshKeyPkcs8Exporter
     }
     bindSingleton<GpgPublicKeyParser> {
         NativeGpgPublicKeyParser
@@ -1564,6 +1580,16 @@ fun globalModuleCommon() = DI.Module(
             directDI = this,
         )
     }
+    bindSingleton<CxfExportService> {
+        CxfExportServiceImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<CxfImportService> {
+        CxfImportServiceImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<KeyPairExport> {
         KeyPairExportImpl(
             directDI = this,
@@ -1787,6 +1813,12 @@ private fun DI.Builder.installSettingsRepo() {
 }
 
 private fun DI.Builder.installExposedRepo() {
+    // App-level, not session-level: the credential-transfer activity and the
+    // autofill service both read the mirror before the vault is unlocked, so there
+    // is no session DI to resolve it from.
+    bindSingleton<ExposedAccountRepository> {
+        ExposedAccountRepositoryImpl(this)
+    }
     bindSingleton<UrlBlockRepositoryExposed> {
         UrlBlockRepositoryExposed(this)
     }

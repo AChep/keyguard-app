@@ -43,11 +43,18 @@ data class FolderHierarchyIndexNode<T : Any>(
 class FolderHierarchyIndex<T : Any> internal constructor(
     private val nodesByKey: Map<FolderHierarchyKey, FolderHierarchyIndexNode<T>>,
     private val childNodesByParentKey: Map<FolderHierarchyKey?, List<FolderHierarchyIndexNode<T>>>,
+    private val keyOfFolder: (T) -> FolderHierarchyKey,
 ) {
     private data class ItemKey(
         val accountId: String,
         val folderId: String,
     )
+
+    /**
+     * Every node, in the first-appearance order of the folders that produced
+     * them. Computed once at construction, so the instance is stable.
+     */
+    val nodes: List<FolderHierarchyIndexNode<T>> = nodesByKey.values.toList()
 
     private val nodesByItemKey = nodesByKey.values
         .associateBy { node ->
@@ -60,6 +67,16 @@ class FolderHierarchyIndex<T : Any> internal constructor(
     fun node(
         key: FolderHierarchyKey,
     ): FolderHierarchyIndexNode<T>? = nodesByKey[key]
+
+    /** The key this index records [folder] under. */
+    fun keyOf(
+        folder: T,
+    ): FolderHierarchyKey = keyOfFolder(folder)
+
+    /** The node [folder] belongs to, or `null` when it was not indexed. */
+    fun nodeOf(
+        folder: T,
+    ): FolderHierarchyIndexNode<T>? = nodesByKey[keyOfFolder(folder)]
 
     fun nodeOf(
         accountId: String,
@@ -102,25 +119,25 @@ class FolderHierarchyIndex<T : Any> internal constructor(
         startKey: FolderHierarchyKey,
         visitor: (T) -> Boolean,
     ): Boolean {
-        val startNode = nodesByKey[startKey]
-            ?: return false
         val stack = ArrayDeque<FolderHierarchyIndexNode<T>>()
         val visited = mutableSetOf<FolderHierarchyKey>()
-        stack.addLast(startNode)
-        while (stack.isNotEmpty()) {
+        // An unknown start key leaves the stack empty, which is the same
+        // "visited nothing, stopped nowhere" answer as an exhausted walk.
+        nodesByKey[startKey]?.let(stack::addLast)
+        var stopped = false
+        while (!stopped && stack.isNotEmpty()) {
             val node = stack.removeLast()
-            if (!visited.add(node.key)) {
-                continue
-            }
-            if (visitor(node.item)) {
-                return true
-            }
-            val children = childNodesByParentKey[node.key].orEmpty()
-            for (index in children.lastIndex downTo 0) {
-                stack.addLast(children[index])
+            if (visited.add(node.key)) {
+                stopped = visitor(node.item)
+                if (!stopped) {
+                    val children = childNodesByParentKey[node.key].orEmpty()
+                    for (index in children.lastIndex downTo 0) {
+                        stack.addLast(children[index])
+                    }
+                }
             }
         }
-        return false
+        return stopped
     }
 }
 
@@ -190,6 +207,39 @@ fun <T : Any> createFolderHierarchyIndex(
     return FolderHierarchyIndex(
         nodesByKey = nodesByKey,
         childNodesByParentKey = childNodesByParentKey,
+        keyOfFolder = { folder ->
+            folderHierarchyKeyOf(
+                folder = folder,
+                accountId = accountId,
+                lens = lens,
+                id = id,
+                hierarchyMode = hierarchyMode,
+            )
+        },
+    )
+}
+
+/**
+ * Mirrors the keying rule [createFolderHierarchyIndex] builds its records with,
+ * so [FolderHierarchyIndex.keyOf] can answer without a lookup table keyed by the
+ * folder itself.
+ */
+private fun <T : Any> folderHierarchyKeyOf(
+    folder: T,
+    accountId: (T) -> String,
+    lens: (T) -> String,
+    id: (T) -> String,
+    hierarchyMode: (T) -> FolderHierarchyMode,
+): FolderHierarchyKey = when (hierarchyMode(folder)) {
+    FolderHierarchyMode.Path -> FolderHierarchyKey.Path(
+        accountId = accountId(folder),
+        folderId = id(folder),
+        path = lens(folder),
+    )
+
+    FolderHierarchyMode.ParentId -> FolderHierarchyKey.Id(
+        accountId = accountId(folder),
+        folderId = id(folder),
     )
 }
 

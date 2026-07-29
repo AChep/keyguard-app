@@ -1365,6 +1365,48 @@
     <string name="exportaccount_export_success">Export complete</string>
     <string name="exportaccount_export_failure">Export failed</string>
 
+    <string name="credential_exchange_export_header_title">Transfer credentials</string>
+    <string name="credential_exchange_export_header_text">App requests access to credentials</string>
+    <string name="credential_exchange_export_header_text_named"><xliff:g id="app_name" example="Example Passwords">%1$s</xliff:g> requests access to credentials</string>
+    <string name="credential_exchange_export_empty_label">There are no credentials to transfer.</string>
+    <string name="credential_exchange_export_credential_passkey">Passkey</string>
+    <string name="credential_exchange_export_credential_password">Password</string>
+    <string name="credential_exchange_export_credential_totp">One-time password</string>
+    <string name="credential_exchange_export_credential_card">Card</string>
+    <string name="credential_exchange_export_credential_identity">Identity</string>
+    <string name="credential_exchange_export_credential_note">Note</string>
+    <string name="credential_exchange_export_credential_fields">Custom fields</string>
+    <string name="credential_exchange_export_credential_ssh_key">SSH key</string>
+    <string name="credential_exchange_export_export_button">Transfer</string>
+    <string name="credential_exchange_export_error_unknown">Something went wrong while preparing the items.</string>
+    <string name="credential_exchange_import_review_all_items_section">All items</string>
+    <string name="credential_exchange_export_error_account_unavailable">This account is no longer available.</string>
+    <string name="skipped_items_text">Some items were skipped.</string>
+
+    <string name="account_action_import_credentials_title">Import from another app</string>
+    <string name="credential_exchange_import_header_title">Import credentials</string>
+    <string name="credential_exchange_import_header_text">Move credentials directly from another password manager installed on this device.</string>
+    <string name="credential_exchange_import_step_1_title">Start the transfer</string>
+    <string name="credential_exchange_import_step_1_text">Tap Start import. Android will show the apps that can share credentials with Keyguard.</string>
+    <string name="credential_exchange_import_step_2_title">Choose a source app</string>
+    <string name="credential_exchange_import_step_2_text">Select the password manager you want to import from, then follow its prompts to approve the transfer.</string>
+    <string name="credential_exchange_import_step_3_title">Review and import</string>
+    <string name="credential_exchange_import_step_3_text">Back in Keyguard, review what was received. Nothing is saved to this account until you tap Import.</string>
+    <string name="credential_exchange_import_learn_more">Learn about credential exchange</string>
+    <string name="credential_exchange_import_start_button">Start import</string>
+    <string name="credential_exchange_import_retry_button">Retry import</string>
+    <string name="credential_exchange_import_import_button">Import</string>
+    <string name="credential_exchange_import_review_source_label">Received from</string>
+    <string name="credential_exchange_import_review_items_section">Items to import</string>
+    <string name="credential_exchange_import_empty_label">The selected app didn't send any importable items.</string>
+    <string name="credential_exchange_import_error_unavailable">Credential transfer isn't available on this device. It requires a recent version of Google Play services.</string>
+    <string name="credential_exchange_import_error_no_providers">None of the installed apps can share credentials this way.</string>
+    <string name="credential_exchange_import_error_parse">The received data couldn't be read.</string>
+    <string name="credential_exchange_import_error_unknown">Something went wrong while importing the items.</string>
+    <string name="credential_exchange_import_error_save">Failed to import the credentials.</string>
+    <string name="credential_exchange_import_success_title">Import complete</string>
+    <string name="credential_exchange_import_untitled">Untitled</string>
+
     <string name="contactus_header_title">Contact us</string>
     <string name="contactus_message_label">Your message</string>
     <string name="contactus_english_note">Use English to ensure that your feedback doesn't get misunderstood.</string>

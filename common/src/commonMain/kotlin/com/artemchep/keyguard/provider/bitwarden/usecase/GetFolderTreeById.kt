@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.usecase.GetFolderTreeById
 import com.artemchep.keyguard.common.usecase.GetFolders
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
@@ -36,6 +37,8 @@ class GetFolderTreeByIdImpl(
             // we will later use it to form the hierarchy.
             val target = allFolders.firstOrNull { it.id == folderId }
                 ?: return@map null
+            // Every folder of the account, in every hierarchy mode; the tree use
+            // case rejects candidates whose mode differs from the target's.
             val folders = allFolders
                 .filter { it.accountId == target.accountId }
 
@@ -45,7 +48,7 @@ class GetFolderTreeByIdImpl(
                 folder = target,
                 id = { it.id },
                 parentId = { it.parentId },
-                hierarchyMode = target.hierarchyMode,
+                hierarchyMode = { it.hierarchyMode },
             )
             DFolderTree(
                 folder = target,
@@ -59,4 +62,5 @@ class GetFolderTreeByIdImpl(
                     },
             )
         }
+        .flowOn(dispatcher)
 }

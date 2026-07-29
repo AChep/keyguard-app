@@ -32,6 +32,7 @@ androidxCoreKtx = "1.19.0"
 androidxCoreSplash = "1.2.0"
 androidxCoreShortcuts = "1.1.0"
 androidxCredentials = "1.6.0"
+androidxCredentialsProviderEvents = "1.0.0-alpha06"
 androidxDatastore = "1.2.1"
 androidxLifecycle = "2.11.0"
 androidxProfileInstaller = "1.4.1"
@@ -213,6 +214,8 @@ androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidxCoreSplash" }
 androidx-core-shortcuts = { module = "androidx.core:core-google-shortcuts", version.ref = "androidxCoreShortcuts" }
 androidx-credentials = { module = "androidx.credentials:credentials", version.ref = "androidxCredentials" }
+androidx-credentials-providerevents = { module = "androidx.credentials.providerevents:providerevents", version.ref = "androidxCredentialsProviderEvents" }
+androidx-credentials-providerevents-play-services = { module = "androidx.credentials.providerevents:providerevents-play-services", version.ref = "androidxCredentialsProviderEvents" }
 androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "androidxDatastore" }
 androidx-lifecycle-common = { module = "androidx.lifecycle:lifecycle-common", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime", version.ref = "androidxLifecycle" }

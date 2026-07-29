@@ -5,6 +5,7 @@ import androidx.credentials.exceptions.domerrors.InvalidStateError
 import androidx.credentials.exceptions.domerrors.NotSupportedError
 import androidx.credentials.exceptions.publickeycredential.CreatePublicKeyCredentialDomException
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.service.crypto.PasskeySignatureAlgorithm
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskeyPubKeyCredParams
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskeyPublicKeyCredentialDescriptor
@@ -96,10 +97,11 @@ class PasskeyCreateRequestTest {
             ),
             request.pubKeyCredParamsOrDefaults(),
         )
-        assertIs<PasskeyGeneratorES256>(
-            findPasskeyGeneratorOrNull(
+        assertEquals(
+            PasskeySignatureAlgorithm.ES256,
+            findPasskeyAlgorithmOrNull(
                 data = request,
-                passkeyGenerators = listOf(PasskeyGeneratorES256()),
+                supportedAlgorithms = setOf(PasskeySignatureAlgorithm.ES256),
             ),
         )
     }
@@ -120,15 +122,15 @@ class PasskeyCreateRequestTest {
         )
 
         assertNull(
-            findPasskeyGeneratorOrNull(
+            findPasskeyAlgorithmOrNull(
                 data = request,
-                passkeyGenerators = listOf(PasskeyGeneratorES256()),
+                supportedAlgorithms = setOf(PasskeySignatureAlgorithm.ES256),
             ),
         )
         val error = assertFailsWith<CreatePublicKeyCredentialDomException> {
-            requirePasskeyGenerator(
+            requirePasskeyAlgorithm(
                 data = request,
-                passkeyGenerators = listOf(PasskeyGeneratorES256()),
+                supportedAlgorithms = setOf(PasskeySignatureAlgorithm.ES256),
             )
         }
 

@@ -20,6 +20,9 @@ import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasswordData
 import com.artemchep.keyguard.common.model.DPrivilegedApp
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
+import com.artemchep.keyguard.common.service.crypto.PasskeyPublicKey
+import com.artemchep.keyguard.common.service.crypto.PasskeySignatureAlgorithm
 import com.artemchep.keyguard.common.service.passkey.entity.CreatePasskey
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
@@ -39,12 +42,8 @@ import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.kodein.di.DirectDI
-import org.kodein.di.allInstances
 import org.kodein.di.instance
-import java.math.BigInteger
-import java.security.KeyPair
-import java.security.interfaces.ECPublicKey
-import java.security.spec.ECPoint
+import kotlin.math.roundToInt
 
 @SuppressLint("RestrictedApi")
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -53,7 +52,7 @@ class PasskeyCreateRequest(
     private val json: Json,
     private val base64Service: Base64Service,
     private val passkeyUtils: PasskeyUtils,
-    private val passkeyGenerators: List<PasskeyGenerator>,
+    private val passkeyCrypto: PasskeyCrypto,
 ) {
     constructor(
         directDI: DirectDI,
@@ -62,7 +61,7 @@ class PasskeyCreateRequest(
         json = directDI.instance(),
         base64Service = directDI.instance(),
         passkeyUtils = directDI.instance(),
-        passkeyGenerators = directDI.allInstances(),
+        passkeyCrypto = directDI.instance(),
     )
 
     sealed interface PreparedCreateCredentialRequest {
@@ -179,9 +178,9 @@ class PasskeyCreateRequest(
         ciphers: List<DSecret>,
     ): Pair<CreatePublicKeyCredentialResponse, AddCredentialCipherRequestPasskeyData> {
         val data = request.data
-        val gen = requirePasskeyGenerator(
+        val algorithm = requirePasskeyAlgorithm(
             data = data,
-            passkeyGenerators = passkeyGenerators,
+            supportedAlgorithms = passkeyCrypto.supportedAlgorithms,
         )
         requireNoExcludedPasskeyCredential(
             data = data,
@@ -191,11 +190,24 @@ class PasskeyCreateRequest(
 
         // Generate a key pair, this pair will be used to sign this and all
         // future authentication requests.
-        val keyPair = gen.keyPair()
-
-        val publicKeyCborBytes = getPublicKeyFromEcKeyPair(keyPair)
-        val publicKeyAlgorithm = -7
-        val publicKeyBytes = keyPair.public.encoded
+        val keyMaterial = passkeyCrypto.generate(algorithm)
+        val profile = keyMaterial.profile
+        val publicKey = keyMaterial.publicKey
+        val publicKeyCborBytes: ByteArray
+        val publicKeyBytes: ByteArray
+        val keyValue: String
+        try {
+            publicKeyCborBytes = when (publicKey) {
+                is PasskeyPublicKey.EcP256 -> coseKeyEs256(publicKey.x, publicKey.y)
+            }
+            publicKeyBytes = when (publicKey) {
+                is PasskeyPublicKey.EcP256 -> publicKey.spki.copyOf()
+            }
+            keyValue = base64Service.encodeToString(keyMaterial.privateKeyPkcs8)
+        } finally {
+            keyMaterial.clear()
+        }
+        val publicKeyAlgorithm = algorithm.coseValue
 
         val challenge = data.challenge
         val origin = request.origin
@@ -232,15 +244,14 @@ class PasskeyCreateRequest(
             authData = authData,
         )
 
-        val keyValue = base64Service.encodeToString(keyPair.private.encoded)
         val discoverable = data.authenticatorSelection.requireResidentKey ||
                 data.authenticatorSelection.residentKey == "required" ||
                 data.authenticatorSelection.residentKey == "preferred"
         val local = AddCredentialCipherRequestPasskeyData(
             credentialId = credentialId,
             keyType = "public-key",
-            keyAlgorithm = "ECDSA",
-            keyCurve = "P-256",
+            keyAlgorithm = profile.keyAlgorithm,
+            keyCurve = profile.keyCurve,
             keyValue = keyValue,
             rpId = rpId,
             rpName = rpName,
@@ -296,58 +307,31 @@ class PasskeyCreateRequest(
         return webAuthnNoneAttestationObject(authData)
     }
 
-    private fun getPublicKeyFromEcKeyPair(keyPair: KeyPair): ByteArray {
-        val ecPubKey = keyPair.public as ECPublicKey
-        val ecPoint: ECPoint = ecPubKey.w
-
-        // for now, only covers ES256
-        if (ecPoint.affineX.bitLength() > 256 || ecPoint.affineY.bitLength() > 256) return ByteArray(
-            0,
-        )
-
-        val byteX = bigIntToByteArray32(ecPoint.affineX)
-        val byteY = bigIntToByteArray32(ecPoint.affineY)
-
-        // Shared COSE_Key encoder (RFC 9052 §7) so Android, iOS, and macOS emit identical
-        // public-key bytes.
-        return coseKeyEs256(byteX, byteY)
-    }
-
-    private fun bigIntToByteArray32(bigInteger: BigInteger): ByteArray {
-        var ba = bigInteger.toByteArray()
-
-        if (ba.size < 32) {
-            // append zeros in front
-            ba = ByteArray(32) + ba
-        }
-        // get the last 32 bytes as bigint conversion sometimes put extra zeros at front
-        return ba.copyOfRange(ba.size - 32, ba.size)
-    }
-
     private fun JsonObjectBuilder.put(key: String, data: ByteArray) {
         put(key, PasskeyBase64.encodeToString(data))
     }
 }
 
-internal fun findPasskeyGeneratorOrNull(
+internal fun findPasskeyAlgorithmOrNull(
     data: CreatePasskey,
-    passkeyGenerators: List<PasskeyGenerator>,
-): PasskeyGenerator? {
+    supportedAlgorithms: Set<PasskeySignatureAlgorithm>,
+): PasskeySignatureAlgorithm? {
     val pubKeyCredParams = data.pubKeyCredParamsOrDefaults()
-    return passkeyGenerators.firstOrNull { generator ->
-        val matchingCredentials = pubKeyCredParams
-            .firstOrNull(generator::handles)
-        matchingCredentials != null
+    return pubKeyCredParams.firstNotNullOfOrNull { parameters ->
+        supportedAlgorithms.firstOrNull { algorithm ->
+            parameters.type == "public-key" &&
+                    parameters.alg.roundToInt() == algorithm.coseValue
+        }
     }
 }
 
-internal fun requirePasskeyGenerator(
+internal fun requirePasskeyAlgorithm(
     data: CreatePasskey,
-    passkeyGenerators: List<PasskeyGenerator>,
-): PasskeyGenerator =
-    findPasskeyGeneratorOrNull(
+    supportedAlgorithms: Set<PasskeySignatureAlgorithm>,
+): PasskeySignatureAlgorithm =
+    findPasskeyAlgorithmOrNull(
         data = data,
-        passkeyGenerators = passkeyGenerators,
+        supportedAlgorithms = supportedAlgorithms,
     ) ?: throw CreatePublicKeyCredentialDomException(
         // WebAuthn L3 create() throws NotSupportedError when no
         // pubKeyCredParams entry has type "public-key" or no listed

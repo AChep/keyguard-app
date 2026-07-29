@@ -1,10 +1,10 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops
 
+import com.artemchep.keyguard.common.io.throwIfCancellation
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCr
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrKey
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 import kotlin.time.Instant
 
 internal class DecodeVaultException(message: String, e: Throwable) : RuntimeException(message, e)

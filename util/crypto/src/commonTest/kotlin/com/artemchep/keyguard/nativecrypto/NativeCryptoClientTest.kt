@@ -1138,7 +1138,7 @@ class NativeCryptoClientTest {
 
     private class FakeBridge(
         private val abiVersion: Int = NativeCrypto.EXPECTED_ABI_VERSION,
-        private val capabilities: Long = 0xffffffL,
+        private val capabilities: Long = 0x3ffffffL,
         private val callResponse: ByteArray = response(BytesResultProto(ByteArray(0))),
         private val callFailure: Throwable? = null,
         private val streamOpenResponse: ByteArray = response(UInt64ResultProto(1L)),

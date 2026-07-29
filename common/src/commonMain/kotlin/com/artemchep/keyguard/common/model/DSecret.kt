@@ -367,7 +367,7 @@ data class DSecret(
             val rpId: String,
             val rpName: String?,
             val counter: Int?,
-            val userHandle: String,
+            val userHandle: String?,
             val userName: String?,
             val userDisplayName: String?,
             val discoverable: Boolean,

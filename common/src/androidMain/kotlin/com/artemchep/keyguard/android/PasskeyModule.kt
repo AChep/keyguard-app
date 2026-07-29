@@ -2,6 +2,9 @@ package com.artemchep.keyguard.android
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeRegistrationWorker
+import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeRegistry
+import com.artemchep.keyguard.common.worker.Wrker
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 
@@ -37,9 +40,14 @@ fun passkeysModule() = DI.Module(
         PasskeyUtils(this)
     }
     //
-    // Generators
+    // Credential exchange (CXF/CXP) export
     //
     bindSingleton {
-        PasskeyGeneratorES256()
+        CredentialExchangeRegistry(this)
+    }
+    // Bound as the Wrker supertype so it is picked up by
+    // `allInstances<Wrker>()` in BaseApp.kt.
+    bindSingleton<Wrker> {
+        CredentialExchangeRegistrationWorker(this)
     }
 }

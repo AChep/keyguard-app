@@ -22,6 +22,7 @@ export const FEATURE_VISUALS: Record<string, FeatureVisual> = {
   generator: { icon: 'wand', chip: 'bg-pink-500/15', ink: 'text-pink-600 dark:text-pink-400' },
   'shortcuts-placeholders': { icon: 'zap', chip: 'bg-yellow-500/15', ink: 'text-yellow-600 dark:text-yellow-400' },
   'data-export': { icon: 'upload', chip: 'bg-lime-500/15', ink: 'text-lime-600 dark:text-lime-400' },
+  'credential-exchange': { icon: 'download', chip: 'bg-fuchsia-500/15', ink: 'text-fuchsia-600 dark:text-fuchsia-400' },
   'automatic-backup': { icon: 'database', chip: 'bg-rose-500/15', ink: 'text-rose-600 dark:text-rose-400' },
 };
 

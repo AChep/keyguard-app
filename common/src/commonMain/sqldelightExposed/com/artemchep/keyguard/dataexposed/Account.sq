@@ -1,0 +1,40 @@
+-- A mirror of the vault's accounts, readable while the vault is LOCKED.
+--
+-- Deliberately feature-agnostic: it stores the raw pieces rather than a
+-- formatted label, so each consumer can present them its own way. The first
+-- consumer is the credential-transfer picker, which needs one entry per account
+-- and must resolve an entry before the vault is unlocked; locked-state autofill
+-- suggestions are intended to use the same rows.
+--
+-- PRIVACY: account identity is otherwise never stored outside the vault. Item
+-- metadata already is (see sshAgentPublicKey.name, urlBlock.uri), but account
+-- name/email/host is a new category of exposure, accepted deliberately. Only
+-- NON-HIDDEN accounts are mirrored — `hidden` means "do not use during
+-- autofill", which has to hold before unlock too.
+CREATE TABLE account (
+  accountId TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  host TEXT NOT NULL
+);
+
+-- Rewritten wholesale on every sync (deleteAll + insert, same as
+-- sshAgentPublicKey). Safe here because every column is derived from the profile
+-- and nothing account-side has to survive a sync — unlike
+-- credentialExchangeExportEntry, whose entryId must.
+insert:
+INSERT OR REPLACE INTO account(accountId, name, email, host)
+VALUES (:accountId, :name, :email, :host);
+
+get:
+SELECT *
+FROM account
+ORDER BY name ASC, email ASC, accountId ASC;
+
+getByAccountId:
+SELECT *
+FROM account
+WHERE accountId = :accountId;
+
+deleteAll:
+DELETE FROM account;

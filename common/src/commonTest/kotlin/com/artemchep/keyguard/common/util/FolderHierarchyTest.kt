@@ -13,6 +13,7 @@ class FolderHierarchyTest {
         val id: String,
         val name: String,
         val parentId: String? = null,
+        val mode: FolderHierarchyMode = FolderHierarchyMode.Path,
     )
 
     private fun pathHierarchy(
@@ -24,7 +25,7 @@ class FolderHierarchyTest {
         folder = folder,
         id = TestFolder::id,
         parentId = TestFolder::parentId,
-        hierarchyMode = FolderHierarchyMode.Path,
+        hierarchyMode = TestFolder::mode,
     )
 
     private fun parentIdHierarchy(
@@ -36,7 +37,9 @@ class FolderHierarchyTest {
         folder = folder,
         id = TestFolder::id,
         parentId = TestFolder::parentId,
-        hierarchyMode = FolderHierarchyMode.ParentId,
+        // Treats every folder as ParentId regardless of its `mode` field, so no
+        // fixture row of this helper is rejected as mode-crossing.
+        hierarchyMode = { FolderHierarchyMode.ParentId },
     )
 
     // region Path mode
@@ -45,23 +48,26 @@ class FolderHierarchyTest {
     fun `Path mode slices node name by the path delimiter`() {
         val work = TestFolder(id = "1", name = "Work")
         val projects = TestFolder(id = "2", name = "Work/Projects")
-        val allFolders = listOf(work, projects)
+        val alpha = TestFolder(id = "3", name = "Work/Projects/Alpha")
+        val allFolders = listOf(work, projects, alpha)
 
         val hierarchy = pathHierarchy(
             allFolders = allFolders,
-            folder = projects,
+            folder = alpha,
         )
 
+        // Every level past the root is sliced against its parent's path, all the
+        // way down a fully populated chain.
         assertEquals(
-            expected = listOf("Work", "Projects"),
+            expected = listOf("Work", "Projects", "Alpha"),
             actual = hierarchy.nodes.map { it.name },
         )
         assertEquals(
-            expected = listOf(work, projects),
+            expected = listOf(work, projects, alpha),
             actual = hierarchy.nodes.map { it.folder },
         )
         assertSame(
-            expected = projects,
+            expected = alpha,
             actual = hierarchy.folder,
         )
     }
@@ -105,28 +111,6 @@ class FolderHierarchyTest {
     }
 
     @Test
-    fun `Path mode builds a full multi level chain`() {
-        val work = TestFolder(id = "1", name = "Work")
-        val projects = TestFolder(id = "2", name = "Work/Projects")
-        val alpha = TestFolder(id = "3", name = "Work/Projects/Alpha")
-        val allFolders = listOf(work, projects, alpha)
-
-        val hierarchy = pathHierarchy(
-            allFolders = allFolders,
-            folder = alpha,
-        )
-
-        assertEquals(
-            expected = listOf("Work", "Projects", "Alpha"),
-            actual = hierarchy.nodes.map { it.name },
-        )
-        assertEquals(
-            expected = listOf(work, projects, alpha),
-            actual = hierarchy.nodes.map { it.folder },
-        )
-    }
-
-    @Test
     fun `Path mode roots a folder that has no path delimiter`() {
         val inbox = TestFolder(id = "1", name = "Inbox")
         val other = TestFolder(id = "2", name = "Archive")
@@ -139,6 +123,52 @@ class FolderHierarchyTest {
 
         assertEquals(
             expected = listOf("Inbox"),
+            actual = hierarchy.nodes.map { it.name },
+        )
+    }
+
+    @Test
+    fun `Path mode ignores a name match in another hierarchy mode`() {
+        // "A" exists but is a ParentId folder, so "A/B" must stay a root and
+        // keep its whole path as its name.
+        val a = TestFolder(id = "a", name = "A", mode = FolderHierarchyMode.ParentId)
+        val ab = TestFolder(id = "ab", name = "A/B")
+        val allFolders = listOf(a, ab)
+
+        val hierarchy = pathHierarchy(
+            allFolders = allFolders,
+            folder = ab,
+        )
+
+        assertEquals(
+            expected = listOf("A/B"),
+            actual = hierarchy.nodes.map { it.name },
+        )
+        assertEquals(
+            expected = listOf(ab),
+            actual = hierarchy.nodes.map { it.folder },
+        )
+    }
+
+    @Test
+    fun `ParentId mode ignores a parent id owned by another hierarchy mode`() {
+        // The mirror case: "P" is a Path folder, so a ParentId row pointing at
+        // its id re-roots instead of adopting it.
+        val p = TestFolder(id = "P", name = "P")
+        val c = TestFolder(id = "C", name = "C", parentId = "P", mode = FolderHierarchyMode.ParentId)
+        val allFolders = listOf(p, c)
+
+        val hierarchy = createFolderHierarchy(
+            lens = TestFolder::name,
+            allFolders = allFolders,
+            folder = c,
+            id = TestFolder::id,
+            parentId = TestFolder::parentId,
+            hierarchyMode = TestFolder::mode,
+        )
+
+        assertEquals(
+            expected = listOf("C"),
             actual = hierarchy.nodes.map { it.name },
         )
     }

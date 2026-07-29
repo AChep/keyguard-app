@@ -175,6 +175,10 @@ dependencies {
     baselineProfile(project(":androidBenchmark"))
     coreLibraryDesugaring(libs.android.desugarjdklibs)
 
+    // Credential exchange (CXF/CXP) export registration relies on the
+    // Play Services backend and only wired into the playStore flavor.
+    "playStoreImplementation"(libs.androidx.credentials.providerevents.play.services)
+
     // Unit tests
     testImplementation(kotlin("test"))
     testImplementation(libs.junit)

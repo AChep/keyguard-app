@@ -76,6 +76,7 @@ import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogInten
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsRoute
+import com.artemchep.keyguard.feature.credentialexchange.imports.CredentialExchangeImportRoute
 import com.artemchep.keyguard.feature.export.ExportRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
@@ -721,11 +722,10 @@ private fun buildItemsFlow(
         emit(descriptionItem)
     }
 
-    if (counters.ciphers > 0 && !CurrentPlatform.hasWatch()) {
-        val quickActions = VaultViewItem.QuickActions(
-            id = "quick_actions",
-            actions = buildContextItems {
-                section {
+    if (!CurrentPlatform.hasWatch()) {
+        val quickActionItems = buildContextItems {
+            section {
+                if (counters.ciphers > 0) {
                     this += ExportRoute.actionOrNull(
                         translator = scope,
                         accountId = accountId,
@@ -741,9 +741,22 @@ private fun buildItemsFlow(
                         )
                     }
                 }
-            },
-        )
-        emit(quickActions)
+            }
+            section {
+                this += CredentialExchangeImportRoute.actionOrNull(
+                    translator = scope,
+                    accountId = accountId,
+                    navigate = scope::navigate,
+                )
+            }
+        }
+        if (quickActionItems.isNotEmpty()) {
+            val quickActions = VaultViewItem.QuickActions(
+                id = "quick_actions",
+                actions = quickActionItems,
+            )
+            emit(quickActions)
+        }
     }
 
     if (account != null) {

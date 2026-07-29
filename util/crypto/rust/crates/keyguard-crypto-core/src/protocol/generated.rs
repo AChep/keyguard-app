@@ -9,7 +9,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46"
+        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -91,6 +91,14 @@ pub mod native_request {
         AesCbcPkcs7HmacSha256Encrypt(super::AesCbcPkcs7HmacSha256EncryptRequest),
         #[prost(message, tag = "46")]
         AesCbcPkcs7HmacSha256Decrypt(super::AesCbcPkcs7HmacSha256DecryptRequest),
+        #[prost(message, tag = "48")]
+        PasskeyKeyGenerate(super::PasskeyKeyGenerateRequest),
+        #[prost(message, tag = "49")]
+        PasskeyKeyInspect(super::PasskeyKeyInspectRequest),
+        #[prost(message, tag = "50")]
+        PasskeySign(super::PasskeySignRequest),
+        #[prost(message, tag = "51")]
+        SshKeyExportCxf(super::SshKeyExportCxfRequest),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -449,6 +457,23 @@ pub struct SshAgentSignRequest {
     pub flags: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SshKeyExportCxfRequest {
+    /// Stored PEM text: OpenSSH-armored (either algorithm), PKCS#8, or PKCS#1.
+    #[prost(string, tag = "1")]
+    pub private_key_pem: ::prost::alloc::string::String,
+    /// Stored OpenSSH public key. Required to validate the key pair and to
+    /// complete legacy RSA records whose PKCS#1 public exponent is zero.
+    #[prost(string, tag = "2")]
+    pub public_key_openssh: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SshKeyExportCxfResult {
+    #[prost(enumeration = "SshKeyType", tag = "1")]
+    pub r#type: i32,
+    #[prost(bytes = "vec", tag = "2")]
+    pub private_key_pkcs8: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SshPrivateKeyImportRequest {
     #[prost(string, tag = "1")]
     pub content: ::prost::alloc::string::String,
@@ -456,6 +481,62 @@ pub struct SshPrivateKeyImportRequest {
     /// Kotlin callers can erase the owned passphrase buffer after the call.
     #[prost(bytes = "vec", optional, tag = "2")]
     pub passphrase_utf8: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+}
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct PasskeyKeyGenerateRequest {
+    #[prost(enumeration = "PasskeyAlgorithm", tag = "1")]
+    pub algorithm: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PasskeyKeyInspectRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key_pkcs8: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PasskeySignRequest {
+    #[prost(enumeration = "PasskeyAlgorithm", tag = "1")]
+    pub algorithm: i32,
+    #[prost(bytes = "vec", tag = "2")]
+    pub private_key_pkcs8: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "3")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+/// Domain payload returned by passkey generation and successful inspection.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PasskeyKeyMaterial {
+    #[prost(enumeration = "PasskeyKeyProfile", tag = "1")]
+    pub profile: i32,
+    #[prost(bytes = "vec", tag = "2")]
+    pub private_key_pkcs8: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "3")]
+    pub public_key_x: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "4")]
+    pub public_key_y: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "5")]
+    pub public_key_spki: ::prost::alloc::vec::Vec<u8>,
+}
+/// Exactly one of key_material and error must be populated.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PasskeyKeyInspection {
+    #[prost(message, optional, tag = "1")]
+    pub key_material: ::core::option::Option<PasskeyKeyMaterial>,
+    #[prost(enumeration = "PasskeyKeyError", tag = "2")]
+    pub error: i32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PasskeySignature {
+    #[prost(enumeration = "PasskeyAlgorithm", tag = "1")]
+    pub algorithm: i32,
+    #[prost(bytes = "vec", tag = "2")]
+    pub signature_der: ::prost::alloc::vec::Vec<u8>,
+}
+/// Exactly one of signature and error must be populated.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PasskeySignResult {
+    #[prost(message, optional, tag = "1")]
+    pub signature: ::core::option::Option<PasskeySignature>,
+    #[prost(enumeration = "PasskeyKeyError", tag = "2")]
+    pub error: i32,
 }
 /// Domain payload returned inside NativeResponse.bytes_value.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1205,6 +1286,90 @@ impl SshKeyType {
             "SSH_KEY_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
             "SSH_KEY_TYPE_RSA" => Some(Self::Rsa),
             "SSH_KEY_TYPE_ED25519" => Some(Self::Ed25519),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum PasskeyAlgorithm {
+    Unspecified = 0,
+    Es256 = 1,
+}
+impl PasskeyAlgorithm {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "PASSKEY_ALGORITHM_UNSPECIFIED",
+            Self::Es256 => "PASSKEY_ALGORITHM_ES256",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "PASSKEY_ALGORITHM_UNSPECIFIED" => Some(Self::Unspecified),
+            "PASSKEY_ALGORITHM_ES256" => Some(Self::Es256),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum PasskeyKeyProfile {
+    Unspecified = 0,
+    EcP256 = 1,
+}
+impl PasskeyKeyProfile {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "PASSKEY_KEY_PROFILE_UNSPECIFIED",
+            Self::EcP256 => "PASSKEY_KEY_PROFILE_EC_P256",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "PASSKEY_KEY_PROFILE_UNSPECIFIED" => Some(Self::Unspecified),
+            "PASSKEY_KEY_PROFILE_EC_P256" => Some(Self::EcP256),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum PasskeyKeyError {
+    Unspecified = 0,
+    Malformed = 1,
+    Unsupported = 2,
+    ResourceLimit = 3,
+}
+impl PasskeyKeyError {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "PASSKEY_KEY_ERROR_UNSPECIFIED",
+            Self::Malformed => "PASSKEY_KEY_ERROR_MALFORMED",
+            Self::Unsupported => "PASSKEY_KEY_ERROR_UNSUPPORTED",
+            Self::ResourceLimit => "PASSKEY_KEY_ERROR_RESOURCE_LIMIT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "PASSKEY_KEY_ERROR_UNSPECIFIED" => Some(Self::Unspecified),
+            "PASSKEY_KEY_ERROR_MALFORMED" => Some(Self::Malformed),
+            "PASSKEY_KEY_ERROR_UNSUPPORTED" => Some(Self::Unsupported),
+            "PASSKEY_KEY_ERROR_RESOURCE_LIMIT" => Some(Self::ResourceLimit),
             _ => None,
         }
     }

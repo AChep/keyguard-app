@@ -34,6 +34,8 @@ public enum class NativeCryptoCapability(
     AES_CBC_HMAC_SHA256_FAST_PATH(bit = 1L shl 21),
     AES_CBC_HMAC_SHA256_STREAMING(bit = 1L shl 22),
     RNG_FAST_PATH(bit = 1L shl 23),
+    PASSKEYS(bit = 1L shl 24),
+    SSH_CXF_EXPORT(bit = 1L shl 25),
 }
 
 public object NativeCrypto {
@@ -53,6 +55,9 @@ public object NativeCrypto {
 
     public val openPgp: NativeCryptoOpenPgp
         get() = NativeCryptoOpenPgp
+
+    public val passkeys: NativeCryptoPasskeys
+        get() = NativeCryptoPasskeys
 
     public val abiVersion: Int
         get() = client.abiVersion

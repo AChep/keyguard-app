@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass
 
+import com.artemchep.keyguard.common.io.throwIfCancellation
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenFolder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntitySyncPlan
@@ -13,7 +14,6 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncExec
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncPlanBuilder
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.strategy.EntitySyncStrategy
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 
 /**
  * Reconciles a KeePass database as a single tree rather than two independent

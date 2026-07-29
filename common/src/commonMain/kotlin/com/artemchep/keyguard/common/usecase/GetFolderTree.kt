@@ -10,6 +10,6 @@ interface GetFolderTree {
         folder: T,
         id: (T) -> String = lens,
         parentId: (T) -> String? = { null },
-        hierarchyMode: FolderHierarchyMode = FolderHierarchyMode.Path,
+        hierarchyMode: (T) -> FolderHierarchyMode = { FolderHierarchyMode.Path },
     ): DFolderTree2<T>
 }

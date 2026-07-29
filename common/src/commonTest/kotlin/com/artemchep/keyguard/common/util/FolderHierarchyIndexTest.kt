@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class FolderHierarchyIndexTest {
@@ -70,12 +71,31 @@ class FolderHierarchyIndexTest {
         path = path,
     )
 
+    /** Asserts the reachability invariant documented on [FolderHierarchyIndex]. */
+    private fun <T : Any> assertEveryNodeIsReachable(index: FolderHierarchyIndex<T>) {
+        val reachable = mutableSetOf<FolderHierarchyKey>()
+        val pending = ArrayDeque(index.childrenOf(null))
+        while (pending.isNotEmpty()) {
+            val node = pending.removeFirst()
+            if (!reachable.add(node.key)) {
+                continue
+            }
+            pending += index.childrenOf(node.key)
+        }
+        assertEquals(
+            index.nodes.map { it.key }.toSet(),
+            reachable,
+            "every node must be reachable from childrenOf(null)",
+        )
+    }
+
     @Test
     fun `parent-id cycle of two nodes re-roots both`() {
         // A.parent = B, B.parent = A.
         val a = parentIdFolder(id = "A", parentId = "B")
         val b = parentIdFolder(id = "B", parentId = "A")
         val index = index(listOf(a, b))
+        assertEveryNodeIsReachable(index)
 
         val rootIds = index.childrenOf(null)
             .map { (it.key as FolderHierarchyKey.Id).folderId }
@@ -111,6 +131,7 @@ class FolderHierarchyIndexTest {
     fun `self-parent re-roots the node`() {
         val a = parentIdFolder(id = "A", parentId = "A")
         val index = index(listOf(a))
+        assertEveryNodeIsReachable(index)
 
         val roots = index.childrenOf(null)
         assertEquals(listOf(idKey("A")), roots.map { it.key })
@@ -126,6 +147,7 @@ class FolderHierarchyIndexTest {
         // A points at a parent id that does not exist in the account.
         val a = parentIdFolder(id = "A", parentId = "missing")
         val index = index(listOf(a))
+        assertEveryNodeIsReachable(index)
 
         assertEquals(listOf(idKey("A")), index.childrenOf(null).map { it.key })
         assertNull(index.node(idKey("A"))!!.parentKey)
@@ -139,6 +161,7 @@ class FolderHierarchyIndexTest {
         val parentOther = parentIdFolder(id = "P", parentId = null, accountId = "other")
         val a = parentIdFolder(id = "A", parentId = "P", accountId = "acc")
         val index = index(listOf(parentOther, a))
+        assertEveryNodeIsReachable(index)
 
         // A re-roots under its own account; it does not link to "other"'s P.
         assertNull(index.node(idKey("A", accountId = "acc"))!!.parentKey)
@@ -172,6 +195,7 @@ class FolderHierarchyIndexTest {
         val acc2Parent = parentIdFolder(id = "P", parentId = null, accountId = "acc2")
         val acc2Child = parentIdFolder(id = "C", parentId = "P", accountId = "acc2")
         val index = index(listOf(acc1Parent, acc1Child, acc2Parent, acc2Child))
+        assertEveryNodeIsReachable(index)
 
         // acc1's child links to acc1's parent, never acc2's.
         assertEquals(
@@ -207,6 +231,7 @@ class FolderHierarchyIndexTest {
         val second = pathFolder(path = "a/b", id = "second")
         val parent = pathFolder(path = "a", id = "parent")
         val index = index(listOf(parent, first, second))
+        assertEveryNodeIsReachable(index)
 
         val firstNode = index.node(pathKey(path = "a/b", folderId = "first"))!!
         val secondNode = index.node(pathKey(path = "a/b", folderId = "second"))!!
@@ -255,6 +280,7 @@ class FolderHierarchyIndexTest {
         val mid = parentIdFolder(id = "mid", parentId = "root")
         val leaf = parentIdFolder(id = "leaf", parentId = "mid")
         val index = index(listOf(root, mid, leaf))
+        assertEveryNodeIsReachable(index)
 
         val rootDepth = index.node(idKey("root"))!!.depth
         val midDepth = index.node(idKey("mid"))!!.depth
@@ -274,6 +300,7 @@ class FolderHierarchyIndexTest {
         val childB = parentIdFolder(id = "childB", parentId = "root")
         val grandchild = parentIdFolder(id = "grandchild", parentId = "childA")
         val index = index(listOf(root, childA, childB, grandchild))
+        assertEveryNodeIsReachable(index)
 
         val descendantsOfRoot = index.descendantsOf(idKey("root"))
         assertEquals(
@@ -317,11 +344,90 @@ class FolderHierarchyIndexTest {
         val second = pathFolder(path = "a/b", id = "second")
         val parent = pathFolder(path = "a", id = "parent")
         val index = index(listOf(parent, first, second))
+        assertEveryNodeIsReachable(index)
 
         val descendantsOfParent = index.descendantsOf(
             pathKey(path = "a", folderId = "parent"),
         )
         assertEquals(setOf(parent, first, second), descendantsOfParent.toSet())
         assertEquals(descendantsOfParent.size, descendantsOfParent.distinct().size)
+    }
+
+    @Test
+    fun `a parent-id folder does not adopt a path folder as its parent`() {
+        // The parent id resolves to a Path-mode row, which is keyed by its path,
+        // so the edge would dangle. Folders are partitioned by hierarchy mode
+        // before their records are built, so neither mode can see the other's
+        // rows; the mirror case — a path folder declining a same-named ParentId
+        // row as its path parent — is pinned by the reachability case below.
+        val p = pathFolder(path = "P", id = "P")
+        val c = parentIdFolder(id = "C", parentId = "P")
+        val index = index(listOf(p, c))
+        assertEveryNodeIsReachable(index)
+
+        assertNull(index.node(idKey("C"))!!.parentKey)
+        assertEquals(1, index.node(idKey("C"))!!.depth)
+        // Both rows land in the root key space, each under its own kind of key.
+        assertEquals(
+            setOf(pathKey("P"), idKey("C")),
+            index.childrenOf(null).map { it.key }.toSet(),
+        )
+    }
+
+    @Test
+    fun `every node is reachable from childrenOf(null)`() {
+        // A mixed-mode account with a cross-mode name collision, a real path
+        // chain, a real parent-id chain and a cycle, all at once.
+        val index = index(
+            listOf(
+                parentIdFolder(id = "A", parentId = null),
+                pathFolder(path = "A/B", id = "ab"),
+                pathFolder(path = "A/B/C", id = "abc"),
+                parentIdFolder(id = "child", parentId = "A"),
+                parentIdFolder(id = "loopA", parentId = "loopB"),
+                parentIdFolder(id = "loopB", parentId = "loopA"),
+            ),
+        )
+        assertEveryNodeIsReachable(index)
+        // The colliding path folder does not adopt the same-named ParentId row —
+        // that would mint a Path(acc, "A") parentKey no node carries — so it
+        // keeps its whole path, and its own child still nests under it.
+        val ab = pathKey("A/B", folderId = "ab")
+        assertNull(index.node(ab)!!.parentKey)
+        assertEquals("A/B", index.node(ab)!!.name)
+        assertEquals(ab, index.node(pathKey("A/B/C", folderId = "abc"))!!.parentKey)
+    }
+
+    @Test
+    fun `nodes covers every key exactly once`() {
+        val parent = pathFolder(path = "a", id = "parent")
+        val first = pathFolder(path = "a/b", id = "first")
+        val second = pathFolder(path = "a/b", id = "second")
+        val index = index(listOf(parent, first, second))
+        assertEveryNodeIsReachable(index)
+
+        // Every physical folder keeps its own key, in first-appearance order of
+        // the records -- the two same-path rows do not collapse onto each other.
+        assertEquals(
+            listOf(
+                pathKey("a", folderId = "parent"),
+                pathKey("a/b", folderId = "first"),
+                pathKey("a/b", folderId = "second"),
+            ),
+            index.nodes.map { it.key },
+        )
+    }
+
+    @Test
+    fun `keyOf and nodeOf agree with the index keying rule`() {
+        val path = pathFolder(path = "a/b", id = "first")
+        val byId = parentIdFolder(id = "X", parentId = null)
+        val index = index(listOf(path, byId))
+        assertEveryNodeIsReachable(index)
+
+        assertEquals(pathKey("a/b", folderId = "first"), index.keyOf(path))
+        assertEquals(idKey("X"), index.keyOf(byId))
+        assertSame(index.node(index.keyOf(path)), index.nodeOf(path))
+        assertSame(index.node(index.keyOf(byId)), index.nodeOf(byId))
     }
 }

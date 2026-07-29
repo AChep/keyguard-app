@@ -17,6 +17,11 @@ public data class NativeSshKeyMaterial(
     val publicKey: ByteArray,
 )
 
+public data class NativeSshKeyCxfExport(
+    val type: NativeSshKeyType,
+    val privateKeyPkcs8: ByteArray,
+)
+
 public data class NativeSshKeyDescription(
     val privateKeyPem: String,
     val publicKeyOpenSsh: String,
@@ -180,6 +185,49 @@ public object NativeCryptoSsh {
             .value
             .takeIf(String::isNotEmpty)
             ?: malformed("ssh_private_key_format")
+    }
+
+    /**
+     * Validates a stored SSH public/private key pair and emits the private key
+     * as the PKCS#8 DER required by Credential Exchange Format. Legacy RSA
+     * records with missing CRT values are completed inside the native sensitive
+     * backend before export. Ed25519 is normalized to the broadly interoperable
+     * RFC 8410 v1 form; RSA uses an explicit NULL rsaEncryption parameter.
+     */
+    public fun exportCxf(
+        privateKeyPem: String,
+        publicKeyOpenSsh: String,
+    ): NativeSshKeyCxfExport {
+        requireEncodedKeyBounds(privateKeyPem, publicKeyOpenSsh)
+        val payload = NativeCrypto.call(
+            operationName = "ssh_key_export_cxf",
+            operation = SshKeyExportCxfOperationProto(
+                SshKeyExportCxfRequestProto(
+                    privateKeyPem = privateKeyPem,
+                    publicKeyOpenSsh = publicKeyOpenSsh,
+                ),
+            ),
+        ).requireBytes("ssh_key_export_cxf")
+        val value = decodePayload<SshKeyExportCxfResultProto>(
+            operation = "ssh_key_export_cxf",
+            payload = payload,
+        )
+        return try {
+            val type = value.type.toPublic("ssh_key_export_cxf")
+            if (
+                value.privateKeyPkcs8.isEmpty() ||
+                value.privateKeyPkcs8.size > MAX_KEY_BYTES
+            ) {
+                malformed("ssh_key_export_cxf")
+            }
+            NativeSshKeyCxfExport(
+                type = type,
+                privateKeyPkcs8 = value.privateKeyPkcs8,
+            )
+        } catch (failure: Throwable) {
+            value.privateKeyPkcs8.fill(0)
+            throw failure
+        }
     }
 
     public fun sign(

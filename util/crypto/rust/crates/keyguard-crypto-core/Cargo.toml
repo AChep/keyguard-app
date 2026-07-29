@@ -31,6 +31,7 @@ pkcs8 = { workspace = true, features = ["alloc"] }
 pgp.workspace = true
 prost.workspace = true
 rand.workspace = true
+sec1.workspace = true
 rc2.workspace = true
 salsa20.workspace = true
 ssh-key = { path = "../../../../../thirdParty/rust/ssh-key-0.6.7-keyguard", default-features = false, features = ["keyguard-decryption", "std"] }

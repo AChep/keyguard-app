@@ -16,6 +16,18 @@ naming:
       - 'Composable'
 
 style:
+  ForbiddenImport:
+    active: true
+    # `runCatchingUntrustedInput` absorbs StackOverflowError and
+    # OutOfMemoryError, which is only defensible at a boundary that parses a
+    # whole document handed over by another application and throws the
+    # half-built result away entirely. Read its KDoc in
+    # common/io/RunCatchingGuards.kt before adding a file here.
+    forbiddenImports:
+      - reason: 'Only the CXF import document boundary may absorb StackOverflowError/OutOfMemoryError.'
+        value: 'com.artemchep.keyguard.common.io.runCatchingUntrustedInput'
+    excludes:
+      - '**/credentialexchange/impl/CxfImportServiceImpl.kt'
   MagicNumber:
     ignoreAnnotation: true
   UnusedPrivateFunction:

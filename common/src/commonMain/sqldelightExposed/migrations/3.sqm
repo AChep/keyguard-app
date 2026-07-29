@@ -1,0 +1,11 @@
+CREATE TABLE account (
+  accountId TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  host TEXT NOT NULL
+);
+
+CREATE TABLE credentialExchangeExportEntry (
+  accountId TEXT NOT NULL PRIMARY KEY,
+  entryId TEXT NOT NULL
+);

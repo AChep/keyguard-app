@@ -23,7 +23,7 @@ class GetFolderTreeImpl() : GetFolderTree {
         folder: T,
         id: (T) -> String,
         parentId: (T) -> String?,
-        hierarchyMode: FolderHierarchyMode,
+        hierarchyMode: (T) -> FolderHierarchyMode,
     ): DFolderTree2<T> {
         val hierarchy = createFolderHierarchy(
             lens = lens,

@@ -300,6 +300,7 @@ kotlin {
                 api(libs.androidx.core.splashscreen)
                 api(libs.androidx.core.shortcuts)
                 api(libs.androidx.credentials)
+                api(libs.androidx.credentials.providerevents)
                 api(libs.androidx.datastore)
                 api(libs.androidx.lifecycle.livedata.ktx)
                 api(libs.androidx.lifecycle.process)

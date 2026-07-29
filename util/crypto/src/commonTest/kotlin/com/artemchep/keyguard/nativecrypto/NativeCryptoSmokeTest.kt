@@ -17,9 +17,11 @@ class NativeCryptoSmokeTest {
             expected = hex("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"),
             actual = NativeCrypto.primitives.sha256("abc".encodeToByteArray()),
         )
-        repeat(300) {
-            assertTrue(NativeCrypto.primitives.randomInt(1_000) in 0 until 1_000)
-        }
+        // A handful of draws: in range, and actually varying — a stub answering a
+        // constant (0, say) satisfies the bound but is not a random source.
+        val draws = List(16) { NativeCrypto.primitives.randomInt(1_000) }
+        assertTrue(draws.all { it in 0 until 1_000 }, "out of range draw in $draws")
+        assertTrue(draws.toSet().size > 1, "randomInt answered a constant: $draws")
     }
 
     @Test
@@ -397,6 +399,94 @@ class NativeCryptoSmokeTest {
             rsaSignature?.fill(0)
             message.fill(0)
         }
+    }
+
+    @Test
+    fun exportsValidatedEd25519AndRsaPairsForCxfThroughTheRealNativeLibrary() {
+        listOf(
+            NativeSshKeyType.ED25519 to null,
+            NativeSshKeyType.RSA to 1024,
+        ).forEach { (type, rsaBits) ->
+            val material = NativeCrypto.ssh.generate(type, rsaBits)
+            var exported: NativeSshKeyCxfExport? = null
+            try {
+                val description = NativeCrypto.ssh.describe(
+                    type = material.type,
+                    privateKey = material.privateKey,
+                    publicKey = material.publicKey,
+                )
+                val result = NativeCrypto.ssh.exportCxf(
+                    privateKeyPem = description.privateKeyPem,
+                    publicKeyOpenSsh = description.publicKeyOpenSsh,
+                )
+                exported = result
+
+                assertEquals(type, result.type)
+                assertTrue(result.privateKeyPkcs8.isNotEmpty())
+                assertEquals(0x30.toByte(), result.privateKeyPkcs8.first())
+            } finally {
+                material.privateKey.fill(0)
+                exported?.privateKeyPkcs8?.fill(0)
+            }
+        }
+    }
+
+    @Test
+    fun exportsEd25519OpenSshToTheIndependentPkcs8GoldenVector() {
+        // Ed25519 OpenSSH key (`ssh-keygen -t ed25519`). The expected DER is an
+        // RFC 8410 PKCS#8 v1 template assembled independently from the key's
+        // 32-byte seed.
+        val goldenPem = listOf(
+            "-----BEGIN OPENSSH PRIVATE KEY-----",
+            "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW",
+            "QyNTUxOQAAACCRW3vhbnH4ErsDEybqMu75IyghrTkyzDa30aKoSWgnkgAAAJBlR0JRZUdC",
+            "UQAAAAtzc2gtZWQyNTUxOQAAACCRW3vhbnH4ErsDEybqMu75IyghrTkyzDa30aKoSWgnkg",
+            "AAAEBJ9Y0pa8/Bvf2KAtsI7ulbNYoG6KAFTolkWkCCiMFaFJFbe+FucfgSuwMTJuoy7vkj",
+            "KCGtOTLMNrfRoqhJaCeSAAAADWtleWd1YXJkLXRlc3Q=",
+            "-----END OPENSSH PRIVATE KEY-----",
+        ).joinToString("\n", postfix = "\n")
+        val goldenPublic =
+            "ssh-ed25519 " +
+                "AAAAC3NzaC1lZDI1NTE5AAAAIJFbe+FucfgSuwMTJuoy7vkjKCGtOTLMNrfRoqhJaCeS"
+
+        val exported = NativeCrypto.ssh.exportCxf(
+            privateKeyPem = goldenPem,
+            publicKeyOpenSsh = goldenPublic,
+        )
+        try {
+            assertEquals(NativeSshKeyType.ED25519, exported.type)
+            assertContentEquals(
+                expected = hex(
+                    "302e020100300506032b65700422042049f58d296bcfc1bdfd8a02db08eee95b" +
+                        "358a06e8a0054e89645a408288c15a14",
+                ),
+                actual = exported.privateKeyPkcs8,
+            )
+        } finally {
+            exported.privateKeyPkcs8.fill(0)
+        }
+    }
+
+    @Test
+    fun exportCxfRejectsAnEncryptedOpenSshKey() {
+        // An unconvertible key must surface as a NativeCryptoException, which is
+        // what NativeSshKeyPkcs8Exporter folds into a single skipped credential.
+        val encryptedPem = listOf(
+            "-----BEGIN OPENSSH PRIVATE KEY-----",
+            "b3BlbnNzaC1rZXktdjEAAAAACmFlczI1Ni1jdHIAAAAGYmNyeXB0AAAAGAAAABDdgMlS4S",
+            "not-real-key-material",
+            "-----END OPENSSH PRIVATE KEY-----",
+        ).joinToString("\n", postfix = "\n")
+
+        val error = assertFailsWith<NativeCryptoException> {
+            NativeCrypto.ssh.exportCxf(
+                privateKeyPem = encryptedPem,
+                publicKeyOpenSsh =
+                    "ssh-ed25519 " +
+                        "AAAAC3NzaC1lZDI1NTE5AAAAIJFbe+FucfgSuwMTJuoy7vkjKCGtOTLMNrfRoqhJaCeS",
+            )
+        }
+        assertEquals(NativeCryptoErrorCode.INVALID_ARGUMENT, error.code)
     }
 
     private fun hex(value: String): ByteArray = value

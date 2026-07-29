@@ -14,6 +14,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LoadingTask(
@@ -31,7 +33,7 @@ class LoadingTask(
 
     private val errorSink = EventFlow<Failure>()
 
-    val isExecutingFlow get() = isWorkingSink
+    val isExecutingFlow: StateFlow<Boolean> = isWorkingSink.asStateFlow()
 
     val errorFlow: Flow<Failure> = errorSink
 
@@ -44,37 +46,42 @@ class LoadingTask(
     /**
      * Executes given task if the manager is
      * not working, otherwise skips it.
+     *
+     * Returns `true` when this call claimed the executor and scheduled the
+     * task, or `false` when another task already owns it.
      */
     fun execute(
         io: IO<*>,
         tag: String? = null,
-    ) {
-        scope.launch {
-            if (isWorkingSink.value) {
-                return@launch
-            }
-            isWorkingSink.value = true
-            try {
-                val result = io.attempt().bind()
-                if (result is Either.Left<Throwable>) {
-                    val parsedMessage = exceptionHandler(result.value)
-                    val message = Failure(
-                        tag = tag,
-                        title = parsedMessage.title,
-                        text = parsedMessage.text,
-                    )
-                    result.value.printStackTrace()
-                    errorSink.emit(message)
-                } else {
-                    // Normally executing a task navigates the user somewhere. We
-                    // artificially slow down the execution of the task, so the app state
-                    // changes before the user is able to interact with the button again.
-                    delay(60L)
-                }
-            } finally {
-                isWorkingSink.value = false
+    ): Boolean {
+        if (!isWorkingSink.compareAndSet(expect = false, update = true)) {
+            return false
+        }
+        val job = scope.launch {
+            val result = io.attempt().bind()
+            if (result is Either.Left<Throwable>) {
+                val parsedMessage = exceptionHandler(result.value)
+                val message = Failure(
+                    tag = tag,
+                    title = parsedMessage.title,
+                    text = parsedMessage.text,
+                )
+                result.value.printStackTrace()
+                errorSink.emit(message)
+            } else {
+                // Normally executing a task navigates the user somewhere. We
+                // artificially slow down the execution of the task, so the app state
+                // changes before the user is able to interact with the button again.
+                delay(60L)
             }
         }
+        // A default-start coroutine may be cancelled before its body executes,
+        // so releasing from the body alone can leave the executor stuck. A job
+        // completion handler also covers that path and is invoked exactly once.
+        job.invokeOnCompletion {
+            isWorkingSink.value = false
+        }
+        return true
     }
 }
 

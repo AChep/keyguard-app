@@ -294,29 +294,17 @@ class FolderBrowseTreeTest {
             parent = null,
         )
 
+        // The ancestor is itself filtered out, yet it must stay on screen as the
+        // only route to the matching descendant...
         assertEquals(listOf("Work"), root.items.map { it.name })
         assertTrue(root.items.single().hasVisibleChildren)
-    }
 
-    @Test
-    fun `empty folder mode keeps branch navigation to matching descendants`() {
-        val folders = listOf(
-            folder(id = "1", name = "Work"),
-            folder(id = "2", name = "Work/Clients"),
-        )
-
-        val root = buildFolderBrowseTree(
-            folders = folders,
-            visibleFolderIds = setOf("2"),
-            parent = null,
-        )
+        // ...and drilling into it must actually reach that descendant.
         val children = buildFolderBrowseTree(
             folders = folders,
             visibleFolderIds = setOf("2"),
             parent = root.items.single().anchor,
         )
-
-        assertEquals(listOf("Work"), root.items.map { it.name })
         assertEquals(listOf("Clients"), children.items.map { it.name })
     }
 
@@ -574,8 +562,10 @@ class FolderBrowseTreeTest {
             folder(id = "3", name = "A/B/C"),
         )
 
-        // Same leaf path as the collapsed case above, but with real `A` and
-        // `A/B` folders the tree must expose three distinct nesting levels.
+        // A bare `A/B/C` with no real ancestors collapses into a single root node
+        // (see `path folders with missing ancestors are exposed as real roots`);
+        // with real `A` and `A/B` folders the same leaf path must instead expose
+        // three distinct nesting levels.
         val visibleFolderIds = folders.mapTo(mutableSetOf()) { it.id }
         val root = buildFolderBrowseTree(
             folders = folders,

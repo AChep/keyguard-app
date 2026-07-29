@@ -31,9 +31,9 @@ import com.artemchep.keyguard.android.CredentialErrorAdvanced
 import com.artemchep.keyguard.android.PasswordProviderGetActivityArgs
 import com.artemchep.keyguard.android.PasskeyProviderGetActivityArgs
 import com.artemchep.keyguard.android.UiStateError
-import com.artemchep.keyguard.android.UserVerificationState
-import com.artemchep.keyguard.android.produceUserVerificationState
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.feature.auth.userverification.UserVerificationState
+import com.artemchep.keyguard.feature.auth.userverification.produceUserVerificationState
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.yubikey.YubiKeyPromptEffect
 import com.artemchep.keyguard.res.Res

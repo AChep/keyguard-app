@@ -273,6 +273,31 @@ pub fn complete_rsa_pkcs1_der(
     build_key_from_provided_crt(validated, crt)?.to_pkcs1_der()
 }
 
+/// Completes and validates RSA private components, returning canonical PKCS#1 DER.
+///
+/// Existing compatibility records can contain only `n/e/d`. Their CRT values
+/// are reconstructed with the same bounded arithmetic used by private
+/// operations. Complete records are admitted through the provided-CRT path.
+/// AWS-LC validates the resulting key before it is serialized.
+///
+/// # Errors
+///
+/// Returns [`SensitiveRsaError::InvalidKey`] when the supplied components are
+/// malformed, mathematically inconsistent, or cannot be completed within the
+/// bounded recovery policy. Allocation and backend failures retain their
+/// corresponding [`SensitiveRsaError`] variants.
+pub fn complete_rsa_pkcs1_der_from_components(
+    components: &RsaPrivateComponents,
+) -> Result<Zeroizing<Vec<u8>>, SensitiveRsaError> {
+    aws_lc::init();
+    let validated = components.validated()?;
+    let key = match validated.crt {
+        Some(crt) => build_key_from_provided_crt(validated, crt)?,
+        None => build_key_with_recovered_crt(validated)?,
+    };
+    key.to_pkcs1_der()
+}
+
 /// Signs a message using RSA PKCS#1 v1.5 and the selected SSH hash.
 ///
 /// Complete CRT inputs are used directly. Missing CRT inputs are reconstructed
@@ -1031,6 +1056,26 @@ mod tests {
         let signature = sign_rsa_pkcs1_v1_5(&components, RsaSignatureHash::Sha256, PARITY_MESSAGE)
             .expect("incomplete RSA key must reconstruct");
         assert_eq!(signature, decode_hex(PARITY_SHA256_SIGNATURE_HEX));
+    }
+
+    #[test]
+    fn incomplete_n_e_d_serializes_as_a_valid_complete_pkcs1_key() {
+        let components = RsaPrivateComponents::new(
+            decode_hex(PARITY_MODULUS_HEX),
+            decode_hex("010001"),
+            decode_hex(PARITY_PRIVATE_EXPONENT_HEX),
+            None,
+        );
+
+        let der = complete_rsa_pkcs1_der_from_components(&components)
+            .expect("incomplete RSA key must serialize after CRT recovery");
+        let key = parse_pkcs1_der(&der);
+        let completed = components_from_key(&key);
+
+        assert_eq!(completed.modulus, components.modulus);
+        assert_eq!(completed.public_exponent, components.public_exponent);
+        assert_eq!(completed.private_exponent, components.private_exponent);
+        assert!(completed.crt.is_some());
     }
 
     #[test]

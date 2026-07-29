@@ -432,6 +432,44 @@ impl Drop for SshPrivateKeyImportRequest {
     }
 }
 
+impl Drop for SshKeyExportCxfRequest {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.private_key_pem);
+        debug_assert!(
+            self.private_key_pem
+                .as_bytes()
+                .iter()
+                .all(|byte| *byte == 0)
+        );
+        #[cfg(test)]
+        record_zeroized_secret_request_drop();
+    }
+}
+
+impl Drop for PasskeyKeyInspectRequest {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.private_key_pkcs8);
+        debug_assert!(self.private_key_pkcs8.iter().all(|byte| *byte == 0));
+        #[cfg(test)]
+        record_zeroized_secret_request_drop();
+    }
+}
+
+impl Drop for PasskeySignRequest {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.private_key_pkcs8);
+        zeroize::Zeroize::zeroize(&mut self.data);
+        debug_assert!(
+            self.private_key_pkcs8
+                .iter()
+                .chain(&self.data)
+                .all(|byte| *byte == 0)
+        );
+        #[cfg(test)]
+        record_zeroized_secret_request_drop();
+    }
+}
+
 impl Drop for OpenPgpVerifyRequest {
     fn drop(&mut self) {
         zeroize::Zeroize::zeroize(&mut self.content);
@@ -598,6 +636,24 @@ impl Drop for SshKeyMaterial {
     fn drop(&mut self) {
         zeroize::Zeroize::zeroize(&mut self.private_key);
         debug_assert!(self.private_key.iter().all(|byte| *byte == 0));
+        #[cfg(test)]
+        record_zeroized_secret_output_drop();
+    }
+}
+
+impl Drop for SshKeyExportCxfResult {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.private_key_pkcs8);
+        debug_assert!(self.private_key_pkcs8.iter().all(|byte| *byte == 0));
+        #[cfg(test)]
+        record_zeroized_secret_output_drop();
+    }
+}
+
+impl Drop for PasskeyKeyMaterial {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.private_key_pkcs8);
+        debug_assert!(self.private_key_pkcs8.iter().all(|byte| *byte == 0));
         #[cfg(test)]
         record_zeroized_secret_output_drop();
     }

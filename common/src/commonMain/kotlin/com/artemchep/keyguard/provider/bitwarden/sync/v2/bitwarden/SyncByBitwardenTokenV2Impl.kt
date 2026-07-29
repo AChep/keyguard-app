@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.biFlatTap
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.measure
+import com.artemchep.keyguard.common.io.throwIfCancellation
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.AccountTask
 import com.artemchep.keyguard.common.model.SyncProgress
@@ -64,7 +65,6 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.SendSyncO
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncConfig
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.SyncCoordinator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.requireFolderSyncCompletedBeforeCiphers
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.CipherSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.CollectionSyncStrategy
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.strategy.FolderSyncStrategy

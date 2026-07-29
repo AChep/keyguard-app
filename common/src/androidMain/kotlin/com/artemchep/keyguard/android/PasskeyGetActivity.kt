@@ -8,101 +8,46 @@ import android.os.Bundle
 import android.os.Parcelable
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardActionScope
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.GetCredentialUnknownException
 import androidx.credentials.provider.PendingIntentHandler
 import androidx.lifecycle.lifecycleScope
-import arrow.optics.optics
 import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.bind
-import com.artemchep.keyguard.common.io.effectTap
-import com.artemchep.keyguard.common.io.ioRaise
-import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.AddCipherUsedPasskeyHistoryRequest
-import com.artemchep.keyguard.common.model.BiometricAuthException
-import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
-import com.artemchep.keyguard.common.model.BiometricStatus
-import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.model.PureBiometricAuthPrompt
-import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.VaultState
-import com.artemchep.keyguard.common.model.YubiKeyAuthPrompt
-import com.artemchep.keyguard.common.model.getOrNull
-import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
-import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
-import com.artemchep.keyguard.common.usecase.ConfirmAccessByPasswordUseCase
-import com.artemchep.keyguard.common.usecase.ConfirmAccessByYubiKeyUseCase
-import com.artemchep.keyguard.common.usecase.GetBiometricRequireConfirmation
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetPrivilegedApps
 import com.artemchep.keyguard.common.usecase.GetVaultSession
-import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.common.util.flow.EventFlow
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.auth.common.Validated
-import com.artemchep.keyguard.feature.auth.common.textFieldHandle
-import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
-import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
+import com.artemchep.keyguard.feature.auth.userverification.UserVerificationRoute
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
-import com.artemchep.keyguard.feature.keyguard.unlock.UnlockScreenContainer
-import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
-import com.artemchep.keyguard.feature.loading.LoadingTask
-import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationNode
-import com.artemchep.keyguard.feature.navigation.Route
-import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.feature.yubikey.YubiKeyPromptEffect
 import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
-import com.artemchep.keyguard.ui.OtherScaffold
-import com.artemchep.keyguard.ui.PasswordFlatTextField
-import com.artemchep.keyguard.ui.focus.FocusRequester2
-import com.artemchep.keyguard.ui.focus.focusRequester2
-import com.artemchep.keyguard.ui.icons.KeyguardYubiKey
 import org.jetbrains.compose.resources.getString as getComposeString
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlinx.parcelize.Parcelize
 import org.kodein.di.*
-import org.kodein.di.compose.localDI
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class PasskeyGetActivity : BaseActivity(), DIAware {
@@ -345,392 +290,5 @@ class PasskeyGetActivity : BaseActivity(), DIAware {
         request = getCredentialRequest,
         args = args,
         userVerified = userVerified,
-    )
-}
-
-class UserVerificationRoute(
-    private val onAuthenticated: () -> Unit,
-) : Route {
-    @Composable
-    override fun Content(
-    ) {
-        UserVerificationScreen(
-            onAuthenticated = onAuthenticated,
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun UserVerificationScreen(
-    onAuthenticated: () -> Unit,
-) {
-    val state = produceUserVerificationState(
-        onAuthenticated = onAuthenticated,
-    )
-    val content = state.content.getOrNull()
-        ?: return
-
-    BiometricPromptEffect(content.sideEffects.showBiometricPromptFlow)
-    YubiKeyPromptEffect(content.sideEffects.showYubiKeyPromptFlow)
-    OtherScaffold {
-        UnlockScreenContainer(
-            top = {
-                Text(
-                    textAlign = TextAlign.Center,
-                    text = stringResource(Res.string.userverification_header_text),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            },
-            center = {
-                val requester = remember {
-                    FocusRequester2()
-                }
-                val keyboardOnGo: (KeyboardActionScope.() -> Unit)? =
-                    if (content.onVerify != null) {
-                        // lambda
-                        {
-                            content.onVerify.invoke()
-                        }
-                    } else {
-                        null
-                    }
-                PasswordFlatTextField(
-                    modifier = Modifier
-                        .focusRequester2(requester),
-                    testTag = "field:password",
-                    value = content.password,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Go,
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onGo = keyboardOnGo,
-                    ),
-                )
-                LaunchedEffect(requester) {
-                    delay(80L)
-                    if (content.biometric == null && content.yubiKey == null) {
-                        requester.requestFocus()
-                    }
-                }
-            },
-            bottom = {
-                val onUnlockButtonClick by rememberUpdatedState(
-                    content.onVerify,
-                )
-                Button(
-                    modifier = Modifier
-                        .testTag("btn:go")
-                        .fillMaxWidth(),
-                    enabled = content.onVerify != null,
-                    onClick = {
-                        onUnlockButtonClick?.invoke()
-                    },
-                ) {
-                    Text(
-                        text = stringResource(Res.string.userverification_button_go),
-                    )
-                }
-                val onBiometricButtonClick by rememberUpdatedState(
-                    content.biometric?.onClick,
-                )
-                val onYubiKeyButtonClick by rememberUpdatedState(
-                    content.yubiKey?.onClick,
-                )
-                ExpandedIfNotEmpty(
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally),
-                    valueOrNull = Unit.takeIf {
-                        content.biometric != null || content.yubiKey != null
-                    },
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(top = 32.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        if (content.biometric != null) {
-                            Button(
-                                enabled = content.biometric.onClick != null,
-                                shapes = ButtonDefaults.shapes(),
-                                colors = ButtonDefaults.outlinedButtonColors(),
-                                elevation = null,
-                                border = ButtonDefaults.outlinedButtonBorder(
-                                    enabled = content.biometric.onClick != null,
-                                ),
-                                onClick = {
-                                    onBiometricButtonClick?.invoke()
-                                },
-                                contentPadding = PaddingValues(16.dp),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Fingerprint,
-                                    contentDescription = null,
-                                )
-                            }
-                        }
-                        if (content.yubiKey != null) {
-                            Button(
-                                enabled = content.yubiKey.onClick != null,
-                                shapes = ButtonDefaults.shapes(),
-                                colors = ButtonDefaults.outlinedButtonColors(),
-                                elevation = null,
-                                border = ButtonDefaults.outlinedButtonBorder(
-                                    enabled = content.yubiKey.onClick != null,
-                                ),
-                                onClick = {
-                                    onYubiKeyButtonClick?.invoke()
-                                },
-                                contentPadding = PaddingValues(16.dp),
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.KeyguardYubiKey,
-                                    contentDescription = null,
-                                )
-                            }
-                        }
-                    }
-                }
-            },
-        )
-    }
-}
-
-@Immutable
-data class UserVerificationState(
-    val content: Loadable<Content> = Loadable.Loading,
-) {
-    @Immutable
-    data class Content(
-        val sideEffects: UnlockState.SideEffects,
-        val password: TextFieldModel,
-        val biometric: Biometric? = null,
-        val yubiKey: YubiKey? = null,
-        val isLoading: Boolean = false,
-        val onVerify: (() -> Unit)? = null,
-    )
-
-    @Immutable
-    @optics
-    data class Biometric(
-        val onClick: (() -> Unit)? = null,
-    ) {
-        companion object
-    }
-
-    @Immutable
-    @optics
-    data class YubiKey(
-        val onClick: (() -> Unit)? = null,
-    ) {
-        companion object
-    }
-}
-
-private const val DEFAULT_PASSWORD = ""
-
-@Composable
-fun produceUserVerificationState(
-    onAuthenticated: () -> Unit,
-): UserVerificationState = with(localDI().direct) {
-    produceUserVerificationState(
-        onAuthenticated = onAuthenticated,
-        biometricStatusUseCase = instance(),
-        getBiometricRequireConfirmation = instance(),
-        confirmAccessByPasswordUseCase = instance(),
-        confirmAccessByYubiKeyUseCase = instance(),
-        windowCoroutineScope = instance(),
-    )
-}
-
-@Composable
-fun produceUserVerificationState(
-    onAuthenticated: () -> Unit,
-    biometricStatusUseCase: BiometricStatusUseCase,
-    getBiometricRequireConfirmation: GetBiometricRequireConfirmation,
-    confirmAccessByPasswordUseCase: ConfirmAccessByPasswordUseCase,
-    confirmAccessByYubiKeyUseCase: ConfirmAccessByYubiKeyUseCase,
-    windowCoroutineScope: WindowCoroutineScope,
-): UserVerificationState = produceScreenState(
-    key = "user_verification",
-    initial = UserVerificationState(),
-    args = arrayOf(
-        windowCoroutineScope,
-    ),
-) {
-    val executor = screenExecutor()
-
-    val passwordHandle = textFieldHandle("password", initial = DEFAULT_PASSWORD)
-    val yubiKeyRequest = confirmAccessByYubiKeyUseCase()
-        .attempt()
-        .bind()
-        .getOrNull()
-
-    val biometricPrompt = kotlin.run {
-        val biometricStatus = biometricStatusUseCase()
-            .toIO()
-            .attempt()
-            .bind()
-            .getOrNull()
-        when (biometricStatus) {
-            is BiometricStatus.Available -> {
-                val requireConfirmation = getBiometricRequireConfirmation()
-                    .first()
-                createPromptOrNull(
-                    executor = executor,
-                    requireConfirmation = requireConfirmation,
-                    fn = {
-                        onAuthenticated()
-                    },
-                )
-            }
-
-            else -> null
-        }
-    }
-
-    val biometricPromptSink = EventFlow<PureBiometricAuthPrompt>()
-    val biometricPromptFlow = biometricPromptSink
-        // Automatically emit the prompt on first show
-        // of the user interface.
-        .onStart {
-            if (biometricPrompt != null) {
-                emit(biometricPrompt)
-            }
-        }
-        .shareIn(screenScope, SharingStarted.WhileSubscribed(5000L))
-    val biometricStateEnabled = biometricPrompt?.let { prompt ->
-        UserVerificationState.Biometric(
-            onClick = {
-                biometricPromptSink.emit(prompt)
-            },
-        )
-    }
-    val biometricStateDisabled = biometricPrompt?.let { prompt ->
-        UserVerificationState.Biometric(
-            onClick = null,
-        )
-    }
-    val yubiKeyPromptSink = EventFlow<YubiKeyAuthPrompt>()
-    val yubiKeyPromptFlow = yubiKeyPromptSink
-        .shareIn(screenScope, SharingStarted.WhileSubscribed(5000L))
-    val yubiKeyStateEnabled = yubiKeyRequest?.let { request ->
-        UserVerificationState.YubiKey(
-            onClick = {
-                yubiKeyPromptSink.emit(
-                    YubiKeyAuthPrompt(
-                        slot = request.slot,
-                        challenge = request.challenge,
-                        onComplete = { result ->
-                            result.fold(
-                                ifLeft = { exception ->
-                                    if (exception is YubiKeyAuthCanceledException) {
-                                        return@fold
-                                    }
-
-                                    val io = ioRaise<Unit>(exception)
-                                    executor.execute(io)
-                                },
-                                ifRight = { response ->
-                                    val io = request.confirm(response)
-                                        .effectTap {
-                                            onAuthenticated()
-                                        }
-                                    executor.execute(io)
-                                },
-                            )
-                        },
-                    ),
-                )
-            },
-        )
-    }
-    val yubiKeyStateDisabled = yubiKeyRequest?.let {
-        UserVerificationState.YubiKey(
-            onClick = null,
-        )
-    }
-
-    combine(
-        passwordHandle.sink
-            .map { cell -> cell to validatedPassword(cell.text) },
-        executor.isExecutingFlow,
-    ) { (passwordCell, validatedPassword), taskExecuting ->
-        val error = (validatedPassword as? Validated.Failure)?.error
-        val canCreateVault = error == null && !taskExecuting
-        val content = UserVerificationState.Content(
-            biometric = if (taskExecuting) {
-                biometricStateDisabled
-            } else {
-                biometricStateEnabled
-            },
-            yubiKey = if (taskExecuting) {
-                yubiKeyStateDisabled
-            } else {
-                yubiKeyStateEnabled
-            },
-            sideEffects = UnlockState.SideEffects(
-                showBiometricPromptFlow = biometricPromptFlow,
-                showYubiKeyPromptFlow = yubiKeyPromptFlow,
-            ),
-            password = TextFieldModel.of(
-                cell = passwordCell,
-                handle = passwordHandle,
-                validated = validatedPassword,
-            ),
-            isLoading = taskExecuting,
-            onVerify = if (canCreateVault) {
-                // lambda
-                {
-                    val io = confirmAccessByPasswordUseCase(validatedPassword.model)
-                        .effectTap { success ->
-                            if (success) {
-                                onAuthenticated()
-                            } else {
-                                val message = ToastMessage(
-                                    title = translate(Res.string.error_incorrect_password),
-                                    type = ToastMessage.Type.ERROR,
-                                )
-                                message(message)
-                            }
-                        }
-                    executor.execute(io)
-                }
-            } else {
-                null
-            },
-        )
-        UserVerificationState(
-            content = Loadable.Ok(content),
-        )
-    }
-}
-
-private fun createPromptOrNull(
-    executor: LoadingTask,
-    requireConfirmation: Boolean,
-    fn: () -> Unit,
-): PureBiometricAuthPrompt = run {
-    BiometricAuthPromptSimple(
-        title = TextHolder.Res(Res.string.elevatedaccess_biometric_auth_confirm_title),
-        requireConfirmation = requireConfirmation,
-        onComplete = { result ->
-            result.fold(
-                ifLeft = { exception ->
-                    when (exception.code) {
-                        BiometricAuthException.ERROR_CANCELED,
-                        BiometricAuthException.ERROR_USER_CANCELED,
-                        BiometricAuthException.ERROR_NEGATIVE_BUTTON,
-                        -> return@fold
-                    }
-
-                    val io = ioRaise<Unit>(exception)
-                    executor.execute(io)
-                },
-                ifRight = {
-                    fn.invoke()
-                },
-            )
-        },
     )
 }

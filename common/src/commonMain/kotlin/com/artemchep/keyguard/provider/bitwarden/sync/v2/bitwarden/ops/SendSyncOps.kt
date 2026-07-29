@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops
 
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
+import com.artemchep.keyguard.common.io.throwIfCancellation
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenOptionalStringNullable
@@ -33,7 +35,6 @@ import com.artemchep.keyguard.provider.bitwarden.entity.request.SendUpdate
 import com.artemchep.keyguard.provider.bitwarden.entity.request.of
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.BitwardenSyncDiagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.hasHttpStatusCode
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.EntitySyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateEntry
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline.LocalUpdateResult
@@ -167,7 +168,7 @@ class SendSyncOps(
         pendingUploadsToDelete
             .distinctBy { it.path }
             .forEach { pendingUpload ->
-                runCatching {
+                runCatchingNonFatal {
                     pendingUploadCoordinator.delete(pendingUpload)
                 }
             }
@@ -920,7 +921,7 @@ class SendSyncOps(
         if (obsoletePendingUploads.isEmpty()) return
 
         obsoletePendingUploads.forEach { pendingUpload ->
-            runCatching {
+            runCatchingNonFatal {
                 pendingUploadCoordinator.delete(pendingUpload)
             }
         }

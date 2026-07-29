@@ -13,6 +13,7 @@ mod openpgp_packets;
 mod openpgp_read;
 mod openpgp_write;
 mod padding;
+mod passkeys;
 mod pkcs8_pbes2;
 mod primitives;
 pub mod protocol;
@@ -89,6 +90,10 @@ pub const CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH: u64 = 1 << 21;
 pub const CAPABILITY_AES_CBC_HMAC_SHA256_STREAMING: u64 = 1 << 22;
 /// Fixed-shape scalar ABI for secure random integers.
 pub const CAPABILITY_RANDOM_FAST_PATH: u64 = 1 << 23;
+/// P-256 passkey generation, PKCS#8 validation, and ES256 signing.
+pub const CAPABILITY_PASSKEYS: u64 = 1 << 24;
+/// Validated RSA/Ed25519 PKCS#8 export for Credential Exchange Format.
+pub const CAPABILITY_SSH_CXF_EXPORT: u64 = 1 << 25;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -113,7 +118,9 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_AES_CBC_HMAC_SHA256
     | CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH
     | CAPABILITY_AES_CBC_HMAC_SHA256_STREAMING
-    | CAPABILITY_RANDOM_FAST_PATH;
+    | CAPABILITY_RANDOM_FAST_PATH
+    | CAPABILITY_PASSKEYS
+    | CAPABILITY_SSH_CXF_EXPORT;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -494,6 +501,21 @@ fn execute_one_shot(
             std::mem::take(&mut request.content),
             std::mem::take(&mut request.passphrase_utf8),
         )?,
+        native_request::Operation::SshKeyExportCxf(mut request) => ssh_keys::export_cxf(
+            std::mem::take(&mut request.private_key_pem),
+            std::mem::take(&mut request.public_key_openssh),
+        )?,
+        native_request::Operation::PasskeyKeyGenerate(request) => {
+            passkeys::generate(request.algorithm)?
+        }
+        native_request::Operation::PasskeyKeyInspect(mut request) => {
+            passkeys::inspect(std::mem::take(&mut request.private_key_pkcs8))?
+        }
+        native_request::Operation::PasskeySign(mut request) => passkeys::sign(
+            request.algorithm,
+            std::mem::take(&mut request.private_key_pkcs8),
+            std::mem::take(&mut request.data),
+        )?,
         native_request::Operation::OpenPgpPublicKeyParse(request) => {
             openpgp_read::parse_public_key_request(request).map_err(openpgp_read_error)?
         }
@@ -565,6 +587,10 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::SshPrivateKeyFormat(_) => "ssh_private_key_format",
         native_request::Operation::SshAgentSign(_) => "ssh_agent_sign",
         native_request::Operation::SshPrivateKeyImport(_) => "ssh_private_key_import",
+        native_request::Operation::SshKeyExportCxf(_) => "ssh_key_export_cxf",
+        native_request::Operation::PasskeyKeyGenerate(_) => "passkey_key_generate",
+        native_request::Operation::PasskeyKeyInspect(_) => "passkey_key_inspect",
+        native_request::Operation::PasskeySign(_) => "passkey_sign",
         native_request::Operation::OpenPgpPublicKeyParse(_) => "open_pgp_public_key_parse",
         native_request::Operation::OpenPgpVerify(_) => "open_pgp_verify",
         native_request::Operation::OpenPgpMetadataResolve(_) => "open_pgp_metadata_resolve",
@@ -1093,11 +1119,13 @@ mod tests {
     #[test]
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
-        assert_eq!(CAPABILITIES, 0xffffff);
+        assert_eq!(CAPABILITIES, 0x3ffffff);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256, 1 << 20);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH, 1 << 21);
         assert_eq!(CAPABILITY_RANDOM_FAST_PATH, 1 << 23);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_STREAMING, 1 << 22);
+        assert_eq!(CAPABILITY_PASSKEYS, 1 << 24);
+        assert_eq!(CAPABILITY_SSH_CXF_EXPORT, 1 << 25);
     }
 
     #[test]

@@ -1,10 +1,10 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.pipeline
 
+import com.artemchep.keyguard.common.io.throwIfCancellation
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.SyncDiagnostics
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.EntityTypeOutcome
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.core.SyncExecutionResult
-import com.artemchep.keyguard.provider.bitwarden.sync.v2.throwIfCancellation
 
 /**
  * Orchestrates the full Snapshot → Diff → Plan → Execute pipeline

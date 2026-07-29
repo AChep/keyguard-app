@@ -191,6 +191,23 @@
             android:windowSoftInputMode="adjustResize"
             tools:ignore="NewApi" />
         <activity
+            android:name="com.artemchep.keyguard.android.credentialexchange.CredentialExportActivity"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:noHistory="true"
+            android:taskAffinity=":passkey"
+            android:windowSoftInputMode="adjustResize"
+            tools:ignore="NewApi">
+            <intent-filter>
+                <action android:name="androidx.identitycredentials.action.IMPORT_CREDENTIALS" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data
+                    android:mimeType="application/octet-stream"
+                    android:scheme="content" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name="com.artemchep.keyguard.android.AutofillSaveActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize"
             android:excludeFromRecents="true"

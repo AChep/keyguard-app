@@ -14,8 +14,9 @@ pub mod rsa;
 pub use bcrypt_pbkdf::bcrypt_pbkdf;
 pub use rsa::{
     RsaCrtComponents, RsaPrimeComponents, RsaPrivateComponents, RsaSignatureHash,
-    SensitiveRsaError, complete_rsa_pkcs1_der, decrypt_rsa_pkcs1_v1_5, decrypt_rsa_raw,
-    generate_rsa_pkcs1_der, sign_rsa_pkcs1_v1_5, sign_rsa_pkcs1_v1_5_digest,
+    SensitiveRsaError, complete_rsa_pkcs1_der, complete_rsa_pkcs1_der_from_components,
+    decrypt_rsa_pkcs1_v1_5, decrypt_rsa_raw, generate_rsa_pkcs1_der, sign_rsa_pkcs1_v1_5,
+    sign_rsa_pkcs1_v1_5_digest,
 };
 
 use std::{ffi::c_void, ptr::NonNull};

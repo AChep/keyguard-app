@@ -148,7 +148,6 @@
     <ID>CyclomaticComplexMethod:OpenPgpReadBouncyCastleDifferentialTest.kt:BouncyCastleParserOracle$private fun parseRing: GpgPublicKeyInfo?</ID>
     <ID>CyclomaticComplexMethod:OrganizationConfirmationStateProducer.kt:suspend fun RememberStateFlowScope.organizationConfirmationStateProducer: Flow&lt;OrganizationConfirmationState&gt;</ID>
     <ID>CyclomaticComplexMethod:PasskeyCreateActivity.kt:PasskeyCreateActivity$@Composable override fun Content</ID>
-    <ID>CyclomaticComplexMethod:PasskeyGetActivity.kt:@Composable fun produceUserVerificationState: UserVerificationState</ID>
     <ID>CyclomaticComplexMethod:PasswordFilterItem.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ) @Composable fun FlatItemLayout</ID>
     <ID>CyclomaticComplexMethod:PasswordHistoryUtil.kt:internal fun BitwardenCipher.with3WayMergePasswordHistoryOrNull: BitwardenCipher?</ID>
     <ID>CyclomaticComplexMethod:PatchWatchtowerAlertCipherImpl.kt:PatchWatchtowerAlertCipherImpl$override fun invoke: IO&lt;Boolean&gt;</ID>
@@ -1506,8 +1505,6 @@
     <ID>LongMethod:PasskeyCompose.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun CredentialError</ID>
     <ID>LongMethod:PasskeyCreateActivity.kt:PasskeyCreateActivity$@Composable override fun Content</ID>
     <ID>LongMethod:PasskeyCreateRequest.kt:PasskeyCreateRequest$private fun processCreatePublicKeyCredentialsRequest: Pair&lt;CreatePublicKeyCredentialResponse, AddCredentialCipherRequestPasskeyData&gt;</ID>
-    <ID>LongMethod:PasskeyGetActivity.kt:@Composable fun produceUserVerificationState: UserVerificationState</ID>
-    <ID>LongMethod:PasskeyGetActivity.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun UserVerificationScreen</ID>
     <ID>LongMethod:PasskeyProviderGetRequest.kt:PasskeyProviderGetRequest$@SuppressLint("RestrictedApi") @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE) suspend fun processGetCredentialsRequest: GetCredentialResponse</ID>
     <ID>LongMethod:PasskeysCredentialViewScreen.kt:@Composable private fun PasskeysCredentialItem</ID>
     <ID>LongMethod:PasskeysServiceListStateProducer.kt:suspend fun RememberStateFlowScope.passkeysServiceListStateProducer: Flow&lt;Loadable&lt;PasskeysServiceListState&gt;&gt;</ID>
@@ -2149,7 +2146,6 @@
     <ID>MagicNumber:PasskeyCreateRequest.kt:PasskeyCreateRequest$256</ID>
     <ID>MagicNumber:PasskeyCreateRequest.kt:PasskeyCreateRequest$32</ID>
     <ID>MagicNumber:PasskeyCredentialId.kt:PasskeyCredentialId$0xffL</ID>
-    <ID>MagicNumber:PasskeyGetActivity.kt:80L</ID>
     <ID>MagicNumber:PasskeysCredentialViewScreen.kt:0.8f</ID>
     <ID>MagicNumber:Password.kt:0.42f</ID>
     <ID>MagicNumber:Password.kt:0.52f</ID>

@@ -232,6 +232,8 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
+private const val SHARING_STOP_TIMEOUT_MS = 5_000L
+
 // TODO: Support hide password option
 @Composable
 fun produceAddScreenState(
@@ -1495,7 +1497,7 @@ internal fun createCipherLinkPresentationContextFlow(
 }
     .shareIn(
         scope = sharingScope,
-        started = SharingStarted.WhileSubscribed(5_000L),
+        started = SharingStarted.WhileSubscribed(SHARING_STOP_TIMEOUT_MS),
         replay = 1,
     )
 
@@ -1581,7 +1583,7 @@ class AddStateItemPasskeyFactory(
         val rpId: String,
         val rpName: String?,
         val counter: Int?,
-        val userHandle: String,
+        val userHandle: String? = null,
         val userName: String? = null,
         val userDisplayName: String? = null,
         val discoverable: Boolean,

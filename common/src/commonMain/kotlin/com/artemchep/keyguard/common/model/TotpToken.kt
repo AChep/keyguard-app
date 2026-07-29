@@ -45,11 +45,15 @@ sealed interface TotpToken {
         override val raw: String,
         override val digits: Int,
         val period: Long,
+        val username: String? = null,
+        val issuer: String? = null,
     ) : TotpToken {
         internal class Builder(
             var algorithm: CryptoHashAlgorithm = CryptoHashAlgorithm.SHA_1,
             var digits: Int = 6,
             var period: Long = 30L,
+            var username: String? = null,
+            var issuer: String? = null,
         ) {
             fun build(
                 raw: String,
@@ -60,6 +64,8 @@ sealed interface TotpToken {
                 period = period,
                 keyBase32 = keyBase32,
                 raw = raw,
+                username = username,
+                issuer = issuer,
             )
         }
     }
@@ -165,6 +171,13 @@ private fun parseTotpAuth(
         builder.algorithm = alg
     }
 
+    val label = parseOtpAuthLabel(url)
+    builder.username = label.username
+    // The Key Uri Format allows the issuer both as a query parameter and as the
+    // label prefix; the parameter is the authoritative one.
+    builder.issuer = params["issuer"]?.trim()?.takeIf { it.isNotEmpty() }
+        ?: label.issuer
+
     if (keyBase32.isBlank()) {
         throw OtpEmptySecretKeyException()
     }
@@ -172,6 +185,33 @@ private fun parseTotpAuth(
     builder.build(
         keyBase32 = keyBase32,
         raw = raw,
+    )
+}
+
+private data class OtpAuthLabel(
+    val issuer: String?,
+    val username: String?,
+)
+
+/**
+ * Extracts the label of an otpauth URI — its decoded path, e.g. `ACME Co:alice`
+ * for `otpauth://totp/ACME%20Co:alice?...` — and splits it on the first `:` into
+ * the optional issuer prefix and the account name.
+ */
+private fun parseOtpAuthLabel(
+    url: Url,
+): OtpAuthLabel {
+    val label = url.segments.joinToString(separator = "/")
+    val colonIndex = label.indexOf(':')
+    if (colonIndex < 0) {
+        return OtpAuthLabel(
+            issuer = null,
+            username = label.trim().takeIf { it.isNotEmpty() },
+        )
+    }
+    return OtpAuthLabel(
+        issuer = label.substring(0, colonIndex).trim().takeIf { it.isNotEmpty() },
+        username = label.substring(colonIndex + 1).trim().takeIf { it.isNotEmpty() },
     )
 }
 

@@ -321,7 +321,7 @@ data class BitwardenCipher(
             val rpId: String,
             val rpName: String?,
             val counter: String,
-            val userHandle: String,
+            val userHandle: String? = null,
             val userName: String? = null,
             val userDisplayName: String? = null,
             val discoverable: String,

@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
+import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountSyncer
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
@@ -43,6 +44,7 @@ class AppWorkerIm(
         flow
             .onState(LeLifecycleState.STARTED) {
                 launchSyncManagerWhenAvailable(this)
+                launchSyncExposedAccountsWhenAvailable(this)
                 launchSyncSshAgentWhenAvailable(this)
                 launchSyncGpgAgentWhenAvailable(this)
                 launchRefreshGpgKeyserverWhenAvailable(this)
@@ -65,6 +67,25 @@ class AppWorkerIm(
         .map { session ->
             val key = session as? MasterSession.Key
             key?.di?.direct?.instance<NotificationsWorker>()
+        }
+        .distinctUntilChanged { old, new -> old === new }
+        .mapLatest { syncManager ->
+            if (syncManager == null) {
+                return@mapLatest
+            }
+
+            // Launch the sync manager forever until the
+            // sync manager changes.
+            coroutineScope {
+                syncManager.launch(this)
+            }
+        }
+        .launchIn(scope)
+
+    private fun launchSyncExposedAccountsWhenAvailable(scope: CoroutineScope) = getVaultSession()
+        .map { session ->
+            val key = session as? MasterSession.Key
+            key?.di?.direct?.instance<ExposedAccountSyncer>()
         }
         .distinctUntilChanged { old, new -> old === new }
         .mapLatest { syncManager ->

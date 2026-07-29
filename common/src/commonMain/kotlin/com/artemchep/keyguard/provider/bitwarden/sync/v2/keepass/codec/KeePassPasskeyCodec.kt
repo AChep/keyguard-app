@@ -273,7 +273,10 @@ internal class KeePassPasskeyCodec(
     ): EncodedBindingPasskey? {
         val credentialId = credential.credentialId?.takeIf(::isValidBase64Url)
             ?: return null
-        if (!isValidBase64Url(credential.userHandle)) return null
+        // The KDBX passkey field set has no way to say "no user handle", so a
+        // credential without one is not projectable.
+        val userHandle = credential.userHandle?.takeIf(::isValidBase64Url)
+            ?: return null
         if (credential.rpId.isBlank()) return null
 
         val privateKeyPem = privateKeyBase64DerToPem(credential.keyValue)
@@ -299,7 +302,7 @@ internal class KeePassPasskeyCodec(
             keepassFieldWrite(CREDENTIAL_ID_FIELD_KEY, credentialId, concealed = true),
             keepassFieldWrite(PRIVATE_KEY_FIELD_KEY, privateKeyPem, concealed = true),
             keepassFieldWrite(RELYING_PARTY_FIELD_KEY, credential.rpId, concealed = false),
-            keepassFieldWrite(USER_HANDLE_FIELD_KEY, credential.userHandle, concealed = true),
+            keepassFieldWrite(USER_HANDLE_FIELD_KEY, userHandle, concealed = true),
             keepassFieldWrite(BACKUP_ELIGIBLE_FIELD_KEY, backupEligible.toKeePassBool(), concealed = false),
             keepassFieldWrite(BACKUP_STATE_FIELD_KEY, backupState.toKeePassBool(), concealed = false),
         )

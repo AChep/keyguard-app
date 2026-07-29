@@ -121,5 +121,11 @@ fun Throwable.throwIfFatalOrCancellation() {
     nonFatalOrThrow()
 }
 
+fun Throwable.throwIfCancellation() {
+    if (this is CancellationException) {
+        throw this
+    }
+}
+
 private fun Throwable.nonFatalOrThrow(): Throwable =
     if (this !is Error) this else throw this

@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.util.webdav
 
+import com.artemchep.keyguard.util.io.artifact.KEYGUARD_TEMPORARY_ARTIFACT_PREFIX
+import com.artemchep.keyguard.util.io.artifact.TemporaryArtifactRole
+import com.artemchep.keyguard.util.io.artifact.temporaryArtifactName
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandleScope
@@ -101,15 +104,15 @@ class KtorWebDavClientTest {
                         )
                     }
                 }
-                method == "PUT" && path.isTempPathOf(objectPath) -> {
+                method == "PUT" && path.isTempPath() -> {
                     assertEquals(null, request.body.contentLength)
                     assertEquals(null, request.headers[HttpHeaders.IfNoneMatch])
                     assertEquals(null, request.headers[HttpHeaders.IfMatch])
                     assertContentEquals(payload, request.body.asBytes())
                     respond("", status = HttpStatusCode.Created)
                 }
-                method == "PROPFIND" && path.isTempPathOf(objectPath) -> respondFileStat(path)
-                method == "MOVE" && path.isTempPathOf(objectPath) -> {
+                method == "PROPFIND" && path.isTempPath() -> respondFileStat(path)
+                method == "MOVE" && path.isTempPath() -> {
                     assertEquals("F", request.headers["Overwrite"])
                     assertEquals(null, request.headers["If"])
                     assertEquals(
@@ -152,7 +155,7 @@ class KtorWebDavClientTest {
         val engine = MockEngine { request ->
             val path = request.url.encodedPath
             when (request.method.value) {
-                "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
+                "PROPFIND" -> if (path.isTempPath()) {
                     respondFileStat(path, size = payload.size.toLong())
                 } else {
                     objectStatRequests += 1
@@ -160,7 +163,7 @@ class KtorWebDavClientTest {
                     respondEtagStat(objectPath, etag, size = payload.size.toLong())
                 }
                 "PUT" -> {
-                    assertTrue(path.isTempPathOf(objectPath))
+                    assertTrue(path.isTempPath())
                     assertEquals(null, request.headers[HttpHeaders.IfMatch])
                     assertEquals(null, request.headers[HttpHeaders.IfNoneMatch])
                     assertContentEquals(payload, request.body.asBytes())
@@ -204,7 +207,7 @@ class KtorWebDavClientTest {
         val engine = MockEngine { request ->
             val path = request.url.encodedPath
             when (request.method.value) {
-                "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
+                "PROPFIND" -> if (path.isTempPath()) {
                     respondFileStat(path)
                 } else {
                     objectStatRequests += 1
@@ -245,7 +248,7 @@ class KtorWebDavClientTest {
         val engine = MockEngine { request ->
             val path = request.url.encodedPath
             when (request.method.value) {
-                "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
+                "PROPFIND" -> if (path.isTempPath()) {
                     respondFileStat(path)
                 } else {
                     objectStatRequests += 1
@@ -257,7 +260,7 @@ class KtorWebDavClientTest {
                 "PUT" -> respond("", status = HttpStatusCode.Created)
                 "MOVE" -> respond("", status = HttpStatusCode.PreconditionFailed)
                 "DELETE" -> {
-                    assertTrue(path.isTempPathOf(objectPath))
+                    assertTrue(path.isTempPath())
                     respond("", status = HttpStatusCode.NoContent)
                 }
                 else -> error("Unexpected request: ${request.method.value} ${request.url}")
@@ -287,7 +290,7 @@ class KtorWebDavClientTest {
         val engine = MockEngine { request ->
             val path = request.url.encodedPath
             when (request.method.value) {
-                "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
+                "PROPFIND" -> if (path.isTempPath()) {
                     respondFileStat(path)
                 } else {
                     respondEtagStat(objectPath, etag)
@@ -348,7 +351,7 @@ class KtorWebDavClientTest {
         val engine = MockEngine { request ->
             val path = request.url.encodedPath
             when (request.method.value) {
-                "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
+                "PROPFIND" -> if (path.isTempPath()) {
                     respond(
                         content = singleMultistatus(
                             href = path,
@@ -360,7 +363,7 @@ class KtorWebDavClientTest {
                     respond("", status = HttpStatusCode.NotFound)
                 }
                 "PUT" -> {
-                    assertTrue(path.isTempPathOf(objectPath))
+                    assertTrue(path.isTempPath())
                     assertContentEquals(payload, request.body.asBytes())
                     respond("", status = HttpStatusCode.Created)
                 }
@@ -398,7 +401,7 @@ class KtorWebDavClientTest {
         assertTrue(
             engine.requestHistory
                 .filter { request -> request.method == HttpMethod.Put }
-                .all { request -> request.url.encodedPath.isTempPathOf(objectPath) },
+                .all { request -> request.url.encodedPath.isTempPath() },
         )
     }
 
@@ -411,7 +414,7 @@ class KtorWebDavClientTest {
         val engine = MockEngine { request ->
             val path = request.url.encodedPath
             when (request.method.value) {
-                "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
+                "PROPFIND" -> if (path.isTempPath()) {
                     respondFileStat(path)
                 } else {
                     destinationStatCalls += 1
@@ -450,12 +453,12 @@ class KtorWebDavClientTest {
         val engine = MockEngine { request ->
             val path = request.url.encodedPath
             when (request.method.value) {
-                "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
+                "PROPFIND" -> if (path.isTempPath()) {
                     respondFileStat(path)
                 } else {
                     respondEtagStat(objectPath, etag)
                 }
-                "PUT" -> if (path.isTempPathOf(objectPath)) {
+                "PUT" -> if (path.isTempPath()) {
                     respond("", status = HttpStatusCode.Created)
                 } else {
                     objectPutRequests += 1
@@ -467,7 +470,7 @@ class KtorWebDavClientTest {
                 }
                 "MOVE" -> respond("", status = HttpStatusCode.MethodNotAllowed)
                 "DELETE" -> {
-                    assertTrue(path.isTempPathOf(objectPath))
+                    assertTrue(path.isTempPath())
                     respond("", status = HttpStatusCode.NoContent)
                 }
                 else -> error("Unexpected request: ${request.method.value} ${request.url}")
@@ -512,7 +515,7 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> when {
-                    path.isTempPathOf(objectPath) -> respond(
+                    path.isTempPath() -> respond(
                         content = singleMultistatus(
                             href = path,
                             properties = "<D:resourcetype/><D:getcontentlength>${payload.size}</D:getcontentlength>",
@@ -528,7 +531,7 @@ class KtorWebDavClientTest {
                     )
                     else -> respond("", status = HttpStatusCode.NotFound)
                 }
-                "PUT" -> if (path.isTempPathOf(objectPath)) {
+                "PUT" -> if (path.isTempPath()) {
                     respond("", status = HttpStatusCode.Created)
                 } else {
                     destinationPutCalls += 1
@@ -566,13 +569,13 @@ class KtorWebDavClientTest {
         val engine = MockEngine { request ->
             val path = request.url.encodedPath
             when (request.method.value) {
-                "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
+                "PROPFIND" -> if (path.isTempPath()) {
                     respondFileStat(path)
                 } else {
                     destinationStatCalls += 1
                     respond("", status = HttpStatusCode.NotFound)
                 }
-                "PUT" -> if (path.isTempPathOf(objectPath)) {
+                "PUT" -> if (path.isTempPath()) {
                     respond("", status = HttpStatusCode.Created)
                 } else {
                     destinationPutCalls += 1
@@ -613,7 +616,7 @@ class KtorWebDavClientTest {
             val path = request.url.encodedPath
             when (request.method.value) {
                 "PROPFIND" -> when {
-                    path.isTempPathOf(objectPath) -> respondFileStat(path)
+                    path.isTempPath() -> respondFileStat(path)
                     path == createPath && !createExists -> respond(
                         "",
                         status = HttpStatusCode.NotFound,
@@ -628,7 +631,7 @@ class KtorWebDavClientTest {
                     else -> respondEtagStat(objectPath, etag)
                 }
                 "PUT" -> when {
-                    path.isTempPathOf(objectPath) -> respond("", status = HttpStatusCode.Created)
+                    path.isTempPath() -> respond("", status = HttpStatusCode.Created)
                     path == createPath -> {
                         assertEquals("*", request.headers[HttpHeaders.IfNoneMatch])
                         assertEquals(null, request.headers[HttpHeaders.IfMatch])
@@ -684,7 +687,7 @@ class KtorWebDavClientTest {
         val engine = MockEngine { request ->
             val path = request.url.encodedPath
             when (request.method.value) {
-                "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
+                "PROPFIND" -> if (path.isTempPath()) {
                     respondFileStat(path)
                 } else {
                     objectStatRequests += 1
@@ -693,7 +696,7 @@ class KtorWebDavClientTest {
                     val etag = if (objectStatRequests <= 2) "v1" else "v2"
                     respondEtagStat(objectPath, etag)
                 }
-                "PUT" -> if (path.isTempPathOf(objectPath)) {
+                "PUT" -> if (path.isTempPath()) {
                     respond("", status = HttpStatusCode.Created)
                 } else {
                     respond("", status = HttpStatusCode.PreconditionFailed)
@@ -768,6 +771,18 @@ class KtorWebDavClientTest {
                                     properties = """
                                         <D:resourcetype/>
                                         <D:getcontentlength>1</D:getcontentlength>
+                                    """.trimIndent(),
+                                ),
+                                responseXml(
+                                    href = "/dav/root/snapshots/${
+                                        temporaryArtifactName(
+                                            TemporaryArtifactRole.New,
+                                            "123e4567-e89b-42d3-a456-426614174000",
+                                        )
+                                    }",
+                                    properties = """
+                                        <D:resourcetype/>
+                                        <D:getcontentlength>99</D:getcontentlength>
                                     """.trimIndent(),
                                 ),
                                 responseXml(
@@ -1244,7 +1259,7 @@ class KtorWebDavClientTest {
             when (request.method.value) {
                 "PUT" -> respond("", status = HttpStatusCode.Created)
                 "MOVE" -> respond("", status = HttpStatusCode.Created)
-                "PROPFIND" -> if (path.isTempPathOf(objectPath)) {
+                "PROPFIND" -> if (path.isTempPath()) {
                     respondFileStat(path, size = payload.size.toLong())
                 } else {
                     finalStatAttempts += 1
@@ -1340,8 +1355,12 @@ class KtorWebDavClientTest {
         assertEquals(1, engine.requestHistory.size)
     }
 
-    private fun String.isTempPathOf(base: String): Boolean =
-        startsWith("$base.") && endsWith(".tmp")
+    private fun String.isTempPath(): Boolean =
+        substringAfterLast('/').let { name ->
+            name.startsWith(
+                "${KEYGUARD_TEMPORARY_ARTIFACT_PREFIX}v1u-${TemporaryArtifactRole.New.token}-",
+            ) && name.endsWith(".tmp")
+        }
 
     private fun testClient(
         engine: MockEngine,

@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.core.net.toUri
+import com.artemchep.keyguard.common.service.file.AtomicFileWriteOutcome
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import com.artemchep.keyguard.common.service.file.FileMetadata
 import com.artemchep.keyguard.common.service.file.FileService
@@ -164,12 +165,12 @@ class FileServiceAndroid(
         uri: String,
         accessToken: FileAccessToken?,
         write: (Sink) -> Unit,
-    ): Boolean {
+    ): AtomicFileWriteOutcome {
         val destination = uri.toUri()
         // SAF content:// documents cannot be renamed into place. Keep their
         // existing direct-write fallback and only use rename-over for file://.
         if (destination.scheme != "file") {
-            return false
+            return AtomicFileWriteOutcome.Unsupported
         }
         return localFileService.atomicWriteToFile(
             uri = uri,
@@ -195,24 +196,4 @@ class FileServiceAndroid(
             context = context,
             uri = uri,
         )
-
-    override fun atomicMove(
-        sourceUri: String,
-        destinationUri: String,
-        accessToken: FileAccessToken?,
-    ): Boolean {
-        val source = sourceUri.toUri()
-        val destination = destinationUri.toUri()
-        // Only plain files can be moved in place. SAF content:// destinations
-        // cannot be atomically replaced by path, so callers must fall back to a
-        // stream copy for those.
-        if (source.scheme != "file" || destination.scheme != "file") {
-            return false
-        }
-        return localFileService.atomicMove(
-            sourceUri = sourceUri,
-            destinationUri = destinationUri,
-            accessToken = accessToken,
-        )
-    }
 }

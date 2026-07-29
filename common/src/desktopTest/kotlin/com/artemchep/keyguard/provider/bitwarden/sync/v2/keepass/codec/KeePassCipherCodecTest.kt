@@ -17,9 +17,9 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenCi
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testCryptoGenerator
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testJson
 import com.artemchep.keyguard.provider.bitwarden.upload.FailingPendingUploadCoordinator
-import com.artemchep.keyguard.provider.bitwarden.upload.assertKeyCleared
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.provider.bitwarden.upload.assertKeyCleared
 import kotlinx.coroutines.test.runTest
 import java.security.MessageDigest
 import kotlin.coroutines.cancellation.CancellationException
@@ -28,6 +28,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.time.Instant
 
+@Suppress("FunctionNaming")
 class KeePassCipherCodecTest {
     private val codec = createCodec()
 
@@ -231,7 +232,6 @@ private object AttachmentCryptoGenerator : CryptoGenerator by testCryptoGenerato
         MessageDigest.getInstance("SHA-256").digest(data)
 }
 
-
 private class ReadingPendingUploadCoordinator(
     private val data: ByteArray,
     private val readFailure: Throwable? = null,
@@ -249,4 +249,3 @@ private class ReadingPendingUploadCoordinator(
         return data
     }
 }
-

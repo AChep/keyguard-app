@@ -1,7 +1,10 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
 import android.content.Context
-import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirectory
+import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
+import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
+import com.artemchep.keyguard.util.io.toLocalPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.kodein.di.DirectDI
@@ -20,9 +23,12 @@ class PendingUploadDirProviderAndroid(
         accountId: String,
         namespace: String,
     ) = withContext(Dispatchers.IO) {
-        context.filesDir
-            .resolve(namespace)
-            .resolve(accountId)
-            .toLocalPath()
+        PendingUploadDirectory(
+            root = context.filesDir.toLocalPath(),
+            relativePath = AtomicRelativePath.fromComponents(
+                AtomicPathComponent.parse(namespace),
+                AtomicPathComponent.parse(accountId),
+            ),
+        )
     }
 }

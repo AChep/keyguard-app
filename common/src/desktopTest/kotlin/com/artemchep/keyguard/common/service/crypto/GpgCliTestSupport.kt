@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit
  * the suite still passes in environments without a gpg toolchain.
  */
 object GpgCliTestSupport {
+    private const val AGENT_SHUTDOWN_TIMEOUT_SECONDS = 30L
+
     data class GpgResult(
         val exitCode: Int,
         val stdout: String,
@@ -81,7 +83,7 @@ object GpgCliTestSupport {
                 environment()["GNUPGHOME"] = normalizedHome.toString()
             }
             .start()
-        if (!process.waitFor(30, TimeUnit.SECONDS)) {
+        if (!process.waitFor(AGENT_SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
             process.destroyForcibly()
             throw AssertionError("gpgconf timed out while stopping gpg-agent")
         }

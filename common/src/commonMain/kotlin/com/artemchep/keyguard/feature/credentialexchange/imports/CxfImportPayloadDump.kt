@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.service.credentialexchange.CredentialExchan
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.util.foundation.io.writeText
+import com.artemchep.keyguard.util.io.writeText
 import kotlin.time.Clock
 
 /**

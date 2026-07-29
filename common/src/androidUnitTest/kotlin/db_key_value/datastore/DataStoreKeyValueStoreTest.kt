@@ -9,7 +9,7 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.util.io.toLocalPath
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest

@@ -2,20 +2,35 @@ package com.artemchep.keyguard.feature.filepicker
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import com.artemchep.keyguard.common.io.writeBytes
-import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.LeUriImpl
+import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.toSecurityScopedBookmarkToken
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.topPresentedViewController
+import com.artemchep.keyguard.util.io.atomic.AtomicDirectoryDestination
+import com.artemchep.keyguard.util.io.atomic.AtomicDirectoryPermissions
+import com.artemchep.keyguard.util.io.atomic.AtomicFilePermissions
+import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
+import com.artemchep.keyguard.util.io.atomic.AtomicPublicationPolicy
+import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
+import com.artemchep.keyguard.util.io.atomic.AtomicWriteOptions
+import com.artemchep.keyguard.util.io.atomic.ExistingParentLinkPolicy
+import com.artemchep.keyguard.util.io.atomic.ParentDirectoryPolicy
+import com.artemchep.keyguard.util.io.atomic.SyncLevel
+import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
+import com.artemchep.keyguard.util.io.atomic.writeFileAtomically
+import com.artemchep.keyguard.util.io.resolve
+import com.artemchep.keyguard.util.io.toNSURL
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.flow.Flow
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSFileSize
-import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSNumber
+import platform.Foundation.NSTemporaryDirectory
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLBookmarkCreationWithSecurityScope
+import platform.UIKit.UIDocumentPickerDelegateProtocol
+import platform.UIKit.UIDocumentPickerViewController
 import platform.UniformTypeIdentifiers.UTType
 import platform.UniformTypeIdentifiers.UTTypeAudio
 import platform.UniformTypeIdentifiers.UTTypeData
@@ -23,10 +38,9 @@ import platform.UniformTypeIdentifiers.UTTypeFolder
 import platform.UniformTypeIdentifiers.UTTypeImage
 import platform.UniformTypeIdentifiers.UTTypeMovie
 import platform.UniformTypeIdentifiers.UTTypeText
-import platform.UIKit.UIDocumentPickerDelegateProtocol
-import platform.UIKit.UIDocumentPickerViewController
 import platform.darwin.NSObject
 
+@Suppress("ktlint:standard:function-naming")
 @Composable
 actual fun FilePickerEffect(
     flow: Flow<FilePickerIntent<*>>,
@@ -43,15 +57,18 @@ actual fun FilePickerEffect(
 private class IosFilePickerController {
     private var delegate: IosDocumentPickerDelegate? = null
     private var intent: FilePickerIntent<*>? = null
+    private var stagingDirectory: LocalPath? = null
 
     fun launch(intent: FilePickerIntent<*>) {
         this.intent = intent
         val picker = when (intent) {
             is FilePickerIntent.NewDocument -> createNewDocumentPicker(intent)
+
             is FilePickerIntent.OpenDocument -> UIDocumentPickerViewController(
                 forOpeningContentTypes = intent.contentTypes(),
                 asCopy = false,
             )
+
             is FilePickerIntent.OpenDirectory -> UIDocumentPickerViewController(
                 forOpeningContentTypes = listOf(UTTypeFolder),
                 asCopy = false,
@@ -76,36 +93,110 @@ private class IosFilePickerController {
         )
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun createNewDocumentPicker(
         intent: FilePickerIntent.NewDocument,
     ): UIDocumentPickerViewController {
-        val path = NSTemporaryDirectory()
-            .trimEnd('/')
-            .let { directory -> "$directory/${intent.fileName}" }
-        LocalPath(path).writeBytes(ByteArray(0))
-        val url = NSURL.fileURLWithPath(path)
-        return UIDocumentPickerViewController(
-            forExportingURLs = listOf(url),
-            asCopy = false,
+        previousFilePickerStagingCleanup.value
+        val directory = AtomicDirectoryDestination(
+            root = LocalPath(NSTemporaryDirectory()),
+            relativePath = AtomicRelativePath.fromComponents(
+                newFilePickerStagingDirectoryName(),
+            ),
         )
+        stagingDirectory = directory.path
+        return try {
+            val file = directory.resolve(
+                AtomicPathComponent.parse(
+                    intent.fileName.sanitizedExportFileName(),
+                ),
+            )
+            writeFileAtomically(
+                destination = file,
+                options = AtomicWriteOptions(
+                    publication = AtomicPublicationPolicy.Create(
+                        permissions = AtomicFilePermissions.OwnerOnly,
+                    ),
+                    parentDirectories = ParentDirectoryPolicy.CreateMissing(
+                        permissions = AtomicDirectoryPermissions.OwnerOnly,
+                    ),
+                    existingParentLinks = ExistingParentLinkPolicy.Reject,
+                    synchronization = SynchronizationPolicy.Required(
+                        level = SyncLevel.FileSynchronized,
+                    ),
+                ),
+            ) { sink ->
+                sink.write(ByteArray(0))
+            }.receipt.requireCleanupComplete()
+            val url = file.path.toNSURL()
+            UIDocumentPickerViewController(
+                forExportingURLs = listOf(url),
+                asCopy = false,
+            )
+        } catch (error: Throwable) {
+            cleanUpStagingDirectory()
+            throw error
+        }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
     private fun complete(url: NSURL?) {
-        val result = url?.toFilePickerResult(intent)
-        when (val activeIntent = intent) {
-            is FilePickerIntent.NewDocument -> activeIntent.onResult(result)
-            is FilePickerIntent.OpenDocument -> activeIntent.onResult(result)
-            is FilePickerIntent.OpenDirectory -> activeIntent.onResult(result)
-            null -> Unit
+        try {
+            val result = url?.toFilePickerResult(intent)
+            when (val activeIntent = intent) {
+                is FilePickerIntent.NewDocument -> activeIntent.onResult(result)
+                is FilePickerIntent.OpenDocument -> activeIntent.onResult(result)
+                is FilePickerIntent.OpenDirectory -> activeIntent.onResult(result)
+                null -> Unit
+            }
+        } finally {
+            intent = null
+            delegate = null
+            cleanUpStagingDirectory()
         }
-        intent = null
-        delegate = null
     }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun cleanUpStagingDirectory() {
+        stagingDirectory?.let { directory ->
+            runCatching {
+                NSFileManager.defaultManager.removeItemAtPath(
+                    path = directory.value,
+                    error = null,
+                )
+            }
+        }
+        stagingDirectory = null
+    }
+}
+
+internal fun String.sanitizedExportFileName(): String =
+    substringAfterLast('/')
+        .substringAfterLast('\\')
+        .map { character ->
+            when (character) {
+                ':', '\u0000' -> '_'
+                else -> character
+            }
+        }
+        .joinToString(separator = "")
+        .takeIf { fileName ->
+            fileName.isNotBlank() &&
+                fileName != "." &&
+                fileName != ".."
+        }
+        ?: "export"
+
+private val previousFilePickerStagingCleanup = lazy {
+    cleanUpFilePickerStagingDirectories(
+        root = LocalPath(NSTemporaryDirectory()),
+    )
 }
 
 private class IosDocumentPickerDelegate(
     private val onComplete: (NSURL?) -> Unit,
-) : NSObject(), UIDocumentPickerDelegateProtocol {
+) : NSObject(),
+    UIDocumentPickerDelegateProtocol {
     override fun documentPicker(
         controller: UIDocumentPickerViewController,
         didPickDocumentsAtURLs: List<*>,
@@ -150,8 +241,11 @@ private fun contentTypesByMimeType(
     mimeType: String,
 ): List<UTType> = when (mimeType) {
     "audio/*" -> listOf(UTTypeAudio)
+
     "image/*" -> listOf(UTTypeImage)
+
     "text/*" -> listOf(UTTypeText)
+
     "video/*" -> listOf(UTTypeMovie)
 
     "application/x-kdbx",

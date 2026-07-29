@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.measure
 import com.artemchep.keyguard.common.io.sharedSoftRef
-import com.artemchep.keyguard.util.foundation.io.useLines
+import com.artemchep.keyguard.util.io.useLines
 import com.artemchep.keyguard.common.model.FileResource
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.postDebug

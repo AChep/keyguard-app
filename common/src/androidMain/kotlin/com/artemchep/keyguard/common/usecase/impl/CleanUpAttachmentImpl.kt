@@ -14,6 +14,9 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.usecase.CleanUpAttachment
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.feature.filepicker.AndroidFileDropStorage
+import com.artemchep.keyguard.util.io.artifact.isReservedTemporaryArtifactName
+import com.artemchep.keyguard.util.io.artifact.sweepTemporaryArtifacts
+import com.artemchep.keyguard.util.io.toLocalPath
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -26,7 +29,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import java.io.File
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 
 /**
  * @author Artem Chepurnyi
@@ -75,6 +80,7 @@ class CleanUpAttachmentImpl(
 ) : CleanUpAttachment {
     companion object {
         private const val TAG = "CleanUpAttachment"
+        private val PRIVATE_TEMPORARY_FILE_GRACE_PERIOD = 24.hours
 
         fun zzz(
             scope: CoroutineScope,
@@ -116,6 +122,12 @@ class CleanUpAttachmentImpl(
 
     override fun invoke(): IO<Int> = ioEffect(Dispatchers.IO) {
         val dir = DownloadFileStoreAndroid.getDir(context)
+        // Reserved native artifacts are protected by their declared lease
+        // protocol. Never infer that one is safe to unlink from its age here.
+        val nativeSweep = sweepTemporaryArtifacts(
+            directory = dir.toLocalPath(),
+            olderThan = PRIVATE_TEMPORARY_FILE_GRACE_PERIOD,
+        )
 
         val actualFiles = dir
             .listFiles()
@@ -135,15 +147,33 @@ class CleanUpAttachmentImpl(
         }
 
         val filesToDelete = actualFiles
-            .filter { it !in possibleFiles }
+            .filter { file ->
+                shouldDeleteAttachmentFile(
+                    file = file,
+                    possibleFiles = possibleFiles,
+                )
+            }
         // Delete files
-        filesToDelete.forEach { file ->
+        val deletedFiles = filesToDelete.count { file ->
             file.delete()
         }
         val droppedFilesToDelete = AndroidFileDropStorage.cleanUpStale(context)
-        filesToDelete.size + droppedFilesToDelete
+        nativeSweep.removed
+            .coerceAtMost(Int.MAX_VALUE.toULong())
+            .toInt() + deletedFiles + droppedFilesToDelete
     }.measure { duration, deletedFiles ->
         val message = "Deleted $deletedFiles files in $duration"
         logRepository.post(TAG, message, LogLevel.INFO)
     }
+}
+
+internal fun shouldDeleteAttachmentFile(
+    file: File,
+    possibleFiles: Set<File>,
+): Boolean = when {
+    file in possibleFiles -> false
+    // Malformed and future-version names are reserved too. The native sweeper
+    // alone may inspect and remove them under the matching lease protocol.
+    isReservedTemporaryArtifactName(file.name) -> false
+    else -> true
 }

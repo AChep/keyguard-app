@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.crypto
 
+import com.artemchep.keyguard.util.io.artifact.KEYGUARD_TEMPORARY_ARTIFACT_PREFIX
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.io.Buffer
 import kotlinx.io.buffered
@@ -10,34 +11,9 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertSame
 
 @OptIn(ExperimentalForeignApi::class)
 class OpenPgpPlaintextStagingAppleTest {
-    @Test
-    fun closePreservesSinkFailureWhenDescriptorCloseAlsoFails() {
-        val sinkFailure = kotlinx.io.IOException("Could not close staging sink")
-        var descriptorCloseCalls = 0
-
-        val actual = assertFailsWith<kotlinx.io.IOException> {
-            closeAppleStagingResources(
-                closeSink = { throw sinkFailure },
-                closeDescriptor = {
-                    descriptorCloseCalls += 1
-                    false
-                },
-            )
-        }
-
-        assertSame(sinkFailure, actual)
-        assertEquals(1, descriptorCloseCalls)
-        assertEquals(1, actual.suppressedExceptions.size)
-        assertEquals(
-            "Could not close staging file",
-            actual.suppressedExceptions.single().message,
-        )
-    }
-
     @Test
     fun provisionalPlaintextIsDiscardedWhenFinalizationFails() {
         val output = Buffer()
@@ -103,7 +79,6 @@ class OpenPgpPlaintextStagingAppleTest {
 
             val plaintext = byteArrayOf(1, 2, 3)
             sink.write(Buffer().apply { write(plaintext) }, plaintext.size.toLong())
-            sink.close()
             storage.sealForReading()
 
             assertFailsWith<IllegalStateException> { storage.sealForReading() }
@@ -131,7 +106,7 @@ class OpenPgpPlaintextStagingAppleTest {
         .orEmpty()
         .filterIsInstance<String>()
         .filterTo(mutableSetOf()) { name ->
-            name.startsWith("keyguard-private-")
+            name.startsWith(KEYGUARD_TEMPORARY_ARTIFACT_PREFIX)
         }
 
     private class AuthenticationFailure : RuntimeException("authentication failed")

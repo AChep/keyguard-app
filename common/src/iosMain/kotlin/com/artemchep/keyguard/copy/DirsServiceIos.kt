@@ -4,9 +4,10 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.resolve
-import com.artemchep.keyguard.platform.toKotlinxIoPath
 import com.artemchep.keyguard.ui.topPresentedViewController
+import com.artemchep.keyguard.util.io.resolve
+import com.artemchep.keyguard.util.io.toKotlinxIoPath
+import com.artemchep.keyguard.util.io.toNSURL
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -44,7 +45,7 @@ object DirsServiceIos : DirsService {
                     sink.flush()
                 }
 
-            val url = NSURL.fileURLWithPath(tempFile.value)
+            val url = tempFile.toNSURL()
             presentExportPicker(url)
         } finally {
             NSFileManager.defaultManager.removeItemAtPath(
@@ -99,7 +100,8 @@ object DirsServiceIos : DirsService {
 
 private class IosDocumentExportDelegate(
     private val onComplete: (String?) -> Unit,
-) : NSObject(), UIDocumentPickerDelegateProtocol {
+) : NSObject(),
+    UIDocumentPickerDelegateProtocol {
     override fun documentPicker(
         controller: UIDocumentPickerViewController,
         didPickDocumentsAtURLs: List<*>,

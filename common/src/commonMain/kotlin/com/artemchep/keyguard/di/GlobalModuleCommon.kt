@@ -2,6 +2,8 @@ package com.artemchep.keyguard.di
 
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.AppWorkerIm
+import com.artemchep.keyguard.common.TemporaryArtifactMaintenance
+import com.artemchep.keyguard.common.TemporaryArtifactMaintenanceImpl
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
@@ -29,6 +31,8 @@ import com.artemchep.keyguard.common.service.credentialexchange.CxfExportService
 import com.artemchep.keyguard.common.service.credentialexchange.CxfImportService
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfExportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
+import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.download.DownloadTaskImpl
 import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
@@ -83,6 +87,8 @@ import com.artemchep.keyguard.common.service.settings.impl.SettingsRepositoryImp
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeyRepositoryImpl
+import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
+import com.artemchep.keyguard.common.service.staging.StagingSpoolObserver
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentPublicKeyRepositoryImpl
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
@@ -515,6 +521,7 @@ import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
 import com.artemchep.keyguard.crypto.NativePasskeyCrypto
 import com.artemchep.keyguard.crypto.NativeSshKeyImportService
 import com.artemchep.keyguard.crypto.NativeSshKeyPkcs8Exporter
+import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadCoordinatorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
@@ -532,6 +539,19 @@ import org.kodein.di.instance
 fun globalModuleCommon() = DI.Module(
     name = "globalModuleCommon",
 ) {
+    bindSingleton<StagingSpoolObserver> {
+        StagingSpoolObserver.NoOp
+    }
+    bindSingleton<StagingSpoolFactory> {
+        DefaultStagingSpoolFactory(
+            observer = instance(),
+        )
+    }
+    bindSingleton<DownloadTask> {
+        DownloadTaskImpl(
+            directDI = this,
+        )
+    }
     bindSingleton<CryptoGenerator> {
         NativeCryptoGenerator()
     }
@@ -1432,6 +1452,11 @@ fun globalModuleCommon() = DI.Module(
     }
     bindSingleton<GetOnboardingLastVisitInstant> {
         GetOnboardingLastVisitInstantImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<TemporaryArtifactMaintenance> {
+        TemporaryArtifactMaintenanceImpl(
             directDI = this,
         )
     }

@@ -15,33 +15,30 @@ internal fun CxfImportPlan.selectItems(
     selectedItemIndexes: Set<Int>,
 ): CxfImportPlan {
     val allItemsSelected = items.indices.all(selectedItemIndexes::contains)
-    if (allItemsSelected) {
-        return this
-    }
-
     val selectedItems = items.filterIndexed { index, _ ->
         index in selectedItemIndexes
     }
-    if (selectedItems.isEmpty()) {
-        return copy(
+    return if (allItemsSelected) {
+        this
+    } else if (selectedItems.isEmpty()) {
+        copy(
             folders = emptyList(),
             items = emptyList(),
         )
-    }
-
-    val folderByKey = folders.associateBy(CxfImportPlan.Folder::key)
-    val requiredFolderKeys = mutableSetOf<String>()
-    selectedItems.forEach { item ->
-        var folderKey = item.folderKey
-        while (folderKey != null && requiredFolderKeys.add(folderKey)) {
-            folderKey = folderByKey[folderKey]?.parentKey
+    } else {
+        val folderByKey = folders.associateBy(CxfImportPlan.Folder::key)
+        val requiredFolderKeys = mutableSetOf<String>()
+        selectedItems.forEach { item ->
+            var folderKey = item.folderKey
+            while (folderKey != null && requiredFolderKeys.add(folderKey)) {
+                folderKey = folderByKey[folderKey]?.parentKey
+            }
         }
+        copy(
+            folders = folders.filter { folder ->
+                folder.key in requiredFolderKeys
+            },
+            items = selectedItems,
+        )
     }
-
-    return copy(
-        folders = folders.filter { folder ->
-            folder.key in requiredFolderKeys
-        },
-        items = selectedItems,
-    )
 }

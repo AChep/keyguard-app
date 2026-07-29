@@ -1,11 +1,12 @@
 package com.artemchep.keyguard.copy
 
-import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
+import com.artemchep.keyguard.common.service.file.AtomicFileWriteOutcome
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import com.artemchep.keyguard.common.service.file.FileMetadata
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.platform.toSecurityScopedBookmarkDataOrNull
+import com.artemchep.keyguard.util.io.readByteArrayAndClose
 import kotlinx.cinterop.BooleanVar
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
@@ -90,7 +91,7 @@ class FileServiceIos(
         uri: String,
         accessToken: FileAccessToken?,
         write: (Sink) -> Unit,
-    ): Boolean {
+    ): AtomicFileWriteOutcome {
         accessToken ?: return delegate.atomicWriteToFile(
             uri = uri,
             accessToken = null,
@@ -103,24 +104,10 @@ class FileServiceIos(
         // that the scoped fallback sink buffers the whole payload in memory
         // before writing it out, so scoped saves get neither the streaming nor
         // the atomic-replacement benefits of this API.
-        return false
+        return AtomicFileWriteOutcome.Unsupported
     }
 
     override fun delete(uri: String): Boolean = delegate.delete(uri)
-
-    override fun atomicMove(
-        sourceUri: String,
-        destinationUri: String,
-        accessToken: FileAccessToken?,
-    ): Boolean {
-        if (accessToken != null) {
-            return false
-        }
-        return delegate.atomicMove(
-            sourceUri = sourceUri,
-            destinationUri = destinationUri,
-        )
-    }
 
     private fun writeScopedBytes(
         uri: String,

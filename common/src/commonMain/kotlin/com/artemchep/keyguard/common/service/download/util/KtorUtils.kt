@@ -1,8 +1,6 @@
 package com.artemchep.keyguard.common.service.download.util
 
 import com.artemchep.keyguard.common.exception.HttpException
-import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.toKotlinxIoPath
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
@@ -12,8 +10,6 @@ import io.ktor.http.isSuccess
 import io.ktor.utils.io.readAvailable
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
-import kotlinx.io.buffered
-import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 
 private const val DEFAULT_DOWNLOAD_BUFFER_SIZE = 16 * 1024
@@ -27,8 +23,7 @@ suspend fun HttpClient.downloadToByteArray(
     val output = Buffer()
     downloadToSink(
         url = url,
-        output = { output },
-        closeOutput = false,
+        output = output,
         bufferSize = bufferSize,
         validateSize = validateSize,
         onProgress = onProgress,
@@ -36,33 +31,9 @@ suspend fun HttpClient.downloadToByteArray(
     return output.readByteArray()
 }
 
-suspend fun HttpClient.downloadToFile(
-    url: String,
-    output: LocalPath,
-    bufferSize: Int = DEFAULT_DOWNLOAD_BUFFER_SIZE,
-    validateSize: (Long) -> Unit = {},
-    onProgress: suspend (downloaded: Long, total: Long?) -> Unit = { _, _ -> },
-): LocalPath {
-    val outputPath = output.toKotlinxIoPath()
-    downloadToSink(
-        url = url,
-        output = {
-            outputPath.parent?.let(SystemFileSystem::createDirectories)
-            SystemFileSystem.sink(outputPath)
-                .buffered()
-        },
-        closeOutput = true,
-        bufferSize = bufferSize,
-        validateSize = validateSize,
-        onProgress = onProgress,
-    )
-    return output
-}
-
 private suspend fun HttpClient.downloadToSink(
     url: String,
-    output: () -> Sink,
-    closeOutput: Boolean,
+    output: Sink,
     bufferSize: Int,
     validateSize: (Long) -> Unit,
     onProgress: suspend (downloaded: Long, total: Long?) -> Unit,
@@ -77,14 +48,6 @@ private suspend fun HttpClient.downloadToSink(
     val channel = response.bodyAsChannel()
     val buffer = ByteArray(bufferSize)
     var downloaded = 0L
-    val sink = try {
-        output()
-    } catch (e: Throwable) {
-        if (!channel.isClosedForRead) {
-            channel.cancel(null)
-        }
-        throw e
-    }
     try {
         while (true) {
             val read = channel.readAvailable(buffer, 0, buffer.size)
@@ -97,24 +60,18 @@ private suspend fun HttpClient.downloadToSink(
 
             downloaded += read
             validateSize(downloaded)
-            sink.write(buffer, 0, read)
+            output.write(buffer, 0, read)
             onProgress(downloaded, total)
         }
-        sink.flush()
+        output.flush()
     } finally {
-        try {
-            if (closeOutput) {
-                sink.close()
-            }
-        } finally {
-            if (!channel.isClosedForRead) {
-                channel.cancel(null)
-            }
+        if (!channel.isClosedForRead) {
+            channel.cancel(null)
         }
     }
 }
 
-private fun HttpStatusCode.throwIfDownloadFailed() {
+internal fun HttpStatusCode.throwIfDownloadFailed() {
     if (isSuccess()) {
         return
     }

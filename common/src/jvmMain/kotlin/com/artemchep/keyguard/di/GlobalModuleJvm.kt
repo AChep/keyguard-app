@@ -3,14 +3,16 @@ package com.artemchep.keyguard.di
 import com.artemchep.keyguard.common.service.backup.BackupRepository
 import com.artemchep.keyguard.common.service.backup.BackupRepositoryZipImpl
 import com.artemchep.keyguard.common.service.backup.BackupRunService
-import com.artemchep.keyguard.common.service.crypto.FileEncryptor
-import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
-import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
+import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
+import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandJvm
+import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppListEntity
 import com.artemchep.keyguard.common.service.licensekey.EcdsaP256LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -40,18 +42,16 @@ import com.artemchep.keyguard.copy.GetAppBuildRefImpl
 import com.artemchep.keyguard.copy.GetPasswordStrengthJvm
 import com.artemchep.keyguard.copy.NumberFormatterJvm
 import com.artemchep.keyguard.copy.ZipServiceJvm
-import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
-import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppListEntity
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
-import com.artemchep.keyguard.crypto.FileEncryptorJvm
-import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.FileEncryptionCodecJvm
 import com.artemchep.keyguard.crypto.NativeGpgKeyExpirationService
+import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyImportService
-import com.artemchep.keyguard.crypto.NativeGpgOpenPgpVerifier
 import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
+import com.artemchep.keyguard.crypto.NativeGpgOpenPgpVerifier
 import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
@@ -153,8 +153,8 @@ fun globalModuleJvm() = DI.Module(
             }
         }
     }
-    bindSingleton<FileEncryptor> {
-        FileEncryptorJvm(
+    bindSingleton<FileEncryptionCodec> {
+        FileEncryptionCodecJvm(
             directDI = this,
         )
     }
@@ -223,7 +223,7 @@ fun globalModuleJvm() = DI.Module(
         NativeGpgKeyImportService
     }
     bindSingleton<GpgOpenPgpService> {
-        NativeGpgOpenPgpService
+        NativeGpgOpenPgpService(this)
     }
     bindSingleton<GpgOpenPgpVerifier> {
         NativeGpgOpenPgpVerifier
@@ -301,7 +301,7 @@ fun globalModuleJvm() = DI.Module(
                     val logging = HttpLoggingInterceptor(logger).apply {
                         level = HttpLoggingInterceptor.Level.BODY
                     }
-                    //addInterceptor(logging)
+                    // addInterceptor(logging)
                 }
             }
             .build()

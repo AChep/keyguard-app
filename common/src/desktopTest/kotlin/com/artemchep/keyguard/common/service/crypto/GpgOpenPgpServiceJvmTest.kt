@@ -7,7 +7,7 @@ import com.artemchep.keyguard.crypto.GpgUnsupportedKeyVersionException
 import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
 import com.artemchep.keyguard.crypto.fingerprintHex
-import com.artemchep.keyguard.util.foundation.io.toSource
+import com.artemchep.keyguard.util.io.toSource
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import org.bouncycastle.bcpg.ArmoredOutputStream
@@ -49,7 +49,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class GpgOpenPgpServiceJvmTest {
-    private val service = NativeGpgOpenPgpService
+    private val service = NativeGpgOpenPgpService()
 
     private val privateKey = GpgOpenPgpPrivateKey(
         armored = CV25519_SECRET_KEY,

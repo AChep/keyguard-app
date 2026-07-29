@@ -26,6 +26,11 @@ gradlePlugin {
             id = "keyguard.cargo-common"
             implementationClass = "com.artemchep.keyguard.buildplugins.cargo.CargoCommonPlugin"
         }
+        register("rustMultiplatformLibrary") {
+            id = "keyguard.rust-multiplatform-library"
+            implementationClass =
+                "com.artemchep.keyguard.buildplugins.cargo.RustMultiplatformLibraryPlugin"
+        }
         register("androidSshAgent") {
             id = "keyguard.android-ssh-agent"
             implementationClass = "com.artemchep.keyguard.buildplugins.androidssh.AndroidSshAgentPlugin"
@@ -33,6 +38,10 @@ gradlePlugin {
         register("nativeCryptoConsumer") {
             id = "keyguard.native-crypto-consumer"
             implementationClass = "com.artemchep.keyguard.buildplugins.nativecrypto.NativeCryptoConsumerPlugin"
+        }
+        register("nativeIoConsumer") {
+            id = "keyguard.native-io-consumer"
+            implementationClass = "com.artemchep.keyguard.buildplugins.nativeio.NativeIoConsumerPlugin"
         }
         register("cryptoDependencyPolicy") {
             id = "keyguard.crypto-dependency-policy"

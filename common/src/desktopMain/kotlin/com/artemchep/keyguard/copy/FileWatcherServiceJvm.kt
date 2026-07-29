@@ -3,8 +3,8 @@ package com.artemchep.keyguard.copy
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.toJavaFile
-import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.util.io.toJavaFile
+import com.artemchep.keyguard.util.io.toLocalPath
 import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryWatcher
 import kotlinx.coroutines.Dispatchers

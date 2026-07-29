@@ -1,0 +1,20 @@
+[package]
+name = "keyguard-io-jni"
+description = "JNI bridge for Keyguard native filesystem primitives"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+jni.workspace = true
+keyguard-io-core = { path = "../keyguard-io-core" }
+zeroize.workspace = true
+
+[lints]
+workspace = true

@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.keepass
 
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
-import com.artemchep.keyguard.util.foundation.io.toSource
+import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.util.webdav.WebDavByteRange
 import com.artemchep.keyguard.util.webdav.WebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavClientConfig

@@ -11,6 +11,7 @@ import app.keemobile.kotpass.models.EntryFields
 import app.keemobile.kotpass.models.TimeData
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.KEEPASS_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.file.FileService
@@ -31,7 +32,6 @@ import com.artemchep.keyguard.core.store.bitwarden.SourceBinding
 import com.artemchep.keyguard.core.store.bitwarden.withoutCardCanonicalPaths
 import com.artemchep.keyguard.core.store.bitwarden.withoutCanonicalPath
 import com.artemchep.keyguard.core.store.bitwarden.withoutIdentityCanonicalPaths
-import com.artemchep.keyguard.feature.fileupload.KEEPASS_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.provider.bitwarden.usecase.resolveGpgMetadata
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.useAndClear
@@ -893,16 +893,15 @@ class KeePassCipherCodec(
             ?: localAttachments.firstOrNull { it.keepassFileName() == fileName && it.keepassFileSize() == size }?.id
     }
 
-    private fun BitwardenCipher.Attachment.keepassFileName(): String = when (this) {
-        is BitwardenCipher.Attachment.Remote -> fileName
-        is BitwardenCipher.Attachment.Local -> fileName
-    }
-
-    private fun BitwardenCipher.Attachment.keepassFileSize(): Long? = when (this) {
-        is BitwardenCipher.Attachment.Remote -> size
-        is BitwardenCipher.Attachment.Local -> size
-    }
-
     // endregion
+}
 
+private fun BitwardenCipher.Attachment.keepassFileName(): String = when (this) {
+    is BitwardenCipher.Attachment.Remote -> fileName
+    is BitwardenCipher.Attachment.Local -> fileName
+}
+
+private fun BitwardenCipher.Attachment.keepassFileSize(): Long? = when (this) {
+    is BitwardenCipher.Attachment.Remote -> size
+    is BitwardenCipher.Attachment.Local -> size
 }

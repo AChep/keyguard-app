@@ -4,6 +4,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenFo
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+@Suppress("FunctionNaming")
 class KeePassFolderCodecTest {
     private val codec = KeePassFolderCodec()
 

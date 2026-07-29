@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.crypto
 
-import com.artemchep.keyguard.util.foundation.io.ByteSnapshot
+import com.artemchep.keyguard.util.io.spool.ByteSnapshot
+import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
 import kotlinx.io.Buffer
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
@@ -10,6 +11,7 @@ internal fun ByteSnapshot.readBytes(): ByteArray = openSource().use { source ->
     source.readByteArray()
 }
 
+@OptIn(InternalKeyguardIoApi::class)
 internal class TestPrivateTemporaryStorage(
     private val tamperOnFirstSource: ((ByteArray) -> ByteArray)? = null,
     private val sinkOpenFailure: Throwable? = null,

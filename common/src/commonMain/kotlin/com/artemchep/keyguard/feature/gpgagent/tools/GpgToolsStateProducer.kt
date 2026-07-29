@@ -57,7 +57,7 @@ import com.artemchep.keyguard.res.gpg_tools_warning_signature_expired
 import com.artemchep.keyguard.res.output
 import com.artemchep.keyguard.res.result
 import com.artemchep.keyguard.ui.SimpleNote
-import com.artemchep.keyguard.util.foundation.io.writeText
+import com.artemchep.keyguard.util.io.writeText
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

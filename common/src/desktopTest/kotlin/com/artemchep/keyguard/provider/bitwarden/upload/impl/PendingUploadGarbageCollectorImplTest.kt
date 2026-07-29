@@ -10,73 +10,29 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.insertLocalCiph
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.testBitwardenCipher
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.testSend
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.testSendFile
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import com.artemchep.keyguard.provider.bitwarden.upload.SweepCall
 import com.artemchep.keyguard.provider.bitwarden.upload.SweepRecordingEncryptedFilePendingUploadService
 import com.artemchep.keyguard.provider.bitwarden.upload.pendingUploadFile
+import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
-import kotlinx.coroutines.test.runTest
 
+@Suppress("FunctionNaming")
 class PendingUploadGarbageCollectorImplTest {
     @Test
     fun `collector sweeps both namespaces using only references from the requested account`() =
         runTest {
-            val database = createUploadTestDatabase()
             val attachmentPendingUpload = pendingUploadFile("/pending/account-1/attachment.bin")
             val sendPendingUpload = pendingUploadFile("/pending/account-1/send.bin")
-            insertLocalCipher(
-                database,
-                testBitwardenCipher(
-                    cipherId = "cipher-1",
-                    accountId = ACCOUNT_ID,
-                ).copy(
-                    attachments = listOf(
-                        BitwardenCipher.Attachment.Local(
-                            id = "attachment-1",
-                            url = "file:///attachment",
-                            fileName = "attachment.bin",
-                            pendingUpload = attachmentPendingUpload,
-                        ),
-                    ),
-                ),
-            )
-            insertLocalCipher(
-                database,
-                testBitwardenCipher(
-                    cipherId = "cipher-2",
-                    accountId = "account-2",
-                ).copy(
-                    attachments = listOf(
-                        BitwardenCipher.Attachment.Local(
-                            id = "attachment-2",
-                            url = "file:///attachment-2",
-                            fileName = "attachment-2.bin",
-                            pendingUpload = pendingUploadFile(
-                                "/pending/account-2/attachment.bin",
-                            ),
-                        ),
-                    ),
-                ),
-            )
-            val send = testSend(
-                localId = "send-1",
-                remoteId = null,
-                localRevisionDate = Instant.parse("2026-07-25T07:00:00Z"),
-                remoteRevisionDate = null,
-                file = testSendFile(
-                    id = "send-file-1",
-                    pendingUpload = sendPendingUpload,
-                ),
-            )
-            database.sendQueries.insert(
-                accountId = send.accountId,
-                sendId = send.sendId,
-                data = send,
+            val database = createCollectorSweepDatabase(
+                attachmentPendingUpload = attachmentPendingUpload,
+                sendPendingUpload = sendPendingUpload,
             )
             val encryptedService = SweepRecordingEncryptedFilePendingUploadService()
             val now = Instant.parse("2026-07-27T07:00:00Z")
@@ -194,3 +150,57 @@ class PendingUploadGarbageCollectorImplTest {
     }
 }
 
+private fun createCollectorSweepDatabase(
+    attachmentPendingUpload: PendingUploadFile,
+    sendPendingUpload: PendingUploadFile,
+) = createUploadTestDatabase().also { database ->
+    insertLocalCipher(
+        database,
+        testBitwardenCipher(
+            cipherId = "cipher-1",
+            accountId = ACCOUNT_ID,
+        ).copy(
+            attachments = listOf(
+                BitwardenCipher.Attachment.Local(
+                    id = "attachment-1",
+                    url = "file:///attachment",
+                    fileName = "attachment.bin",
+                    pendingUpload = attachmentPendingUpload,
+                ),
+            ),
+        ),
+    )
+    insertLocalCipher(
+        database,
+        testBitwardenCipher(
+            cipherId = "cipher-2",
+            accountId = "account-2",
+        ).copy(
+            attachments = listOf(
+                BitwardenCipher.Attachment.Local(
+                    id = "attachment-2",
+                    url = "file:///attachment-2",
+                    fileName = "attachment-2.bin",
+                    pendingUpload = pendingUploadFile(
+                        "/pending/account-2/attachment.bin",
+                    ),
+                ),
+            ),
+        ),
+    )
+    val send = testSend(
+        localId = "send-1",
+        remoteId = null,
+        localRevisionDate = Instant.parse("2026-07-25T07:00:00Z"),
+        remoteRevisionDate = null,
+        file = testSendFile(
+            id = "send-file-1",
+            pendingUpload = sendPendingUpload,
+        ),
+    )
+    database.sendQueries.insert(
+        accountId = send.accountId,
+        sendId = send.sendId,
+        data = send,
+    )
+}

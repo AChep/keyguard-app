@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.service.directorywatcher
 
-import com.artemchep.keyguard.common.service.file.toLocalPathFromFileUriOrNull
+import com.artemchep.keyguard.util.io.toLocalPathFromFileUriOrNull
 import com.artemchep.keyguard.platform.LocalPath
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow

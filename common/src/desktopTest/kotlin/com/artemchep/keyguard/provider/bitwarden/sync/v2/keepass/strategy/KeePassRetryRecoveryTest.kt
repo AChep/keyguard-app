@@ -13,6 +13,7 @@ import kotlin.test.assertEquals
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
+@Suppress("FunctionNaming")
 class KeePassRetryRecoveryTest {
     @Test
     fun `cipher retry adopts an already published entry`() {

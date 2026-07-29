@@ -6,12 +6,10 @@ import android.database.Cursor
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.core.net.toUri
-import com.artemchep.keyguard.common.io.useBufferedSink
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
-import kotlin.time.Instant
+import com.artemchep.keyguard.util.io.artifact.TemporaryArtifactRole
+import com.artemchep.keyguard.util.io.artifact.isReservedTemporaryArtifactName
+import com.artemchep.keyguard.util.io.artifact.newTemporaryArtifactName
+import com.artemchep.keyguard.util.io.useBufferedSink
 import kotlinx.coroutines.CancellationException
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
@@ -20,6 +18,11 @@ import kotlinx.io.asSource
 import kotlinx.io.buffered
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import java.io.FileNotFoundException
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import kotlin.time.Instant
 
 class AndroidTreeBackupObjectStore internal constructor(
     private val documentClient: AndroidTreeDocumentClient,
@@ -104,7 +107,7 @@ class AndroidTreeBackupObjectStore internal constructor(
             throw BackupObjectStoreException.AlreadyExists(key)
         }
 
-        val tempName = "$fileName.${System.nanoTime()}.tmp"
+        val tempName = newTemporaryArtifactName(TemporaryArtifactRole.New)
         val tempDocument = createFile(
             parent = parent,
             name = tempName,
@@ -122,7 +125,6 @@ class AndroidTreeBackupObjectStore internal constructor(
                 ?.let { existingDocument ->
                     stageExistingDocument(
                         document = existingDocument,
-                        fileName = fileName,
                         key = key,
                     )
                 }
@@ -168,11 +170,10 @@ class AndroidTreeBackupObjectStore internal constructor(
 
     private fun stageExistingDocument(
         document: AndroidTreeDocumentEntry,
-        fileName: String,
         key: BackupObjectKey,
     ): AndroidTreeDocumentEntry = documentClient.renameDocument(
         document = document,
-        displayName = "$fileName.${System.nanoTime()}.old.tmp",
+        displayName = newTemporaryArtifactName(TemporaryArtifactRole.Previous),
     ) ?: throw BackupObjectStoreException.Transient(
         operation = BackupObjectStoreOperation.Write,
         key = key,
@@ -409,6 +410,9 @@ class AndroidTreeBackupObjectStore internal constructor(
         filterPrefix: String,
     ) {
         listChildren(directory).forEach { child ->
+            if (!child.isDirectory && isReservedTemporaryArtifactName(child.name)) {
+                return@forEach
+            }
             val keyValue = pathPrefix + child.name
             if (child.isDirectory) {
                 collectFiles(
@@ -696,7 +700,7 @@ private class AndroidTreeDocumentsContractClient(
     }
 
     private fun AndroidTreeDocumentEntry.requireUri(): Uri = requireNotNull(uri) {
-        "Android tree document entry '${id}' does not have a URI."
+        "Android tree document entry '$id' does not have a URI."
     }
 
     private fun Uri.queryDocumentEntry(): AndroidTreeDocumentEntry {
@@ -781,7 +785,8 @@ private fun AndroidTreeDocumentProviderException.toBackupObjectStoreException(
     val cause = providerCause
     return when (cause) {
         is IllegalArgumentException,
-        is UnsupportedOperationException -> BackupObjectStoreException.PermissionDenied(
+        is UnsupportedOperationException,
+        -> BackupObjectStoreException.PermissionDenied(
             operation = operation,
             key = key,
             cause = cause,

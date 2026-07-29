@@ -1,6 +1,9 @@
 package com.artemchep.keyguard.common.service.keyvalue.impl
 
-import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
+import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
+import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
+import com.artemchep.keyguard.util.io.toLocalPath
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -19,7 +22,15 @@ class JsonKeyValueStoreTest {
         val root = createTempDirectory("json-store")
         val file = root.resolve("nested/preferences.json")
         val store = FileJsonKeyValueStoreStore(
-            fileIo = { file.toLocalPath() },
+            fileIo = {
+                AtomicFileDestination(
+                    root = root.toLocalPath(),
+                    relativePath = AtomicRelativePath.fromComponents(
+                        AtomicPathComponent.parse("nested"),
+                        AtomicPathComponent.parse("preferences.json"),
+                    ),
+                )
+            },
             json = json,
         )
         val state = persistentMapOf<String, Any?>(
@@ -42,7 +53,15 @@ class JsonKeyValueStoreTest {
         file.writeText("{not valid json")
 
         val backing = FileJsonKeyValueStoreStore(
-            fileIo = { file.toLocalPath() },
+            fileIo = {
+                AtomicFileDestination(
+                    root = root.toLocalPath(),
+                    relativePath = AtomicRelativePath.fromComponents(
+                        AtomicPathComponent.parse("broken"),
+                        AtomicPathComponent.parse("preferences.json"),
+                    ),
+                )
+            },
             json = json,
         )
         val store = JsonKeyValueStore(backing)

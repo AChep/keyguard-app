@@ -18,6 +18,9 @@ import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseStor
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseStorageLocalFile
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseStorageWebDav
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseWriteMode
+import com.artemchep.keyguard.common.service.staging.SpoolLimits
+import com.artemchep.keyguard.common.service.staging.StagingPurpose
+import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.parseWebDavKeePassFileUrl
@@ -28,15 +31,13 @@ import com.artemchep.keyguard.common.util.retryWithPolicy
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
-import com.artemchep.keyguard.crypto.PrivateTemporarySpillStorage
-import com.artemchep.keyguard.crypto.createPrivateTemporaryStorage
+import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountParams
 import com.artemchep.keyguard.ui.icons.generateAccentColors
-import com.artemchep.keyguard.util.foundation.io.AdaptiveSpool
-import com.artemchep.keyguard.util.foundation.io.ByteSnapshot
-import com.artemchep.keyguard.util.foundation.io.buildSnapshot
-import com.artemchep.keyguard.util.foundation.io.copyTo
-import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
+import com.artemchep.keyguard.util.io.readByteArrayAndClose
+import com.artemchep.keyguard.util.io.spool.ByteSnapshot
+import com.artemchep.keyguard.util.io.spool.buildVerifiedSnapshot
+import com.artemchep.keyguard.util.io.spool.copyTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.ensureActive
@@ -212,6 +213,7 @@ internal suspend fun stageVerifyAndPublish(
     credentials: Credentials,
     mode: KeePassDatabaseWriteMode,
     expectedMetadata: KeePassDatabaseMetadata? = null,
+    stagingSpoolFactory: StagingSpoolFactory = DefaultStagingSpoolFactory(),
 ): KeePassDatabaseMetadata? = withContext(Dispatchers.IO) {
     // Encode into private replayable storage and immediately decode the result.
     // This catches corrupt, truncated, or credential-incompatible output before
@@ -224,6 +226,7 @@ internal suspend fun stageVerifyAndPublish(
     val staged = stageAndVerify(
         database = database,
         credentials = credentials,
+        stagingSpoolFactory = stagingSpoolFactory,
     )
     try {
         // The blocking stage cannot observe a cancellation; do not start
@@ -250,41 +253,36 @@ internal suspend fun stageVerifyAndPublish(
 private fun stageAndVerify(
     database: KeePassDatabase,
     credentials: Credentials,
+    stagingSpoolFactory: StagingSpoolFactory,
 ): StagedDatabase {
-    val snapshot = AdaptiveSpool(
-        memoryLimitBytes = MAX_IN_MEMORY_STAGED_DATABASE_BYTES,
-        maximumBytes = MAX_STAGED_DATABASE_BYTES,
-        spillFactory = {
-            PrivateTemporarySpillStorage(createPrivateTemporaryStorage())
-        },
+    val snapshot = stagingSpoolFactory.create(
+        purpose = StagingPurpose.KeePassDatabase,
+        limits = SpoolLimits(
+            memoryBytes = MAX_IN_MEMORY_STAGED_DATABASE_BYTES,
+            maximumBytes = MAX_STAGED_DATABASE_BYTES,
+        ),
         limitExceeded = { limit ->
             IOException(
                 "Encoded KeePass database exceeds the supported staging limit of $limit bytes",
             )
         },
-    ).buildSnapshot { sink ->
-        database.encodeTo(
-            sink = sink,
-            cipherProviders = keePassCipherProviders,
-        )
-    }
-    val staged = StagedDatabase(snapshot)
-    try {
-        // Verify the encoded payload round-trips before we trust it.
-        staged.source().use { source ->
+    ).buildVerifiedSnapshot(
+        write = { sink ->
+            database.encodeTo(
+                sink = sink,
+                cipherProviders = keePassCipherProviders,
+            )
+        },
+        verify = { source ->
+            // Verify the encoded payload round-trips before we trust it.
             KeePassDatabase.decode(
                 source = source,
                 credentials = credentials,
                 cipherProviders = keePassCipherProviders,
             )
-        }
-        return staged
-    } catch (error: Throwable) {
-        runCatching { staged.close() }
-            .exceptionOrNull()
-            ?.let(error::addSuppressed)
-        throw error
-    }
+        },
+    )
+    return StagedDatabase(snapshot)
 }
 
 internal const val MAX_IN_MEMORY_STAGED_DATABASE_BYTES = 8L * 1024L * 1024L

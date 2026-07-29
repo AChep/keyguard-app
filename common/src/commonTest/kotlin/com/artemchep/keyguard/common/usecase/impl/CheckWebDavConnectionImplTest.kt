@@ -3,7 +3,7 @@ package com.artemchep.keyguard.common.usecase.impl
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.WebDavCredentials
 import com.artemchep.keyguard.common.model.WebDavLocation
-import com.artemchep.keyguard.util.foundation.io.toSource
+import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
 import com.artemchep.keyguard.util.webdav.WebDavByteRange
 import com.artemchep.keyguard.util.webdav.WebDavClient

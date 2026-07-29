@@ -1,6 +1,9 @@
 package com.artemchep.keyguard.common.service.download
 
-import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
+import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
+import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
+import com.artemchep.keyguard.util.io.toLocalPath
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlin.io.path.createTempDirectory
@@ -15,7 +18,14 @@ class DownloadWriterTest {
         val file = root.resolve("payload.bin")
         val data = "payload".encodeToByteArray()
 
-        DownloadWriter.LocalPathWriter(file.toLocalPath()).writeBytes(data)
+        DownloadWriter.LocalPathWriter(
+            destination = AtomicFileDestination(
+                root = root.toLocalPath(),
+                relativePath = AtomicRelativePath.fromComponents(
+                    AtomicPathComponent.parse("payload.bin"),
+                ),
+            ),
+        ).writeBytes(data)
 
         assertContentEquals(data, file.readBytes())
     }

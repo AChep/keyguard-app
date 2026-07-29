@@ -1,20 +1,19 @@
 package com.artemchep.keyguard.crypto
 
-import kotlinx.io.RawSink
-import kotlinx.io.RawSource
+import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
 
-internal interface PrivateTemporaryStorage : AutoCloseable {
-    /** Returns the only writable view of this storage. */
-    fun sink(): RawSink
+internal typealias PrivateTemporaryStorage =
+    com.artemchep.keyguard.util.io.scratch.PrivateTemporaryStorage
 
-    /**
-     * Permanently closes the writable view and freezes the stored bytes for subsequent reads.
-     * After this succeeds, the contents must remain unchanged until [close].
-     */
-    fun sealForReading()
+/**
+ * Returns the directory that hosts private scratch storage on this platform;
+ * the orphan sweeper reclaims stale artifacts from it at startup.
+ */
+internal expect fun privateTemporaryStorageDirectory(): LocalPath
 
-    /** Returns a new source positioned at byte zero. */
-    fun source(): RawSource
-}
-
-internal expect fun createPrivateTemporaryStorage(): PrivateTemporaryStorage
+@OptIn(InternalKeyguardIoApi::class)
+internal fun createPrivateTemporaryStorage(): PrivateTemporaryStorage =
+    com.artemchep.keyguard.util.io.scratch.createPrivateTemporaryStorage(
+        directory = privateTemporaryStorageDirectory(),
+    )

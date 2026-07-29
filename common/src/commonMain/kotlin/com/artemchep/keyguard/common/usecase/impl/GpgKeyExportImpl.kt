@@ -10,7 +10,7 @@ import com.artemchep.keyguard.common.service.zip.ZipEntry
 import com.artemchep.keyguard.common.service.zip.ZipService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
-import com.artemchep.keyguard.util.foundation.io.writeText
+import com.artemchep.keyguard.util.io.writeText
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

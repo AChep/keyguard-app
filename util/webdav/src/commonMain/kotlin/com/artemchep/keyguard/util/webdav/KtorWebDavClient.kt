@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.util.webdav
 
+import com.artemchep.keyguard.util.io.artifact.TemporaryArtifactRole
+import com.artemchep.keyguard.util.io.artifact.isReservedTemporaryArtifactName
+import com.artemchep.keyguard.util.io.artifact.newTemporaryArtifactName
 import com.artemchep.keyguard.util.webdav.internal.WebDavMultiStatusEntry
 import com.artemchep.keyguard.util.webdav.internal.WebDavXml
 import com.artemchep.keyguard.util.webdav.internal.hrefToWebDavPath
@@ -27,22 +30,23 @@ import io.ktor.http.content.OutgoingContent
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.asSink
 import io.ktor.utils.io.asSource
-import kotlin.concurrent.Volatile
-import kotlin.io.encoding.Base64
-import kotlin.random.Random
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
+import kotlin.concurrent.Volatile
+import kotlin.io.encoding.Base64
 
 class KtorWebDavClient(
     private val httpClient: HttpClient,
@@ -580,6 +584,7 @@ class KtorWebDavClient(
         write: suspend (Sink) -> Unit,
     ): Boolean {
         val tempPath = createTempPath(path)
+        var tempConsumed = false
         try {
             put(
                 path = tempPath,
@@ -606,12 +611,10 @@ class KtorWebDavClient(
                 mode = mode,
                 precondition = precondition,
             )
+            tempConsumed = true
             return true
         } catch (e: MoveNotSupportedException) {
             moveUnsupported = true
-            runCatching {
-                deleteObject(tempPath)
-            }
             if (writeStrategy == WebDavWriteStrategy.RequireAtomic) {
                 throw WebDavException.AtomicWriteUnsupported(
                     path = path,
@@ -620,11 +623,14 @@ class KtorWebDavClient(
                 )
             }
             return false
-        } catch (e: Exception) {
-            runCatching {
-                deleteObject(tempPath)
+        } finally {
+            if (!tempConsumed) {
+                withContext(NonCancellable) {
+                    runCatching {
+                        deleteObject(tempPath)
+                    }
+                }
             }
-            throw e
         }
     }
 
@@ -892,7 +898,10 @@ class KtorWebDavClient(
                 }
                 if (resource.isCollection) {
                     queue.add(resource.path)
-                } else if (resource.path.startsWith(normalizedPrefix)) {
+                } else if (
+                    resource.path.startsWith(normalizedPrefix) &&
+                    !isReservedTemporaryArtifactName(resource.path.substringAfterLast('/'))
+                ) {
                     result += resource
                 }
             }
@@ -1551,9 +1560,7 @@ class KtorWebDavClient(
     ): String {
         val slashIndex = path.lastIndexOf('/')
         val parent = path.takeIf { slashIndex >= 0 }?.substring(0, slashIndex + 1).orEmpty()
-        val fileName = path.substringAfterLast('/')
-        val nonce = Random.Default.nextLong().toString().replace("-", "n")
-        return "$parent$fileName.$nonce.tmp"
+        return parent + newTemporaryArtifactName(TemporaryArtifactRole.New)
     }
 
     private companion object {

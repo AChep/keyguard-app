@@ -22,6 +22,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 
+@Suppress("TooGenericExceptionCaught")
 class PendingUploadGarbageCollectorImpl(
     private val db: VaultDatabaseManager,
     private val pendingUploadCoordinator: PendingUploadCoordinator,

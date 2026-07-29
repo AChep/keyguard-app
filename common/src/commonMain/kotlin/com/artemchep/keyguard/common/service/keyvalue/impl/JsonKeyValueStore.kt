@@ -9,8 +9,6 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.io.map
-import com.artemchep.keyguard.common.io.readText
-import com.artemchep.keyguard.common.io.writeText
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.RealKeyValuePreference
@@ -18,7 +16,18 @@ import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.common.service.state.impl.toJson
 import com.artemchep.keyguard.common.service.state.impl.toMap
 import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.toKotlinxIoPath
+import com.artemchep.keyguard.util.io.atomic.AtomicDirectoryPermissions
+import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
+import com.artemchep.keyguard.util.io.atomic.AtomicFilePermissions
+import com.artemchep.keyguard.util.io.atomic.AtomicPublicationPolicy
+import com.artemchep.keyguard.util.io.atomic.AtomicWriteOptions
+import com.artemchep.keyguard.util.io.atomic.ExistingParentLinkPolicy
+import com.artemchep.keyguard.util.io.atomic.ParentDirectoryPolicy
+import com.artemchep.keyguard.util.io.atomic.ReplacementAccessPolicy
+import com.artemchep.keyguard.util.io.atomic.SyncLevel
+import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
+import com.artemchep.keyguard.util.io.atomic.writeFileAtomically
+import com.artemchep.keyguard.util.io.readText
 import kotlinx.collections.immutable.PersistentMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentMap
@@ -34,7 +43,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.io.files.SystemFileSystem
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -50,11 +58,11 @@ class DefaultJsonKeyValueStoreStore : JsonKeyValueStoreStore {
 }
 
 class FileJsonKeyValueStoreStore(
-    private val fileIo: IO<LocalPath>,
+    private val fileIo: IO<AtomicFileDestination>,
     private val json: Json,
 ) : JsonKeyValueStoreStore {
     override fun read(): IO<PersistentMap<String, Any?>> = fileIo
-        .effectMap(LocalPath::readText)
+        .effectMap { destination -> destination.path.readText() }
         .map { text ->
             val el = json.decodeFromString<JsonObject>(text)
             el.toMap().toPersistentMap()
@@ -62,12 +70,28 @@ class FileJsonKeyValueStoreStore(
         .dispatchOn(Dispatchers.IO)
 
     override fun write(state: PersistentMap<String, Any?>): IO<Unit> = fileIo
-        .effectMap { path ->
+        .effectMap { destination ->
             val text = json.encodeToString(state.toJson())
-            val file = path.toKotlinxIoPath()
-            // Make sure the directory exists
-            file.parent?.let(SystemFileSystem::createDirectories)
-            path.writeText(text)
+            writeFileAtomically(
+                destination = destination,
+                options = AtomicWriteOptions(
+                    publication = AtomicPublicationPolicy.Replace(
+                        access = ReplacementAccessPolicy.UseRequestedPermissions(
+                            permissions = AtomicFilePermissions.OwnerOnly,
+                        ),
+                    ),
+                    parentDirectories = ParentDirectoryPolicy.CreateMissing(
+                        permissions = AtomicDirectoryPermissions.OwnerOnly,
+                    ),
+                    existingParentLinks = ExistingParentLinkPolicy.Reject,
+                    synchronization = SynchronizationPolicy.Required(
+                        SyncLevel.FileSynchronized,
+                    ),
+                ),
+            ) { sink ->
+                sink.write(text.encodeToByteArray())
+            }.receipt.requireCleanupComplete()
+            Unit
         }
         .dispatchOn(Dispatchers.IO)
 }
@@ -80,7 +104,8 @@ interface JsonKeyValueStoreStore {
 
 class JsonKeyValueStore(
     private val str: JsonKeyValueStoreStore = DefaultJsonKeyValueStoreStore(),
-) : KeyValueStore, SecureKeyValueStore {
+) : KeyValueStore,
+    SecureKeyValueStore {
     class SharedPrefsKeyValuePreference<T : Any>(
         override val key: String,
         override val clazz: KClass<*>,

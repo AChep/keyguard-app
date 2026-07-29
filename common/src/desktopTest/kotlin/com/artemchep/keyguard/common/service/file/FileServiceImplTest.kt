@@ -1,7 +1,8 @@
 package com.artemchep.keyguard.common.service.file
 
-import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
-import com.artemchep.keyguard.util.foundation.io.writeByteArray
+import com.artemchep.keyguard.util.io.artifact.isReservedTemporaryArtifactName
+import com.artemchep.keyguard.util.io.readByteArrayAndClose
+import com.artemchep.keyguard.util.io.writeByteArray
 import kotlinx.io.IOException
 import java.nio.file.Path
 import kotlin.io.path.createDirectory
@@ -15,8 +16,10 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
+@Suppress("FunctionNaming")
 class FileServiceImplTest {
     private val service = FileServiceImpl()
 
@@ -87,9 +90,41 @@ class FileServiceImplTest {
             bytes = data,
         )
 
-        assertTrue(result)
+        assertIs<AtomicFileWriteOutcome.Published>(result)
         assertContentEquals(data, file.readBytes())
         assertNoTempSiblings(root)
+    }
+
+    @Test
+    fun `atomicWriteToFile accepts a valid unicode leaf`() {
+        val root = tempDir("file-service-unicode")
+        val file = root.resolve("дані_日本語.bin")
+        val data = "payload".encodeToByteArray()
+
+        val result = service.atomicWriteToFile(
+            uri = file.toUri().toString(),
+            bytes = data,
+        )
+
+        assertIs<AtomicFileWriteOutcome.Published>(result)
+        assertContentEquals(data, file.readBytes())
+    }
+
+    @Test
+    fun `atomicWriteToFile rejects a nonportable selected leaf before writing`() {
+        val root = tempDir("file-service-invalid-leaf")
+        val file = root.resolve("payload:stream")
+        var invoked = false
+
+        val result = service.atomicWriteToFile(
+            uri = file.toUri().toString(),
+        ) {
+            invoked = true
+        }
+
+        assertIs<AtomicFileWriteOutcome.Unsupported>(result)
+        assertFalse(invoked)
+        assertFalse(file.exists())
     }
 
     @Test
@@ -105,7 +140,7 @@ class FileServiceImplTest {
             write = { sink -> sink.writeByteArray(data) },
         )
 
-        assertTrue(result)
+        assertIs<AtomicFileWriteOutcome.Published>(result)
         assertContentEquals(data, file.readBytes())
         assertNoTempSiblings(root)
     }
@@ -162,7 +197,7 @@ class FileServiceImplTest {
             write = { invoked = true },
         )
 
-        assertFalse(result)
+        assertIs<AtomicFileWriteOutcome.Unsupported>(result)
         assertFalse(invoked)
     }
 
@@ -227,7 +262,7 @@ class FileServiceImplTest {
         assertTrue(
             root.toFile()
                 .walkTopDown()
-                .none { it.name.endsWith(".kgtmp") },
+                .none { isReservedTemporaryArtifactName(it.name) },
         )
     }
 }

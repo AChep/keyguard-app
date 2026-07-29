@@ -6,10 +6,6 @@ import android.content.pm.PackageManager
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
-import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
-import com.artemchep.keyguard.feature.auth.companion.CompanionAuthCoordinatorAndroid
-import com.artemchep.keyguard.feature.auth.companion.CompanionAuthSecurityAndroid
-import com.artemchep.keyguard.feature.auth.companion.CompanionAuthTransportAndroid
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
@@ -28,15 +24,15 @@ import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
-import com.artemchep.keyguard.common.service.download.DownloadRepository
-import com.artemchep.keyguard.common.service.download.DownloadTask
-import com.artemchep.keyguard.common.service.download.DownloadTaskAndroid
 import com.artemchep.keyguard.common.service.download.DownloadManagerImpl
+import com.artemchep.keyguard.common.service.download.DownloadRepository
 import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundScheduler
 import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundSchedulerAndroid
 import com.artemchep.keyguard.common.service.download.store.DownloadFileStore
 import com.artemchep.keyguard.common.service.download.store.DownloadFileStoreAndroid
 import com.artemchep.keyguard.common.service.file.FileService
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoOp
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -47,8 +43,6 @@ import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceStatelessProxy
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
-import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
@@ -65,11 +59,11 @@ import com.artemchep.keyguard.copy.AutofillServiceAndroid
 import com.artemchep.keyguard.copy.ClearDataAndroid
 import com.artemchep.keyguard.copy.ClipboardServiceAndroid
 import com.artemchep.keyguard.copy.ConnectivityServiceAndroid
-import com.artemchep.keyguard.copy.GetBarcodeImageJvm
-import com.artemchep.keyguard.copy.LinkInfoExtractorAndroid
 import com.artemchep.keyguard.copy.DirsServiceAndroid
 import com.artemchep.keyguard.copy.FileServiceAndroid
 import com.artemchep.keyguard.copy.FileWatcherServiceAndroid
+import com.artemchep.keyguard.copy.GetBarcodeImageJvm
+import com.artemchep.keyguard.copy.LinkInfoExtractorAndroid
 import com.artemchep.keyguard.copy.LinkInfoExtractorLaunch
 import com.artemchep.keyguard.copy.LogRepositoryAndroid
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
@@ -88,12 +82,16 @@ import com.artemchep.keyguard.core.session.usecase.GetLocaleAndroid
 import com.artemchep.keyguard.core.session.usecase.PutLocaleAndroid
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthCoordinatorAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthSecurityAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthTransportAndroid
 import com.artemchep.keyguard.feature.navigation.defaultNavigationModule
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.toLocalPath
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderAndroid
+import com.artemchep.keyguard.util.io.toLocalPath
 import db_key_value.datastore.DataStoreKeyValueStore
 import db_key_value.datastore.encrypted.SecureDataStoreKeyValueStore
 import db_key_value.datastore.encrypted.SecureStorageCoordinator
@@ -110,6 +108,7 @@ import org.kodein.di.bindSingleton
 import org.kodein.di.factory
 import org.kodein.di.instance
 import org.kodein.di.multiton
+
 class CacheDirProviderAndroid(
     private val context: Context,
 ) : CacheDirProvider {
@@ -284,11 +283,6 @@ fun diFingerprintRepositoryModule() = DI.Module(
     }
     bindSingleton<DownloadBackgroundScheduler> {
         DownloadBackgroundSchedulerAndroid(
-            directDI = this,
-        )
-    }
-    bindSingleton<DownloadTask> {
-        DownloadTaskAndroid(
             directDI = this,
         )
     }

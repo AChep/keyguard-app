@@ -1,5 +1,12 @@
 package com.artemchep.keyguard.common.service.backup
 
+import com.artemchep.keyguard.util.io.artifact.KEYGUARD_TEMPORARY_ARTIFACT_PREFIX
+import com.artemchep.keyguard.util.io.artifact.TemporaryArtifactRole
+import com.artemchep.keyguard.util.io.artifact.isReservedTemporaryArtifactName
+import com.artemchep.keyguard.util.io.artifact.temporaryArtifactName
+import kotlinx.coroutines.test.runTest
+import kotlinx.io.asInputStream
+import kotlinx.io.write
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -12,9 +19,6 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Instant
-import kotlinx.coroutines.test.runTest
-import kotlinx.io.asInputStream
-import kotlinx.io.write
 
 class AndroidTreeBackupObjectStoreTest {
     @Test
@@ -44,7 +48,7 @@ class AndroidTreeBackupObjectStoreTest {
         val cause = IOException("failed to publish replacement")
         client.putFile(key.value, "old".encodeToByteArray())
         client.onRenamePath = { fromPath, displayName ->
-            if (fromPath.isTempReplacementFor("repo.zip") && displayName == "repo.zip") {
+            if (fromPath.isTempReplacement() && displayName == "repo.zip") {
                 throw cause
             }
             true
@@ -73,7 +77,7 @@ class AndroidTreeBackupObjectStoreTest {
         val key = BackupObjectKey("repo.zip")
         client.putFile(key.value, "old".encodeToByteArray())
         client.onRenamePath = { fromPath, displayName ->
-            !(fromPath == "repo.zip" && displayName.endsWith(".old.tmp"))
+            !(fromPath == "repo.zip" && displayName.isTemporaryOfRole(TemporaryArtifactRole.Previous))
         }
 
         val error = assertFailsWith<BackupObjectStoreException.Transient> {
@@ -98,7 +102,7 @@ class AndroidTreeBackupObjectStoreTest {
         val key = BackupObjectKey("repo.zip")
         client.putFile(key.value, "old".encodeToByteArray())
         client.onRenamePath = { fromPath, displayName ->
-            !(fromPath.isTempReplacementFor("repo.zip") && displayName == "repo.zip")
+            !(fromPath.isTempReplacement() && displayName == "repo.zip")
         }
 
         val error = assertFailsWith<BackupObjectStoreException.Transient> {
@@ -283,7 +287,7 @@ class AndroidTreeBackupObjectStoreTest {
         assertEquals(BackupObjectStoreOperation.Write, error.operation)
         assertEquals(key, error.key)
         assertFalse(client.exists(key.value))
-        assertTrue(client.childNames("").none { it.endsWith(".tmp") })
+        assertTrue(client.childNames("").none(::isReservedTemporaryArtifactName))
     }
 
     @Test
@@ -297,6 +301,24 @@ class AndroidTreeBackupObjectStoreTest {
         }
 
         assertEquals(BackupObjectStoreOperation.List, error.operation)
+    }
+
+    @Test
+    fun `list hides transaction artifacts`() = runTest {
+        val client = FakeAndroidTreeDocumentClient()
+        val store = AndroidTreeBackupObjectStore(client)
+        client.putFile("repo.zip", byteArrayOf(1))
+        client.putFile(
+            temporaryArtifactName(
+                TemporaryArtifactRole.New,
+                "123e4567-e89b-42d3-a456-426614174000",
+            ),
+            byteArrayOf(2),
+        )
+
+        val page = store.list(BackupObjectKeyPrefix(""))
+
+        assertEquals(listOf("repo.zip"), page.items.map { it.key.value })
     }
 
     @Test
@@ -457,7 +479,7 @@ private class FakeAndroidTreeDocumentClient : AndroidTreeDocumentClient {
         if (path(document.id) in nullOutputAt) {
             return null
         }
-        if (nullOutputForTempFiles && node.name.endsWith(".tmp")) {
+        if (nullOutputForTempFiles && isReservedTemporaryArtifactName(node.name)) {
             return null
         }
         return object : ByteArrayOutputStream() {
@@ -633,8 +655,10 @@ private class FailingCloseInputStream(
     }
 }
 
-private fun String.isTempReplacementFor(
-    fileName: String,
-): Boolean = startsWith("$fileName.") &&
-        endsWith(".tmp") &&
-        !endsWith(".old.tmp")
+private fun String.isTempReplacement(): Boolean =
+    isTemporaryOfRole(TemporaryArtifactRole.New)
+
+private fun String.isTemporaryOfRole(
+    role: TemporaryArtifactRole,
+): Boolean = startsWith("$KEYGUARD_TEMPORARY_ARTIFACT_PREFIX${role.token}-") &&
+    endsWith(".tmp")

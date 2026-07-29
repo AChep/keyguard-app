@@ -1,7 +1,21 @@
 package com.artemchep.keyguard.common.service.file
 
+import com.artemchep.keyguard.util.io.atomic.AtomicWriteReceipt
 import kotlinx.io.Sink
 import kotlinx.io.Source
+
+sealed interface AtomicFileWriteOutcome {
+    /**
+     * The backend rejected the request before invoking the writer because it
+     * cannot provide atomic publication for this resource.
+     */
+    data object Unsupported : AtomicFileWriteOutcome
+
+    /** The destination was published atomically with [receipt]. */
+    data class Published(
+        val receipt: AtomicWriteReceipt,
+    ) : AtomicFileWriteOutcome
+}
 
 interface FileService {
     fun exists(uri: String): Boolean
@@ -38,7 +52,7 @@ interface FileService {
         uri: String,
         accessToken: FileAccessToken? = null,
         bytes: ByteArray,
-    ): Boolean = atomicWriteToFile(
+    ): AtomicFileWriteOutcome = atomicWriteToFile(
         uri = uri,
         accessToken = accessToken,
     ) { sink ->
@@ -51,18 +65,20 @@ interface FileService {
      * place. The backend must invoke [write] only after it has secured an
      * atomic staging destination.
      *
-     * Returns `true` when the destination was replaced atomically. Returns
-     * `false` only when the backend knows before touching the destination
-     * that it cannot provide an atomic publish; [write] was not invoked and
-     * the destination was untouched in that case. If the backend starts an
-     * atomic publish and then fails, it throws so callers do not silently
-     * degrade to an in-place overwrite after a partially-failed safe-save.
+     * Returns [AtomicFileWriteOutcome.Published] with the synchronization and
+     * cleanup receipt when the destination was replaced atomically. Returns
+     * [AtomicFileWriteOutcome.Unsupported] only when the backend knows before
+     * touching the destination that it cannot provide an atomic publish;
+     * [write] was not invoked and the destination was untouched in that case.
+     * If the backend starts an atomic publish and then fails, it throws so
+     * callers do not silently degrade to an in-place overwrite after a
+     * partially-failed safe-save.
      */
     fun atomicWriteToFile(
         uri: String,
         accessToken: FileAccessToken? = null,
         write: (Sink) -> Unit,
-    ): Boolean = false
+    ): AtomicFileWriteOutcome = AtomicFileWriteOutcome.Unsupported
 
     /**
      * Deletes the single resource addressed by [uri].
@@ -74,18 +90,4 @@ interface FileService {
     fun delete(uri: String): Boolean
 
     fun deleteManagedSourceFile(uri: String): Boolean = false
-
-    /**
-     * Atomically replaces [destinationUri] with [sourceUri] on the same
-     * volume (a rename-over operation).
-     *
-     * Returns `true` when the move was performed atomically. Returns
-     * `false` when the platform or the URI scheme cannot perform an
-     * atomic rename.
-     */
-    fun atomicMove(
-        sourceUri: String,
-        destinationUri: String,
-        accessToken: FileAccessToken? = null,
-    ): Boolean = false
 }

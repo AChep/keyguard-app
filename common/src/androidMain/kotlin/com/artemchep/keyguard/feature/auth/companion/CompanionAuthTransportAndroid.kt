@@ -4,8 +4,8 @@ import android.app.Application
 import android.content.Intent
 import androidx.wear.remote.interactions.RemoteActivityHelper
 import com.artemchep.keyguard.android.util.await
-import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
-import com.artemchep.keyguard.common.io.toInputStream
+import com.artemchep.keyguard.util.io.readByteArrayAndClose
+import com.artemchep.keyguard.util.io.toInputStream
 import com.artemchep.keyguard.common.service.file.FileService
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.ChannelClient

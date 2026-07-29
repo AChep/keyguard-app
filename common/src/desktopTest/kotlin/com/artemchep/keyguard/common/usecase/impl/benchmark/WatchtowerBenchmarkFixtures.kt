@@ -66,7 +66,7 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerWeakGpgKey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerWebsitePwned
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.crypto.NativeCryptoGenerator
-import com.artemchep.keyguard.util.foundation.io.toSource
+import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachGroup
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachResponse
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherBreachCheckImpl

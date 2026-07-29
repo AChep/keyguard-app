@@ -10,7 +10,7 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewPayload
 import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
-import com.artemchep.keyguard.common.service.crypto.FileEncryptor
+import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.common.service.download.util.downloadToByteArray
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
@@ -27,13 +27,13 @@ private const val PREVIEW_BUFFER_SIZE = 8 * 1024
 
 class GetAttachmentPreviewImpl(
     private val downloadAttachmentMetadata: DownloadAttachmentMetadata,
-    private val fileEncryptor: FileEncryptor,
+    private val fileEncryptionCodec: FileEncryptionCodec,
     private val fileService: FileService,
     private val httpClient: HttpClient,
 ) : GetAttachmentPreview {
     constructor(directDI: DirectDI) : this(
         downloadAttachmentMetadata = directDI.instance(),
-        fileEncryptor = directDI.instance(),
+        fileEncryptionCodec = directDI.instance(),
         fileService = directDI.instance(),
         httpClient = directDI.instance(),
     )
@@ -70,7 +70,7 @@ class GetAttachmentPreviewImpl(
         val plainBytes = metadata.encryptionKey
             ?.let { key ->
                 try {
-                    fileEncryptor.decode(encryptedBytes, key)
+                    fileEncryptionCodec.decrypt(encryptedBytes, key)
                 } catch (e: Throwable) {
                     e.throwIfFatalOrCancellation()
                     throw AttachmentPreviewException.DecryptionFailed(e)

@@ -1,23 +1,15 @@
 package com.artemchep.keyguard.common.service.download.store
 
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
-import com.artemchep.keyguard.common.service.file.FileService
-import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.iosKeyguardDataDirectory
-import com.artemchep.keyguard.platform.resolve
-import org.kodein.di.DirectDI
-import org.kodein.di.instance
+import com.artemchep.keyguard.platform.iosKeyguardAtomicDataDirectory
+import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
+import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
+import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
 
-class DownloadFileStoreIos(
-    fileService: FileService,
-) : DownloadFileStoreLocalPath(fileService) {
-    constructor(
-        directDI: DirectDI,
-    ) : this(
-        fileService = directDI.instance(),
-    )
-
-    override suspend fun path(info: DownloadInfoEntity): LocalPath =
-        iosKeyguardDataDirectory()
-            .resolve("downloads", "${info.id}.bin")
+object DownloadFileStoreIos : DownloadFileStoreLocalPath() {
+    override suspend fun destination(
+        info: DownloadInfoEntity,
+    ): AtomicFileDestination = iosKeyguardAtomicDataDirectory()
+        .resolveDirectory(AtomicPathComponent.parse("downloads"))
+        .resolve(AtomicPathComponent.parse("${info.id}.bin"))
 }

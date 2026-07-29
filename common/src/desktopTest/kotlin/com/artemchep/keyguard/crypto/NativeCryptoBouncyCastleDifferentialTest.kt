@@ -41,7 +41,7 @@ class NativeCryptoBouncyCastleDifferentialTest {
         cryptoGenerator = CryptoGeneratorJvm(),
         base64Service = base64,
     )
-    private val fileEncryptor = FileEncryptorJvm(
+    private val fileEncryptionCodec = FileEncryptionCodecJvm(
         cryptoGenerator = CryptoGeneratorJvm(),
     )
 
@@ -163,7 +163,7 @@ class NativeCryptoBouncyCastleDifferentialTest {
             val mac = bouncyCastleHmacSha256(case.macKey, iv + ciphertext)
             val frame = byteArrayOf(case.type.byte) + iv + mac + ciphertext
 
-            assertContentEquals(plaintext, fileEncryptor.decode(frame, case.key))
+            assertContentEquals(plaintext, fileEncryptionCodec.decrypt(frame, case.key))
         }
     }
 

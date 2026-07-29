@@ -186,6 +186,7 @@ dependencies {
     // Android tests
     androidTestImplementation(project(":androidTest"))
     androidTestImplementation(project(":util:crypto"))
+    androidTestImplementation(project(":util:io"))
     androidTestImplementation(libs.androidx.arch.core.testing)
     androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.test.rules)

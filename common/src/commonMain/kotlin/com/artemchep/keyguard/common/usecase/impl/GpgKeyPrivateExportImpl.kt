@@ -7,7 +7,7 @@ import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
-import com.artemchep.keyguard.util.foundation.io.writeText
+import com.artemchep.keyguard.util.io.writeText
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 

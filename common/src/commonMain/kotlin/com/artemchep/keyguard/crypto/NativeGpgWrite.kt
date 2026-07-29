@@ -29,6 +29,8 @@ import com.artemchep.keyguard.common.service.crypto.resolve
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
+import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
@@ -36,9 +38,11 @@ import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyImportError
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyImportResult
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyKind
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyMaterial
-import com.artemchep.keyguard.util.foundation.io.consumeWithErasedBuffer
+import com.artemchep.keyguard.util.io.consumeWithErasedBuffer
 import kotlinx.datetime.TimeZone
 import kotlinx.io.Sink
+import org.kodein.di.DirectDI
+import org.kodein.di.instance
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -218,7 +222,16 @@ object NativeGpgKeyImportService : GpgKeyImportService {
         ?.firstOrNull { key -> key.fingerprint == fingerprint }
 }
 
-object NativeGpgOpenPgpService : GpgOpenPgpService {
+class NativeGpgOpenPgpService internal constructor(
+    private val stagingSpoolFactory: StagingSpoolFactory =
+        DefaultStagingSpoolFactory(),
+) : GpgOpenPgpService {
+    constructor(
+        directDI: DirectDI,
+    ) : this(
+        stagingSpoolFactory = directDI.instance(),
+    )
+
     override fun clearSignText(
         request: GpgOpenPgpSignTextRequest,
     ): String = request.privateKey.withEncoded { privateKey, preferredFingerprint ->
@@ -376,24 +389,29 @@ object NativeGpgOpenPgpService : GpgOpenPgpService {
         request: GpgOpenPgpDecryptFileRequest,
     ): GpgOpenPgpDecryptFileResult {
         check(request.privateKeys.isNotEmpty()) { "At least one OpenPGP private key is required." }
-        return withStagedOpenPgpPlaintext(request.output) { stagedOutput ->
-            request.input.use { input ->
-                request.privateKeys.withEncodedPrivateKeys { privateKeys ->
-                    request.publicKeys.withEncodedPublicKeys { publicKeys ->
-                        translateNativeOpenPgpWriteError {
-                            NativeCrypto.openPgp.openDecryption(
-                                privateKeys = privateKeys,
-                                verificationPublicKeys = publicKeys,
-                            ).use { session ->
-                                input.consumeWithErasedBuffer { data, length ->
-                                    writeAndErase(stagedOutput, session.update(data, length = length))
+        return request.output.use { output ->
+            withStagedOpenPgpPlaintext(
+                output = output,
+                stagingSpoolFactory = stagingSpoolFactory,
+            ) { stagedOutput ->
+                request.input.use { input ->
+                    request.privateKeys.withEncodedPrivateKeys { privateKeys ->
+                        request.publicKeys.withEncodedPublicKeys { publicKeys ->
+                            translateNativeOpenPgpWriteError {
+                                NativeCrypto.openPgp.openDecryption(
+                                    privateKeys = privateKeys,
+                                    verificationPublicKeys = publicKeys,
+                                ).use { session ->
+                                    input.consumeWithErasedBuffer { data, length ->
+                                        writeAndErase(stagedOutput, session.update(data, length = length))
+                                    }
+                                    val final = session.finish()
+                                    writeAndErase(stagedOutput, final.data)
+                                    stagedOutput.flush()
+                                    GpgOpenPgpDecryptFileResult(
+                                        verification = final.verification?.toDomain(),
+                                    )
                                 }
-                                val final = session.finish()
-                                writeAndErase(stagedOutput, final.data)
-                                stagedOutput.flush()
-                                GpgOpenPgpDecryptFileResult(
-                                    verification = final.verification?.toDomain(),
-                                )
                             }
                         }
                     }

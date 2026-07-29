@@ -376,20 +376,6 @@
     <ID>FunctionNaming:AttachmentPreviewActionTest.kt:AttachmentPreviewActionTest$@Test fun `preview action appears before external open for already downloaded previewable attachments`</ID>
     <ID>FunctionNaming:AutomaticBackupsEnabledSection.kt:internal fun LazyListScope.AutomaticBackupsEnabledContent</ID>
     <ID>FunctionNaming:AutomaticBackupsSetupSection.kt:internal fun LazyListScope.AutomaticBackupsSetupContent</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `listSnapshotIds follows paginated object store listing`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `readIndexes follows paginated object store listing`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `readIndexes returns latest readable generation only`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `readSnapshotManifest reopens object after midstream transient failure`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `rejects enabling password on existing unencrypted repository`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `rejects existing repository without generational index features`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `repository writes use create mode`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `validateBlob accepts readable encrypted and unencrypted blob zips`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `validateBlob rejects unreadable blob zips`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `validateBlob returns unavailable for transient store read failures`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `writeBlob reuses existing readable blob instead of replacing it`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `writeSnapshot refuses conflicting existing snapshot`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `writes encrypted repository index snapshot and blob zips`</ID>
-    <ID>FunctionNaming:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$@Test fun `writes unencrypted repository index snapshot and blob zips without password`</ID>
     <ID>FunctionNaming:BackupSchedulerWorkerTest.kt:BackupSchedulerWorkerTest$@Test fun `start collects scheduler and runs automatic backup after debounce`</ID>
     <ID>FunctionNaming:BackupSchedulerWorkerTest.kt:BackupSchedulerWorkerTest$@Test fun `start does not run automatic backup while vault is locked`</ID>
     <ID>FunctionNaming:BackupSchedulerWorkerTest.kt:BackupSchedulerWorkerTest$@Test fun `start runs automatic backup for persisted dirty vault`</ID>
@@ -449,16 +435,8 @@
     <ID>FunctionNaming:DFilter.kt:DFilter.Companion$private fun &lt;T&gt; _findOne: Either&lt;Unit, T?&gt;</ID>
     <ID>FunctionNaming:DSendFilter.kt:DSendFilter.Companion$private fun &lt;T&gt; _findOne: Either&lt;Unit, T?&gt;</ID>
     <ID>FunctionNaming:DataSafetyScreen.kt:private fun LazyListScope.DataSafetyScreenContent</ID>
-    <ID>FunctionNaming:DownloadTaskJvmTest.kt:DownloadTaskJvmTest$@Test fun `byte array loader decrypts and writes local path download`</ID>
-    <ID>FunctionNaming:DownloadTaskJvmTest.kt:DownloadTaskJvmTest$@Test fun `url loader deletes cache and leaves no local path file after failed decrypt`</ID>
-    <ID>FunctionNaming:DownloadTaskJvmTest.kt:DownloadTaskJvmTest$@Test fun `url loader deletes cache file after successful local path download`</ID>
-    <ID>FunctionNaming:DownloadTaskJvmTest.kt:DownloadTaskJvmTest$@Test fun `url loader preserves http status failure`</ID>
-    <ID>FunctionNaming:DownloadTaskJvmTest.kt:DownloadTaskJvmTest$@Test fun `url loader writes local path download with short filename`</ID>
     <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `local path writer stores bytes on disk`</ID>
     <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `sink writer writes into provided sink`</ID>
-    <ID>FunctionNaming:EncryptedFilePendingUploadServiceJvmTest.kt:EncryptedFilePendingUploadServiceJvmTest$@Test fun `mark uploaded writes marker and delete removes it`</ID>
-    <ID>FunctionNaming:EncryptedFilePendingUploadServiceJvmTest.kt:EncryptedFilePendingUploadServiceJvmTest$@Test fun `stage clears stale uploaded marker`</ID>
-    <ID>FunctionNaming:EncryptedFilePendingUploadServiceJvmTest.kt:EncryptedFilePendingUploadServiceJvmTest$@Test fun `stage deletes managed source file after successful staging`</ID>
     <ID>FunctionNaming:FNV.kt:FNV$fun fnv1_32: Long</ID>
     <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate creates masked email through JMAP`</ID>
     <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate fails clearly on unauthorized token`</ID>
@@ -472,35 +450,11 @@
     <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `ignores unsupported dropped data`</ID>
     <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `returns first regular file from dropped files list`</ID>
     <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `skips malformed unsupported and non-file entries`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming decode authenticates before returning a partially consumed stream`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming decode authenticates before returning a stream`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming decode handles fragmented header`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming decode preserves existing destination on authentication failure`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming decode preserves existing destination on padding failure`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming decode rejects truncated authenticated frame`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming decode rejects wrong key`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming encode atomically replaces destination with owner-only output`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming encode closes native hmac after source failure`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming encode preserves existing destination on source failure`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming encode removes partial output after cancellation`</ID>
-    <ID>FunctionNaming:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$@Test fun `streaming file operations cross the bounded ciphertext spill threshold`</ID>
     <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `deduplicates mixed mime types`</ID>
     <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `maps legacy jpeg mime type to jpg and jpeg extensions`</ID>
     <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `maps png mime type to png extension`</ID>
     <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `maps standard jpeg mime type to jpg and jpeg extensions`</ID>
     <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `returns null when no supported mime types are present`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `atomicWriteToFile replaces bytes and cleans up temp sibling`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `escaped file uri path resolves correctly`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `exists returns false for a missing file uri`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `exists returns true for an existing file uri`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `file uri with authority resolves to correct path`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `readFromFile reads bytes from disk`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `streaming atomicWriteToFile keeps destination and cleans up temp sibling when write fails`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `streaming atomicWriteToFile refuses non-atomic destinations without invoking write`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `streaming atomicWriteToFile replaces bytes and cleans up temp sibling`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `streaming atomicWriteToFile throws when the destination cannot be replaced`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `unsupported uri scheme fails consistently`</ID>
-    <ID>FunctionNaming:FileServiceImplTest.kt:FileServiceImplTest$@Test fun `writeToFile writes bytes to disk`</ID>
     <ID>FunctionNaming:FileWatcherServiceJvmTest.kt:FileWatcherServiceJvmTest$@Test fun `directory watcher cancellation closes blocking watcher`</ID>
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `direct source accepts payload at the size limit`</ID>
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `encrypted source decrypts in memory`</ID>
@@ -676,8 +630,6 @@
     <ID>FunctionNaming:JavaIoExtJvmTest.kt:JavaIoExtJvmTest$@Test fun `withBufferedSink flushes without closing borrowed output stream`</ID>
     <ID>FunctionNaming:JsonKeyValueStoreTest.kt:JsonKeyValueStoreTest$@Test fun `file store writes and reads data through nested path`</ID>
     <ID>FunctionNaming:JsonKeyValueStoreTest.kt:JsonKeyValueStoreTest$@Test fun `json key value store falls back to empty state on malformed json`</ID>
-    <ID>FunctionNaming:KeePassCipherCodecTest.kt:KeePassCipherCodecTest$@Test fun `decode collapses duplicate cipher links by canonical target`</ID>
-    <ID>FunctionNaming:KeePassCipherCodecTest.kt:KeePassCipherCodecTest$@Test fun `encode preserves remote XML extensions on current and historical entries`</ID>
     <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `existing db with correct password succeeds`</ID>
     <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `existing db with wrong password fails before import`</ID>
     <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `key file flow works when key file is present`</ID>
@@ -725,11 +677,6 @@
     <ID>FunctionNaming:KeePassUrlCodecTest.kt:KeePassUrlCodecTest$@Test fun `decode reads paired android signatures`</ID>
     <ID>FunctionNaming:KeePassUrlCodecTest.kt:KeePassUrlCodecTest$@Test fun `encode writes android signatures as protected companion fields`</ID>
     <ID>FunctionNaming:KeePassUrlCodecTest.kt:KeePassUrlCodecTest$@Test fun `encode writes android uris as KeePassDX AndroidApp fields`</ID>
-    <ID>FunctionNaming:KeePassWriteBackBufferTest.kt:KeePassWriteBackBufferTest$@Test fun `commit applies staged upserts and deletes`</ID>
-    <ID>FunctionNaming:KeePassWriteBackBufferTest.kt:KeePassWriteBackBufferTest$@Test fun `commit skips a row a user changed concurrently after staging`</ID>
-    <ID>FunctionNaming:KeePassWriteBackBufferTest.kt:KeePassWriteBackBufferTest$@Test fun `isEmpty reflects whether anything is staged`</ID>
-    <ID>FunctionNaming:KeePassWriteBackBufferTest.kt:KeePassWriteBackBufferTest$@Test fun `overlay read reflects a staged delete as absent`</ID>
-    <ID>FunctionNaming:KeePassWriteBackBufferTest.kt:KeePassWriteBackBufferTest$@Test fun `overlay read returns staged upsert before commit`</ID>
     <ID>FunctionNaming:KeyExportImplTest.kt:KeyExportImplTest$@Test fun `key pair export writes zip entries with same text payloads`</ID>
     <ID>FunctionNaming:KeyExportImplTest.kt:KeyExportImplTest$@Test fun `private export writes ssh text into downloads sink`</ID>
     <ID>FunctionNaming:KeyExportImplTest.kt:KeyExportImplTest$@Test fun `public export writes ssh text into downloads sink`</ID>
@@ -743,26 +690,6 @@
     <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `refresh skips redeemed license with fresh snapshot`</ID>
     <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `refresh updates stale redeemed snapshot and adopts decodable server key`</ID>
     <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `valid redeem persists decoded active entitlement`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `create or replace replaces existing object`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `create race maps existing target to already exists`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `delete reports typed error when filesystem refuses removal`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `factory test accepts configured file uri`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `factory test validates configured local folder`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `failed atomic replacement leaves existing object unchanged`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `read reports permission denied when existing regular file cannot be opened`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `read reports typed missing and invalid range errors`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `replace failure from existing target is transient and preserves existing object`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `stat and list only report files`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `streaming close failure is transient`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `streaming read failure is transient`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `test validates backend and cleans up probe`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `write does not fall back when atomic move is unsupported`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `write refuses to replace directory at object key`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `write reports typed transient error for local io failure`</ID>
-    <ID>FunctionNaming:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest$@Test fun `writes reads lists and deletes objects`</ID>
-    <ID>FunctionNaming:LocalPathIoExtTest.kt:LocalPathIoExtTest$@Test fun `read helpers fail on missing file`</ID>
-    <ID>FunctionNaming:LocalPathIoExtTest.kt:LocalPathIoExtTest$@Test fun `writeBytes and readBytes round trip bytes`</ID>
-    <ID>FunctionNaming:LocalPathIoExtTest.kt:LocalPathIoExtTest$@Test fun `writeText and readText round trip utf8 text`</ID>
     <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `BC Bitwarden AES HMAC frames decrypt with native crypto`</ID>
     <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `BC OAEP ciphertexts decrypt through every native Bitwarden RSA type`</ID>
     <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `BC file frames for types 1 and 2 decrypt with native crypto`</ID>
@@ -1477,12 +1404,10 @@
     <ID>LongMethod:LicenseManagerImpl.kt:LicenseManagerImpl$private suspend fun refreshRedeemedIfNeededLocked: LicenseEntitlement?</ID>
     <ID>LongMethod:LicenseScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun LicenseItem</ID>
     <ID>LongMethod:LinkInfoPlatformExtractorTest.kt:LinkInfoPlatformExtractorTest$@Test fun `classifier url cases are parsed as web links`</ID>
-    <ID>LongMethod:LocalFolderBackupObjectStore.kt:LocalFolderBackupObjectStore$override suspend fun write: BackupObjectInfo</ID>
     <ID>LongMethod:LocalizationContributorsListScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun LocalizationContributorsListScreen</ID>
     <ID>LongMethod:LogsScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ) @Composable private fun LogsScreenContent</ID>
     <ID>LongMethod:LogsStateProducer.kt:suspend fun RememberStateFlowScope.logsStateProducer: Flow&lt;Loadable&lt;LogsState&gt;&gt;</ID>
     <ID>LongMethod:ModifyCipherById.kt:ModifyCipherById$operator fun invoke: IO&lt;Set&lt;String&gt;&gt;</ID>
-    <ID>LongMethod:NativeFileEncryptor.kt:NativeFileEncryptor$override fun encode: FileEncryptor.EncodeResult</ID>
     <ID>LongMethod:NavigationItemsSettingsScreen.kt:@Composable private fun RowScope.NavigationItemsSettingsItemActions</ID>
     <ID>LongMethod:NavigationItemsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun NavigationItemsSettingsContent</ID>
     <ID>LongMethod:NavigationItemsSettingsStateProducer.kt:suspend fun RememberStateFlowScope.navigationItemsSettingsStateProducer: Flow&lt;Loadable&lt;NavigationItemsSettingsState&gt;&gt;</ID>
@@ -1825,7 +1750,6 @@
     <ID>MagicNumber:AutofillServiceAndroid.kt:AutofillServiceAndroid$100L</ID>
     <ID>MagicNumber:AutomaticBackupsStatusSection.kt:0.12f</ID>
     <ID>MagicNumber:AutomaticBackupsStatusSection.kt:0.48f</ID>
-    <ID>MagicNumber:BackupRepositoryZipTest.kt:BackupRepositoryZipTest$4</ID>
     <ID>MagicNumber:BackupRepositoryZipTest.kt:MidstreamTransientBackupObjectStore.&lt;no name provided&gt;$32L</ID>
     <ID>MagicNumber:BackupRunner.kt:BackupRunner$30</ID>
     <ID>MagicNumber:BackupRunner.kt:BackupRunner$32</ID>
@@ -1938,8 +1862,6 @@
     <ID>MagicNumber:FileEncryptionFormat.kt:FileEncryptionFormat$16</ID>
     <ID>MagicNumber:FileEncryptionFormat.kt:FileEncryptionFormat$32</ID>
     <ID>MagicNumber:FileEncryptionFormat.kt:FileEncryptionFormat$64</ID>
-    <ID>MagicNumber:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$1_025</ID>
-    <ID>MagicNumber:FileEncryptorJvmTest.kt:FileEncryptorJvmTest$64</ID>
     <ID>MagicNumber:FileLastModified.apple.kt:1_000.0</ID>
     <ID>MagicNumber:FilePickerUtils.kt:10</ID>
     <ID>MagicNumber:FilePickerUtils.kt:10L</ID>
@@ -2164,7 +2086,6 @@
     <ID>MagicNumber:PasswordStrength.kt:PasswordStrength$100000000L</ID>
     <ID>MagicNumber:PasswordStrength.kt:PasswordStrength$100000L</ID>
     <ID>MagicNumber:PasswordStrength.kt:PasswordStrength$1000L</ID>
-    <ID>MagicNumber:PrivateTemporarySpillStorageJvmTest.kt:PrivateTemporarySpillStorageJvmTest$3</ID>
     <ID>MagicNumber:ProstDecodeTest.kt:ProstDecodeTest$0x04</ID>
     <ID>MagicNumber:ProstDecodeTest.kt:ProstDecodeTest$3</ID>
     <ID>MagicNumber:ProstDecodeTest.kt:ProstDecodeTest$32</ID>
@@ -2512,7 +2433,6 @@
     <ID>MatchingDeclarationName:ExportLogs.kt:ExportLogsImpl : ExportLogs</ID>
     <ID>MatchingDeclarationName:ExportManagerImpl.kt:ExportManagerBase : ExportManager</ID>
     <ID>MatchingDeclarationName:FavouriteCipherById.kt:FavouriteCipherByIdImpl : FavouriteCipherById</ID>
-    <ID>MatchingDeclarationName:FileEncryptorJvmExt.kt:StreamingFileDecryptor</ID>
     <ID>MatchingDeclarationName:FilterHolder.kt:FilterSendHolder</ID>
     <ID>MatchingDeclarationName:FilterItem.kt:SendFilterItem : FilterItemModel</ID>
     <ID>MatchingDeclarationName:FingerprintRepositoryModule.kt:CacheDirProviderAndroid : CacheDirProvider</ID>
@@ -2767,7 +2687,6 @@
     <ID>NestedBlockDepth:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$private fun probeHotClause: ClauseProbe</ID>
     <ID>NestedBlockDepth:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex$private fun resolveHotClauseDocs: Set&lt;Int&gt;</ID>
     <ID>NestedBlockDepth:DefaultVaultSearchLexer.kt:DefaultVaultSearchLexer$override fun lex: LexedQuery</ID>
-    <ID>NestedBlockDepth:NativeFileEncryptor.kt:NativeFileEncryptor$override fun decode</ID>
     <ID>NestedBlockDepth:NativeGpgWrite.kt:NativeGpgKeyImportService$override fun import: GpgKeyImportResult</ID>
     <ID>NestedBlockDepth:SecureStorageCoordinator.kt:SecureStorageCoordinator$private suspend fun &lt;P : Any&gt; probeStore: P</ID>
     <ID>NestedBlockDepth:ZipServiceJvm.kt:ZipServiceJvm$override suspend fun zip</ID>
@@ -2944,7 +2863,6 @@
     <ID>ReturnCount:FileDropTarget.kt:AndroidFileDropTarget$override fun onDrop: Boolean</ID>
     <ID>ReturnCount:FileDropTarget.kt:private fun DragAndDropEvent.firstUriOrNull: Uri?</ID>
     <ID>ReturnCount:FileLastModified.apple.kt:@OptIn(ExperimentalForeignApi::class) internal actual fun fileLastModifiedMillis: Long?</ID>
-    <ID>ReturnCount:FileServiceImpl.kt:private fun atomicTempSiblingUriOrNull: String?</ID>
     <ID>ReturnCount:FileServiceIos.kt:FileServiceIos$@OptIn(ExperimentalForeignApi::class) private fun &lt;T&gt; withSecurityScopedUrl: T</ID>
     <ID>ReturnCount:FileServiceIos.kt:FileServiceIos$@OptIn(ExperimentalForeignApi::class) private fun iosFileMetadata: FileMetadata?</ID>
     <ID>ReturnCount:FileWatcherServiceAndroid.kt:internal fun File.isAcceptedFileWatchEvent: Boolean</ID>
@@ -3014,8 +2932,6 @@
     <ID>ReturnCount:NativeGpgMutation.kt:NativeGpgKeyExpirationService$private fun GpgKeyExpirationRequest.validationError: GpgKeyExpirationError?</ID>
     <ID>ReturnCount:NativeGpgMutation.kt:NativeGpgKeyExpirationService$private inline fun retryTimeConflicts: NativeOpenPgpExpirationUpdateResult</ID>
     <ID>ReturnCount:NotificationsHubMessage.kt:internal fun resolveNotificationsHubMessageAction: NotificationsHubMessageAction</ID>
-    <ID>ReturnCount:OpenPgpPlaintextStagingApple.kt:FileDescriptorRawSource$override fun readAtMostTo: Long</ID>
-    <ID>ReturnCount:OpenPgpPlaintextStagingJvm.kt:FileChannelRawSource$override fun readAtMostTo: Long</ID>
     <ID>ReturnCount:OpenPgpPlaintextStagingJvmTest.kt:private fun ByteArray.containsSubsequence: Boolean</ID>
     <ID>ReturnCount:OpenPgpReadBouncyCastleDifferentialTest.kt:BouncyCastleMetadataOracle$private fun MetadataKey.toMetadataKeyOrNull: GpgAgentKeyMetadataKey?</ID>
     <ID>ReturnCount:OpenPgpReadBouncyCastleDifferentialTest.kt:private fun GpgVerifiedCertificateKeyJvm.expiresAt: Instant?</ID>
@@ -3091,7 +3007,6 @@
     <ID>ReturnCount:WebAuthnRegistrableDomain.kt:internal suspend fun isWebAuthnRegistrableDomain: Boolean</ID>
     <ID>ReturnCount:WebAuthnRelatedOrigins.kt:WebAuthnRelatedOrigins$private suspend fun relatedOriginLabel: String?</ID>
     <ID>ReturnCount:WindowsNamedPipe.kt:WindowsNamedPipeConnection$fun read: Int</ID>
-    <ID>ReturnCount:WindowsPrivateTemporaryStorage.kt:WindowsPrivateTemporaryStorageSource$override fun readAtMostTo: Long</ID>
     <ID>ReturnCount:createSubDi.kt:DatabaseSqlManagerInFileApple$private fun isPlaintextSqliteDatabaseFile: Boolean</ID>
     <ID>ReturnCount:getHttpCode.kt:fun Throwable.getHttpCode: Int</ID>
     <ID>ReturnCount:screenFlow.kt:private fun Context.isScreenOn: Boolean</ID>
@@ -3143,12 +3058,8 @@
     <ID>TooGenericExceptionCaught:DeviceIdUseCase.kt:DeviceIdUseCase$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:DirsServiceAndroid.kt:DirsServiceAndroid$e: Exception</ID>
     <ID>TooGenericExceptionCaught:DownloadTask.kt:e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:DownloadTaskIos.kt:DownloadTaskIos$copyError: Throwable</ID>
     <ID>TooGenericExceptionCaught:DownloadTaskIos.kt:DownloadTaskIos$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:DownloadTaskJvm.kt:DownloadTaskJvm$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:DownloadUtils.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:EnableBiometricImpl.kt:EnableBiometricImpl$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:EncryptedFilePendingUploadServiceJvm.kt:EncryptedFilePendingUploadServiceJvm$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:EncryptedTemporarySpillStorage.kt:DecryptingRawSource$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:EncryptedTemporarySpillStorage.kt:EncryptedTemporaryByteSnapshot$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:EncryptedTemporarySpillStorage.kt:EncryptedTemporaryByteSnapshot$error: Throwable</ID>
@@ -3156,9 +3067,6 @@
     <ID>TooGenericExceptionCaught:EncryptedTemporarySpillStorage.kt:EncryptedTemporarySpillStorage.Companion$failure: Throwable</ID>
     <ID>TooGenericExceptionCaught:EntitySyncExecutor.kt:EntitySyncExecutor$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:ExportManagerImpl.kt:ExportManagerBase$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:FileEncryptorJvm.kt:DeletingFileInputStream$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:FileEncryptorJvm.kt:DeletingFileInputStream.Companion$failure: Throwable</ID>
-    <ID>TooGenericExceptionCaught:FileEncryptorJvm.kt:FileEncryptorJvm$failure: Throwable</ID>
     <ID>TooGenericExceptionCaught:FileWatcherServiceAndroid.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:FileWatcherServiceJvm.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:GetAttachmentPreviewImpl.kt:GetAttachmentPreviewImpl$e: Throwable</ID>
@@ -3185,11 +3093,7 @@
     <ID>TooGenericExceptionCaught:MarkdownJvm.kt:&lt;no name provided&gt;$e: Exception</ID>
     <ID>TooGenericExceptionCaught:NativeSshKeyImportService.kt:NativeSshKeyImportService$failure: Throwable</ID>
     <ID>TooGenericExceptionCaught:Notifications.kt:NotificationsImpl$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:OpenPgpPlaintextStagingApple.kt:e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:OpenPgpPlaintextStagingJvm.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:PendingUploadCoordinatorImpl.kt:PendingUploadCoordinatorImpl$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:PrivateAtomicOutput.kt:LocalPathPrivateAtomicOutput$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:PrivateTemporarySpillStorage.kt:PrivateTemporarySpillStorage$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:RefreshToken.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:Retry.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:SecureSharedPrefsKeyValueStore.kt:e: Exception</ID>
@@ -3236,7 +3140,6 @@
     <ID>TooManyFunctions:AutomaticBackupsStatusSection.kt:com.artemchep.keyguard.feature.home.settings.backups.AutomaticBackupsStatusSection.kt</ID>
     <ID>TooManyFunctions:BackupDiagnostics.kt:BackupDiagnostics</ID>
     <ID>TooManyFunctions:BackupRepositoryZipImpl.kt:BackupRepositoryZipImpl : BackupRepository</ID>
-    <ID>TooManyFunctions:BackupRepositoryZipTest.kt:BackupRepositoryZipTest</ID>
     <ID>TooManyFunctions:BackupRunner.kt:BackupRunner</ID>
     <ID>TooManyFunctions:BaseActivity.kt:BaseActivity : AppCompatActivityDIAware</ID>
     <ID>TooManyFunctions:BcGpgOpenPgpServiceTestOracle.kt:BcGpgOpenPgpServiceTestOracle : GpgOpenPgpService</ID>
@@ -3268,11 +3171,8 @@
     <ID>TooManyFunctions:DbUtils.kt:com.artemchep.keyguard.common.service.keepass.DbUtils.kt</ID>
     <ID>TooManyFunctions:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex : SurfaceAwareVaultSearchIndex</ID>
     <ID>TooManyFunctions:DownloadManagerImpl.kt:DownloadManagerImpl : DownloadManager</ID>
-    <ID>TooManyFunctions:DownloadTaskIos.kt:DownloadTaskIos : DownloadTask</ID>
     <ID>TooManyFunctions:EncryptedTemporarySpillStorageJvmTest.kt:EncryptedTemporarySpillStorageJvmTest</ID>
     <ID>TooManyFunctions:EntitySyncOps.kt:EntitySyncOps&lt;Local : BitwardenService.Has&lt;Local&gt;, Server : Any&gt;</ID>
-    <ID>TooManyFunctions:FileEncryptorJvmTest.kt:FileEncryptorJvmTest</ID>
-    <ID>TooManyFunctions:FileService.kt:FileService</ID>
     <ID>TooManyFunctions:FileServiceAndroid.kt:FileServiceAndroid : FileService</ID>
     <ID>TooManyFunctions:FileServiceImplTest.kt:FileServiceImplTest</ID>
     <ID>TooManyFunctions:FileServiceIos.kt:FileServiceIos : FileService</ID>
@@ -3311,7 +3211,6 @@
     <ID>TooManyFunctions:Kg2LicenseKeyDecoderTest.kt:Kg2LicenseKeyDecoderTest</ID>
     <ID>TooManyFunctions:LicenseManagerImpl.kt:LicenseManagerImpl : LicenseManager</ID>
     <ID>TooManyFunctions:LocalFolderBackupObjectStore.kt:LocalFolderBackupObjectStore : BackupObjectStore</ID>
-    <ID>TooManyFunctions:LocalFolderBackupObjectStoreTest.kt:LocalFolderBackupObjectStoreTest</ID>
     <ID>TooManyFunctions:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest</ID>
     <ID>TooManyFunctions:OpenPgpReadBouncyCastleDifferentialTest.kt:com.artemchep.keyguard.crypto.OpenPgpReadBouncyCastleDifferentialTest.kt</ID>
     <ID>TooManyFunctions:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest</ID>

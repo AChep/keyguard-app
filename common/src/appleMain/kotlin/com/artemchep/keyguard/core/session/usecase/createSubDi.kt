@@ -11,9 +11,9 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.DatabaseSqlHelper
 import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
-import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManagerImpl
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatchEvent
@@ -29,11 +29,11 @@ import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.appleKeyguardDataDirectory
-import com.artemchep.keyguard.platform.resolve
-import com.artemchep.keyguard.platform.toKotlinxIoPath
 import com.artemchep.keyguard.provider.bitwarden.usecase.NotificationsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.QueueSyncAllImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.QueueSyncByIdImpl
+import com.artemchep.keyguard.util.io.resolve
+import com.artemchep.keyguard.util.io.toKotlinxIoPath
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf

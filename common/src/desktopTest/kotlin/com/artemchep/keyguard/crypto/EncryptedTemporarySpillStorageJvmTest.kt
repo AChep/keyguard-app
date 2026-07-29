@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.crypto
 
-import com.artemchep.keyguard.util.foundation.io.copyTo
+import com.artemchep.keyguard.util.io.spool.copyTo
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
 import kotlinx.io.readByteArray

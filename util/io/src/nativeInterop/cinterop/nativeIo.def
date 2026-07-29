@@ -1,0 +1,3 @@
+headers = keyguard_io.h
+headerFilter = keyguard_io.h
+staticLibraries = libkeyguard_io_c.a

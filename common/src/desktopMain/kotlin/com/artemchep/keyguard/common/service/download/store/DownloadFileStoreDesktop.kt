@@ -1,32 +1,25 @@
 package com.artemchep.keyguard.common.service.download.store
 
-import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
-import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.copy.DataDirectory
-import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.copy.atomicDownloadsDirectory
+import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
+import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
-import java.io.File
 
 class DownloadFileStoreDesktop(
     private val dataDirectory: DataDirectory,
-    fileService: FileService,
-) : DownloadFileStoreLocalPath(fileService) {
+) : DownloadFileStoreLocalPath() {
     constructor(
         directDI: DirectDI,
     ) : this(
         dataDirectory = directDI.instance(),
-        fileService = directDI.instance(),
     )
 
-    override suspend fun path(
+    override suspend fun destination(
         info: DownloadInfoEntity,
-    ): LocalPath = dataDirectory
-        .downloads()
-        .bind()
-        .let(::File)
-        .resolve(info.name)
-        .toLocalPath()
+    ): AtomicFileDestination = dataDirectory
+        .atomicDownloadsDirectory()
+        .resolve(AtomicPathComponent.parse(info.name))
 }

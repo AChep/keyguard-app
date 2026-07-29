@@ -12,7 +12,7 @@ import androidx.annotation.RequiresApi
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.io.useBufferedSink
+import com.artemchep.keyguard.util.io.useBufferedSink
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import kotlinx.io.Sink
 import org.kodein.di.DirectDI

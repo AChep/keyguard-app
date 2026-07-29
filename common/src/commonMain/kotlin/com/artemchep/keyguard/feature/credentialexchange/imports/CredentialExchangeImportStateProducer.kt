@@ -4,12 +4,12 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
-import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.model.AccountId
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.FolderHierarchyMode
+import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.model.displayName
 import com.artemchep.keyguard.common.service.credentialexchange.CredentialExchangeImportTransport
 import com.artemchep.keyguard.common.service.credentialexchange.CredentialExchangeImportTransportResult
 import com.artemchep.keyguard.common.service.credentialexchange.CxfImportPlan
@@ -22,17 +22,17 @@ import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.DateFormatter
-import com.artemchep.keyguard.common.usecase.createCiphers
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.usecase.createCiphers
 import com.artemchep.keyguard.feature.credentialexchange.toggleNote
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
-import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
+import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.res.Res
 import kotlin.time.Clock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -457,65 +457,6 @@ internal fun Step.toStage(
     is Step.Error -> CredentialExchangeImportState.Stage.Error(
         message = message,
         onRetry = onImport.takeIf { retryable },
-    )
-}
-
-/**
- * Claims ownership of [review] for one commit. A second Confirm against the
- * importing step, or a Confirm immediately after Cancel, cannot claim it.
- */
-internal fun MutableStateFlow<Step>.claimCommit(
-    review: Step.Review,
-): Step.Review? {
-    if (review.importing) {
-        return null
-    }
-    val importingReview = review.copy(importing = true)
-    return importingReview.takeIf {
-        compareAndSet(review, importingReview)
-    }
-}
-
-/**
- * Cancels only while the unclaimed [review] remains current. In particular, a
- * stale Cancel callback cannot roll an already claimed commit back to Start.
- */
-internal fun MutableStateFlow<Step>.cancelReview(
-    review: Step.Review,
-): Boolean {
-    if (review.importing) {
-        return false
-    }
-    return compareAndSet(review, Step.Start)
-}
-
-/**
- * Changes one selection only while [review] is still the current, unclaimed step.
- * Callbacks held by disposed lazy rows therefore cannot alter a later stage.
- */
-internal fun MutableStateFlow<Step>.setReviewItemSelected(
-    review: Step.Review,
-    index: Int,
-    selected: Boolean,
-): Boolean {
-    if (review.importing || index !in review.plan.items.indices) {
-        return false
-    }
-    if (value != review) {
-        return false
-    }
-    val currentlySelected = index in review.selectedItemIndexes
-    if (currentlySelected == selected) {
-        return true
-    }
-    val selectedItemIndexes = if (selected) {
-        review.selectedItemIndexes + index
-    } else {
-        review.selectedItemIndexes - index
-    }
-    return compareAndSet(
-        review,
-        review.copy(selectedItemIndexes = selectedItemIndexes),
     )
 }
 

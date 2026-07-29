@@ -1,13 +1,16 @@
 package com.artemchep.keyguard.common.service.backup
 
-import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
+import com.artemchep.keyguard.util.io.atomic.AchievedSyncLevel
+import com.artemchep.keyguard.util.io.atomic.AtomicCleanupIncompleteException
+import com.artemchep.keyguard.util.io.atomic.AtomicWriteReceipt
+import com.artemchep.keyguard.util.io.readByteArrayAndClose
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import kotlinx.io.write
 import kotlin.jvm.JvmInline
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.Instant
-import kotlinx.io.Sink
-import kotlinx.io.Source
-import kotlinx.io.write
 
 @JvmInline
 value class BackupObjectKey(
@@ -94,6 +97,7 @@ data class BackupObjectInfo(
     val key: BackupObjectKey,
     val size: Long?,
     val updatedAt: Instant?,
+    val atomicWriteReceipt: AtomicWriteReceipt? = null,
 )
 
 data class BackupObjectListPage(
@@ -174,7 +178,7 @@ sealed class BackupObjectStoreException(
         key = key,
         retryable = false,
         message = "Backup object '${key.value}' does not contain requested range " +
-                "${range.offset}:${range.length ?: "end"}.",
+            "${range.offset}:${range.length ?: "end"}.",
         cause = cause,
     )
 
@@ -209,6 +213,59 @@ sealed class BackupObjectStoreException(
         key = key,
         retryable = false,
         message = "Backup object store does not support atomic writes.",
+        cause = cause,
+    )
+
+    /**
+     * A namespace mutation was issued but its publication result could not be
+     * positively established. This is deliberately non-retryable: retrying
+     * could overwrite or duplicate an already-published object.
+     */
+    class PublicationUnknown(
+        key: BackupObjectKey,
+        cause: Throwable? = null,
+    ) : BackupObjectStoreException(
+        operation = BackupObjectStoreOperation.Write,
+        key = key,
+        retryable = false,
+        message = "Backup object '${key.value}' may already have been published.",
+        cause = cause,
+    )
+
+    /**
+     * The object was published, but the requested synchronization guarantee
+     * could not be established. Retrying the write could overwrite or
+     * duplicate an already-published object.
+     *
+     * [cleanupIncomplete] remains secondary to the synchronization failure.
+     */
+    class PublishedSynchronizationUnknown(
+        key: BackupObjectKey,
+        val achievedSyncLevel: AchievedSyncLevel,
+        val cleanupIncomplete: Boolean,
+        cause: Throwable? = null,
+    ) : BackupObjectStoreException(
+        operation = BackupObjectStoreOperation.Write,
+        key = key,
+        retryable = false,
+        message = "Backup object '${key.value}' was published, but its requested " +
+            "synchronization could not be established.",
+        cause = cause,
+    )
+
+    /**
+     * The object was published, but native temporary cleanup or handle
+     * finalization did not complete. Retrying the write could overwrite or
+     * duplicate an already-published object.
+     */
+    class CleanupIncomplete(
+        key: BackupObjectKey,
+        cause: Throwable? = null,
+    ) : BackupObjectStoreException(
+        operation = BackupObjectStoreOperation.Write,
+        key = key,
+        retryable = false,
+        message = "Backup object '${key.value}' was published with incomplete cleanup.",
         cause = cause,
     )
 
@@ -365,6 +422,7 @@ interface BackupObjectStore {
                 sink.write(payload)
             }
             writeCompleted = true
+            writtenInfo.requireAtomicCleanupComplete()
             verifyBackupObjectStoreSize(
                 key = probeKey,
                 label = "written object",
@@ -465,6 +523,18 @@ interface BackupObjectStore {
     suspend fun close() {
         // no-op by default
     }
+}
+
+internal fun BackupObjectInfo.requireAtomicCleanupComplete(): BackupObjectInfo {
+    try {
+        atomicWriteReceipt?.requireCleanupComplete()
+    } catch (error: AtomicCleanupIncompleteException) {
+        throw BackupObjectStoreException.CleanupIncomplete(
+            key = key,
+            cause = error,
+        )
+    }
+    return this
 }
 
 interface BackupObjectStoreFactory {

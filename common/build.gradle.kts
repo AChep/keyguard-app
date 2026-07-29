@@ -21,6 +21,7 @@ plugins {
     alias(libs.plugins.kotlin.plugin.compose)
     id("keyguard.resources-common")
     id("keyguard.native-crypto-consumer")
+    id("keyguard.native-io-consumer")
     id("keyguard.detekt-custom-rules")
 }
 
@@ -128,6 +129,7 @@ kotlin {
                 api(libs.ktor.ktor.client.websockets)
                 api(libs.ktor.ktor.serialization.kotlinx)
                 api(project(":util:foundation"))
+                api(project(":util:io"))
                 api(project(":util:kdbx"))
                 api(project(":util:crypto"))
                 api(project(":util:signalr"))
@@ -838,3 +840,12 @@ sqldelight {
 // depending on what order the tasks are executed.
 tasks.findByName("generateNoneReleaseLintVitalModel")?.dependsOn("copyFontsToAndroidAssets")
 tasks.findByName("generatePlayStoreReleaseLintVitalModel")?.dependsOn("copyFontsToAndroidAssets")
+
+// The common source set contains KSP output. Keep ktlint's read of that source ordered after
+// generation so Gradle can validate the task graph deterministically.
+tasks.matching {
+    it.name == "runKtlintCheckOverCommonMainSourceSet" ||
+        it.name == "runKtlintFormatOverCommonMainSourceSet"
+}.configureEach {
+    mustRunAfter("kspCommonMainKotlinMetadata")
+}

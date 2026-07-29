@@ -1,14 +1,10 @@
 package com.artemchep.keyguard.common.service.backup
 
-import com.artemchep.keyguard.common.io.withBufferedSink
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.util.RetryPolicy
 import com.artemchep.keyguard.common.util.retryWithPolicy
-import java.io.FilterOutputStream
-import java.io.OutputStream
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Instant
+import com.artemchep.keyguard.util.io.withBufferedSink
 import kotlinx.io.Sink
 import kotlinx.io.asInputStream
 import kotlinx.io.asOutputStream
@@ -21,6 +17,10 @@ import net.lingala.zip4j.model.enums.CompressionMethod
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
+import java.io.FilterOutputStream
+import java.io.OutputStream
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 
 class BackupRepositoryZipImpl(
     private val json: Json,
@@ -435,35 +435,37 @@ class BackupRepositoryZipImpl(
         mode: BackupWriteMode,
         password: Password?,
         entries: List<ZipEntryWriter>,
-    ): BackupObjectInfo = store.write(
-        key = key,
-        mode = mode,
-    ) { sink ->
-        val stream = NonClosingOutputStream(sink.asOutputStream())
-        createZipOutputStream(stream, password).use { zipStream ->
-            entries.forEach { entry ->
-                zipStream.putNextEntry(
-                    createZipParameters(
-                        fileName = entry.name,
-                        password = password,
-                    ),
-                )
-                try {
-                    when (entry) {
-                        is ZipEntryWriter.Text -> {
-                            zipStream.write(entry.text.encodeToByteArray())
-                        }
+    ): BackupObjectInfo = store
+        .write(
+            key = key,
+            mode = mode,
+        ) { sink ->
+            val stream = NonClosingOutputStream(sink.asOutputStream())
+            createZipOutputStream(stream, password).use { zipStream ->
+                entries.forEach { entry ->
+                    zipStream.putNextEntry(
+                        createZipParameters(
+                            fileName = entry.name,
+                            password = password,
+                        ),
+                    )
+                    try {
+                        when (entry) {
+                            is ZipEntryWriter.Text -> {
+                                zipStream.write(entry.text.encodeToByteArray())
+                            }
 
-                        is ZipEntryWriter.Sink -> {
-                            zipStream.withBufferedSink(entry.write)
+                            is ZipEntryWriter.Sink -> {
+                                zipStream.withBufferedSink(entry.write)
+                            }
                         }
+                    } finally {
+                        zipStream.closeEntry()
                     }
-                } finally {
-                    zipStream.closeEntry()
                 }
             }
         }
-    }
+        .requireAtomicCleanupComplete()
 
     private suspend fun readBlobInfoOrNull(
         store: BackupObjectStore,
@@ -665,7 +667,8 @@ private fun validateBackupRepositoryCrypto(
     password: Password?,
 ) {
     val expected = backupRepositoryCrypto(password)
-    val matches = metadata.crypto.archive == expected.archive &&
+    val matches =
+        metadata.crypto.archive == expected.archive &&
             metadata.crypto.objectArchive == expected.objectArchive
     check(matches) {
         "Backup repository password mode cannot be changed after creation."

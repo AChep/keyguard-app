@@ -19,6 +19,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(project(":util:io"))
                 api(libs.ktor.ktor.client.core)
                 api(libs.kotlinx.coroutines.core)
                 api(libs.kotlinx.io.core)

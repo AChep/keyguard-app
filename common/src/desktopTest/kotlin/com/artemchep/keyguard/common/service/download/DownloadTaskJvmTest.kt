@@ -2,26 +2,44 @@ package com.artemchep.keyguard.common.service.download
 
 import arrow.core.Either
 import com.artemchep.keyguard.common.exception.HttpException
-import com.artemchep.keyguard.common.service.crypto.FileEncryptor
-import com.artemchep.keyguard.common.service.crypto.StreamingFileDecryptor
-import com.artemchep.keyguard.common.service.file.toFileUriString
+import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
-import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.crypto.FileEncryptionCodecJvm
+import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
+import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
+import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
+import com.artemchep.keyguard.util.io.toLocalPath
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.Buffer
+import kotlinx.io.RawSink
+import kotlinx.io.Sink
 import kotlinx.io.Source
+import kotlinx.io.buffered
 import kotlinx.io.readByteArray
+import okhttp3.Call
+import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Protocol
 import okhttp3.Response
+import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
-import java.io.File
+import okio.Timeout
+import okio.buffer
 import java.io.IOException
-import java.io.InputStream
-import java.nio.file.Path
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.readBytes
 import kotlin.test.Test
@@ -29,18 +47,24 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
+import okio.Buffer as OkioBuffer
 
-class DownloadTaskJvmTest {
+private const val TEST_BYTE_PATTERN_MODULUS = 251
+private const val FILE_ENCRYPTION_KEY_SIZE_BYTES = 64
+private const val MULTI_BYTE_KEY_LAST_BYTE: Byte = 3
+private const val CALL_CANCELLATION_TIMEOUT_SECONDS = 5L
+
+@Suppress("FunctionNaming")
+class DownloadTaskJvmSuccessfulOutputTest {
     @Test
-    fun `url loader deletes cache file after successful local path download`() = runTest {
+    fun `url loader writes local path download`() = runTest {
         val root = createTempDirectory("download-task")
-        val cacheRoot = root.resolve("cache")
         val output = root.resolve("payload.bin")
         val data = "payload".encodeToByteArray()
 
         try {
             val task = downloadTask(
-                cacheRoot = cacheRoot.toLocalPath(),
                 responseBody = data,
             )
 
@@ -48,7 +72,7 @@ class DownloadTaskJvmTest {
                 .fileLoader(
                     url = "https://example.com/payload.bin",
                     key = null,
-                    writer = DownloadWriter.LocalPathWriter(output.toLocalPath()),
+                    writer = output.localPathWriter(),
                 )
                 .filterIsInstance<DownloadProgress.Complete>()
                 .single()
@@ -56,7 +80,6 @@ class DownloadTaskJvmTest {
             val result = assertIs<Either.Right<String?>>(complete.result)
             assertEquals(output.toFile().toURI().toString(), result.value)
             assertContentEquals(data, output.readBytes())
-            assertNoCacheFiles(cacheRoot)
         } finally {
             root.toFile().deleteRecursively()
         }
@@ -65,13 +88,11 @@ class DownloadTaskJvmTest {
     @Test
     fun `url loader writes local path download with short filename`() = runTest {
         val root = createTempDirectory("download-task")
-        val cacheRoot = root.resolve("cache")
         val output = root.resolve("a")
         val data = "payload".encodeToByteArray()
 
         try {
             val task = downloadTask(
-                cacheRoot = cacheRoot.toLocalPath(),
                 responseBody = data,
             )
 
@@ -79,7 +100,7 @@ class DownloadTaskJvmTest {
                 .fileLoader(
                     url = "https://example.com/payload.bin",
                     key = null,
-                    writer = DownloadWriter.LocalPathWriter(output.toLocalPath()),
+                    writer = output.localPathWriter(),
                 )
                 .filterIsInstance<DownloadProgress.Complete>()
                 .single()
@@ -87,7 +108,147 @@ class DownloadTaskJvmTest {
             val result = assertIs<Either.Right<String?>>(complete.result)
             assertEquals(output.toFile().toURI().toString(), result.value)
             assertContentEquals(data, output.readBytes())
-            assertNoCacheFiles(cacheRoot)
+        } finally {
+            root.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `url loader writes unencrypted download to sink`() = runTest {
+        val data = "payload".encodeToByteArray()
+        val sink = Buffer()
+        val task = downloadTask(responseBody = data)
+
+        val complete = task
+            .fileLoader(
+                url = "https://example.com/payload.bin",
+                key = null,
+                writer = DownloadWriter.SinkWriter(sink),
+            )
+            .filterIsInstance<DownloadProgress.Complete>()
+            .single()
+
+        val result = assertIs<Either.Right<String?>>(complete.result)
+        assertEquals(null, result.value)
+        assertContentEquals(data, sink.readByteArray())
+    }
+
+    @Test
+    fun `url loader flushes but does not close caller sink`() = runTest {
+        val data = "payload".encodeToByteArray()
+        val trackingSink = TrackingRawSink()
+        val task = downloadTask(responseBody = data)
+
+        val complete = task
+            .fileLoader(
+                url = "https://example.com/payload.bin",
+                key = null,
+                writer = DownloadWriter.SinkWriter(trackingSink.buffered()),
+            )
+            .filterIsInstance<DownloadProgress.Complete>()
+            .single()
+
+        assertIs<Either.Right<String?>>(complete.result)
+        assertContentEquals(data, trackingSink.data.readByteArray())
+        assertTrue(trackingSink.flushCount > 0)
+        assertEquals(0, trackingSink.closeCount)
+    }
+
+    @Test
+    fun `url loader spills large plaintext before publishing to sink`() = runTest {
+        val data = ByteArray(
+            DOWNLOAD_PLAINTEXT_MEMORY_LIMIT_BYTES.toInt() + 1,
+        ) { index ->
+            (index % TEST_BYTE_PATTERN_MODULUS).toByte()
+        }
+        val sink = Buffer()
+        val task = downloadTask(responseBody = data)
+
+        val complete = task
+            .fileLoader(
+                url = "https://example.com/payload.bin",
+                key = null,
+                writer = DownloadWriter.SinkWriter(sink),
+            )
+            .filterIsInstance<DownloadProgress.Complete>()
+            .single()
+
+        assertIs<Either.Right<String?>>(complete.result)
+        assertContentEquals(data, sink.readByteArray())
+    }
+
+    @Test
+    fun `url loader decrypts download to sink with production encryptor`() = runTest {
+        val plain = "plain payload".encodeToByteArray()
+        val key = ByteArray(FILE_ENCRYPTION_KEY_SIZE_BYTES) { index -> index.toByte() }
+        val fileEncryptionCodec = FileEncryptionCodecJvm(CryptoGeneratorJvm())
+        val encrypted = fileEncryptionCodec.encrypt(plain, key)
+        val sink = Buffer()
+        val task = downloadTask(
+            responseBody = encrypted,
+            fileEncryptionCodec = fileEncryptionCodec,
+        )
+
+        val complete = task
+            .fileLoader(
+                url = "https://example.com/payload.bin",
+                key = key,
+                writer = DownloadWriter.SinkWriter(sink),
+            )
+            .filterIsInstance<DownloadProgress.Complete>()
+            .single()
+
+        assertIs<Either.Right<String?>>(complete.result)
+        assertContentEquals(plain, sink.readByteArray())
+    }
+}
+
+@Suppress("FunctionNaming")
+class DownloadTaskJvmFailureAndEdgeCaseTest {
+    @Test
+    fun `url loader leaves sink untouched after failed decrypt`() = runTest {
+        val original = "original".encodeToByteArray()
+        val sink = Buffer().apply {
+            write(original)
+        }
+        val task = downloadTask(
+            responseBody = "encrypted".encodeToByteArray(),
+            fileEncryptionCodec = FailingFileEncryptionCodec(),
+        )
+
+        val complete = task
+            .fileLoader(
+                url = "https://example.com/payload.bin",
+                key = byteArrayOf(1),
+                writer = DownloadWriter.SinkWriter(sink),
+            )
+            .filterIsInstance<DownloadProgress.Complete>()
+            .single()
+
+        assertIs<Either.Left<Throwable>>(complete.result)
+        assertContentEquals(original, sink.readByteArray())
+    }
+
+    @Test
+    fun `url loader creates empty local path file for empty response`() = runTest {
+        val root = createTempDirectory("download-task")
+        val output = root.resolve("payload.bin")
+
+        try {
+            output.toFile().writeText("original")
+            val task = downloadTask(responseBody = ByteArray(0))
+
+            val complete = task
+                .fileLoader(
+                    url = "https://example.com/payload.bin",
+                    key = null,
+                    writer = output.localPathWriter(),
+                )
+                .filterIsInstance<DownloadProgress.Complete>()
+                .single()
+
+            assertIs<Either.Right<String?>>(complete.result)
+            assertContentEquals(ByteArray(0), output.readBytes())
         } finally {
             root.toFile().deleteRecursively()
         }
@@ -96,29 +257,27 @@ class DownloadTaskJvmTest {
     @Test
     fun `byte array loader decrypts and writes local path download`() = runTest {
         val root = createTempDirectory("download-task")
-        val cacheRoot = root.resolve("cache")
         val output = root.resolve("nested").resolve("payload.bin")
         val encrypted = "encrypted".encodeToByteArray()
         val plain = "plain payload".encodeToByteArray()
 
         try {
             val task = downloadTask(
-                cacheRoot = cacheRoot.toLocalPath(),
                 responseBody = ByteArray(0),
-                fileEncryptor = ByteArrayDecodingFileEncryptor(plain),
+                fileEncryptionCodec = ByteArrayDecryptingFileEncryptionCodec(plain),
             )
 
             val complete = task
                 .fileLoader(
                     data = encrypted,
-                    key = byteArrayOf(1, 2, 3),
-                    writer = DownloadWriter.LocalPathWriter(output.toLocalPath()),
+                    key = byteArrayOf(1, 2, MULTI_BYTE_KEY_LAST_BYTE),
+                    writer = output.localPathWriter(existingRoot = root),
                 )
                 .filterIsInstance<DownloadProgress.Complete>()
                 .single()
 
             val result = assertIs<Either.Right<String?>>(complete.result)
-            assertEquals(output.toLocalPath().toFileUriString(), result.value)
+            assertEquals(output.toFile().toURI().toString(), result.value)
             assertContentEquals(plain, output.readBytes())
         } finally {
             root.toFile().deleteRecursively()
@@ -126,31 +285,30 @@ class DownloadTaskJvmTest {
     }
 
     @Test
-    fun `url loader deletes cache and leaves no local path file after failed decrypt`() = runTest {
+    fun `url loader preserves local path file after failed decrypt`() = runTest {
         val root = createTempDirectory("download-task")
-        val cacheRoot = root.resolve("cache")
         val output = root.resolve("payload.bin")
         val data = "encrypted".encodeToByteArray()
+        val original = "original".encodeToByteArray()
 
         try {
+            output.toFile().writeBytes(original)
             val task = downloadTask(
-                cacheRoot = cacheRoot.toLocalPath(),
                 responseBody = data,
-                fileEncryptor = FailingFileEncryptor(),
+                fileEncryptionCodec = FailingFileEncryptionCodec(),
             )
 
             val complete = task
                 .fileLoader(
                     url = "https://example.com/payload.bin",
                     key = byteArrayOf(1),
-                    writer = DownloadWriter.LocalPathWriter(output.toLocalPath()),
+                    writer = output.localPathWriter(),
                 )
                 .filterIsInstance<DownloadProgress.Complete>()
                 .single()
 
             assertIs<Either.Left<Throwable>>(complete.result)
-            assertFalse(output.toFile().exists())
-            assertNoCacheFiles(cacheRoot)
+            assertContentEquals(original, output.readBytes())
         } finally {
             root.toFile().deleteRecursively()
         }
@@ -159,12 +317,12 @@ class DownloadTaskJvmTest {
     @Test
     fun `url loader preserves http status failure`() = runTest {
         val root = createTempDirectory("download-task")
-        val cacheRoot = root.resolve("cache")
         val output = root.resolve("payload.bin")
+        val original = "original".encodeToByteArray()
 
         try {
+            output.toFile().writeBytes(original)
             val task = downloadTask(
-                cacheRoot = cacheRoot.toLocalPath(),
                 responseBody = "missing".encodeToByteArray(),
                 responseStatus = HttpStatusCode.NotFound,
             )
@@ -173,7 +331,7 @@ class DownloadTaskJvmTest {
                 .fileLoader(
                     url = "https://example.com/payload.bin",
                     key = null,
-                    writer = DownloadWriter.LocalPathWriter(output.toLocalPath()),
+                    writer = output.localPathWriter(),
                 )
                 .filterIsInstance<DownloadProgress.Complete>()
                 .single()
@@ -181,166 +339,329 @@ class DownloadTaskJvmTest {
             val result = assertIs<Either.Left<Throwable>>(complete.result)
             val error = assertIs<HttpException>(result.value)
             assertEquals(HttpStatusCode.NotFound, error.statusCode)
-            assertFalse(output.toFile().exists())
-            assertNoCacheFiles(cacheRoot)
+            assertContentEquals(original, output.readBytes())
         } finally {
             root.toFile().deleteRecursively()
         }
     }
 
-    private fun downloadTask(
-        cacheRoot: LocalPath,
-        responseBody: ByteArray,
-        responseStatus: HttpStatusCode = HttpStatusCode.OK,
-        fileEncryptor: FileEncryptor = CopyingFileEncryptor(),
-    ) = DownloadTaskJvm(
-        cacheDirProvider = StaticCacheDirProvider(cacheRoot),
-        cryptoGenerator = CryptoGeneratorJvm(),
-        okHttpClient = okHttpClient(
-            responseBody = responseBody,
-            responseStatus = responseStatus,
-        ),
-        fileEncryptor = fileEncryptor,
-    )
+    @Test
+    fun `url loader leaves sink untouched after response fails mid body`() = runTest {
+        val original = "original".encodeToByteArray()
+        val sink = Buffer().apply {
+            write(original)
+        }
+        val task = downloadTask(
+            responseBody = FailingResponseBody(
+                partial = "partial".encodeToByteArray(),
+            ),
+        )
+
+        val complete = task
+            .fileLoader(
+                url = "https://example.com/payload.bin",
+                key = null,
+                writer = DownloadWriter.SinkWriter(sink),
+            )
+            .filterIsInstance<DownloadProgress.Complete>()
+            .single()
+
+        assertIs<Either.Left<Throwable>>(complete.result)
+        assertContentEquals(original, sink.readByteArray())
+    }
+
+    @Test
+    fun `cancelling url loader cancels the call without publishing staged bytes`() = runBlocking {
+        val original = "original".encodeToByteArray()
+        val sink = Buffer().apply {
+            write(original)
+        }
+        val responseBody = CancellableResponseBody()
+        val task = downloadTask(responseBody = responseBody)
+        val completed = AtomicBoolean(false)
+
+        val collection = launch(
+            context = Dispatchers.Default,
+            start = CoroutineStart.UNDISPATCHED,
+        ) {
+            task
+                .fileLoader(
+                    url = "https://example.com/payload.bin",
+                    key = null,
+                    writer = DownloadWriter.SinkWriter(sink),
+                )
+                .collect { progress ->
+                    if (progress is DownloadProgress.Complete) {
+                        completed.set(true)
+                    }
+                }
+        }
+
+        assertTrue(
+            responseBody.readStarted.await(
+                CALL_CANCELLATION_TIMEOUT_SECONDS,
+                TimeUnit.SECONDS,
+            ),
+        )
+        collection.cancelAndJoin()
+
+        assertTrue(responseBody.call.isCanceled())
+        assertTrue(responseBody.closed.get())
+        assertFalse(completed.get())
+        assertContentEquals(original, sink.readByteArray())
+    }
 }
 
-private fun okHttpClient(
+private fun downloadTask(
     responseBody: ByteArray,
+    responseStatus: HttpStatusCode = HttpStatusCode.OK,
+    fileEncryptionCodec: FileEncryptionCodec = CopyingFileEncryptionCodec(),
+) = downloadTask(
+    responseBody = responseBody.toResponseBody(),
+    responseStatus = responseStatus,
+    fileEncryptionCodec = fileEncryptionCodec,
+)
+
+private fun downloadTask(
+    responseBody: ResponseBody,
+    responseStatus: HttpStatusCode = HttpStatusCode.OK,
+    fileEncryptionCodec: FileEncryptionCodec = CopyingFileEncryptionCodec(),
+) = DownloadTaskImpl(
+    httpClient = HttpClient(OkHttp) {
+        engine {
+            preconfigured = okHttpClient(
+                responseBody = responseBody,
+                responseStatus = responseStatus,
+            )
+        }
+    },
+    fileEncryptionCodec = fileEncryptionCodec,
+)
+
+private fun okHttpClient(
+    responseBody: ResponseBody,
     responseStatus: HttpStatusCode,
 ) = OkHttpClient.Builder()
     .addInterceptor { chain ->
+        if (responseBody is CancellableResponseBody) {
+            responseBody.call = chain.call()
+        }
         Response.Builder()
             .request(chain.request())
             .protocol(Protocol.HTTP_1_1)
             .code(responseStatus.value)
             .message(responseStatus.description)
-            .body(responseBody.toResponseBody())
+            .body(responseBody)
             .build()
     }
     .build()
 
-private fun assertNoCacheFiles(
-    cacheRoot: Path,
-) {
-    assertFalse(
-        cacheRoot.resolve("download_cache")
-            .toFile()
-            .walkTopDown()
-            .any { it.isFile },
-    )
+private class FailingResponseBody(
+    partial: ByteArray,
+) : ResponseBody() {
+    private val responseSource = object : okio.Source {
+        private val partialBuffer = OkioBuffer().apply {
+            write(partial)
+        }
+        private var failed = false
+
+        override fun read(
+            sink: OkioBuffer,
+            byteCount: Long,
+        ): Long {
+            if (failed) {
+                throw IOException("Response body failed")
+            }
+            val read = partialBuffer.read(sink, byteCount)
+            if (read < 0L) {
+                failed = true
+                throw IOException("Response body failed")
+            }
+            return read
+        }
+
+        override fun timeout(): Timeout = Timeout.NONE
+
+        override fun close() = Unit
+    }.buffer()
+
+    override fun contentType(): MediaType? = null
+
+    override fun contentLength(): Long = -1L
+
+    override fun source() = responseSource
 }
 
-private data class StaticCacheDirProvider(
-    private val path: LocalPath,
-) : CacheDirProvider {
-    override suspend fun get(): LocalPath = path
+private class CancellableResponseBody : ResponseBody() {
+    lateinit var call: Call
+    val readStarted = CountDownLatch(1)
+    val closed = AtomicBoolean(false)
 
-    override fun getBlocking(): LocalPath = path
+    private val responseSource = object : okio.Source {
+        override fun read(
+            sink: OkioBuffer,
+            byteCount: Long,
+        ): Long {
+            readStarted.countDown()
+            while (!call.isCanceled()) {
+                Thread.yield()
+            }
+            throw IOException("Canceled")
+        }
+
+        override fun timeout(): Timeout = Timeout.NONE
+
+        override fun close() {
+            closed.set(true)
+        }
+    }.buffer()
+
+    override fun contentType(): MediaType? = null
+
+    override fun contentLength(): Long = -1L
+
+    override fun source() = responseSource
 }
 
-private class CopyingFileEncryptor : FileEncryptor, StreamingFileDecryptor {
-    override fun decode(
+private class TrackingRawSink : RawSink {
+    val data = Buffer()
+    var flushCount = 0
+    var closeCount = 0
+
+    override fun write(
+        source: Buffer,
+        byteCount: Long,
+    ) {
+        data.write(source, byteCount)
+    }
+
+    override fun flush() {
+        flushCount += 1
+    }
+
+    override fun close() {
+        closeCount += 1
+    }
+}
+
+private class CopyingFileEncryptionCodec : FileEncryptionCodec {
+    override fun decrypt(
         input: ByteArray,
         key: ByteArray,
     ): ByteArray = input
 
-    override fun decode(
-        input: InputStream,
+    override fun decrypt(
+        input: Source,
+        output: Sink,
         key: ByteArray,
-    ): InputStream = input
+    ) {
+        output.write(input.readByteArray())
+    }
 
-    override fun encode(
+    override fun encrypt(
         data: ByteArray,
         key: ByteArray,
     ): ByteArray = data
 
-    override fun encode(
+    override fun encrypt(
         input: Source,
-        output: LocalPath,
+        output: Sink,
         key: ByteArray,
-    ): FileEncryptor.EncodeResult {
+    ): FileEncryptionCodec.EncryptionResult {
         val data = input.readByteArray()
-        File(output.value).writeBytes(data)
-        return FileEncryptor.EncodeResult(
+        output.write(data)
+        return FileEncryptionCodec.EncryptionResult(
             plainSize = data.size.toLong(),
             encryptedSize = data.size.toLong(),
         )
     }
 }
 
-private class ByteArrayDecodingFileEncryptor(
+private class ByteArrayDecryptingFileEncryptionCodec(
     private val plain: ByteArray,
-) : FileEncryptor {
-    override fun decode(
+) : FileEncryptionCodec {
+    override fun decrypt(
         input: ByteArray,
         key: ByteArray,
     ): ByteArray = plain
 
-    override fun encode(
+    override fun decrypt(
+        input: Source,
+        output: Sink,
+        key: ByteArray,
+    ) {
+        output.write(plain)
+    }
+
+    override fun encrypt(
         data: ByteArray,
         key: ByteArray,
     ): ByteArray = data
 
-    override fun encode(
+    override fun encrypt(
         input: Source,
-        output: LocalPath,
+        output: Sink,
         key: ByteArray,
-    ): FileEncryptor.EncodeResult {
+    ): FileEncryptionCodec.EncryptionResult {
         val data = input.readByteArray()
-        File(output.value).writeBytes(data)
-        return FileEncryptor.EncodeResult(
+        output.write(data)
+        return FileEncryptionCodec.EncryptionResult(
             plainSize = data.size.toLong(),
             encryptedSize = data.size.toLong(),
         )
     }
 }
 
-private class FailingFileEncryptor : FileEncryptor, StreamingFileDecryptor {
-    override fun decode(
+private class FailingFileEncryptionCodec : FileEncryptionCodec {
+    override fun decrypt(
         input: ByteArray,
         key: ByteArray,
     ): ByteArray = throw IOException("Message authentication codes do not match!")
 
-    override fun decode(
-        input: InputStream,
+    override fun decrypt(
+        input: Source,
+        output: Sink,
         key: ByteArray,
-    ): InputStream = FailingDecryptInputStream(input)
+    ) {
+        output.write("partial".encodeToByteArray())
+        throw IOException("Message authentication codes do not match!")
+    }
 
-    override fun encode(
+    override fun encrypt(
         data: ByteArray,
         key: ByteArray,
     ): ByteArray = data
 
-    override fun encode(
+    override fun encrypt(
         input: Source,
-        output: LocalPath,
+        output: Sink,
         key: ByteArray,
-    ): FileEncryptor.EncodeResult {
+    ): FileEncryptionCodec.EncryptionResult {
         val data = input.readByteArray()
-        File(output.value).writeBytes(data)
-        return FileEncryptor.EncodeResult(
+        output.write(data)
+        return FileEncryptionCodec.EncryptionResult(
             plainSize = data.size.toLong(),
             encryptedSize = data.size.toLong(),
         )
     }
 }
 
-private class FailingDecryptInputStream(
-    private val delegate: InputStream,
-) : InputStream() {
-    override fun read(): Int {
-        throw IOException("Message authentication codes do not match!")
-    }
-
-    override fun read(
-        b: ByteArray,
-        off: Int,
-        len: Int,
-    ): Int {
-        throw IOException("Message authentication codes do not match!")
-    }
-
-    override fun close() {
-        delegate.close()
-    }
+private fun java.nio.file.Path.localPathWriter(
+    existingRoot: java.nio.file.Path = requireNotNull(parent),
+): DownloadWriter.LocalPathWriter {
+    val relativeComponents = existingRoot
+        .normalize()
+        .relativize(normalize())
+        .map { component ->
+            AtomicPathComponent.parse(component.toString())
+        }
+    return DownloadWriter.LocalPathWriter(
+        destination = AtomicFileDestination(
+            root = existingRoot.toLocalPath(),
+            relativePath = AtomicRelativePath.fromComponents(
+                first = relativeComponents.first(),
+                *relativeComponents.drop(1).toTypedArray(),
+            ),
+        ),
+    )
 }

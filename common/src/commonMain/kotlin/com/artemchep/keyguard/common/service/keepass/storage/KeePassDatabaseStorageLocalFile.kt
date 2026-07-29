@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.keepass.storage
 
 import com.artemchep.keyguard.common.exception.KeePassFileAlreadyExistsException
 import com.artemchep.keyguard.common.service.file.FileAccessToken
+import com.artemchep.keyguard.common.service.file.AtomicFileWriteOutcome
 import com.artemchep.keyguard.common.service.file.FileMetadata
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keepass.StagedDatabase
@@ -42,12 +43,15 @@ internal class KeePassDatabaseStorageLocalFile(
         // handles can keep their temp path and replacement path consistent.
         // When the backend reports that atomic publish is unsupported, fall
         // back to writing the verified bytes directly.
-        val published = fileService.atomicWriteToFile(
+        val outcome = fileService.atomicWriteToFile(
             uri = uri,
             accessToken = accessToken,
             write = staged::replayTo,
         )
-        if (!published) {
+        if (outcome is AtomicFileWriteOutcome.Published) {
+            outcome.receipt.requireCleanupComplete()
+        }
+        if (outcome == AtomicFileWriteOutcome.Unsupported) {
             // The direct-write fallback truncates the destination on open, so
             // materialize the staged payload first: a staging read failure
             // must not be able to tear the database once the destination has

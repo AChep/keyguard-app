@@ -1,9 +1,35 @@
 package com.artemchep.keyguard.common.service.backup
 
-import com.artemchep.keyguard.common.io.withBufferedSink
-import com.artemchep.keyguard.common.service.file.toLocalPathFromFileUriOrNull
 import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.toJavaFile
+import com.artemchep.keyguard.util.io.FileSystemFailureKind
+import com.artemchep.keyguard.util.io.FileSystemOperationException
+import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
+import com.artemchep.keyguard.util.io.artifact.TemporaryArtifactRole
+import com.artemchep.keyguard.util.io.artifact.newTemporaryArtifactName
+import com.artemchep.keyguard.util.io.atomic.AtomicDestinationExistsException
+import com.artemchep.keyguard.util.io.atomic.AtomicDirectory
+import com.artemchep.keyguard.util.io.atomic.AtomicDirectoryPermissions
+import com.artemchep.keyguard.util.io.atomic.AtomicFilePermissions
+import com.artemchep.keyguard.util.io.atomic.AtomicPublicationPolicy
+import com.artemchep.keyguard.util.io.atomic.AtomicPublicationUnknownException
+import com.artemchep.keyguard.util.io.atomic.AtomicPublicationUnsupportedException
+import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
+import com.artemchep.keyguard.util.io.atomic.AtomicSynchronizationException
+import com.artemchep.keyguard.util.io.atomic.AtomicWriteOptions
+import com.artemchep.keyguard.util.io.atomic.ExistingParentLinkPolicy
+import com.artemchep.keyguard.util.io.atomic.ParentDirectoryPolicy
+import com.artemchep.keyguard.util.io.atomic.ReplacementAccessPolicy
+import com.artemchep.keyguard.util.io.atomic.SyncLevel
+import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
+import com.artemchep.keyguard.util.io.toJavaFile
+import com.artemchep.keyguard.util.io.toLocalPathFromFileUriOrNull
+import com.artemchep.keyguard.util.io.withBufferedSink
+import kotlinx.io.Buffer
+import kotlinx.io.RawSink
+import kotlinx.io.RawSource
+import kotlinx.io.Source
+import kotlinx.io.asSource
+import kotlinx.io.buffered
 import java.io.EOFException
 import java.io.File
 import java.io.FileNotFoundException
@@ -12,37 +38,31 @@ import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.nio.file.AccessDeniedException
-import java.nio.file.CopyOption
+import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.FileAlreadyExistsException
+import java.nio.file.FileSystemException
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
-import java.nio.file.StandardCopyOption
+import java.nio.file.ReadOnlyFileSystemException
 import java.nio.file.attribute.BasicFileAttributes
 import kotlin.time.Instant
-import kotlinx.io.Buffer
-import kotlinx.io.RawSource
-import kotlinx.io.Source
-import kotlinx.io.asSource
-import kotlinx.io.buffered
+import com.artemchep.keyguard.util.io.atomic.openAtomicDirectory as openNativeAtomicDirectory
 
+@OptIn(InternalKeyguardIoApi::class)
 class LocalFolderBackupObjectStore : BackupObjectStore {
     private val root: LocalPath
-    private val atomicMove: (Path, Path, BackupWriteMode) -> Unit
+    private val atomicMove: ((Path, Path, BackupWriteMode) -> Unit)?
     private val openInput: (Path) -> InputStream
+    private val atomicDirectoryOpen: (LocalPath) -> AtomicDirectory
 
     constructor(
         root: LocalPath,
     ) : this(
         root = root,
-        atomicMove = { source, target, mode ->
-            Files.move(
-                source,
-                target,
-                *atomicMoveOptions(mode),
-            )
-        },
+        atomicMove = null,
         openInput = { path -> Files.newInputStream(path) },
+        atomicDirectoryOpen = ::openNativeAtomicDirectory,
     )
 
     internal constructor(
@@ -50,14 +70,9 @@ class LocalFolderBackupObjectStore : BackupObjectStore {
         openInput: (Path) -> InputStream,
     ) : this(
         root = root,
-        atomicMove = { source, target, mode ->
-            Files.move(
-                source,
-                target,
-                *atomicMoveOptions(mode),
-            )
-        },
+        atomicMove = null,
         openInput = openInput,
+        atomicDirectoryOpen = ::openNativeAtomicDirectory,
     )
 
     internal constructor(
@@ -67,21 +82,36 @@ class LocalFolderBackupObjectStore : BackupObjectStore {
         root = root,
         atomicMove = { source, target, _ -> atomicMove(source, target) },
         openInput = { path -> Files.newInputStream(path) },
+        atomicDirectoryOpen = ::openNativeAtomicDirectory,
+    )
+
+    @OptIn(InternalKeyguardIoApi::class)
+    internal constructor(
+        root: LocalPath,
+        openInput: (Path) -> InputStream,
+        atomicDirectoryOpen: (LocalPath) -> AtomicDirectory,
+    ) : this(
+        root = root,
+        atomicMove = null,
+        openInput = openInput,
+        atomicDirectoryOpen = atomicDirectoryOpen,
     )
 
     private constructor(
         root: LocalPath,
-        atomicMove: (Path, Path, BackupWriteMode) -> Unit,
+        atomicMove: ((Path, Path, BackupWriteMode) -> Unit)?,
         openInput: (Path) -> InputStream,
+        atomicDirectoryOpen: (LocalPath) -> AtomicDirectory,
     ) {
         this.root = root
         this.atomicMove = atomicMove
         this.openInput = openInput
+        this.atomicDirectoryOpen = atomicDirectoryOpen
     }
 
     override val capabilities: BackupObjectStoreCapabilities = BackupObjectStoreCapabilities(
         atomicWholeObjectWrite = true,
-        atomicReplace = false,
+        atomicReplace = true,
         rangeRead = true,
         strongReadAfterWrite = true,
         strongListAfterWrite = true,
@@ -144,6 +174,39 @@ class LocalFolderBackupObjectStore : BackupObjectStore {
         mode: BackupWriteMode,
         write: suspend (kotlinx.io.Sink) -> Unit,
     ): BackupObjectInfo {
+        var tempFile: File? = null
+        return try {
+            atomicMove?.let { injectedAtomicMove ->
+                writeWithInjectedAtomicMove(
+                    key = key,
+                    mode = mode,
+                    write = write,
+                    atomicMove = injectedAtomicMove,
+                    onStaged = { staged -> tempFile = staged },
+                )
+            } ?: writeWithAtomicDirectory(
+                key = key,
+                mode = mode,
+                write = write,
+            )
+        } catch (e: Exception) {
+            tempFile?.delete()
+            throw writeFailure(
+                key = key,
+                mode = mode,
+                cause = e,
+                isReadOnlyFileSystem = ::isReadOnlyFileSystem,
+            )
+        }
+    }
+
+    private suspend fun writeWithInjectedAtomicMove(
+        key: BackupObjectKey,
+        mode: BackupWriteMode,
+        write: suspend (kotlinx.io.Sink) -> Unit,
+        atomicMove: (Path, Path, BackupWriteMode) -> Unit,
+        onStaged: (File) -> Unit,
+    ): BackupObjectInfo {
         val file = resolve(key)
         readAttributesOrNull(
             file = file,
@@ -154,7 +217,6 @@ class LocalFolderBackupObjectStore : BackupObjectStore {
                 throw BackupObjectStoreException.AlreadyExists(key)
             }
         }
-
         val parent = requireNotNull(file.parentFile)
         try {
             parent.mkdirs()
@@ -165,71 +227,85 @@ class LocalFolderBackupObjectStore : BackupObjectStore {
                 cause = e,
             )
         }
-        val tempFile = File(parent, "${file.name}.${System.nanoTime()}.tmp")
-        try {
-            FileOutputStream(tempFile).use { output ->
-                output.withBufferedSink(write)
-            }
-            moveAtomically(
-                source = tempFile,
-                target = file,
-                mode = mode,
-            )
-            return requireNotNull(stat(key)) {
-                "Backup object '${key.value}' was not visible after writing."
-            }
-        } catch (e: FileAlreadyExistsException) {
-            tempFile.delete()
-            if (mode == BackupWriteMode.Create) {
-                throw BackupObjectStoreException.AlreadyExists(
-                    key = key,
-                    cause = e,
-                )
-            }
-            throw BackupObjectStoreException.Transient(
-                operation = BackupObjectStoreOperation.Write,
-                key = key,
-                cause = e,
-            )
-        } catch (e: AccessDeniedException) {
-            tempFile.delete()
-            throw BackupObjectStoreException.PermissionDenied(
-                operation = BackupObjectStoreOperation.Write,
-                key = key,
-                cause = e,
-            )
-        } catch (e: FileNotFoundException) {
-            tempFile.delete()
-            throw BackupObjectStoreException.PermissionDenied(
-                operation = BackupObjectStoreOperation.Write,
-                key = key,
-                cause = e,
-            )
-        } catch (e: IOException) {
-            tempFile.delete()
-            throw BackupObjectStoreException.Transient(
-                operation = BackupObjectStoreOperation.Write,
-                key = key,
-                cause = e,
-            )
-        } catch (e: SecurityException) {
-            tempFile.delete()
-            throw BackupObjectStoreException.PermissionDenied(
-                operation = BackupObjectStoreOperation.Write,
-                key = key,
-                cause = e,
-            )
-        } catch (e: UnsupportedOperationException) {
-            tempFile.delete()
-            throw BackupObjectStoreException.Transient(
-                operation = BackupObjectStoreOperation.Write,
-                key = key,
-                cause = e,
-            )
-        } catch (e: Exception) {
-            tempFile.delete()
-            throw e
+        val staged = File(
+            parent,
+            newTemporaryArtifactName(TemporaryArtifactRole.New),
+        )
+        onStaged(staged)
+        FileOutputStream(staged).use { output ->
+            output.withBufferedSink(write)
         }
+        atomicMove(staged.toPath(), file.toPath(), mode)
+        return requireNotNull(stat(key)) {
+            "Backup object '${key.value}' was not visible after writing."
+        }
+    }
+
+    private suspend fun writeWithAtomicDirectory(
+        key: BackupObjectKey,
+        mode: BackupWriteMode,
+        write: suspend (kotlinx.io.Sink) -> Unit,
+    ): BackupObjectInfo {
+        val atomicWriteResult = atomicDirectoryOpen(root).use { directory ->
+            directory.openAtomicFileTransaction(
+                relativeDestination = AtomicRelativePath.parse(key.value),
+                options = AtomicWriteOptions(
+                    publication = atomicPublicationPolicy(mode),
+                    parentDirectories = ParentDirectoryPolicy.CreateMissing(
+                        permissions = AtomicDirectoryPermissions.ProcessDefault,
+                    ),
+                    existingParentLinks = ExistingParentLinkPolicy.Reject,
+                    synchronization = SynchronizationPolicy.Prefer(
+                        preferred = SyncLevel.FileAndNamespaceSynchronized,
+                        minimum = SyncLevel.FileSynchronized,
+                    ),
+                ),
+            ).use { transaction ->
+                transaction.writeAndCommitSuspending { transactionSink ->
+                    val countingSink = CountingRawSink(transactionSink)
+                    countingSink.buffered().use { sink ->
+                        write(sink)
+                    }
+                    countingSink.bytesWritten
+                }
+            }
+        }
+        return BackupObjectInfo(
+            key = key,
+            size = atomicWriteResult.value,
+            updatedAt = null,
+            atomicWriteReceipt = atomicWriteResult.receipt,
+        )
+    }
+
+    private fun atomicPublicationPolicy(
+        mode: BackupWriteMode,
+    ): AtomicPublicationPolicy = when (mode) {
+        BackupWriteMode.Create -> AtomicPublicationPolicy.Create(
+            permissions = AtomicFilePermissions.ProcessDefault,
+        )
+
+        BackupWriteMode.CreateOrReplace -> AtomicPublicationPolicy.Replace(
+            access = ReplacementAccessPolicy.PreserveExistingBasicPermissions(
+                ifDestinationMissing = AtomicFilePermissions.ProcessDefault,
+            ),
+        )
+    }
+
+    private fun isReadOnlyFileSystem(
+        key: BackupObjectKey,
+    ): Boolean {
+        var path: Path? = resolve(key)
+            .toPath()
+            .toAbsolutePath()
+        while (path != null && !Files.exists(path)) {
+            path = path.parent
+        }
+        return path?.let { existingPath ->
+            runCatching {
+                Files.getFileStore(existingPath).isReadOnly
+            }.getOrDefault(false)
+        } ?: false
     }
 
     override suspend fun list(
@@ -314,14 +390,6 @@ class LocalFolderBackupObjectStore : BackupObjectStore {
             file.delete()
             file = file.parentFile
         }
-    }
-
-    private fun moveAtomically(
-        source: File,
-        target: File,
-        mode: BackupWriteMode,
-    ) {
-        atomicMove(source.toPath(), target.toPath(), mode)
     }
 
     private fun openInputForRead(
@@ -567,19 +635,162 @@ class LocalFolderBackupObjectStore : BackupObjectStore {
     }
 }
 
-private fun atomicMoveOptions(
-    mode: BackupWriteMode,
-): Array<CopyOption> = when (mode) {
-    BackupWriteMode.Create -> arrayOf<CopyOption>(
-        StandardCopyOption.ATOMIC_MOVE,
-    )
+private class CountingRawSink(
+    private val delegate: RawSink,
+) : RawSink {
+    var bytesWritten: Long = 0L
+        private set
 
-    BackupWriteMode.CreateOrReplace -> arrayOf<CopyOption>(
-        // Replacement with ATOMIC_MOVE is provider-specific; keep atomicReplace=false.
-        StandardCopyOption.ATOMIC_MOVE,
-        StandardCopyOption.REPLACE_EXISTING,
-    )
+    override fun write(source: Buffer, byteCount: Long) {
+        delegate.write(source, byteCount)
+        bytesWritten = Math.addExact(bytesWritten, byteCount)
+    }
+
+    override fun flush() = delegate.flush()
+
+    override fun close() = delegate.close()
 }
+
+/**
+ * Translates a staging or publication failure into the store's vocabulary,
+ * rethrowing anything that has no backup-specific meaning.
+ */
+private fun writeFailure(
+    key: BackupObjectKey,
+    mode: BackupWriteMode,
+    cause: Exception,
+    isReadOnlyFileSystem: (BackupObjectKey) -> Boolean,
+): Exception {
+    val alreadyExists = cause is AtomicDestinationExistsException ||
+        (cause is FileAlreadyExistsException && mode == BackupWriteMode.Create)
+    if (alreadyExists) {
+        return BackupObjectStoreException.AlreadyExists(
+            key = key,
+            cause = cause,
+        )
+    }
+    return when (cause) {
+        is AtomicPublicationUnknownException -> publicationUnknownWriteFailure(key, cause)
+
+        is AtomicSynchronizationException -> publishedSynchronizationUnknownWriteFailure(
+            key = key,
+            cause = cause,
+        )
+
+        is AtomicPublicationUnsupportedException -> unsupportedWriteFailure(key, cause)
+
+        is FileSystemOperationException -> fileSystemOperationWriteFailure(
+            key = key,
+            cause = cause,
+        )
+
+        is AccessDeniedException,
+        is FileNotFoundException,
+        is SecurityException,
+        is ReadOnlyFileSystemException,
+        -> permissionDeniedWriteFailure(
+            key = key,
+            cause = cause,
+        )
+
+        is AtomicMoveNotSupportedException,
+        is UnsupportedOperationException,
+        -> unsupportedWriteFailure(key, cause)
+
+        is FileAlreadyExistsException -> transientWriteFailure(
+            key = key,
+            cause = cause,
+        )
+
+        is FileSystemException -> fileSystemWriteFailure(
+            key = key,
+            cause = cause,
+            isReadOnlyFileSystem = isReadOnlyFileSystem,
+        )
+
+        is IOException -> transientWriteFailure(
+            key = key,
+            cause = cause,
+        )
+
+        else -> cause
+    }
+}
+
+private fun publicationUnknownWriteFailure(
+    key: BackupObjectKey,
+    cause: Exception,
+) = BackupObjectStoreException.PublicationUnknown(
+    key = key,
+    cause = cause,
+)
+
+private fun publishedSynchronizationUnknownWriteFailure(
+    key: BackupObjectKey,
+    cause: AtomicSynchronizationException,
+) = BackupObjectStoreException.PublishedSynchronizationUnknown(
+    key = key,
+    achievedSyncLevel = cause.achievedSyncLevel,
+    cleanupIncomplete = cause.cleanupIncomplete,
+    cause = cause,
+)
+
+private fun unsupportedWriteFailure(
+    key: BackupObjectKey,
+    cause: Exception,
+) = BackupObjectStoreException.AtomicWriteUnsupported(
+    key = key,
+    cause = cause,
+)
+
+private fun fileSystemOperationWriteFailure(
+    key: BackupObjectKey,
+    cause: FileSystemOperationException,
+): Exception = when (cause.failure.kind) {
+    FileSystemFailureKind.PermissionDenied,
+    FileSystemFailureKind.ReadOnlyFilesystem,
+    -> permissionDeniedWriteFailure(key = key, cause = cause)
+
+    FileSystemFailureKind.Unsupported ->
+        BackupObjectStoreException.AtomicWriteUnsupported(
+            key = key,
+            cause = cause,
+        )
+
+    FileSystemFailureKind.InvalidInput,
+    FileSystemFailureKind.Internal,
+    -> cause
+
+    else -> transientWriteFailure(key = key, cause = cause)
+}
+
+private fun fileSystemWriteFailure(
+    key: BackupObjectKey,
+    cause: FileSystemException,
+    isReadOnlyFileSystem: (BackupObjectKey) -> Boolean,
+): Exception = if (isReadOnlyFileSystem(key)) {
+    permissionDeniedWriteFailure(key = key, cause = cause)
+} else {
+    transientWriteFailure(key = key, cause = cause)
+}
+
+private fun permissionDeniedWriteFailure(
+    key: BackupObjectKey,
+    cause: Exception,
+) = BackupObjectStoreException.PermissionDenied(
+    operation = BackupObjectStoreOperation.Write,
+    key = key,
+    cause = cause,
+)
+
+private fun transientWriteFailure(
+    key: BackupObjectKey,
+    cause: Exception,
+) = BackupObjectStoreException.Transient(
+    operation = BackupObjectStoreOperation.Write,
+    key = key,
+    cause = cause,
+)
 
 class LocalFolderBackupObjectStoreFactory : BackupObjectStoreFactory {
     override suspend fun open(
@@ -591,9 +802,9 @@ class LocalFolderBackupObjectStoreFactory : BackupObjectStoreFactory {
         val repositoryPath = requireNotNull(localStore.path) {
             "Backup repository path is not configured."
         }
-        return LocalFolderBackupObjectStore(
-            root = repositoryPath.toBackupLocalPath(),
-        )
+        val root = repositoryPath.toBackupLocalPath()
+        Files.createDirectories(root.toJavaFile().toPath())
+        return LocalFolderBackupObjectStore(root = root)
     }
 
     private fun String.toBackupLocalPath(): LocalPath =

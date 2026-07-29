@@ -1,0 +1,55 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/keyguard-io-c",
+    "crates/keyguard-io-core",
+    "crates/keyguard-io-jni",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94.0"
+license-file = "../../../LICENSE"
+repository = "https://github.com/AChep/keyguard-app"
+
+[workspace.dependencies]
+getrandom = "=0.3.4"
+jni = { version = "=0.21.1", default-features = false }
+libc = "=0.2.186"
+windows-sys = { version = "=0.61.2", features = [
+    "Wdk_Foundation",
+    "Wdk_Storage_FileSystem",
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_SystemInformation",
+    "Win32_System_Threading",
+] }
+zeroize = "=1.9.0"
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_op_in_unsafe_fn = "deny"
+unused_lifetimes = "deny"
+unused_qualifications = "warn"
+
+[workspace.lints.clippy]
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+undocumented_unsafe_blocks = "deny"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "unwind"
+strip = true
+
+[profile.dev.package."*"]
+opt-level = 2

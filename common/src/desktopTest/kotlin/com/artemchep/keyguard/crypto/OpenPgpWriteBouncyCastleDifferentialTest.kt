@@ -37,7 +37,7 @@ import kotlin.test.assertTrue
  * compatible SEIPDv1/MDC branch produced for the BC-generated recipient.
  */
 class OpenPgpWriteBouncyCastleDifferentialTest {
-    private val nativeService = NativeGpgOpenPgpService
+    private val nativeService = NativeGpgOpenPgpService()
     private val bcService = BcGpgOpenPgpServiceTestOracle()
     private val nativeImport = NativeGpgKeyImportService
     private val bcImport = BcGpgKeyImportServiceTestOracle(

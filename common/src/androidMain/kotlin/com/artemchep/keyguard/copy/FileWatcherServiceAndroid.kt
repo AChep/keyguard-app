@@ -18,8 +18,8 @@ import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.util.contains
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.recordException
-import com.artemchep.keyguard.platform.toJavaFile
-import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.util.io.toJavaFile
+import com.artemchep.keyguard.util.io.toLocalPath
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow

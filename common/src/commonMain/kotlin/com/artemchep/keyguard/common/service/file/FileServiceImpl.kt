@@ -1,12 +1,27 @@
 package com.artemchep.keyguard.common.service.file
 
+import com.artemchep.keyguard.util.io.LocalPath
+import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
+import com.artemchep.keyguard.util.io.atomic.AtomicFilePermissions
+import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
+import com.artemchep.keyguard.util.io.atomic.AtomicPublicationPolicy
+import com.artemchep.keyguard.util.io.atomic.AtomicRelativePath
+import com.artemchep.keyguard.util.io.atomic.AtomicWriteOptions
+import com.artemchep.keyguard.util.io.atomic.ExistingParentLinkPolicy
+import com.artemchep.keyguard.util.io.atomic.ParentDirectoryPolicy
+import com.artemchep.keyguard.util.io.atomic.ReplacementAccessPolicy
+import com.artemchep.keyguard.util.io.atomic.SyncLevel
+import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
+import com.artemchep.keyguard.util.io.atomic.writeFileAtomically
+import com.artemchep.keyguard.util.io.lastModifiedMillis
+import com.artemchep.keyguard.util.io.toFileUriString
+import com.artemchep.keyguard.util.io.toLocalPathFromFileUriOrNull
 import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
-import kotlin.random.Random
 import kotlin.time.Instant
 
 class FileServiceImpl : FileService {
@@ -28,7 +43,7 @@ class FileServiceImpl : FileService {
             path = Path(localPath.value),
         ) ?: return@runCatching null
         FileMetadata(
-            lastModified = fileLastModifiedMillis(localPath.value)
+            lastModified = localPath.lastModifiedMillis()
                 ?.let(Instant::fromEpochMilliseconds),
             size = metadata.size,
         )
@@ -56,27 +71,28 @@ class FileServiceImpl : FileService {
         uri: String,
         accessToken: FileAccessToken?,
         write: (Sink) -> Unit,
-    ): Boolean {
-        val tempUri = atomicTempSiblingUriOrNull(uri) ?: return false
-        try {
-            writeToFile(tempUri).use(write)
-            val moved = atomicMove(
-                sourceUri = tempUri,
-                destinationUri = uri,
-                accessToken = accessToken,
-            )
-            if (!moved) {
-                // The payload is already staged, so per the interface contract
-                // this must throw rather than return false: a false result
-                // would let callers degrade to an in-place overwrite.
-                throw IOException("Could not atomically replace '$uri'.")
-            }
-            return true
-        } finally {
-            // A no-op when the move already consumed the temp sibling;
-            // delete() never throws for a missing file.
-            delete(tempUri)
+    ): AtomicFileWriteOutcome {
+        val atomicDestination = uri.toAtomicFileDestinationOrNull()
+            ?: return AtomicFileWriteOutcome.Unsupported
+        val result = writeFileAtomically(
+            destination = atomicDestination,
+            options = AtomicWriteOptions(
+                publication = AtomicPublicationPolicy.Replace(
+                    access = ReplacementAccessPolicy.PreserveExistingBasicPermissions(
+                        ifDestinationMissing = AtomicFilePermissions.ProcessDefault,
+                    ),
+                ),
+                parentDirectories = ParentDirectoryPolicy.RequireExisting,
+                existingParentLinks = ExistingParentLinkPolicy.Reject,
+                synchronization = SynchronizationPolicy.Prefer(
+                    preferred = SyncLevel.FileAndNamespaceSynchronized,
+                    minimum = SyncLevel.FileSynchronized,
+                ),
+            ),
+        ) { sink ->
+            write(sink)
         }
+        return AtomicFileWriteOutcome.Published(result.receipt)
     }
 
     override fun delete(uri: String): Boolean = runCatching {
@@ -88,22 +104,30 @@ class FileServiceImpl : FileService {
             )
         true
     }.getOrDefault(false)
+}
 
-    override fun atomicMove(
-        sourceUri: String,
-        destinationUri: String,
-        accessToken: FileAccessToken?,
-    ): Boolean = runCatching {
-        val source = sourceUri.toLocalPathFromFileUriOrNull()
-            ?: return false
-        val destination = destinationUri.toLocalPathFromFileUriOrNull()
-            ?: return false
-        SystemFileSystem.atomicMove(
-            source = Path(source.value),
-            destination = Path(destination.value),
+private fun String.toAtomicFileDestinationOrNull(): AtomicFileDestination? {
+    val destinationPath = toLocalPathFromFileUriOrNull()
+        ?.let { localPath -> Path(localPath.value) }
+        ?.takeIf { path -> path.isAbsolute }
+    val destinationParent = destinationPath?.parent
+    val destinationName = destinationPath
+        ?.name
+        ?.let { name ->
+            runCatching {
+                AtomicPathComponent.parse(name)
+            }.getOrNull()
+        }
+    return if (destinationParent != null && destinationName != null) {
+        AtomicFileDestination(
+            root = LocalPath(destinationParent.toString()),
+            relativePath = AtomicRelativePath.fromComponents(
+                destinationName,
+            ),
         )
-        true
-    }.getOrDefault(false)
+    } else {
+        null
+    }
 }
 
 private enum class FileAccessAction(
@@ -120,13 +144,3 @@ private fun String.toFilePath(action: FileAccessAction): Path =
             val msg = "Unsupported URI protocol, could not ${action.errorVerb} '$this'."
             throw IllegalStateException(msg)
         }
-
-private fun atomicTempSiblingUriOrNull(uri: String): String? {
-    // content:// (SAF) documents cannot be renamed onto.
-    if (uri.startsWith("content:")) return null
-    // A query/fragment would make the appended suffix part of the query
-    // rather than a sibling path; bail so the caller writes directly instead.
-    if (uri.contains('?') || uri.contains('#')) return null
-    val nonce = Random.nextLong().toULong().toString(16)
-    return "$uri.$nonce.kgtmp"
-}

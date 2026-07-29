@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.backup
 
-import com.artemchep.keyguard.util.foundation.io.readByteArrayAndClose
-import com.artemchep.keyguard.util.foundation.io.toSource
+import com.artemchep.keyguard.util.io.readByteArrayAndClose
+import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.webdav.webDavAuthorizationOf
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization

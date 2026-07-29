@@ -24,8 +24,8 @@ import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.toJavaFile
-import com.artemchep.keyguard.platform.toLocalPath
+import com.artemchep.keyguard.util.io.toJavaFile
+import com.artemchep.keyguard.util.io.toLocalPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

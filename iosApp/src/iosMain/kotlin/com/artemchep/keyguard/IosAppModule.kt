@@ -18,9 +18,9 @@ import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.common.service.crypto.FileEncryptor
-import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
+import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationService
+import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
@@ -31,12 +31,10 @@ import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.CacheDirProviderIos
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.service.download.DownloadManagerImpl
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.download.DownloadRepository
-import com.artemchep.keyguard.common.service.download.DownloadTask
 import com.artemchep.keyguard.common.service.download.DownloadRepositoryInMemory
-import com.artemchep.keyguard.common.service.download.DownloadTaskIos
-import com.artemchep.keyguard.common.service.download.DownloadManagerImpl
 import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundScheduler
 import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundSchedulerNoOp
 import com.artemchep.keyguard.common.service.download.store.DownloadFileStore
@@ -82,9 +80,9 @@ import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
 import com.artemchep.keyguard.copy.AutofillServiceIos
 import com.artemchep.keyguard.copy.Base32ServiceIos
 import com.artemchep.keyguard.copy.BiometricStatusUseCaseIos
-import com.artemchep.keyguard.copy.ClipboardServiceIos
 import com.artemchep.keyguard.copy.CleanUpAttachmentIos
 import com.artemchep.keyguard.copy.ClearDataIos
+import com.artemchep.keyguard.copy.ClipboardServiceIos
 import com.artemchep.keyguard.copy.DateFormatterIos
 import com.artemchep.keyguard.copy.DirsServiceIos
 import com.artemchep.keyguard.copy.FileServiceIos
@@ -104,25 +102,27 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
-import com.artemchep.keyguard.crypto.NativeFileEncryptor
-import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
+import com.artemchep.keyguard.crypto.NativeFileEncryptionCodec
 import com.artemchep.keyguard.crypto.NativeGpgKeyExpirationService
+import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyImportService
-import com.artemchep.keyguard.crypto.NativeGpgOpenPgpVerifier
 import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
+import com.artemchep.keyguard.crypto.NativeGpgOpenPgpVerifier
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleCommon
 import com.artemchep.keyguard.feature.navigation.defaultNavigationModule
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.platform.iosKeyguardAtomicDataDirectory
 import com.artemchep.keyguard.platform.iosKeyguardDataDirectory
-import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadService
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
-import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadServiceIos
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderIos
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
+import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
+import com.artemchep.keyguard.util.io.resolve
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.HttpRequestRetry
@@ -137,17 +137,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.io.Sink
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.io.Sink
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
-import kotlin.time.Instant
-import kotlin.coroutines.CoroutineContext
 import org.kodein.di.DI
 import org.kodein.di.bind
 import org.kodein.di.bindProvider
@@ -155,9 +153,10 @@ import org.kodein.di.bindSingleton
 import org.kodein.di.factory
 import org.kodein.di.instance
 import org.kodein.di.multiton
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Instant
 
-internal fun DI.Builder.installIosAppModule(
-) {
+internal fun DI.Builder.installIosAppModule() {
     import(defaultNavigationModule())
     import(globalModuleCommon())
 
@@ -242,16 +241,13 @@ internal fun DI.Builder.installIosAppModule(
         DownloadRepositoryInMemory()
     }
     bindSingleton<DownloadFileStore> {
-        DownloadFileStoreIos(this)
+        DownloadFileStoreIos
     }
     bindSingleton<DownloadBackgroundScheduler> {
         DownloadBackgroundSchedulerNoOp
     }
     bindSingleton<DownloadManager> {
         DownloadManagerImpl(this)
-    }
-    bindSingleton<DownloadTask> {
-        DownloadTaskIos(this)
     }
     bindSingleton<AutofillService> {
         AutofillServiceIos
@@ -289,8 +285,8 @@ internal fun DI.Builder.installIosAppModule(
     bindSingleton<PermissionService> {
         PermissionServiceIos
     }
-    bindSingleton<FileEncryptor> {
-        NativeFileEncryptor(this)
+    bindSingleton<FileEncryptionCodec> {
+        NativeFileEncryptionCodec(this)
     }
     bindSingleton<GpgKeyGenerator> {
         NativeGpgKeyGenerator
@@ -302,7 +298,7 @@ internal fun DI.Builder.installIosAppModule(
         NativeGpgKeyImportService
     }
     bindSingleton<GpgOpenPgpService> {
-        NativeGpgOpenPgpService
+        NativeGpgOpenPgpService(this)
     }
     bindSingleton<GpgOpenPgpVerifier> {
         NativeGpgOpenPgpVerifier
@@ -347,8 +343,9 @@ internal fun DI.Builder.installIosAppModule(
     }
 
     bind<KeyValueStore>() with factory { key: Files ->
-        val file = iosKeyguardDataDirectory()
-            .resolve("keyvalue", key.filename)
+        val file = iosKeyguardAtomicDataDirectory()
+            .resolveDirectory(AtomicPathComponent.parse("keyvalue"))
+            .resolve(AtomicPathComponent.parse(key.filename))
         JsonKeyValueStore(
             FileJsonKeyValueStoreStore(
                 fileIo = io(file),

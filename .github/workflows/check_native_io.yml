@@ -1,0 +1,250 @@
+name: "✔️ Check Native IO"
+
+on:
+  workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: "Cache write only"
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - master
+    paths:
+      - "util/io/**"
+      - "common/**"
+      - "androidApp/**"
+      - "androidTest/**"
+      - "buildPlugins/src/main/kotlin/com/artemchep/keyguard/buildplugins/cargo/**"
+      - "buildPlugins/src/main/kotlin/com/artemchep/keyguard/buildplugins/nativeio/**"
+      - "buildPlugins/build.gradle.kts"
+      - "build.gradle.kts"
+      - "gradle/**"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - "settings.gradle*"
+      - ".github/actions/setup_android_ndk/**"
+      - ".github/actions/build_android_licenses/**"
+      - ".github/actions/prepare_disk_space/**"
+      - ".github/actions/prepare_kvm/**"
+      - ".github/actions/setup_gradle/**"
+      - ".github/actions/setup_rust/**"
+      - ".github/workflows/check_native_io.yml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "util/io/**"
+      - "common/**"
+      - "androidApp/**"
+      - "androidTest/**"
+      - "buildPlugins/src/main/kotlin/com/artemchep/keyguard/buildplugins/cargo/**"
+      - "buildPlugins/src/main/kotlin/com/artemchep/keyguard/buildplugins/nativeio/**"
+      - "buildPlugins/build.gradle.kts"
+      - "build.gradle.kts"
+      - "gradle/**"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - "settings.gradle*"
+      - ".github/actions/setup_android_ndk/**"
+      - ".github/actions/build_android_licenses/**"
+      - ".github/actions/prepare_disk_space/**"
+      - ".github/actions/prepare_kvm/**"
+      - ".github/actions/setup_gradle/**"
+      - ".github/actions/setup_rust/**"
+      - ".github/workflows/check_native_io.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-quality:
+    name: "Rust format, lint, and tests"
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          components: "rustfmt, clippy"
+      - name: "Check formatting"
+        working-directory: util/io/rust
+        run: cargo fmt --all -- --check
+      - name: "Run Clippy"
+        working-directory: util/io/rust
+        run: cargo clippy --workspace --all-targets --all-features --locked --no-deps -- -D warnings
+      - name: "Run Rust tests"
+        working-directory: util/io/rust
+        run: cargo test --workspace --all-features --locked
+
+  native-smoke:
+    name: "Native IO smoke (${{ matrix.name }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x64 and Android
+            os: ubuntu-24.04
+            gradle: ./gradlew
+            rust-targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+            tasks: >-
+              :util:io:desktopTest
+              :util:io:testAndroidHostTest
+              :util:io:compileNativeIoDesktopLinuxX64
+              :util:io:compileNativeIoAndroidAll
+              :util:io:bundleAndroidMainAar
+            android: true
+            apple: false
+          - name: macOS arm64 and Apple
+            os: macos-15
+            gradle: ./gradlew
+            rust-targets: "aarch64-apple-darwin,aarch64-apple-ios,aarch64-apple-ios-sim"
+            tasks: >-
+              :util:io:desktopTest
+              :util:io:iosSimulatorArm64Test
+              :util:io:macosArm64Test
+              :util:io:compileKotlinIosArm64
+              :util:io:linkDebugTestIosArm64
+              :util:io:compileNativeIoDesktopMacosArm64
+              :util:io:compileNativeIoAppleAll
+            android: false
+            apple: true
+          - name: Windows x64
+            os: windows-2025
+            gradle: ./gradlew.bat
+            rust-targets: "x86_64-pc-windows-msvc"
+            tasks: >-
+              :util:io:desktopTest
+              :util:io:compileNativeIoDesktopWindowsX64
+            android: false
+            apple: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          java-version: "21"
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Select latest stable Xcode"
+        if: matrix.apple
+        shell: bash
+        run: |
+          version="$(
+            printf '%s\n' /Applications/Xcode_[0-9]*.app |
+              sed -En 's|.*/Xcode_([0-9]+(\.[0-9]+){0,2})\.app$|\1|p' |
+              sort -t. -k1,1nr -k2,2nr -k3,3nr |
+              head -n 1
+          )"
+
+          if [[ -z "$version" ]]; then
+            echo "No stable Xcode installation found under /Applications" >&2
+            exit 1
+          fi
+          if (( ${version%%.*} < 26 )); then
+            echo "Xcode 26 or newer is required; found $version" >&2
+            exit 1
+          fi
+
+          latest_xcode="/Applications/Xcode_$version.app"
+          export DEVELOPER_DIR="$latest_xcode/Contents/Developer"
+          printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
+
+          echo "Selected Xcode $version at $latest_xcode"
+          xcodebuild -version
+      - uses: ./.github/actions/setup_android_ndk
+        if: matrix.android
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: ${{ matrix.rust-targets }}
+      - name: "Prefetch locked native IO graph"
+        run: cargo fetch --manifest-path util/io/rust/Cargo.toml --locked
+      - name: "Run host Rust tests"
+        working-directory: util/io/rust
+        run: cargo test --workspace --all-features --locked --offline
+      - name: "Run Kotlin/native IO smoke tests"
+        run: >-
+          ${{ matrix.gradle }}
+          --continue
+          --max-workers=1
+          "-Pkeyguard.nativeIo.cargoOffline=true"
+          ${{ matrix.tasks }}
+      - name: "Upload native IO test reports"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-io-test-reports-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            util/io/build/reports/tests/
+            util/io/build/test-results/
+          if-no-files-found: ignore
+          retention-days: 21
+
+  android-runtime:
+    name: "Android retained-directory runtime (x86_64, API ${{ matrix.api-level }})"
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level:
+          - 26
+          - 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          java-version: "21"
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - uses: ./.github/actions/setup_android_ndk
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android"
+      - name: "Prefetch locked native IO graph"
+        run: cargo fetch --manifest-path util/io/rust/Cargo.toml --locked
+      - uses: ./.github/actions/prepare_kvm
+      - uses: ./.github/actions/prepare_disk_space
+      - name: "Prepare Android package environment"
+        shell: bash
+        env:
+          VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
+        run: echo "$VARS_GOOGLE_SERVICES" | base64 -d | zcat > androidApp/google-services.json
+      - uses: ./.github/actions/build_android_licenses
+        with:
+          build-flavor: "None"
+      - name: "Exercise retained-directory native IO on emulator"
+        uses: reactivecircus/android-emulator-runner@a421e43855164a8197daf9d8d40fe71c6996bb0d
+        with:
+          api-level: ${{ matrix.api-level }}
+          arch: x86_64
+          disable-animations: true
+          disk-size: 4G
+          script: >-
+            ./gradlew
+            --max-workers=1
+            :androidApp:connectedNoneDebugAndroidTest
+            -Pkeyguard.nativeIo.cargoOffline=true
+            -Pandroid.testInstrumentationRunnerArguments.class=com.artemchep.keyguard.test.io.NativeIoAtomicDirectorySmokeTest
+      - name: "Upload Android retained-directory test reports"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-io-android-${{ matrix.api-level }}-test-reports
+          path: |
+            androidApp/build/outputs/androidTest-results/
+            androidApp/build/reports/androidTests/
+          if-no-files-found: ignore
+          retention-days: 21

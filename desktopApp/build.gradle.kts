@@ -81,6 +81,15 @@ dependencies {
             ),
         ),
     )
+    add(
+        bundledAppResources.name,
+        project(
+            mapOf(
+                "path" to ":util:io",
+                "configuration" to "bundledAppResourcesElements",
+            ),
+        ),
+    )
 }
 
 val jdkVersion = libs.versions.jdk.get().toInt()

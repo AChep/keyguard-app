@@ -10,7 +10,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.tld.impl.TldServiceImpl
 import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.util.foundation.io.toSource
+import com.artemchep.keyguard.util.io.toSource
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.Source
 import org.jetbrains.compose.resources.ExperimentalResourceApi

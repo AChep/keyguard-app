@@ -30,7 +30,6 @@ import com.artemchep.keyguard.common.service.backup.BackupSchedulerWorker
 import com.artemchep.keyguard.common.service.backup.LocalFolderBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
-import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -39,17 +38,18 @@ import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseMan
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.download.DownloadManager
-import com.artemchep.keyguard.common.service.download.DownloadRepository
-import com.artemchep.keyguard.common.service.download.DownloadTask
-import com.artemchep.keyguard.common.service.download.DownloadTaskDesktop
-import com.artemchep.keyguard.common.service.download.DownloadRepositoryInMemory
 import com.artemchep.keyguard.common.service.download.DownloadManagerImpl
+import com.artemchep.keyguard.common.service.download.DownloadRepository
+import com.artemchep.keyguard.common.service.download.DownloadRepositoryInMemory
 import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundScheduler
 import com.artemchep.keyguard.common.service.download.scheduler.DownloadBackgroundSchedulerNoOp
 import com.artemchep.keyguard.common.service.download.store.DownloadFileStore
 import com.artemchep.keyguard.common.service.download.store.DownloadFileStoreDesktop
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.file.FileServiceImpl
+import com.artemchep.keyguard.common.service.flavor.FlavorConfig
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.keychain.KeychainIds
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -60,13 +60,12 @@ import com.artemchep.keyguard.common.service.logging.kotlin.LogRepositoryKotlin
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
-import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.TextService
+import com.artemchep.keyguard.common.service.text.impl.TextServiceImpl
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.CleanUpAttachment
 import com.artemchep.keyguard.common.usecase.ClearData
@@ -87,7 +86,7 @@ import com.artemchep.keyguard.copy.GetBarcodeImageJvm
 import com.artemchep.keyguard.copy.PermissionServiceJvm
 import com.artemchep.keyguard.copy.PowerServiceJvm
 import com.artemchep.keyguard.copy.ReviewServiceJvm
-import com.artemchep.keyguard.common.service.text.impl.TextServiceImpl
+import com.artemchep.keyguard.copy.atomicDataDirectory
 import com.artemchep.keyguard.core.store.DatabaseSqlManagerInFileJvm
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.globalModuleJvm
@@ -97,9 +96,10 @@ import com.artemchep.keyguard.platform.LeBiometricCipherKeychain
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.platform.resolve
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderDesktop
+import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
+import com.artemchep.keyguard.util.io.resolve
 import com.artemchep.keyguard.util.traverse
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
@@ -271,7 +271,7 @@ class ClearDataAndroid(
         logRepository.post(
             tag = TAG,
             message = "Deleted '$tag' directory: $deletedCount deleted files, " +
-                    "${allCount - deletedCount} to delete on exit.",
+                "${allCount - deletedCount} to delete on exit.",
             level = com.artemchep.keyguard.common.service.logging.LogLevel.INFO,
         )
     }
@@ -301,7 +301,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
     import(globalModuleJvm())
     import(defaultNavigationModule())
 
-    bindProvider<LeContext>() {
+    bindProvider<LeContext> {
         LeContext()
     }
     bindSingleton<BackupObjectStoreFactory>(tag = BackupLocalObjectStoreFactoryTag) {
@@ -425,11 +425,6 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bindSingleton<DownloadBackgroundScheduler> {
         DownloadBackgroundSchedulerNoOp
     }
-    bindSingleton<DownloadTask> {
-        DownloadTaskDesktop(
-            directDI = this,
-        )
-    }
     bindSingleton<DownloadManager> {
         DownloadManagerImpl(
             directDI = this,
@@ -452,7 +447,10 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bind<KeyValueStore>() with factory { key: Files ->
         val d = instance<DataDirectory>()
         val s = FileJsonKeyValueStoreStore(
-            fileIo = d.data().map { LocalPath(it).resolve(key.filename) },
+            fileIo = d.data().map {
+                d.atomicDataDirectory()
+                    .resolve(AtomicPathComponent.parse(key.filename))
+            },
             json = instance(),
         )
         JsonKeyValueStore(

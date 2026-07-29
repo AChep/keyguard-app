@@ -5,9 +5,9 @@ import com.artemchep.keyguard.nativecrypto.NativeAesCbcPkcs7HmacSha256EncryptSes
 import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
 import com.artemchep.keyguard.nativecrypto.NativeCryptoSession
 import com.artemchep.keyguard.util.foundation.constantTimeEquals
-import com.artemchep.keyguard.util.foundation.io.ByteSnapshot
-import com.artemchep.keyguard.util.foundation.io.ByteStoreWriter
-import com.artemchep.keyguard.util.foundation.io.consumeWithErasedBuffer
+import com.artemchep.keyguard.util.io.spool.ByteSnapshot
+import com.artemchep.keyguard.util.io.spool.ByteStoreWriter
+import com.artemchep.keyguard.util.io.consumeWithErasedBuffer
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
 import kotlinx.io.RawSink

@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.crypto
 
-import com.artemchep.keyguard.common.io.toInputStream
-import com.artemchep.keyguard.common.io.toOutputStream
+import com.artemchep.keyguard.util.io.toInputStream
+import com.artemchep.keyguard.util.io.toOutputStream
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptFileResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextResult

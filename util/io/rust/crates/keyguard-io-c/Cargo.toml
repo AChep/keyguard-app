@@ -1,0 +1,21 @@
+[package]
+name = "keyguard-io-c"
+description = "Stable C ABI for Keyguard native filesystem primitives"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+keyguard-io-core = { path = "../keyguard-io-core" }
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+getrandom.workspace = true

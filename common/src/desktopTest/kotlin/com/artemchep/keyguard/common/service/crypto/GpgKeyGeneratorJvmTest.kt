@@ -26,7 +26,7 @@ import kotlin.time.Instant
 class GpgKeyGeneratorJvmTest {
     private val generator = NativeGpgKeyGenerator
     private val parser = NativeGpgPublicKeyParser
-    private val openPgpService = NativeGpgOpenPgpService
+    private val openPgpService = NativeGpgOpenPgpService()
 
     @BeforeTest
     fun setup() {

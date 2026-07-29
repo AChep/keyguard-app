@@ -3,11 +3,11 @@ package com.artemchep.keyguard.common
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountSyncer
-import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
+import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
@@ -15,6 +15,7 @@ import com.artemchep.keyguard.platform.lifecycle.onState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
@@ -29,10 +30,16 @@ import org.kodein.di.instance
 class AppWorkerIm(
     private val getVaultSession: GetVaultSession,
     private val updateVersionLog: UpdateVersionLog,
+    private val temporaryArtifactMaintenance: TemporaryArtifactMaintenance,
 ) : AppWorker {
+    companion object {
+        private const val FILE_CLEANUP_DELAY_MS = 15_000L
+    }
+
     constructor(directDI: DirectDI) : this(
         getVaultSession = directDI.instance(),
         updateVersionLog = directDI.instance(),
+        temporaryArtifactMaintenance = directDI.instance(),
     )
 
     override fun launch(
@@ -60,6 +67,20 @@ class AppWorkerIm(
                     .launchIn(this)
             }
             .take(1) // no need to restart, the version won't change
+            .launchIn(this)
+        // A killed process or power loss can leave staged temporary
+        // artifacts behind; no transaction can clean up after itself in
+        // those cases, so the app sweeps its storage roots once per launch.
+        flow
+            .onState(LeLifecycleState.STARTED) {
+                launch {
+                    // Let the app load fully and do not compete for the
+                    // resources.
+                    delay(FILE_CLEANUP_DELAY_MS)
+                    temporaryArtifactMaintenance()
+                }
+            }
+            .take(1)
             .launchIn(this)
     }
 

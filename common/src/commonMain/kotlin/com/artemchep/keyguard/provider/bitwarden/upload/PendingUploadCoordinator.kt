@@ -99,8 +99,7 @@ interface PendingUploadCoordinator {
     )
 
     /**
-     * Deletes a staged upload file and any temporary sibling created during
-     * staging.
+     * Deletes a staged upload file and its upload-completion marker.
      *
      * Deletion is best-effort in the default coordinator implementation when it
      * is called from [persist], but direct callers can use this method when they

@@ -7,6 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
+@Suppress("FunctionNaming")
 class KeePassWriteBackBufferTest {
     @Test
     fun `overlay read returns staged upsert before commit`() {

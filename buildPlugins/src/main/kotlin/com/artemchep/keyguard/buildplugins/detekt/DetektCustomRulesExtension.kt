@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.buildplugins.detekt
 
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import dev.detekt.gradle.Detekt
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -14,6 +15,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.KotlinTargetsContainer
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+import java.io.File
 import javax.inject.Inject
 
 /**
@@ -73,26 +75,57 @@ abstract class DetektCustomRulesExtension @Inject constructor(
                     "Available: ${kotlin.target.compilations.names}"
             }
         }
+        val sources = project.objects.fileCollection()
+        // AGP's built-in Kotlin support exposes no source directories through
+        // KotlinCompilation.allKotlinSourceSets. The variant API remains authoritative and
+        // includes Kotlin files kept in both conventional `java` and `kotlin` source directories.
+        // Use only static directories: generated declarations are resolved from the successfully
+        // compiled output below.
+        val androidComponents =
+            project.extensions.getByType(ApplicationAndroidComponentsExtension::class.java)
+        androidComponents.onVariants(
+            androidComponents.selector().withName(variantName),
+        ) { variant ->
+            val kotlinSources = requireNotNull(variant.sources.kotlin) {
+                "Android variant '$variantName' in ${project.path} has no Kotlin sources."
+            }
+            sources.from(kotlinSources.static)
+        }
+        // Preserve the previous validation of the requested Kotlin compilation even though its
+        // legacy source-set model is no longer used to discover Android source directories.
+        sources.from(
+            compilation.map { emptyList<File>() },
+        )
         register(
             suffix = variantName.replaceFirstChar { it.uppercase() },
             compilation = compilation,
+            declaredSources = sources,
         )
     }
 
-    private fun register(suffix: String, compilation: Provider<out KotlinCompilation<*>>) {
+    private fun register(
+        suffix: String,
+        compilation: Provider<out KotlinCompilation<*>>,
+        declaredSources: ConfigurableFileCollection? = null,
+    ) {
         val compileTask = compilation.flatMap { it.compileTaskProvider }
             .map { it as KotlinJvmCompile }
 
         // Generated-source providers such as KSP cannot be queried until their producer has run.
         // The guarded API lives in authored sources, so select from the compilation's declared
         // Kotlin source directories and resolve generated declarations from compiled output.
-        val sources = project.objects.fileCollection().from(
-            project.provider {
-                compilation.get().allKotlinSourceSets.map { sourceSet ->
-                    sourceSet.kotlin.sourceDirectories
-                }
-            },
-        )
+        val sources = project.objects.fileCollection()
+        if (declaredSources != null) {
+            sources.from(declaredSources)
+        } else {
+            sources.from(
+                project.provider {
+                    compilation.get().allKotlinSourceSets.map { sourceSet ->
+                        sourceSet.kotlin.sourceDirectories
+                    }
+                },
+            )
+        }
         // Detekt's standalone analysis cannot load all compiler plugins used by the full KMP
         // compilation. Analyse only files that can contain guarded calls and resolve everything
         // else from the successfully compiled output on the analysis classpath.

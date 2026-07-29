@@ -1,16 +1,22 @@
 package com.artemchep.keyguard.common.service.backup
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import com.artemchep.keyguard.util.io.atomic.AchievedSyncLevel
+import com.artemchep.keyguard.util.io.atomic.AtomicCleanupIncompleteException
+import com.artemchep.keyguard.util.io.atomic.AtomicWriteReceipt
+import com.artemchep.keyguard.util.io.atomic.SyncLevel
+import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.readByteArray
 import kotlinx.io.write
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class BackupObjectStoreTest {
     @Test
@@ -91,6 +97,24 @@ class BackupObjectStoreTest {
     }
 
     @Test
+    fun `test cleans up published probe when atomic cleanup is incomplete`() = runTest {
+        val store = ProbeFakeBackupObjectStore(
+            cleanupIncomplete = true,
+        )
+
+        val error = assertFailsWith<BackupObjectStoreException.CleanupIncomplete> {
+            store.test()
+        }
+
+        val key = store.writtenKeys.single()
+        assertEquals(key, error.key)
+        assertFalse(error.retryable)
+        assertTrue(error.cause is AtomicCleanupIncompleteException)
+        assertTrue(store.deletedKeys.contains(key))
+        assertTrue(store.objects.isEmpty())
+    }
+
+    @Test
     fun `factory test closes opened store`() = runTest {
         val factory = ProbeFakeBackupObjectStoreFactory()
 
@@ -111,6 +135,7 @@ private class ProbeFakeBackupObjectStoreFactory : BackupObjectStoreFactory {
 private class ProbeFakeBackupObjectStore(
     private val corruptFullRead: Boolean = false,
     private val omitProbeFromList: Boolean = false,
+    private val cleanupIncomplete: Boolean = false,
 ) : BackupObjectStore {
     val objects = mutableMapOf<BackupObjectKey, ByteArray>()
     val writtenKeys = mutableListOf<BackupObjectKey>()
@@ -184,6 +209,17 @@ private class ProbeFakeBackupObjectStore(
             key = key,
             size = data.size.toLong(),
             updatedAt = null,
+            atomicWriteReceipt = if (cleanupIncomplete) {
+                AtomicWriteReceipt(
+                    requestedSynchronization = SynchronizationPolicy.Required(
+                        SyncLevel.ProcessAtomic,
+                    ),
+                    achievedSyncLevel = AchievedSyncLevel.ProcessAtomic,
+                    cleanupIncomplete = true,
+                )
+            } else {
+                null
+            },
         )
     }
 

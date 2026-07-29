@@ -25,6 +25,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@Suppress("FunctionNaming")
 class ExposedAccountRepositoryImplTest {
     @Test
     fun `replaceAll publishes one complete registration snapshot`() = runTest {
@@ -145,6 +146,7 @@ class ExposedAccountRepositoryImplTest {
         ): IO<Unit> = {}
     }
 
+    @Suppress("TooManyFunctions")
     private class SequentialUuidCryptoGenerator : CryptoGenerator {
         private var nextUuid = 1
 

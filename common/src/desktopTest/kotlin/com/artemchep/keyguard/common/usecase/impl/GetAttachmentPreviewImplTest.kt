@@ -10,7 +10,7 @@ import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
-import com.artemchep.keyguard.crypto.FileEncryptorJvm
+import com.artemchep.keyguard.crypto.FileEncryptionCodecJvm
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -26,7 +26,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class GetAttachmentPreviewImplTest {
-    private val fileEncryptor = FileEncryptorJvm(
+    private val fileEncryptionCodec = FileEncryptionCodecJvm(
         cryptoGenerator = CryptoGeneratorJvm(),
     )
 
@@ -42,7 +42,7 @@ class GetAttachmentPreviewImplTest {
                     override fun invoke(request: DownloadAttachmentRequest): IO<DownloadAttachmentRequestData> =
                         error("Remote metadata should not be resolved for a local preview.")
                 },
-                fileEncryptor = fileEncryptor,
+                fileEncryptionCodec = fileEncryptionCodec,
                 fileService = FileServiceImpl(),
                 httpClient = HttpClient(
                     MockEngine {
@@ -168,7 +168,7 @@ class GetAttachmentPreviewImplTest {
     fun `encrypted source decrypts in memory`() = runTest {
         val plainBytes = "secret preview".encodeToByteArray()
         val key = ByteArray(64) { index -> index.toByte() }
-        val encryptedBytes = fileEncryptor.encode(
+        val encryptedBytes = fileEncryptionCodec.encrypt(
             data = plainBytes,
             key = key,
         )
@@ -210,7 +210,7 @@ class GetAttachmentPreviewImplTest {
         ),
     ) = GetAttachmentPreviewImpl(
         downloadAttachmentMetadata = FakeDownloadAttachmentMetadata(metadata),
-        fileEncryptor = fileEncryptor,
+        fileEncryptionCodec = fileEncryptionCodec,
         fileService = fileService,
         httpClient = httpClient,
     )

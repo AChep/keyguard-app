@@ -12,15 +12,16 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestWatchdog
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.insertAccount
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadGarbageCollector
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runTest
 
+@Suppress("FunctionNaming")
 class RemoveAccountPendingUploadCleanupTest {
     @Test
     fun `single account removal purges only after its row is deleted`() = runTest {
@@ -193,7 +194,6 @@ private class RecordingPendingUploadGarbageCollector(
         accountExistedAtPurge += database.findAccount(accountId) != null
     }
 }
-
 
 private fun Database.findAccount(
     accountId: String,

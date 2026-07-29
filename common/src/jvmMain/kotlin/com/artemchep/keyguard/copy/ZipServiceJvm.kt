@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.copy
 
-import com.artemchep.keyguard.common.io.withBufferedSink
+import com.artemchep.keyguard.util.io.withBufferedSink
 import com.artemchep.keyguard.common.service.zip.ZipConfig
 import com.artemchep.keyguard.common.service.zip.ZipEntry
 import com.artemchep.keyguard.common.service.zip.ZipService

@@ -1,6 +1,22 @@
 package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.util.io.atomic.AchievedSyncLevel
+import com.artemchep.keyguard.util.io.atomic.AtomicCleanupIncompleteException
+import com.artemchep.keyguard.util.io.atomic.AtomicWriteReceipt
+import com.artemchep.keyguard.util.io.atomic.SyncLevel
+import com.artemchep.keyguard.util.io.atomic.SynchronizationPolicy
+import com.artemchep.keyguard.util.io.toLocalPath
+import kotlinx.coroutines.test.runTest
+import kotlinx.io.Buffer
+import kotlinx.io.RawSource
+import kotlinx.io.Source
+import kotlinx.io.buffered
+import kotlinx.serialization.json.Json
+import net.lingala.zip4j.ZipFile
+import java.io.File
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlin.io.path.createTempDirectory
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -10,27 +26,103 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
-import kotlinx.coroutines.test.runTest
-import kotlinx.io.Buffer
-import kotlinx.io.RawSource
-import kotlinx.io.Source
-import kotlinx.io.buffered
-import kotlinx.serialization.json.Json
-import net.lingala.zip4j.ZipFile
-import com.artemchep.keyguard.platform.toLocalPath
-import java.io.File
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
-class BackupRepositoryZipTest {
-    private val json = Json {
+abstract class BackupRepositoryZipTestBase {
+    protected val json = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
     }
 
-    private val repository = BackupRepositoryZipImpl(
+    protected val repository = BackupRepositoryZipImpl(
         json = json,
     )
+
+    protected fun manifest(
+        snapshotId: String,
+        vaultSize: Long = 2L,
+    ) = BackupSnapshotManifest(
+        snapshotId = snapshotId,
+        createdAt = Instant.fromEpochMilliseconds(1L),
+        options = BackupSnapshotOptions(
+            includeAttachments = true,
+        ),
+        vault = BackupSnapshotVault(
+            size = vaultSize,
+        ),
+        attachments = emptyList(),
+        stats = BackupSnapshotStats(
+            cipherCount = 0,
+            attachmentCount = 0,
+            newBlobCount = 0,
+            reusedBlobCount = 0,
+        ),
+    )
+
+    protected fun index(
+        indexId: String,
+        generation: Long,
+        updatedAt: Instant,
+    ) = BackupIndex(
+        indexId = indexId,
+        generation = generation,
+        updatedAt = updatedAt,
+    )
+
+    protected fun writeRepoMetadata(
+        root: File,
+        metadata: BackupRepositoryMetadata,
+    ) {
+        val repoFile = root.resolve("repo.zip")
+        ZipOutputStream(repoFile.outputStream()).use { zip ->
+            zip.putNextEntry(ZipEntry("repo.json"))
+            zip.write(json.encodeToString(metadata).encodeToByteArray())
+            zip.closeEntry()
+        }
+    }
+
+    protected fun writeBytes(
+        file: File,
+        bytes: ByteArray,
+    ) {
+        requireNotNull(file.parentFile).mkdirs()
+        file.writeBytes(bytes)
+    }
+
+    protected fun writeZipEntry(
+        file: File,
+        entryName: String,
+        bytes: ByteArray,
+    ) {
+        requireNotNull(file.parentFile).mkdirs()
+        ZipOutputStream(file.outputStream()).use { zip ->
+            zip.putNextEntry(ZipEntry(entryName))
+            zip.write(bytes)
+            zip.closeEntry()
+        }
+    }
+}
+
+@Suppress("FunctionNaming")
+class BackupRepositoryZipTest : BackupRepositoryZipTestBase() {
+    @Test
+    fun `published cleanup incomplete is surfaced as nonretryable`() = runTest {
+        val root = createTempDirectory("keyguard-backup-repository-cleanup").toLocalPath()
+        val store = CleanupIncompleteWriteBackupObjectStore(
+            delegate = LocalFolderBackupObjectStore(root),
+        )
+
+        val error = assertFailsWith<BackupObjectStoreException.CleanupIncomplete> {
+            repository.getOrCreateMetadata(
+                store = store,
+                password = null,
+                nowProvider = { Instant.fromEpochMilliseconds(1L) },
+                repoIdProvider = { "repo-1" },
+            )
+        }
+
+        assertFalse(error.retryable)
+        assertTrue(error.cause is AtomicCleanupIncompleteException)
+    }
 
     @Test
     fun `writes encrypted repository index snapshot and blob zips`() = runTest {
@@ -238,7 +330,10 @@ class BackupRepositoryZipTest {
             error.message,
         )
     }
+}
 
+@Suppress("FunctionNaming")
+class BackupRepositoryZipReadWriteTest : BackupRepositoryZipTestBase() {
     @Test
     fun `rejects existing repository without generational index features`() = runTest {
         val root = createTempDirectory("keyguard-backup-repository-legacy-format").toLocalPath()
@@ -313,7 +408,8 @@ class BackupRepositoryZipTest {
         val indexFiles = assertNotNull(rootFile.resolve("indexes").listFiles())
             .map { file -> file.name }
             .sorted()
-        assertEquals(4, indexFiles.size)
+        val expectedIndexFileCount = listOf(first, secondA, secondB).size + 1
+        assertEquals(expectedIndexFileCount, indexFiles.size)
         assertTrue(indexFiles.any { name -> name.startsWith("00000000000000000001-") })
         assertTrue(indexFiles.any { name -> name.startsWith("00000000000000000002-") })
         assertTrue(indexFiles.any { name -> name.startsWith("00000000000000000003-") })
@@ -611,71 +707,6 @@ class BackupRepositoryZipTest {
         assertTrue(store.writeModes.isNotEmpty())
         assertTrue(store.writeModes.all { (_, mode) -> mode == BackupWriteMode.Create })
     }
-
-    private fun manifest(
-        snapshotId: String,
-        vaultSize: Long = 2L,
-    ) = BackupSnapshotManifest(
-        snapshotId = snapshotId,
-        createdAt = Instant.fromEpochMilliseconds(1L),
-        options = BackupSnapshotOptions(
-            includeAttachments = true,
-        ),
-        vault = BackupSnapshotVault(
-            size = vaultSize,
-        ),
-        attachments = emptyList(),
-        stats = BackupSnapshotStats(
-            cipherCount = 0,
-            attachmentCount = 0,
-            newBlobCount = 0,
-            reusedBlobCount = 0,
-        ),
-    )
-
-    private fun index(
-        indexId: String,
-        generation: Long,
-        updatedAt: Instant,
-    ) = BackupIndex(
-        indexId = indexId,
-        generation = generation,
-        updatedAt = updatedAt,
-    )
-
-    private fun writeRepoMetadata(
-        root: File,
-        metadata: BackupRepositoryMetadata,
-    ) {
-        val repoFile = root.resolve("repo.zip")
-        ZipOutputStream(repoFile.outputStream()).use { zip ->
-            zip.putNextEntry(ZipEntry("repo.json"))
-            zip.write(json.encodeToString(metadata).encodeToByteArray())
-            zip.closeEntry()
-        }
-    }
-
-    private fun writeBytes(
-        file: File,
-        bytes: ByteArray,
-    ) {
-        requireNotNull(file.parentFile).mkdirs()
-        file.writeBytes(bytes)
-    }
-
-    private fun writeZipEntry(
-        file: File,
-        entryName: String,
-        bytes: ByteArray,
-    ) {
-        requireNotNull(file.parentFile).mkdirs()
-        ZipOutputStream(file.outputStream()).use { zip ->
-            zip.putNextEntry(ZipEntry(entryName))
-            zip.write(bytes)
-            zip.closeEntry()
-        }
-    }
-
 }
 
 private class TransientReadBackupObjectStore(
@@ -753,6 +784,34 @@ private class RepositoryWriteModeRecordingStore(
             key = key,
             mode = mode,
             write = write,
+        )
+    }
+}
+
+private class CleanupIncompleteWriteBackupObjectStore(
+    private val delegate: BackupObjectStore,
+) : BackupObjectStore by delegate {
+    override suspend fun write(
+        key: BackupObjectKey,
+        mode: BackupWriteMode,
+        write: suspend (kotlinx.io.Sink) -> Unit,
+    ): BackupObjectInfo {
+        val info = delegate.write(
+            key = key,
+            mode = mode,
+            write = write,
+        )
+        val receipt = info.atomicWriteReceipt ?: AtomicWriteReceipt(
+            requestedSynchronization = SynchronizationPolicy.Required(
+                SyncLevel.FileSynchronized,
+            ),
+            achievedSyncLevel = AchievedSyncLevel.FileSynchronized,
+        )
+        return info.copy(
+            atomicWriteReceipt = receipt.copy(
+                cleanupFailure = null,
+                cleanupIncomplete = true,
+            ),
         )
     }
 }

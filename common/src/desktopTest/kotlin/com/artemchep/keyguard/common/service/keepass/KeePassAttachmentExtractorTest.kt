@@ -93,7 +93,7 @@ class KeePassAttachmentExtractorTest {
             extractor.extract(
                 source = Buffer().apply { write(encoded) },
                 credentials = credentials,
-                contentHash = ByteArray(32) { 9 },
+                contentHash = sha256("no such attachment".encodeToByteArray()),
                 expectedSize = attachment.size.toLong(),
             )
         }

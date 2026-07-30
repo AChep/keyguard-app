@@ -34,18 +34,7 @@ import okio.use
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.io.Source as KotlinxSource
 
-fun interface KdbxBinaryContentVisitor {
-    /**
-     * Visits one uncompressed attachment body. [source] is valid only for the
-     * duration of this callback and must not escape it; any unread remainder
-     * is drained by the decoder.
-     *
-     * [declaredLength] is the exact byte length when the container declares it
-     * upfront (KDBX 4 inner-header binaries), or `null` when the size is only
-     * known once the stream ends (XML-embedded binaries).
-     */
-    fun visit(source: Source, declaredLength: Long?)
-}
+private const val MAX_INNER_STREAM_KEY_BYTES = 1024L * 1024L
 
 /**
  * Streams every binary body in a KDBX without constructing a database model.
@@ -54,6 +43,9 @@ fun interface KdbxBinaryContentVisitor {
  * this function returns. KDBX 3 pooled/inline binaries and KDBX 4 inner-header
  * and inline binaries are all visited as uncompressed plaintext streams.
  */
+// The generic catch exists to replace any decode failure with the more
+// precise upstream read failure; it always rethrows.
+@Suppress("TooGenericExceptionCaught")
 fun KeePassDatabase.Companion.visitBinaryContents(
     source: KotlinxSource,
     credentials: Credentials,
@@ -85,6 +77,9 @@ fun KeePassDatabase.Companion.visitBinaryContents(
     }
 }
 
+// Any unclassified failure is wrapped into a FormatError so callers see a
+// single decode-failure type; known error types pass through untouched.
+@Suppress("TooGenericExceptionCaught")
 private fun KeePassDatabase.Companion.visitBinaryContentsSource(
     input: Source,
     credentials: Credentials,
@@ -139,22 +134,24 @@ private fun KeePassDatabase.Companion.visitBinaryContentsSource(
             transformedKey.fill(0)
             masterSeed.fill(0)
         }
-    } catch (error: CancellationException) {
-        throw error
-    } catch (error: FormatError) {
-        throw error
-    } catch (error: CryptoError) {
-        throw error
-    } catch (error: KeyfileError) {
-        throw error
     } catch (error: Exception) {
-        throw FormatError.InvalidContent(
-            "Failed to inspect database binaries: " +
-                (error.message ?: error::class.simpleName),
-        )
+        throw error.toBinaryInspectError()
     } finally {
         source.close()
     }
+}
+
+private fun Exception.toBinaryInspectError(): Throwable = when (this) {
+    is CancellationException,
+    is FormatError,
+    is CryptoError,
+    is KeyfileError,
+    -> this
+
+    else -> FormatError.InvalidContent(
+        "Failed to inspect database binaries: " +
+            (message ?: this::class.simpleName),
+    )
 }
 
 private fun visitBinaryContentsVer3x(
@@ -283,68 +280,20 @@ private fun visitInnerHeaderBinaryContents(
     while (true) {
         checkCancellation()
         val id = source.readByte().toUByte().toInt()
-        val length = source.readIntLe().toLong()
-        if (length < 0L) {
-            throw FormatError.InvalidContent("Invalid inner header field length: $length.")
+        val length = readInnerHeaderFieldLength(source)
+        if (id == InnerHeaderFieldId.Terminator) {
+            validateInnerHeaderTerminator(length)
+            break
         }
         when (id) {
-            InnerHeaderFieldId.Terminator -> {
-                if (length != 0L) {
-                    throw FormatError.InvalidContent(
-                        "Invalid inner header terminator length: $length.",
-                    )
-                }
-                break
-            }
+            InnerHeaderFieldId.StreamId ->
+                randomStreamId = readInnerRandomStreamId(source, length)
 
-            InnerHeaderFieldId.StreamId -> {
-                if (length != Int.SIZE_BYTES.toLong()) {
-                    throw FormatError.InvalidContent(
-                        "Invalid inner random stream id field length: $length.",
-                    )
-                }
-                val ordinal = source.readIntLe()
-                randomStreamId = CrsAlgorithm.entries
-                    .getOrNull(ordinal)
-                    ?: throw FormatError.InvalidContent(
-                        "Unknown inner random stream id: $ordinal.",
-                    )
-            }
+            InnerHeaderFieldId.StreamKey ->
+                randomStreamKey = readInnerRandomStreamKey(source, length)
 
-            InnerHeaderFieldId.StreamKey -> {
-                if (length > 1024L * 1024L) {
-                    throw FormatError.InvalidContent("Inner random stream key is too large.")
-                }
-                randomStreamKey = source.readByteString(length)
-            }
-
-            InnerHeaderFieldId.Binary -> {
-                if (length < 1L) {
-                    throw FormatError.InvalidContent(
-                        "Invalid binary inner header field length: $length.",
-                    )
-                }
-                source.readByte() // memory-protection flag
-                val contentLength = length - 1L
-                ExactLengthSource(
-                    delegate = source,
-                    length = contentLength,
-                    checkCancellation = checkCancellation,
-                ).use { binarySource ->
-                    visitor.visit(
-                        source = LimitedSource(
-                            delegate = binarySource,
-                            maximumBytes = MAX_DECOMPRESSED_SIZE,
-                            limitExceeded = {
-                                FormatError.InvalidContent(
-                                    "Binary content exceeds $MAX_DECOMPRESSED_SIZE bytes.",
-                                )
-                            },
-                        ),
-                        declaredLength = contentLength,
-                    )
-                }
-            }
+            InnerHeaderFieldId.Binary ->
+                visitInnerHeaderBinary(source, length, visitor, checkCancellation)
 
             else -> source.skip(length)
         }
@@ -355,6 +304,81 @@ private fun visitInnerHeaderBinaryContents(
         randomStreamKey = randomStreamKey
             ?: throw FormatError.InvalidContent("No inner random stream key found."),
     )
+}
+
+private fun readInnerHeaderFieldLength(
+    source: BufferedSource,
+): Long {
+    val length = source.readIntLe().toLong()
+    if (length < 0L) {
+        throw FormatError.InvalidContent("Invalid inner header field length: $length.")
+    }
+    return length
+}
+
+private fun validateInnerHeaderTerminator(length: Long) {
+    if (length != 0L) {
+        throw FormatError.InvalidContent(
+            "Invalid inner header terminator length: $length.",
+        )
+    }
+}
+
+private fun readInnerRandomStreamId(
+    source: BufferedSource,
+    length: Long,
+): CrsAlgorithm {
+    if (length != Int.SIZE_BYTES.toLong()) {
+        throw FormatError.InvalidContent(
+            "Invalid inner random stream id field length: $length.",
+        )
+    }
+    val ordinal = source.readIntLe()
+    return CrsAlgorithm.entries.getOrNull(ordinal)
+        ?: throw FormatError.InvalidContent("Unknown inner random stream id: $ordinal.")
+}
+
+private fun readInnerRandomStreamKey(
+    source: BufferedSource,
+    length: Long,
+): ByteString {
+    if (length > MAX_INNER_STREAM_KEY_BYTES) {
+        throw FormatError.InvalidContent("Inner random stream key is too large.")
+    }
+    return source.readByteString(length)
+}
+
+private fun visitInnerHeaderBinary(
+    source: BufferedSource,
+    length: Long,
+    visitor: KdbxBinaryContentVisitor,
+    checkCancellation: () -> Unit,
+) {
+    if (length < 1L) {
+        throw FormatError.InvalidContent(
+            "Invalid binary inner header field length: $length.",
+        )
+    }
+    source.readByte() // memory-protection flag
+    val contentLength = length - 1L
+    ExactLengthSource(
+        delegate = source,
+        length = contentLength,
+        checkCancellation = checkCancellation,
+    ).use { binarySource ->
+        visitor.visit(
+            source = LimitedSource(
+                delegate = binarySource,
+                maximumBytes = MAX_DECOMPRESSED_SIZE,
+                limitExceeded = {
+                    FormatError.InvalidContent(
+                        "Binary content exceeds $MAX_DECOMPRESSED_SIZE bytes.",
+                    )
+                },
+            ),
+            declaredLength = contentLength,
+        )
+    }
 }
 
 private class ExactLengthSource(
@@ -376,14 +400,20 @@ private class ExactLengthSource(
         checkCancellation()
         check(!closed) { "Exact-length source is closed" }
         require(byteCount >= 0L) { "byteCount < 0: $byteCount" }
-        if (byteCount == 0L) return 0L
-        if (remaining == 0L) return -1L
-        val read = delegate.read(sink, minOf(byteCount, remaining))
-        if (read == -1L) {
-            throw FormatError.InvalidContent("Binary content ended before its declared length.")
+        return when {
+            byteCount == 0L -> 0L
+            remaining == 0L -> -1L
+            else -> {
+                val read = delegate.read(sink, minOf(byteCount, remaining))
+                if (read == -1L) {
+                    throw FormatError.InvalidContent(
+                        "Binary content ended before its declared length.",
+                    )
+                }
+                remaining -= read
+                read
+            }
         }
-        remaining -= read
-        return read
     }
 
     override fun timeout(): Timeout = delegate.timeout()

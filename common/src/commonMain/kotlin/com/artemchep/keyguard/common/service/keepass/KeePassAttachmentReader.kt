@@ -161,6 +161,9 @@ internal class KeePassAttachmentExtractor(
      * the binary to its end when it grows past [expectedSize] and therefore
      * can no longer be the requested attachment.
      */
+    // The generic catch wipes the computed hash before rethrowing whatever
+    // made the seal fail.
+    @Suppress("TooGenericExceptionCaught")
     private fun stageCandidate(
         source: OkioSource,
         expectedSize: Long?,

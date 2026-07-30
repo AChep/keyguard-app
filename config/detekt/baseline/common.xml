@@ -437,6 +437,8 @@
     <ID>FunctionNaming:DataSafetyScreen.kt:private fun LazyListScope.DataSafetyScreenContent</ID>
     <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `local path writer stores bytes on disk`</ID>
     <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `sink writer writes into provided sink`</ID>
+    <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `verified source failure preserves existing local file`</ID>
+    <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `verified source publishes atomically and reports replay progress`</ID>
     <ID>FunctionNaming:FNV.kt:FNV$fun fnv1_32: Long</ID>
     <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate creates masked email through JMAP`</ID>
     <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate fails clearly on unauthorized token`</ID>
@@ -459,6 +461,9 @@
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `direct source accepts payload at the size limit`</ID>
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `encrypted source decrypts in memory`</ID>
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `encrypted source surfaces decryption failures`</ID>
+    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `keepass source enforces limit while replaying verified attachment`</ID>
+    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `keepass source rejects known size above limit before extraction`</ID>
+    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `keepass source returns verified attachment below limit`</ID>
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `local file source is read before resolving remote metadata`</ID>
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `url source rejects content length above the size limit before reading body`</ID>
     <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `url source rejects streamed response above the size limit`</ID>
@@ -3178,6 +3183,7 @@
     <ID>TooManyFunctions:FileServiceIos.kt:FileServiceIos : FileService</ID>
     <ID>TooManyFunctions:FolderSyncOps.kt:FolderSyncOps : EntitySyncOps</ID>
     <ID>TooManyFunctions:GeneratorScreen.kt:com.artemchep.keyguard.feature.generator.GeneratorScreen.kt</ID>
+    <ID>TooManyFunctions:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest</ID>
     <ID>TooManyFunctions:GpgAgentCryptoJvm.kt:GpgAgentCryptoJvm : GpgAgentCrypto</ID>
     <ID>TooManyFunctions:GpgAgentDecryptTest.kt:GpgAgentDecryptTest</ID>
     <ID>TooManyFunctions:GpgAgentManager.kt:GpgAgentManager : AgentManager</ID>

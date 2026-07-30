@@ -187,43 +187,49 @@ internal class OkioInOutBuffer(
         }
         val result = StringBuilder(minOf(maximumChars, INPUT_CHUNK_SIZE))
         while (result.length < maximumChars) {
-            if (isCData) {
+            val more = if (isCData) {
                 readCDataChar(result)
-                continue
+                true
+            } else {
+                appendTextChar(result, maximumChars)
             }
-
-            when {
-                startsWith("<![CDATA[") -> {
-                    skip(9)
-                    isCData = true
-                }
-
-                startsWith("]]>") ->
-                    throw FormatError.InvalidXml(
-                        "Unexpected CDATA terminator in element text.",
-                    )
-
-                else -> {
-                    if (appendPlainTextRun(result, maximumChars)) continue
-                    when (val value = peek()) {
-                        -1, '<'.code, '&'.code ->
-                            return result.takeIf { it.isNotEmpty() }?.toString()
-
-                        else -> {
-                            read()
-                            result.append(value.toChar())
-                        }
-                    }
-                }
-            }
+            if (!more) return result.takeIf { it.isNotEmpty() }?.toString()
         }
         return result.toString()
     }
 
+    /**
+     * Consumes one unit of element character data at the cursor. Returns
+     * false when the character data ends (markup, entity or EOF).
+     */
+    private fun appendTextChar(result: StringBuilder, maximumChars: Int): Boolean {
+        when {
+            startsWith(CDATA_PREFIX) -> {
+                skip(CDATA_PREFIX.length)
+                isCData = true
+            }
+
+            startsWith(CDATA_SUFFIX) ->
+                throw FormatError.InvalidXml(
+                    "Unexpected CDATA terminator in element text.",
+                )
+
+            appendPlainTextRun(result, maximumChars) -> Unit
+
+            else -> {
+                val value = peek()
+                if (value == -1 || value == '<'.code || value == '&'.code) return false
+                read()
+                result.append(value.toChar())
+            }
+        }
+        return true
+    }
+
     /** Consumes one character of a CDATA section, or its `]]>` terminator. */
     private fun readCDataChar(result: StringBuilder) {
-        if (startsWith("]]>")) {
-            skip(3)
+        if (startsWith(CDATA_SUFFIX)) {
+            skip(CDATA_SUFFIX.length)
             isCData = false
             return
         }
@@ -487,5 +493,7 @@ internal class OkioInOutBuffer(
         const val INPUT_CHUNK_SIZE = 16 * 1024
         const val COMPACT_THRESHOLD = 16 * 1024
         const val MAX_UTF8_BYTES = 4
+        const val CDATA_PREFIX = "<![CDATA["
+        const val CDATA_SUFFIX = "]]>"
     }
 }

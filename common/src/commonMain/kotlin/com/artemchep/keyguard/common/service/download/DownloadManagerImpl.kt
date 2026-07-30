@@ -129,29 +129,7 @@ class DownloadManagerImpl(
             existingFileFlow(info)
         } else {
             sourceLoader.fileLoader(
-                request = DownloadAttachmentRequestData(
-                    localCipherId = request.tag.localCipherId,
-                    remoteCipherId = request.tag.remoteCipherId,
-                    attachmentId = request.tag.attachmentId,
-                    source = when (source) {
-                        is DownloadQueueRequest.Source.Direct ->
-                            DownloadAttachmentRequestData.DirectSource(source.data)
-
-                        is DownloadQueueRequest.Source.Url ->
-                            DownloadAttachmentRequestData.UrlSource(
-                                url = source.url,
-                                urlIsOneTime = source.urlIsOneTime,
-                            )
-
-                        is DownloadQueueRequest.Source.KeePass ->
-                            DownloadAttachmentRequestData.KeePassSource(
-                                hashRef = source.url,
-                                expectedSize = source.expectedSize,
-                            )
-                    },
-                    name = request.name,
-                    encryptionKey = request.key,
-                ),
+                request = request.toAttachmentRequestData(),
                 writer = downloadFileStore.writer(info),
             )
         }
@@ -287,3 +265,27 @@ class DownloadManagerImpl(
             fileExists = downloadFileStore.exists(this),
         )
 }
+
+private fun DownloadQueueRequest.toAttachmentRequestData() = DownloadAttachmentRequestData(
+    localCipherId = tag.localCipherId,
+    remoteCipherId = tag.remoteCipherId,
+    attachmentId = tag.attachmentId,
+    source = when (val source = source) {
+        is DownloadQueueRequest.Source.Direct ->
+            DownloadAttachmentRequestData.DirectSource(source.data)
+
+        is DownloadQueueRequest.Source.Url ->
+            DownloadAttachmentRequestData.UrlSource(
+                url = source.url,
+                urlIsOneTime = source.urlIsOneTime,
+            )
+
+        is DownloadQueueRequest.Source.KeePass ->
+            DownloadAttachmentRequestData.KeePassSource(
+                hashRef = source.url,
+                expectedSize = source.expectedSize,
+            )
+    },
+    name = name,
+    encryptionKey = key,
+)

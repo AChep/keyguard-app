@@ -122,6 +122,9 @@ internal class KeePassAttachmentSourceLoaderImpl internal constructor(
         ),
     )
 
+    // The generic catch converts any load failure into a Complete(left)
+    // event; fatal errors and cancellation are rethrown first.
+    @Suppress("TooGenericExceptionCaught")
     override fun fileLoader(
         request: DownloadAttachmentRequestData,
         source: DownloadAttachmentRequestData.KeePassSource,

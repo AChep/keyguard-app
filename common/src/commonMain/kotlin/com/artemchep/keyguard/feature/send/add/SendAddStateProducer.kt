@@ -76,6 +76,8 @@ import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConf
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountBin
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
+import com.artemchep.keyguard.feature.fileupload.BITWARDEN_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.feature.fileupload.isBitwardenUploadFileSizeAllowed
 import com.artemchep.keyguard.feature.fileupload.toAttachmentFileMetadata
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
@@ -792,7 +794,10 @@ private suspend fun RememberStateFlowScope.produceFileState(
         message(
             ToastMessage(
                 type = ToastMessage.Type.ERROR,
-                title = translate(Res.string.error_file_must_be_500_mb_or_smaller),
+                title = translate(
+                    Res.string.error_file_must_be_n_or_smaller,
+                    humanReadableByteCountSI(BITWARDEN_FILE_UPLOAD_MAX_BYTES),
+                ),
             ),
         )
     }
@@ -807,7 +812,10 @@ private suspend fun RememberStateFlowScope.produceFileState(
     val sizeSink = mutablePersistedFlow<Long?>("$prefix.size") {
         selectedFile.size
     }
-    val upperSizeLimitError = translate(Res.string.error_file_must_be_500_mb_or_smaller)
+    val upperSizeLimitError = translate(
+        Res.string.error_file_must_be_n_or_smaller,
+        humanReadableByteCountSI(BITWARDEN_FILE_UPLOAD_MAX_BYTES),
+    )
 
     fun clearFile() {
         uriSink.value = null

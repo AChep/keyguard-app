@@ -13,13 +13,17 @@ internal fun isKeePassUploadFileSizeAllowed(
     size: Long?,
 ): Boolean = size == null || size <= KEEPASS_FILE_UPLOAD_MAX_BYTES
 
-internal fun isVaultAttachmentFileSizeAllowed(
-    size: Long?,
+internal fun vaultAttachmentFileSizeLimit(
     accountType: AccountType?,
-): Boolean = when (accountType) {
-    AccountType.KEEPASS -> isKeePassUploadFileSizeAllowed(size)
+): Long = when (accountType) {
+    AccountType.KEEPASS -> KEEPASS_FILE_UPLOAD_MAX_BYTES
 
     AccountType.BITWARDEN,
     null,
-    -> isBitwardenUploadFileSizeAllowed(size)
+    -> BITWARDEN_FILE_UPLOAD_MAX_BYTES
 }
+
+internal fun isVaultAttachmentFileSizeAllowed(
+    size: Long?,
+    accountType: AccountType?,
+): Boolean = size == null || size <= vaultAttachmentFileSizeLimit(accountType)

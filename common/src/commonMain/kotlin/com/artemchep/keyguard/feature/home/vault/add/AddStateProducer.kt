@@ -162,7 +162,7 @@ import com.artemchep.keyguard.feature.gpgkey.expiration.createLocalizedGpgKeyExp
 import com.artemchep.keyguard.feature.gpgkey.expiration.requestGpgKeyExpirationChange
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachmentItemFactory
-import com.artemchep.keyguard.feature.home.vault.add.attachment.toSkeletonAttachmentOrNull
+import com.artemchep.keyguard.feature.home.vault.add.attachment.handleVaultAttachmentSelection
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.component.obscurePassword
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerResult
@@ -622,32 +622,26 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
             add(0, header)
         },
         extra = {
-            val bitwardenUploadLimitError = translate(Res.string.error_file_must_be_500_mb_or_smaller)
-            val keePassUploadLimitError = translate(Res.string.error_file_must_be_500_mb_or_smaller)
-
-            fun addAttachmentFile(
+            suspend fun addAttachmentFile(
                 info: FilePickerResult,
                 accountType: AccountType?,
             ) {
-                val attachment = info.toSkeletonAttachmentOrNull(accountType)
-                if (attachment == null) {
-                    val title = when (accountType) {
-                        AccountType.KEEPASS -> keePassUploadLimitError
-                        AccountType.BITWARDEN,
-                        null,
-                        -> bitwardenUploadLimitError
-                    }
-                    val msg = ToastMessage(
-                        type = ToastMessage.Type.ERROR,
-                        title = title,
-                    )
-                    showMessage.copy(msg)
-                    return
-                }
-
-                add(
-                    type = "attachment",
-                    arg = attachment,
+                handleVaultAttachmentSelection(
+                    result = info,
+                    accountType = accountType,
+                    uploadLimitErrorTitle = { maximumBytes ->
+                        translate(
+                            Res.string.error_file_must_be_n_or_smaller,
+                            humanReadableByteCountSI(maximumBytes),
+                        )
+                    },
+                    showMessage = showMessage::copy,
+                    addAttachment = { attachment ->
+                        add(
+                            type = "attachment",
+                            arg = attachment,
+                        )
+                    },
                 )
             }
 
@@ -656,7 +650,9 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                     anchorItemId = "attachment.add",
                     text = translate(Res.string.additem_attachments_drop_here),
                     onFileDrop = { info ->
-                        addAttachmentFile(info, accountType)
+                        screenScope.launch {
+                            addAttachmentFile(info, accountType)
+                        }
                     },
                 )
                 val action = FlatItemAction(
@@ -665,7 +661,9 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                     onClick = {
                         val intent = FilePickerIntent.OpenDocument { info ->
                             if (info != null) {
-                                addAttachmentFile(info, accountType)
+                                screenScope.launch {
+                                    addAttachmentFile(info, accountType)
+                                }
                             }
                         }
                         filePickerEvents.emit(intent)

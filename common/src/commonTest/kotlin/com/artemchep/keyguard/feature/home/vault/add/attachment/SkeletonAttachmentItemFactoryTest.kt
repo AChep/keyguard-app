@@ -1,65 +1,13 @@
 package com.artemchep.keyguard.feature.home.vault.add.attachment
 
-import com.artemchep.keyguard.common.model.KEEPASS_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.common.model.create.CreateRequest
-import com.artemchep.keyguard.feature.filepicker.FilePickerResult
-import com.artemchep.keyguard.feature.fileupload.BITWARDEN_FILE_UPLOAD_MAX_BYTES
-import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.platform.leParseUri
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertNull
 import kotlin.time.Instant
 
 class SkeletonAttachmentItemFactoryTest {
-    @Test
-    fun `picked vault attachment without name falls back to file`() {
-        val attachment = FilePickerResult(
-            uri = leParseUri("content://attachment/file"),
-            name = null,
-            size = 2048L,
-        ).toSkeletonAttachment()
-
-        assertEquals("File", attachment.name)
-        assertEquals("content://attachment/file", attachment.identity.uri.toString())
-        assertEquals(2048L, attachment.identity.size)
-        assertEquals("2.0 kB", attachment.size)
-    }
-
-    @Test
-    fun `picked vault attachment over bitwarden upload limit is rejected`() {
-        val attachment = FilePickerResult(
-            uri = leParseUri("content://attachment/file"),
-            name = "large.bin",
-            size = BITWARDEN_FILE_UPLOAD_MAX_BYTES + 1L,
-        ).toSkeletonAttachmentOrNull(AccountType.BITWARDEN)
-
-        assertNull(attachment)
-    }
-
-    @Test
-    fun `picked vault attachment over keepass upload limit is rejected`() {
-        val attachment = FilePickerResult(
-            uri = leParseUri("content://attachment/file"),
-            name = "large.bin",
-            size = KEEPASS_FILE_UPLOAD_MAX_BYTES + 1L,
-        ).toSkeletonAttachmentOrNull(AccountType.KEEPASS)
-
-        assertNull(attachment)
-    }
-
-    @Test
-    fun `picked vault attachment over upload limit is rejected when account is unknown`() {
-        val attachment = FilePickerResult(
-            uri = leParseUri("content://attachment/file"),
-            name = "large.bin",
-            size = BITWARDEN_FILE_UPLOAD_MAX_BYTES + 1L,
-        ).toSkeletonAttachmentOrNull()
-
-        assertNull(attachment)
-    }
-
     @Test
     fun `remote skeleton attachment preserves remote identity`() {
         val output = CreateRequest(

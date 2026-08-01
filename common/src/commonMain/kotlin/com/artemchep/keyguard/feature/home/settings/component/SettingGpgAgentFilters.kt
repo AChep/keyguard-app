@@ -43,6 +43,8 @@ fun settingGpgAgentFiltersProvider(
         platformClasses = listOf(
             Platform.Desktop.Linux::class,
             Platform.Desktop.MacOS::class,
+            Platform.Desktop.Windows::class,
+            Platform.Desktop.Other::class,
         ),
         search = SettingIi.Search(
             group = "security",

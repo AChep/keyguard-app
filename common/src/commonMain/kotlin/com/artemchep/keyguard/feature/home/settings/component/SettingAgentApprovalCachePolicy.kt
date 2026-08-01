@@ -44,9 +44,10 @@ fun settingSshAgentApprovalCachePolicyProvider(
     windowCoroutineScope = directDI.instance(),
     idPrefix = "settings.sshAgentApprovalCachePolicy",
     platformClasses = listOf(
-        Platform.Mobile.Android::class,
         Platform.Desktop.Linux::class,
         Platform.Desktop.MacOS::class,
+        Platform.Desktop.Windows::class,
+        Platform.Desktop.Other::class,
     ),
 )
 
@@ -60,6 +61,8 @@ fun settingGpgAgentApprovalCachePolicyProvider(
     platformClasses = listOf(
         Platform.Desktop.Linux::class,
         Platform.Desktop.MacOS::class,
+        Platform.Desktop.Windows::class,
+        Platform.Desktop.Other::class,
     ),
 )
 

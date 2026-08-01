@@ -108,7 +108,11 @@ class FileServiceImpl : FileService {
 
 private fun String.toAtomicFileDestinationOrNull(): AtomicFileDestination? {
     val destinationPath = toLocalPathFromFileUriOrNull()
-        ?.let { localPath -> Path(localPath.value) }
+        ?.let { localPath ->
+            runCatching {
+                Path(localPath.value)
+            }.getOrNull()
+        }
         ?.takeIf { path -> path.isAbsolute }
     val destinationParent = destinationPath?.parent
     val destinationName = destinationPath

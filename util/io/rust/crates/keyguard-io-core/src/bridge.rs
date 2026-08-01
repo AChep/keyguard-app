@@ -500,8 +500,12 @@ mod tests {
             .build();
         let registry = Registry::new(RegistryKind::Transaction);
         let options = decode_txn_options(valid_wire()).expect("wire options must decode");
-        let txn = AtomicWriteTxn::begin(fs.clone(), Path::new("/vault.bin"), options)
-            .expect("transaction must begin");
+        let txn = AtomicWriteTxn::begin(
+            fs.clone(),
+            Path::new(test_absolute_path!("/vault.bin")),
+            options,
+        )
+        .expect("transaction must begin");
         let handle = registry.insert(txn);
 
         let first = txn_write_in(&registry, handle, b"new contents");
@@ -527,8 +531,12 @@ mod tests {
         let registry = Registry::new(RegistryKind::Transaction);
         let mut options = decode_txn_options(valid_wire()).expect("wire options must decode");
         options.synchronization = SyncPolicy::Required(SyncLevel::ProcessAtomic);
-        let txn = AtomicWriteTxn::begin(fs.clone(), Path::new("/vault.bin"), options)
-            .expect("transaction must begin");
+        let txn = AtomicWriteTxn::begin(
+            fs.clone(),
+            Path::new(test_absolute_path!("/vault.bin")),
+            options,
+        )
+        .expect("transaction must begin");
         let handle = registry.insert(txn);
 
         let panic = catch_unwind(AssertUnwindSafe(|| {

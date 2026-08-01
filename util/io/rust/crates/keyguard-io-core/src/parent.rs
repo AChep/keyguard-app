@@ -236,16 +236,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn splits_an_absolute_unix_path() {
-        let (root, names) =
-            split_absolute_path(Path::new("/vault/nested")).expect("path must parse");
-        assert_eq!(root, Path::new("/"));
+    fn splits_an_absolute_host_path() {
+        let (root, names) = split_absolute_path(Path::new(test_absolute_path!("/vault/nested")))
+            .expect("path must parse");
+        assert_eq!(root, Path::new(test_absolute_path!("/")));
         assert_eq!(names, ["vault", "nested"]);
     }
 
     #[test]
     fn rejects_relative_and_parent_components() {
         assert!(split_absolute_path(Path::new("vault")).is_err());
-        assert!(split_absolute_path(Path::new("/vault/../other")).is_err());
+        assert!(split_absolute_path(Path::new(test_absolute_path!("/vault/../other"))).is_err());
     }
 }

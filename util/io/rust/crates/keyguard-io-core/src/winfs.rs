@@ -15,8 +15,7 @@ use windows_sys::Win32::{
         GetSecurityDescriptorDacl, GetSecurityDescriptorLength, GetSecurityDescriptorOwner,
         GetTokenInformation, IsValidAcl, IsValidSecurityDescriptor, IsValidSid,
         OWNER_SECURITY_INFORMATION, PROTECTED_DACL_SECURITY_INFORMATION, PSECURITY_DESCRIPTOR,
-        PSID, SE_DACL_AUTO_INHERIT_REQ, SE_DACL_AUTO_INHERITED, SE_DACL_PROTECTED,
-        SE_SELF_RELATIVE, TOKEN_QUERY, TOKEN_USER, TokenUser,
+        PSID, SE_DACL_PROTECTED, SE_SELF_RELATIVE, TOKEN_QUERY, TOKEN_USER, TokenUser,
         UNPROTECTED_DACL_SECURITY_INFORMATION,
     },
     System::Threading::{GetCurrentProcess, OpenProcessToken},
@@ -32,8 +31,7 @@ const SDDL_REVISION_1: u32 = 1;
 const ERROR_INVALID_PARAMETER: i32 = 87;
 #[cfg(test)]
 const ACCESS_ALLOWED_ACE_TYPE: u8 = 0;
-const DACL_CONTROL_MASK: u16 =
-    SE_DACL_PROTECTED | SE_DACL_AUTO_INHERITED | SE_DACL_AUTO_INHERIT_REQ;
+const DACL_PROTECTION_MASK: u16 = SE_DACL_PROTECTED;
 
 struct OwnedWindowsHandle(HANDLE);
 
@@ -54,7 +52,7 @@ impl Drop for OwnedLocalAllocation {
     }
 }
 
-/// Self-relative copy of a file DACL and its inheritance control state.
+/// Self-relative copy of a file DACL and its protected/unprotected state.
 ///
 /// The descriptor is stored in word-aligned Rust-owned memory, so this type
 /// owns no Win32 allocation and contains no borrowed pointers.
@@ -165,7 +163,7 @@ impl CapturedDacl {
 
     fn equivalent_to(&self, other: &Self) -> io::Result<bool> {
         Ok(
-            self.control & DACL_CONTROL_MASK == other.control & DACL_CONTROL_MASK
+            self.control & DACL_PROTECTION_MASK == other.control & DACL_PROTECTION_MASK
                 && self.dacl_bytes()? == other.dacl_bytes()?,
         )
     }
@@ -321,7 +319,11 @@ pub(crate) fn apply_file_dacl(handle: HANDLE, metadata: &CapturedDacl) -> io::Re
     }
 }
 
-/// Verifies exact DACL bytes and DACL inheritance control state on `handle`.
+/// Verifies exact DACL bytes and protected/unprotected state on `handle`.
+///
+/// `SetSecurityInfo` may add `SE_DACL_AUTO_INHERITED` while applying the
+/// current inheritance model. That bookkeeping bit does not change whether
+/// the DACL accepts inherited ACEs and is therefore not part of equivalence.
 pub(crate) fn verify_file_dacl(handle: HANDLE, expected: &CapturedDacl) -> io::Result<()> {
     let actual = capture_file_dacl(handle)?;
     if expected.equivalent_to(&actual)? {
@@ -586,8 +588,8 @@ fn owner_and_dacl_equivalent(
     // were individually validated by `descriptor_owner`.
     let same_owner = unsafe { EqualSid(expected_owner, actual_owner) } != 0;
     Ok(same_owner
-        && descriptor_control(expected)? & DACL_CONTROL_MASK
-            == descriptor_control(actual)? & DACL_CONTROL_MASK
+        && descriptor_control(expected)? & DACL_PROTECTION_MASK
+            == descriptor_control(actual)? & DACL_PROTECTION_MASK
         && dacl_bytes(descriptor_dacl(expected)?)? == dacl_bytes(descriptor_dacl(actual)?)?)
 }
 

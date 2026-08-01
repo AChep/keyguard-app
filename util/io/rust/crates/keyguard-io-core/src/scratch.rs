@@ -35,13 +35,14 @@ impl ScratchFile {
     pub fn open(directory: &Path) -> io::Result<Self> {
         // The old Windows path conversion made relative paths absolute after
         // directory provisioning. Snapshot the absolute spelling first so
-        // `create_dir_all` and the retained-handle open cannot observe
-        // different process current directories.
+        // provisioning and the retained-handle walk cannot observe different
+        // process current directories.
         #[cfg(windows)]
         let absolute_directory = std::path::absolute(directory)?;
         #[cfg(windows)]
         let directory = absolute_directory.as_path();
 
+        #[cfg(not(windows))]
         std::fs::create_dir_all(directory)?;
         let file = platform::create_pathless(directory)?;
         Ok(Self {
@@ -270,65 +271,48 @@ mod platform {
 #[cfg(windows)]
 mod platform {
     use std::{
+        ffi::{OsStr, OsString},
         fs::File,
         io,
         os::windows::{fs::FileExt, io::FromRawHandle},
-        path::Path,
-        ptr,
+        path::{Component, Path, PathBuf},
     };
 
     use windows_sys::{
         Wdk::Storage::FileSystem::{
-            FILE_CREATE, FILE_DELETE_ON_CLOSE, FILE_DIRECTORY_FILE, FILE_NON_DIRECTORY_FILE,
-            FILE_OPEN_REPARSE_POINT, FILE_SYNCHRONOUS_IO_NONALERT,
+            FILE_CREATE, FILE_DELETE_ON_CLOSE, FILE_NON_DIRECTORY_FILE, FILE_OPEN_REPARSE_POINT,
+            FILE_SYNCHRONOUS_IO_NONALERT,
         },
         Win32::{
             Foundation::{GENERIC_READ, GENERIC_WRITE, OBJ_CASE_INSENSITIVE, OBJ_DONT_REPARSE},
             Storage::FileSystem::{
                 DELETE, FILE_ATTRIBUTE_DIRECTORY, FILE_ATTRIBUTE_REPARSE_POINT,
-                FILE_ATTRIBUTE_TAG_INFO, FILE_ATTRIBUTE_TEMPORARY, FILE_READ_ATTRIBUTES,
-                FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_TRAVERSE,
-                FileAttributeTagInfo, READ_CONTROL, SYNCHRONIZE,
+                FILE_ATTRIBUTE_TAG_INFO, FILE_ATTRIBUTE_TEMPORARY, FileAttributeTagInfo,
+                READ_CONTROL, SYNCHRONIZE,
             },
         },
     };
 
     use crate::{
+        fsops::{RealFs, WinDir},
+        txn::DirectoryPermissions,
         windows_nt::{
-            NtAbsolutePath, NtCreateOptions, NtRelativeName, OwnedHandle, nt_create_file,
-            nt_open_file, query_file_information,
+            NtAbsolutePath, NtCreateOptions, NtRelativeName, nt_create_file, query_file_information,
         },
         winfs::{owner_only_file_security, verify_owner_only_file},
     };
 
-    const DIRECTORY_TRAVERSAL_ACCESS: u32 = FILE_TRAVERSE | FILE_READ_ATTRIBUTES | SYNCHRONIZE;
-    const PERMISSIVE_SHARING: u32 = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
-
     /// A scratch root whose final path component has been verified as a real
     /// directory. Every candidate file is created relative to this capability.
     pub(super) struct WindowsScratchRoot {
-        handle: OwnedHandle,
+        directory: WinDir,
     }
 
     impl WindowsScratchRoot {
         pub(super) fn open(directory: &Path) -> io::Result<Self> {
-            let directory = NtAbsolutePath::parse(directory)?;
-            // `OBJ_DONT_REPARSE` is deliberately absent here. The accepted
-            // absolute NT spellings pass through object-manager redirects such
-            // as `\??\C:`; applying the flag to the whole name would reject
-            // ordinary drive, UNC, and volume paths. `FILE_OPEN_REPARSE_POINT`
-            // instead opens a final filesystem reparse point as itself, and
-            // `validate_scratch_root` rejects it through this exact handle.
-            let handle = nt_open_file(
-                ptr::null_mut(),
-                directory.as_slice(),
-                DIRECTORY_TRAVERSAL_ACCESS,
-                PERMISSIVE_SHARING,
-                FILE_DIRECTORY_FILE | FILE_OPEN_REPARSE_POINT | FILE_SYNCHRONOUS_IO_NONALERT,
-                OBJ_CASE_INSENSITIVE,
-            )?;
-            validate_scratch_root(handle.as_raw())?;
-            Ok(Self { handle })
+            let directory = open_or_create_directory(&RealFs, directory)?;
+            validate_scratch_root(directory.traversal_handle())?;
+            Ok(Self { directory })
         }
 
         pub(super) fn create_pathless(&self) -> io::Result<File> {
@@ -339,7 +323,7 @@ mod platform {
                 )?;
                 let name = NtRelativeName::parse(&name)?;
                 let handle = match nt_create_file(
-                    self.handle.as_raw(),
+                    self.directory.traversal_handle(),
                     &name,
                     &NtCreateOptions {
                         desired_access: GENERIC_READ
@@ -377,6 +361,156 @@ mod platform {
                 "could not allocate a unique private scratch file",
             ))
         }
+    }
+
+    pub(super) trait ScratchDirectoryFs {
+        type Dir;
+
+        fn open_root(&self, path: &Path) -> io::Result<Self::Dir>;
+
+        fn open_dir_at(
+            &self,
+            parent: &Self::Dir,
+            name: &OsStr,
+            follow_links: bool,
+        ) -> io::Result<Self::Dir>;
+
+        fn create_and_open_dir_at(
+            &self,
+            parent: &Self::Dir,
+            name: &OsStr,
+            permissions: DirectoryPermissions,
+        ) -> io::Result<Self::Dir>;
+    }
+
+    impl ScratchDirectoryFs for RealFs {
+        type Dir = WinDir;
+
+        fn open_root(&self, path: &Path) -> io::Result<Self::Dir> {
+            self.open_windows_root(path)
+        }
+
+        fn open_dir_at(
+            &self,
+            parent: &Self::Dir,
+            name: &OsStr,
+            follow_links: bool,
+        ) -> io::Result<Self::Dir> {
+            self.open_windows_dir_at(parent, name, follow_links)
+        }
+
+        fn create_and_open_dir_at(
+            &self,
+            parent: &Self::Dir,
+            name: &OsStr,
+            permissions: DirectoryPermissions,
+        ) -> io::Result<Self::Dir> {
+            self.create_and_open_windows_dir_at(parent, name, permissions)
+        }
+    }
+
+    #[cfg(test)]
+    impl ScratchDirectoryFs for crate::simfs::SimFs {
+        type Dir = crate::simfs::SimDir;
+
+        fn open_root(&self, path: &Path) -> io::Result<Self::Dir> {
+            crate::fsops::FsOps::open_root(self, path)
+        }
+
+        fn open_dir_at(
+            &self,
+            parent: &Self::Dir,
+            name: &OsStr,
+            follow_links: bool,
+        ) -> io::Result<Self::Dir> {
+            let name = name.to_str().ok_or_else(invalid_scratch_root)?;
+            crate::fsops::FsOps::open_dir_at(self, parent, name, follow_links)
+        }
+
+        fn create_and_open_dir_at(
+            &self,
+            parent: &Self::Dir,
+            name: &OsStr,
+            permissions: DirectoryPermissions,
+        ) -> io::Result<Self::Dir> {
+            let name = name.to_str().ok_or_else(invalid_scratch_root)?;
+            crate::fsops::FsOps::create_and_open_dir_at(self, parent, name, permissions)
+        }
+    }
+
+    /// Opens or creates every component beneath a retained filesystem root.
+    ///
+    /// Existing ancestor links are resolved once and pinned by the returned
+    /// directory handle. A link that appears after a component was observed
+    /// missing loses the exclusive-create race and is rejected by the
+    /// no-follow reopen. The final component is never followed.
+    fn split_absolute_path(directory: &Path) -> io::Result<(PathBuf, Vec<OsString>)> {
+        if !directory.is_absolute() {
+            return Err(invalid_scratch_root());
+        }
+
+        let mut root = PathBuf::new();
+        let mut components = Vec::new();
+        let mut saw_root = false;
+        for component in directory.components() {
+            match component {
+                Component::Prefix(prefix) => root.push(prefix.as_os_str()),
+                Component::RootDir => {
+                    root.push(component.as_os_str());
+                    saw_root = true;
+                }
+                Component::Normal(name) if !name.is_empty() => {
+                    components.push(name.to_os_string());
+                }
+                Component::Normal(_) | Component::CurDir | Component::ParentDir => {
+                    return Err(invalid_scratch_root());
+                }
+            }
+        }
+        if !saw_root {
+            return Err(invalid_scratch_root());
+        }
+        Ok((root, components))
+    }
+
+    fn invalid_scratch_root() -> io::Error {
+        io::Error::new(io::ErrorKind::InvalidInput, "invalid scratch root path")
+    }
+
+    pub(super) fn open_or_create_directory<F: ScratchDirectoryFs>(
+        fs: &F,
+        directory: &Path,
+    ) -> io::Result<F::Dir> {
+        // Preserve the strict path syntax accepted by the previous absolute
+        // native open before splitting the spelling into retained components.
+        NtAbsolutePath::parse(directory)?;
+        let (root, components) = split_absolute_path(directory)?;
+        let mut current = fs.open_root(&root)?;
+
+        for (index, component) in components.iter().enumerate() {
+            let is_final = index + 1 == components.len();
+            let follow_existing = !is_final;
+            let next = match fs.open_dir_at(&current, component, follow_existing) {
+                Ok(directory) => directory,
+                Err(error) if error.kind() == io::ErrorKind::NotFound => {
+                    match fs.create_and_open_dir_at(
+                        &current,
+                        component,
+                        DirectoryPermissions::ProcessDefault,
+                    ) {
+                        Ok(directory) => directory,
+                        Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {
+                            fs.open_dir_at(&current, component, false)?
+                        }
+                        Err(error) => return Err(error),
+                    }
+                }
+                Err(error) => return Err(error),
+            };
+            current = next;
+        }
+
+        Ok(current)
     }
 
     pub(super) fn create_pathless(directory: &Path) -> io::Result<File> {
@@ -615,13 +749,65 @@ mod tests {
 
     #[cfg(windows)]
     #[test]
+    fn windows_scratch_root_creates_multiple_missing_components() {
+        let fixture = WindowsTestDirectory::new();
+        let scratch_root = fixture.path().join("a").join("b").join("scratch");
+
+        let scratch = ScratchFile::open(&scratch_root)
+            .expect("every missing scratch-root component must be created");
+
+        assert_eq!(
+            std::fs::read_dir(&scratch_root)
+                .expect("created scratch root must list")
+                .count(),
+            1,
+        );
+        drop(scratch);
+        assert_eq!(
+            std::fs::read_dir(&scratch_root)
+                .expect("created scratch root must list after close")
+                .count(),
+            0,
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_scratch_root_preserves_non_unicode_components() {
+        use std::{ffi::OsString, os::windows::ffi::OsStringExt as _};
+
+        let fixture = WindowsTestDirectory::new();
+        let component =
+            OsString::from_wide(&[b'n' as u16, b'o' as u16, b'n' as u16, b'-' as u16, 0xD800]);
+        let scratch_root = fixture.path().join(component).join("scratch");
+
+        let scratch = ScratchFile::open(&scratch_root)
+            .expect("valid non-Unicode Windows components must remain supported");
+
+        assert_eq!(
+            std::fs::read_dir(&scratch_root)
+                .expect("non-Unicode scratch root must list")
+                .count(),
+            1,
+        );
+        drop(scratch);
+        assert_eq!(
+            std::fs::read_dir(&scratch_root)
+                .expect("non-Unicode scratch root must list after close")
+                .count(),
+            0,
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
     fn windows_final_scratch_root_reparse_point_is_rejected() {
         let fixture = WindowsTestDirectory::new();
         let target = fixture.path().join("target");
         let link = fixture.path().join("link");
         std::fs::create_dir(&target).expect("target directory must be created");
         if let Err(error) = std::os::windows::fs::symlink_dir(&target, &link) {
-            if error.kind() == io::ErrorKind::PermissionDenied {
+            if crate::windows_symlink_unavailable(&error) {
                 return;
             }
             panic!("directory symlink creation failed unexpectedly: {error}");
@@ -689,10 +875,10 @@ mod tests {
         let fixture = WindowsTestDirectory::new();
         let target = fixture.path().join("target");
         let link = fixture.path().join("link");
-        let scratch_root = link.join("scratch");
+        let scratch_root = link.join("nested").join("scratch");
         std::fs::create_dir(&target).expect("target directory must be created");
         if let Err(error) = std::os::windows::fs::symlink_dir(&target, &link) {
-            if error.kind() == io::ErrorKind::PermissionDenied {
+            if crate::windows_symlink_unavailable(&error) {
                 return;
             }
             panic!("directory symlink creation failed unexpectedly: {error}");
@@ -702,7 +888,7 @@ mod tests {
             ScratchFile::open(&scratch_root).expect("an ancestor reparse point may be resolved");
 
         assert_eq!(
-            std::fs::read_dir(target.join("scratch"))
+            std::fs::read_dir(target.join("nested").join("scratch"))
                 .expect("resolved scratch root must list")
                 .count(),
             1,
@@ -710,7 +896,7 @@ mod tests {
         );
         drop(scratch);
         assert_eq!(
-            std::fs::read_dir(target.join("scratch"))
+            std::fs::read_dir(target.join("nested").join("scratch"))
                 .expect("resolved scratch root must list after close")
                 .count(),
             0,
@@ -719,15 +905,156 @@ mod tests {
 
     #[cfg(windows)]
     #[test]
-    fn windows_scratch_file_is_private_and_delete_pending() {
+    fn windows_final_reparse_is_rejected_below_a_followed_ancestor() {
+        let fixture = WindowsTestDirectory::new();
+        let ancestor_target = fixture.path().join("ancestor-target");
+        let final_target = fixture.path().join("final-target");
+        let ancestor_link = fixture.path().join("ancestor-link");
+        let final_link = ancestor_target.join("scratch");
+        std::fs::create_dir(&ancestor_target).expect("ancestor target must be created");
+        std::fs::create_dir(&final_target).expect("final target must be created");
+        if let Err(error) = std::os::windows::fs::symlink_dir(&ancestor_target, &ancestor_link) {
+            if crate::windows_symlink_unavailable(&error) {
+                return;
+            }
+            panic!("ancestor symlink creation failed unexpectedly: {error}");
+        }
+        std::os::windows::fs::symlink_dir(&final_target, &final_link)
+            .expect("final symlink must be created");
+
+        let error = match ScratchFile::open(&ancestor_link.join("scratch")) {
+            Ok(_) => panic!("the final reparse point must remain rejected"),
+            Err(error) => error,
+        };
+
+        assert_eq!(error.kind(), io::ErrorKind::InvalidInput);
+        assert_eq!(
+            std::fs::read_dir(&final_target)
+                .expect("final target must list")
+                .count(),
+            0,
+            "a rejected final reparse target must not receive a scratch file",
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_scratch_root_rejects_a_link_that_wins_the_creation_race() {
+        use crate::simfs::{NamespaceMutation, SimFsBuilder, SimOp};
+
+        let fs = SimFsBuilder::new()
+            .preexisting_directory("outside")
+            .mutate_before(
+                SimOp::CreateDirAt,
+                0,
+                NamespaceMutation::create_directory_link("/", "vault", "/outside"),
+            )
+            .build();
+
+        let error = match platform::open_or_create_directory(
+            &fs,
+            Path::new(test_absolute_path!("/vault/scratch")),
+        ) {
+            Ok(_) => panic!("a concurrently inserted directory link must be rejected"),
+            Err(error) => error,
+        };
+
+        assert_eq!(error.kind(), io::ErrorKind::InvalidInput);
+        let directory_opens = fs
+            .operations()
+            .into_iter()
+            .filter(|operation| operation.op == SimOp::OpenDirAt)
+            .map(|operation| operation.occurrence)
+            .collect::<Vec<_>>();
+        assert_eq!(
+            directory_opens,
+            [0, 1],
+            "the creation collision must be reopened exactly once without following links",
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_scratch_root_rejects_a_preexisting_final_link_in_simulation() {
+        use crate::simfs::SimFsBuilder;
+
+        let fs = SimFsBuilder::new()
+            .preexisting_directory("outside")
+            .preexisting_directory_link("scratch", "/outside")
+            .build();
+
+        let error = match platform::open_or_create_directory(
+            &fs,
+            Path::new(test_absolute_path!("/scratch")),
+        ) {
+            Ok(_) => panic!("a pre-existing final directory link must be rejected"),
+            Err(error) => error,
+        };
+
+        assert_eq!(error.kind(), io::ErrorKind::InvalidInput);
+        assert!(
+            fs.final_snapshot()
+                .live_listing()
+                .keys()
+                .all(|path| !path.starts_with("outside/")),
+            "the rejected final link target must remain untouched",
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_scratch_root_keeps_a_followed_ancestor_pinned_during_provisioning() {
+        use crate::{
+            fsops::FsOps as _,
+            simfs::{NamespaceMutation, SimFsBuilder, SimOp},
+        };
+
+        let fs = SimFsBuilder::new()
+            .preexisting_directory("first")
+            .preexisting_directory("second")
+            .preexisting_directory_link("selected", "/first")
+            .mutate_before(
+                SimOp::OpenDirAt,
+                1,
+                NamespaceMutation::rename_entry("/", "selected", "selected-old"),
+            )
+            .mutate_before(
+                SimOp::CreateDirAt,
+                0,
+                NamespaceMutation::create_directory_link("/", "selected", "/second"),
+            )
+            .build();
+        let directory = platform::open_or_create_directory(
+            &fs,
+            Path::new(test_absolute_path!("/selected/nested/scratch")),
+        )
+        .expect("provisioning must stay beneath the retained ancestor");
+        let file = fs
+            .create_file_at(&directory, "probe.bin", true)
+            .expect("probe file must be created through the retained root");
+        fs.close(file).expect("probe file must close");
+
+        let snapshot = fs.final_snapshot();
+        assert!(
+            snapshot
+                .live_listing()
+                .contains_key("first/nested/scratch/probe.bin"),
+            "the retained first target must receive the probe",
+        );
+        assert!(
+            !snapshot
+                .live_listing()
+                .contains_key("second/nested/scratch/probe.bin"),
+            "the replacement link target must remain untouched",
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_scratch_file_is_private_and_deleted_on_close() {
         use std::os::windows::io::AsRawHandle as _;
 
-        use windows_sys::Win32::Storage::FileSystem::FileStandardInfo;
-
-        use crate::{
-            windows_nt::{FileStandardInfoBytes, query_file_information},
-            winfs::{owner_only_file_security, verify_owner_only_file},
-        };
+        use crate::winfs::{owner_only_file_security, verify_owner_only_file};
 
         let fixture = WindowsTestDirectory::new();
         let scratch = ScratchFile::open(fixture.path()).expect("scratch must open");
@@ -750,15 +1077,11 @@ mod tests {
             owner_only_file_security().expect("owner-only descriptor must be constructed");
         verify_owner_only_file(scratch.file.as_raw_handle(), &expected)
             .expect("scratch file must retain the exact owner-only DACL");
-        let standard: FileStandardInfoBytes =
-            query_file_information(scratch.file.as_raw_handle(), FileStandardInfo)
-                .expect("scratch standard information must be readable");
-        assert!(
-            standard.is_delete_pending(),
-            "FILE_DELETE_ON_CLOSE must be observable on the created handle",
-        );
-        assert!(!standard.is_directory(), "scratch object must be a file");
 
+        // `FILE_DELETE_ON_CLOSE` promises removal after the last close. Some
+        // Windows filesystems do not expose that create option through the
+        // intermediate `FILE_STANDARD_INFO.DeletePending` value, so verify
+        // the documented lifecycle outcome directly.
         drop(scratch);
         assert_eq!(
             std::fs::read_dir(fixture.path())

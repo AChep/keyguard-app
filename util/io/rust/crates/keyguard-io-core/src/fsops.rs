@@ -10,6 +10,7 @@ use std::{io, path::Path, time::Duration};
 #[cfg(unix)]
 use crate::naming::{TemporaryArtifactProtocol, new_temporary_artifact_names};
 use crate::{
+    durability::{SyncLevel, platform_max_sync_level},
     naming::{MAX_TEMPORARY_ARTIFACT_ATTEMPTS, TemporaryFileRole},
     txn::DirectoryPermissions,
 };
@@ -260,6 +261,17 @@ pub trait FsOps {
     type File;
     /// Snapshot of replaceable destination basic permissions.
     type Metadata;
+
+    /// Strongest synchronization level this backend advertises before any
+    /// filesystem access.
+    ///
+    /// Native backends inherit the current platform contract. Simulated or
+    /// specialized backends may override the ceiling when they model a
+    /// different synchronization environment. Wrappers that preserve the
+    /// wrapped backend's guarantees should forward its advertised ceiling.
+    fn advertised_sync_level_ceiling(&self) -> SyncLevel {
+        platform_max_sync_level()
+    }
 
     /// Opens the absolute filesystem root used to resolve a destination.
     fn open_root(&self, path: &Path) -> io::Result<Self::Dir>;
@@ -3523,6 +3535,7 @@ pub(crate) use posix::{create_pathless_named_scratch_at, lock_capability_absent}
 #[cfg(windows)]
 mod win {
     use std::{
+        ffi::OsStr,
         fs::File,
         io::{self, Write},
         mem::{size_of, size_of_val},
@@ -3535,21 +3548,22 @@ mod win {
     use windows_sys::{
         Wdk::Storage::FileSystem::{
             FILE_CREATE, FILE_DIRECTORY_FILE, FILE_NON_DIRECTORY_FILE, FILE_OPEN_REPARSE_POINT,
-            FILE_SYNCHRONOUS_IO_NONALERT,
+            FILE_RENAME_INFORMATION, FILE_SYNCHRONOUS_IO_NONALERT, FileRenameInformation,
         },
         Win32::{
             Foundation::{
                 ERROR_FILE_NOT_FOUND, ERROR_INVALID_FUNCTION, ERROR_INVALID_PARAMETER,
                 ERROR_NOT_SUPPORTED, ERROR_REPARSE_POINT_ENCOUNTERED, GENERIC_READ, GENERIC_WRITE,
-                GetLastError, HANDLE, OBJ_CASE_INSENSITIVE, OBJ_DONT_REPARSE,
+                GetLastError, HANDLE, NTSTATUS, OBJ_CASE_INSENSITIVE, OBJ_DONT_REPARSE,
+                STATUS_ACCESS_DENIED,
             },
             Storage::FileSystem::{
                 BY_HANDLE_FILE_INFORMATION, DELETE, FILE_ATTRIBUTE_DIRECTORY,
                 FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_REPARSE_POINT, FILE_ATTRIBUTE_TAG_INFO,
-                FILE_ID_INFO, FILE_READ_ATTRIBUTES, FILE_RENAME_INFO, FILE_SHARE_DELETE,
-                FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_TRAVERSE, FileAttributeTagInfo, FileIdInfo,
-                FileRenameInfo, FileStandardInfo, FlushFileBuffers, GetFileInformationByHandle,
-                READ_CONTROL, SYNCHRONIZE, WRITE_DAC,
+                FILE_ID_INFO, FILE_READ_ATTRIBUTES, FILE_SHARE_DELETE, FILE_SHARE_READ,
+                FILE_SHARE_WRITE, FILE_TRAVERSE, FileAttributeTagInfo, FileIdInfo,
+                FileStandardInfo, FlushFileBuffers, GetFileInformationByHandle, READ_CONTROL,
+                SYNCHRONIZE, WRITE_DAC,
             },
         },
     };
@@ -3562,8 +3576,8 @@ mod win {
     use crate::naming::new_file_lease_artifact_name;
     use crate::windows_nt::{
         FileStandardInfoBytes, NtAbsolutePath, NtCreateOptions, NtRelativeName, OwnedHandle,
-        mark_delete_on_close, nt_create_file, nt_open_file, query_file_information,
-        set_file_information_bytes,
+        mark_delete_on_close, nt_create_file, nt_open_file, nt_open_file_status,
+        nt_set_file_information_bytes, nt_status_to_io_error, query_file_information,
     };
     use crate::winfs::{
         CapturedDacl, apply_file_dacl, capture_file_dacl, owner_only_directory_security,
@@ -3571,7 +3585,9 @@ mod win {
         verify_owner_only_file,
     };
 
-    const DIRECTORY_TRAVERSAL_ACCESS: u32 = FILE_TRAVERSE | FILE_READ_ATTRIBUTES | SYNCHRONIZE;
+    const PREFERRED_DIRECTORY_CAPABILITY_ACCESS: u32 = FILE_TRAVERSE | FILE_READ_ATTRIBUTES;
+    const MINIMUM_DIRECTORY_CAPABILITY_ACCESS: u32 = FILE_READ_ATTRIBUTES;
+    const CREATED_DIRECTORY_ACCESS: u32 = FILE_TRAVERSE | FILE_READ_ATTRIBUTES;
     const PERMISSIVE_SHARING: u32 = FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE;
 
     /// Retained destination-directory capability.
@@ -3580,8 +3596,50 @@ mod win {
     }
 
     impl WinDir {
-        fn traversal_handle(&self) -> HANDLE {
+        pub(crate) fn traversal_handle(&self) -> HANDLE {
             self.handle.as_raw()
+        }
+    }
+
+    impl RealFs {
+        pub(crate) fn open_windows_root(&self, path: &Path) -> io::Result<WinDir> {
+            let path = NtAbsolutePath::parse(path)?;
+            let handle =
+                open_directory_capability(ptr::null_mut(), path.as_slice(), OBJ_CASE_INSENSITIVE)?;
+            validate_directory(handle.as_raw(), false)?;
+            Ok(WinDir { handle })
+        }
+
+        pub(crate) fn open_windows_dir_at(
+            &self,
+            parent: &WinDir,
+            name: &OsStr,
+            follow_links: bool,
+        ) -> io::Result<WinDir> {
+            let name = NtRelativeName::parse_os(name)?;
+            let object_attributes = if follow_links {
+                OBJ_CASE_INSENSITIVE
+            } else {
+                OBJ_CASE_INSENSITIVE | OBJ_DONT_REPARSE
+            };
+            let handle = open_directory_capability(
+                parent.traversal_handle(),
+                name.as_slice(),
+                object_attributes,
+            )
+            .map_err(map_reparse_error)?;
+            validate_directory(handle.as_raw(), !follow_links)?;
+            Ok(WinDir { handle })
+        }
+
+        pub(crate) fn create_and_open_windows_dir_at(
+            &self,
+            parent: &WinDir,
+            name: &OsStr,
+            permissions: DirectoryPermissions,
+        ) -> io::Result<WinDir> {
+            let handle = create_directory_at(parent, name, permissions)?;
+            Ok(WinDir { handle })
         }
     }
 
@@ -3596,17 +3654,7 @@ mod win {
         type Metadata = WinReplaceMetadata;
 
         fn open_root(&self, path: &Path) -> io::Result<WinDir> {
-            let path = NtAbsolutePath::parse(path)?;
-            let handle = nt_open_file(
-                ptr::null_mut(),
-                path.as_slice(),
-                DIRECTORY_TRAVERSAL_ACCESS,
-                PERMISSIVE_SHARING,
-                FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT,
-                OBJ_CASE_INSENSITIVE,
-            )?;
-            validate_directory(handle.as_raw(), false)?;
-            Ok(WinDir { handle })
+            self.open_windows_root(path)
         }
 
         fn open_dir_at(
@@ -3615,29 +3663,7 @@ mod win {
             name: &str,
             follow_links: bool,
         ) -> io::Result<WinDir> {
-            let name = NtRelativeName::parse(name)?;
-            let (open_options, object_attributes) = if follow_links {
-                (
-                    FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT,
-                    OBJ_CASE_INSENSITIVE,
-                )
-            } else {
-                (
-                    FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT,
-                    OBJ_CASE_INSENSITIVE | OBJ_DONT_REPARSE,
-                )
-            };
-            let handle = nt_open_file(
-                parent.traversal_handle(),
-                name.as_slice(),
-                DIRECTORY_TRAVERSAL_ACCESS,
-                PERMISSIVE_SHARING,
-                open_options,
-                object_attributes,
-            )
-            .map_err(map_reparse_error)?;
-            validate_directory(handle.as_raw(), !follow_links)?;
-            Ok(WinDir { handle })
+            self.open_windows_dir_at(parent, OsStr::new(name), follow_links)
         }
 
         fn create_dir_at(
@@ -3646,7 +3672,7 @@ mod win {
             name: &str,
             permissions: DirectoryPermissions,
         ) -> io::Result<()> {
-            drop(create_directory_at(parent, name, permissions)?);
+            drop(create_directory_at(parent, OsStr::new(name), permissions)?);
             Ok(())
         }
 
@@ -3656,8 +3682,7 @@ mod win {
             name: &str,
             permissions: DirectoryPermissions,
         ) -> io::Result<WinDir> {
-            let handle = create_directory_at(parent, name, permissions)?;
-            Ok(WinDir { handle })
+            self.create_and_open_windows_dir_at(parent, OsStr::new(name), permissions)
         }
 
         fn create_file_at(&self, dir: &WinDir, name: &str, owner_only: bool) -> io::Result<File> {
@@ -3745,7 +3770,7 @@ mod win {
                 name.as_slice(),
                 READ_CONTROL | FILE_READ_ATTRIBUTES | SYNCHRONIZE,
                 PERMISSIVE_SHARING,
-                FILE_NON_DIRECTORY_FILE | FILE_OPEN_REPARSE_POINT | FILE_SYNCHRONOUS_IO_NONALERT,
+                FILE_OPEN_REPARSE_POINT | FILE_SYNCHRONOUS_IO_NONALERT,
                 OBJ_CASE_INSENSITIVE,
             ) {
                 Ok(destination) => destination,
@@ -3933,12 +3958,44 @@ mod win {
         Err(error)
     }
 
+    fn open_directory_capability(
+        root: HANDLE,
+        name: &[u16],
+        object_attributes: u32,
+    ) -> io::Result<OwnedHandle> {
+        retry_directory_capability_open(|desired_access| {
+            nt_open_file_status(
+                root,
+                name,
+                desired_access,
+                PERMISSIVE_SHARING,
+                FILE_DIRECTORY_FILE,
+                object_attributes,
+            )
+        })
+        .map_err(nt_status_to_io_error)
+    }
+
+    fn retry_directory_capability_open<T>(
+        mut open: impl FnMut(u32) -> Result<T, NTSTATUS>,
+    ) -> Result<T, NTSTATUS> {
+        match open(PREFERRED_DIRECTORY_CAPABILITY_ACCESS) {
+            // A retained directory is a metadata target and a RootDirectory
+            // anchor, not an I/O stream. Prefer explicit traversal access for
+            // tokens without bypass-traverse privilege, but tolerate
+            // constrained tokens that permit metadata access and
+            // handle-relative lookup while denying FILE_TRAVERSE.
+            Err(STATUS_ACCESS_DENIED) => open(MINIMUM_DIRECTORY_CAPABILITY_ACCESS),
+            result => result,
+        }
+    }
+
     fn create_directory_at(
         parent: &WinDir,
-        name: &str,
+        name: &OsStr,
         permissions: DirectoryPermissions,
     ) -> io::Result<OwnedHandle> {
-        let name = NtRelativeName::parse(name)?;
+        let name = NtRelativeName::parse_os(name)?;
         let security = match permissions {
             DirectoryPermissions::OwnerOnly => Some(owner_only_directory_security()?),
             DirectoryPermissions::ProcessDefault => None,
@@ -3947,7 +4004,7 @@ mod win {
             .as_ref()
             .map_or(ptr::null(), |security| security.descriptor());
         let desired_access =
-            DIRECTORY_TRAVERSAL_ACCESS | READ_CONTROL | if security.is_some() { DELETE } else { 0 };
+            CREATED_DIRECTORY_ACCESS | READ_CONTROL | if security.is_some() { DELETE } else { 0 };
         let handle = nt_create_file(
             parent.traversal_handle(),
             &name,
@@ -3955,12 +4012,13 @@ mod win {
                 desired_access,
                 share_access: PERMISSIVE_SHARING,
                 disposition: FILE_CREATE,
-                create_options: FILE_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT,
+                create_options: FILE_DIRECTORY_FILE,
                 file_attributes: FILE_ATTRIBUTE_NORMAL,
                 object_attributes: OBJ_CASE_INSENSITIVE | OBJ_DONT_REPARSE,
                 security_descriptor,
             },
-        )?;
+        )
+        .map_err(map_reparse_error)?;
         if let Some(expected) = security.as_ref()
             && let Err(error) = verify_owner_only_directory(handle.as_raw(), expected)
         {
@@ -4010,7 +4068,7 @@ mod win {
         };
         WindowsRenameRequest::new(destination_directory, destination_name, mode)
             .map_err(PublicationAttemptError::DefinitelyUnchanged)?
-            .dispatch_with(file, set_file_information_bytes)
+            .dispatch_with(file, nt_set_file_information_bytes)
     }
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -4049,13 +4107,13 @@ mod win {
             // alignment.
             const {
                 assert!(
-                    align_of::<FILE_RENAME_INFO>() <= align_of::<usize>(),
-                    "usize-backed storage must satisfy FILE_RENAME_INFO alignment",
+                    align_of::<FILE_RENAME_INFORMATION>() <= align_of::<usize>(),
+                    "usize-backed storage must satisfy FILE_RENAME_INFORMATION alignment",
                 );
             }
-            let request_len = size_of::<FILE_RENAME_INFO>() + name_bytes;
+            let request_len = size_of::<FILE_RENAME_INFORMATION>() + name_bytes;
             let mut storage = vec![0_usize; request_len.div_ceil(size_of::<usize>())];
-            let info = storage.as_mut_ptr().cast::<FILE_RENAME_INFO>();
+            let info = storage.as_mut_ptr().cast::<FILE_RENAME_INFORMATION>();
             // SAFETY: `info` points at a live, zeroed allocation of at least
             // `request_len` bytes whose alignment the const assertion above
             // proves sufficient for the struct; every write stays inside it.
@@ -4072,7 +4130,7 @@ mod win {
             Ok(Self {
                 storage,
                 request_len,
-                information_class: FileRenameInfo,
+                information_class: FileRenameInformation,
             })
         }
 
@@ -4280,6 +4338,49 @@ mod win {
             }
         }
 
+        #[test]
+        fn retained_directory_open_retries_only_raw_access_denied() {
+            let mut preferred_attempts = Vec::new();
+            let preferred = retry_directory_capability_open(|access| {
+                preferred_attempts.push(access);
+                Ok::<_, NTSTATUS>("preferred")
+            });
+            assert_eq!(preferred, Ok("preferred"));
+            assert_eq!(preferred_attempts, [PREFERRED_DIRECTORY_CAPABILITY_ACCESS]);
+
+            let mut fallback_attempts = Vec::new();
+            let fallback = retry_directory_capability_open(|access| {
+                fallback_attempts.push(access);
+                if fallback_attempts.len() == 1 {
+                    Err(STATUS_ACCESS_DENIED)
+                } else {
+                    Ok("minimum")
+                }
+            });
+            assert_eq!(fallback, Ok("minimum"));
+            assert_eq!(
+                fallback_attempts,
+                [
+                    PREFERRED_DIRECTORY_CAPABILITY_ACCESS,
+                    MINIMUM_DIRECTORY_CAPABILITY_ACCESS,
+                ]
+            );
+
+            let mut delete_pending_attempts = Vec::new();
+            let delete_pending = retry_directory_capability_open(|access| {
+                delete_pending_attempts.push(access);
+                Err::<(), _>(crate::windows_nt::STATUS_DELETE_PENDING)
+            });
+            assert_eq!(
+                delete_pending,
+                Err(crate::windows_nt::STATUS_DELETE_PENDING)
+            );
+            assert_eq!(
+                delete_pending_attempts,
+                [PREFERRED_DIRECTORY_CAPABILITY_ACCESS]
+            );
+        }
+
         /// The strong query must be what a real NTFS volume answers, so the
         /// fallback stays dormant where file IDs exist.
         #[test]
@@ -4302,7 +4403,7 @@ mod win {
         }
 
         #[test]
-        fn prepared_rename_request_encodes_legacy_modes_and_retained_root() {
+        fn prepared_rename_request_encodes_native_modes_and_retained_root() {
             let (directory, _moved) = test_directory("request-encoding");
             let file = File::create(directory.join("stage.tmp"))
                 .expect("staged file handle must be created");
@@ -4324,10 +4425,10 @@ mod win {
                 request
                     .dispatch_with(&file, |handle, information_class, request| {
                         assert_eq!(handle, file.as_raw_handle());
-                        assert_eq!(information_class, FileRenameInfo);
+                        assert_eq!(information_class, FileRenameInformation);
                         assert_eq!(
                             request.len(),
-                            size_of::<FILE_RENAME_INFO>() + expected_name_bytes.len(),
+                            size_of::<FILE_RENAME_INFORMATION>() + expected_name_bytes.len(),
                         );
                         assert_eq!(
                             &request[..size_of::<u32>()],
@@ -4336,10 +4437,11 @@ mod win {
                             } else {
                                 &[0, 0, 0, 0]
                             },
-                            "the legacy boolean and its union padding must be canonical",
+                            "the native boolean and its union padding must be canonical",
                         );
 
-                        let root_offset = std::mem::offset_of!(FILE_RENAME_INFO, RootDirectory);
+                        let root_offset =
+                            std::mem::offset_of!(FILE_RENAME_INFORMATION, RootDirectory);
                         let encoded_root = usize::from_ne_bytes(
                             request[root_offset..root_offset + size_of::<usize>()]
                                 .try_into()
@@ -4347,7 +4449,8 @@ mod win {
                         );
                         assert_eq!(encoded_root, destination_directory as usize);
 
-                        let length_offset = std::mem::offset_of!(FILE_RENAME_INFO, FileNameLength);
+                        let length_offset =
+                            std::mem::offset_of!(FILE_RENAME_INFORMATION, FileNameLength);
                         let encoded_length = u32::from_ne_bytes(
                             request[length_offset..length_offset + size_of::<u32>()]
                                 .try_into()
@@ -4358,7 +4461,7 @@ mod win {
                             size_of_val(expected_name.as_slice())
                         );
 
-                        let name_offset = std::mem::offset_of!(FILE_RENAME_INFO, FileName);
+                        let name_offset = std::mem::offset_of!(FILE_RENAME_INFORMATION, FileName);
                         assert_eq!(
                             &request[name_offset..name_offset + encoded_length as usize],
                             expected_name_bytes.as_slice(),
@@ -4396,7 +4499,7 @@ mod win {
                     let error = request
                         .dispatch_with(&file, |_handle, information_class, request| {
                             calls += 1;
-                            assert_eq!(information_class, FileRenameInfo);
+                            assert_eq!(information_class, FileRenameInformation);
                             assert!(!request.is_empty());
                             Err(io::Error::from_raw_os_error(code as i32))
                         })
@@ -4444,8 +4547,8 @@ mod win {
         }
 
         #[test]
-        fn legacy_replace_overwrites_a_closed_regular_destination() {
-            let (directory, _moved) = test_directory("legacy-replace");
+        fn native_replace_overwrites_a_closed_regular_destination() {
+            let (directory, _moved) = test_directory("native-replace");
             std::fs::write(directory.join("vault.bin"), b"old bytes")
                 .expect("existing destination must be created");
 
@@ -4461,7 +4564,7 @@ mod win {
                     .expect("staged write must succeed");
 
                 fs.rename(&dir, "stage.tmp", &mut staged, "vault.bin", false)
-                    .expect("legacy rename must replace a closed regular destination");
+                    .expect("native rename must replace a closed regular destination");
                 fs.close(staged).expect("staged handle must close");
             }
 
@@ -4475,8 +4578,8 @@ mod win {
         }
 
         #[test]
-        fn legacy_exclusive_create_collision_is_ambiguous_and_preserves_both_files() {
-            let (directory, _moved) = test_directory("legacy-create-collision");
+        fn native_exclusive_create_collision_is_ambiguous_and_preserves_both_files() {
+            let (directory, _moved) = test_directory("native-create-collision");
             std::fs::write(directory.join("vault.bin"), b"existing")
                 .expect("existing destination must be created");
 
@@ -4493,7 +4596,7 @@ mod win {
 
                 let error = fs
                     .rename(&dir, "stage.tmp", &mut staged, "vault.bin", true)
-                    .expect_err("legacy exclusive create must refuse an occupied destination");
+                    .expect_err("native exclusive create must refuse an occupied destination");
                 assert!(
                     matches!(error, PublicationAttemptError::MayHaveMutated(_)),
                     "even a collision returned after dispatch must remain ambiguous",
@@ -4615,7 +4718,7 @@ mod win {
         /// rename, then replace its successful reply with
         /// `ERROR_ACCESS_DENIED`.
         #[test]
-        fn applied_legacy_renames_with_lost_replies_are_ambiguous_and_dispatched_once() {
+        fn applied_native_renames_with_lost_replies_are_ambiguous_and_dispatched_once() {
             for (label, mode, existing_destination) in [
                 (
                     "lost-create-reply",
@@ -4645,7 +4748,7 @@ mod win {
                 let error = request
                     .dispatch_with(&staged, |handle, information_class, request| {
                         calls += 1;
-                        set_file_information_bytes(handle, information_class, request)?;
+                        nt_set_file_information_bytes(handle, information_class, request)?;
                         Err(io::Error::from_raw_os_error(ERROR_ACCESS_DENIED as i32))
                     })
                     .expect_err("the successful rename reply must be hidden");
@@ -4778,6 +4881,35 @@ mod win {
         }
 
         #[test]
+        fn owner_only_file_dacl_round_trips_through_preservation() {
+            let (directory, _) = test_directory("owner-file-preservation");
+            {
+                let fs = RealFs;
+                let root = fs.open_root(&directory).expect("root directory must open");
+                let destination = fs
+                    .create_file_at(&root, "destination.bin", true)
+                    .expect("owner-only destination must be created");
+                fs.close(destination)
+                    .expect("owner-only destination must close");
+                let metadata = fs
+                    .read_replace_metadata(&root, "destination.bin")
+                    .expect("destination DACL must be readable")
+                    .expect("destination must exist");
+                let mut staged = fs
+                    .create_file_at(&root, "staged.bin", true)
+                    .expect("owner-only staged file must be created");
+
+                fs.apply_replace_metadata(&mut staged, &metadata)
+                    .expect("captured destination DACL must apply");
+                fs.verify_replace_metadata(&mut staged, &metadata)
+                    .expect("applied destination DACL must verify exactly");
+                fs.close(staged).expect("staged file must close");
+            }
+
+            let _ = std::fs::remove_dir_all(&directory);
+        }
+
+        #[test]
         fn followed_directory_reparse_is_pinned_and_reject_mode_is_safe() {
             let (directory, moved) = test_directory("reparse");
             let target_a = directory.join("target-a");
@@ -4786,7 +4918,7 @@ mod win {
             std::fs::create_dir(&target_a).expect("first target must be created");
             std::fs::create_dir(&target_b).expect("second target must be created");
             if let Err(error) = std::os::windows::fs::symlink_dir(&target_a, &link) {
-                if error.kind() == io::ErrorKind::PermissionDenied {
+                if crate::windows_symlink_unavailable(&error) {
                     let _ = std::fs::remove_dir_all(&directory);
                     return;
                 }
@@ -4846,7 +4978,7 @@ mod win {
             let link = directory.join("occupied");
             std::fs::write(&target, b"target").expect("target must be created");
             if let Err(error) = std::os::windows::fs::symlink_file(&target, &link) {
-                if error.kind() == io::ErrorKind::PermissionDenied {
+                if crate::windows_symlink_unavailable(&error) {
                     let _ = std::fs::remove_dir_all(&directory);
                     return;
                 }
@@ -4878,7 +5010,7 @@ mod win {
             let destination = directory.join("destination.bin");
             std::fs::write(&target, b"precious").expect("target bytes must be written");
             if let Err(error) = std::os::windows::fs::symlink_file(&target, &destination) {
-                if error.kind() == io::ErrorKind::PermissionDenied {
+                if crate::windows_symlink_unavailable(&error) {
                     let _ = std::fs::remove_dir_all(&directory);
                     return;
                 }
@@ -4920,6 +5052,27 @@ mod win {
                     .file_type()
                     .is_symlink()
             );
+            let _ = std::fs::remove_dir_all(&directory);
+        }
+
+        #[test]
+        fn destination_directory_metadata_is_rejected_as_invalid_input() {
+            let (directory, _) = test_directory("leaf-directory");
+            std::fs::create_dir(directory.join("destination.bin"))
+                .expect("destination directory must be created");
+
+            {
+                let fs = RealFs;
+                let dir = fs
+                    .open_root(&directory)
+                    .expect("directory handle must open");
+                let error = match fs.read_replace_metadata(&dir, "destination.bin") {
+                    Ok(_) => panic!("metadata preservation must reject a destination directory"),
+                    Err(error) => error,
+                };
+                assert_eq!(error.kind(), io::ErrorKind::InvalidInput);
+            }
+
             let _ = std::fs::remove_dir_all(&directory);
         }
     }

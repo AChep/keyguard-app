@@ -2,7 +2,7 @@
 #![cfg(windows)]
 
 use std::{
-    ffi::c_void,
+    ffi::{OsStr, c_void},
     io,
     mem::{ManuallyDrop, size_of, size_of_val},
     os::windows::ffi::OsStrExt as _,
@@ -13,7 +13,7 @@ use std::{
 use windows_sys::{
     Wdk::{
         Foundation::OBJECT_ATTRIBUTES,
-        Storage::FileSystem::{NtCreateFile, NtOpenFile},
+        Storage::FileSystem::{NtCreateFile, NtOpenFile, NtSetInformationFile},
     },
     Win32::{
         Foundation::{
@@ -166,7 +166,13 @@ impl NtRelativeName {
     /// components, separators, alternate-data-stream separators, NULs, or a
     /// name too long for [`UNICODE_STRING`].
     pub(crate) fn parse(name: &str) -> io::Result<Self> {
-        let name: Vec<u16> = name.encode_utf16().collect();
+        Self::parse_os(OsStr::new(name))
+    }
+
+    /// Parses one relative Windows filename without narrowing its UTF-16
+    /// spelling through UTF-8.
+    pub(crate) fn parse_os(name: &OsStr) -> io::Result<Self> {
+        let name: Vec<u16> = name.encode_wide().collect();
         if name.is_empty()
             || name == [b'.' as u16]
             || name == [b'.' as u16, b'.' as u16]
@@ -196,12 +202,13 @@ impl NtRelativeName {
 pub(crate) struct OwnedHandle(HANDLE);
 
 // SAFETY: Windows kernel handles are process-wide capabilities. Moving this
-// uniquely-owned wrapper between threads does not invalidate the handle, and
-// all operations performed through it are synchronized by the OS.
+// uniquely-owned wrapper between threads does not invalidate the handle or
+// transfer any thread-affine state.
 unsafe impl Send for OwnedHandle {}
 
-// SAFETY: Borrowing a live Windows handle from multiple threads is supported
-// by the OS. Ownership and the single `CloseHandle` remain with this wrapper.
+// SAFETY: Windows permits concurrent use of a live handle. Callers remain
+// responsible for any operation-level synchronization; ownership and the
+// single `CloseHandle` stay with this wrapper.
 unsafe impl Sync for OwnedHandle {}
 
 impl OwnedHandle {
@@ -474,17 +481,17 @@ fn disposition_extension_unsupported(error: &io::Error) -> bool {
     )
 }
 
-/// Sets a variable-size file-information buffer on `handle`.
+/// Sets a variable-size native file-information buffer on `handle`.
 ///
-/// This is used for information classes whose Windows structure ends in a
-/// flexible array, such as `FILE_RENAME_INFO`.
+/// This is used for native information classes whose Windows structure ends
+/// in a flexible array, such as `FILE_RENAME_INFORMATION`.
 ///
 /// # Errors
 ///
 /// Returns [`io::ErrorKind::InvalidInput`] when the buffer length cannot be
-/// represented by the Windows API, or the Win32 error reported by
-/// `SetFileInformationByHandle`.
-pub(crate) fn set_file_information_bytes(
+/// represented by the native API, or the Win32 error corresponding to the
+/// unsuccessful NT status returned by `NtSetInformationFile`.
+pub(crate) fn nt_set_file_information_bytes(
     handle: HANDLE,
     information_class: i32,
     information: &[u8],
@@ -495,21 +502,21 @@ pub(crate) fn set_file_information_bytes(
             "information buffer is too long",
         )
     })?;
+    let mut io_status = IO_STATUS_BLOCK::default();
     // SAFETY: `information` is a readable buffer of exactly the supplied
-    // length, and `handle` remains live for the synchronous call.
-    let succeeded = unsafe {
-        SetFileInformationByHandle(
+    // length, `io_status` is writable storage of the expected type, and
+    // `handle` remains live for the synchronous call.
+    let status = unsafe {
+        NtSetInformationFile(
             handle,
-            information_class,
+            &raw mut io_status,
             information.as_ptr().cast::<c_void>(),
             information_length,
+            information_class,
         )
     };
-    if succeeded == 0 {
-        // SAFETY: `GetLastError` is read immediately after the failed call.
-        return Err(io::Error::from_raw_os_error(
-            unsafe { GetLastError() } as i32
-        ));
+    if status < 0 {
+        return Err(nt_status_to_io_error(status));
     }
     Ok(())
 }

@@ -209,6 +209,16 @@ mod tests {
     use super::*;
 
     #[test]
+    fn platform_maximum_matches_the_target_contract() {
+        let expected = if cfg!(windows) {
+            SyncLevel::FileSynchronized
+        } else {
+            SyncLevel::FileAndNamespaceSynchronized
+        };
+        assert_eq!(platform_max_sync_level(), expected);
+    }
+
+    #[test]
     fn achieved_level_degrades_towards_the_weaker_guarantee() {
         assert_eq!(
             AchievedSyncLevel::FileAndNamespaceSynchronized

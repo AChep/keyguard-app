@@ -8,6 +8,7 @@ import java.nio.file.Path
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.exists
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.readBytes
 import kotlin.io.path.writeBytes
 import kotlin.test.AfterTest
@@ -113,18 +114,18 @@ class FileServiceImplTest {
     @Test
     fun `atomicWriteToFile rejects a nonportable selected leaf before writing`() {
         val root = tempDir("file-service-invalid-leaf")
-        val file = root.resolve("payload:stream")
+        val uri = "${root.toUri()}payload%3Astream"
         var invoked = false
 
         val result = service.atomicWriteToFile(
-            uri = file.toUri().toString(),
+            uri = uri,
         ) {
             invoked = true
         }
 
         assertIs<AtomicFileWriteOutcome.Unsupported>(result)
         assertFalse(invoked)
-        assertFalse(file.exists())
+        assertTrue(root.listDirectoryEntries().isEmpty())
     }
 
     @Test

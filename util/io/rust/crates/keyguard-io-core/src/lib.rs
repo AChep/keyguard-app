@@ -4,6 +4,30 @@
 //! lives entirely in this crate on every platform, behind the [`fsops::FsOps`]
 //! fault-injection seam so power-cut behavior is provable in tests.
 
+// The simulated filesystem ignores the real root but production path parsing
+// still validates host syntax before it reaches the simulation.
+#[cfg(all(test, windows))]
+macro_rules! test_absolute_path {
+    ($path:literal) => {
+        concat!("C:", $path)
+    };
+}
+
+#[cfg(all(test, not(windows)))]
+macro_rules! test_absolute_path {
+    ($path:literal) => {
+        $path
+    };
+}
+
+#[cfg(all(test, windows))]
+fn windows_symlink_unavailable(error: &std::io::Error) -> bool {
+    const ERROR_PRIVILEGE_NOT_HELD: i32 = 1_314;
+
+    error.kind() == std::io::ErrorKind::PermissionDenied
+        || error.raw_os_error() == Some(ERROR_PRIVILEGE_NOT_HELD)
+}
+
 pub mod abi;
 pub mod bridge;
 pub mod directory;

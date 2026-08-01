@@ -938,7 +938,7 @@ mod tests {
         );
         std::fs::write(&target, b"precious").expect("target write must succeed");
         if let Err(error) = std::os::windows::fs::symlink_file(&target, &candidate) {
-            if error.kind() == io::ErrorKind::PermissionDenied {
+            if crate::windows_symlink_unavailable(&error) {
                 let _ = std::fs::remove_dir_all(&directory);
                 return;
             }

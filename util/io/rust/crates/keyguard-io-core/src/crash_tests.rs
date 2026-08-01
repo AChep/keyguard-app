@@ -30,7 +30,7 @@ use crate::{
 };
 
 const DEST: &str = "vault.kdbx";
-const DEST_PATH: &str = "/vault.kdbx";
+const DEST_PATH: &str = test_absolute_path!("/vault.kdbx");
 const OLD: &[u8] = b"the complete old vault contents";
 const NEW: &[u8] = b"the complete NEW vault contents, longer than before";
 const OLD_BASIC_PERMISSIONS: u32 = 0o640;
@@ -1671,7 +1671,7 @@ fn created_parent_flush_capability_is_independent_and_fails_before_staging() {
         .build();
     let error = run_protocol_at(
         &fs,
-        "/vault/accounts/vault.kdbx",
+        test_absolute_path!("/vault/accounts/vault.kdbx"),
         create_publication(),
         SyncLevel::FileAndNamespaceSynchronized,
     )
@@ -1764,7 +1764,9 @@ fn directory_link_can_be_followed_and_is_rejected_by_a_no_follow_open() {
         .preexisting_directory("real")
         .preexisting_directory_link("alias", "/real")
         .build();
-    let root = fs.open_root(Path::new("/")).expect("root must open");
+    let root = fs
+        .open_root(Path::new(test_absolute_path!("/")))
+        .expect("root must open");
 
     let followed = fs
         .open_dir_at(&root, "alias", true)
@@ -1802,7 +1804,7 @@ fn retained_directory_handle_survives_an_ancestor_rename() {
         .build();
     let success = run_protocol_at(
         &fs,
-        "/vault/vault.kdbx",
+        test_absolute_path!("/vault/vault.kdbx"),
         create_publication(),
         SyncLevel::FileAndNamespaceSynchronized,
     )
@@ -1829,7 +1831,7 @@ fn concurrent_directory_create_is_reopened_after_already_exists() {
         .build();
     let success = run_protocol_at(
         &fs,
-        "/vault/vault.kdbx",
+        test_absolute_path!("/vault/vault.kdbx"),
         create_publication(),
         SyncLevel::FileAndNamespaceSynchronized,
     )
@@ -1864,7 +1866,7 @@ fn concurrent_directory_link_is_rejected_during_the_already_exists_reopen() {
         .build();
     let error = run_protocol_at(
         &fs,
-        "/vault/vault.kdbx",
+        test_absolute_path!("/vault/vault.kdbx"),
         create_publication(),
         SyncLevel::FileAndNamespaceSynchronized,
     )
@@ -1882,7 +1884,7 @@ fn concurrent_directory_link_is_rejected_during_the_already_exists_reopen() {
 
 #[test]
 fn durable_commit_persists_every_new_parent_component() {
-    const NESTED_DESTINATION: &str = "/vault/accounts/current/vault.kdbx";
+    const NESTED_DESTINATION: &str = test_absolute_path!("/vault/accounts/current/vault.kdbx");
     const NESTED_KEY: &str = "vault/accounts/current/vault.kdbx";
 
     let fs = SimFsBuilder::new().build();
@@ -1913,7 +1915,7 @@ fn parent_flush_failure_happens_before_staging_or_publication() {
         .build();
     let error = run_protocol_at(
         &fs,
-        "/vault/accounts/vault.kdbx",
+        test_absolute_path!("/vault/accounts/vault.kdbx"),
         create_publication(),
         SyncLevel::FileAndNamespaceSynchronized,
     )
@@ -1937,11 +1939,14 @@ fn require_existing_rejects_a_missing_parent_before_staging() {
         SyncLevel::FileAndNamespaceSynchronized,
     );
     options.parent_directory = ParentDirectoryPolicy::RequireExisting;
-    let error =
-        match AtomicWriteTxn::begin(fs.clone(), Path::new("/vault/accounts/vault.kdbx"), options) {
-            Ok(_) => panic!("the explicit existing-parent policy must not create directories"),
-            Err(error) => error,
-        };
+    let error = match AtomicWriteTxn::begin(
+        fs.clone(),
+        Path::new(test_absolute_path!("/vault/accounts/vault.kdbx")),
+        options,
+    ) {
+        Ok(_) => panic!("the explicit existing-parent policy must not create directories"),
+        Err(error) => error,
+    };
 
     assert_eq!(error.operation(), Operation::PrepareParent);
     assert_eq!(error.failure().kind(), FailureKind::NotFound);
@@ -2102,7 +2107,9 @@ fn sidecar_fallback_creates_lease_before_data_and_removes_both() {
 #[test]
 fn forced_v1s_named_scratch_removes_data_then_sidecar_before_releasing_lease() {
     let fs = SimFsBuilder::new().without_directory_locks().build();
-    let dir = fs.open_root(Path::new("/")).expect("root must open");
+    let dir = fs
+        .open_root(Path::new(test_absolute_path!("/")))
+        .expect("root must open");
     let CreatedStaged {
         name,
         file: mut staged,
@@ -2163,7 +2170,9 @@ fn forced_v1s_named_scratch_cleanup_faults_preserve_safe_partitions_and_release_
                 io::ErrorKind::PermissionDenied,
             )
             .build();
-        let dir = fs.open_root(Path::new("/")).expect("root must open");
+        let dir = fs
+            .open_root(Path::new(test_absolute_path!("/")))
+            .expect("root must open");
         let CreatedStaged {
             name,
             file: mut staged,
@@ -2208,7 +2217,9 @@ fn forced_v1s_named_scratch_cleanup_faults_preserve_safe_partitions_and_release_
         .without_directory_locks()
         .fault(SimOp::ReleaseLease, 0, io::ErrorKind::Other)
         .build();
-    let dir = fs.open_root(Path::new("/")).expect("root must open");
+    let dir = fs
+        .open_root(Path::new(test_absolute_path!("/")))
+        .expect("root must open");
     let CreatedStaged {
         name,
         file: mut staged,
@@ -2238,7 +2249,9 @@ fn forced_v1s_named_scratch_cleanup_faults_preserve_safe_partitions_and_release_
 #[test]
 fn forced_v1s_named_scratch_crash_projections_never_contain_data_only() {
     let fs = SimFsBuilder::new().without_directory_locks().build();
-    let dir = fs.open_root(Path::new("/")).expect("root must open");
+    let dir = fs
+        .open_root(Path::new(test_absolute_path!("/")))
+        .expect("root must open");
     let CreatedStaged {
         name,
         file: mut staged,

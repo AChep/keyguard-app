@@ -10,9 +10,7 @@ use std::path::Path;
 
 use crate::{
     directory::{AtomicDirectory, RelativeDestination},
-    durability::{
-        AchievedSyncLevel, SyncLevel, SyncPolicy, SyncPolicyError, platform_max_sync_level,
-    },
+    durability::{AchievedSyncLevel, SyncLevel, SyncPolicy, SyncPolicyError},
     error::{FailureKind, FileSystemFailure, Operation, TxnError},
     fsops::{
         AmbiguousPublicationCleanup, FileIdentity, FlushKind, FlushOutcome, FsOps,
@@ -400,21 +398,22 @@ impl<F: FsOps> AtomicWriteTxn<F> {
     /// before a failure are deliberately retained.
     /// Synchronization capability negotiation completes before parent
     /// traversal or staged-file creation. [`SyncPolicy::Prefer`] may select a
-    /// weaker level only because the advertised platform maximum is weaker;
+    /// weaker level only because the backend's advertised maximum is weaker;
     /// runtime I/O failures never trigger a downgrade.
     ///
     /// # Errors
     ///
     /// Returns a [`TxnError`] without filesystem access when the policy is
-    /// invalid or its required/minimum level exceeds the platform maximum.
+    /// invalid or its required/minimum level exceeds the backend maximum.
     /// Later failures retain the same publication-state contract as
     /// [`AtomicWriteTxn::begin`].
     pub fn begin(fs: F, destination: &Path, options: AtomicWriteOptions) -> Result<Self, TxnError> {
+        let advertised_maximum = fs.advertised_sync_level_ceiling();
         Self::begin_with_platform_maximum_internal(
             fs,
             destination,
             options,
-            platform_max_sync_level(),
+            advertised_maximum,
             true,
         )
     }
@@ -446,9 +445,10 @@ impl<F: FsOps> AtomicWriteTxn<F> {
             ));
         }
         validate_destination_name(destination.file_name())?;
+        let advertised_maximum = fs.advertised_sync_level_ceiling();
         let sync_level = options
             .synchronization
-            .negotiate(platform_max_sync_level())
+            .negotiate(advertised_maximum)
             .map_err(sync_policy_error)?;
         let prepared_parent = prepare_parent_at(
             &fs,
@@ -1094,6 +1094,8 @@ impl<F: FsOps> Drop for AtomicWriteTxn<F> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(windows)]
+    use crate::fsops::RealFs;
     use crate::simfs::{NamespaceMutation, SimFlushSupport, SimFsBuilder, SimOp};
 
     fn options(
@@ -1111,11 +1113,88 @@ mod tests {
     }
 
     #[test]
+    fn simulator_advertises_its_modeled_namespace_ceiling() {
+        let fs = SimFsBuilder::new().build();
+        assert_eq!(
+            fs.advertised_sync_level_ceiling(),
+            SyncLevel::FileAndNamespaceSynchronized,
+        );
+    }
+
+    #[test]
+    fn simulator_ceiling_is_used_by_both_public_transaction_entry_points() {
+        let absolute_fs = SimFsBuilder::new().build();
+        let mut absolute_txn = AtomicWriteTxn::begin(
+            absolute_fs,
+            Path::new(test_absolute_path!("/absolute.bin")),
+            options(
+                ExistingParentLinkPolicy::Reject,
+                SyncPolicy::Required(SyncLevel::FileAndNamespaceSynchronized),
+            ),
+        )
+        .expect("the simulated backend must admit namespace synchronization");
+        absolute_txn
+            .write(b"absolute")
+            .expect("absolute write must succeed");
+        let absolute_success = absolute_txn.commit().expect("absolute commit must succeed");
+        assert_eq!(
+            absolute_success.achieved(),
+            Some(AchievedSyncLevel::FileAndNamespaceSynchronized),
+        );
+
+        let relative_fs = SimFsBuilder::new().preexisting_directory("trusted").build();
+        let directory =
+            AtomicDirectory::open(&relative_fs, Path::new(test_absolute_path!("/trusted")))
+                .expect("simulated root must open");
+        let mut relative_txn = AtomicWriteTxn::begin_at_directory(
+            relative_fs,
+            &directory,
+            RelativeDestination::parse("relative.bin").expect("relative path must parse"),
+            options(
+                ExistingParentLinkPolicy::Reject,
+                SyncPolicy::Required(SyncLevel::FileAndNamespaceSynchronized),
+            ),
+        )
+        .expect("the retained-directory entry point must use the backend ceiling");
+        relative_txn
+            .write(b"relative")
+            .expect("relative write must succeed");
+        let relative_success = relative_txn.commit().expect("relative commit must succeed");
+        assert_eq!(
+            relative_success.achieved(),
+            Some(AchievedSyncLevel::FileAndNamespaceSynchronized),
+        );
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_real_fs_keeps_the_production_ceiling_during_unit_tests() {
+        assert_eq!(
+            RealFs.advertised_sync_level_ceiling(),
+            SyncLevel::FileSynchronized,
+        );
+
+        let error = match AtomicWriteTxn::begin(
+            RealFs,
+            Path::new("relative.bin"),
+            options(
+                ExistingParentLinkPolicy::Reject,
+                SyncPolicy::Required(SyncLevel::FileAndNamespaceSynchronized),
+            ),
+        ) {
+            Ok(_) => panic!("Windows RealFs must reject namespace synchronization"),
+            Err(error) => error,
+        };
+        assert_eq!(error.operation(), Operation::Begin);
+        assert_eq!(error.failure().kind(), FailureKind::DurabilityUnavailable);
+    }
+
+    #[test]
     fn unsupported_required_level_fails_before_filesystem_access() {
         let fs = SimFsBuilder::new().build();
         let error = match AtomicWriteTxn::begin_with_platform_maximum(
             fs.clone(),
-            Path::new("/vault.bin"),
+            Path::new(test_absolute_path!("/vault.bin")),
             options(
                 ExistingParentLinkPolicy::Reject,
                 SyncPolicy::Required(SyncLevel::FileAndNamespaceSynchronized),
@@ -1139,7 +1218,7 @@ mod tests {
         let fs = SimFsBuilder::new().build();
         let mut txn = AtomicWriteTxn::begin_with_platform_maximum(
             fs.clone(),
-            Path::new("/vault.bin"),
+            Path::new(test_absolute_path!("/vault.bin")),
             options(
                 ExistingParentLinkPolicy::Reject,
                 SyncPolicy::Prefer {
@@ -1172,7 +1251,7 @@ mod tests {
             .build();
         let mut txn = AtomicWriteTxn::begin(
             fs.clone(),
-            Path::new("/vault.bin"),
+            Path::new(test_absolute_path!("/vault.bin")),
             options(
                 ExistingParentLinkPolicy::Reject,
                 SyncPolicy::Prefer {
@@ -1215,7 +1294,7 @@ mod tests {
         ] {
             let error = match AtomicWriteTxn::begin(
                 fs.clone(),
-                Path::new("/vault.bin"),
+                Path::new(test_absolute_path!("/vault.bin")),
                 options(
                     ExistingParentLinkPolicy::Reject,
                     SyncPolicy::Required(SyncLevel::FileAndNamespaceSynchronized),
@@ -1252,7 +1331,7 @@ mod tests {
 
         let error = match AtomicWriteTxn::begin(
             fs.clone(),
-            Path::new("/missing/nested/vault.bin"),
+            Path::new(test_absolute_path!("/missing/nested/vault.bin")),
             write_options,
         ) {
             Ok(_) => panic!("known namespace shortfall must fail before parent creation"),
@@ -1284,7 +1363,7 @@ mod tests {
             let fs = SimFsBuilder::new().file_flush_support(support).build();
             let mut txn = AtomicWriteTxn::begin(
                 fs.clone(),
-                Path::new("/vault.bin"),
+                Path::new(test_absolute_path!("/vault.bin")),
                 options(
                     ExistingParentLinkPolicy::Reject,
                     SyncPolicy::Prefer {
@@ -1316,7 +1395,7 @@ mod tests {
             .build();
         let mut txn = AtomicWriteTxn::begin(
             fs.clone(),
-            Path::new("/vault.bin"),
+            Path::new(test_absolute_path!("/vault.bin")),
             options(
                 ExistingParentLinkPolicy::Reject,
                 SyncPolicy::Required(SyncLevel::FileSynchronized),
@@ -1345,7 +1424,7 @@ mod tests {
             .build();
         let error = match AtomicWriteTxn::begin(
             rejected_fs.clone(),
-            Path::new("/alias/vault.bin"),
+            Path::new(test_absolute_path!("/alias/vault.bin")),
             options(
                 ExistingParentLinkPolicy::Reject,
                 SyncPolicy::Required(SyncLevel::ProcessAtomic),
@@ -1368,7 +1447,7 @@ mod tests {
             .build();
         let txn = AtomicWriteTxn::begin(
             followed_fs.clone(),
-            Path::new("/alias/vault.bin"),
+            Path::new(test_absolute_path!("/alias/vault.bin")),
             options(
                 ExistingParentLinkPolicy::FollowAndPin,
                 SyncPolicy::Required(SyncLevel::ProcessAtomic),
@@ -1401,7 +1480,7 @@ mod tests {
                 NamespaceMutation::create_directory_link("/", "selected", "/evil"),
             )
             .build();
-        let directory = AtomicDirectory::open(&fs, Path::new("/selected"))
+        let directory = AtomicDirectory::open(&fs, Path::new(test_absolute_path!("/selected")))
             .expect("selected root must be pinned");
         let write_options = AtomicWriteOptions {
             publication: PublishPolicy::Create {
@@ -1445,7 +1524,7 @@ mod tests {
                 NamespaceMutation::rename_entry("/", "trusted", "renamed"),
             )
             .build();
-        let directory = AtomicDirectory::open(&fs, Path::new("/trusted"))
+        let directory = AtomicDirectory::open(&fs, Path::new(test_absolute_path!("/trusted")))
             .expect("selected root must be pinned");
 
         let mut txn = AtomicWriteTxn::begin_at_directory(
@@ -1482,7 +1561,7 @@ mod tests {
                 NamespaceMutation::create_directory_link("/trusted", "nested", "/evil"),
             )
             .build();
-        let directory = AtomicDirectory::open(&fs, Path::new("/trusted"))
+        let directory = AtomicDirectory::open(&fs, Path::new(test_absolute_path!("/trusted")))
             .expect("selected root must be pinned");
 
         let error = match AtomicWriteTxn::begin_at_directory(
@@ -1509,7 +1588,7 @@ mod tests {
     #[test]
     fn begin_at_directory_rejects_follow_policy_before_filesystem_access() {
         let fs = SimFsBuilder::new().preexisting_directory("trusted").build();
-        let directory = AtomicDirectory::open(&fs, Path::new("/trusted"))
+        let directory = AtomicDirectory::open(&fs, Path::new(test_absolute_path!("/trusted")))
             .expect("selected root must be pinned");
         let operation_count = fs.operations().len();
 
@@ -1551,9 +1630,14 @@ mod tests {
             ".kg-tmp-not-a-real-artifact",
         ] {
             let absolute_fs = SimFsBuilder::new().build();
+            let absolute_name = if cfg!(windows) {
+                format!("C:/{name}")
+            } else {
+                format!("/{name}")
+            };
             let error = match AtomicWriteTxn::begin(
                 absolute_fs.clone(),
-                Path::new(&format!("/{name}")),
+                Path::new(&absolute_name),
                 options(
                     ExistingParentLinkPolicy::Reject,
                     SyncPolicy::Required(SyncLevel::ProcessAtomic),
@@ -1570,8 +1654,9 @@ mod tests {
             );
 
             let relative_fs = SimFsBuilder::new().preexisting_directory("vault").build();
-            let directory = AtomicDirectory::open(&relative_fs, Path::new("/vault"))
-                .expect("root must be pinned");
+            let directory =
+                AtomicDirectory::open(&relative_fs, Path::new(test_absolute_path!("/vault")))
+                    .expect("root must be pinned");
             let operation_count = relative_fs.operations().len();
             let error = match AtomicWriteTxn::begin_at_directory(
                 relative_fs.clone(),
@@ -1601,8 +1686,8 @@ mod tests {
     #[test]
     fn reserved_names_are_refused_in_nested_destinations() {
         let fs = SimFsBuilder::new().preexisting_directory("vault").build();
-        let directory =
-            AtomicDirectory::open(&fs, Path::new("/vault")).expect("root must be pinned");
+        let directory = AtomicDirectory::open(&fs, Path::new(test_absolute_path!("/vault")))
+            .expect("root must be pinned");
 
         let error = match AtomicWriteTxn::begin_at_directory(
             fs,
@@ -1625,9 +1710,14 @@ mod tests {
     fn ordinary_destinations_resembling_the_prefix_remain_writable() {
         for name in ["vault.kdbx", "kg-tmp-vault", "my.kg-tmp-vault", ".kg-tmp"] {
             let fs = SimFsBuilder::new().build();
+            let absolute_name = if cfg!(windows) {
+                format!("C:/{name}")
+            } else {
+                format!("/{name}")
+            };
             let mut txn = AtomicWriteTxn::begin(
                 fs,
-                Path::new(&format!("/{name}")),
+                Path::new(&absolute_name),
                 options(
                     ExistingParentLinkPolicy::Reject,
                     SyncPolicy::Required(SyncLevel::ProcessAtomic),
@@ -1646,7 +1736,7 @@ mod tests {
             .build();
         let txn = AtomicWriteTxn::begin_with_platform_maximum(
             fs,
-            Path::new("/vault.bin"),
+            Path::new(test_absolute_path!("/vault.bin")),
             options(
                 ExistingParentLinkPolicy::Reject,
                 SyncPolicy::Required(SyncLevel::ProcessAtomic),
@@ -1673,7 +1763,7 @@ mod tests {
             .build();
         let mut txn = AtomicWriteTxn::begin(
             fs,
-            Path::new("/vault.bin"),
+            Path::new(test_absolute_path!("/vault.bin")),
             options(
                 ExistingParentLinkPolicy::Reject,
                 SyncPolicy::Required(SyncLevel::FileAndNamespaceSynchronized),
@@ -1705,7 +1795,7 @@ mod tests {
             .build();
         let mut txn = AtomicWriteTxn::begin(
             fs,
-            Path::new("/vault.bin"),
+            Path::new(test_absolute_path!("/vault.bin")),
             options(
                 ExistingParentLinkPolicy::Reject,
                 SyncPolicy::Required(SyncLevel::ProcessAtomic),

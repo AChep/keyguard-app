@@ -13,6 +13,7 @@ use std::{
 };
 
 use crate::{
+    durability::SyncLevel,
     fsops::{
         AmbiguousPublicationCleanup, CreatedStaged, FileIdentity, FlushKind, FlushOutcome, FsOps,
         PublicationAttemptError, PublicationUnknownCleanup, StagedCreationError,
@@ -1225,6 +1226,10 @@ impl FsOps for SimFs {
     type Dir = SimDir;
     type File = SimFile;
     type Metadata = SimMetadata;
+
+    fn advertised_sync_level_ceiling(&self) -> SyncLevel {
+        SyncLevel::FileAndNamespaceSynchronized
+    }
 
     fn open_root(&self, _path: &Path) -> io::Result<SimDir> {
         self.enter(SimOp::OpenRoot)?;

@@ -90,7 +90,7 @@ class EncryptedFilePendingUploadServiceJvmTest {
     }
 
     @Test
-    fun `stage deletes managed source file after successful staging`() = runTest {
+    fun `stage discards managed source only after namespace-synchronized staging`() = runTest {
         val root = createTempDirectory("pending-upload-service").toRealPath()
         val source = root.resolve("drop-source.bin").also {
             it.writeBytes("plain".encodeToByteArray())
@@ -110,9 +110,14 @@ class EncryptedFilePendingUploadServiceJvmTest {
             fileKey = "key".encodeToByteArray(),
         )
 
-        assertEquals(listOf(source.toUri().toString()), fileService.deletedManagedSources)
-        assertFalse(source.exists())
-        assertEquals(pendingRoot.resolve("send-1.bin").toString(), pendingUpload.path)
+        if (isWindowsHost()) {
+            assertEquals(emptyList(), fileService.deletedManagedSources)
+            assertTrue(source.exists())
+        } else {
+            assertEquals(listOf(source.toUri().toString()), fileService.deletedManagedSources)
+            assertFalse(source.exists())
+        }
+        assertEquals(pendingRoot.resolve("send-1.bin"), Path.of(pendingUpload.path))
         assertContentEquals("plain".encodeToByteArray(), File(pendingUpload.path).readBytes())
         assertContentEquals(
             "plain".encodeToByteArray(),
@@ -395,8 +400,10 @@ class EncryptedFilePendingUploadReadAndSweepTest {
         assertTrue(artifacts.otherAccountOrphan.exists())
         assertTrue(artifacts.otherNamespaceOrphan.exists())
         assertEquals(
-            listOf(artifacts.targetDir.toLocalPath(), artifacts.targetDir.toLocalPath()),
-            nativeSweepDirectories,
+            listOf(artifacts.targetDir, artifacts.targetDir),
+            nativeSweepDirectories.map { directory ->
+                Path.of(directory.value).toAbsolutePath().normalize()
+            },
         )
         assertFalse(artifacts.staleStagingTemp.exists())
         assertTrue(artifacts.recentStagingTemp.exists())
@@ -650,6 +657,9 @@ private class CopyingFileEncryptionCodec : FileEncryptionCodec {
 
 private fun String.toPath(): String =
     java.net.URI(this).let(::File).path
+
+private fun isWindowsHost(): Boolean =
+    System.getProperty("os.name").orEmpty().startsWith("Windows", ignoreCase = true)
 
 private fun Path.writeArtifact(
     modifiedAt: Instant,

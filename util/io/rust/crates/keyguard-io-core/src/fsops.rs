@@ -723,11 +723,14 @@ mod posix {
     /// Whether an Android platform version's seccomp allowlist admits
     /// `renameat2`.
     ///
-    /// It entered `SECCOMP_WHITELIST_COMMON.TXT` in API 28 (Android 9); on API
-    /// 26 and 27 the number is in no allowlist and is therefore trapped.
+    /// It is present for every architecture in API 26's
+    /// `SECCOMP_WHITELIST.TXT`. This gate only establishes that the syscall is
+    /// safe to issue: an older kernel may still return `ENOSYS`, and a
+    /// filesystem without `RENAME_NOREPLACE` may return `EINVAL`. Both are
+    /// classified at runtime as absent capabilities.
     #[cfg(any(target_os = "android", test))]
     const fn android_exclusive_rename_permitted(api_level: u32) -> bool {
-        api_level >= 28
+        api_level >= 26
     }
 
     /// Whether an Android platform version's seccomp allowlist admits `statx`.
@@ -2583,9 +2586,11 @@ mod posix {
         /// Every documented capability refusal must both be reported as
         /// pre-mutation and be recognized as unsupported, because
         /// `AtomicWriteTxn::commit` requires *both* to reach
-        /// `publish_via_hard_link`. Classifying one without the other silently
-        /// disables the fallback for the filesystems it exists to serve — NFS,
-        /// FUSE below protocol 7.23, overlayfs, SMB, exFAT, macFUSE.
+        /// `publish_via_hard_link`. `ENOSYS` is also the expected answer from
+        /// an allowlisted Android release whose kernel predates `renameat2`.
+        /// Classifying one without the other silently disables the fallback
+        /// for the kernels and filesystems it exists to serve — NFS, FUSE
+        /// below protocol 7.23, overlayfs, SMB, exFAT, macFUSE.
         #[test]
         fn capability_refusals_authorize_the_hard_link_fallback() {
             for errno in [libc::ENOSYS, libc::EINVAL, libc::ENOTSUP, libc::EOPNOTSUPP] {
@@ -3025,9 +3030,8 @@ mod posix {
             let _ = std::fs::remove_dir_all(directory);
         }
 
-        /// The hard-link fallback is the whole Create-mode publication path on
-        /// filesystems without an exclusive rename, and — since `renameat2` is
-        /// withheld below API 28 — on Android 8.0 and 8.1 as well. Until now it
+        /// The hard-link fallback is the Create-mode publication path on
+        /// kernels and filesystems without an exclusive rename. Until now it
         /// was exercised only by the simulator, so this pins the real-kernel
         /// behavior the fallback depends on: `linkat` publishes the retained
         /// bytes, refuses an occupied destination without disturbing it, and
@@ -3548,13 +3552,13 @@ mod posix {
         /// must close both gates.
         #[test]
         fn android_raw_syscall_gates_match_the_bionic_allowlist_versions() {
-            for level in [0, 26, 27] {
+            for level in [0, 25] {
                 assert!(
                     !android_exclusive_rename_permitted(level),
                     "renameat2 is trapped at API {level}"
                 );
             }
-            for level in [28, 29, 30, 36] {
+            for level in [26, 27, 28, 29, 30, 36] {
                 assert!(
                     android_exclusive_rename_permitted(level),
                     "renameat2 is allowlisted at API {level}"

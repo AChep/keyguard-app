@@ -156,8 +156,8 @@ impl TryFrom<i32> for ParentDirectoryPolicy {
 pub enum ExistingParentLinkPolicy {
     /// Reject every linked existing parent component.
     Reject = 0,
-    /// Resolve each existing linked component once and retain the resulting
-    /// directory capability for the rest of the transaction.
+    /// Resolve existing links while selecting the parent, then retain the
+    /// final selected directory capability for the rest of the transaction.
     FollowAndPin = 1,
 }
 

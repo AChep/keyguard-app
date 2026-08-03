@@ -212,6 +212,16 @@ unsafe impl Send for OwnedHandle {}
 unsafe impl Sync for OwnedHandle {}
 
 impl OwnedHandle {
+    /// Takes ownership of one valid, uniquely-owned Windows handle.
+    ///
+    /// # Safety
+    ///
+    /// `handle` must be valid, non-null, different from
+    /// `INVALID_HANDLE_VALUE`, and owned exactly once by the caller.
+    pub(crate) const unsafe fn from_raw_owned(handle: HANDLE) -> Self {
+        Self(handle)
+    }
+
     pub(crate) const fn as_raw(&self) -> HANDLE {
         self.0
     }

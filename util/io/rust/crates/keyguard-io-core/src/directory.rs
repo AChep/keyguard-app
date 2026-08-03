@@ -1,10 +1,9 @@
 //! Retained directory capabilities and strict relative destinations.
 //!
-//! An [`AtomicDirectory`] resolves a caller-selected absolute directory once,
-//! following links while selecting that trust boundary, and then retains every
-//! native directory handle in the resolved chain. Transactions opened beneath
-//! it accept only [`RelativeDestination`] values and reject links or mount
-//! crossings in every descendant parent component.
+//! An [`AtomicDirectory`] opens and retains a caller-selected absolute
+//! directory, following links while selecting that trust boundary.
+//! Transactions opened beneath it accept only [`RelativeDestination`] values
+//! and reject links or mount crossings in every descendant parent component.
 
 use std::{
     path::{Component, Path, PathBuf},
@@ -18,17 +17,17 @@ use crate::{
 
 /// A retained, caller-selected directory trust boundary.
 ///
-/// Clones share the same native handle chain. Removing an FFI registry handle
+/// Clones share the same native handle. Removing an FFI registry handle
 /// therefore cannot invalidate transactions that already cloned the
 /// capability.
 pub struct AtomicDirectory<D> {
-    chain: Arc<Vec<D>>,
+    directory: Arc<D>,
 }
 
 impl<D> Clone for AtomicDirectory<D> {
     fn clone(&self) -> Self {
         Self {
-            chain: Arc::clone(&self.chain),
+            directory: Arc::clone(&self.directory),
         }
     }
 }
@@ -37,8 +36,8 @@ impl<D> AtomicDirectory<D> {
     /// Resolves and pins an existing absolute directory.
     ///
     /// Links in `path` are followed while selecting the caller-trusted root.
-    /// Every resulting directory handle is retained for the capability's
-    /// lifetime.
+    /// The selected directory handle is retained for the capability's
+    /// lifetime; its absolute ancestors are not opened individually.
     ///
     /// # Errors
     ///
@@ -48,26 +47,17 @@ impl<D> AtomicDirectory<D> {
     where
         F: FsOps<Dir = D>,
     {
-        let (root, components) = split_absolute_path(path)?;
-        let root = fs
-            .open_root(&root)
+        split_absolute_path(path)?;
+        let directory = fs
+            .open_root(path)
             .map_err(|error| TxnError::from_io_error(Operation::PrepareParent, &error))?;
-        let mut chain = Vec::with_capacity(components.len() + 1);
-        chain.push(root);
-        for component in components {
-            let parent = chain.last().ok_or_else(TxnError::bridge_internal)?;
-            let child = fs
-                .open_dir_at(parent, &component, true)
-                .map_err(|error| TxnError::from_io_error(Operation::PrepareParent, &error))?;
-            chain.push(child);
-        }
         Ok(Self {
-            chain: Arc::new(chain),
+            directory: Arc::new(directory),
         })
     }
 
     pub(crate) fn dir(&self) -> Result<&D, TxnError> {
-        self.chain.last().ok_or_else(TxnError::bridge_internal)
+        Ok(&self.directory)
     }
 }
 
@@ -174,6 +164,29 @@ fn invalid_relative_path() -> TxnError {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(unix)]
+    #[test]
+    fn retained_directory_opens_through_search_only_ancestor() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let mut nonce = [0_u8; 8];
+        getrandom::fill(&mut nonce).expect("test nonce generation must succeed");
+        let nonce: String = nonce.iter().map(|byte| format!("{byte:02x}")).collect();
+        let base = std::env::temp_dir().join(format!("keyguard-directory-{nonce}"));
+        let ancestor = base.join("search-only");
+        let selected = ancestor.join("selected");
+        std::fs::create_dir_all(&selected).expect("test directory must be created");
+        std::fs::set_permissions(&ancestor, std::fs::Permissions::from_mode(0o111))
+            .expect("ancestor must become search-only");
+
+        let opened = AtomicDirectory::open(&crate::fsops::RealFs, &selected);
+
+        std::fs::set_permissions(&ancestor, std::fs::Permissions::from_mode(0o700))
+            .expect("ancestor permissions must be restored");
+        std::fs::remove_dir_all(&base).expect("test directory must be removed");
+        opened.expect("the selected directory must open through a search-only ancestor");
+    }
 
     #[test]
     fn relative_destination_accepts_portable_descendants() {

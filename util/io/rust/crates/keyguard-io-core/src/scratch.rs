@@ -368,12 +368,23 @@ mod platform {
 
         fn open_root(&self, path: &Path) -> io::Result<Self::Dir>;
 
+        fn open_root_no_follow_final(&self, path: &Path) -> io::Result<Self::Dir>;
+
         fn open_dir_at(
             &self,
             parent: &Self::Dir,
             name: &OsStr,
             follow_links: bool,
         ) -> io::Result<Self::Dir>;
+
+        fn open_dir_at_for_traversal(
+            &self,
+            parent: &Self::Dir,
+            name: &OsStr,
+            follow_links: bool,
+        ) -> io::Result<Self::Dir>;
+
+        fn reopen_dir(&self, directory: &Self::Dir) -> io::Result<Self::Dir>;
 
         fn create_and_open_dir_at(
             &self,
@@ -390,6 +401,10 @@ mod platform {
             self.open_windows_root(path)
         }
 
+        fn open_root_no_follow_final(&self, path: &Path) -> io::Result<Self::Dir> {
+            self.open_windows_root_no_follow_final(path)
+        }
+
         fn open_dir_at(
             &self,
             parent: &Self::Dir,
@@ -397,6 +412,19 @@ mod platform {
             follow_links: bool,
         ) -> io::Result<Self::Dir> {
             self.open_windows_dir_at(parent, name, follow_links)
+        }
+
+        fn open_dir_at_for_traversal(
+            &self,
+            parent: &Self::Dir,
+            name: &OsStr,
+            follow_links: bool,
+        ) -> io::Result<Self::Dir> {
+            self.open_windows_dir_at_for_traversal(parent, name, follow_links)
+        }
+
+        fn reopen_dir(&self, directory: &Self::Dir) -> io::Result<Self::Dir> {
+            self.reopen_windows_dir(directory)
         }
 
         fn create_and_open_dir_at(
@@ -417,6 +445,10 @@ mod platform {
             crate::fsops::FsOps::open_root(self, path)
         }
 
+        fn open_root_no_follow_final(&self, path: &Path) -> io::Result<Self::Dir> {
+            self.open_root_no_follow_final(path)
+        }
+
         fn open_dir_at(
             &self,
             parent: &Self::Dir,
@@ -425,6 +457,20 @@ mod platform {
         ) -> io::Result<Self::Dir> {
             let name = name.to_str().ok_or_else(invalid_scratch_root)?;
             crate::fsops::FsOps::open_dir_at(self, parent, name, follow_links)
+        }
+
+        fn open_dir_at_for_traversal(
+            &self,
+            parent: &Self::Dir,
+            name: &OsStr,
+            follow_links: bool,
+        ) -> io::Result<Self::Dir> {
+            let name = name.to_str().ok_or_else(invalid_scratch_root)?;
+            crate::fsops::FsOps::open_dir_at_for_traversal(self, parent, name, follow_links)
+        }
+
+        fn reopen_dir(&self, directory: &Self::Dir) -> io::Result<Self::Dir> {
+            crate::fsops::FsOps::reopen_dir(self, directory)
         }
 
         fn create_and_open_dir_at(
@@ -438,12 +484,8 @@ mod platform {
         }
     }
 
-    /// Opens or creates every component beneath a retained filesystem root.
-    ///
-    /// Existing ancestor links are resolved once and pinned by the returned
-    /// directory handle. A link that appears after a component was observed
-    /// missing loses the exclusive-create race and is rejected by the
-    /// no-follow reopen. The final component is never followed.
+    /// Splits a validated absolute scratch-root spelling into its platform root
+    /// and ordinary components.
     fn split_absolute_path(directory: &Path) -> io::Result<(PathBuf, Vec<OsString>)> {
         if !directory.is_absolute() {
             return Err(invalid_scratch_root());
@@ -477,35 +519,69 @@ mod platform {
         io::Error::new(io::ErrorKind::InvalidInput, "invalid scratch root path")
     }
 
+    /// Opens an existing root directly, or creates missing components beneath
+    /// the deepest retained existing ancestor.
+    ///
+    /// Existing ancestor links are resolved once and pinned by the returned
+    /// directory handle. A link that appears after a component was observed
+    /// missing loses the exclusive-create race and is rejected by the
+    /// no-follow reopen. The final component is never followed.
     pub(super) fn open_or_create_directory<F: ScratchDirectoryFs>(
         fs: &F,
         directory: &Path,
     ) -> io::Result<F::Dir> {
-        // Preserve the strict path syntax accepted by the previous absolute
-        // native open before splitting the spelling into retained components.
         NtAbsolutePath::parse(directory)?;
         let (root, components) = split_absolute_path(directory)?;
-        let mut current = fs.open_root(&root)?;
+        match fs.open_root_no_follow_final(directory) {
+            Ok(directory) => return Ok(directory),
+            Err(error) if error.kind() == io::ErrorKind::NotFound => {}
+            Err(error) => return Err(error),
+        }
 
+        let mut current = fs.open_root(&root)?;
+        let mut depth = 0;
+        let mut traversal_only = false;
         for (index, component) in components.iter().enumerate() {
-            let is_final = index + 1 == components.len();
-            let follow_existing = !is_final;
-            let next = match fs.open_dir_at(&current, component, follow_existing) {
-                Ok(directory) => directory,
-                Err(error) if error.kind() == io::ErrorKind::NotFound => {
-                    match fs.create_and_open_dir_at(
-                        &current,
-                        component,
-                        DirectoryPermissions::ProcessDefault,
-                    ) {
-                        Ok(directory) => directory,
-                        Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {
-                            fs.open_dir_at(&current, component, false)?
-                        }
-                        Err(error) => return Err(error),
-                    }
+            let follow_links = index + 1 != components.len();
+            match fs.open_dir_at_for_traversal(&current, component, follow_links) {
+                Ok(directory) => {
+                    current = directory;
+                    depth = index + 1;
+                    traversal_only = true;
                 }
+                Err(error) if error.kind() == io::ErrorKind::NotFound => break,
                 Err(error) => return Err(error),
+            }
+        }
+        if traversal_only {
+            current = fs.reopen_dir(&current)?;
+        }
+
+        let first_missing_observed = depth < components.len();
+        for (index, component) in components[depth..].iter().enumerate() {
+            let existing = if first_missing_observed && index == 0 {
+                None
+            } else {
+                match fs.open_dir_at(&current, component, false) {
+                    Ok(directory) => Some(directory),
+                    Err(error) if error.kind() == io::ErrorKind::NotFound => None,
+                    Err(error) => return Err(error),
+                }
+            };
+            let next = if let Some(directory) = existing {
+                directory
+            } else {
+                match fs.create_and_open_dir_at(
+                    &current,
+                    component,
+                    DirectoryPermissions::ProcessDefault,
+                ) {
+                    Ok(directory) => directory,
+                    Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {
+                        fs.open_dir_at(&current, component, false)?
+                    }
+                    Err(error) => return Err(error),
+                }
             };
             current = next;
         }

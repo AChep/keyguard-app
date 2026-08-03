@@ -4,8 +4,8 @@
 //! lives entirely in this crate on every platform, behind the [`fsops::FsOps`]
 //! fault-injection seam so power-cut behavior is provable in tests.
 
-// The simulated filesystem ignores the real root but production path parsing
-// still validates host syntax before it reaches the simulation.
+// The simulated filesystem validates host absolute-path syntax and resolves
+// every component beneath its single virtual root.
 #[cfg(all(test, windows))]
 macro_rules! test_absolute_path {
     ($path:literal) => {

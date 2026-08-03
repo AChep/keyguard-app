@@ -13,6 +13,7 @@ use std::{
 };
 
 use crate::{
+    directory::split_absolute_path,
     durability::SyncLevel,
     fsops::{
         AmbiguousPublicationCleanup, CreatedStaged, FileIdentity, FlushKind, FlushOutcome, FsOps,
@@ -473,6 +474,29 @@ impl SimState {
                 .ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))?;
             directory_id = match directory.volatile.get(component) {
                 Some(Entry::Directory(inode) | Entry::DirectoryLink(inode)) => *inode,
+                Some(Entry::File(_)) => {
+                    return Err(io::Error::from(io::ErrorKind::NotADirectory));
+                }
+                None => return Err(io::Error::from(io::ErrorKind::NotFound)),
+            };
+        }
+        Ok(directory_id)
+    }
+
+    #[cfg(all(test, windows))]
+    fn resolve_directory_no_follow_final(&self, components: &[String]) -> io::Result<u64> {
+        let mut directory_id = ROOT_DIRECTORY;
+        for (index, component) in components.iter().enumerate() {
+            let directory = self
+                .directories
+                .get(&directory_id)
+                .ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))?;
+            directory_id = match directory.volatile.get(component) {
+                Some(Entry::Directory(inode)) => *inode,
+                Some(Entry::DirectoryLink(inode)) if index + 1 != components.len() => *inode,
+                Some(Entry::DirectoryLink(_)) => {
+                    return Err(io::Error::from(io::ErrorKind::InvalidInput));
+                }
                 Some(Entry::File(_)) => {
                     return Err(io::Error::from(io::ErrorKind::NotADirectory));
                 }
@@ -1021,6 +1045,16 @@ impl SimFsBuilder {
 }
 
 impl SimFs {
+    #[cfg(all(test, windows))]
+    pub(crate) fn open_root_no_follow_final(&self, path: &Path) -> io::Result<SimDir> {
+        self.enter(SimOp::OpenRoot)?;
+        let (_, components) =
+            split_absolute_path(path).map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
+        let state = self.state.lock().expect("simulation lock");
+        let inode = state.resolve_directory_no_follow_final(&components)?;
+        Ok(SimDir { inode })
+    }
+
     pub fn operations(&self) -> Vec<SimOperation> {
         self.state
             .lock()
@@ -1231,11 +1265,13 @@ impl FsOps for SimFs {
         SyncLevel::FileAndNamespaceSynchronized
     }
 
-    fn open_root(&self, _path: &Path) -> io::Result<SimDir> {
+    fn open_root(&self, path: &Path) -> io::Result<SimDir> {
         self.enter(SimOp::OpenRoot)?;
-        Ok(SimDir {
-            inode: ROOT_DIRECTORY,
-        })
+        let (_, components) =
+            split_absolute_path(path).map_err(|_| io::Error::from(io::ErrorKind::InvalidInput))?;
+        let state = self.state.lock().expect("simulation lock");
+        let inode = state.resolve_directory(&components)?;
+        Ok(SimDir { inode })
     }
 
     fn open_dir_at(&self, parent: &SimDir, name: &str, follow_links: bool) -> io::Result<SimDir> {
@@ -1252,6 +1288,12 @@ impl FsOps for SimFs {
             Some(Entry::File(_)) => Err(io::Error::from(io::ErrorKind::NotADirectory)),
             None => Err(io::Error::from(io::ErrorKind::NotFound)),
         }
+    }
+
+    fn reopen_dir(&self, directory: &SimDir) -> io::Result<SimDir> {
+        Ok(SimDir {
+            inode: directory.inode,
+        })
     }
 
     fn create_dir_at(

@@ -273,7 +273,7 @@ pub trait FsOps {
         platform_max_sync_level()
     }
 
-    /// Opens the absolute filesystem root used to resolve a destination.
+    /// Opens and retains an absolute caller-selected directory.
     fn open_root(&self, path: &Path) -> io::Result<Self::Dir>;
 
     /// Opens one child directory relative to `parent`.
@@ -286,6 +286,44 @@ pub trait FsOps {
         name: &str,
         follow_links: bool,
     ) -> io::Result<Self::Dir>;
+
+    /// Opens one child for use only as a path-resolution anchor.
+    ///
+    /// Implementations may return a handle with fewer rights than an ordinary
+    /// directory capability so search-only ancestors remain traversable.
+    fn open_dir_at_for_traversal(
+        &self,
+        parent: &Self::Dir,
+        name: &str,
+        follow_links: bool,
+    ) -> io::Result<Self::Dir> {
+        self.open_dir_at(parent, name, follow_links)
+    }
+
+    /// Reopens the exact retained directory as an operational capability.
+    ///
+    /// This upgrades a traversal-only handle without resolving its former
+    /// pathname again, so concurrent ancestor renames cannot redirect later
+    /// creation or synchronization.
+    fn reopen_dir(&self, directory: &Self::Dir) -> io::Result<Self::Dir>;
+
+    /// Opens a non-empty descendant path without following links or crossing
+    /// mounts in any component.
+    ///
+    /// Native implementations should resolve the path as one operation where
+    /// possible, or use traversal-only capabilities for intermediate
+    /// directories. The returned final directory must support every ordinary
+    /// [`FsOps`] directory operation, including synchronization.
+    fn open_dir_path_at(&self, parent: &Self::Dir, components: &[String]) -> io::Result<Self::Dir> {
+        let (first, rest) = components
+            .split_first()
+            .ok_or_else(|| io::Error::from(io::ErrorKind::InvalidInput))?;
+        let mut directory = self.open_dir_at(parent, first, false)?;
+        for component in rest {
+            directory = self.open_dir_at(&directory, component, false)?;
+        }
+        Ok(directory)
+    }
 
     /// Creates one child directory relative to `parent`.
     fn create_dir_at(
@@ -829,6 +867,48 @@ mod posix {
         Ok(unsafe { OwnedFd::from_raw_fd(fd) })
     }
 
+    fn openat_traversal_directory(
+        parent_fd: RawFd,
+        name: &std::ffi::CStr,
+        no_follow: bool,
+    ) -> io::Result<OwnedFd> {
+        #[cfg(any(target_os = "linux", target_os = "android"))]
+        let access = libc::O_PATH;
+        #[cfg(any(
+            target_os = "aix",
+            target_os = "freebsd",
+            target_os = "illumos",
+            target_os = "netbsd",
+            target_os = "solaris",
+            target_vendor = "apple",
+        ))]
+        let access = libc::O_SEARCH;
+        #[cfg(not(any(
+            target_os = "aix",
+            target_os = "android",
+            target_os = "freebsd",
+            target_os = "illumos",
+            target_os = "linux",
+            target_os = "netbsd",
+            target_os = "solaris",
+            target_vendor = "apple",
+        )))]
+        let access = libc::O_RDONLY;
+
+        let mut flags = access | libc::O_DIRECTORY | libc::O_CLOEXEC;
+        if no_follow {
+            flags |= libc::O_NOFOLLOW;
+        }
+        // SAFETY: The name is NUL-terminated, the parent descriptor is valid,
+        // and the call has no out-pointer arguments.
+        let fd = unsafe { libc::openat(parent_fd, name.as_ptr(), flags) };
+        if fd < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        // SAFETY: `openat` returned a new, uniquely-owned descriptor.
+        Ok(unsafe { OwnedFd::from_raw_fd(fd) })
+    }
+
     #[cfg(target_os = "linux")]
     fn openat2_directory_without_links_or_mounts(
         parent_fd: RawFd,
@@ -988,6 +1068,48 @@ mod posix {
         Ok(child)
     }
 
+    fn openat_directory_path_without_links_or_mounts(
+        parent_fd: RawFd,
+        components: &[String],
+    ) -> io::Result<OwnedFd> {
+        if components.is_empty() {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
+
+        // Resolve the complete path in-kernel when available. Besides being
+        // faster, this asks read permission only of the selected final
+        // directory on platforms with path/search-only handles while applying
+        // the no-link/no-mount policy to every component.
+        #[cfg(target_os = "linux")]
+        {
+            let path = CString::new(components.join("/"))
+                .map_err(|_| io::Error::from_raw_os_error(libc::EINVAL))?;
+            match openat2_directory_without_links_or_mounts(parent_fd, &path) {
+                Ok(fd) => return Ok(fd),
+                Err(error)
+                    if classify_openat2_error(&error)
+                        == OpenAt2ErrorAction::FallBackToMountIdValidation => {}
+                Err(error) => return Err(error),
+            }
+        }
+
+        let mut current = None::<OwnedFd>;
+        for (index, component) in components.iter().enumerate() {
+            let name = c_name(component)?;
+            let parent_fd = current.as_ref().map_or(parent_fd, AsRawFd::as_raw_fd);
+            let child = if index + 1 == components.len() {
+                openat_directory(parent_fd, &name, true)?
+            } else {
+                openat_traversal_directory(parent_fd, &name, true)?
+            };
+            let parent_identity = mount_identity(parent_fd)?;
+            let child_identity = mount_identity(child.as_raw_fd())?;
+            ensure_same_mount(&parent_identity, &child_identity)?;
+            current = Some(child);
+        }
+        current.ok_or_else(|| io::Error::from(io::ErrorKind::InvalidInput))
+    }
+
     impl FsOps for RealFs {
         type Dir = PosixDir;
         type File = PosixFile;
@@ -1023,6 +1145,37 @@ mod posix {
             } else {
                 openat_directory_without_links_or_mounts(parent.fd.as_raw_fd(), &name)?
             };
+            Ok(PosixDir { fd })
+        }
+
+        fn open_dir_at_for_traversal(
+            &self,
+            parent: &PosixDir,
+            name: &str,
+            follow_links: bool,
+        ) -> io::Result<PosixDir> {
+            let name = c_name(name)?;
+            let fd = openat_traversal_directory(parent.fd.as_raw_fd(), &name, !follow_links)?;
+            if !follow_links {
+                let parent_identity = mount_identity(parent.fd.as_raw_fd())?;
+                let child_identity = mount_identity(fd.as_raw_fd())?;
+                ensure_same_mount(&parent_identity, &child_identity)?;
+            }
+            Ok(PosixDir { fd })
+        }
+
+        fn reopen_dir(&self, directory: &PosixDir) -> io::Result<PosixDir> {
+            let fd = openat_directory(directory.fd.as_raw_fd(), c".", false)?;
+            Ok(PosixDir { fd })
+        }
+
+        fn open_dir_path_at(
+            &self,
+            parent: &PosixDir,
+            components: &[String],
+        ) -> io::Result<PosixDir> {
+            let fd =
+                openat_directory_path_without_links_or_mounts(parent.fd.as_raw_fd(), components)?;
             Ok(PosixDir { fd })
         }
 
@@ -3552,18 +3705,18 @@ mod win {
         },
         Win32::{
             Foundation::{
-                ERROR_FILE_NOT_FOUND, ERROR_INVALID_FUNCTION, ERROR_INVALID_PARAMETER,
-                ERROR_NOT_SUPPORTED, ERROR_REPARSE_POINT_ENCOUNTERED, GENERIC_READ, GENERIC_WRITE,
-                GetLastError, HANDLE, NTSTATUS, OBJ_CASE_INSENSITIVE, OBJ_DONT_REPARSE,
-                STATUS_ACCESS_DENIED,
+                ERROR_ACCESS_DENIED, ERROR_FILE_NOT_FOUND, ERROR_INVALID_FUNCTION,
+                ERROR_INVALID_PARAMETER, ERROR_NOT_SUPPORTED, ERROR_REPARSE_POINT_ENCOUNTERED,
+                GENERIC_READ, GENERIC_WRITE, GetLastError, HANDLE, INVALID_HANDLE_VALUE, NTSTATUS,
+                OBJ_CASE_INSENSITIVE, OBJ_DONT_REPARSE, STATUS_ACCESS_DENIED,
             },
             Storage::FileSystem::{
                 BY_HANDLE_FILE_INFORMATION, DELETE, FILE_ATTRIBUTE_DIRECTORY,
                 FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_REPARSE_POINT, FILE_ATTRIBUTE_TAG_INFO,
-                FILE_ID_INFO, FILE_READ_ATTRIBUTES, FILE_SHARE_DELETE, FILE_SHARE_READ,
-                FILE_SHARE_WRITE, FILE_TRAVERSE, FileAttributeTagInfo, FileIdInfo,
+                FILE_FLAG_BACKUP_SEMANTICS, FILE_ID_INFO, FILE_READ_ATTRIBUTES, FILE_SHARE_DELETE,
+                FILE_SHARE_READ, FILE_SHARE_WRITE, FILE_TRAVERSE, FileAttributeTagInfo, FileIdInfo,
                 FileStandardInfo, FlushFileBuffers, GetFileInformationByHandle, READ_CONTROL,
-                SYNCHRONIZE, WRITE_DAC,
+                ReOpenFile, SYNCHRONIZE, WRITE_DAC,
             },
         },
     };
@@ -3610,6 +3763,23 @@ mod win {
             Ok(WinDir { handle })
         }
 
+        pub(crate) fn open_windows_root_no_follow_final(&self, path: &Path) -> io::Result<WinDir> {
+            let path = NtAbsolutePath::parse(path)?;
+            let handle = retry_directory_capability_open(|desired_access| {
+                nt_open_file_status(
+                    ptr::null_mut(),
+                    path.as_slice(),
+                    desired_access,
+                    PERMISSIVE_SHARING,
+                    FILE_DIRECTORY_FILE | FILE_OPEN_REPARSE_POINT,
+                    OBJ_CASE_INSENSITIVE,
+                )
+            })
+            .map_err(nt_status_to_io_error)?;
+            validate_directory(handle.as_raw(), true)?;
+            Ok(WinDir { handle })
+        }
+
         pub(crate) fn open_windows_dir_at(
             &self,
             parent: &WinDir,
@@ -3629,6 +3799,48 @@ mod win {
             )
             .map_err(map_reparse_error)?;
             validate_directory(handle.as_raw(), !follow_links)?;
+            Ok(WinDir { handle })
+        }
+
+        pub(crate) fn open_windows_dir_at_for_traversal(
+            &self,
+            parent: &WinDir,
+            name: &OsStr,
+            follow_links: bool,
+        ) -> io::Result<WinDir> {
+            let name = NtRelativeName::parse_os(name)?;
+            let object_attributes = if follow_links {
+                OBJ_CASE_INSENSITIVE
+            } else {
+                OBJ_CASE_INSENSITIVE | OBJ_DONT_REPARSE
+            };
+            let handle = open_directory_for_traversal(
+                parent.traversal_handle(),
+                name.as_slice(),
+                object_attributes,
+            )
+            .map_err(map_reparse_error)?;
+            Ok(WinDir { handle })
+        }
+
+        pub(crate) fn reopen_windows_dir(&self, directory: &WinDir) -> io::Result<WinDir> {
+            reopen_directory_capability(directory.traversal_handle())
+                .map(|handle| WinDir { handle })
+        }
+
+        pub(crate) fn open_windows_dir_path_at(
+            &self,
+            parent: &WinDir,
+            components: &[String],
+        ) -> io::Result<WinDir> {
+            let path = windows_relative_path(components)?;
+            let handle = open_directory_capability(
+                parent.traversal_handle(),
+                &path,
+                OBJ_CASE_INSENSITIVE | OBJ_DONT_REPARSE,
+            )
+            .map_err(map_reparse_error)?;
+            validate_directory(handle.as_raw(), true)?;
             Ok(WinDir { handle })
         }
 
@@ -3664,6 +3876,23 @@ mod win {
             follow_links: bool,
         ) -> io::Result<WinDir> {
             self.open_windows_dir_at(parent, OsStr::new(name), follow_links)
+        }
+
+        fn open_dir_at_for_traversal(
+            &self,
+            parent: &WinDir,
+            name: &str,
+            follow_links: bool,
+        ) -> io::Result<WinDir> {
+            self.open_windows_dir_at_for_traversal(parent, OsStr::new(name), follow_links)
+        }
+
+        fn reopen_dir(&self, directory: &WinDir) -> io::Result<WinDir> {
+            self.reopen_windows_dir(directory)
+        }
+
+        fn open_dir_path_at(&self, parent: &WinDir, components: &[String]) -> io::Result<WinDir> {
+            self.open_windows_dir_path_at(parent, components)
         }
 
         fn create_dir_at(
@@ -3974,6 +4203,78 @@ mod win {
             )
         })
         .map_err(nt_status_to_io_error)
+    }
+
+    fn open_directory_for_traversal(
+        root: HANDLE,
+        name: &[u16],
+        object_attributes: u32,
+    ) -> io::Result<OwnedHandle> {
+        let open = |desired_access| {
+            nt_open_file_status(
+                root,
+                name,
+                desired_access,
+                PERMISSIVE_SHARING,
+                FILE_DIRECTORY_FILE,
+                object_attributes,
+            )
+        };
+        match open(FILE_TRAVERSE) {
+            Err(STATUS_ACCESS_DENIED) => open(FILE_READ_ATTRIBUTES),
+            result => result,
+        }
+        .map_err(nt_status_to_io_error)
+    }
+
+    fn reopen_directory_capability(handle: HANDLE) -> io::Result<OwnedHandle> {
+        let reopen = |desired_access| {
+            // SAFETY: `handle` is a live retained directory handle. The
+            // returned handle, when successful, is a new reference to that
+            // exact directory and is transferred into `OwnedHandle`.
+            let reopened = unsafe {
+                ReOpenFile(
+                    handle,
+                    desired_access,
+                    PERMISSIVE_SHARING,
+                    FILE_FLAG_BACKUP_SEMANTICS,
+                )
+            };
+            if reopened == INVALID_HANDLE_VALUE {
+                return Err(io::Error::last_os_error());
+            }
+            // SAFETY: `ReOpenFile` returned a valid, uniquely-owned handle.
+            Ok(unsafe { OwnedHandle::from_raw_owned(reopened) })
+        };
+
+        match reopen(PREFERRED_DIRECTORY_CAPABILITY_ACCESS) {
+            Err(error) if error.raw_os_error() == Some(ERROR_ACCESS_DENIED as i32) => {
+                reopen(MINIMUM_DIRECTORY_CAPABILITY_ACCESS)
+            }
+            result => result,
+        }
+    }
+
+    fn windows_relative_path(components: &[String]) -> io::Result<Vec<u16>> {
+        if components.is_empty() {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
+        let mut path = Vec::new();
+        for (index, component) in components.iter().enumerate() {
+            if index != 0 {
+                path.push(b'\\' as u16);
+            }
+            let component = NtRelativeName::parse(component)?;
+            path.extend_from_slice(component.as_slice());
+        }
+        if path
+            .len()
+            .checked_mul(size_of::<u16>())
+            .is_none_or(|length| length > usize::from(u16::MAX))
+        {
+            return Err(io::Error::from(io::ErrorKind::InvalidInput));
+        }
+        Ok(path)
     }
 
     fn retry_directory_capability_open<T>(

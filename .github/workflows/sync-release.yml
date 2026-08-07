@@ -44,9 +44,7 @@ jobs:
         run: |
           TAG="${{ steps.upstream.outputs.tag }}"
           # Check if tag exists locally
-          EXISTS=$(gh release list -R "$LOCAL_REPO" --limit 50 --json tagName \
-            --jq --arg t "$TAG" '[.[] | select(.tagName == $t)] | length')
-          if [ "$EXISTS" -gt 0 ]; then
+          if gh release view "$TAG" -R "$LOCAL_REPO" >/dev/null 2>&1; then
             echo "already_synced=true" >> "$GITHUB_OUTPUT"
           else
             echo "already_synced=false" >> "$GITHUB_OUTPUT"

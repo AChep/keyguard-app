@@ -1156,7 +1156,7 @@ dependencies = [
  "pkcs8",
  "proptest",
  "prost",
- "rand 0.8.7",
+ "rand 0.9.5",
  "rc2",
  "salsa20",
  "sec1",

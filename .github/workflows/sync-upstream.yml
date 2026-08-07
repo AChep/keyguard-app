@@ -63,6 +63,7 @@ jobs:
         if: steps.check.outputs.upstream_changed == 'true'
         run: |
           git add -A
+          git reset HEAD -- .github/workflows/
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else

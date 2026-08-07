@@ -12,6 +12,11 @@ if ! grep -q '^androidNdk' gradle/libs.versions.toml; then
   sed -i '/^\[versions\]/a androidNdk = "27.0.12077973"' gradle/libs.versions.toml
 fi
 
+# Ensure :util:crypto module is included (needed by cracked androidApp/build.gradle.kts)
+if ! grep -q "':util:crypto'" settings.gradle; then
+  sed -i "/include ':util:foundation'/i include ':util:crypto'" settings.gradle
+fi
+
 # Overwrite upstream files with cracked versions
 cp "$PATCH_DIR/androidApp/.gitignore" androidApp/.gitignore
 cp "$PATCH_DIR/androidApp/build.gradle.kts" androidApp/build.gradle.kts

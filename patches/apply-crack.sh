@@ -14,7 +14,8 @@ fi
 
 # Ensure :util:crypto module is included (needed by cracked androidApp/build.gradle.kts)
 if ! grep -q "':util:crypto'" settings.gradle; then
-  sed -i "/include ':util:foundation'/i include ':util:crypto'" settings.gradle
+  # Insert before the first include line
+  sed -i "0,/^include /s/^include /include ':util:crypto'\ninclude /" settings.gradle
 fi
 
 # Overwrite upstream files with cracked versions

@@ -12,7 +12,34 @@ if ! grep -q '^androidNdk' gradle/libs.versions.toml; then
   sed -i '/^\[versions\]/a androidNdk = "27.0.12077973"' gradle/libs.versions.toml
 fi
 
-# Ensure :util:crypto works even if upstream tag lacks the directory
+# Ensure google-services.json exists (required by google-services plugin)
+if [ ! -f "androidApp/google-services.json" ]; then
+  cat > androidApp/google-services.json << 'GSJSON'
+{
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "keyguard-placeholder",
+    "storage_bucket": "keyguard-placeholder.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+        "android_client_info": {
+          "package_name": "com.artemchep.keyguard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        { "current_key": "AIzaSyPlaceholderKeyForBuild00" }
+      ],
+      "services": {}
+    }
+  ],
+  "configuration_version": "1"
+}
+GSJSON
+fi
 if [ ! -d "util/crypto" ]; then
   mkdir -p util/crypto
   echo "" > util/crypto/build.gradle

@@ -92,6 +92,7 @@ jobs:
       - name: "Apply crack patches"
         if: steps.synced.outputs.already_synced == 'false'
         run: |
+          mkdir -p patches
           cp -r /tmp/patches/* patches/
           chmod +x patches/apply-crack.sh
           ./patches/apply-crack.sh

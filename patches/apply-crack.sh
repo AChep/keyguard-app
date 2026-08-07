@@ -16,13 +16,17 @@ fi
 if [ ! -d "util/crypto" ]; then
   mkdir -p util/crypto
   echo "" > util/crypto/build.gradle
-  sed -i '/:util:crypto/d' androidApp/build.gradle.kts
 fi
 
 # Overwrite upstream files with cracked versions
 cp "$PATCH_DIR/androidApp/.gitignore" androidApp/.gitignore
 cp "$PATCH_DIR/androidApp/build.gradle.kts" androidApp/build.gradle.kts
 cp "$PATCH_DIR/androidApp/keyguard-release.keystore" androidApp/keyguard-release.keystore
+
+# Strip :util:crypto ref from cracked build.gradle.kts if module doesn't exist
+if [ ! -d "util/crypto" ]; then
+  sed -i '/:util:crypto/d' androidApp/build.gradle.kts
+fi
 cp "$PATCH_DIR/common/src/commonMain/kotlin/com/artemchep/keyguard/common/service/settings/impl/SettingsRepositoryImpl.kt" \
    common/src/commonMain/kotlin/com/artemchep/keyguard/common/service/settings/impl/SettingsRepositoryImpl.kt
 cp "$PATCH_DIR/common/src/commonMain/kotlin/com/artemchep/keyguard/common/usecase/GetPurchased.kt" \

@@ -12,8 +12,10 @@ if ! grep -q '^androidNdk' gradle/libs.versions.toml; then
   sed -i '/^\[versions\]/a androidNdk = "27.0.12077973"' gradle/libs.versions.toml
 fi
 
-# Ensure :util:crypto module reference is stripped if module doesn't exist
+# Ensure :util:crypto works even if upstream tag lacks the directory
 if [ ! -d "util/crypto" ]; then
+  mkdir -p util/crypto
+  echo "" > util/crypto/build.gradle
   sed -i '/:util:crypto/d' androidApp/build.gradle.kts
 fi
 

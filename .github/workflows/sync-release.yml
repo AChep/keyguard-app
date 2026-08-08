@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: "0 8 * * *"
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Upstream tag to sync (e.g. r20260616)"
+        required: false
 permissions:
   contents: write
 
@@ -12,8 +16,11 @@ env:
   LOCAL_REPO: Elnix90/keyguard-app
 
 jobs:
-  check-and-build:
+  check:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.upstream.outputs.tag }}
+      should_build: ${{ steps.synced.outputs.already_synced == 'false' && steps.upstream.outputs.found == 'true' }}
     steps:
       - name: "Fetch upstream releases"
         id: upstream
@@ -25,7 +32,6 @@ jobs:
             echo "tag=$TAG" >> "$GITHUB_OUTPUT"
             echo "found=true" >> "$GITHUB_OUTPUT"
           else
-            # Get latest upstream release tag
             TAG=$(gh release list -R "$UPSTREAM_REPO" --limit 5 --json tagName,publishedAt \
               --jq 'sort_by(.publishedAt) | reverse | .[0].tagName // empty')
             if [ -n "$TAG" ]; then
@@ -43,54 +49,43 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ steps.upstream.outputs.tag }}"
-          # Check if tag exists locally
           if gh release view "$TAG" -R "$LOCAL_REPO" >/dev/null 2>&1; then
             echo "already_synced=true" >> "$GITHUB_OUTPUT"
           else
             echo "already_synced=false" >> "$GITHUB_OUTPUT"
           fi
 
+  build-apk:
+    needs: check
+    if: needs.check.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    steps:
       - name: "Checkout"
-        if: steps.synced.outputs.already_synced == 'false'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Setup Gradle"
-        if: steps.synced.outputs.already_synced == 'false'
         uses: ./.github/actions/setup_gradle
 
-      - name: "Setup Linux desktop"
-        if: steps.synced.outputs.already_synced == 'false'
-        uses: ./.github/actions/setup_linux_desktop
-
-      - name: "Install protoc"
-        if: steps.synced.outputs.already_synced == 'false'
-        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
-
       - name: "Setup Rust toolchain"
-        if: steps.synced.outputs.already_synced == 'false'
         uses: ./.github/actions/setup_rust
 
       - name: "Prefetch native crypto"
-        if: steps.synced.outputs.already_synced == 'false'
         run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
 
       - name: "Fetch upstream code at tag"
-        if: steps.synced.outputs.already_synced == 'false'
         env:
-          TAG: ${{ steps.upstream.outputs.tag }}
+          TAG: ${{ needs.check.outputs.tag }}
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
           git fetch upstream --tags
-          # Save patches from current master before checkout
           mkdir -p /tmp/patches
           cp -r patches/* /tmp/patches/
           git checkout "$TAG"
 
       - name: "Apply crack patches"
-        if: steps.synced.outputs.already_synced == 'false'
         run: |
           mkdir -p patches
           cp -r /tmp/patches/* patches/
@@ -98,25 +93,80 @@ jobs:
           ./patches/apply-crack.sh
 
       - name: "Prepare version"
-        if: steps.synced.outputs.already_synced == 'false'
         env:
-          TAG: ${{ steps.upstream.outputs.tag }}
+          TAG: ${{ needs.check.outputs.tag }}
         run: |
-          # Extract version from tag (remove leading 'd' or 'r')
           APP_VERSION=$(echo "$TAG" | sed 's/^[dr]//')
           echo "" >> gradle.properties
           echo "versionRef=$TAG" >> gradle.properties
           echo "buildkonfig.flavor=release" >> gradle.properties
-          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: "Build APK"
-        if: steps.synced.outputs.already_synced == 'false'
         run: >-
           ./gradlew :androidApp:assembleNoneRelease
           -Pkeyguard.nativeCrypto.cargoOffline=true
 
+      - name: "Upload APK"
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: androidApp/build/outputs/apk/none/release/*.apk
+          if-no-files-found: error
+          retention-days: 1
+
+  build-desktop:
+    needs: check
+    if: needs.check.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "Setup Gradle"
+        uses: ./.github/actions/setup_gradle
+
+      - name: "Setup Linux desktop"
+        uses: ./.github/actions/setup_linux_desktop
+
+      - name: "Install protoc"
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+
+      - name: "Prefetch native crypto"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+
+      - name: "Fetch upstream code at tag"
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
+          git fetch upstream --tags
+          mkdir -p /tmp/patches
+          cp -r patches/* /tmp/patches/
+          git checkout "$TAG"
+
+      - name: "Apply crack patches"
+        run: |
+          mkdir -p patches
+          cp -r /tmp/patches/* patches/
+          chmod +x patches/apply-crack.sh
+          ./patches/apply-crack.sh
+
+      - name: "Prepare version"
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
+        run: |
+          APP_VERSION=$(echo "$TAG" | sed 's/^[dr]//')
+          echo "" >> gradle.properties
+          echo "versionRef=$TAG" >> gradle.properties
+          echo "buildkonfig.flavor=release" >> gradle.properties
+
       - name: "Build DEB + RPM"
-        if: steps.synced.outputs.already_synced == 'false'
         run: >-
           ./gradlew
           :desktopApp:packageReleaseDeb
@@ -124,53 +174,96 @@ jobs:
           -Pkeyguard.nativeCrypto.cargoOffline=true
 
       - name: "Install rpmbuild"
-        if: steps.synced.outputs.already_synced == 'false'
         run: sudo apt-get update && sudo apt-get install -y rpm
 
       - name: "Build RPM"
-        if: steps.synced.outputs.already_synced == 'false'
         env:
-          TAG: ${{ steps.upstream.outputs.tag }}
+          TAG: ${{ needs.check.outputs.tag }}
         run: |
           APP_VERSION=$(echo "$TAG" | sed 's/^[dr]//')
           TARBALL=$(ls desktopApp/build/compose/binaries/main/release/Keyguard-*.tar.gz)
           SOURCES="$PWD/rpmbuild/SOURCES"
           mkdir -p "$SOURCES"
           cp "$TARBALL" "$SOURCES/keyguard-${APP_VERSION}.tar.gz"
-
           rpmbuild -ba packaging/keyguard.spec \
             --define "_app_version ${APP_VERSION}" \
             --define "_topdir $PWD/rpmbuild" \
             --define "_sourcedir $SOURCES"
 
+      - name: "Upload DEB"
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: desktopApp/build/compose/binaries/main/deb/*.deb
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: "Upload RPM"
+        uses: actions/upload-artifact@v4
+        with:
+          name: rpm
+          path: rpmbuild/RPMS/**/*.rpm
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    needs: [check, build-apk, build-desktop]
+    if: always() && needs.check.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Download all artifacts"
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
       - name: "Create GitHub release"
-        if: steps.synced.outputs.already_synced == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.upstream.outputs.tag }}
+          TAG: ${{ needs.check.outputs.tag }}
         run: |
-          APK=$(ls androidApp/build/outputs/apk/none/release/*.apk 2>/dev/null | head -1)
-          DEB=$(ls desktopApp/build/compose/binaries/main/deb/*.deb 2>/dev/null | head -1)
-          RPM=$(ls rpmbuild/RPMS/**/*.rpm 2>/dev/null | head -1)
-
           ASSETS=""
-          [ -n "$APK" ] && ASSETS="$ASSETS $APK"
-          [ -n "$DEB" ] && ASSETS="$ASSETS $DEB"
-          [ -n "$RPM" ] && ASSETS="$ASSETS $RPM"
+          for f in artifacts/apk/*.apk artifacts/deb/*.deb artifacts/rpm/**/*.rpm; do
+            [ -f "$f" ] && ASSETS="$ASSETS $f"
+          done
 
           gh release create "$TAG" \
             --repo "$LOCAL_REPO" \
             --title "$TAG" \
             --notes "Cracked release synced from $UPSTREAM_REPO" \
-            $ASSETS
+            $ASSETS || true
+
+      - name: "Checkout for push"
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Push code to master"
-        if: steps.synced.outputs.already_synced == 'false'
+        env:
+          TAG: ${{ needs.check.outputs.tag }}
         run: |
+          git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
+          git fetch upstream --tags
+          git checkout "$TAG"
+
+          mkdir -p patches
+          cp -r /tmp/patches/* patches/ 2>/dev/null || true
+          if [ ! -d patches ]; then
+            git checkout origin/master -- patches/
+          fi
+          chmod +x patches/apply-crack.sh
+          ./patches/apply-crack.sh
+
+          APP_VERSION=$(echo "$TAG" | sed 's/^[dr]//')
+          echo "" >> gradle.properties
+          echo "versionRef=$TAG" >> gradle.properties
+          echo "buildkonfig.flavor=release" >> gradle.properties
+          echo "app_version=$APP_VERSION" >> gradle.properties
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -B master
           git add -A
           git diff --cached --quiet && exit 0
-          git commit -m "chore: sync upstream ${{ steps.upstream.outputs.tag }} with crack"
+          git commit -m "chore: sync upstream $TAG with crack"
           git push origin master

@@ -80,7 +80,7 @@ jobs:
           TAG: ${{ needs.check.outputs.tag }}
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
-          git fetch upstream --tags
+          git fetch upstream --tags --force
           mkdir -p /tmp/patches
           cp -r patches/* /tmp/patches/
           git checkout "$TAG"
@@ -145,7 +145,7 @@ jobs:
           TAG: ${{ needs.check.outputs.tag }}
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
-          git fetch upstream --tags
+          git fetch upstream --tags --force
           mkdir -p /tmp/patches
           cp -r patches/* /tmp/patches/
           git checkout "$TAG"
@@ -243,7 +243,7 @@ jobs:
           TAG: ${{ needs.check.outputs.tag }}
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
-          git fetch upstream --tags
+          git fetch upstream --tags --force
           git checkout "$TAG"
 
           mkdir -p patches

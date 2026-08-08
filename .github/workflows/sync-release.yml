@@ -184,6 +184,15 @@ jobs:
         env:
           TAG: ${{ needs.check.outputs.tag }}
         run: |
+          echo "=== Debug ==="
+          echo "pwd: $PWD"
+          echo "ls packaging/:"
+          ls -la packaging/ || echo "packaging/ MISSING"
+          echo "ls desktopApp/build/distributions/:"
+          ls -la desktopApp/build/distributions/ || echo "distributions/ MISSING"
+          echo "glob tar.gz:"
+          ls desktopApp/build/distributions/Keyguard-*.tar.gz 2>&1 || echo "NO TARBALL MATCH"
+          echo "=== End debug ==="
           APP_VERSION=$(echo "$TAG" | sed 's/^[dr]//')
           TARBALL=$(ls desktopApp/build/distributions/Keyguard-*.tar.gz)
           SOURCES="$PWD/rpmbuild/SOURCES"

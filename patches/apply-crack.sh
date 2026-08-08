@@ -54,8 +54,7 @@ cp "$PATCH_DIR/androidApp/keyguard-release.keystore" androidApp/keyguard-release
 if ! grep -q "':util:crypto'" settings.gradle; then
   sed -i '/:util:crypto/d' androidApp/build.gradle.kts
 fi
-cp "$PATCH_DIR/common/src/commonMain/kotlin/com/artemchep/keyguard/common/service/settings/impl/SettingsRepositoryImpl.kt" \
-   common/src/commonMain/kotlin/com/artemchep/keyguard/common/service/settings/impl/SettingsRepositoryImpl.kt
+
 cp "$PATCH_DIR/common/src/commonMain/kotlin/com/artemchep/keyguard/common/usecase/GetPurchased.kt" \
    common/src/commonMain/kotlin/com/artemchep/keyguard/common/usecase/GetPurchased.kt
 

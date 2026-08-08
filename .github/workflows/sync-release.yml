@@ -81,14 +81,16 @@ jobs:
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
           git fetch upstream --tags --force
-          mkdir -p /tmp/patches
+          mkdir -p /tmp/patches /tmp/packaging
           cp -r patches/* /tmp/patches/
+          cp -r packaging/* /tmp/packaging/
           git checkout "$TAG"
 
       - name: "Apply crack patches"
         run: |
-          mkdir -p patches
+          mkdir -p patches packaging
           cp -r /tmp/patches/* patches/
+          cp -r /tmp/packaging/* packaging/
           chmod +x patches/apply-crack.sh
           ./patches/apply-crack.sh
 
@@ -146,14 +148,16 @@ jobs:
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
           git fetch upstream --tags --force
-          mkdir -p /tmp/patches
+          mkdir -p /tmp/patches /tmp/packaging
           cp -r patches/* /tmp/patches/
+          cp -r packaging/* /tmp/packaging/
           git checkout "$TAG"
 
       - name: "Apply crack patches"
         run: |
-          mkdir -p patches
+          mkdir -p patches packaging
           cp -r /tmp/patches/* patches/
+          cp -r /tmp/packaging/* packaging/
           chmod +x patches/apply-crack.sh
           ./patches/apply-crack.sh
 
@@ -244,13 +248,14 @@ jobs:
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
           git fetch upstream --tags --force
+          mkdir -p /tmp/patches /tmp/packaging
+          cp -r patches/* /tmp/patches/
+          cp -r packaging/* /tmp/packaging/
           git checkout "$TAG"
 
-          mkdir -p patches
-          cp -r /tmp/patches/* patches/ 2>/dev/null || true
-          if [ ! -d patches ]; then
-            git checkout origin/master -- patches/
-          fi
+          mkdir -p patches packaging
+          cp -r /tmp/patches/* patches/
+          cp -r /tmp/packaging/* packaging/
           chmod +x patches/apply-crack.sh
           ./patches/apply-crack.sh
 

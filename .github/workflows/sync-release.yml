@@ -113,11 +113,22 @@ jobs:
           echo "versionRef=$TAG" >> gradle.properties
           echo "buildkonfig.flavor=release" >> gradle.properties
 
+      - name: "Add swap space"
+        run: |
+          sudo swapoff -a || true
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon --show
+
       - name: "Build APK"
         run: >-
           ./gradlew :androidApp:assembleNoneRelease
           -Pkeyguard.nativeCrypto.cargoOffline=true
           -x lint
+          --no-parallel
+          -Dorg.gradle.workers.max=2
 
       - name: "Upload APK"
         uses: actions/upload-artifact@v4
@@ -240,7 +251,7 @@ jobs:
 
   release:
     needs: [check, build-apk, build-desktop]
-    if: always() && needs.check.outputs.should_build == 'true'
+    if: needs.check.outputs.should_build == 'true' && needs.build-apk.result == 'success' && needs.build-desktop.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: "Download all artifacts"

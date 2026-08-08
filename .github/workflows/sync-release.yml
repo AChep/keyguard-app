@@ -144,6 +144,9 @@ jobs:
       - name: "Setup Linux desktop"
         uses: ./.github/actions/setup_linux_desktop
 
+      - name: "Install protoc"
+        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
 

@@ -181,7 +181,7 @@ jobs:
           TAG: ${{ needs.check.outputs.tag }}
         run: |
           APP_VERSION=$(echo "$TAG" | sed 's/^[dr]//')
-          TARBALL=$(ls desktopApp/build/compose/binaries/main/release/Keyguard-*.tar.gz)
+          TARBALL=$(ls desktopApp/build/distributions/Keyguard-*.tar.gz)
           SOURCES="$PWD/rpmbuild/SOURCES"
           mkdir -p "$SOURCES"
           cp "$TARBALL" "$SOURCES/keyguard-${APP_VERSION}.tar.gz"

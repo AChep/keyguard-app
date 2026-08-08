@@ -178,26 +178,24 @@ jobs:
           -Pkeyguard.nativeCrypto.cargoOffline=true
 
       - name: "Install rpmbuild"
-        run: sudo apt-get update && sudo apt-get install -y rpm
+        run: sudo apt-get update && sudo apt-get install -y rpm desktop-file-utils hicolor-icon-theme
 
       - name: "Build RPM"
         env:
           TAG: ${{ needs.check.outputs.tag }}
         run: |
-          echo "=== Debug ==="
-          echo "pwd: $PWD"
-          echo "ls packaging/:"
-          ls -la packaging/ || echo "packaging/ MISSING"
-          echo "ls desktopApp/build/distributions/:"
-          ls -la desktopApp/build/distributions/ || echo "distributions/ MISSING"
-          echo "glob tar.gz:"
-          ls desktopApp/build/distributions/Keyguard-*.tar.gz 2>&1 || echo "NO TARBALL MATCH"
-          echo "=== End debug ==="
           APP_VERSION=$(echo "$TAG" | sed 's/^[dr]//')
-          TARBALL=$(ls desktopApp/build/distributions/Keyguard-*.tar.gz)
+          TARBALL=$(find desktopApp/build -name 'Keyguard-*.tar.gz' -print -quit 2>/dev/null)
+          if [ -z "$TARBALL" ]; then
+            echo "ERROR: No tarball found under desktopApp/build/"
+            find desktopApp/build -type f -name '*.tar.gz' 2>/dev/null
+            exit 1
+          fi
+          echo "Found tarball: $TARBALL"
           SOURCES="$PWD/rpmbuild/SOURCES"
           mkdir -p "$SOURCES"
           cp "$TARBALL" "$SOURCES/keyguard-${APP_VERSION}.tar.gz"
+          ls -la packaging/
           rpmbuild -ba packaging/keyguard.spec \
             --define "_app_version ${APP_VERSION}" \
             --define "_topdir $PWD/rpmbuild" \

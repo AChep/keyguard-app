@@ -58,4 +58,11 @@ fi
 cp "$PATCH_DIR/common/src/commonMain/kotlin/com/artemchep/keyguard/common/usecase/GetPurchased.kt" \
    common/src/commonMain/kotlin/com/artemchep/keyguard/common/usecase/GetPurchased.kt
 
+# Speed up Rust native crypto compilation: fat LTO is ~10x slower than thin
+# with negligible runtime difference for this use case.
+if [ -f "util/crypto/rust/Cargo.toml" ]; then
+  sed -i 's/^lto = "fat"/lto = "thin"/' util/crypto/rust/Cargo.toml
+  sed -i 's/^codegen-units = 1$/codegen-units = 16/' util/crypto/rust/Cargo.toml
+fi
+
 echo "[patch] Done."

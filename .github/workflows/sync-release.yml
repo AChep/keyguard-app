@@ -72,9 +72,6 @@ jobs:
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
 
-      - name: "Prefetch native crypto"
-        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
-
       - name: "Fetch upstream code at tag"
         env:
           TAG: ${{ needs.check.outputs.tag }}
@@ -94,6 +91,15 @@ jobs:
           chmod +x patches/apply-crack.sh
           ./patches/apply-crack.sh
 
+      - name: "Cache Rust crypto"
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: util/crypto/rust
+          shared-key: apk-crypto
+
+      - name: "Prefetch native crypto"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
+
       - name: "Prepare version"
         env:
           TAG: ${{ needs.check.outputs.tag }}
@@ -107,6 +113,7 @@ jobs:
         run: >-
           ./gradlew :androidApp:assembleNoneRelease
           -Pkeyguard.nativeCrypto.cargoOffline=true
+          -x lint
 
       - name: "Upload APK"
         uses: actions/upload-artifact@v4
@@ -133,14 +140,8 @@ jobs:
       - name: "Setup Linux desktop"
         uses: ./.github/actions/setup_linux_desktop
 
-      - name: "Install protoc"
-        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
-
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust
-
-      - name: "Prefetch native crypto"
-        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
 
       - name: "Fetch upstream code at tag"
         env:
@@ -160,6 +161,15 @@ jobs:
           cp -r /tmp/packaging/* packaging/
           chmod +x patches/apply-crack.sh
           ./patches/apply-crack.sh
+
+      - name: "Cache Rust crypto"
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: util/crypto/rust
+          shared-key: desktop-crypto
+
+      - name: "Prefetch native crypto"
+        run: cargo fetch --manifest-path util/crypto/rust/Cargo.toml --locked
 
       - name: "Prepare version"
         env:
@@ -196,7 +206,7 @@ jobs:
           mkdir -p "$SOURCES"
           cp "$TARBALL" "$SOURCES/keyguard-${APP_VERSION}.tar.gz"
           ls -la packaging/
-          rpmbuild -ba packaging/keyguard.spec \
+          rpmbuild -ba --nodeps packaging/keyguard.spec \
             --define "_app_version ${APP_VERSION}" \
             --define "_topdir $PWD/rpmbuild" \
             --define "_sourcedir $SOURCES"

@@ -226,7 +226,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: deb
-          path: desktopApp/build/compose/binaries/main/deb/*.deb
+          path: desktopApp/build/compose/binaries/main-release/deb/*.deb
           if-no-files-found: error
           retention-days: 1
 
@@ -271,6 +271,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Push code to master"
+        continue-on-error: true
         env:
           TAG: ${{ needs.check.outputs.tag }}
         run: |

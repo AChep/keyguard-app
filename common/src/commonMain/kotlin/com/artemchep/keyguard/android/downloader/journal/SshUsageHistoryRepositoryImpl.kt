@@ -74,6 +74,7 @@ class SshUsageHistoryRepositoryImpl(
                 response = model.response,
                 fingerprint = model.fingerprint,
                 createdAt = model.instant,
+                eventId = model.eventId,
             )
             Unit
         }
@@ -102,4 +103,5 @@ private fun SshUsageHistory.toDomain(): DSshUsageHistory = DSshUsageHistory(
     response = response,
     fingerprint = fingerprint,
     instant = createdAt,
+    eventId = eventId,
 )

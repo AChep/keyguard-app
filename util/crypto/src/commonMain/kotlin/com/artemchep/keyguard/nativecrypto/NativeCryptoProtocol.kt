@@ -218,6 +218,13 @@ internal data class SshKeyExportCxfOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
+@SerialName("ssh_public_key_decode")
+internal data class SshPublicKeyDecodeOperationProto(
+    @ProtoNumber(52)
+    val value: SshPublicKeyDecodeRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
 @SerialName("passkey_key_generate")
 internal data class PasskeyKeyGenerateOperationProto(
     @ProtoNumber(48)
@@ -401,6 +408,20 @@ internal data class AesCbcPkcs7HmacSha256EncryptStreamOpenOperationProto(
 internal data class AesCbcPkcs7HmacSha256DecryptStreamOpenOperationProto(
     @ProtoNumber(20)
     val value: AesCbcPkcs7HmacSha256DecryptStreamOpenRequestProto,
+) : NativeStreamOpenOperationProto
+
+@Serializable
+@SerialName("open_pgp_clear_sign")
+internal data class OpenPgpClearSignStreamOpenOperationProto(
+    @ProtoNumber(21)
+    val value: OpenPgpClearSignStreamOpenRequestProto,
+) : NativeStreamOpenOperationProto
+
+@Serializable
+@SerialName("open_pgp_clear_verify")
+internal data class OpenPgpClearVerifyStreamOpenOperationProto(
+    @ProtoNumber(22)
+    val value: OpenPgpClearVerifyStreamOpenRequestProto,
 ) : NativeStreamOpenOperationProto
 
 @Serializable
@@ -843,6 +864,20 @@ internal data class SshKeyExportCxfResultProto(
 )
 
 @Serializable
+internal data class SshPublicKeyDecodeRequestProto(
+    @ProtoNumber(1)
+    val publicKeyOpenSsh: String,
+)
+
+@Serializable
+internal data class SshPublicKeyDecodeResultProto(
+    @ProtoNumber(1)
+    val type: SshKeyTypeProto,
+    @ProtoNumber(2)
+    val spkiDer: ByteArray,
+)
+
+@Serializable
 internal enum class PasskeyAlgorithmProto {
     @ProtoNumber(0)
     UNSPECIFIED,
@@ -1079,6 +1114,22 @@ internal data class OpenPgpDetachedVerifyStreamOpenRequestProto(
     val publicKeys: List<ByteArray>,
     @ProtoNumber(3)
     val referenceTimeEpochSeconds: Long? = null,
+)
+
+@Serializable
+internal data class OpenPgpClearVerifyStreamOpenRequestProto(
+    @ProtoNumber(1)
+    val publicKeys: List<ByteArray>,
+    @ProtoNumber(2)
+    val referenceTimeEpochSeconds: Long? = null,
+)
+
+@Serializable
+internal data class OpenPgpClearVerifyResultProto(
+    @ProtoNumber(1)
+    val verification: OpenPgpVerificationProto? = null,
+    @ProtoNumber(2)
+    val bodyValidUtf8: Boolean = false,
 )
 
 @Serializable
@@ -1452,6 +1503,18 @@ internal data class OpenPgpDetachedSignStreamOpenRequestProto(
 )
 
 @Serializable
+internal data class OpenPgpClearSignStreamOpenRequestProto(
+    @ProtoNumber(1)
+    val privateKey: ByteArray,
+    @ProtoNumber(2)
+    val preferredFingerprint: String = "",
+    @ProtoNumber(3)
+    val signatureTimeEpochSeconds: Long? = null,
+    @ProtoNumber(4)
+    val referenceTimeEpochSeconds: Long? = null,
+)
+
+@Serializable
 internal data class OpenPgpEncryptRequestProto(
     @ProtoNumber(1)
     val content: ByteArray,
@@ -1469,6 +1532,8 @@ internal data class OpenPgpEncryptRequestProto(
     val literalTimeEpochSeconds: Long? = null,
     @ProtoNumber(8)
     val referenceTimeEpochSeconds: Long? = null,
+    @ProtoNumber(9)
+    val enableCompression: Boolean? = null,
 )
 
 @Serializable
@@ -1487,6 +1552,8 @@ internal data class OpenPgpEncryptStreamOpenRequestProto(
     val literalTimeEpochSeconds: Long? = null,
     @ProtoNumber(7)
     val referenceTimeEpochSeconds: Long? = null,
+    @ProtoNumber(8)
+    val enableCompression: Boolean? = null,
 )
 
 @Serializable
@@ -1527,6 +1594,8 @@ internal data class OpenPgpDecryptRequestProto(
     val verificationPublicKeys: List<ByteArray>,
     @ProtoNumber(4)
     val referenceTimeEpochSeconds: Long? = null,
+    @ProtoNumber(5)
+    val allowSignedOnly: Boolean? = null,
 )
 
 @Serializable
@@ -1537,6 +1606,20 @@ internal data class OpenPgpDecryptStreamOpenRequestProto(
     val verificationPublicKeys: List<ByteArray>,
     @ProtoNumber(3)
     val referenceTimeEpochSeconds: Long? = null,
+    @ProtoNumber(4)
+    val allowSignedOnly: Boolean? = null,
+)
+
+@Serializable
+internal data class OpenPgpLiteralMetadataProto(
+    @ProtoNumber(1)
+    val fileName: ByteArray = byteArrayOf(),
+    @ProtoNumber(2)
+    val format: Int = 0,
+    @ProtoNumber(3)
+    val modificationTimeEpochSeconds: Long = 0L,
+    @ProtoNumber(4)
+    val originalSize: Long = 0L,
 )
 
 @Serializable
@@ -1545,6 +1628,14 @@ internal data class OpenPgpDecryptResultProto(
     val data: ByteArray = byteArrayOf(),
     @ProtoNumber(2)
     val verification: OpenPgpVerificationProto? = null,
+    @ProtoNumber(3)
+    val metadata: OpenPgpLiteralMetadataProto? = null,
+    @ProtoNumber(4)
+    val encrypted: Boolean = false,
+    @ProtoNumber(5)
+    val declaredCharset: String? = null,
+    @ProtoNumber(6)
+    val decryptionKeyFingerprint: String? = null,
 )
 
 @Serializable
@@ -1553,6 +1644,14 @@ internal data class OpenPgpDecryptFinalProto(
     val data: ByteArray = byteArrayOf(),
     @ProtoNumber(2)
     val verification: OpenPgpVerificationProto? = null,
+    @ProtoNumber(3)
+    val metadata: OpenPgpLiteralMetadataProto? = null,
+    @ProtoNumber(4)
+    val encrypted: Boolean = false,
+    @ProtoNumber(5)
+    val declaredCharset: String? = null,
+    @ProtoNumber(6)
+    val decryptionKeyFingerprint: String? = null,
 )
 
 @Serializable

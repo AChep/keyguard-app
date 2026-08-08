@@ -11,13 +11,13 @@ public enum class NativeSshKeyType {
     ED25519,
 }
 
-public data class NativeSshKeyMaterial(
+public class NativeSshKeyMaterial(
     val type: NativeSshKeyType,
     val privateKey: ByteArray,
     val publicKey: ByteArray,
 )
 
-public data class NativeSshKeyCxfExport(
+public class NativeSshKeyCxfExport(
     val type: NativeSshKeyType,
     val privateKeyPkcs8: ByteArray,
 )
@@ -37,13 +37,21 @@ public data class NativeSshKeyDescription(
         ")"
 }
 
-public data class NativeSshSignature(
+public class NativeSshSignature(
     val algorithm: String,
     val signature: ByteArray,
 )
 
+public class NativeSshPublicKey(
+    val type: NativeSshKeyType,
+    /** Canonical SSH algorithm name, e.g. "ssh-rsa" or "ssh-ed25519". */
+    val algorithmName: String,
+    /** X.509 SubjectPublicKeyInfo DER encoding of the public key. */
+    val spkiDer: ByteArray,
+)
+
 public sealed interface NativeSshPrivateKeyImportResult {
-    public data class Success(
+    public class Success(
         val keyMaterial: NativeSshKeyMaterial,
     ) : NativeSshPrivateKeyImportResult
 
@@ -74,6 +82,28 @@ public object NativeCryptoSsh {
     private const val RSA_2048_KEY_BITS: Int = 2048
     private const val RSA_3072_KEY_BITS: Int = 3072
     private const val RSA_4096_KEY_BITS: Int = 4096
+    private const val ED25519_SIGNATURE_BYTES: Int = 64
+    private const val SSH_STRING_LENGTH_BYTES: Int = Int.SIZE_BYTES
+    private const val BITS_PER_BYTE: Int = 8
+    private const val BYTE_MASK: Int = 0xff
+
+    /**
+     * Canonical SSH algorithm names shared by every consumer of the native
+     * SSH implementation. These are the only values [sign] emits; they mirror
+     * `keyguard-crypto-core/src/ssh_keys.rs`.
+     */
+    public const val ALGORITHM_SSH_ED25519: String = "ssh-ed25519"
+    public const val ALGORITHM_SSH_RSA: String = "ssh-rsa"
+    public const val ALGORITHM_RSA_SHA2_256: String = "rsa-sha2-256"
+    public const val ALGORITHM_RSA_SHA2_512: String = "rsa-sha2-512"
+
+    /**
+     * ssh-agent `SSH_AGENT_RSA_SHA2_*` signature flags consumed by [sign];
+     * they mirror the flag precedence in `ssh_keys.rs` `sign_rsa`: 0x04
+     * selects rsa-sha2-512, else 0x02 selects rsa-sha2-256, else ssh-rsa.
+     */
+    public const val AGENT_FLAG_RSA_SHA2_256: Int = 0x02
+    public const val AGENT_FLAG_RSA_SHA2_512: Int = 0x04
 
     /**
      * RSA modulus sizes accepted by the native SSH key generator. This is the
@@ -254,8 +284,8 @@ public object NativeCryptoSsh {
         ).requireBytes("ssh_agent_sign")
         val value = decodePayload<SshSignatureProto>("ssh_agent_sign", payload)
         val validSignatureSize = when (value.algorithm) {
-            "ssh-ed25519" -> value.signature.size == 64
-            "ssh-rsa", "rsa-sha2-256", "rsa-sha2-512" ->
+            ALGORITHM_SSH_ED25519 -> value.signature.size == ED25519_SIGNATURE_BYTES
+            ALGORITHM_SSH_RSA, ALGORITHM_RSA_SHA2_256, ALGORITHM_RSA_SHA2_512 ->
                 value.signature.size in MIN_RSA_SIGNATURE_BYTES..MAX_RSA_SIGNATURE_BYTES
 
             else -> false
@@ -265,6 +295,69 @@ public object NativeCryptoSsh {
             malformed("ssh_agent_sign")
         }
         return NativeSshSignature(value.algorithm, value.signature)
+    }
+
+    /**
+     * Decodes a stored OpenSSH public key line ("<type> <base64> [comment]")
+     * into its X.509 SubjectPublicKeyInfo DER form. The native `ssh-key`
+     * parser is the single validator: it binds the declared type prefix to
+     * the embedded key blob and rejects malformed or trailing wire data.
+     */
+    public fun decodePublicKey(publicKeyOpenSsh: String): NativeSshPublicKey {
+        require(publicKeyOpenSsh.isNotEmpty()) { "SSH public key must not be empty" }
+        require(publicKeyOpenSsh.encodeToByteArray().size <= MAX_KEY_BYTES) {
+            "SSH public key is too large"
+        }
+        val payload = NativeCrypto.call(
+            operationName = "ssh_public_key_decode",
+            operation = SshPublicKeyDecodeOperationProto(
+                SshPublicKeyDecodeRequestProto(publicKeyOpenSsh),
+            ),
+        ).requireBytes("ssh_public_key_decode")
+        val value = decodePayload<SshPublicKeyDecodeResultProto>(
+            operation = "ssh_public_key_decode",
+            payload = payload,
+        )
+        val type = value.type.toPublic("ssh_public_key_decode")
+        if (value.spkiDer.isEmpty() || value.spkiDer.size > MAX_KEY_BYTES) {
+            malformed("ssh_public_key_decode")
+        }
+        return NativeSshPublicKey(
+            type = type,
+            algorithmName = when (type) {
+                NativeSshKeyType.RSA -> ALGORITHM_SSH_RSA
+                NativeSshKeyType.ED25519 -> ALGORITHM_SSH_ED25519
+            },
+            spkiDer = value.spkiDer,
+        )
+    }
+
+    /**
+     * Frames a signature as the RFC 4253 section 6.6 blob consumed by SSH
+     * clients: string(algorithm) followed by string(signature). Stays
+     * byte-compatible with the framing the native agent front-ends apply at
+     * their own wire boundaries (androidSshAgent `encode_sign_response`).
+     */
+    public fun frameSignature(signature: NativeSshSignature): ByteArray {
+        val algorithm = signature.algorithm.encodeToByteArray()
+        val output = ByteArray(
+            2 * SSH_STRING_LENGTH_BYTES + algorithm.size + signature.signature.size,
+        )
+        val offset = writeSshString(output, 0, algorithm)
+        writeSshString(output, offset, signature.signature)
+        return output
+    }
+
+    /** Writes a big-endian length-prefixed SSH string, returns the new offset. */
+    private fun writeSshString(output: ByteArray, offset: Int, value: ByteArray): Int {
+        var cursor = offset
+        repeat(SSH_STRING_LENGTH_BYTES) { index ->
+            val shift = (SSH_STRING_LENGTH_BYTES - 1 - index) * BITS_PER_BYTE
+            output[cursor] = ((value.size ushr shift) and BYTE_MASK).toByte()
+            cursor++
+        }
+        value.copyInto(output, destinationOffset = cursor)
+        return cursor + value.size
     }
 
     public fun importPrivateKey(

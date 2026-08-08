@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
@@ -42,7 +43,7 @@ class SshAgentIpcServer private constructor(
     companion object {
         private const val TAG = "SshAgentIpcServer"
 
-        const val APPROVAL_TIMEOUT_MS = SshAgentRequestProcessorJvm.APPROVAL_TIMEOUT_MS
+        const val APPROVAL_TIMEOUT_MS = SshAgentRequestProcessorImpl.APPROVAL_TIMEOUT_MS
     }
 
     constructor(
@@ -113,20 +114,17 @@ class SshAgentIpcServer private constructor(
         expectedPeerProcess: Deferred<Process>,
         sessionId: String = "",
         maxConcurrentConnections: Int = 8,
-        onApprovalRequest: suspend (
-            caller: SshAgentMessages.CallerIdentity?,
-            keyName: String,
-            keyFingerprint: String,
-        ) -> Boolean = { _, _, _ -> true },
+        onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
         onGetListRequest: suspend (
             caller: SshAgentMessages.CallerIdentity?,
         ) -> Boolean = { _ -> false },
+        pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
         sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
     ) : this(
         logRepository = logRepository,
         authToken = authToken,
         scope = scope,
-        requestProcessor = SshAgentRequestProcessorJvm(
+        requestProcessor = SshAgentRequestProcessorImpl(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
@@ -134,6 +132,7 @@ class SshAgentIpcServer private constructor(
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
             sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
+            pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             sessionId = sessionId,
             onApprovalRequest = onApprovalRequest,
             onGetListRequest = onGetListRequest,
@@ -155,20 +154,17 @@ class SshAgentIpcServer private constructor(
         testOnlyUnverifiedPeer: TestOnlyUnverifiedAgentIpcPeer,
         sessionId: String = "",
         maxConcurrentConnections: Int = 8,
-        onApprovalRequest: suspend (
-            caller: SshAgentMessages.CallerIdentity?,
-            keyName: String,
-            keyFingerprint: String,
-        ) -> Boolean = { _, _, _ -> true },
+        onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
         onGetListRequest: suspend (
             caller: SshAgentMessages.CallerIdentity?,
         ) -> Boolean = { _ -> false },
+        pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
         sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
     ) : this(
         logRepository = logRepository,
         authToken = authToken,
         scope = scope,
-        requestProcessor = SshAgentRequestProcessorJvm(
+        requestProcessor = SshAgentRequestProcessorImpl(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
@@ -176,6 +172,7 @@ class SshAgentIpcServer private constructor(
             getSshAgentFilter = getSshAgentFilter,
             scope = scope,
             sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
+            pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             sessionId = sessionId,
             onApprovalRequest = onApprovalRequest,
             onGetListRequest = onGetListRequest,

@@ -9,16 +9,17 @@ use aws_lc_rs::{
     signature::{Ed25519KeyPair, KeyPair},
 };
 use base64ct::{Base64, Encoding};
+use ed25519_dalek::VerifyingKey as Ed25519VerifyingKey;
 use keyguard_crypto_sensitive::{
     RsaCrtComponents, RsaPrivateComponents, RsaSignatureHash, SensitiveRsaError,
     complete_rsa_pkcs1_der_from_components, generate_rsa_pkcs1_der, sign_rsa_pkcs1_v1_5,
 };
 use pkcs1::{RsaPrivateKey, RsaPublicKey as Pkcs1RsaPublicKey};
 use pkcs8::{
-    AlgorithmIdentifierRef, ObjectIdentifier, PrivateKeyInfo,
+    AlgorithmIdentifierRef, ObjectIdentifier, PrivateKeyInfo, SubjectPublicKeyInfoRef,
     der::{
         Decode as _, Encode as _,
-        asn1::{AnyRef, OctetStringRef},
+        asn1::{AnyRef, BitStringRef, OctetStringRef, UintRef},
     },
 };
 use prost::Message;
@@ -34,12 +35,15 @@ use crate::{
     primitives::PrimitiveError,
     protocol::{
         SshFormattedPrivateKey, SshKeyDescription, SshKeyExportCxfResult, SshKeyMaterial,
-        SshKeyType, SshSignature,
+        SshKeyType, SshPublicKeyDecodeResult, SshSignature,
     },
 };
 
 const MAX_KEY_BYTES: usize = 64 * 1024;
 const MAX_SIGN_DATA_BYTES: usize = 1024 * 1024;
+const MIN_RSA_PUBLIC_MODULUS_BITS: u32 = 512;
+const MAX_RSA_PUBLIC_MODULUS_BITS: u32 = 16_384;
+const MAX_RSA_PUBLIC_EXPONENT_BYTES: usize = 8;
 const RSA_ENCRYPTION_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113549.1.1.1");
 const ED25519_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.3.101.112");
 
@@ -217,6 +221,102 @@ pub(crate) fn export_cxf(
         private_key_pkcs8: der,
     }
     .encode_to_vec())
+}
+
+/// Decodes a stored OpenSSH public key line into its X.509
+/// SubjectPublicKeyInfo form for IPC clients that consume standard DER
+/// (the Android SSH authentication API). Structural decoding is followed by
+/// algorithm-specific validation before untrusted components reach the JDK.
+pub(crate) fn public_key_decode(public_key_openssh: String) -> Result<Vec<u8>, PrimitiveError> {
+    bound_text(&public_key_openssh)?;
+    let public_key = PublicKey::from_openssh(&public_key_openssh)
+        .map_err(|_| PrimitiveError::InvalidArgument)?;
+    let (key_type, spki_der) = match public_key.key_data() {
+        KeyData::Rsa(rsa) => (SshKeyType::Rsa, encode_rsa_spki(rsa)?),
+        KeyData::Ed25519(ed25519) => (SshKeyType::Ed25519, encode_ed25519_spki(ed25519)?),
+        _ => return Err(PrimitiveError::InvalidArgument),
+    };
+    if spki_der.len() > MAX_KEY_BYTES {
+        return Err(PrimitiveError::ResourceLimit);
+    }
+    Ok(SshPublicKeyDecodeResult {
+        r#type: key_type as i32,
+        spki_der,
+    }
+    .encode_to_vec())
+}
+
+/// rsaEncryption takes an explicit NULL parameter (RFC 3279 2.3.1) and wraps
+/// a PKCS#1 `RSAPublicKey`, matching the shape the JDK `KeyFactory` emits.
+fn encode_rsa_spki(public_key: &RsaPublicKey) -> Result<Vec<u8>, PrimitiveError> {
+    let modulus = positive_mpint(&public_key.n)?;
+    let exponent = positive_mpint(&public_key.e)?;
+    validate_rsa_public_components(&modulus, &exponent)?;
+    let pkcs1_der = Pkcs1RsaPublicKey {
+        modulus: UintRef::new(strip_leading_zeroes(&modulus))
+            .map_err(|_| PrimitiveError::InvalidArgument)?,
+        public_exponent: UintRef::new(strip_leading_zeroes(&exponent))
+            .map_err(|_| PrimitiveError::InvalidArgument)?,
+    }
+    .to_der()
+    .map_err(|_| PrimitiveError::CryptoFailure)?;
+    encode_spki(
+        AlgorithmIdentifierRef {
+            oid: RSA_ENCRYPTION_OID,
+            parameters: Some(AnyRef::NULL),
+        },
+        &pkcs1_der,
+    )
+}
+
+/// RFC 8410: no algorithm parameters, raw 32-byte public key bit string.
+fn encode_ed25519_spki(public_key: &Ed25519PublicKey) -> Result<Vec<u8>, PrimitiveError> {
+    let verifying_key = Ed25519VerifyingKey::from_bytes(&public_key.0)
+        .map_err(|_| PrimitiveError::InvalidArgument)?;
+    if verifying_key.is_weak() {
+        return Err(PrimitiveError::InvalidArgument);
+    }
+    encode_spki(
+        AlgorithmIdentifierRef {
+            oid: ED25519_OID,
+            parameters: None,
+        },
+        public_key.as_ref(),
+    )
+}
+
+fn encode_spki(
+    algorithm: AlgorithmIdentifierRef<'_>,
+    subject_public_key: &[u8],
+) -> Result<Vec<u8>, PrimitiveError> {
+    SubjectPublicKeyInfoRef {
+        algorithm,
+        subject_public_key: BitStringRef::from_bytes(subject_public_key)
+            .map_err(|_| PrimitiveError::CryptoFailure)?,
+    }
+    .to_der()
+    .map_err(|_| PrimitiveError::CryptoFailure)
+}
+
+pub(crate) fn validate_rsa_public_components(
+    modulus: &[u8],
+    public_exponent: &[u8],
+) -> Result<(), PrimitiveError> {
+    let modulus_bits = modulus_bits(modulus).ok_or(PrimitiveError::InvalidArgument)?;
+    let public_exponent = strip_leading_zeroes(public_exponent);
+    let exponent_is_at_least_three = public_exponent.len() > 1
+        || public_exponent
+            .first()
+            .is_some_and(|exponent| *exponent >= 3);
+    if !(MIN_RSA_PUBLIC_MODULUS_BITS..=MAX_RSA_PUBLIC_MODULUS_BITS).contains(&modulus_bits)
+        || public_exponent.len() > MAX_RSA_PUBLIC_EXPONENT_BYTES
+        || !exponent_is_at_least_three
+        || public_exponent.last().is_none_or(|byte| byte & 1 == 0)
+    {
+        Err(PrimitiveError::InvalidArgument)
+    } else {
+        Ok(())
+    }
 }
 
 fn ed25519_openssh_to_pkcs8(keypair: &Ed25519Keypair) -> Result<Vec<u8>, PrimitiveError> {
@@ -1669,6 +1769,121 @@ mod tests {
         "xsDxulncpVuEaudogpRWO7riU/bOchAMIat9k=\n",
         "-----END OPENSSH PRIVATE KEY-----\n",
     );
+
+    // Fixture shared with the Kotlin SSH authentication contract test:
+    // modulus[0] = 0x01, modulus[i] = i * 17 + 3, last byte forced odd,
+    // exponent 65537.
+    const RSA_PUBLIC_KEY_OPENSSH: &str = concat!(
+        "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgAEUJTZHWGl6i5ytvs/g8QITJDVGV2h5ipusvc7f8AES",
+        "IzRFVmd4iZqrvM3e7wARIjNEVWZ3iJmqu8zd7v8QITJDVGV2h5ipusvc7f4PIDFCU2R1hpeoucrb7P0O",
+        "HzBBUmN0hZanuMna6/wNHi9AUWJzhJWmt8jZ6vsMHS4/UGFz",
+    );
+
+    // Base64 body encodes string("ssh-ed25519") and a generated public key.
+    const ED25519_PUBLIC_KEY_BODY: &str =
+        "AAAAC3NzaC1lZDI1NTE5AAAAIJFbe+FucfgSuwMTJuoy7vkjKCGtOTLMNrfRoqhJaCeS";
+
+    #[test]
+    fn public_key_decode_emits_jdk_compatible_rsa_spki() {
+        let result = public_key_decode_result(
+            public_key_decode(RSA_PUBLIC_KEY_OPENSSH.to_owned()).expect("RSA SPKI"),
+        );
+        assert_eq!(result.r#type, SshKeyType::Rsa as i32);
+        assert_eq!(
+            result.spki_der,
+            decode_hex(concat!(
+                "30819e300d06092a864886f70d010101050003818c00308188028180011425364758697a8b",
+                "9cadbecfe0f102132435465768798a9bacbdcedff00112233445566778899aabbccddeef001",
+                "12233445566778899aabbccddeeff102132435465768798a9bacbdcedfe0f2031425364758",
+                "697a8b9cadbecfd0e1f30415263748596a7b8c9daebfc0d1e2f405162738495a6b7c8d9eaf",
+                "b0c1d2e3f5061730203010001",
+            )),
+        );
+    }
+
+    #[test]
+    fn public_key_decode_emits_rfc_8410_ed25519_spki_and_ignores_the_comment() {
+        let line = format!("ssh-ed25519 {ED25519_PUBLIC_KEY_BODY} device comment");
+        let result = public_key_decode_result(public_key_decode(line).expect("Ed25519 SPKI"));
+        assert_eq!(result.r#type, SshKeyType::Ed25519 as i32);
+        assert_eq!(
+            result.spki_der,
+            decode_hex(concat!(
+                "302a300506032b6570032100",
+                "915b7be16e71f812bb031326ea32eef9232821ad3932cc36b7d1a2a849682792",
+            )),
+        );
+    }
+
+    #[test]
+    fn public_key_decode_rejects_unsafe_rsa_components() {
+        let valid_modulus = [0x80_u8; 64];
+        let undersized_modulus = [0x7f_u8; 64];
+        for (modulus, exponent) in [
+            (&valid_modulus[..], &[1_u8][..]),
+            (&valid_modulus[..], &[2_u8][..]),
+            (&undersized_modulus[..], &[3_u8][..]),
+        ] {
+            let public_key = encode_rsa_public(modulus, exponent).expect("RSA public key");
+            let public_key =
+                format_public_key_text(SshKeyType::Rsa, &public_key).expect("OpenSSH public key");
+            assert_eq!(
+                public_key_decode(public_key),
+                Err(PrimitiveError::InvalidArgument),
+            );
+        }
+    }
+
+    #[test]
+    fn public_key_decode_rejects_invalid_or_weak_ed25519_points() {
+        let mut invalid_point = [0_u8; 32];
+        invalid_point[0] = 2;
+        for bytes in [[0_u8; 32], invalid_point] {
+            let public_key = PublicKey::new(KeyData::Ed25519(Ed25519PublicKey(bytes)), "")
+                .to_openssh()
+                .expect("OpenSSH public key");
+            assert_eq!(
+                public_key_decode(public_key),
+                Err(PrimitiveError::InvalidArgument),
+            );
+        }
+    }
+
+    #[test]
+    fn public_key_decode_rejects_unsupported_and_malformed_inputs() {
+        let unsupported_ecdsa = concat!(
+            "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAAA",
+            "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+        )
+        .to_owned();
+        let declared_type_mismatch = format!("ssh-rsa {ED25519_PUBLIC_KEY_BODY}");
+        let trailing_wire_data = concat!(
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhsc",
+            "HR4fAA==",
+        )
+        .to_owned();
+        for line in [
+            unsupported_ecdsa,
+            declared_type_mismatch,
+            trailing_wire_data,
+            "ssh-ed25519".to_owned(),
+            "ssh-ed25519 not!base64".to_owned(),
+            String::new(),
+        ] {
+            assert!(matches!(
+                public_key_decode(line),
+                Err(PrimitiveError::InvalidArgument),
+            ));
+        }
+        assert!(matches!(
+            public_key_decode("s".repeat(MAX_KEY_BYTES + 1)),
+            Err(PrimitiveError::ResourceLimit),
+        ));
+    }
+
+    fn public_key_decode_result(payload: Vec<u8>) -> SshPublicKeyDecodeResult {
+        SshPublicKeyDecodeResult::decode(payload.as_slice()).expect("SSH public key decode payload")
+    }
 
     fn material(payload: Vec<u8>) -> SshKeyMaterial {
         SshKeyMaterial::decode(payload.as_slice()).expect("SSH key material payload")

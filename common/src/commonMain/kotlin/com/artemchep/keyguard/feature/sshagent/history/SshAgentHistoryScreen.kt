@@ -255,6 +255,7 @@ private fun SshAgentHistoryItem.Value.responseColor() = when (response) {
     SshUsageHistoryResponseType.USER_DENIED,
     SshUsageHistoryResponseType.KEY_NOT_FOUND,
     SshUsageHistoryResponseType.FAILURE,
+    SshUsageHistoryResponseType.VAULT_LOCKED,
         -> MaterialTheme.colorScheme.error
 
     SshUsageHistoryResponseType.UNKNOWN -> MaterialTheme.colorScheme.onSurface

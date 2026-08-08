@@ -20,6 +20,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
+@Suppress("FunctionNaming")
 class SshAgentPublicKeyRepositoryImplTest {
     private val cryptoGenerator = CryptoGeneratorJvm()
     private val base64Service = Base64ServiceJvm()
@@ -79,8 +80,34 @@ class SshAgentPublicKeyRepositoryImplTest {
             .getByPublicKey("${row.publicKey} original-comment")
             .invoke()
 
-        assertEquals(row, byHash)
-        assertEquals(row, byPublicKey)
+        assertEquals(listOf(row), byHash)
+        assertEquals(listOf(row), byPublicKey)
+    }
+
+    @Test
+    fun `ciphers sharing a public key keep their own rows and lookups stay deterministic`() = runTest {
+        val repository = createRepository()
+        val first = createRow(
+            keyType = "ssh-ed25519",
+            seed = 1,
+            fingerprint = "SHA256:shared",
+            name = "First cipher",
+            cipherId = "cipher-a",
+        )
+        val second = first.copy(
+            cipherId = "cipher-b",
+            name = "Second cipher",
+        )
+        repository.replaceAll(listOf(second, first)).invoke()
+
+        assertEquals(
+            listOf("cipher-a", "cipher-b"),
+            repository.get().invoke().map { it.cipherId },
+        )
+        assertEquals(
+            listOf(first, second),
+            repository.getByPublicKeyBlobSha256(first.publicKeyBlobSha256).invoke(),
+        )
     }
 
     @Test
@@ -125,8 +152,11 @@ class SshAgentPublicKeyRepositoryImplTest {
         )
 
         val row = createSshAgentPublicKeyRow(
+            accountId = "account",
+            cipherId = "cipher-1",
             publicKey = "$publicKey user@example.com raw comment",
             fingerprint = "SHA256:normalized",
+            canSign = true,
             name = "Normalized key",
             cryptoGenerator = cryptoGenerator,
             base64Service = base64Service,
@@ -134,10 +164,13 @@ class SshAgentPublicKeyRepositoryImplTest {
 
         assertEquals(
             SshAgentPublicKeyRow(
+                accountId = "account",
+                cipherId = "cipher-1",
                 publicKeyBlobSha256 = requireNotNull(row).publicKeyBlobSha256,
                 publicKey = publicKey,
                 keyType = "ssh-ed25519",
                 fingerprint = "SHA256:normalized",
+                canSign = true,
                 name = "Normalized key",
             ),
             row,
@@ -147,8 +180,11 @@ class SshAgentPublicKeyRepositoryImplTest {
     @Test
     fun `malformed public key blob is rejected`() {
         val row = createSshAgentPublicKeyRow(
+            accountId = "account",
+            cipherId = "cipher-1",
             publicKey = "ssh-ed25519 AAAA... raw-comment",
             fingerprint = "SHA256:invalid",
+            canSign = true,
             name = "Invalid key",
             cryptoGenerator = cryptoGenerator,
             base64Service = base64Service,
@@ -169,13 +205,17 @@ class SshAgentPublicKeyRepositoryImplTest {
         seed: Int,
         fingerprint: String,
         name: String?,
+        cipherId: String = "cipher-$seed",
     ): SshAgentPublicKeyRow = requireNotNull(
         createSshAgentPublicKeyRow(
+            accountId = "account",
+            cipherId = cipherId,
             publicKey = buildOpenSshPublicKey(
                 keyType = keyType,
                 seed = seed,
             ),
             fingerprint = fingerprint,
+            canSign = true,
             name = name,
             cryptoGenerator = cryptoGenerator,
             base64Service = base64Service,

@@ -168,4 +168,6 @@ interface SettingsReadRepository {
     fun getLocale(): Flow<String?>
 
     fun getExposedDatabaseKey(): Flow<ByteArray?>
+
+    fun getExposedContentPublicKey(): Flow<ByteArray?>
 }

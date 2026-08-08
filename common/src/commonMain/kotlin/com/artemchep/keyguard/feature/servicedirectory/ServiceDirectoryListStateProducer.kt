@@ -8,6 +8,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.util.UniqueKeyBuilder
 import com.artemchep.keyguard.feature.decorator.ItemDecorator
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorNone
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorTitle
@@ -51,14 +52,11 @@ internal fun <Model, Item : Any, ContentItem : Item, SectionItem : Item> Remembe
     }
 
     fun List<Model>.toItems(): List<ContentItem> {
-        val keyCollisions = mutableMapOf<String, Int>()
+        val keyBuilder = UniqueKeyBuilder()
         return this
             .sortedWith(modelComparator)
             .map { model ->
                 val keyPrefix = keyOf(model)
-                val keyCollisionCounter = keyCollisions
-                    .getOrElse(keyPrefix) { 0 } + 1
-                keyCollisions[keyPrefix] = keyCollisionCounter
 
                 val faviconUrl = faviconUrlOf(model)?.let { url ->
                     FaviconUrl(
@@ -67,7 +65,7 @@ internal fun <Model, Item : Any, ContentItem : Item, SectionItem : Item> Remembe
                     )
                 }
                 createContentItem(
-                    "$keyPrefix:$keyCollisionCounter",
+                    keyBuilder.build(keyPrefix),
                     model,
                     AnnotatedString(nameOf(model)),
                     {

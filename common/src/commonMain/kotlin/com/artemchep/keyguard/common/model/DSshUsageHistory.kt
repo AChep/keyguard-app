@@ -12,4 +12,5 @@ data class DSshUsageHistory(
     val response: SshUsageHistoryResponseType,
     val fingerprint: String?,
     val instant: Instant = Clock.System.now(),
+    val eventId: String? = null,
 )

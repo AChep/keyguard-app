@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPee
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowNoOp
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
@@ -103,14 +104,9 @@ class GpgAgentIpcServer private constructor(
         expectedPeerProcess: Deferred<Process>,
         sessionId: String = "",
         maxConcurrentConnections: Int = 8,
-        onApprovalRequest: suspend (
-            operation: GpgAgentOperation,
-            caller: GpgAgentMessages.CallerIdentity?,
-            keyName: String,
-            keyFingerprint: String,
-            keygrip: String,
-        ) -> Boolean = { _, _, _, _, _ -> true },
-        gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository = GpgAgentPublicKeyRepositoryEmpty,
+        onApprovalRequest: suspend (GpgAgentApprovalPrompt) -> Boolean = { true },
+        pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
+        gpgPublicKeyRepository: GpgPublicKeyRepository = GpgPublicKeyRepositoryEmpty,
     ) : this(
         logRepository = logRepository,
         authToken = authToken,
@@ -123,7 +119,8 @@ class GpgAgentIpcServer private constructor(
             getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
             getGpgAgentFilter = getGpgAgentFilter,
             scope = scope,
-            gpgAgentPublicKeyRepository = gpgAgentPublicKeyRepository,
+            gpgPublicKeyRepository = gpgPublicKeyRepository,
+            pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             sessionId = sessionId,
             onApprovalRequest = onApprovalRequest,
         ),
@@ -144,14 +141,9 @@ class GpgAgentIpcServer private constructor(
         testOnlyUnverifiedPeer: TestOnlyUnverifiedAgentIpcPeer,
         sessionId: String = "",
         maxConcurrentConnections: Int = 8,
-        onApprovalRequest: suspend (
-            operation: GpgAgentOperation,
-            caller: GpgAgentMessages.CallerIdentity?,
-            keyName: String,
-            keyFingerprint: String,
-            keygrip: String,
-        ) -> Boolean = { _, _, _, _, _ -> true },
-        gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository = GpgAgentPublicKeyRepositoryEmpty,
+        onApprovalRequest: suspend (GpgAgentApprovalPrompt) -> Boolean = { true },
+        pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
+        gpgPublicKeyRepository: GpgPublicKeyRepository = GpgPublicKeyRepositoryEmpty,
     ) : this(
         logRepository = logRepository,
         authToken = authToken,
@@ -164,7 +156,8 @@ class GpgAgentIpcServer private constructor(
             getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
             getGpgAgentFilter = getGpgAgentFilter,
             scope = scope,
-            gpgAgentPublicKeyRepository = gpgAgentPublicKeyRepository,
+            gpgPublicKeyRepository = gpgPublicKeyRepository,
+            pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             sessionId = sessionId,
             onApprovalRequest = onApprovalRequest,
         ),

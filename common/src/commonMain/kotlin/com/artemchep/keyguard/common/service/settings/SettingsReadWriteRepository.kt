@@ -283,4 +283,8 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
     fun setExposedDatabaseKey(
         key: ByteArray?,
     ): IO<Unit>
+
+    fun setExposedContentPublicKey(
+        key: ByteArray?,
+    ): IO<Unit>
 }

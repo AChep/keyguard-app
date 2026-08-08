@@ -3,7 +3,9 @@ package com.artemchep.keyguard.android
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.WindowManager
 import android.webkit.MimeTypeMap
 import androidx.activity.enableEdgeToEdge
@@ -44,6 +46,7 @@ import com.artemchep.keyguard.common.usecase.GetUseExternalBrowser
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.android.ui.hideOverlayWindows
 import com.artemchep.keyguard.copy.PermissionServiceAndroid
 import com.artemchep.keyguard.feature.loading.ReadableExceptionMessage
 import com.artemchep.keyguard.feature.loading.getErrorReadableMessage
@@ -85,6 +88,13 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
     private val navTag = N.tag("BaseActivity")
 
     /**
+     * `true` for a screen that asks the user to authorize something on behalf
+     * of another app.
+     */
+    protected open val isConsentSurface: Boolean
+        get() = false
+
+    /**
      * `true` if we should open links in the external browser app,
      * `false` if we should use the chrome tab.
      */
@@ -100,6 +110,10 @@ abstract class BaseActivity : AppCompatActivity(), DIAware {
         super.onCreate(savedInstanceState)
         installSplashScreen()
         enableEdgeToEdge()
+
+        if (isConsentSurface) {
+            hideOverlayWindows()
+        }
 
         val getAllowScreenshots by instance<GetAllowScreenshots>()
         getAllowScreenshots()

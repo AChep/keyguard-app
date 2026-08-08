@@ -49,6 +49,7 @@ message NativeRequest {
     PasskeyKeyInspectRequest passkey_key_inspect = 49;
     PasskeySignRequest passkey_sign = 50;
     SshKeyExportCxfRequest ssh_key_export_cxf = 51;
+    SshPublicKeyDecodeRequest ssh_public_key_decode = 52;
   }
 }
 
@@ -67,6 +68,8 @@ message NativeStreamOpenRequest {
     OpenPgpDecryptStreamOpenRequest open_pgp_decrypt = 18;
     AesCbcPkcs7HmacSha256EncryptStreamOpenRequest aes_cbc_pkcs7_hmac_sha256_encrypt = 19;
     AesCbcPkcs7HmacSha256DecryptStreamOpenRequest aes_cbc_pkcs7_hmac_sha256_decrypt = 20;
+    OpenPgpClearSignStreamOpenRequest open_pgp_clear_sign = 21;
+    OpenPgpClearVerifyStreamOpenRequest open_pgp_clear_verify = 22;
   }
 }
 
@@ -334,6 +337,10 @@ message SshKeyExportCxfResult {
   bytes private_key_pkcs8 = 2;
 }
 
+message SshPublicKeyDecodeRequest {
+  string public_key_openssh = 1;
+}
+
 message SshPrivateKeyImportRequest {
   string content = 1;
   // UTF-8 bytes are used instead of a protobuf string so both native and
@@ -424,6 +431,13 @@ message SshSignature {
   bytes signature = 2;
 }
 
+// Domain payload returned inside NativeResponse.bytes_value.
+message SshPublicKeyDecodeResult {
+  SshKeyType type = 1;
+  // X.509 SubjectPublicKeyInfo DER encoding of the public key.
+  bytes spki_der = 2;
+}
+
 enum SshPrivateKeyImportErrorReason {
   SSH_PRIVATE_KEY_IMPORT_ERROR_REASON_UNSPECIFIED = 0;
   SSH_PRIVATE_KEY_IMPORT_ERROR_REASON_UNSUPPORTED_FORMAT = 1;
@@ -486,6 +500,22 @@ message OpenPgpDetachedVerifyStreamOpenRequest {
   bytes signature = 1;
   repeated bytes public_keys = 2;
   optional uint64 reference_time_epoch_seconds = 3;
+}
+
+message OpenPgpClearVerifyStreamOpenRequest {
+  // The complete cleartext-signed document (headers, body, and the trailing
+  // armored signature) is supplied only through streamUpdate calls, which
+  // return the dash-unescaped body bytes as they are recovered. The structural
+  // line ending before the signature armor and unauthenticated trailing spaces
+  // and tabs are excluded from the recovered body.
+  repeated bytes public_keys = 1;
+  optional uint64 reference_time_epoch_seconds = 2;
+}
+
+message OpenPgpClearVerifyResult {
+  OpenPgpVerification verification = 1;
+  // True when every recovered body line is valid UTF-8.
+  bool body_valid_utf8 = 2;
 }
 
 message OpenPgpMetadataResolveRequest {
@@ -672,6 +702,13 @@ message OpenPgpDetachedSignStreamOpenRequest {
   optional uint64 reference_time_epoch_seconds = 5;
 }
 
+message OpenPgpClearSignStreamOpenRequest {
+  bytes private_key = 1;
+  string preferred_fingerprint = 2;
+  optional uint64 signature_time_epoch_seconds = 3;
+  optional uint64 reference_time_epoch_seconds = 4;
+}
+
 message OpenPgpEncryptRequest {
   bytes content = 1;
   repeated bytes public_keys = 2;
@@ -681,6 +718,8 @@ message OpenPgpEncryptRequest {
   bool armored = 6;
   optional uint64 literal_time_epoch_seconds = 7;
   optional uint64 reference_time_epoch_seconds = 8;
+  // Absent preserves the historical behavior of compressing messages.
+  optional bool enable_compression = 9;
 }
 
 message OpenPgpEncryptStreamOpenRequest {
@@ -691,6 +730,8 @@ message OpenPgpEncryptStreamOpenRequest {
   bool armored = 5;
   optional uint64 literal_time_epoch_seconds = 6;
   optional uint64 reference_time_epoch_seconds = 7;
+  // Absent preserves the historical behavior of compressing messages.
+  optional bool enable_compression = 8;
 }
 
 enum OpenPgpProtectionMode {
@@ -715,17 +756,49 @@ message OpenPgpDecryptRequest {
   repeated bytes private_keys = 2;
   repeated bytes verification_public_keys = 3;
   optional uint64 reference_time_epoch_seconds = 4;
+  // Allows unencrypted inline-signed messages. Unsigned literal packets remain
+  // invalid input.
+  optional bool allow_signed_only = 5;
 }
 
 message OpenPgpDecryptStreamOpenRequest {
   repeated bytes private_keys = 1;
   repeated bytes verification_public_keys = 2;
   optional uint64 reference_time_epoch_seconds = 3;
+  // Allows unencrypted inline-signed messages. Unsigned literal packets remain
+  // invalid input.
+  optional bool allow_signed_only = 4;
+}
+
+// Header of the literal data packet. OpenPGP signatures cover only the
+// literal data, never this header: for signed-only (unencrypted) messages
+// every field except original_size is attacker-malleable even when the
+// signature is valid. Encrypted messages integrity-protect the header, but
+// it remains whatever the sender chose to claim.
+message OpenPgpLiteralMetadata {
+  // Raw sender-embedded file name bytes: unauthenticated and unvalidated.
+  // Unsafe as a filesystem path or for unescaped display (GnuPG
+  // CVE-2018-12020 "SigSpoof").
+  bytes file_name = 1;
+  uint32 format = 2;
+  uint64 modification_time_epoch_seconds = 3;
+  // Actual decoded plaintext size counted by this library, not the
+  // sender-declared length.
+  uint64 original_size = 4;
 }
 
 message OpenPgpDecryptResult {
   bytes data = 1;
   optional OpenPgpVerification verification = 2;
+  optional OpenPgpLiteralMetadata metadata = 3;
+  bool encrypted = 4;
+  // Raw value of the message "Charset:" armor header, when exactly one is
+  // present. Armor headers sit outside every integrity envelope: this is an
+  // unauthenticated transport hint that anyone in the path can add or alter.
+  optional string declared_charset = 5;
+  // Fingerprint of the primary key or subkey component that successfully
+  // recovered the message session key. Absent for signed-only input.
+  optional string decryption_key_fingerprint = 6;
 }
 
 message OpenPgpDecryptFinal {
@@ -733,6 +806,15 @@ message OpenPgpDecryptFinal {
   // authenticated final payload has decoded successfully.
   bytes data = 1;
   optional OpenPgpVerification verification = 2;
+  optional OpenPgpLiteralMetadata metadata = 3;
+  bool encrypted = 4;
+  // Raw value of the message "Charset:" armor header, when exactly one is
+  // present. Armor headers sit outside every integrity envelope: this is an
+  // unauthenticated transport hint that anyone in the path can add or alter.
+  optional string declared_charset = 5;
+  // Fingerprint of the primary key or subkey component that successfully
+  // recovered the message session key. Absent for signed-only input.
+  optional string decryption_key_fingerprint = 6;
 }
 
 message OpenPgpExpirationUpdateRequest {

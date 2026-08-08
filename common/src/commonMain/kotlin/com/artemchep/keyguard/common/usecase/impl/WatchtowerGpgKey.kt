@@ -7,9 +7,11 @@ import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.ignores
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
+import com.artemchep.keyguard.common.service.crypto.canEncryptAt
+import com.artemchep.keyguard.common.service.crypto.canSignAt
+import com.artemchep.keyguard.common.service.crypto.isExpiredAt
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
-import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmored
@@ -263,11 +265,12 @@ internal class GpgWatchtowerPolicy(
         privateKeyArmored: String?,
         now: Instant,
     ): List<String> = buildList {
-        val primaryActive = !key.revoked && !key.isExpired(now)
         if (key.revoked) {
             add(GpgWatchtowerIssue.KEY_REVOKED.code)
         }
-        if (key.isExpired(now)) {
+        val expired = key
+            .isExpiredAt(now)
+        if (expired) {
             add(GpgWatchtowerIssue.KEY_EXPIRED.code)
         }
 
@@ -304,8 +307,8 @@ internal class GpgWatchtowerPolicy(
             }
         }
 
-        val usableSign = primaryActive && key.hasUsableSignKey(now)
-        val usableDecrypt = primaryActive && key.hasUsableEncryptionKey(now)
+        val usableSign = key.canSignAt(now)
+        val usableDecrypt = key.canEncryptAt(now)
         if (expectedSign && !usableSign) {
             add(GpgWatchtowerIssue.NO_SIGNING_KEY.code)
         }
@@ -442,43 +445,6 @@ private fun GpgPublicKeyInfo.publicPartFingerprints(): Set<String> =
         }
     }
 
-private fun GpgPublicKeyInfo.hasUsableSignKey(
-    now: Instant,
-): Boolean {
-    if (!canSign) {
-        return false
-    }
-    val signSubKeys = subKeys.filter { it.canSign }
-    if (signSubKeys.isEmpty()) {
-        return true
-    }
-    return signSubKeys.any { it.isUsable(now) }
-}
-
-private fun GpgPublicKeyInfo.hasUsableEncryptionKey(
-    now: Instant,
-): Boolean {
-    if (!canEncrypt) {
-        return false
-    }
-    val encryptionSubKeys = subKeys.filter { it.canEncrypt }
-    if (encryptionSubKeys.isEmpty()) {
-        return true
-    }
-    return encryptionSubKeys.any { it.isUsable(now) }
-}
-
-private fun GpgPublicSubKeyInfo.isUsable(
-    now: Instant,
-): Boolean = !revoked && !isExpired(now)
-
-private fun GpgPublicKeyInfo.isExpired(
-    now: Instant,
-): Boolean = expiresAt?.let { it <= now } == true
-
-private fun GpgPublicSubKeyInfo.isExpired(
-    now: Instant,
-): Boolean = expiresAt?.let { it <= now } == true
 
 private fun List<String>.joinToWatchtowerValue(): String? =
     takeIf { it.isNotEmpty() }

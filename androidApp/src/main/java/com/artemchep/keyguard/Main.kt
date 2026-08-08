@@ -15,6 +15,7 @@ import com.artemchep.keyguard.android.PhoneCredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.coil3.AppIconFetcher
 import com.artemchep.keyguard.android.coil3.AppIconKeyer
 import com.artemchep.keyguard.android.downloader.worker.AttachmentDownloadAllWorker
+import com.artemchep.keyguard.android.ipc.installAndroidIpcProviders
 import com.artemchep.keyguard.android.worker.BackupWorker
 import com.artemchep.keyguard.android.passkeysModule
 import com.artemchep.keyguard.android.util.ShortcutIds
@@ -119,6 +120,8 @@ class Main : BaseApp(), DIAware {
         SingletonImageLoader.setFromDi(di)
 
         super.onCreate()
+        installAndroidIpcProviders()
+
         val logRepository: LogRepository by instance()
         val getVaultSession: GetVaultSession by instance()
         val putVaultSession: PutVaultSession by instance()

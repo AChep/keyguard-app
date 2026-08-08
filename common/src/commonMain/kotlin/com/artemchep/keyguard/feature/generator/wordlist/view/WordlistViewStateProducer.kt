@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.RemoveWordlistById
+import com.artemchep.keyguard.common.util.UniqueKeyBuilder
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
@@ -150,18 +151,11 @@ suspend fun RememberStateFlowScope.wordlistViewStateProducer(
     }
 
     fun List<String>.toItems(): List<WordlistViewState.Item> {
-        val nameCollisions = mutableMapOf<String, Int>()
+        val keyBuilder = UniqueKeyBuilder()
         return this
             .map { word ->
-                val key = kotlin.run {
-                    val newPackageNameCollisionCounter = nameCollisions
-                        .getOrElse(word) { 0 } + 1
-                    nameCollisions[word] =
-                        newPackageNameCollisionCounter
-                    word + ":" + newPackageNameCollisionCounter
-                }
                 WordlistViewState.Item(
-                    key = key,
+                    key = keyBuilder.build(word),
                     name = AnnotatedString(word),
                     onClick = ::onClick
                         .partially1(word),

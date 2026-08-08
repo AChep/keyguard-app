@@ -1,6 +1,6 @@
 ---
 title: "GPG agent"
-summary: "Use keys stored in your vault to authenticate with GPG services on desktop."
+summary: "Use GPG keys from desktop tools and compatible Android apps without exporting private keys."
 icon: "🔏"
 group: "Security"
 order: 7
@@ -8,7 +8,7 @@ featured: false
 premium: false
 ---
 
-Keyguard can act as a GPG agent — when a tool needs a signature or a decryption, the agent answers with the matching key while the private material stays in one managed place.
+Keyguard can act as a GPG agent ([OpenKeychain](https://github.com/open-keychain/open-keychain)-compatible provider on Android) — when a tool needs a signature or a decryption, the agent answers with the matching key while the private material stays in one managed place.
 
-This works on desktop (Linux, macOS and Windows). When a request comes in, an approval dialog shows you which application wants to use which key, and you decide how long that approval lasts.
+When a request comes in, an approval dialog shows you which application wants to use which key, and you decide how long that approval lasts.
 The generator can create new Ed25519 or RSA key pairs, and public keys can be fetched from a keyserver. When you're ready to wire it up, the [setup guide](/docs/gpg-agent/) covers it.

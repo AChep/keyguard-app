@@ -24,6 +24,7 @@ class AddGpgUsageHistoryImpl(
             fingerprint = request.fingerprint,
             keygrip = request.keygrip,
             instant = request.instant,
+            eventId = request.eventId,
         )
         gpgUsageHistoryRepository.put(model)
     }

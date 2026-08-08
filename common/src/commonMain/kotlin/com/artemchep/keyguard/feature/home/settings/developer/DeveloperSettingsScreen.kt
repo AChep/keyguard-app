@@ -32,6 +32,12 @@ fun rememberSettingsDeveloperItems(
                     SettingPaneItem.Item(Setting.GPG_SETTINGS),
                 ),
             ),
+            SettingPaneItem.Group(
+                key = "connected_apps",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.CONNECTED_APPS),
+                ),
+            ),
         )
     }
 }

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GpgAgentFilter(
     val state: Map<String, Set<DFilter.Primitive>> = emptyMap(),
-) {
+) : KeyAgentFilter {
     fun normalize(): GpgAgentFilter = copy(
         state = state
             .asSequence()
@@ -14,10 +14,10 @@ data class GpgAgentFilter(
             .toMap(),
     )
 
-    val isActive: Boolean
+    override val isActive: Boolean
         get() = state.values.any { it.isNotEmpty() }
 
-    fun toDFilter(): DFilter = kotlin.run {
+    override fun toDFilter(): DFilter = kotlin.run {
         val normalized = normalize().state
         val list = normalized
             .map { (_, filters) ->

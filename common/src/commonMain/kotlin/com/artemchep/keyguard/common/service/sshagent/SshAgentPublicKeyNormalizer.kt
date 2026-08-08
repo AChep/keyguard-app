@@ -44,8 +44,11 @@ fun parseSshAgentPublicKeyMaterial(
 }
 
 fun createSshAgentPublicKeyRow(
+    accountId: String,
+    cipherId: String,
     publicKey: String,
     fingerprint: String,
+    canSign: Boolean,
     name: String?,
     cryptoGenerator: CryptoGenerator,
     base64Service: Base64Service,
@@ -56,10 +59,13 @@ fun createSshAgentPublicKeyRow(
         base64Service = base64Service,
     ) ?: return null
     return SshAgentPublicKeyRow(
+        accountId = accountId,
+        cipherId = cipherId,
         publicKeyBlobSha256 = material.publicKeyBlobSha256,
         publicKey = material.publicKey,
         keyType = material.keyType,
         fingerprint = fingerprint,
+        canSign = canSign,
         name = name?.takeIf { it.isNotBlank() },
     )
 }

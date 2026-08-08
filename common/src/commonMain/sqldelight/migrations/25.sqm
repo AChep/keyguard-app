@@ -1,0 +1,12 @@
+-- The pending usage-history queue flushes into these tables from a
+-- separate database, so a crash between the insert and the queue-row
+-- delete can replay an event. A unique event id makes the flush
+-- idempotent; rows written directly from an unlocked session keep NULL.
+ALTER TABLE gpgUsageHistory
+ADD COLUMN eventId TEXT;
+
+ALTER TABLE sshUsageHistory
+ADD COLUMN eventId TEXT;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_gpgUsageHistory_eventId ON gpgUsageHistory(eventId);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sshUsageHistory_eventId ON sshUsageHistory(eventId);

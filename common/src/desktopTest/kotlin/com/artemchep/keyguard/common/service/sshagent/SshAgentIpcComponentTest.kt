@@ -384,7 +384,7 @@ class SshAgentIpcComponentTest {
                 authToken = authToken,
                 scope = serverScope,
                 testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
-                onApprovalRequest = { _, _, _ -> false },
+                onApprovalRequest = { false },
             )
 
             val serverJob = serverScope.launch {

@@ -5,13 +5,17 @@ import com.artemchep.keyguard.common.io.IO
 interface SshAgentPublicKeyRepository {
     fun get(): IO<List<SshAgentPublicKeyRow>>
 
+    /**
+     * Returns every catalog row holding the given public key: the same
+     * key may legitimately live in more than one cipher.
+     */
     fun getByPublicKeyBlobSha256(
         publicKeyBlobSha256: String,
-    ): IO<SshAgentPublicKeyRow?>
+    ): IO<List<SshAgentPublicKeyRow>>
 
     fun getByPublicKey(
         publicKey: String,
-    ): IO<SshAgentPublicKeyRow?>
+    ): IO<List<SshAgentPublicKeyRow>>
 
     fun replaceAll(
         keys: List<SshAgentPublicKeyRow>,
@@ -29,14 +33,14 @@ object SshAgentPublicKeyRepositoryEmpty : SshAgentPublicKeyRepository {
 
     override fun getByPublicKeyBlobSha256(
         publicKeyBlobSha256: String,
-    ): IO<SshAgentPublicKeyRow?> = {
-        null
+    ): IO<List<SshAgentPublicKeyRow>> = {
+        emptyList()
     }
 
     override fun getByPublicKey(
         publicKey: String,
-    ): IO<SshAgentPublicKeyRow?> = {
-        null
+    ): IO<List<SshAgentPublicKeyRow>> = {
+        emptyList()
     }
 
     override fun replaceAll(

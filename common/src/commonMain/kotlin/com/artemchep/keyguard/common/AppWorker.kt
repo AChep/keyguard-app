@@ -1,12 +1,14 @@
 package com.artemchep.keyguard.common
 
 import com.artemchep.keyguard.common.io.attempt
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountSyncer
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeySyncer
+import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
@@ -56,6 +58,11 @@ class AppWorkerIm(
                 launchSyncGpgAgentWhenAvailable(this)
                 launchRefreshGpgKeyserverWhenAvailable(this)
                 launchSyncLicenseWhenAvailable(this)
+
+                launchPendingUsageHistoryFlushWhenAvailable(
+                    scope = this,
+                    getVaultSession = getVaultSession,
+                )
             }
             .launchIn(this)
         // The app should keep a log of last installed versions,
@@ -144,7 +151,7 @@ class AppWorkerIm(
     private fun launchSyncGpgAgentWhenAvailable(scope: CoroutineScope) = getVaultSession()
         .map { session ->
             val key = session as? MasterSession.Key
-            key?.di?.direct?.instance<GpgAgentPublicKeySyncer>()
+            key?.di?.direct?.instance<GpgPublicKeySyncer>()
         }
         .distinctUntilChanged { old, new -> old === new }
         .mapLatest { syncManager ->
@@ -198,6 +205,22 @@ class AppWorkerIm(
         }
         .launchIn(scope)
 }
+
+internal fun launchPendingUsageHistoryFlushWhenAvailable(
+    scope: CoroutineScope,
+    getVaultSession: GetVaultSession,
+) = getVaultSession()
+    .map { session ->
+        val key = session as? MasterSession.Key
+        key?.di?.direct?.instance<PendingUsageHistoryFlushRunner>()
+    }
+    .distinctUntilChanged { old, new -> old === new }
+    .mapLatest { runner ->
+        runner?.run()
+            ?.attempt()
+            ?.bind()
+    }
+    .launchIn(scope)
 
 interface AppWorker {
     enum class Feature {

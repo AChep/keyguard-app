@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.SystemClock
 import android.util.Log
@@ -12,6 +11,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.artemchep.keyguard.android.Notifications
 import com.artemchep.keyguard.android.util.canPostNotifications
+import com.artemchep.keyguard.android.util.getAndroidPackageSigningCertificates
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
 import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
@@ -341,22 +341,10 @@ class SshAgentReceiver : BroadcastReceiver() {
     private fun getSigningCertificates(
         context: Context,
         packageName: String,
-    ): List<ByteArray>? = runCatching {
-        val packageInfo = context.packageManager.getPackageInfo(
-            packageName,
-            PackageManager.PackageInfoFlags.of(PackageManager.GET_SIGNING_CERTIFICATES.toLong()),
-        )
-        val signingInfo = requireNotNull(packageInfo.signingInfo)
-        val signatures = if (signingInfo.hasMultipleSigners()) {
-            signingInfo.apkContentsSigners
-        } else {
-            signingInfo.signingCertificateHistory
-        }
-        signatures
-            .orEmpty()
-            .map { it.toByteArray() }
-            .takeIf(List<ByteArray>::isNotEmpty)
-    }.getOrNull()
+    ): List<ByteArray>? = context.packageManager
+        .getAndroidPackageSigningCertificates(packageName)
+        ?.currentOrHistory
+        ?.takeIf(List<ByteArray>::isNotEmpty)
 
     @Suppress("DEPRECATION")
     private fun resolveAppLabel(

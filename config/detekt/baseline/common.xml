@@ -168,7 +168,7 @@
     <ID>CyclomaticComplexMethod:SettingListItem.kt:@Composable fun SettingListAccountsItem</ID>
     <ID>CyclomaticComplexMethod:SettingPaneContent.kt:@Composable fun rememberSettingPaneState: State&lt;SettingPaneState&gt;</ID>
     <ID>CyclomaticComplexMethod:SimpleNote.kt:@Composable fun FlatSimpleNote</ID>
-    <ID>CyclomaticComplexMethod:SshAgentRequestProcessorJvm.kt:SshAgentRequestProcessorJvm$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
+    <ID>CyclomaticComplexMethod:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
     <ID>CyclomaticComplexMethod:SshAgentService.kt:SshAgentService$override fun onStartCommand: Int</ID>
     <ID>CyclomaticComplexMethod:SshAgentTcpProxySocketConnector.kt:internal suspend fun &lt;T&gt; withAndroidSshAgentProxySocket: T</ID>
     <ID>CyclomaticComplexMethod:SyncByBitwardenTokenV2Impl.kt:SyncByBitwardenTokenV2Impl$context(syncScope: SyncScope) private suspend fun syncV2</ID>
@@ -302,783 +302,23 @@
     <ID>ForbiddenComment:WordlistViewScreen.kt:// TODO: I should somehow sync it with the toolbar instead</ID>
     <ID>ForbiddenComment:changePasswordAction.kt:// TODO: Where do I put 'after' callback?</ID>
     <ID>ForbiddenComment:getMonetNeutralColor.kt:// TODO: Support properly populating all the difference surfaces</ID>
-    <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `direct add calls and awaits syncById`</ID>
-    <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `direct add propagates sync failure`</ID>
-    <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `missing key file fails before inserting account or scheduling sync`</ID>
-    <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `open with missing database fails before inserting account or direct sync`</ID>
-    <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `open with wrong password fails before inserting account or scheduling sync`</ID>
-    <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `premium denial does not insert account or schedule sync`</ID>
-    <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `queued add stores empty webdav password as null`</ID>
-    <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `queued add stores local token and queues sync`</ID>
-    <ID>FunctionNaming:AddKeePassAccountImplTest.kt:AddKeePassAccountImplTest$@Test fun `queued add stores webdav username and password in token`</ID>
     <ID>FunctionNaming:AddRoute.kt:fun LeAddRoute: Route</ID>
     <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) fun LazyListScope.AddScreenItems</ID>
-    <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo escapes controls and bidi and bounds labels`</ID>
-    <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo keeps authenticated label ahead of OS name`</ID>
-    <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo prefers app name but still shows process metadata`</ID>
-    <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo returns null for null caller`</ID>
-    <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo shows process details for process-only caller`</ID>
-    <ID>FunctionNaming:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$@Test fun `buildAgentApprovalCallerInfo uses shared field-specific path limits`</ID>
-    <ID>FunctionNaming:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$@Test fun `approval window away and back transition invalidates an old approval`</ID>
-    <ID>FunctionNaming:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$@Test fun `completed policy update is visible to the next cache access`</ID>
-    <ID>FunctionNaming:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$@Test fun `infinite approvals evict the least recently used entry at the size cap`</ID>
-    <ID>FunctionNaming:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$@Test fun `insertion prunes expired entries before applying the size cap`</ID>
-    <ID>FunctionNaming:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$@Test fun `policy away and back transition invalidates an old approval`</ID>
-    <ID>FunctionNaming:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$@Test fun `shared config invalidates every approval memory instance`</ID>
-    <ID>FunctionNaming:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$@Test fun `stale access cannot remember after a policy away and back transition`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `application policies use safe narrower fallbacks`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `application policy shares terminal sessions through the owning application`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `cache policy storage keys are stable and unknown persisted values fail closed`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `connection and optional context fingerprints have exact lengths`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `connection and process policies cannot select broader subjects`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `display metadata is excluded while protocol context remains in equality`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `display-only caller metadata never creates an approval identity`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `duplicate subject kinds are rejected as ambiguous`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `fingerprints must be exact and domain separated`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `gpg caller uses the same multi-subject selection`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `strict default selects application for every non-terminal application`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `strict default selects terminal session before owning application`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `subject set is strictly bounded`</ID>
-    <ID>FunctionNaming:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$@Test fun `unknown or mismatched subject evidence is rejected`</ID>
-    <ID>FunctionNaming:AgentCallerDisplaySanitizationTest.kt:AgentCallerDisplaySanitizationTest$@Test fun `unsafe caller display predicate covers every prohibited category`</ID>
-    <ID>FunctionNaming:AgentCallerDisplaySanitizationTest.kt:AgentCallerDisplaySanitizationTest$@Test fun `unsafe caller display predicate permits ordinary text and whitespace`</ID>
-    <ID>FunctionNaming:AgentIpcSocketPathTest.kt:AgentIpcSocketPathTest$@Test fun `gpg ipc socket path stays below unix domain path limit`</ID>
-    <ID>FunctionNaming:AgentIpcSocketPathTest.kt:AgentIpcSocketPathTest$@Test fun `unix ipc socket directory is private`</ID>
-    <ID>FunctionNaming:AgentManagerTest.kt:AgentManagerTest$@Test fun `publishes expected IPC peer process`</ID>
-    <ID>FunctionNaming:AgentManagerTest.kt:AgentManagerTest$@Test fun `rethrows IPC server failure that wins process publication race`</ID>
-    <ID>FunctionNaming:AgentRequestUiStateTest.kt:AgentRequestUiStateTest$@Test fun `removeFirstPendingRequestOrNull returns null when all requests are completed`</ID>
-    <ID>FunctionNaming:AgentRequestUiStateTest.kt:AgentRequestUiStateTest$@Test fun `removeFirstPendingRequestOrNull skips completed requests`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `Android bridge authorization combines connection and verified package`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `Android bridge authorization falls back to the connection without package evidence`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `Android bridge replaces request authorization with framework evidence`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `Android bridge strips authorization supplied by request payload`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `Android caller display fields are bounded and strip control formatting`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `Android connection fallback strips request identity and authorization`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `buildAndroidSshAgentCallerIdentity preserves app metadata`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `buildAndroidSshAgentCallerIdentity preserves partial caller metadata`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `buildAndroidSshAgentCallerIdentity returns null when no fields are provided`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `framework package authorization binds package and signing certificates`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `framework package authorization rejects incomplete provenance`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `merge sanitizes proxy supplied process metadata before approval display`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `mergeAndroidSshAgentCallerIdentity creates app only caller when request caller is missing`</ID>
-    <ID>FunctionNaming:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$@Test fun `mergeAndroidSshAgentCallerIdentity overlays app metadata onto existing caller`</ID>
-    <ID>FunctionNaming:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@OptIn(ExperimentalSerializationApi::class) @Test fun `launch augments protobuf identities request with Android sender app info`</ID>
-    <ID>FunctionNaming:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@OptIn(ExperimentalSerializationApi::class) @Test fun `launch cancellation aborts a blocked proxy connect attempt`</ID>
-    <ID>FunctionNaming:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@OptIn(ExperimentalSerializationApi::class) @Test fun `launch discards protobuf caller when Android sender app info is unavailable`</ID>
-    <ID>FunctionNaming:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@OptIn(ExperimentalSerializationApi::class) @Test fun `launch returns protobuf error responses for unsupported authenticate requests`</ID>
-    <ID>FunctionNaming:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@Test fun `blocked proxy write is interrupted by closing its socket at the deadline`</ID>
-    <ID>FunctionNaming:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@Test fun `idle authenticated proxy session is closed at the packet deadline`</ID>
-    <ID>FunctionNaming:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$@Test fun `launch cancellation closes an active proxy socket`</ID>
-    <ID>FunctionNaming:AttachmentItemStatusTest.kt:AttachmentItemStatusTest$@Test fun `complete progress with uri maps to downloaded status`</ID>
-    <ID>FunctionNaming:AttachmentItemStatusTest.kt:AttachmentItemStatusTest$@Test fun `complete progress without uri maps to none`</ID>
-    <ID>FunctionNaming:AttachmentItemStatusTest.kt:AttachmentItemStatusTest$@Test fun `pending upload status has no preview url`</ID>
-    <ID>FunctionNaming:AttachmentPreviewActionTest.kt:AttachmentPreviewActionTest$@Test fun `preview action appears before download for not downloaded previewable attachments`</ID>
-    <ID>FunctionNaming:AttachmentPreviewActionTest.kt:AttachmentPreviewActionTest$@Test fun `preview action appears before external open for already downloaded previewable attachments`</ID>
     <ID>FunctionNaming:AutomaticBackupsEnabledSection.kt:internal fun LazyListScope.AutomaticBackupsEnabledContent</ID>
     <ID>FunctionNaming:AutomaticBackupsSetupSection.kt:internal fun LazyListScope.AutomaticBackupsSetupContent</ID>
-    <ID>FunctionNaming:BackupSchedulerWorkerTest.kt:BackupSchedulerWorkerTest$@Test fun `start collects scheduler and runs automatic backup after debounce`</ID>
-    <ID>FunctionNaming:BackupSchedulerWorkerTest.kt:BackupSchedulerWorkerTest$@Test fun `start does not run automatic backup while vault is locked`</ID>
-    <ID>FunctionNaming:BackupSchedulerWorkerTest.kt:BackupSchedulerWorkerTest$@Test fun `start runs automatic backup for persisted dirty vault`</ID>
-    <ID>FunctionNaming:BarcodeTypeHistoryKeyTest.kt:BarcodeTypeHistoryKeyTest$@Test fun `creates different keys for different cipher value pairs`</ID>
-    <ID>FunctionNaming:BarcodeTypeHistoryKeyTest.kt:BarcodeTypeHistoryKeyTest$@Test fun `creates stable md5 key from cipher id and value`</ID>
-    <ID>FunctionNaming:BarcodeUsageHistoryRepositoryImplTest.kt:BarcodeUsageHistoryRepositoryImplTest$@Test fun `get by id returns null for missing history item`</ID>
-    <ID>FunctionNaming:BarcodeUsageHistoryRepositoryImplTest.kt:BarcodeUsageHistoryRepositoryImplTest$@Test fun `put upserts history item by id`</ID>
-    <ID>FunctionNaming:BarcodeUsageHistoryRepositoryImplTest.kt:BarcodeUsageHistoryRepositoryImplTest$@Test fun `use cases write and read history item`</ID>
-    <ID>FunctionNaming:BitwardenCryptoBenchmarkTest.kt:BitwardenCryptoBenchmarkTest$@Test fun `compare Bouncy Castle and Native Crypto on Bitwarden operations`</ID>
-    <ID>FunctionNaming:CallerAuthorizationWireTest.kt:CallerAuthorizationWireTest$@Test fun `SSH and GPG callers serialize shared authorization identically`</ID>
-    <ID>FunctionNaming:CallerAuthorizationWireTest.kt:CallerAuthorizationWireTest$@Test fun `shared authorization keeps the exact protobuf wire contract`</ID>
     <ID>FunctionNaming:ChangePasswordScreen.kt:private fun LazyListScope.ChangePasswordContent</ID>
     <ID>FunctionNaming:ChangePasswordScreen.kt:private fun LazyListScope.ChangePasswordContentSkeleton</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `close preserves input failure when cipher finalization also fails`</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `decodes aes cbc 128 hmac sha256 frame`</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `decodes aes cbc 256 hmac sha256 frame`</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `decodes frame when header is split across reads`</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `rejects close before consuming full frame`</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `rejects tampered ciphertext`</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `rejects tampered mac`</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `rejects truncated header`</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `rejects unsupported frame type`</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `repeated zero progress input is rejected`</ID>
-    <ID>FunctionNaming:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$@Test fun `zero length read returns immediately without consuming input`</ID>
-    <ID>FunctionNaming:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest$@Test fun `bulk cipher snapshot update benchmark`</ID>
-    <ID>FunctionNaming:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest$@Test fun `initial load comparison with pre snapshot query for ten thousand ciphers`</ID>
-    <ID>FunctionNaming:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest$@Test fun `initial snapshot load benchmark`</ID>
-    <ID>FunctionNaming:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest$@Test fun `single change comparison with old full payload loader`</ID>
-    <ID>FunctionNaming:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest$@Test fun `single cipher snapshot update benchmark`</ID>
-    <ID>FunctionNaming:CipherSnapshotLoaderTest.kt:CipherSnapshotLoaderTest$@Test fun `loads only changed payloads and evicts deleted snapshots`</ID>
-    <ID>FunctionNaming:CipherSnapshotLoaderTest.kt:CipherSnapshotLoaderTest$@Test fun `uses a full payload scan for a large sync`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `ed25519 key is not weak`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `ignored alert metadata does not suppress raw weak key check`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `mismatched public key does not hide weak rsa private key`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `non ssh item is not weak`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `rsa key at 2048 bits is not weak`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `rsa key below 2048 bits is weak`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `rsa keys above 2048 bits are not weak`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `ssh item with missing fingerprint still reports weak key material`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `ssh item with missing private key is not weak`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `ssh item with missing public key still reports weak key material`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `ssh item with unparsable private key is not weak`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `watchtower processor reports weak ssh key threat with private key value`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `watchtower processor suppresses threat for ignored weak ssh key`</ID>
-    <ID>FunctionNaming:CipherSshKeyWeakCheckTest.kt:CipherSshKeyWeakCheckTest$@Test fun `weak ssh key filter matches only weak ssh keys`</ID>
-    <ID>FunctionNaming:CipherUrlCheckBenchmarkTest.kt:CipherUrlCheckBenchmarkTest$@Test fun `benchmark and profile every CipherUrlCheck match mode`</ID>
-    <ID>FunctionNaming:ClipboardServiceJvmTest.kt:ClipboardServiceJvmTest$@Test fun `linux selection keeps kde password manager hint`</ID>
-    <ID>FunctionNaming:ClipboardServiceJvmTest.kt:ClipboardServiceJvmTest$@Test fun `macos fallback selection contains concealed marker`</ID>
-    <ID>FunctionNaming:ClipboardServiceJvmTest.kt:ClipboardServiceJvmTest$@Test fun `marker data is returned as a copy`</ID>
-    <ID>FunctionNaming:ClipboardServiceJvmTest.kt:ClipboardServiceJvmTest$@Test fun `windows concealed selection excludes history and cloud clipboard`</ID>
-    <ID>FunctionNaming:CloudflareEmailRelayTest.kt:CloudflareEmailRelayTest$@Test fun `generate creates email routing rule`</ID>
-    <ID>FunctionNaming:CloudflareEmailRelayTest.kt:CloudflareEmailRelayTest$@Test fun `generate fails before http when required config is missing`</ID>
-    <ID>FunctionNaming:CloudflareEmailRelayTest.kt:CloudflareEmailRelayTest$@Test fun `generate normalizes domain`</ID>
-    <ID>FunctionNaming:CloudflareEmailRelayTest.kt:CloudflareEmailRelayTest$@Test fun `generate surfaces http error message`</ID>
-    <ID>FunctionNaming:CloudflareEmailRelayTest.kt:CloudflareEmailRelayTest$@Test fun `generate surfaces success false message`</ID>
     <ID>FunctionNaming:DFilter.kt:DFilter.Companion$private fun &lt;T&gt; _findAny: T?</ID>
     <ID>FunctionNaming:DFilter.kt:DFilter.Companion$private fun &lt;T&gt; _findOne: Either&lt;Unit, T?&gt;</ID>
     <ID>FunctionNaming:DSendFilter.kt:DSendFilter.Companion$private fun &lt;T&gt; _findOne: Either&lt;Unit, T?&gt;</ID>
     <ID>FunctionNaming:DataSafetyScreen.kt:private fun LazyListScope.DataSafetyScreenContent</ID>
-    <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `local path writer stores bytes on disk`</ID>
-    <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `sink writer writes into provided sink`</ID>
-    <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `verified source failure preserves existing local file`</ID>
-    <ID>FunctionNaming:DownloadWriterTest.kt:DownloadWriterTest$@Test fun `verified source publishes atomically and reports replay progress`</ID>
     <ID>FunctionNaming:FNV.kt:FNV$fun fnv1_32: Long</ID>
-    <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate creates masked email through JMAP`</ID>
-    <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate fails clearly on unauthorized token`</ID>
-    <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate fails when masked email account id is missing`</ID>
-    <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate surfaces JMAP error description`</ID>
-    <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate surfaces notCreated description`</ID>
-    <ID>FunctionNaming:FastmailEmailRelayTest.kt:FastmailEmailRelayTest$@Test fun `generate uses empty forDomain when host is missing`</ID>
-    <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `detects file list drag without reading files`</ID>
-    <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `ignores missing file uri`</ID>
-    <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `ignores unreadable dropped file list`</ID>
-    <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `ignores unsupported dropped data`</ID>
-    <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `returns first regular file from dropped files list`</ID>
-    <ID>FunctionNaming:FileDropTargetTest.kt:FileDropTargetTest$@Test fun `skips malformed unsupported and non-file entries`</ID>
-    <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `deduplicates mixed mime types`</ID>
-    <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `maps legacy jpeg mime type to jpg and jpeg extensions`</ID>
-    <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `maps png mime type to png extension`</ID>
-    <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `maps standard jpeg mime type to jpg and jpeg extensions`</ID>
-    <ID>FunctionNaming:FilePickerEffectTest.kt:FilePickerEffectTest$@Test fun `returns null when no supported mime types are present`</ID>
-    <ID>FunctionNaming:FileWatcherServiceJvmTest.kt:FileWatcherServiceJvmTest$@Test fun `directory watcher cancellation closes blocking watcher`</ID>
-    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `direct source accepts payload at the size limit`</ID>
-    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `encrypted source decrypts in memory`</ID>
-    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `encrypted source surfaces decryption failures`</ID>
-    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `keepass source enforces limit while replaying verified attachment`</ID>
-    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `keepass source rejects known size above limit before extraction`</ID>
-    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `keepass source returns verified attachment below limit`</ID>
-    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `local file source is read before resolving remote metadata`</ID>
-    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `url source rejects content length above the size limit before reading body`</ID>
-    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `url source rejects streamed response above the size limit`</ID>
-    <ID>FunctionNaming:GetAttachmentPreviewImplTest.kt:GetAttachmentPreviewImplTest$@Test fun `url source surfaces network failure for non-success status`</ID>
     <ID>FunctionNaming:GetCiphers.kt:private inline fun &lt;T&gt; _filterHiddenProfiles: Flow&lt;List&lt;T&gt;&gt;</ID>
-    <ID>FunctionNaming:GetCiphersImplTest.kt:GetCiphersImplTest$@Test fun `get cipher snapshots reuses unchanged domain objects`</ID>
-    <ID>FunctionNaming:GetCiphersImplTest.kt:GetCiphersImplTest$@Test fun `get ciphers reuses the shared decoded snapshot`</ID>
     <ID>FunctionNaming:Getter.kt:fun &lt;T, R&gt; Getter: Lens&lt;T, R&gt;</ID>
-    <ID>FunctionNaming:GpgAgentApprovalCacheKeyTest.kt:GpgAgentApprovalCacheKeyTest$@Test fun `gpg cache key uses connection identity and ignores display name`</ID>
-    <ID>FunctionNaming:GpgAgentApprovalCacheKeyTest.kt:GpgAgentApprovalCacheKeyTest$@Test fun `gpg cache reuses verified subject across connections but partitions context`</ID>
-    <ID>FunctionNaming:GpgAgentApprovalCacheKeyTest.kt:GpgAgentApprovalCacheKeyTest$@Test fun `legacy callers never produce reusable gpg cache keys`</ID>
-    <ID>FunctionNaming:GpgAgentApprovalCacheKeyTest.kt:GpgAgentApprovalCacheKeyTest$@Test fun `malformed gpg authorization never produces a cache key`</ID>
-    <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `canonical s-expression parser is byte-accurate`</ID>
-    <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `cv25519 legacy pkdecrypt returns prefixed shared secret`</ID>
-    <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `cv25519 pkdecrypt performs the rfc6637 kdf and aes key unwrap`</ID>
-    <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `nistp256 legacy pkdecrypt returns shared point`</ID>
-    <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `nistp256 pkdecrypt performs the rfc6637 kdf and aes key unwrap`</ID>
-    <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `parseEncVal extracts algorithm and params and skips flags`</ID>
-    <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `parseEncVal handles binary atom values with zero bytes`</ID>
-    <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `rsa pkdecrypt returns the raw modular exponentiation`</ID>
-    <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `scoped canonical s-expression parsing clears nested atoms after failure`</ID>
-    <ID>FunctionNaming:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$@Test fun `scoped canonical s-expression parsing clears nested atoms after success`</ID>
-    <ID>FunctionNaming:GpgAgentIpcAuthenticationTest.kt:GpgAgentIpcAuthenticationTest$@Test fun `authentication requires exact current protocol revision`</ID>
-    <ID>FunctionNaming:GpgAgentIpcAuthenticationTest.kt:GpgAgentIpcAuthenticationTest$@Test fun `matching revision does not weaken token authentication`</ID>
-    <ID>FunctionNaming:GpgAgentMessagesTest.kt:GpgAgentMessagesTest$@Test fun `CallerAuthorization round-trips as field 9`</ID>
-    <ID>FunctionNaming:GpgAgentMessagesTest.kt:GpgAgentMessagesTest$@Test fun `authentication revision round-trips and is emitted as field 2`</ID>
-    <ID>FunctionNaming:GpgAgentPublicKeyRepositoryImplTest.kt:GpgAgentPublicKeyRepositoryImplTest$@Test fun `replaceAll restores public-only key rows from exposed database`</ID>
-    <ID>FunctionNaming:GpgAgentPublicKeySyncerImplTest.kt:GpgAgentPublicKeySyncerImplTest$@Test fun `syncer stores public-only keys without private operation capabilities`</ID>
-    <ID>FunctionNaming:GpgAgentSigningTest.kt:GpgAgentSigningTest$@Test fun `ecdsa sig-val reconstructs a verifiable signature`</ID>
-    <ID>FunctionNaming:GpgAgentSigningTest.kt:GpgAgentSigningTest$@Test fun `ed25519 sig-val reconstructs a verifiable signature`</ID>
-    <ID>FunctionNaming:GpgAgentSigningTest.kt:GpgAgentSigningTest$@Test fun `legacy V2 and V3 private keys are unsupported`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test @Suppress("DEPRECATION") fun `designated revoker authenticates primary and subkey revocations when its key is supplied`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test @Suppress("DEPRECATION") fun `designated revoker certification revocation remains supported`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test @Suppress("DEPRECATION") fun `expired direct key signature still authorizes its designated revoker`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test @Suppress("DEPRECATION") fun `missing revoker stays unresolved with no hint or a conflicting fingerprint`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test @Suppress("DEPRECATION") fun `public parser resolves a designated revoker from another ring in the collection`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test @Suppress("DEPRECATION") fun `spoofed issuer hint cannot impersonate a declared revoker`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test @Suppress("DEPRECATION") fun `user id self signature cannot authorize a designated revoker`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `bare primary is not treated as an authenticated agent key`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `certificate containing a legacy subkey is rejected`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `expired direct key signature is ignored for effective policy`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `expired subkey binding falls back to an older live binding`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `explicit authenticated key flags override algorithm capabilities`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `forged primary and subkey revocations are ignored`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `legacy V2 and V3 certificates are rejected`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `newer expired user id certification shadows an older live certification`</ID>
-    <ID>FunctionNaming:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test fun `newer invalid self signature cannot replace authenticated expiry or key flags`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `a forged primary revocation does not prevent expiry changes`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `a revoked primary prevents subkey-only expiry changes`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `an empty legacy fingerprint is canonicalized for a single certificate`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `authenticated public-only encryption subkey expiry can be updated`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `authenticated public-only signing subkey reuses its cross-signature`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `authenticated public-only subkey is retained without becoming agent secret metadata`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `cheap validation completes before reading the clock`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `clock failures are reported as internal failures`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `designated revocation is unresolved without its key and verified when supplied`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `empty legacy metadata is repopulated`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `expired subkey binding cannot be renewed and does not block primary renewal`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `expiry after the OpenPGP timestamp ceiling fails`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `expiry at the OpenPGP timestamp ceiling succeeds`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `failed clock wait stops time conflict retries`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `finite expiry can be removed from every component`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `future signature beyond gpg wait window returns time conflict`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `invalid requests fail without returning changed key material`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `non-time-conflict errors do not wait`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `partial and stale legacy metadata are refreshed`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `public-only certification is preserved when expiry changes`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `reordered public subkeys are reconciled by fingerprint`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `replacement preserves the absolute signature expiration time`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `replacement signatures supersede the original certificate after gpg merge`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `safe calendar expiry boundary interoperates with gpg`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `secret-only primary revocation prevents expiry changes`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `unbound public-only subkey is rejected`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `unexpected implementation failures are not reported as malformed keys`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `unresolved designated subkey revocation blocks only that component`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `updates primary and subkey expiries without changing key identity`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `updating only one subkey leaves primary and other subkeys unchanged`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `updating only primary leaves subkey certificates unchanged`</ID>
-    <ID>FunctionNaming:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$@Test fun `weak RSA self signature digests are upgraded to SHA256`</ID>
-    <ID>FunctionNaming:GpgKeyGeneratorJvmTest.kt:GpgKeyGeneratorJvmTest$@Test fun `absolute expiry is applied to every generated component`</ID>
-    <ID>FunctionNaming:GpgKeyGeneratorJvmTest.kt:GpgKeyGeneratorJvmTest$@Test fun `default expiry is applied to every generated component`</ID>
-    <ID>FunctionNaming:GpgKeyGeneratorJvmTest.kt:GpgKeyGeneratorJvmTest$@Test fun `metadata resolution failure aborts generation`</ID>
-    <ID>FunctionNaming:GpgKeyGeneratorJvmTest.kt:GpgKeyGeneratorJvmTest$@Test fun `modern generated key keygrips match gpg`</ID>
-    <ID>FunctionNaming:GpgKeyGeneratorJvmTest.kt:GpgKeyGeneratorJvmTest$@Test fun `modern key generates valid armored rings metadata and usable key material`</ID>
-    <ID>FunctionNaming:GpgKeyGeneratorJvmTest.kt:GpgKeyGeneratorJvmTest$@Test fun `never expiry is applied to every generated component`</ID>
-    <ID>FunctionNaming:GpgKeyGeneratorJvmTest.kt:GpgKeyGeneratorJvmTest$@Test fun `rsa generated key keygrips match gpg`</ID>
-    <ID>FunctionNaming:GpgKeyGeneratorJvmTest.kt:GpgKeyGeneratorJvmTest$@Test fun `rsa key generates valid armored rings metadata and usable key material`</ID>
-    <ID>FunctionNaming:GpgKeyImportServiceJvmTest.kt:GpgKeyImportServiceJvmTest$@Test fun `encrypted private key asks for passphrase`</ID>
-    <ID>FunctionNaming:GpgKeyImportServiceJvmTest.kt:GpgKeyImportServiceJvmTest$@Test fun `encrypted private key imports as passwordless key after passphrase`</ID>
-    <ID>FunctionNaming:GpgKeyImportServiceJvmTest.kt:GpgKeyImportServiceJvmTest$@Test fun `encrypted private key rejects invalid passphrase`</ID>
-    <ID>FunctionNaming:GpgKeyImportServiceJvmTest.kt:GpgKeyImportServiceJvmTest$@Test fun `garbage private key remains malformed`</ID>
-    <ID>FunctionNaming:GpgKeyImportServiceJvmTest.kt:GpgKeyImportServiceJvmTest$@Test fun `imports armored public key`</ID>
-    <ID>FunctionNaming:GpgKeyImportServiceJvmTest.kt:GpgKeyImportServiceJvmTest$@Test fun `imports unencrypted private key with derived public key`</ID>
-    <ID>FunctionNaming:GpgKeyImportServiceJvmTest.kt:GpgKeyImportServiceJvmTest$@Test fun `rejects legacy V2 and V3 private keys`</ID>
-    <ID>FunctionNaming:GpgKeyImportServiceJvmTest.kt:GpgKeyImportServiceJvmTest$@Test fun `rejects legacy V2 and V3 public keys`</ID>
-    <ID>FunctionNaming:GpgKeygripCalculatorJvmTest.kt:GpgKeygripCalculatorJvmTest$@Test fun `cv25519 keygrips match gpg`</ID>
-    <ID>FunctionNaming:GpgKeygripCalculatorJvmTest.kt:GpgKeygripCalculatorJvmTest$@Test fun `ecdsa keygrips match gpg`</ID>
-    <ID>FunctionNaming:GpgKeygripCalculatorJvmTest.kt:GpgKeygripCalculatorJvmTest$@Test fun `ed25519 keygrips match gpg`</ID>
-    <ID>FunctionNaming:GpgKeygripCalculatorJvmTest.kt:GpgKeygripCalculatorJvmTest$@Test fun `nistp256 keygrips match gpg`</ID>
-    <ID>FunctionNaming:GpgKeygripCalculatorJvmTest.kt:GpgKeygripCalculatorJvmTest$@Test fun `rsa keygrips match gpg`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `HKP get by email uses lookup index endpoint`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `HKP get by fingerprint uses lookup get endpoint and parses armored response`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `HKP search parses machine readable index rows`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `HKP upload posts keytext to add endpoint`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `VKS email search uses by-email endpoint and parses armored response`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `VKS get by email uses by-email endpoint and parses armored response`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `VKS get by fingerprint uses by-fingerprint endpoint and parses armored response`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `VKS text search cannot be served and issues no request`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `VKS upload posts keytext to upload endpoint`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `canServeSearch reflects protocol and resolved mode`</ID>
-    <ID>FunctionNaming:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$@Test fun `search uses request keyserver config protocol for fingerprint lookup`</ID>
-    <ID>FunctionNaming:GpgKeyserverStateRepositoryImplTest.kt:GpgKeyserverStateRepositoryImplTest$@Test fun `put normalizes fingerprint and looks up state`</ID>
-    <ID>FunctionNaming:GpgKeyserverStateRepositoryImplTest.kt:GpgKeyserverStateRepositoryImplTest$@Test fun `put replaces existing state by normalized fingerprint`</ID>
-    <ID>FunctionNaming:GpgKeyserverStateRepositoryImplTest.kt:GpgKeyserverStateRepositoryImplTest$@Test fun `remove by fingerprint and remove all clear state`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `clear-sign of text without trailing newline emits well-formed armor`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `clear-sign round trip with dash and marker lines`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `clear-sign text then verify`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `clear-sign with marker lines verifies with gpg when available`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `detached file sign then verify`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `detached file sign without armor then verify`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `detached text sign then verify`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `encrypt decrypt binary file round trip without armor`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `encrypt decrypt file round trip larger than one stream buffer`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `encrypt decrypt text round trip with pasted public key`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `encrypt decrypt text round trip with stored public key`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `gpg accepts service-created clear-signed signature when available`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `gpg accepts service-created detached signature when available`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `gpg decrypts service-created armored message when available`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `legacy private key candidate does not hide a supported decryption key`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `legacy public key candidate does not hide a supported verification key`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `legacy recipient cannot be silently dropped from encryption`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `legacy-only private key candidates are rejected`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `malformed detached signature fails verification`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `malformed pasted key fails encryption`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `message without integrity protection is rejected`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `missing private key fails decryption`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `missing public key returns missing key verification`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `preferred RSA primary fingerprint selects its authenticated signing subkey`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `revoked primary invalidates an otherwise usable encryption subkey`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `rsa encryption targets the encryption subkey`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `sign encrypt text decrypts and verifies signer`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `sign encrypt text decrypts with missing signer key verification`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `tampered clear-signed text fails verification`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `tampered detached text fails verification`</ID>
-    <ID>FunctionNaming:GpgOpenPgpServiceJvmTest.kt:GpgOpenPgpServiceJvmTest$@Test fun `tampered file fails detached verification`</ID>
-    <ID>FunctionNaming:GpgPublicKeyParserJvmTest.kt:GpgPublicKeyParserJvmTest$@Test fun `blank input returns Empty`</ID>
-    <ID>FunctionNaming:GpgPublicKeyParserJvmTest.kt:GpgPublicKeyParserJvmTest$@Test fun `garbage input returns Malformed`</ID>
-    <ID>FunctionNaming:GpgPublicKeyParserJvmTest.kt:GpgPublicKeyParserJvmTest$@Test fun `legacy V2 and V3 public keys are unsupported`</ID>
-    <ID>FunctionNaming:GpgPublicKeyParserJvmTest.kt:GpgPublicKeyParserJvmTest$@Test fun `parses fingerprint, e-mail and capabilities from an armored public key`</ID>
-    <ID>FunctionNaming:GpgPublicKeyParserJvmTest.kt:GpgPublicKeyParserJvmTest$@Test fun `primary key lookup requires a supplied fingerprint to match`</ID>
-    <ID>FunctionNaming:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$@Test fun `already expired signatures retain the shortest nonzero duration`</ID>
-    <ID>FunctionNaming:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$@Test fun `equal timestamp waits for a strictly newer OpenPGP second`</ID>
-    <ID>FunctionNaming:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$@Test fun `signature expiration keeps its absolute time when creation advances`</ID>
-    <ID>FunctionNaming:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$@Test fun `time conflict is returned after five clock waits`</ID>
-    <ID>FunctionNaming:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$@Test fun `weak RSA digests are upgraded while constrained algorithms preserve them`</ID>
-    <ID>FunctionNaming:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$@Test fun `zero and exact unsigned wrap leave copied expiration untouched`</ID>
-    <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `all breaches calls HIBP breaches endpoint and decodes group`</ID>
-    <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `breached account retries 429 using retry after header`</ID>
-    <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `breached account returns empty list for not found`</ID>
-    <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `breached account sends token, flags, user agent, and route`</ID>
-    <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `pwned password range propagates HTTP errors`</ID>
-    <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `pwned password range retries 429 using retry after header`</ID>
-    <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `pwned password range returns matching suffix count or zero`</ID>
-    <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `subscription status propagates HIBP HTTP errors`</ID>
-    <ID>FunctionNaming:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$@Test fun `subscription status sends token, user agent, and route`</ID>
-    <ID>FunctionNaming:InputStreamReadCompatTest.kt:InputStreamReadCompatTest$@Test fun `readBytesCompat returns a truncated buffer when the stream ends early`</ID>
-    <ID>FunctionNaming:InputStreamReadCompatTest.kt:InputStreamReadCompatTest$@Test fun `readBytesCompat returns the requested bytes across short reads`</ID>
     <ID>FunctionNaming:JavaIoExtJvmTest.kt:JavaIoExtJvmTest$@Test fun `useBufferedSink flushes and closes owned output stream`</ID>
     <ID>FunctionNaming:JavaIoExtJvmTest.kt:JavaIoExtJvmTest$@Test fun `withBufferedSink flushes without closing borrowed output stream`</ID>
-    <ID>FunctionNaming:JsonKeyValueStoreTest.kt:JsonKeyValueStoreTest$@Test fun `file store writes and reads data through nested path`</ID>
-    <ID>FunctionNaming:JsonKeyValueStoreTest.kt:JsonKeyValueStoreTest$@Test fun `json key value store falls back to empty state on malformed json`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `existing db with correct password succeeds`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `existing db with wrong password fails before import`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `key file flow works when key file is present`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `local non file uri metadata is unavailable`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `metadata compares etag when both sides provide etag`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `metadata compares last modified and size when etag is unavailable`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `metadata without shared comparable fields is not comparable`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `missing key file fails before import`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `new db mode creates a readable database`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `new db mode overwrites target when allowed`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `new db mode refuses overwrite when target exists`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `webdav blank username creates no authorization`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `webdav collection stat is ignored as database file`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `webdav create race maps to keepass file already exists`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `webdav new db mode creates a readable database`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `webdav new db mode overwrites target when allowed`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `webdav new db mode refuses overwrite when target exists`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `webdav token password is used for basic authorization`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `webdav url rejects trailing directory`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `webdav url strips query and fragment and decodes filename`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `webdav username and password create basic authorization`</ID>
-    <ID>FunctionNaming:KeePassDatabasePreparationTest.kt:KeePassDatabasePreparationTest$@Test fun `wrong key file fails before import`</ID>
-    <ID>FunctionNaming:KeePassGpgKeyCodecTest.kt:KeePassGpgKeyCodecTest$@Test fun `decode consumes canonical gpg fields`</ID>
-    <ID>FunctionNaming:KeePassGpgKeyCodecTest.kt:KeePassGpgKeyCodecTest$@Test fun `decode ignores metadata as available field`</ID>
-    <ID>FunctionNaming:KeePassGpgKeyCodecTest.kt:KeePassGpgKeyCodecTest$@Test fun `encode writes gpg fields with concealment`</ID>
-    <ID>FunctionNaming:KeePassGpgKeyCodecTest.kt:KeePassGpgKeyCodecTest$@Test fun `encode-decode preserves public-only gpg key`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode does not treat display or embedded OTP fields as configuration`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode precedence keeps non-winning OTP fields available`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode precedence keeps secondary secret encodings available`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode preserves invalid TimeOtp sidecars as custom fields`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode reads HmacOtp hotp fields`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode reads TOTP seed and settings split fields`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode reads TimeOtp secret fields`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode reads otp KeeOTP query string`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode reads single-field totp conventions`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `decode records source bindings without duplicating secrets`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `encode new base32 and base64 totp values uses TimeOtp fields`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `encode new short and invalid raw totp values stays in otp field`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `encode opaque OTP URIs verbatim in otp field`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `encode preserves decoded source field names and encodings`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `encode preserves raw and base64 TimeOtp and HmacOtp secrets`</ID>
-    <ID>FunctionNaming:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$@Test fun `encode removes decoded OTP source when canonical value is empty`</ID>
-    <ID>FunctionNaming:KeePassUrlCodecTest.kt:KeePassUrlCodecTest$@Test fun `decode ignores orphan android signature`</ID>
-    <ID>FunctionNaming:KeePassUrlCodecTest.kt:KeePassUrlCodecTest$@Test fun `decode leaves invalid android signature as custom field`</ID>
-    <ID>FunctionNaming:KeePassUrlCodecTest.kt:KeePassUrlCodecTest$@Test fun `decode reads paired android signatures`</ID>
-    <ID>FunctionNaming:KeePassUrlCodecTest.kt:KeePassUrlCodecTest$@Test fun `encode writes android signatures as protected companion fields`</ID>
-    <ID>FunctionNaming:KeePassUrlCodecTest.kt:KeePassUrlCodecTest$@Test fun `encode writes android uris as KeePassDX AndroidApp fields`</ID>
-    <ID>FunctionNaming:KeyExportImplTest.kt:KeyExportImplTest$@Test fun `key pair export writes zip entries with same text payloads`</ID>
-    <ID>FunctionNaming:KeyExportImplTest.kt:KeyExportImplTest$@Test fun `private export writes ssh text into downloads sink`</ID>
-    <ID>FunctionNaming:KeyExportImplTest.kt:KeyExportImplTest$@Test fun `public export writes ssh text into downloads sink`</ID>
-    <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `claim persists source metadata and skips fresh non-forced claim`</ID>
-    <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `claim stores recent failure throttles non-forced retry and force bypasses throttle`</ID>
-    <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `claim success without key keeps same source stored key and updates snapshot`</ID>
-    <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `claim success without usable key clears claimed state when there is no same source fallback`</ID>
-    <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `invalid redeem returns undecodable and leaves stored redeemed state empty`</ID>
-    <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `refresh keeps previous redeemed state on repository failure`</ID>
-    <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `refresh persists negative redeemed status without replacing stored key`</ID>
-    <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `refresh skips redeemed license with fresh snapshot`</ID>
-    <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `refresh updates stale redeemed snapshot and adopts decodable server key`</ID>
-    <ID>FunctionNaming:LicenseManagerImplTest.kt:LicenseManagerImplTest$@Test fun `valid redeem persists decoded active entitlement`</ID>
-    <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `BC Bitwarden AES HMAC frames decrypt with native crypto`</ID>
-    <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `BC OAEP ciphertexts decrypt through every native Bitwarden RSA type`</ID>
-    <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `BC file frames for types 1 and 2 decrypt with native crypto`</ID>
-    <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `fused native file frame exactly matches BC bytes`</ID>
-    <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `native Bitwarden AES HMAC frames decrypt and authenticate with BC`</ID>
-    <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `native OAEP ciphertexts decrypt with BC for SHA1 and SHA256`</ID>
-    <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `native PKCS8 to SPKI bytes exactly match BC`</ID>
-    <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `native RSA types 5 and 6 retain BC ignored MAC artifact behavior`</ID>
-    <ID>FunctionNaming:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$@Test fun `tampered MAC is rejected before Bitwarden plaintext is returned`</ID>
-    <ID>FunctionNaming:OpenPgpMutationAndAgentBouncyCastleDifferentialTest.kt:OpenPgpMutationAndAgentBouncyCastleDifferentialTest$@Test fun `agent Ed25519 signature matches BC`</ID>
-    <ID>FunctionNaming:OpenPgpMutationAndAgentBouncyCastleDifferentialTest.kt:OpenPgpMutationAndAgentBouncyCastleDifferentialTest$@Test fun `agent raw RSA decryption matches BC`</ID>
-    <ID>FunctionNaming:OpenPgpMutationAndAgentBouncyCastleDifferentialTest.kt:OpenPgpMutationAndAgentBouncyCastleDifferentialTest$@Test fun `expiration preserves unselected packets and matches BC semantics`</ID>
-    <ID>FunctionNaming:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test @Suppress("DEPRECATION") fun `native designated revocation policy matches BC for parser and metadata`</ID>
-    <ID>FunctionNaming:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native clear-text verification matches BC`</ID>
-    <ID>FunctionNaming:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native detached verification matches BC for valid invalid and missing-key cases`</ID>
-    <ID>FunctionNaming:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native expiry flags and cross-certified capabilities match BC`</ID>
-    <ID>FunctionNaming:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native parser and metadata match BC for RSA fixtures`</ID>
-    <ID>FunctionNaming:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native parser and metadata match BC for existing NIST ECDSA fixtures`</ID>
-    <ID>FunctionNaming:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native parser and metadata match BC for legacy Curve25519 fixtures`</ID>
-    <ID>FunctionNaming:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native user-id authentication and signing cross-certification policy match BC`</ID>
-    <ID>FunctionNaming:OpenPgpReadBouncyCastleDifferentialTest.kt:OpenPgpReadBouncyCastleDifferentialTest$@Test fun `native verification warning semantics match BC`</ID>
-    <ID>FunctionNaming:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest$@Test fun `BC detached signature verifies through native`</ID>
-    <ID>FunctionNaming:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest$@Test fun `BC encrypted MDC message decrypts through native`</ID>
-    <ID>FunctionNaming:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest$@Test fun `native MDC message decrypts through BC`</ID>
-    <ID>FunctionNaming:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest$@Test fun `native and BC generated certificates have equivalent structural policy`</ID>
-    <ID>FunctionNaming:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest$@Test fun `native and BC import outcomes preserve the same domain contract`</ID>
-    <ID>FunctionNaming:OpenPgpWriteBouncyCastleDifferentialTest.kt:OpenPgpWriteBouncyCastleDifferentialTest$@Test fun `native detached signature verifies with BC public operations`</ID>
-    <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `generated totp uri round-trips through TotpToken parse`</ID>
-    <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `hotp always includes a counter`</ID>
-    <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `hotp preserves an explicit counter`</ID>
-    <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `totp carries algorithm digits and period`</ID>
-    <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `totp emits an issuer parameter consistent with the label`</ID>
-    <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `totp keeps an already-unpadded secret intact`</ID>
-    <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `totp secret omits base32 padding`</ID>
-    <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `totp with neither issuer nor name omits the label entirely`</ID>
-    <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `totp without an account name omits the colon and relies on the issuer parameter`</ID>
-    <ID>FunctionNaming:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$@Test fun `totp without an issuer has no leading colon and no issuer parameter`</ID>
     <ID>FunctionNaming:PasswordFilterItem.kt:@JvmName("FlatItemActionNullable") fun CopyText.FlatItemAction</ID>
     <ID>FunctionNaming:PasswordFilterItem.kt:fun CopyText.FlatItemAction</ID>
-    <ID>FunctionNaming:ProstDecodeTest.kt:ProstDecodeTest$@Test fun `compare kotlinx vs prost encoding`</ID>
-    <ID>FunctionNaming:ProstDecodeTest.kt:ProstDecodeTest$@Test fun `decode prost-encoded ErrorResponse bytes`</ID>
-    <ID>FunctionNaming:ProstDecodeTest.kt:ProstDecodeTest$@Test fun `decode prost-encoded ListKeysResponse bytes`</ID>
-    <ID>FunctionNaming:ProstDecodeTest.kt:ProstDecodeTest$@Test fun `decode prost-encoded SignDataRequest bytes`</ID>
-    <ID>FunctionNaming:ProstDecodeTest.kt:ProstDecodeTest$@Test fun `stale prost authentication without revision decodes to rejected sentinel`</ID>
-    <ID>FunctionNaming:QuickSearchActionTest.kt:QuickSearchActionTest$@Test fun `copy otp fetches the current code and finishes after copy`</ID>
-    <ID>FunctionNaming:QuickSearchActionTest.kt:QuickSearchActionTest$@Test fun `copy otp is a no op when code generation fails`</ID>
-    <ID>FunctionNaming:QuickSearchActionTest.kt:QuickSearchActionTest$@Test fun `copy primary copies the primary value and finishes`</ID>
-    <ID>FunctionNaming:QuickSearchActionTest.kt:QuickSearchActionTest$@Test fun `copy secret copies the secret value and marks it concealed`</ID>
-    <ID>FunctionNaming:QuickSearchActionTest.kt:QuickSearchActionTest$@Test fun `open in browser queues navigation intent and finishes`</ID>
-    <ID>FunctionNaming:QuickSearchHotkeyServiceTest.kt:QuickSearchHotkeyServiceTest$@Test fun `quick search hotkey matches platform defaults`</ID>
-    <ID>FunctionNaming:QuickSearchHotkeyServiceTest.kt:QuickSearchHotkeyServiceTest$@Test fun `start does not dispose when registration fails`</ID>
-    <ID>FunctionNaming:QuickSearchHotkeyServiceTest.kt:QuickSearchHotkeyServiceTest$@Test fun `start handles missing registration`</ID>
-    <ID>FunctionNaming:QuickSearchHotkeyServiceTest.kt:QuickSearchHotkeyServiceTest$@Test fun `start opens window each time hotkey callback is invoked`</ID>
-    <ID>FunctionNaming:QuickSearchHotkeyServiceTest.kt:QuickSearchHotkeyServiceTest$@Test fun `start registers macos quick search shortcut and opens window on trigger`</ID>
-    <ID>FunctionNaming:QuickSearchInteractionTest.kt:QuickSearchInteractionTest$@Test fun `arrow keys and tab produce navigation actions`</ID>
-    <ID>FunctionNaming:QuickSearchInteractionTest.kt:QuickSearchInteractionTest$@Test fun `empty query and non key down events are ignored`</ID>
-    <ID>FunctionNaming:QuickSearchInteractionTest.kt:QuickSearchInteractionTest$@Test fun `enter falls back to default action when no action is selected`</ID>
-    <ID>FunctionNaming:QuickSearchInteractionTest.kt:QuickSearchInteractionTest$@Test fun `enter uses selected action when available`</ID>
-    <ID>FunctionNaming:QuickSearchInteractionTest.kt:QuickSearchInteractionTest$@Test fun `escape clears a non empty query`</ID>
-    <ID>FunctionNaming:QuickSearchInteractionTest.kt:QuickSearchInteractionTest$@Test fun `shortcut action takes precedence over other key handling`</ID>
-    <ID>FunctionNaming:QuickSearchInteractionTest.kt:QuickSearchInteractionTest$@Test fun `shortcut matching adapts for macos and windows modifier semantics`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `action types for card include primary and secret copy`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `action types for full login expose copy otp and browser`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `action types for secure note include value copy only`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `action types for username only login expose only primary copy`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `default action is null when no quick actions are available`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `default action resolves to first available quick action`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `move selected action index clamps and backfills from null`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `move selected result clamps within result bounds`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `quick search content keeps explicit results`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `quick search content maps add account state`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `quick search content maps loading and no items states`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `reconcile selected result defaults to first available item`</ID>
-    <ID>FunctionNaming:QuickSearchStateTest.kt:QuickSearchStateTest$@Test fun `reconcile selected result falls back to first remaining item after removal`</ID>
-    <ID>FunctionNaming:QuickSearchWindowManagerTest.kt:QuickSearchWindowManagerTest$@Test fun `dismiss hides the window without resetting revision`</ID>
-    <ID>FunctionNaming:QuickSearchWindowManagerTest.kt:QuickSearchWindowManagerTest$@Test fun `requestOpen shows the window and bumps revision`</ID>
-    <ID>FunctionNaming:ReadWordlistFromFileImplTest.kt:ReadWordlistFromFileImplTest$@Test fun `invoke filters blank and commented lines from file`</ID>
-    <ID>FunctionNaming:ReadWordlistFromFileImplTest.kt:ReadWordlistFromFileImplTest$@Test fun `invoke handles final line without trailing newline`</ID>
-    <ID>FunctionNaming:ServerEnvApiAccountsTest.kt:ServerEnvApiAccountsTest$@Test fun `account profile methods decode profile responses`</ID>
-    <ID>FunctionNaming:ServerEnvApiAccountsTest.kt:ServerEnvApiAccountsTest$@Test fun `account revision date decodes string response`</ID>
-    <ID>FunctionNaming:ServerEnvApiAccountsTest.kt:ServerEnvApiAccountsTest$@Test fun `account revision date surfaces parsed api error`</ID>
-    <ID>FunctionNaming:ServerEnvApiAzureUploadValidationTest.kt:ServerEnvApiAzureUploadValidationTest$@Test fun `azure blob upload failure propagates`</ID>
-    <ID>FunctionNaming:ServerEnvApiAzureUploadValidationTest.kt:ServerEnvApiAzureUploadValidationTest$@Test fun `azure cipher attachment upload completes after blob put`</ID>
-    <ID>FunctionNaming:ServerEnvApiAzureUploadValidationTest.kt:ServerEnvApiAzureUploadValidationTest$@Test fun `azure send file upload completes after blob put`</ID>
-    <ID>FunctionNaming:ServerEnvApiAzureUploadValidationTest.kt:ServerEnvApiAzureUploadValidationTest$@Test fun `direct send file upload does not validate azure upload`</ID>
-    <ID>FunctionNaming:ServerEnvApiAzureUploadValidationTest.kt:ServerEnvApiAzureUploadValidationTest$@Test fun `direct upload failure propagates`</ID>
-    <ID>FunctionNaming:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$@Test fun `cipher bulk hard delete validates non-success response`</ID>
-    <ID>FunctionNaming:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$@Test fun `cipher bulk methods send expected requests`</ID>
-    <ID>FunctionNaming:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$@Test fun `cipher single hard delete validates non-success response`</ID>
-    <ID>FunctionNaming:ServerEnvApiSubscriptionsTest.kt:ServerEnvApiSubscriptionsTest$@Test fun `subscription methods send expected requests and decode storage stats`</ID>
-    <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `delete removes value and falls back to default`</ID>
-    <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `get file is unsupported`</ID>
-    <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `missing values use defaults`</ID>
-    <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `preference flow emits defaults and updates`</ID>
-    <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `set stores all primitive values and exposes keys`</ID>
-    <ID>FunctionNaming:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$@Test fun `wrong type and invalid values fall back to defaults`</ID>
-    <ID>FunctionNaming:SshAgentHistoryMapperTest.kt:SshAgentHistoryMapperTest$@Test fun `build caller info falls back to process name`</ID>
-    <ID>FunctionNaming:SshAgentHistoryMapperTest.kt:SshAgentHistoryMapperTest$@Test fun `build caller info returns null for malformed json`</ID>
-    <ID>FunctionNaming:SshAgentHistoryMapperTest.kt:SshAgentHistoryMapperTest$@Test fun `build caller info summarizes app and process names`</ID>
-    <ID>FunctionNaming:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server accepts connection and authenticates over unix socket`</ID>
-    <ID>FunctionNaming:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server handles multiple sequential requests over unix socket`</ID>
-    <ID>FunctionNaming:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server rejects bad token over unix socket`</ID>
-    <ID>FunctionNaming:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server rejects connection when max concurrent limit is reached`</ID>
-    <ID>FunctionNaming:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server rejects unauthenticated request over unix socket`</ID>
-    <ID>FunctionNaming:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server returns empty list keys when locked cache is empty over unix socket`</ID>
-    <ID>FunctionNaming:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server returns user denied for sign data when approval is denied`</ID>
-    <ID>FunctionNaming:SshAgentIpcProtocolTest.kt:SshAgentIpcProtocolTest$@Test fun `ipc protocol exchanges length prefixed packets`</ID>
-    <ID>FunctionNaming:SshAgentIpcProtocolTest.kt:SshAgentIpcProtocolTest$@Test fun `ipc protocol rejects invalid message length`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `AuthenticateRequest round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `AuthenticateResponse round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `CallerAuthorization round-trips as field 9`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `Empty IpcRequest with no variant round-trips`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `Empty keys list round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `ErrorCode constants have expected values`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `ErrorResponse round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `ListKeysRequest round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `ListKeysRequest with caller identity round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `ListKeysResponse with multiple keys round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `SignDataRequest round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `SignDataRequest with Android app caller identity round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `SignDataRequest with caller identity round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `SignDataResponse round-trips correctly`</ID>
-    <ID>FunctionNaming:SshAgentMessagesTest.kt:SshAgentMessagesTest$@Test fun `protocol revision is emitted as protobuf field 2`</ID>
-    <ID>FunctionNaming:SshAgentPacketSessionTest.kt:SshAgentPacketSessionTest$@Test fun `ipc session authenticates then handles subsequent requests`</ID>
-    <ID>FunctionNaming:SshAgentPacketSessionTest.kt:SshAgentPacketSessionTest$@Test fun `ipc session stops after failed authenticate`</ID>
-    <ID>FunctionNaming:SshAgentPacketSessionTest.kt:SshAgentPacketSessionTest$@Test fun `tcp session augments caller identity when configured`</ID>
-    <ID>FunctionNaming:SshAgentPacketSessionTest.kt:SshAgentPacketSessionTest$@Test fun `tcp session rejects authenticate request but continues serving requests`</ID>
-    <ID>FunctionNaming:SshAgentPublicKeyRepositoryImplTest.kt:SshAgentPublicKeyRepositoryImplTest$@Test fun `clear removes all cached rows`</ID>
-    <ID>FunctionNaming:SshAgentPublicKeyRepositoryImplTest.kt:SshAgentPublicKeyRepositoryImplTest$@Test fun `clearNames preserves public key rows and removes names`</ID>
-    <ID>FunctionNaming:SshAgentPublicKeyRepositoryImplTest.kt:SshAgentPublicKeyRepositoryImplTest$@Test fun `lookup by hash and public key returns cached row`</ID>
-    <ID>FunctionNaming:SshAgentPublicKeyRepositoryImplTest.kt:SshAgentPublicKeyRepositoryImplTest$@Test fun `malformed public key blob is rejected`</ID>
-    <ID>FunctionNaming:SshAgentPublicKeyRepositoryImplTest.kt:SshAgentPublicKeyRepositoryImplTest$@Test fun `public key material is normalized and comments are stripped`</ID>
-    <ID>FunctionNaming:SshAgentPublicKeyRepositoryImplTest.kt:SshAgentPublicKeyRepositoryImplTest$@Test fun `replaceAll reconciles rows and get returns deterministic ordering`</ID>
-    <ID>FunctionNaming:SshAgentPublicKeySyncerImplTest.kt:SshAgentPublicKeySyncerImplTest$@Test fun `syncer applies SSH eligibility and filters before caching`</ID>
-    <ID>FunctionNaming:SshAgentPublicKeySyncerImplTest.kt:SshAgentPublicKeySyncerImplTest$@Test fun `syncer clears cache when SSH agent is disabled`</ID>
-    <ID>FunctionNaming:SshAgentPublicKeySyncerImplTest.kt:SshAgentPublicKeySyncerImplTest$@Test fun `syncer stores null names when display key names is disabled`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleAuthenticate fails with empty token`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleAuthenticate fails with wrong token`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleAuthenticate rejects missing and mismatched protocol revisions`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleAuthenticate succeeds with correct token`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleListKeys omits trashed ssh keys`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleListKeys prefers unlocked vault keys over exposed cache`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleListKeys records empty successful list request in usage history`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleListKeys records list request in usage history`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleListKeys returns empty success without prompt when locked cache is empty`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleListKeys returns exposed cached keys without unlock prompt when vault is locked`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleListKeys returns keys without unlock prompt when vault is already unlocked`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData does not ask twice after approval unlocks the vault`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData forgets approval when approval window changes`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData forgets approval when approval window is disabled and re-enabled`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData forgets approval when unlocked vault session changes`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData never remembers legacy callers with the same app name`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData never resurrects approvals across cache policy changes`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData records key not found for unmatched public key`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData records missing private key after matching ssh key`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData records signing failure after matching ssh key`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData records successful signing after matching ssh key`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData records user denied after matching ssh key`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData rejects an approved public key backed by another private identity`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData remembers approval within configured window`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData returns key not found for trashed ssh key without approval`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData returns user denied when locked vault approval is denied`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData returns vault locked when approval succeeds but vault stays locked`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData returns vault locked when locked vault unlock is unavailable`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData separates identical app names with different principals`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData still requires approval when vault is unlocked`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData uses cached key label while locked but still requires vault`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `handleSignData uses fingerprint fallback when cached key name is absent`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `policy change while approval is open cannot resurrect a grant`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `processRequest allows authenticate when not authenticated`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `processRequest rejects malformed request with multiple variants`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `processRequest rejects unauthenticated non-authenticate requests`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `processRequest rejects unknown request type`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `processRequest with no variant is not authenticated when session is unauthenticated`</ID>
-    <ID>FunctionNaming:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$@Test fun `response id matches request id across all handlers`</ID>
-    <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `completed queued request is skipped during activation`</ID>
-    <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `dismissCurrentRequest denies the active request`</ID>
-    <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `dismissRequest denies the matching active request`</ID>
-    <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `dismissRequest ignores a non-matching tag`</ID>
-    <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `dismissRequest removes a queued request without affecting other requests`</ID>
-    <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `multiple requests are served in fifo order`</ID>
-    <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `queued request activation timestamp starts when it becomes active`</ID>
-    <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `queued request expires on its own deadline while waiting`</ID>
-    <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `request timeout denies the active request`</ID>
-    <ID>FunctionNaming:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$@Test fun `single request resolves and clears active state`</ID>
-    <ID>FunctionNaming:SshAgentSigningTest.kt:SshAgentSigningTest$@Test fun `extractKeyType preserves OpenSSH text behavior`</ID>
-    <ID>FunctionNaming:SshAgentSigningTest.kt:SshAgentSigningTest$@Test fun `native Ed25519 signing returns raw verifiable signature`</ID>
-    <ID>FunctionNaming:SshAgentSigningTest.kt:SshAgentSigningTest$@Test fun `native RSA signing preserves algorithm precedence and verifies`</ID>
-    <ID>FunctionNaming:SshAgentSigningTest.kt:SshAgentSigningTest$@Test fun `native RSA signing reconstructs incomplete n d PKCS8 using public key`</ID>
-    <ID>FunctionNaming:SshAgentSigningTest.kt:SshAgentSigningTest$@Test fun `native signing rejects a supplied public key from another identity`</ID>
-    <ID>FunctionNaming:SshAgentSigningTest.kt:SshAgentSigningTest$@Test fun `native signing rejects invalid PEM`</ID>
-    <ID>FunctionNaming:SshAgentSigningTest.kt:SshAgentSigningTest$@Test fun `publicKeysMatch accepts tab-delimited OpenSSH public keys`</ID>
-    <ID>FunctionNaming:SshAgentStartupRetryTest.kt:SshAgentStartupRetryTest$@Test fun `cancellation during backoff stops cleanup and does not retry`</ID>
-    <ID>FunctionNaming:SshAgentStartupRetryTest.kt:SshAgentStartupRetryTest$@Test fun `cancellation during startup propagates and cleans up once`</ID>
-    <ID>FunctionNaming:SshAgentStartupRetryTest.kt:SshAgentStartupRetryTest$@Test fun `rethrows final failure after all attempts are exhausted`</ID>
-    <ID>FunctionNaming:SshAgentStartupRetryTest.kt:SshAgentStartupRetryTest$@Test fun `retries after transient failure and succeeds on second attempt`</ID>
-    <ID>FunctionNaming:SshAgentStartupRetryTest.kt:SshAgentStartupRetryTest$@Test fun `returns first successful startup result without retry`</ID>
-    <ID>FunctionNaming:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$@Test fun `app handshake rejects mismatched session secret`</ID>
-    <ID>FunctionNaming:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$@Test fun `app rejects packet with oversize payload length`</ID>
-    <ID>FunctionNaming:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$@Test fun `app rejects packet with wrong counter`</ID>
-    <ID>FunctionNaming:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$@Test fun `app rejects packet with wrong frame type`</ID>
-    <ID>FunctionNaming:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$@Test fun `app rejects packet with wrong version`</ID>
-    <ID>FunctionNaming:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$@Test fun `app rejects tampered packet payload`</ID>
-    <ID>FunctionNaming:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$@Test fun `tool and app exchange packets after secure handshake`</ID>
-    <ID>FunctionNaming:SshAgentTransportBouncyCastleDifferentialTest.kt:SshAgentTransportBouncyCastleDifferentialTest$@Test fun `BC transport ciphertext decrypts with native crypto`</ID>
-    <ID>FunctionNaming:SshAgentTransportBouncyCastleDifferentialTest.kt:SshAgentTransportBouncyCastleDifferentialTest$@Test fun `native transport ciphertext exactly matches BC`</ID>
-    <ID>FunctionNaming:SshAgentTransportBouncyCastleDifferentialTest.kt:SshAgentTransportBouncyCastleDifferentialTest$@Test fun `native transport rejects a tampered BC authentication tag`</ID>
-    <ID>FunctionNaming:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$@Test fun `PKCS8 PBE matrix freezes the exact SSHJ JDK21 boundary`</ID>
-    <ID>FunctionNaming:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$@Test fun `frozen corpus preserves import results and exact public identity`</ID>
-    <ID>FunctionNaming:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$@Test fun `frozen fixture checksums prevent accidental corpus drift`</ID>
-    <ID>FunctionNaming:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$@Test fun `legacy PEM matrix freezes every BC 1_84 DEK spelling`</ID>
-    <ID>FunctionNaming:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$@Test fun `manifest covers PPK versions algorithms and v3 Argon2 modes`</ID>
-    <ID>FunctionNaming:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$@Test fun `manifest covers every SSHJ OpenSSH-v1 cipher`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `application adapter enforces the resource limit before trimming`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `blank input returns the typed unsupported format result`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `encrypted OpenSSH key imports with correct passphrase`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `encrypted OpenSSH key rejects wrong passphrase`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `encrypted OpenSSH key requests a passphrase first`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `encrypted PEM key imports with correct passphrase`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `encrypted PEM key rejects wrong passphrase`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `encrypted PEM key requests a passphrase first`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `encrypted PuTTY key imports with correct passphrase`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `encrypted PuTTY key rejects wrong passphrase`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `encrypted PuTTY key requests a passphrase first`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `generated SSH keys round-trip through import`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `imported PKCS8 RSA key keeps canonical private pem after repopulate`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `imported incomplete PuTTY RSA key signs through native crypto`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `imports unencrypted OpenSSH Ed25519 private key`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `imports unencrypted PEM PKCS1 RSA private key`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `imports unencrypted PKCS8 RSA private key`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `imports unencrypted PuTTY Ed25519 private key`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `imports unencrypted PuTTY RSA private key`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `oversized import inputs return the stable resource limit error`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `rejects malformed key material`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `rejects unsupported algorithm in a supported container`</ID>
-    <ID>FunctionNaming:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$@Test fun `rejects unsupported format`</ID>
-    <ID>FunctionNaming:SshSigningParityTest.kt:SshSigningParityTest$@Test fun `signWithPrivateKey reproduces RSA known-answer vectors for PKCS1 key`</ID>
-    <ID>FunctionNaming:SshSigningParityTest.kt:SshSigningParityTest$@Test fun `signWithPrivateKey reproduces RSA known-answer vectors for openssh-key-v1 key`</ID>
-    <ID>FunctionNaming:SshSigningParityTest.kt:SshSigningParityTest$@Test fun `signWithPrivateKey reproduces the deterministic Ed25519 known-answer vector`</ID>
-    <ID>FunctionNaming:SshSigningParityTest.kt:SshSigningParityTest$@Test fun `signWithPrivateKey signature verifies under the public key`</ID>
-    <ID>FunctionNaming:SshUsageHistoryRepositoryImplTest.kt:SshUsageHistoryRepositoryImplTest$@Test fun `get by cipher id filters and sorts history`</ID>
-    <ID>FunctionNaming:SshUsageHistoryRepositoryImplTest.kt:SshUsageHistoryRepositoryImplTest$@Test fun `get count returns total history count`</ID>
-    <ID>FunctionNaming:SshUsageHistoryRepositoryImplTest.kt:SshUsageHistoryRepositoryImplTest$@Test fun `get recent assigns distinct ids to identical events`</ID>
-    <ID>FunctionNaming:SshUsageHistoryRepositoryImplTest.kt:SshUsageHistoryRepositoryImplTest$@Test fun `get recent returns newest history first with limit`</ID>
-    <ID>FunctionNaming:SshUsageHistoryRepositoryImplTest.kt:SshUsageHistoryRepositoryImplTest$@Test fun `remove all clears history`</ID>
-    <ID>FunctionNaming:SyncByBitwardenTokenV2IntegrationTest.kt:SyncByBitwardenTokenV2IntegrationTest$@Test fun `expired access token is refreshed before sync requests`</ID>
-    <ID>FunctionNaming:SyncByBitwardenTokenV2IntegrationTest.kt:SyncByBitwardenTokenV2IntegrationTest$@Test fun `full sync orchestrates folders ciphers collections organizations and sends in one run`</ID>
-    <ID>FunctionNaming:SyncByBitwardenTokenV2IntegrationTest.kt:SyncByBitwardenTokenV2IntegrationTest$@Test fun `full sync resolves cipher folder references to local folders and converges`</ID>
-    <ID>FunctionNaming:SyncByBitwardenTokenV2IntegrationTest.kt:SyncByBitwardenTokenV2IntegrationTest$@Test fun `sync skips unknown cipher types and preserves existing local copies`</ID>
-    <ID>FunctionNaming:SyncByBitwardenTokenV2IntegrationTest.kt:SyncByBitwardenTokenV2IntegrationTest$@Test fun `unauthorized response during sync refreshes token and retries full sync`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `SyncByBitwardenTokenV2Impl keeps pending hard delete local when server rejects deletes`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `SyncByBitwardenTokenV2Impl uses cipher bulk hard delete for pending local removals`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `cipher multiple attachments keep staged files when later upload fails`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `cipher multiple pending attachments upload while preserving existing remote attachment`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `cipher pending attachment upload reserves target uploads bytes and clears pending state`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `cipher remote attachment deletion and pending upload are synced together`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `cipher renew 404 creates replacement reservation before reuploading`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `cipher reservation response without attachment id records failure without uploading`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `cipher reserved attachment retry renews target before reuploading`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `cipher upload failure after reservation preserves pending metadata and deletes placeholder`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `cipher uploaded marker reconciles existing remote attachment without reuploading bytes`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps accepts empty trash response`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps bulk delete sends only hard delete request when all entries are deleted`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps bulk delete sends only soft delete request when all entries are live`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps bulk delete separates soft and hard delete requests`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps cleanup is scoped to saved cipher`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps clears stale error when merging successful remote metadata`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps creates organization cipher with organization create endpoint`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps creates user cipher with regular create endpoint`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps decode failure after partial push preserves existing partial`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps decode failure after push creates decode failure partial`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps decodes attachment refresh with response item key`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps decodes create response with response item key`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps decodes organization transfer response with destination organization key`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps decodes personal to organization transfer response with server organization key`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps decodes put response with response item key`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps fails when uploaded attachment is missing from remote`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps falls back to reservation cipher response when get after upload fails`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps keeps put partial when trash fails`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps keeps restored partial when subsequent put fails`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps local delete removes pending staged attachments`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps merge conflict decode failure falls back to local copy`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps merge conflict fallback pushes merged local password history`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps merge conflict pushes three way password history merge`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps preserves other pending attachments on terminal upload failure`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps preserves pending attachment on generic forbidden and not found direct upload failures`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps preserves pending attachment when terminal upload cleanup fails`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps propagates attachment delete failure`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps propagates cancellation during decrypt`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps propagates get failure after attachment delete`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps propagates get failure when reservation has no cipher fallback`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps propagates non not found renew failure`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps propagates non-success empty trash response`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps records decode failure during local insert`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps removes pending attachments on forbidden and not found terminal direct upload failures`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps removes pending attachments on terminal direct upload failures`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps removes pending attachments on terminal renew failures`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps removes pending attachments on terminal reservation failures`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps removes pending attachments when organization rejects attachments`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps restores legacy trashed cipher before uploading generated item key`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps upload failure for existing attachment skips cleanup delete`</ID>
-    <ID>FunctionNaming:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$@Test fun `production CipherSyncOps uploads pending attachment and clears staged file`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `folder upload 429 exhaustion records retryable item failure metadata`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `folder upload 429 response retries immediately and completes cleanly`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `folder upload auth failure records account reauthentication after action failure wrapping`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `fresh sync downloads remote folders through Bitwarden sync endpoint`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `local folder edit uploads with official PUT and updates local remote metadata`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `pending local folder deletion sends official DELETE and removes local live record`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `remote folder update downloads through full sync without uploading`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `repeated clean sync skips full sync when revision is unchanged`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `revision endpoint failure falls back to full sync and leaves cached revision unchanged`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `server validation error records item error and does not advance cached revision`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `stale cached sync response does not overwrite newer local folder or cache revision`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `sync 429 response retries immediately and honors Retry-After`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `sync HTTP auth failure is classified as account reauthentication without mutating local data`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `sync forbidden failure records authentication-required metadata and preserves previous sync fields`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `sync non HTTP failure records retryable failure metadata and preserves previous sync fields`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `sync server failure records retryable failure metadata and preserves previous sync fields`</ID>
-    <ID>FunctionNaming:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$@Test fun `unchanged revision does not skip local-only upload`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `SyncByBitwardenTokenV2Impl processes pending send upload when revision is unchanged`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `existing send file upload fetches upload target uploads bytes and clears pending state`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `new send file upload uses v2 create uploads bytes and clears pending state`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `pending send upload is pushed when local and remote revisions match`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps cleanup is scoped to saved send`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps clears pending file on forbidden and not found terminal direct upload failures`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps clears pending file on terminal direct upload failures`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps clears pending file on terminal reservation failures`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps clears stale error when merging successful remote metadata`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps delete forever deletes remote send and local row`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps local delete removes pending staged file`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps preserves created remote state when terminal upload cleanup fails`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps preserves pending file on generic forbidden and not found direct upload failures`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps remote refresh preserves pending send upload`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps remote refresh propagates upload marker cancellation`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps upload failure after create deletes remote placeholder and keeps pending file`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `production SendSyncOps uploads new file send and clears staged file`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `send upload failure after create deletes remote placeholder and preserves pending file`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `send upload failure after create keeps remote metadata when cleanup delete fails`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `send upload failure after update keeps pending file referenced`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `send uploaded marker reconciles matching remote file without reuploading bytes`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `send uploaded marker with mismatched remote file reuploads bytes`</ID>
-    <ID>FunctionNaming:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$@Test fun `send uploaded marker with missing refreshed send preserves pending file`</ID>
-    <ID>FunctionNaming:TldServiceBenchmarkTest.kt:TldServiceBenchmarkTest$@OptIn(ExperimentalResourceApi::class) @Test fun `benchmark cold load and hot lookup`</ID>
-    <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `code is six lowercase hex characters`</ID>
-    <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `code is stable within the same 10 second window`</ID>
-    <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `code rolls over into the next 10 second window`</ID>
-    <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `counter expires at the next 10 second boundary`</ID>
-    <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `generates spec-correct code with a pin`</ID>
-    <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `generates spec-correct code without a pin`</ID>
-    <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `offset advances the counter by one 10 second step`</ID>
-    <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `pin is part of the hashed input`</ID>
-    <ID>FunctionNaming:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$@Test fun `produces distinct codes for distinct 10 second windows inside the same 30 second window`</ID>
-    <ID>FunctionNaming:VaultLockHotkeyServiceTest.kt:VaultLockHotkeyServiceTest$@Test fun `start handles missing registration`</ID>
-    <ID>FunctionNaming:VaultLockHotkeyServiceTest.kt:VaultLockHotkeyServiceTest$@Test fun `start locks vault manually when hotkey callback is invoked`</ID>
-    <ID>FunctionNaming:VaultLockHotkeyServiceTest.kt:VaultLockHotkeyServiceTest$@Test fun `start registers macos vault lock shortcut and disposes registration`</ID>
-    <ID>FunctionNaming:VaultLockHotkeyServiceTest.kt:VaultLockHotkeyServiceTest$@Test fun `vault lock hotkey matches platform defaults`</ID>
-    <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `compile and evaluate benchmark`</ID>
-    <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `compile only benchmark`</ID>
-    <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `evaluate only benchmark`</ID>
-    <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `fixtures are deterministic`</ID>
-    <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `incremental rebuild benchmark`</ID>
-    <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `initial build benchmark`</ID>
-    <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `metadata only rebuild benchmark`</ID>
-    <ID>FunctionNaming:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$@Test fun `parallel threshold query returns many results`</ID>
-    <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `aggregate status prefers verified email match`</ID>
-    <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `aggregate status reports not found when email and fingerprint lookups miss`</ID>
-    <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `aggregate status uses fingerprint lookup as found unverified fallback`</ID>
-    <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `email verification matches normalized fingerprint`</ID>
-    <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `email verification reports not found for different fingerprint`</ID>
-    <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `email verification reports revoked matching fingerprint`</ID>
-    <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `invoke falls back to fingerprint lookup when emails are not verified`</ID>
-    <ID>FunctionNaming:VerifyGpgPublicKeyImplTest.kt:VerifyGpgPublicKeyImplTest$@Test fun `invoke verifies by email and persists verified state`</ID>
-    <ID>FunctionNaming:WatchtowerBenchmarkTest.kt:WatchtowerBenchmarkTest$@Test fun `benchmark and profile every Watchtower check`</ID>
-    <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `all pending signal uses the shared current vault snapshot`</ID>
-    <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `cipher upsert does not overwrite or increment a different account`</ID>
-    <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `counter increments when the incoming timestamp is unchanged or older`</ID>
-    <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `guarded upsert does not create a threat for a missing cipher`</ID>
-    <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `matching report is not pending and the next cipher write increments its counter`</ID>
-    <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `pending key query returns only cipher id and counter`</ID>
-    <ID>FunctionNaming:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$@Test fun `stale result cannot consume a newer cipher revision`</ID>
-    <ID>FunctionNaming:WebAuthnRpIdValidatorTest.kt:WebAuthnRpIdValidatorTest$@Test fun `rp id validation converts unicode domain to ascii`</ID>
-    <ID>FunctionNaming:WebAuthnRpIdValidatorTest.kt:WebAuthnRpIdValidatorTest$@Test fun `rp id validation rejects malformed ace label`</ID>
-    <ID>FunctionNaming:WebAuthnRpIdValidatorTest.kt:WebAuthnRpIdValidatorTest$@Test fun `rp id validation uses non transitional UTS46 processing`</ID>
-    <ID>FunctionNaming:WebAuthnRpIdValidatorTest.kt:WebAuthnRpIdValidatorTest$@Test fun `rp validation allows unicode rp id matching punycoded origin`</ID>
     <ID>FunctionNaming:toColorInt.kt:fun RGBToHSL</ID>
     <ID>FunctionOnlyReturningConstant:AddScreen.kt:private fun getAnyFieldShapeStateOtherPredicate</ID>
     <ID>FunctionOnlyReturningConstant:CanModify.kt:fun BitwardenService.canDelete</ID>
@@ -1353,7 +593,7 @@
     <ID>LongMethod:GpgAgentFiltersScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun GpgAgentFiltersScreenContent</ID>
     <ID>LongMethod:GpgAgentFiltersStateProducer.kt:@Composable fun produceGpgAgentFiltersState: Loadable&lt;GpgAgentFiltersState&gt;</ID>
     <ID>LongMethod:GpgAgentHistoryStateProducer.kt:@Composable fun produceGpgAgentHistoryState: Loadable&lt;GpgAgentHistoryState&gt;</ID>
-    <ID>LongMethod:GpgAgentPublicKeySyncerImplTest.kt:GpgAgentPublicKeySyncerImplTest$@Test fun `syncer stores public-only keys without private operation capabilities`</ID>
+    <ID>LongMethod:GpgPublicKeySyncerImplTest.kt:GpgPublicKeySyncerImplTest$@Test fun `GPG toggle controls the catalog and preserves key capabilities`</ID>
     <ID>LongMethod:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl$private suspend fun &lt;T&gt; runKeyOperation: GpgAgentOperationResult&lt;T&gt;</ID>
     <ID>LongMethod:GpgAgentSetupScreen.kt:@Composable private fun ColumnScope.GpgAgentSetupSupportedPlatformContent</ID>
     <ID>LongMethod:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest$@Test @Suppress("DEPRECATION") fun `designated revoker authenticates primary and subkey revocations when its key is supplied`</ID>
@@ -1505,7 +745,7 @@
     <ID>LongMethod:SshAgentPublicKeySyncerImplTest.kt:SshAgentPublicKeySyncerImplTest$@Test fun `syncer applies SSH eligibility and filters before caching`</ID>
     <ID>LongMethod:SshAgentReceiver.kt:SshAgentReceiver$override fun onReceive</ID>
     <ID>LongMethod:SshAgentReceiver.kt:SshAgentReceiver$private suspend fun handleRequest: SshAgentContract.BroadcastOutcome</ID>
-    <ID>LongMethod:SshAgentRequestProcessorJvm.kt:SshAgentRequestProcessorJvm$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
+    <ID>LongMethod:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
     <ID>LongMethod:SshAgentService.kt:SshAgentService$override fun onStartCommand: Int</ID>
     <ID>LongMethod:SshAgentSetupScreen.kt:@Composable private fun ColumnScope.SshAgentSetupAndroidPlatformContent</ID>
     <ID>LongMethod:SshAgentSetupScreen.kt:@Composable private fun ColumnScope.SshAgentSetupSupportedPlatformContent</ID>
@@ -1698,55 +938,10 @@
     <ID>MagicNumber:AddScreenScope.kt:AddScreenScope$100L</ID>
     <ID>MagicNumber:AddStateProducer.kt:5000L</ID>
     <ID>MagicNumber:AddStateProducer.kt:5_000L</ID>
-    <ID>MagicNumber:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$255</ID>
-    <ID>MagicNumber:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$256</ID>
-    <ID>MagicNumber:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$4_094</ID>
-    <ID>MagicNumber:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$4_096</ID>
-    <ID>MagicNumber:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$511</ID>
-    <ID>MagicNumber:AgentApprovalCallerInfoTest.kt:AgentApprovalCallerInfoTest$512</ID>
     <ID>MagicNumber:AgentApprovalContent.kt:200L</ID>
-    <ID>MagicNumber:AgentApprovalWindowMemoryTest.kt:AgentApprovalWindowMemoryTest$3</ID>
-    <ID>MagicNumber:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$3</ID>
-    <ID>MagicNumber:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$31</ID>
-    <ID>MagicNumber:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$33</ID>
-    <ID>MagicNumber:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$4</ID>
-    <ID>MagicNumber:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$5</ID>
-    <ID>MagicNumber:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$64</ID>
-    <ID>MagicNumber:AgentCallerAuthorizationTest.kt:AgentCallerAuthorizationTest$9</ID>
-    <ID>MagicNumber:AgentCallerDisplaySanitizationTest.kt:AgentCallerDisplaySanitizationTest$0x0378</ID>
-    <ID>MagicNumber:AgentCallerDisplaySanitizationTest.kt:AgentCallerDisplaySanitizationTest$0x1F600</ID>
-    <ID>MagicNumber:AgentCallerDisplaySanitizationTest.kt:AgentCallerDisplaySanitizationTest$0x202E</ID>
-    <ID>MagicNumber:AgentCallerDisplaySanitizationTest.kt:AgentCallerDisplaySanitizationTest$0xD800</ID>
-    <ID>MagicNumber:AgentCallerDisplaySanitizationTest.kt:AgentCallerDisplaySanitizationTest$0xE000</ID>
     <ID>MagicNumber:AgentIpcPeerVerification.kt:UnixLibC$4</ID>
     <ID>MagicNumber:AgentIpcProtocol.kt:AgentIpcProtocol.Channel$4</ID>
-    <ID>MagicNumber:AgentIpcSocketPathTest.kt:AgentIpcSocketPathTest$90</ID>
     <ID>MagicNumber:AgentManager.kt:AgentManager$3</ID>
-    <ID>MagicNumber:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$123</ID>
-    <ID>MagicNumber:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$256</ID>
-    <ID>MagicNumber:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$3</ID>
-    <ID>MagicNumber:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$31</ID>
-    <ID>MagicNumber:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$32</ID>
-    <ID>MagicNumber:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$4</ID>
-    <ID>MagicNumber:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$456</ID>
-    <ID>MagicNumber:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$4_096</ID>
-    <ID>MagicNumber:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$512</ID>
-    <ID>MagicNumber:AndroidSshAgentCallerIdentityTest.kt:AndroidSshAgentCallerIdentityTest$789</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$0x33</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$0x44</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$123</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$3</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$32</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$4</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$41L</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$42L</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$43L</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$456</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$5_000</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$7</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$789</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$8</ID>
-    <ID>MagicNumber:AndroidSshAgentSecureBridgeTest.kt:AndroidSshAgentSecureBridgeTest$9</ID>
     <ID>MagicNumber:AnimatedFabVisibility.kt:0.01f</ID>
     <ID>MagicNumber:AppPickerScreen.kt:100L</ID>
     <ID>MagicNumber:AttachmentDownloadTag.kt:3</ID>
@@ -1755,31 +950,14 @@
     <ID>MagicNumber:AutofillServiceAndroid.kt:AutofillServiceAndroid$100L</ID>
     <ID>MagicNumber:AutomaticBackupsStatusSection.kt:0.12f</ID>
     <ID>MagicNumber:AutomaticBackupsStatusSection.kt:0.48f</ID>
-    <ID>MagicNumber:BackupRepositoryZipTest.kt:MidstreamTransientBackupObjectStore.&lt;no name provided&gt;$32L</ID>
     <ID>MagicNumber:BackupRunner.kt:BackupRunner$30</ID>
     <ID>MagicNumber:BackupRunner.kt:BackupRunner$32</ID>
     <ID>MagicNumber:BackupRunner.kt:BackupRunner$99</ID>
-    <ID>MagicNumber:BackupSchedulerWorkerTest.kt:BackupSchedulerWorkerTest$3</ID>
     <ID>MagicNumber:BarcodeTypeRoute.kt:BarcodeTypeRoute.Companion$1024</ID>
     <ID>MagicNumber:Base32ServiceIos.kt:Base32ServiceIos$0xff</ID>
     <ID>MagicNumber:Base32ServiceIos.kt:Base32ServiceIos$5</ID>
     <ID>MagicNumber:Base32ServiceIos.kt:Base32ServiceIos$8</ID>
     <ID>MagicNumber:BaseActivity.kt:BaseActivity$300L</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkHarness.kt:BitwardenCryptoBenchmarkHarness$0xffL</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkHarness.kt:BitwardenCryptoBenchmarkHarness$17L</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkHarness.kt:BitwardenCryptoBenchmarkHarness$31L</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkHarness.kt:BitwardenCryptoBenchmarkHarness$3L</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkHarness.kt:BitwardenCryptoBenchmarkHarness$7L</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkTest.kt:0xff</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkTest.kt:1024</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkTest.kt:16</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkTest.kt:17</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkTest.kt:3</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkTest.kt:31</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkTest.kt:32</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkTest.kt:BitwardenCryptoBenchmarkTest$1024</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkTest.kt:BitwardenCryptoBenchmarkTest$32</ID>
-    <ID>MagicNumber:BitwardenCryptoBenchmarkTest.kt:BitwardenCryptoBenchmarkTest$64</ID>
     <ID>MagicNumber:BitwardenHttpRetry.kt:5</ID>
     <ID>MagicNumber:BitwardenHttpRetry.kt:500</ID>
     <ID>MagicNumber:BitwardenHttpRetry.kt:599</ID>
@@ -1803,22 +981,11 @@
     <ID>MagicNumber:CipherFiltersListScreen.kt:100L</ID>
     <ID>MagicNumber:CipherHistoryOpenedRepositoryImpl.kt:CipherHistoryOpenedRepositoryImpl$100</ID>
     <ID>MagicNumber:CipherInputStream2.kt:CipherInputStream2$0xff</ID>
-    <ID>MagicNumber:CipherInputStreamDecoderTest.kt:CipherInputStreamDecoderTest$64</ID>
-    <ID>MagicNumber:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest$100.0</ID>
-    <ID>MagicNumber:CipherSnapshotBenchmarkTest.kt:CipherSnapshotBenchmarkTest$10_000L</ID>
-    <ID>MagicNumber:CipherSnapshotLoaderTest.kt:CipherSnapshotLoaderTest$160</ID>
-    <ID>MagicNumber:CipherSnapshotLoaderTest.kt:CipherSnapshotLoaderTest$3</ID>
-    <ID>MagicNumber:CipherSnapshotLoaderTest.kt:CipherSnapshotLoaderTest$4</ID>
-    <ID>MagicNumber:CipherSnapshotLoaderTest.kt:CipherSnapshotLoaderTest$64</ID>
-    <ID>MagicNumber:CipherSnapshotLoaderTest.kt:CipherSnapshotLoaderTest$80</ID>
     <ID>MagicNumber:CipherSyncOps.kt:CipherSyncOps$200</ID>
     <ID>MagicNumber:CipherSyncOps.kt:CipherSyncOps$299</ID>
     <ID>MagicNumber:CipherTypeEntity.kt:CipherTypeEntity.Card$3</ID>
     <ID>MagicNumber:CipherTypeEntity.kt:CipherTypeEntity.Identity$4</ID>
     <ID>MagicNumber:CipherTypeEntity.kt:CipherTypeEntity.SshKey$5</ID>
-    <ID>MagicNumber:CipherUrlCheckBenchmarkFixtures.kt:CipherUrlCheckBenchmarkFixtures$31L</ID>
-    <ID>MagicNumber:CipherUrlCheckBenchmarkHarness.kt:CipherUrlBenchmarkHarness$1024.0</ID>
-    <ID>MagicNumber:CipherUrlCheckBenchmarkHarness.kt:CipherUrlBenchmarkHarness$1_000_000.0</ID>
     <ID>MagicNumber:CleanUpAttachmentImpl.kt:CleanUpAttachmentImpl.Companion$1000L</ID>
     <ID>MagicNumber:CollectionsScreen.kt:3</ID>
     <ID>MagicNumber:ColumnScrollbar.kt:0xFF2A59B6</ID>
@@ -1856,14 +1023,11 @@
     <ID>MagicNumber:ElevatedAccessScreen.kt:80L</ID>
     <ID>MagicNumber:EmailLeakScreen.kt:0.6f</ID>
     <ID>MagicNumber:EmailLeakScreen.kt:0.8f</ID>
-    <ID>MagicNumber:EncryptedTemporarySpillStorageJvmTest.kt:EncryptedTemporarySpillStorageJvmTest$3</ID>
     <ID>MagicNumber:EquivalentDomainsScreen.kt:3</ID>
-    <ID>MagicNumber:ExecuteCommandJvmTest.kt:ExecuteCommandJvmTest$50</ID>
     <ID>MagicNumber:ExpandableIcon.kt:90f</ID>
     <ID>MagicNumber:FaviconServer.kt:FaviconAccountServer$443</ID>
     <ID>MagicNumber:FaviconServer.kt:FaviconAccountServer$80</ID>
     <ID>MagicNumber:FieldTypeEntity.kt:FieldTypeEntity.Linked$3</ID>
-    <ID>MagicNumber:FileDropTargetTest.kt:FileDropTargetTest$5L</ID>
     <ID>MagicNumber:FileEncryptionFormat.kt:FileEncryptionFormat$16</ID>
     <ID>MagicNumber:FileEncryptionFormat.kt:FileEncryptionFormat$32</ID>
     <ID>MagicNumber:FileEncryptionFormat.kt:FileEncryptionFormat$64</ID>
@@ -1874,8 +1038,6 @@
     <ID>MagicNumber:FileUri.kt:3</ID>
     <ID>MagicNumber:FileUri.kt:4</ID>
     <ID>MagicNumber:FileWatcherServiceJvm.kt:1000L</ID>
-    <ID>MagicNumber:FileWatcherServiceJvmTest.kt:FileWatcherServiceJvmTest$100L</ID>
-    <ID>MagicNumber:FileWatcherServiceJvmTest.kt:FileWatcherServiceJvmTest$5_000L</ID>
     <ID>MagicNumber:FingerprintRepositoryImpl.kt:4</ID>
     <ID>MagicNumber:FolderConfirmationScreen.kt:80L</ID>
     <ID>MagicNumber:FoldersScreen.kt:3</ID>
@@ -1883,7 +1045,6 @@
     <ID>MagicNumber:GeneratorHistoryRepositoryImpl.kt:GeneratorHistoryRepositoryImpl$1000</ID>
     <ID>MagicNumber:GeneratorScreen.kt:100</ID>
     <ID>MagicNumber:GeneratorStateProducer.kt:640L</ID>
-    <ID>MagicNumber:GetCiphersImplTest.kt:GetCiphersImplTest$3</ID>
     <ID>MagicNumber:GetNavItemsConfigImpl.kt:1500L</ID>
     <ID>MagicNumber:GetPasswordStrengthJvm.kt:GetPasswordStrengthJvm$3</ID>
     <ID>MagicNumber:GetPinCodeImpl.kt:GetPinCodeImpl$3</ID>
@@ -1896,38 +1057,20 @@
     <ID>MagicNumber:GlobalModuleJvm.kt:20_000</ID>
     <ID>MagicNumber:GooglePlayBillingCatalog.kt:GooglePlayBillingCatalog$10</ID>
     <ID>MagicNumber:GooglePlayBillingCatalog.kt:GooglePlayBillingCatalog$20</ID>
-    <ID>MagicNumber:GpgAgentApprovalCacheKeyTest.kt:GpgAgentApprovalCacheKeyTest$32</ID>
-    <ID>MagicNumber:GpgAgentApprovalCacheKeyTest.kt:GpgAgentApprovalCacheKeyTest$5</ID>
-    <ID>MagicNumber:GpgAgentCryptoJvm.kt:GpgAgentCryptoJvm$16</ID>
-    <ID>MagicNumber:GpgAgentCryptoJvm.kt:GpgAgentCryptoJvm$24</ID>
-    <ID>MagicNumber:GpgAgentCryptoJvm.kt:GpgAgentCryptoJvm$32</ID>
-    <ID>MagicNumber:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$0x40</ID>
-    <ID>MagicNumber:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$0xff</ID>
-    <ID>MagicNumber:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$33</ID>
-    <ID>MagicNumber:GpgAgentMessagesTest.kt:GpgAgentMessagesTest$0x0a</ID>
-    <ID>MagicNumber:GpgAgentMessagesTest.kt:GpgAgentMessagesTest$0x10</ID>
-    <ID>MagicNumber:GpgAgentSigningTest.kt:GpgAgentSigningTest$32</ID>
     <ID>MagicNumber:GpgCanonicalSExpr.kt:GpgCanonicalSExpr.Cursor$10</ID>
-    <ID>MagicNumber:GpgCertificateInspectorJvm.kt:3</ID>
-    <ID>MagicNumber:GpgClearSignedText.kt:ByteCursor$0xFF</ID>
     <ID>MagicNumber:GpgIdentifiers.kt:4</ID>
     <ID>MagicNumber:GpgKeyConfig.kt:GpgKeyConfig.RsaLength.B3072$3072</ID>
     <ID>MagicNumber:GpgKeyConfig.kt:GpgKeyConfig.RsaLength.B4096$4096</ID>
     <ID>MagicNumber:GpgKeyExpirationSelection.kt:3_600L</ID>
-    <ID>MagicNumber:GpgKeyExpirationServiceJvm.kt:GpgKeyExpirationServiceJvm$4</ID>
-    <ID>MagicNumber:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$1_000L</ID>
-    <ID>MagicNumber:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest$5</ID>
     <ID>MagicNumber:GpgKeyExpiryPreset.kt:100</ID>
     <ID>MagicNumber:GpgKeyExpiryPreset.kt:GpgKeyExpiryPreset$5</ID>
     <ID>MagicNumber:GpgKeyExportUtils.kt:16</ID>
-    <ID>MagicNumber:GpgKeygripCalculatorJvm.kt:GpgKeygripCalculatorJvm$0x80</ID>
     <ID>MagicNumber:GpgKeyserverClientImpl.kt:GpgKeyserverClientImpl$16</ID>
     <ID>MagicNumber:GpgKeyserverClientImpl.kt:GpgKeyserverClientImpl$32</ID>
     <ID>MagicNumber:GpgKeyserverClientImpl.kt:GpgKeyserverClientImpl$4</ID>
     <ID>MagicNumber:GpgKeyserverClientImpl.kt:GpgKeyserverClientImpl$5</ID>
     <ID>MagicNumber:GpgKeyserverClientImpl.kt:GpgKeyserverClientImpl$6</ID>
     <ID>MagicNumber:GpgKeyserverClientImpl.kt:GpgKeyserverClientImpl$8</ID>
-    <ID>MagicNumber:GpgKeyserverClientImplTest.kt:GpgKeyserverClientImplTest$16</ID>
     <ID>MagicNumber:GpgKeyserverSearchScreen.kt:0.64f</ID>
     <ID>MagicNumber:GpgKeyserverVerificationStatus.kt:GpgKeyserverVerificationStatus.REVOKED$4L</ID>
     <ID>MagicNumber:GpgKeyserverVerificationStatus.kt:GpgKeyserverVerificationStatus.VERIFIED$3L</ID>
@@ -1942,29 +1085,10 @@
     <ID>MagicNumber:GpgOpenPgpNames.kt:27</ID>
     <ID>MagicNumber:GpgOpenPgpNames.kt:28</ID>
     <ID>MagicNumber:GpgOpenPgpNames.kt:3</ID>
-    <ID>MagicNumber:GpgPgpUtils.kt:16</ID>
-    <ID>MagicNumber:GpgPublicKeyParserJvmTest.kt:GpgPublicKeyParserJvmTest$40</ID>
-    <ID>MagicNumber:GpgRenewalPolicyJvm.kt:GpgRenewalPolicyJvm$1_000L</ID>
-    <ID>MagicNumber:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$10_000L</ID>
-    <ID>MagicNumber:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$11_000L</ID>
-    <ID>MagicNumber:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$1_000L</ID>
-    <ID>MagicNumber:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$20_000L</ID>
-    <ID>MagicNumber:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$5</ID>
-    <ID>MagicNumber:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$90L</ID>
-    <ID>MagicNumber:GpgRenewalPolicyJvmTest.kt:GpgRenewalPolicyJvmTest$9L</ID>
     <ID>MagicNumber:GpgUsageHistoryResponseType.kt:GpgUsageHistoryResponseType.FAILURE$5L</ID>
     <ID>MagicNumber:GpgUsageHistoryResponseType.kt:GpgUsageHistoryResponseType.UNSUPPORTED$4L</ID>
     <ID>MagicNumber:GpgUsageHistoryResponseType.kt:GpgUsageHistoryResponseType.VAULT_LOCKED$3L</ID>
-    <ID>MagicNumber:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$2_000L</ID>
-    <ID>MagicNumber:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$3_000L</ID>
-    <ID>MagicNumber:HibpRepositoryImplTest.kt:HibpRepositoryImplTest$42</ID>
     <ID>MagicNumber:IconBox.kt:4f</ID>
-    <ID>MagicNumber:InputStreamReadCompatTest.kt:InputStreamReadCompatTest$3</ID>
-    <ID>MagicNumber:InputStreamReadCompatTest.kt:InputStreamReadCompatTest$4</ID>
-    <ID>MagicNumber:InputStreamReadCompatTest.kt:InputStreamReadCompatTest$5</ID>
-    <ID>MagicNumber:InputStreamReadCompatTest.kt:InputStreamReadCompatTest$6</ID>
-    <ID>MagicNumber:InputStreamReadCompatTest.kt:InputStreamReadCompatTest$7</ID>
-    <ID>MagicNumber:InputStreamReadCompatTest.kt:InputStreamReadCompatTest.ChunkedInputStream$0xff</ID>
     <ID>MagicNumber:JaroWinklerStrategy.kt:JaroWinklerStrategy$3.0</ID>
     <ID>MagicNumber:KeePassLoginScreen.kt:0.3f</ID>
     <ID>MagicNumber:KeePassLoginScreen.kt:0.88f</ID>
@@ -1972,9 +1096,6 @@
     <ID>MagicNumber:KeePassTotpCodec.kt:KeePassTotpCodec$0xff</ID>
     <ID>MagicNumber:KeePassTotpCodec.kt:KeePassTotpCodec$16</ID>
     <ID>MagicNumber:KeePassTotpCodec.kt:KeePassTotpCodec$3</ID>
-    <ID>MagicNumber:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$3</ID>
-    <ID>MagicNumber:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$4</ID>
-    <ID>MagicNumber:KeePassTotpCodecTest.kt:KeePassTotpCodecTest$5</ID>
     <ID>MagicNumber:KeyPairGenerator.kt:KeyPairGenerator.RsaLength.B1024$1024</ID>
     <ID>MagicNumber:KeyPairGenerator.kt:KeyPairGenerator.RsaLength.B2048$2048</ID>
     <ID>MagicNumber:KeyPairGenerator.kt:KeyPairGenerator.RsaLength.B3072$3072</ID>
@@ -1988,13 +1109,6 @@
     <ID>MagicNumber:Kg2LicenseKeyDecoder.kt:Kg2LicenseKeyDecoder$11</ID>
     <ID>MagicNumber:Kg2LicenseKeyDecoder.kt:Kg2LicenseKeyDecoder$3</ID>
     <ID>MagicNumber:Kg2LicenseKeyDecoder.kt:Kg2LicenseKeyDecoder$64</ID>
-    <ID>MagicNumber:Kg2LicenseKeyDecoderTest.kt:8</ID>
-    <ID>MagicNumber:Kg2LicenseKeyDecoderTest.kt:Kg2LicenseKeyDecoderTest$0xffff</ID>
-    <ID>MagicNumber:Kg2LicenseKeyDecoderTest.kt:Kg2LicenseKeyDecoderTest$11</ID>
-    <ID>MagicNumber:Kg2LicenseKeyDecoderTest.kt:Kg2LicenseKeyDecoderTest$13</ID>
-    <ID>MagicNumber:Kg2LicenseKeyDecoderTest.kt:Kg2LicenseKeyDecoderTest$15</ID>
-    <ID>MagicNumber:Kg2LicenseKeyDecoderTest.kt:Kg2LicenseKeyDecoderTest$63</ID>
-    <ID>MagicNumber:Kg2LicenseKeyDecoderTest.kt:Kg2LicenseKeyDecoderTest$65</ID>
     <ID>MagicNumber:LargeTypeRoute.kt:LargeTypeRoute.Companion$128</ID>
     <ID>MagicNumber:LePlatformUtil.kt:30</ID>
     <ID>MagicNumber:LicenseRepositoryImpl.kt:LicenseRepositoryImpl$16</ID>
@@ -2030,8 +1144,6 @@
     <ID>MagicNumber:Luhn.kt:10</ID>
     <ID>MagicNumber:NativeCipherEncryptor.kt:NativeCipherEncryptor$16</ID>
     <ID>MagicNumber:NativeCipherEncryptor.kt:NativeCipherEncryptor$3</ID>
-    <ID>MagicNumber:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$16</ID>
-    <ID>MagicNumber:NativeCryptoBouncyCastleDifferentialTest.kt:NativeCryptoBouncyCastleDifferentialTest$3</ID>
     <ID>MagicNumber:NotificationsHubMessage.kt:NotificationsHubEventType.AUTH_REQUEST$15</ID>
     <ID>MagicNumber:NotificationsHubMessage.kt:NotificationsHubEventType.AUTH_REQUEST_RESPONSE$16</ID>
     <ID>MagicNumber:NotificationsHubMessage.kt:NotificationsHubEventType.AUTO_CONFIRM$26</ID>
@@ -2058,18 +1170,7 @@
     <ID>MagicNumber:NotificationsHubMessage.kt:NotificationsHubEventType.SYNC_SETTINGS$10</ID>
     <ID>MagicNumber:NotificationsHubMessage.kt:NotificationsHubEventType.SYNC_VAULT$5</ID>
     <ID>MagicNumber:OnboardingScreen.kt:0.035f</ID>
-    <ID>MagicNumber:OpenPgpMutationAndAgentBouncyCastleDifferentialTest.kt:OpenPgpMutationAndAgentBouncyCastleDifferentialTest$1_000L</ID>
-    <ID>MagicNumber:OpenPgpPlaintextStagingAppleTest.kt:OpenPgpPlaintextStagingAppleTest$3</ID>
-    <ID>MagicNumber:OpenPgpPlaintextStagingAppleTest.kt:OpenPgpPlaintextStagingAppleTest$4</ID>
-    <ID>MagicNumber:OpenPgpPlaintextStagingAppleTest.kt:OpenPgpPlaintextStagingAppleTest$5</ID>
-    <ID>MagicNumber:OpenPgpPlaintextStagingJvmTest.kt:OpenPgpPlaintextStagingJvmTest$3</ID>
-    <ID>MagicNumber:OpenPgpPlaintextStagingJvmTest.kt:OpenPgpPlaintextStagingJvmTest$4</ID>
-    <ID>MagicNumber:OpenPgpPlaintextStagingJvmTest.kt:OpenPgpPlaintextStagingJvmTest$5</ID>
-    <ID>MagicNumber:OpenPgpReadBouncyCastleDifferentialTest.kt:1_000L</ID>
     <ID>MagicNumber:OrganizationsScreen.kt:3</ID>
-    <ID>MagicNumber:OtpMigrationConverterTest.kt:10</ID>
-    <ID>MagicNumber:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$30L</ID>
-    <ID>MagicNumber:OtpMigrationConverterTest.kt:OtpMigrationConverterTest$6</ID>
     <ID>MagicNumber:PasskeyCreateRequest.kt:PasskeyCreateRequest$256</ID>
     <ID>MagicNumber:PasskeyCreateRequest.kt:PasskeyCreateRequest$32</ID>
     <ID>MagicNumber:PasskeyCredentialId.kt:PasskeyCredentialId$0xffL</ID>
@@ -2091,21 +1192,12 @@
     <ID>MagicNumber:PasswordStrength.kt:PasswordStrength$100000000L</ID>
     <ID>MagicNumber:PasswordStrength.kt:PasswordStrength$100000L</ID>
     <ID>MagicNumber:PasswordStrength.kt:PasswordStrength$1000L</ID>
-    <ID>MagicNumber:ProstDecodeTest.kt:ProstDecodeTest$0x04</ID>
-    <ID>MagicNumber:ProstDecodeTest.kt:ProstDecodeTest$3</ID>
-    <ID>MagicNumber:ProstDecodeTest.kt:ProstDecodeTest$32</ID>
-    <ID>MagicNumber:ProstDecodeTest.kt:ProstDecodeTest$4</ID>
-    <ID>MagicNumber:ProstDecodeTest.kt:ProstDecodeTest$4L</ID>
-    <ID>MagicNumber:ProstDecodeTest.kt:ProstDecodeTest$5</ID>
-    <ID>MagicNumber:ProstDecodeTest.kt:ProstDecodeTest$7L</ID>
     <ID>MagicNumber:PullToSearch.kt:32f</ID>
     <ID>MagicNumber:QuickSearchListScreen.kt:0.18f</ID>
     <ID>MagicNumber:QuickSearchListScreen.kt:0.40f</ID>
     <ID>MagicNumber:QuickSearchListScreen.kt:0.6f</ID>
     <ID>MagicNumber:QuickSearchListScreen.kt:200L</ID>
     <ID>MagicNumber:QuickSearchListScreen.kt:6</ID>
-    <ID>MagicNumber:QuickSearchStateTest.kt:0xFF448AFF</ID>
-    <ID>MagicNumber:QuickSearchStateTest.kt:0xFF82B1FF</ID>
     <ID>MagicNumber:RelativeTime.kt:7</ID>
     <ID>MagicNumber:RememberStateFlowScope.kt:RememberStateFlowScope$1000</ID>
     <ID>MagicNumber:ReorderableLazyList.kt:ReorderableLazyListState$16L</ID>
@@ -2121,14 +1213,6 @@
     <ID>MagicNumber:SendViewScreen.kt:0.15f</ID>
     <ID>MagicNumber:SendViewScreen.kt:0.33f</ID>
     <ID>MagicNumber:SendViewScreen.kt:0.38f</ID>
-    <ID>MagicNumber:ServerEnvApiAzureUploadValidationTest.kt:ServerEnvApiAzureUploadValidationTest$3</ID>
-    <ID>MagicNumber:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$3</ID>
-    <ID>MagicNumber:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$4</ID>
-    <ID>MagicNumber:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$5</ID>
-    <ID>MagicNumber:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$6</ID>
-    <ID>MagicNumber:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$7</ID>
-    <ID>MagicNumber:ServerEnvApiSubscriptionsTest.kt:ServerEnvApiSubscriptionsTest$0.01</ID>
-    <ID>MagicNumber:ServerEnvApiSubscriptionsTest.kt:ServerEnvApiSubscriptionsTest$10</ID>
     <ID>MagicNumber:ServiceDirectoryListScreen.kt:100L</ID>
     <ID>MagicNumber:SettingAutofill.kt:1024</ID>
     <ID>MagicNumber:SettingAutotypeTest.kt:500L</ID>
@@ -2142,104 +1226,18 @@
     <ID>MagicNumber:ShimmerArea.kt:ShimmerArea$180</ID>
     <ID>MagicNumber:ShimmerArea.kt:ShimmerArea$90</ID>
     <ID>MagicNumber:SkeletonItemPilled.kt:0.4f</ID>
-    <ID>MagicNumber:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$1.5f</ID>
-    <ID>MagicNumber:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$2.5f</ID>
-    <ID>MagicNumber:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$42</ID>
-    <ID>MagicNumber:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$7</ID>
-    <ID>MagicNumber:SqlDelightVaultSettingsKeyValueStoreTest.kt:SqlDelightVaultSettingsKeyValueStoreTest$99L</ID>
-    <ID>MagicNumber:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$3</ID>
-    <ID>MagicNumber:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$3L</ID>
-    <ID>MagicNumber:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$5_000L</ID>
-    <ID>MagicNumber:SshAgentIpcProtocolTest.kt:SshAgentIpcProtocolTest$3</ID>
-    <ID>MagicNumber:SshAgentIpcProtocolTest.kt:SshAgentIpcProtocolTest$4</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$0x04</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$0x0a</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$0x10</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$123</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$3</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$3L</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$4</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$42L</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$43L</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$4L</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$5</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$7L</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$8L</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$99L</ID>
-    <ID>MagicNumber:SshAgentMessagesTest.kt:SshAgentMessagesTest$9L</ID>
-    <ID>MagicNumber:SshAgentPacketSessionTest.kt:SshAgentPacketSessionTest$7</ID>
     <ID>MagicNumber:SshAgentPublicKeyNormalizer.kt:4</ID>
     <ID>MagicNumber:SshAgentReceiver.kt:SshAgentReceiver$65535</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$100L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$10L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$11L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$12L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$200L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$20L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$21L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$22L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$25L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$26L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$3</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$300L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$30L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$31L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$32</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$32L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$33L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$34L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$35L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$3L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$47L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$4L</ID>
-    <ID>MagicNumber:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest$5L</ID>
-    <ID>MagicNumber:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$50L</ID>
-    <ID>MagicNumber:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$5_000L</ID>
-    <ID>MagicNumber:SshAgentRequestQueueTest.kt:SshAgentRequestQueueTest$80L</ID>
     <ID>MagicNumber:SshAgentService.kt:SshAgentService$65535</ID>
-    <ID>MagicNumber:SshAgentSigningTest.kt:SshAgentSigningTest$3</ID>
-    <ID>MagicNumber:SshAgentSigningTest.kt:SshAgentSigningTest$4</ID>
-    <ID>MagicNumber:SshAgentSigningTest.kt:SshAgentSigningTest$5</ID>
-    <ID>MagicNumber:SshAgentSigningTest.kt:SshAgentSigningTest$64</ID>
-    <ID>MagicNumber:SshAgentSigningTest.kt:SshAgentSigningTest$70</ID>
-    <ID>MagicNumber:SshAgentStartupRetryTest.kt:SshAgentStartupRetryTest$3</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol$12</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol$4</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol$8</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol.Channel$16</ID>
-    <ID>MagicNumber:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$16</ID>
-    <ID>MagicNumber:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$24</ID>
-    <ID>MagicNumber:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$5_000</ID>
-    <ID>MagicNumber:SshAgentTcpProtocolTest.kt:SshAgentTcpProtocolTest$8</ID>
     <ID>MagicNumber:SshAgentTcpProxyBridge.kt:1_000_000L</ID>
     <ID>MagicNumber:SshAgentTcpProxySocketConnector.kt:1_000_000L</ID>
-    <ID>MagicNumber:SshAgentTransportBouncyCastleDifferentialTest.kt:SshAgentTransportBouncyCastleDifferentialTest$31</ID>
-    <ID>MagicNumber:SshAgentTransportBouncyCastleDifferentialTest.kt:SshAgentTransportBouncyCastleDifferentialTest$8</ID>
-    <ID>MagicNumber:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$0xff</ID>
-    <ID>MagicNumber:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$14</ID>
-    <ID>MagicNumber:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$16</ID>
-    <ID>MagicNumber:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$32</ID>
-    <ID>MagicNumber:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$42</ID>
-    <ID>MagicNumber:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$64</ID>
-    <ID>MagicNumber:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest$7</ID>
-    <ID>MagicNumber:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest.SshCursor$0xff</ID>
-    <ID>MagicNumber:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest.SshCursor$4</ID>
-    <ID>MagicNumber:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest.SshCursor$8</ID>
-    <ID>MagicNumber:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$1024</ID>
-    <ID>MagicNumber:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$16</ID>
-    <ID>MagicNumber:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$2048</ID>
-    <ID>MagicNumber:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$24</ID>
-    <ID>MagicNumber:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$70</ID>
-    <ID>MagicNumber:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest$8</ID>
     <ID>MagicNumber:SshRequestActivity.kt:SshRequestActivity$0.9f</ID>
     <ID>MagicNumber:SshRequestActivity.kt:SshRequestActivity$1000L</ID>
     <ID>MagicNumber:SshRequestActivity.kt:SshRequestActivity$3000L</ID>
-    <ID>MagicNumber:SshSigningParityTest.kt:SshSigningParityTest$64</ID>
-    <ID>MagicNumber:SshSigningParityTest.kt:SshSigningParityTest.Companion$16</ID>
-    <ID>MagicNumber:SshSigningParityTest.kt:SshSigningParityTest.Companion$4</ID>
-    <ID>MagicNumber:SshTestKeyFixtures.kt:2048</ID>
-    <ID>MagicNumber:SshTestKeyFixtures.kt:64</ID>
-    <ID>MagicNumber:SshUsageHistoryRepositoryImplTest.kt:SshUsageHistoryRepositoryImplTest$3</ID>
     <ID>MagicNumber:SshUsageHistoryResponseType.kt:SshUsageHistoryResponseType.FAILURE$3L</ID>
     <ID>MagicNumber:SubscriptionServiceAndroid.kt:SubscriptionServiceAndroid$1000L</ID>
     <ID>MagicNumber:SurfaceElevation.kt:0.25f</ID>
@@ -2249,27 +1247,6 @@
     <ID>MagicNumber:SyncDiffer.kt:SyncDiffer$100.0</ID>
     <ID>MagicNumber:SyncIcon.kt:0.1f</ID>
     <ID>MagicNumber:SyncIcon.kt:360f</ID>
-    <ID>MagicNumber:SyncV2CipherUploadIntegrationTest.kt:ProductionCipherOpsFixture$21</ID>
-    <ID>MagicNumber:SyncV2CipherUploadIntegrationTest.kt:ProductionCipherOpsFixture$64</ID>
-    <ID>MagicNumber:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$101</ID>
-    <ID>MagicNumber:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$111</ID>
-    <ID>MagicNumber:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$19L</ID>
-    <ID>MagicNumber:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$500</ID>
-    <ID>MagicNumber:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$64</ID>
-    <ID>MagicNumber:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$2_000L</ID>
-    <ID>MagicNumber:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$3_000L</ID>
-    <ID>MagicNumber:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$400</ID>
-    <ID>MagicNumber:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$403</ID>
-    <ID>MagicNumber:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$429</ID>
-    <ID>MagicNumber:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$4_000L</ID>
-    <ID>MagicNumber:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$5</ID>
-    <ID>MagicNumber:SyncV2PipelineIntegrationTest.kt:SyncV2PipelineIntegrationTest$6</ID>
-    <ID>MagicNumber:SyncV2SendUploadIntegrationTest.kt:ProductionSendOpsFixture$64</ID>
-    <ID>MagicNumber:SyncV2SendUploadIntegrationTest.kt:ProductionSendOpsFixture$65</ID>
-    <ID>MagicNumber:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$404</ID>
-    <ID>MagicNumber:SyncV2SendUploadIntegrationTest.kt:SyncV2SendUploadIntegrationTest$500</ID>
-    <ID>MagicNumber:SyncV2UploadTestFixtures.kt:11</ID>
-    <ID>MagicNumber:SyncV2UploadTestFixtures.kt:64</ID>
     <ID>MagicNumber:Theme.kt:0.1f</ID>
     <ID>MagicNumber:Theme.kt:0.2f</ID>
     <ID>MagicNumber:Theme.kt:0.72f</ID>
@@ -2277,14 +1254,10 @@
     <ID>MagicNumber:Theme.kt:0.86f</ID>
     <ID>MagicNumber:Theme.kt:0.96f</ID>
     <ID>MagicNumber:Theme.kt:0.9f</ID>
-    <ID>MagicNumber:TldServiceBenchmarkHarness.kt:TldServiceBenchmarkHarness$31L</ID>
-    <ID>MagicNumber:TldServiceBenchmarkTest.kt:31L</ID>
     <ID>MagicNumber:TotpServiceImpl.kt:TotpServiceImpl$0x7F</ID>
     <ID>MagicNumber:TotpServiceImpl.kt:TotpServiceImpl$10</ID>
     <ID>MagicNumber:TotpServiceImpl.kt:TotpServiceImpl$20</ID>
     <ID>MagicNumber:TotpServiceImpl.kt:TotpServiceImpl$9</ID>
-    <ID>MagicNumber:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$1_700_000_000L</ID>
-    <ID>MagicNumber:TotpServiceMobileAuthTest.kt:TotpServiceMobileAuthTest$1_700_000_010L</ID>
     <ID>MagicNumber:TwoPaneLayout.kt:0.035f</ID>
     <ID>MagicNumber:TwoPaneLayout.kt:0.5f</ID>
     <ID>MagicNumber:UriMatchTypeEntity.kt:UriMatchTypeEntity.Exact$3</ID>
@@ -2298,12 +1271,6 @@
     <ID>MagicNumber:VaultListItem.kt:4</ID>
     <ID>MagicNumber:VaultListScreen.kt:200L</ID>
     <ID>MagicNumber:VaultListScreen.kt:5</ID>
-    <ID>MagicNumber:VaultSearchBenchmarkFixtures.kt:VaultSearchBenchmarkFixtures$0xFF2196F3</ID>
-    <ID>MagicNumber:VaultSearchBenchmarkFixtures.kt:VaultSearchBenchmarkFixtures$0xFF64B5F6</ID>
-    <ID>MagicNumber:VaultSearchBenchmarkFixtures.kt:VaultSearchBenchmarkFixtures$4</ID>
-    <ID>MagicNumber:VaultSearchBenchmarkHarness.kt:VaultSearchBenchmarkHarness$1024.0</ID>
-    <ID>MagicNumber:VaultSearchBenchmarkHarness.kt:VaultSearchBenchmarkHarness$1_000_000.0</ID>
-    <ID>MagicNumber:VaultSearchBenchmarkTest.kt:VaultSearchBenchmarkTest$4096</ID>
     <ID>MagicNumber:VaultSearchCorpusBuilder.kt:0.75f</ID>
     <ID>MagicNumber:VaultSearchCorpusBuilder.kt:3</ID>
     <ID>MagicNumber:VaultSearchDocumentMapper.kt:31</ID>
@@ -2327,19 +1294,7 @@
     <ID>MagicNumber:VaultViewUriItem.kt:0.3f</ID>
     <ID>MagicNumber:VaultViewUriItem.kt:0.66f</ID>
     <ID>MagicNumber:VaultViewUriItem.kt:0.8f</ID>
-    <ID>MagicNumber:VerifyGpgPublicKeyImplTest.kt:16</ID>
-    <ID>MagicNumber:WatchtowerBenchmarkFixtures.kt:2025</ID>
-    <ID>MagicNumber:WatchtowerBenchmarkFixtures.kt:32</ID>
-    <ID>MagicNumber:WatchtowerBenchmarkFixtures.kt:BenchmarkBreachesLatestDate$2025</ID>
-    <ID>MagicNumber:WatchtowerBenchmarkFixtures.kt:BenchmarkGpgParser$16</ID>
-    <ID>MagicNumber:WatchtowerBenchmarkFixtures.kt:BenchmarkKeyPairGenerator$1024</ID>
-    <ID>MagicNumber:WatchtowerBenchmarkFixtures.kt:BenchmarkKeyPairGenerator$4096</ID>
-    <ID>MagicNumber:WatchtowerBenchmarkFixtures.kt:BenchmarkPasswordSetLeak$5</ID>
-    <ID>MagicNumber:WatchtowerBenchmarkFixtures.kt:WatchtowerBenchmarkFixtures$31L</ID>
-    <ID>MagicNumber:WatchtowerBenchmarkHarness.kt:WatchtowerBenchmarkHarness$1024.0</ID>
-    <ID>MagicNumber:WatchtowerBenchmarkHarness.kt:WatchtowerBenchmarkHarness$1_000_000.0</ID>
     <ID>MagicNumber:WatchtowerGpgKey.kt:GpgWatchtowerPolicy$2048</ID>
-    <ID>MagicNumber:WatchtowerPendingCipherQueriesTest.kt:WatchtowerPendingCipherQueriesTest$500L</ID>
     <ID>MagicNumber:WatchtowerScreen.kt:0.035f</ID>
     <ID>MagicNumber:WatchtowerScreen.kt:0.3f</ID>
     <ID>MagicNumber:WatchtowerScreen.kt:0.6f</ID>
@@ -2363,7 +1318,6 @@
     <ID>MagicNumber:WebsiteLeakScreen.kt:0.6f</ID>
     <ID>MagicNumber:WebsiteLeakScreen.kt:0.8f</ID>
     <ID>MagicNumber:WindowsNamedPipe.kt:WindowsNamedPipePacketChannel$4</ID>
-    <ID>MagicNumber:WindowsNamedPipeLifecycleTest.kt:WindowsNamedPipeLifecycleTest$5</ID>
     <ID>MagicNumber:WordlistViewScreen.kt:100L</ID>
     <ID>MagicNumber:broadcastFlow.kt:34</ID>
     <ID>MagicNumber:getHttpCode.kt:500</ID>
@@ -2478,7 +1432,7 @@
     <ID>MatchingDeclarationName:GetWordlistPrimitive.kt:GetWordlistPrimitiveImpl : GetWordlistPrimitive</ID>
     <ID>MatchingDeclarationName:GetWordlists.kt:GetWordlistsImpl : GetWordlists</ID>
     <ID>MatchingDeclarationName:GpgAgentHistoryMapper.kt:GpgUsageHistoryCallerInfo</ID>
-    <ID>MatchingDeclarationName:GpgAgentPublicKeyModels.kt:GpgAgentPublicKeyRow</ID>
+    <ID>MatchingDeclarationName:GpgPublicKeyModels.kt:GpgPublicKeyEntry</ID>
     <ID>MatchingDeclarationName:IOTimeout.kt:IOTimeoutException : Exception</ID>
     <ID>MatchingDeclarationName:LastDeletedSort.kt:LastDeletedSendSort : SendSortPureSendSort</ID>
     <ID>MatchingDeclarationName:LastExpiredSort.kt:LastExpiredSendSort : SendSortPureSendSort</ID>
@@ -2582,7 +1536,6 @@
     <ID>MaxLineLength:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.CV25519))</ID>
     <ID>MaxLineLength:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.NISTP256))</ID>
     <ID>MaxLineLength:GpgAgentDecryptTest.kt:GpgAgentDecryptTest$metadataKey = GpgAgentKeyMetadataKey(keygrip = "", fingerprint = encryptionFingerprint(GpgTestKeyFixtures.RSA))</ID>
-    <ID>MaxLineLength:GpgAgentPublicKeyRepositoryImplTest.kt:GpgAgentPublicKeyRepositoryImplTest$assertEquals(publicOnly.copy(keygrip = publicOnly.keygrip.uppercase()), repository.getByKeygrip(publicOnly.keygrip).invoke())</ID>
     <ID>MaxLineLength:GpgKeyActions.kt:GpgKeyActions$title = Res.string.gpg_key_action_save_unencrypted_keys_saved_downloads_success_title</ID>
     <ID>MaxLineLength:GpgKeyActions.kt:GpgKeyActions$title = Res.string.gpg_key_action_save_unencrypted_private_key_saved_downloads_success_title</ID>
     <ID>MaxLineLength:GpgKeyPrivateExportImpl.kt:GpgKeyPrivateExportImpl$val fileName = "gpg_${parameter.fingerprint.gpgFileSafeSuffix()}_${dateFormatter.gpgExportDateSuffix()}.private.asc"</ID>
@@ -2623,7 +1576,7 @@
     <ID>MaxLineLength:SettingScreenshots.kt:private suspend</ID>
     <ID>MaxLineLength:SetupStateProducer.kt:createVaultWithMasterPasswordAndBiometricFn = createVaultWithMasterPasswordAndBiometricFn</ID>
     <ID>MaxLineLength:SimpleLoginEmailRelay.kt:SimpleLoginEmailRelay$// - (Optional, query) "mode": either 'uuid' or 'word'. By default, use the user setting when creating new random alias.</ID>
-    <ID>MaxLineLength:SshAgentRequestProcessorJvm.kt:SshAgentRequestProcessorJvm$private</ID>
+    <ID>MaxLineLength:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$private</ID>
     <ID>MaxLineLength:Suggestions.kt:if</ID>
     <ID>MaxLineLength:SyncItemMeta.kt:LocalItemMeta$*</ID>
     <ID>MaxLineLength:SyncV2CipherUploadIntegrationTest.kt:SyncV2CipherUploadIntegrationTest$assertEquals(listOf(HttpMethod.Get to "/api/ciphers/cipher-remote-1"), server.requests.map { it.method to it.path })</ID>
@@ -2961,8 +1914,8 @@
     <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private fun getSentFromAppInfo: SshAgentMessages.CallerIdentity?</ID>
     <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private fun parseRequest: BroadcastRequest?</ID>
     <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private suspend fun handleRequest: SshAgentContract.BroadcastOutcome</ID>
-    <ID>ReturnCount:SshAgentRequestProcessorJvm.kt:SshAgentRequestProcessorJvm$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
-    <ID>ReturnCount:SshAgentRequestProcessorJvm.kt:SshAgentRequestProcessorJvm$private suspend fun getSshKeysFromVault: SshVaultContext?</ID>
+    <ID>ReturnCount:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
+    <ID>ReturnCount:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$private suspend fun getSshKeysFromVault: SshVaultContext?</ID>
     <ID>ReturnCount:SshAgentRpcHandler.kt:SshAgentRpcHandler$suspend fun processRequest: SshAgentMessages.IpcResponse</ID>
     <ID>ReturnCount:SshAgentService.kt:SshAgentService$override fun onStartCommand: Int</ID>
     <ID>ReturnCount:SshAgentTcpProxyBridge.kt:internal fun buildAndroidFrameworkPackageAuthorization: CallerAuthorization?</ID>
@@ -3075,7 +2028,7 @@
     <ID>TooGenericExceptionCaught:FileWatcherServiceAndroid.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:FileWatcherServiceJvm.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:GetAttachmentPreviewImpl.kt:GetAttachmentPreviewImpl$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:GpgAgentPublicKeySyncerImpl.kt:GpgAgentPublicKeySyncerImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:GpgPublicKeySyncerImpl.kt:GpgPublicKeySyncerImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GpgCanonicalSExpr.kt:GpgCanonicalSExpr$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:GpgKeyserverRefreshWorkerImpl.kt:GpgKeyserverRefreshWorkerImpl$e: Exception</ID>
@@ -3111,7 +2064,7 @@
     <ID>TooGenericExceptionCaught:SshAgentPublicKeySyncerImpl.kt:SshAgentPublicKeySyncerImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentReceiver.kt:SshAgentReceiver$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentReceiver.kt:SshAgentReceiver$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:SshAgentRequestProcessorJvm.kt:SshAgentRequestProcessorJvm$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentService.kt:SshAgentService$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentTcpProxyBridge.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentTcpProxySocketConnector.kt:e: Exception</ID>
@@ -3191,6 +2144,7 @@
     <ID>TooManyFunctions:GpgCertificateInspectorJvm.kt:GpgCertificateInspectorJvm</ID>
     <ID>TooManyFunctions:GpgCertificateInspectorJvm.kt:com.artemchep.keyguard.crypto.GpgCertificateInspectorJvm.kt</ID>
     <ID>TooManyFunctions:GpgCertificateInspectorJvmTest.kt:GpgCertificateInspectorJvmTest</ID>
+    <ID>TooManyFunctions:GpgClearSignedTextTest.kt:GpgClearSignedTextTest</ID>
     <ID>TooManyFunctions:GpgKeyExpirationServiceJvm.kt:GpgKeyExpirationServiceJvm : GpgKeyExpirationService</ID>
     <ID>TooManyFunctions:GpgKeyExpirationServiceJvmTest.kt:GpgKeyExpirationServiceJvmTest</ID>
     <ID>TooManyFunctions:GpgKeyGeneratorJvmTest.kt:GpgKeyGeneratorJvmTest</ID>
@@ -3488,5 +2442,7 @@
     <ID>WildcardImport:WatchtowerSyncerImpl.kt:import io.ktor.http.*</ID>
     <ID>WildcardImport:http.kt:import io.ktor.client.statement.*</ID>
     <ID>WildcardImport:http.kt:import io.ktor.http.*</ID>
+<ID>LongMethod:AndroidIpcApprovalStoreTest.kt:AndroidIpcApprovalStoreTest$@Test fun `authorization is single use and bound to the complete caller identity`</ID>
+<ID>MatchingDeclarationName:VaultAttachmentSelection.kt:VaultAttachmentSelectionResult</ID>
   </CurrentIssues>
 </SmellBaseline>

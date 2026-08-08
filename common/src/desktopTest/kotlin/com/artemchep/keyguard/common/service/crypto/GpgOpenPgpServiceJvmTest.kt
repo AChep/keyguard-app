@@ -7,6 +7,7 @@ import com.artemchep.keyguard.crypto.GpgUnsupportedKeyVersionException
 import com.artemchep.keyguard.crypto.armored
 import com.artemchep.keyguard.crypto.extractPrivateKeyEmptyPassphrase
 import com.artemchep.keyguard.crypto.fingerprintHex
+import com.artemchep.keyguard.nativecrypto.NativeCryptoException
 import com.artemchep.keyguard.util.io.toSource
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
@@ -342,13 +343,13 @@ class GpgOpenPgpServiceJvmTest {
                 input = data.toSource(),
                 output = encrypted,
                 publicKeys = listOf(publicKey),
-                fileName = "large.bin",
+                fileName = GpgOpenPgpLiteralFileName.fromUntrusted("large.bin"),
             ),
         )
         val encryptedBytes = encrypted.readByteArray()
         assertTrue("BEGIN PGP MESSAGE" in encryptedBytes.decodeToString())
         service.decryptFile(
-            GpgOpenPgpDecryptFileRequest(
+            GpgOpenPgpReadFileRequest(
                 input = encryptedBytes.toSource(),
                 output = decrypted,
                 privateKeys = listOf(privateKey),
@@ -356,6 +357,38 @@ class GpgOpenPgpServiceJvmTest {
         )
 
         assertContentEquals(data, decrypted.readByteArray())
+    }
+
+    @Test
+    fun `decrypt file surfaces message armor charset`() {
+        val encrypted = Buffer()
+        service.encryptFile(
+            GpgOpenPgpEncryptFileRequest(
+                input = "armored charset body".encodeToByteArray().toSource(),
+                output = encrypted,
+                publicKeys = listOf(publicKey),
+                fileName = GpgOpenPgpLiteralFileName.fromUntrusted("message.txt"),
+            ),
+        )
+        val withCharset = encrypted
+            .readByteArray()
+            .decodeToString()
+            .replace(
+                "-----BEGIN PGP MESSAGE-----\n\n",
+                "-----BEGIN PGP MESSAGE-----\nCharset: ISO-8859-1\n\n",
+            )
+        val plaintext = Buffer()
+
+        val result = service.decryptFile(
+            GpgOpenPgpReadFileRequest(
+                input = withCharset.encodeToByteArray().toSource(),
+                output = plaintext,
+                privateKeys = listOf(privateKey),
+            ),
+        )
+
+        assertEquals("ISO-8859-1", result.declaredCharset)
+        assertEquals("armored charset body", plaintext.readByteArray().decodeToString())
     }
 
     @Test
@@ -371,14 +404,14 @@ class GpgOpenPgpServiceJvmTest {
                 input = data.toSource(),
                 output = encrypted,
                 publicKeys = listOf(publicKey),
-                fileName = "large.bin",
+                fileName = GpgOpenPgpLiteralFileName.fromUntrusted("large.bin"),
                 armored = false,
             ),
         )
         val encryptedBytes = encrypted.readByteArray()
         assertTrue("BEGIN PGP MESSAGE" !in encryptedBytes.decodeToString())
         service.decryptFile(
-            GpgOpenPgpDecryptFileRequest(
+            GpgOpenPgpReadFileRequest(
                 input = encryptedBytes.toSource(),
                 output = decrypted,
                 privateKeys = listOf(privateKey),
@@ -661,6 +694,234 @@ class GpgOpenPgpServiceJvmTest {
     }
 
     @Test
+    fun `verify clear-signed file recovers dash-escaped body and metadata`() {
+        val signed = service.clearSignText(
+            GpgOpenPgpSignTextRequest(
+                text = MARKER_LINES_TEXT,
+                privateKey = privateKey,
+            ),
+        )
+
+        val body = Buffer()
+        val result = service.verifyClearSignedFile(
+            GpgOpenPgpReadFileRequest(
+                input = signed.encodeToByteArray().toSource(),
+                output = body,
+                publicKeys = listOf(publicKey),
+            ),
+        )
+
+        assertEquals(GpgOpenPgpVerificationStatus.VALID, result.verification.status)
+        assertEquals(
+            "D0BBCFBB250D3BB0658E5384F83D947D29EFECF7",
+            result.verification.fingerprint,
+        )
+        val recovered = body.readByteArray()
+        assertContentEquals(MARKER_LINES_RECOVERED_TEXT.encodeToByteArray(), recovered)
+        assertEquals(recovered.size.toLong(), result.bodySize)
+        assertTrue(result.bodyValidUtf8)
+    }
+
+    @Test
+    fun `verify clear-signed file rejects a non-hash armor header`() {
+        val signed = service.clearSignText(
+            GpgOpenPgpSignTextRequest(
+                text = "charset header body",
+                privateKey = privateKey,
+            ),
+        )
+        // RFC 9580 cleartext signatures only permit Hash armor headers.
+        val declared = signed.replace("Hash: SHA256", "Hash: SHA256\nCharset: ISO-8859-1")
+
+        val body = Buffer()
+        assertFailsWith<NativeCryptoException> {
+            service.verifyClearSignedFile(
+                GpgOpenPgpReadFileRequest(
+                    input = declared.encodeToByteArray().toSource(),
+                    output = body,
+                    publicKeys = listOf(publicKey),
+                ),
+            )
+        }
+        assertEquals(0L, body.size)
+    }
+
+    @Test
+    fun `read file classifies clear-signed input without consuming its prefix`() {
+        val signed = service.clearSignText(
+            GpgOpenPgpSignTextRequest(
+                text = "unified read body",
+                privateKey = privateKey,
+            ),
+        )
+        val body = Buffer()
+
+        val result = service.readFile(
+            GpgOpenPgpReadFileRequest(
+                input = signed.encodeToByteArray().toSource(),
+                output = body,
+                privateKeys = emptyList(),
+                publicKeys = listOf(publicKey),
+            ),
+        )
+
+        assertTrue(result is GpgOpenPgpReadFileResult.ClearSigned)
+        assertEquals(GpgOpenPgpVerificationStatus.VALID, result.verification.status)
+        assertEquals("unified read body", body.readByteArray().decodeToString())
+    }
+
+    @Test
+    fun `read file classifies clear-signed input after a quoted preamble`() {
+        val signed = service.clearSignText(
+            GpgOpenPgpSignTextRequest(
+                text = "preamble body",
+                privateKey = privateKey,
+            ),
+        )
+
+        listOf("\n", "\r\n", "\r").forEach { lineEnding ->
+            val document = "Quoted introduction.$lineEnding$lineEnding$signed"
+            val body = Buffer()
+
+            val result = service.readFile(
+                GpgOpenPgpReadFileRequest(
+                    input = document.encodeToByteArray().toSource(),
+                    output = body,
+                    privateKeys = emptyList(),
+                    publicKeys = listOf(publicKey),
+                ),
+            )
+
+            assertTrue(result is GpgOpenPgpReadFileResult.ClearSigned)
+            assertEquals(GpgOpenPgpVerificationStatus.VALID, result.verification.status)
+            assertEquals("preamble body", body.readByteArray().decodeToString())
+        }
+    }
+
+    @Test
+    fun `read file requires the clear-signed marker to occupy the whole line`() {
+        val body = Buffer()
+
+        assertFailsWith<IllegalStateException> {
+            service.readFile(
+                GpgOpenPgpReadFileRequest(
+                    input = "-----BEGIN PGP SIGNED MESSAGE-----suffix\n"
+                        .encodeToByteArray()
+                        .toSource(),
+                    output = body,
+                ),
+            )
+        }
+        assertEquals(0L, body.size)
+    }
+
+    @Test
+    fun `read file clear-signed classification honors the native framing limit`() {
+        val marker = "-----BEGIN PGP SIGNED MESSAGE-----"
+        val preambleSize = 64 * 1024 - marker.encodeToByteArray().size - 1
+        val atLimit = "a".repeat(preambleSize - 1) + "\n" + marker + "\n"
+        val overLimit = "a".repeat(preambleSize) + "\n" + marker + "\n"
+
+        // The exact-bound marker is routed to clear verification, which then
+        // rejects this deliberately incomplete document.
+        assertFailsWith<NativeCryptoException> {
+            service.readFile(
+                GpgOpenPgpReadFileRequest(
+                    input = atLimit.encodeToByteArray().toSource(),
+                    output = Buffer(),
+                ),
+            )
+        }
+        // A marker ending beyond the native framing bound is not classified
+        // as clear-signed and reaches the message path instead.
+        assertFailsWith<IllegalStateException> {
+            service.readFile(
+                GpgOpenPgpReadFileRequest(
+                    input = overLimit.encodeToByteArray().toSource(),
+                    output = Buffer(),
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `read file classifies encrypted input and preserves message metadata`() {
+        val plaintext = "unified encrypted body".encodeToByteArray()
+        val encrypted = Buffer()
+        service.encryptFile(
+            GpgOpenPgpEncryptFileRequest(
+                input = plaintext.toSource(),
+                output = encrypted,
+                publicKeys = listOf(publicKey),
+                fileName = GpgOpenPgpLiteralFileName.fromUntrusted("classified.txt"),
+            ),
+        )
+        val document = encrypted
+            .readByteArray()
+            .decodeToString()
+            .replace(
+                "-----BEGIN PGP MESSAGE-----\n\n",
+                "-----BEGIN PGP MESSAGE-----\nCharset: UTF-8\n\n",
+            )
+        val body = Buffer()
+
+        val result = service.readFile(
+            GpgOpenPgpReadFileRequest(
+                input = document.encodeToByteArray().toSource(),
+                output = body,
+                privateKeys = listOf(privateKey),
+            ),
+        )
+
+        assertTrue(result is GpgOpenPgpReadFileResult.Message)
+        assertTrue(result.encrypted)
+        assertTrue(!result.decryptionKeyFingerprint.isNullOrBlank())
+        assertNull(result.verification)
+        assertEquals("UTF-8", result.declaredCharset)
+        assertContentEquals(
+            "classified.txt".encodeToByteArray(),
+            requireNotNull(result.metadata).fileName,
+        )
+        assertContentEquals(plaintext, body.readByteArray())
+    }
+
+    @Test
+    fun `tampered clear-signed file fails while an omitted hash header still verifies`() {
+        val signed = service.clearSignText(
+            GpgOpenPgpSignTextRequest(
+                text = "clear-signed file body",
+                privateKey = privateKey,
+            ),
+        )
+
+        val tampered = signed.replace("clear-signed file body", "clear-signed file b0dy")
+        val tamperedBody = Buffer()
+        val tamperedResult = service.verifyClearSignedFile(
+            GpgOpenPgpReadFileRequest(
+                input = tampered.encodeToByteArray().toSource(),
+                output = tamperedBody,
+                publicKeys = listOf(publicKey),
+            ),
+        )
+        assertEquals(GpgOpenPgpVerificationStatus.INVALID, tamperedResult.verification.status)
+
+        val withoutHash = signed.replace("Hash: SHA256\n", "")
+        val recoveredBody = Buffer()
+        val result = service.verifyClearSignedFile(
+            GpgOpenPgpReadFileRequest(
+                input = withoutHash.encodeToByteArray().toSource(),
+                output = recoveredBody,
+                publicKeys = listOf(publicKey),
+            ),
+        )
+        assertEquals(GpgOpenPgpVerificationStatus.VALID, result.verification.status)
+        assertContentEquals(
+            "clear-signed file body".encodeToByteArray(),
+            recoveredBody.readByteArray(),
+        )
+    }
+
+    @Test
     fun `clear-sign with marker lines verifies with gpg when available`() {
         if (!GpgCliTestSupport.isGpgAvailable()) {
             return
@@ -919,6 +1180,7 @@ class GpgOpenPgpServiceJvmTest {
             append("-----BEGIN PGP SIGNED MESSAGE-----\n")
             append("trailing whitespace here   ")
         }
+        private val MARKER_LINES_RECOVERED_TEXT = MARKER_LINES_TEXT.trimEnd(' ', '\t')
 
         // Real, unprotected (empty-passphrase) Ed25519 cert primary with a
         // CV25519 (algorithm 18, ECDH) encryption subkey. User-id:

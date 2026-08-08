@@ -9,7 +9,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51"
+        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -99,6 +99,8 @@ pub mod native_request {
         PasskeySign(super::PasskeySignRequest),
         #[prost(message, tag = "51")]
         SshKeyExportCxf(super::SshKeyExportCxfRequest),
+        #[prost(message, tag = "52")]
+        SshPublicKeyDecode(super::SshPublicKeyDecodeRequest),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -107,7 +109,7 @@ pub struct NativeStreamOpenRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_stream_open_request::Operation",
-        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20"
+        tags = "10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22"
     )]
     pub operation: ::core::option::Option<native_stream_open_request::Operation>,
 }
@@ -141,6 +143,10 @@ pub mod native_stream_open_request {
         AesCbcPkcs7HmacSha256Decrypt(
             super::AesCbcPkcs7HmacSha256DecryptStreamOpenRequest,
         ),
+        #[prost(message, tag = "21")]
+        OpenPgpClearSign(super::OpenPgpClearSignStreamOpenRequest),
+        #[prost(message, tag = "22")]
+        OpenPgpClearVerify(super::OpenPgpClearVerifyStreamOpenRequest),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -474,6 +480,11 @@ pub struct SshKeyExportCxfResult {
     pub private_key_pkcs8: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SshPublicKeyDecodeRequest {
+    #[prost(string, tag = "1")]
+    pub public_key_openssh: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SshPrivateKeyImportRequest {
     #[prost(string, tag = "1")]
     pub content: ::prost::alloc::string::String,
@@ -574,6 +585,15 @@ pub struct SshSignature {
     #[prost(bytes = "vec", tag = "2")]
     pub signature: ::prost::alloc::vec::Vec<u8>,
 }
+/// Domain payload returned inside NativeResponse.bytes_value.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SshPublicKeyDecodeResult {
+    #[prost(enumeration = "SshKeyType", tag = "1")]
+    pub r#type: i32,
+    /// X.509 SubjectPublicKeyInfo DER encoding of the public key.
+    #[prost(bytes = "vec", tag = "2")]
+    pub spki_der: ::prost::alloc::vec::Vec<u8>,
+}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SshPrivateKeyImportSuccess {
     #[prost(message, optional, tag = "1")]
@@ -645,6 +665,26 @@ pub struct OpenPgpDetachedVerifyStreamOpenRequest {
     pub public_keys: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
     #[prost(uint64, optional, tag = "3")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpClearVerifyStreamOpenRequest {
+    /// The complete cleartext-signed document (headers, body, and the trailing
+    /// armored signature) is supplied only through streamUpdate calls, which
+    /// return the dash-unescaped body bytes as they are recovered. The structural
+    /// line ending before the signature armor and unauthenticated trailing spaces
+    /// and tabs are excluded from the recovered body.
+    #[prost(bytes = "vec", repeated, tag = "1")]
+    pub public_keys: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
+    #[prost(uint64, optional, tag = "2")]
+    pub reference_time_epoch_seconds: ::core::option::Option<u64>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpClearVerifyResult {
+    #[prost(message, optional, tag = "1")]
+    pub verification: ::core::option::Option<OpenPgpVerification>,
+    /// True when every recovered body line is valid UTF-8.
+    #[prost(bool, tag = "2")]
+    pub body_valid_utf8: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpMetadataResolveRequest {
@@ -879,6 +919,17 @@ pub struct OpenPgpDetachedSignStreamOpenRequest {
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpClearSignStreamOpenRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "2")]
+    pub preferred_fingerprint: ::prost::alloc::string::String,
+    #[prost(uint64, optional, tag = "3")]
+    pub signature_time_epoch_seconds: ::core::option::Option<u64>,
+    #[prost(uint64, optional, tag = "4")]
+    pub reference_time_epoch_seconds: ::core::option::Option<u64>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpEncryptRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub content: ::prost::alloc::vec::Vec<u8>,
@@ -896,6 +947,9 @@ pub struct OpenPgpEncryptRequest {
     pub literal_time_epoch_seconds: ::core::option::Option<u64>,
     #[prost(uint64, optional, tag = "8")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
+    /// Absent preserves the historical behavior of compressing messages.
+    #[prost(bool, optional, tag = "9")]
+    pub enable_compression: ::core::option::Option<bool>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpEncryptStreamOpenRequest {
@@ -913,6 +967,9 @@ pub struct OpenPgpEncryptStreamOpenRequest {
     pub literal_time_epoch_seconds: ::core::option::Option<u64>,
     #[prost(uint64, optional, tag = "7")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
+    /// Absent preserves the historical behavior of compressing messages.
+    #[prost(bool, optional, tag = "8")]
+    pub enable_compression: ::core::option::Option<bool>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpEncryptResult {
@@ -939,6 +996,10 @@ pub struct OpenPgpDecryptRequest {
     pub verification_public_keys: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
     #[prost(uint64, optional, tag = "4")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
+    /// Allows unencrypted inline-signed messages. Unsigned literal packets remain
+    /// invalid input.
+    #[prost(bool, optional, tag = "5")]
+    pub allow_signed_only: ::core::option::Option<bool>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpDecryptStreamOpenRequest {
@@ -948,6 +1009,31 @@ pub struct OpenPgpDecryptStreamOpenRequest {
     pub verification_public_keys: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
     #[prost(uint64, optional, tag = "3")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
+    /// Allows unencrypted inline-signed messages. Unsigned literal packets remain
+    /// invalid input.
+    #[prost(bool, optional, tag = "4")]
+    pub allow_signed_only: ::core::option::Option<bool>,
+}
+/// Header of the literal data packet. OpenPGP signatures cover only the
+/// literal data, never this header: for signed-only (unencrypted) messages
+/// every field except original_size is attacker-malleable even when the
+/// signature is valid. Encrypted messages integrity-protect the header, but
+/// it remains whatever the sender chose to claim.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpLiteralMetadata {
+    /// Raw sender-embedded file name bytes: unauthenticated and unvalidated.
+    /// Unsafe as a filesystem path or for unescaped display (GnuPG
+    /// CVE-2018-12020 "SigSpoof").
+    #[prost(bytes = "vec", tag = "1")]
+    pub file_name: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint32, tag = "2")]
+    pub format: u32,
+    #[prost(uint64, tag = "3")]
+    pub modification_time_epoch_seconds: u64,
+    /// Actual decoded plaintext size counted by this library, not the
+    /// sender-declared length.
+    #[prost(uint64, tag = "4")]
+    pub original_size: u64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpDecryptResult {
@@ -955,6 +1041,21 @@ pub struct OpenPgpDecryptResult {
     pub data: ::prost::alloc::vec::Vec<u8>,
     #[prost(message, optional, tag = "2")]
     pub verification: ::core::option::Option<OpenPgpVerification>,
+    #[prost(message, optional, tag = "3")]
+    pub metadata: ::core::option::Option<OpenPgpLiteralMetadata>,
+    #[prost(bool, tag = "4")]
+    pub encrypted: bool,
+    /// Raw value of the message "Charset:" armor header, when exactly one is
+    /// present. Armor headers sit outside every integrity envelope: this is an
+    /// unauthenticated transport hint that anyone in the path can add or alter.
+    #[prost(string, optional, tag = "5")]
+    pub declared_charset: ::core::option::Option<::prost::alloc::string::String>,
+    /// Fingerprint of the primary key or subkey component that successfully
+    /// recovered the message session key. Absent for signed-only input.
+    #[prost(string, optional, tag = "6")]
+    pub decryption_key_fingerprint: ::core::option::Option<
+        ::prost::alloc::string::String,
+    >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpDecryptFinal {
@@ -964,6 +1065,21 @@ pub struct OpenPgpDecryptFinal {
     pub data: ::prost::alloc::vec::Vec<u8>,
     #[prost(message, optional, tag = "2")]
     pub verification: ::core::option::Option<OpenPgpVerification>,
+    #[prost(message, optional, tag = "3")]
+    pub metadata: ::core::option::Option<OpenPgpLiteralMetadata>,
+    #[prost(bool, tag = "4")]
+    pub encrypted: bool,
+    /// Raw value of the message "Charset:" armor header, when exactly one is
+    /// present. Armor headers sit outside every integrity envelope: this is an
+    /// unauthenticated transport hint that anyone in the path can add or alter.
+    #[prost(string, optional, tag = "5")]
+    pub declared_charset: ::core::option::Option<::prost::alloc::string::String>,
+    /// Fingerprint of the primary key or subkey component that successfully
+    /// recovered the message session key. Absent for signed-only input.
+    #[prost(string, optional, tag = "6")]
+    pub decryption_key_fingerprint: ::core::option::Option<
+        ::prost::alloc::string::String,
+    >,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpExpirationUpdateRequest {

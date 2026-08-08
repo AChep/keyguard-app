@@ -32,6 +32,7 @@ use zeroize::Zeroizing;
 use crate::{
     openpgp_packets::{RawPacketError, RawPacketStream},
     protocol::{
+        OpenPgpClearVerifyResult, OpenPgpClearVerifyStreamOpenRequest,
         OpenPgpDetachedVerifyStreamOpenRequest, OpenPgpKeyMetadata, OpenPgpKeyMetadataKey,
         OpenPgpMetadataResolveRequest, OpenPgpMetadataResolveResult, OpenPgpPublicKeyInfo,
         OpenPgpPublicKeyParseError, OpenPgpPublicKeyParseErrorReason, OpenPgpPublicKeyParseRequest,
@@ -52,6 +53,24 @@ const MAX_DETACHED_SIGNATURES: usize = 64;
 const MAX_CLEAR_SIGNED_HEADER_BYTES: usize = 64 * 1024;
 const MAX_CLEAR_SIGNED_LINES: usize = 16 * 1024;
 const MAX_CLEAR_SIGNED_LINE_BYTES: usize = 64 * 1024;
+// Canonical signed text is retained in memory until the trailing signature
+// arrives; parity with the one-shot control-envelope bound.
+const MAX_CLEAR_SIGNED_BODY_BYTES: usize = 16 * 1024 * 1024;
+const MAX_CLEAR_SIGNED_SIGNATURE_BYTES: usize = 1024 * 1024;
+const CLEAR_SIGNED_MESSAGE_MARKER: &[u8] = b"-----BEGIN PGP SIGNED MESSAGE-----";
+const CLEAR_SIGNED_SIGNATURE_MARKER: &[u8] = b"-----BEGIN PGP SIGNATURE-----";
+// RFC 9580 Table 23 text names.
+const CLEAR_SIGNED_HASH_TEXT_NAMES: [&str; 9] = [
+    "MD5",
+    "SHA1",
+    "RIPEMD160",
+    "SHA256",
+    "SHA384",
+    "SHA512",
+    "SHA224",
+    "SHA3-256",
+    "SHA3-512",
+];
 // Aggregate request limits are deliberately much smaller than the product of
 // the per-certificate limits. They bound allocations and policy work for
 // attacker-controlled keyserver/import documents without affecting normal
@@ -354,10 +373,16 @@ pub(crate) fn verify_request(
     match kind {
         OpenPgpVerifyKind::ClearText => {
             let content = Zeroizing::new(std::mem::take(&mut request.content));
-            let (signatures, signed_text) = parse_clear_signed_message(&content, &mut budget)?;
-            let prepared =
-                prepare_verification(&signatures, &certificates, reference_time, budget)?;
-            verify_prepared(prepared, Cursor::new(signed_text.as_slice()))
+            let mut session =
+                ClearVerificationSession::with_certificates(certificates, budget, reference_time);
+            // The recovered plaintext body is not needed here; skip emitting it.
+            session.emit_body = false;
+            session.update(&content)?;
+            let result = session.finish_result()?;
+            Ok(result
+                .verification
+                .ok_or(OpenPgpReadError::Internal)?
+                .encode_to_vec())
         }
         OpenPgpVerifyKind::Detached => {
             let signatures = parse_detached_signatures(&request.signature, &mut budget)?;
@@ -552,6 +577,309 @@ impl Read for ChannelReader {
             self.offset = 0;
         }
     }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum ClearVerifyState {
+    /// Bounded scan for the signed-message marker line.
+    Preamble,
+    /// Optional, validated legacy `Hash:` headers up to the blank line.
+    ArmorHeaders,
+    /// Dash-escaped body lines up to the signature marker line.
+    Body,
+    /// The trailing armored signature block, retained verbatim.
+    SignatureArmor,
+}
+
+#[derive(Clone, Copy)]
+enum ClearTextLineEnding {
+    None,
+    Lf,
+    Cr,
+    CrLf,
+}
+
+impl ClearTextLineEnding {
+    fn as_bytes(self) -> &'static [u8] {
+        match self {
+            Self::None => b"",
+            Self::Lf => b"\n",
+            Self::Cr => b"\r",
+            Self::CrLf => b"\r\n",
+        }
+    }
+}
+
+/// Bounded, incremental cleartext-signature verification session.
+///
+/// A forward-only, line-oriented parser over the RFC 9580 cleartext
+/// framework. `update` returns the dash-unescaped body bytes with their
+/// serialized line endings as they are recovered, excluding the final
+/// separator before the signature armor. Per-line trailing spaces and tabs
+/// are omitted because the cleartext signature does not authenticate them.
+/// The CRLF-canonical signed bytes and the trailing armored signature are
+/// retained (bounded) until `finish`, which runs the verification and returns
+/// the encoded [`OpenPgpClearVerifyResult`].
+pub(crate) struct ClearVerificationSession {
+    certificates: Vec<SignedPublicKey>,
+    budget: OpenPgpReadBudget,
+    reference_time: u64,
+    state: ClearVerifyState,
+    line: Zeroizing<Vec<u8>>,
+    previous_input_was_cr: bool,
+    framing_bytes: usize,
+    body_lines: usize,
+    body_valid_utf8: bool,
+    first_body_line: bool,
+    pending_line_ending: ClearTextLineEnding,
+    canonical: Zeroizing<Vec<u8>>,
+    signature: Vec<u8>,
+    /// When false, `update` returns no recovered body bytes; used by the
+    /// one-shot verify path, which only needs the verification result.
+    emit_body: bool,
+}
+
+impl ClearVerificationSession {
+    /// Parses the trusted public keys and prepares an empty parser.
+    pub(crate) fn open(
+        request: OpenPgpClearVerifyStreamOpenRequest,
+    ) -> Result<Self, OpenPgpReadError> {
+        let mut budget = OpenPgpReadBudget::default();
+        let certificates = parse_public_key_documents(&request.public_keys, &mut budget)?;
+        Ok(Self::with_certificates(
+            certificates,
+            budget,
+            reference_time(request.reference_time_epoch_seconds),
+        ))
+    }
+
+    fn with_certificates(
+        certificates: Vec<SignedPublicKey>,
+        budget: OpenPgpReadBudget,
+        reference_time: u64,
+    ) -> Self {
+        Self {
+            certificates,
+            budget,
+            reference_time,
+            state: ClearVerifyState::Preamble,
+            line: Zeroizing::new(Vec::new()),
+            previous_input_was_cr: false,
+            framing_bytes: 0,
+            body_lines: 0,
+            body_valid_utf8: true,
+            first_body_line: true,
+            pending_line_ending: ClearTextLineEnding::None,
+            canonical: Zeroizing::new(Vec::new()),
+            signature: Vec::new(),
+            emit_body: true,
+        }
+    }
+
+    /// Supplies one raw document chunk and returns recovered body bytes.
+    pub(crate) fn update(&mut self, data: &[u8]) -> Result<Vec<u8>, OpenPgpReadError> {
+        let mut output = Vec::new();
+        let mut index = 0;
+        while index < data.len() {
+            if self.state == ClearVerifyState::SignatureArmor {
+                self.push_signature(&data[index..])?;
+                return Ok(output);
+            }
+            let byte = data[index];
+            if self.previous_input_was_cr {
+                self.previous_input_was_cr = false;
+                let ending = if byte == b'\n' {
+                    index += 1;
+                    ClearTextLineEnding::CrLf
+                } else {
+                    ClearTextLineEnding::Cr
+                };
+                self.complete_line(ending, &mut output)?;
+                continue;
+            }
+            index += 1;
+            match byte {
+                b'\r' => self.previous_input_was_cr = true,
+                b'\n' => self.complete_line(ClearTextLineEnding::Lf, &mut output)?,
+                _ => {
+                    if self.line.len() >= MAX_CLEAR_SIGNED_LINE_BYTES {
+                        return Err(OpenPgpReadError::ResourceLimit);
+                    }
+                    self.line.push(byte);
+                }
+            }
+        }
+        Ok(output)
+    }
+
+    /// Verifies the retained canonical text against the trailing signature
+    /// and returns the encoded [`OpenPgpClearVerifyResult`].
+    pub(crate) fn finish(self) -> Result<Vec<u8>, OpenPgpReadError> {
+        self.finish_result().map(|result| result.encode_to_vec())
+    }
+
+    fn finish_result(mut self) -> Result<OpenPgpClearVerifyResult, OpenPgpReadError> {
+        // Flush an unterminated final line; recovered body bytes are
+        // irrelevant here because every non-signature end state fails below.
+        if self.previous_input_was_cr {
+            self.previous_input_was_cr = false;
+            self.complete_line(ClearTextLineEnding::Cr, &mut Vec::new())?;
+        } else if !self.line.is_empty() {
+            self.complete_line(ClearTextLineEnding::None, &mut Vec::new())?;
+        }
+        if self.state != ClearVerifyState::SignatureArmor {
+            return Err(OpenPgpReadError::InvalidArgument);
+        }
+        let signatures = parse_detached_signatures(&self.signature, &mut self.budget)?;
+        let prepared = prepare_verification(
+            &signatures,
+            &self.certificates,
+            self.reference_time,
+            std::mem::take(&mut self.budget),
+        )?;
+        let verification =
+            verify_prepared_result(prepared, Cursor::new(self.canonical.as_slice()))?;
+        Ok(OpenPgpClearVerifyResult {
+            verification: Some(verification),
+            body_valid_utf8: self.body_valid_utf8,
+        })
+    }
+
+    fn complete_line(
+        &mut self,
+        ending: ClearTextLineEnding,
+        output: &mut Vec<u8>,
+    ) -> Result<(), OpenPgpReadError> {
+        match self.state {
+            ClearVerifyState::Preamble => {
+                self.charge_framing(ending)?;
+                if self.line.as_slice() == CLEAR_SIGNED_MESSAGE_MARKER {
+                    self.state = ClearVerifyState::ArmorHeaders;
+                }
+            }
+
+            ClearVerifyState::ArmorHeaders => {
+                self.charge_framing(ending)?;
+                if self.line.iter().all(|byte| matches!(byte, b' ' | b'\t')) {
+                    self.state = ClearVerifyState::Body;
+                } else {
+                    self.accept_armor_header()?;
+                }
+            }
+
+            ClearVerifyState::Body => {
+                if self.line.as_slice() == CLEAR_SIGNED_SIGNATURE_MARKER {
+                    let marker = std::mem::take(&mut *self.line);
+                    self.push_signature(&marker)?;
+                    self.push_signature(ending.as_bytes())?;
+                    self.state = ClearVerifyState::SignatureArmor;
+                    return Ok(());
+                }
+                self.accept_body_line(ending, output)?;
+            }
+
+            ClearVerifyState::SignatureArmor => return Err(OpenPgpReadError::Internal),
+        }
+        self.line.clear();
+        Ok(())
+    }
+
+    fn accept_armor_header(&mut self) -> Result<(), OpenPgpReadError> {
+        let header =
+            std::str::from_utf8(&self.line).map_err(|_| OpenPgpReadError::InvalidArgument)?;
+        if let Some(algorithms) = header.strip_prefix("Hash: ") {
+            // An empty value fails inside the loop: splitting it yields one
+            // empty item.
+            for algorithm in algorithms.split(',') {
+                let algorithm = algorithm.trim_matches([' ', '\t']);
+                if algorithm.is_empty() || !CLEAR_SIGNED_HASH_TEXT_NAMES.contains(&algorithm) {
+                    return Err(OpenPgpReadError::InvalidArgument);
+                }
+            }
+            return Ok(());
+        }
+        Err(OpenPgpReadError::InvalidArgument)
+    }
+
+    fn accept_body_line(
+        &mut self,
+        ending: ClearTextLineEnding,
+        output: &mut Vec<u8>,
+    ) -> Result<(), OpenPgpReadError> {
+        self.body_lines += 1;
+        if self.body_lines > MAX_CLEAR_SIGNED_LINES {
+            return Err(OpenPgpReadError::ResourceLimit);
+        }
+        let content_start = if self.line.starts_with(b"- ") { 2 } else { 0 };
+        if self.first_body_line {
+            self.first_body_line = false;
+        } else {
+            if self.emit_body {
+                output.extend_from_slice(self.pending_line_ending.as_bytes());
+            }
+            self.ensure_canonical_capacity(2)?;
+            self.canonical.extend_from_slice(b"\r\n");
+        }
+        let canonical_length = self.line[content_start..]
+            .iter()
+            .rposition(|byte| !matches!(byte, b' ' | b'\t'))
+            .map_or(0, |position| position + 1);
+        let content = &self.line[content_start..content_start + canonical_length];
+        if self.body_valid_utf8 && std::str::from_utf8(content).is_err() {
+            self.body_valid_utf8 = false;
+        }
+        if self.emit_body {
+            output.extend_from_slice(content);
+        }
+        self.ensure_canonical_capacity(canonical_length)?;
+        self.canonical.extend_from_slice(content);
+        self.pending_line_ending = ending;
+        Ok(())
+    }
+
+    fn charge_framing(&mut self, ending: ClearTextLineEnding) -> Result<(), OpenPgpReadError> {
+        self.framing_bytes = bounded_total(
+            self.framing_bytes,
+            self.line.len() + ending.as_bytes().len(),
+            MAX_CLEAR_SIGNED_HEADER_BYTES,
+        )?;
+        Ok(())
+    }
+
+    fn ensure_canonical_capacity(&self, additional: usize) -> Result<(), OpenPgpReadError> {
+        bounded_total(
+            self.canonical.len(),
+            additional,
+            MAX_CLEAR_SIGNED_BODY_BYTES,
+        )
+        .map(|_| ())
+    }
+
+    fn push_signature(&mut self, data: &[u8]) -> Result<(), OpenPgpReadError> {
+        let total = bounded_total(
+            self.signature.len(),
+            data.len(),
+            MAX_CLEAR_SIGNED_SIGNATURE_BYTES,
+        )?;
+        self.signature
+            .try_reserve(total - self.signature.len())
+            .map_err(|_| OpenPgpReadError::ResourceLimit)?;
+        self.signature.extend_from_slice(data);
+        Ok(())
+    }
+}
+
+/// Accumulation guard: the new total after `additional` bytes, or
+/// [`OpenPgpReadError::ResourceLimit`] once it would exceed `limit`.
+fn bounded_total(
+    current: usize,
+    additional: usize,
+    limit: usize,
+) -> Result<usize, OpenPgpReadError> {
+    current
+        .checked_add(additional)
+        .filter(|total| *total <= limit)
+        .ok_or(OpenPgpReadError::ResourceLimit)
 }
 
 impl PublicComponent {
@@ -1710,90 +2038,11 @@ fn parse_detached_signatures(
         .ok_or(OpenPgpReadError::InvalidArgument)
 }
 
-fn parse_clear_signed_message(
-    input: &[u8],
-    budget: &mut OpenPgpReadBudget,
-) -> Result<(Vec<Signature>, Zeroizing<Vec<u8>>), OpenPgpReadError> {
-    const SIGNED_MESSAGE_MARKER: &[u8] = b"-----BEGIN PGP SIGNED MESSAGE-----";
-    const SIGNATURE_MARKER: &[u8] = b"-----BEGIN PGP SIGNATURE-----";
-
-    // Mirror Keyguard's historical clear-sign parser: normalize every input
-    // newline to LF, use the final signature marker (so an escaped marker may
-    // occur in the body), undo dash escaping, strip per-line trailing RFC 4880
-    // whitespace, and hash lines joined by CRLF. Both plaintext allocations are
-    // erased when this function/verification returns.
-    let normalized = normalize_lf(input);
-    let header_scan_start = find_subslice(&normalized, SIGNED_MESSAGE_MARKER).unwrap_or(0);
-    let header_end = find_subslice(&normalized[header_scan_start..], b"\n\n")
-        .map(|offset| header_scan_start + offset)
-        .ok_or(OpenPgpReadError::InvalidArgument)?;
-    if header_end - header_scan_start > MAX_CLEAR_SIGNED_HEADER_BYTES {
-        return Err(OpenPgpReadError::ResourceLimit);
-    }
-    let signature_index = rfind_subslice(&normalized, SIGNATURE_MARKER)
-        .filter(|index| *index > header_end)
-        .ok_or(OpenPgpReadError::InvalidArgument)?;
-
-    let mut body_end = signature_index;
-    if body_end > header_end + 2 && normalized.get(body_end - 1) == Some(&b'\n') {
-        body_end -= 1;
-    }
-    let body = normalized
-        .get(header_end + 2..body_end)
-        .ok_or(OpenPgpReadError::InvalidArgument)?;
-    let mut canonical = Zeroizing::new(Vec::with_capacity(body.len()));
-    for (index, line) in body.split(|byte| *byte == b'\n').enumerate() {
-        if index >= MAX_CLEAR_SIGNED_LINES || line.len() > MAX_CLEAR_SIGNED_LINE_BYTES {
-            return Err(OpenPgpReadError::ResourceLimit);
-        }
-        if index > 0 {
-            canonical.extend_from_slice(b"\r\n");
-        }
-        let line = line.strip_prefix(b"- ").unwrap_or(line);
-        let content_end = line
-            .iter()
-            .rposition(|byte| !matches!(byte, b' ' | b'\t' | b'\r' | b'\n'))
-            .map_or(0, |index| index + 1);
-        canonical.extend_from_slice(&line[..content_end]);
-    }
-
-    let signatures = parse_detached_signatures(
-        normalized
-            .get(signature_index..)
-            .ok_or(OpenPgpReadError::InvalidArgument)?,
-        budget,
-    )?;
-    Ok((signatures, canonical))
-}
-
-fn normalize_lf(input: &[u8]) -> Zeroizing<Vec<u8>> {
-    let mut output = Zeroizing::new(Vec::with_capacity(input.len()));
-    let mut index = 0;
-    while index < input.len() {
-        match input[index] {
-            b'\r' => {
-                output.push(b'\n');
-                index += usize::from(input.get(index + 1) == Some(&b'\n')) + 1;
-            }
-            byte => {
-                output.push(byte);
-                index += 1;
-            }
-        }
-    }
-    output
-}
-
+#[cfg(test)]
 fn find_subslice(input: &[u8], needle: &[u8]) -> Option<usize> {
     input
         .windows(needle.len())
         .position(|window| window == needle)
-}
-
-fn rfind_subslice(input: &[u8], needle: &[u8]) -> Option<usize> {
-    input
-        .windows(needle.len())
-        .rposition(|window| window == needle)
 }
 
 fn prepare_verification(
@@ -1892,12 +2141,19 @@ fn prepare_verification(
 
 fn verify_prepared(
     prepared: PreparedVerification,
-    mut input: impl Read,
+    input: impl Read,
 ) -> Result<Vec<u8>, OpenPgpReadError> {
+    verify_prepared_result(prepared, input).map(|result| result.encode_to_vec())
+}
+
+fn verify_prepared_result(
+    prepared: PreparedVerification,
+    mut input: impl Read,
+) -> Result<OpenPgpVerification, OpenPgpReadError> {
     match prepared {
         PreparedVerification::Missing(result) => {
             io::copy(&mut input, &mut io::sink()).map_err(|_| OpenPgpReadError::Internal)?;
-            Ok(result.encode_to_vec())
+            Ok(result)
         }
         PreparedVerification::Candidate {
             signature,
@@ -1908,7 +2164,7 @@ fn verify_prepared(
             if signer.verify(&signature, &mut input, &mut budget)? {
                 result.status = OpenPgpVerificationStatus::Valid as i32;
             }
-            Ok(result.encode_to_vec())
+            Ok(result)
         }
     }
 }
@@ -2374,10 +2630,17 @@ mod tests {
         parse_detached_signatures(data, &mut OpenPgpReadBudget::default())
     }
 
-    fn parse_clear_signed_message_fresh(
+    fn clear_verify_session_fresh(
         data: &[u8],
-    ) -> Result<(Vec<Signature>, Zeroizing<Vec<u8>>), OpenPgpReadError> {
-        parse_clear_signed_message(data, &mut OpenPgpReadBudget::default())
+    ) -> Result<(Vec<u8>, OpenPgpClearVerifyResult), OpenPgpReadError> {
+        let mut budget = OpenPgpReadBudget::default();
+        let certificates = parse_public_key_documents(&[PUBLIC_KEY.to_vec()], &mut budget)
+            .expect("fixture public key must parse");
+        let mut session =
+            ClearVerificationSession::with_certificates(certificates, budget, REFERENCE_TIME);
+        let body = session.update(data)?;
+        let result = session.finish_result()?;
+        Ok((body, result))
     }
 
     fn rsa_public_parameter_bytes(exponent_bytes: usize) -> Vec<u8> {
@@ -2611,18 +2874,8 @@ mod tests {
         let trailing_whitespace = fixture
             .replace("OpenPGP clear text\n", "OpenPGP clear text \t\n")
             .into_bytes();
-        let glued_signature_marker = fixture
-            .replace(
-                "final line\n-----BEGIN PGP SIGNATURE-----",
-                "final line-----BEGIN PGP SIGNATURE-----",
-            )
-            .into_bytes();
-        for content in [
-            CLEAR_SIGNED.to_vec(),
-            crlf,
-            trailing_whitespace,
-            glued_signature_marker,
-        ] {
+        let preamble = format!("Quoted introduction text.\n\n{fixture}").into_bytes();
+        for content in [CLEAR_SIGNED.to_vec(), crlf, trailing_whitespace, preamble] {
             let result = verification(OpenPgpVerifyRequest {
                 kind: OpenPgpVerifyKind::ClearText as i32,
                 content,
@@ -2632,6 +2885,26 @@ mod tests {
             });
             assert_verification(&result, OpenPgpVerificationStatus::Valid, 1_784_073_600);
         }
+
+        // The signature marker must stand on its own line; a marker glued to
+        // the final body line is rejected as malformed framing.
+        let glued_signature_marker = fixture
+            .replace(
+                "final line\n-----BEGIN PGP SIGNATURE-----",
+                "final line-----BEGIN PGP SIGNATURE-----",
+            )
+            .into_bytes();
+        assert_eq!(
+            verify_request(OpenPgpVerifyRequest {
+                kind: OpenPgpVerifyKind::ClearText as i32,
+                content: glued_signature_marker,
+                signature: Vec::new(),
+                public_keys: vec![PUBLIC_KEY.to_vec()],
+                reference_time_epoch_seconds: Some(REFERENCE_TIME),
+            })
+            .err(),
+            Some(OpenPgpReadError::InvalidArgument),
+        );
 
         let mut changed = CLEAR_SIGNED.to_vec();
         let offset = changed
@@ -2941,23 +3214,277 @@ mod tests {
     }
 
     #[test]
+    fn streaming_clear_verify_matches_one_shot_across_chunk_boundaries() {
+        let fixture = std::str::from_utf8(CLEAR_SIGNED).expect("clear-sign fixture must be UTF-8");
+        let crlf = fixture.replace('\n', "\r\n");
+        let cases: [(Vec<u8>, &[u8]); 2] = [
+            (
+                CLEAR_SIGNED.to_vec(),
+                b"OpenPGP clear text\n- dash-prefixed line\nfinal line",
+            ),
+            (
+                crlf.into_bytes(),
+                b"OpenPGP clear text\r\n- dash-prefixed line\r\nfinal line",
+            ),
+        ];
+        for (document, expected_body) in cases {
+            let expected = verification(OpenPgpVerifyRequest {
+                kind: OpenPgpVerifyKind::ClearText as i32,
+                content: document.clone(),
+                signature: Vec::new(),
+                public_keys: vec![PUBLIC_KEY.to_vec()],
+                reference_time_epoch_seconds: Some(REFERENCE_TIME),
+            });
+            assert_eq!(expected.status, OpenPgpVerificationStatus::Valid as i32);
+            for chunk_size in [1_usize, 7, 31, 64 * 1024] {
+                let mut budget = OpenPgpReadBudget::default();
+                let certificates = parse_public_key_documents(&[PUBLIC_KEY.to_vec()], &mut budget)
+                    .expect("fixture public key must parse");
+                let mut session = ClearVerificationSession::with_certificates(
+                    certificates,
+                    budget,
+                    REFERENCE_TIME,
+                );
+                let mut body = Vec::new();
+                for chunk in document.chunks(chunk_size) {
+                    body.extend_from_slice(&session.update(chunk).expect("update must succeed"));
+                }
+                let result = session.finish_result().expect("finish must succeed");
+                assert_eq!(body, expected_body);
+                assert_eq!(result.verification, Some(expected.clone()));
+                assert!(result.body_valid_utf8);
+            }
+        }
+    }
+
+    #[test]
+    fn clear_verify_session_accepts_a_missing_legacy_hash_header() {
+        let fixture = std::str::from_utf8(CLEAR_SIGNED).expect("clear-sign fixture must be UTF-8");
+        let missing_hash = fixture.replace("Hash: SHA512\n", "");
+        let (_, result) = clear_verify_session_fresh(missing_hash.as_bytes())
+            .expect("RFC 9580 permits an omitted Hash header");
+        assert_eq!(
+            result.verification.expect("verification").status,
+            OpenPgpVerificationStatus::Valid as i32,
+        );
+    }
+
+    #[test]
+    fn clear_verify_session_rejects_non_hash_armor_headers() {
+        let fixture = std::str::from_utf8(CLEAR_SIGNED).expect("clear-sign fixture must be UTF-8");
+        let unknown_hash = fixture.replace("Hash: SHA512", "Hash: BLAKE2");
+        assert_eq!(
+            clear_verify_session_fresh(unknown_hash.as_bytes()).err(),
+            Some(OpenPgpReadError::InvalidArgument),
+        );
+        for header in [
+            "Comment: hello",
+            "Version: GnuPG",
+            "Charset: ISO-8859-1",
+            "X-Unknown: value",
+        ] {
+            let document = fixture.replace("Hash: SHA512", &format!("Hash: SHA512\n{header}"));
+            assert_eq!(
+                clear_verify_session_fresh(document.as_bytes()).err(),
+                Some(OpenPgpReadError::InvalidArgument),
+                "header must be rejected: {header:?}",
+            );
+        }
+    }
+
+    #[test]
+    fn clear_verify_session_rejects_malformed_hash_headers() {
+        let fixture = std::str::from_utf8(CLEAR_SIGNED).expect("clear-sign fixture must be UTF-8");
+        for malformed in [
+            "hash: SHA512",
+            "Hash:SHA512",
+            "Hash:\tSHA512",
+            "Hash: sha512",
+            "Hash: SHA-512",
+            "Hash:",
+            "Hash: ",
+            "Hash: ,SHA512",
+            "Hash: SHA512,",
+            "Hash: SHA512,,SHA256",
+        ] {
+            let document = fixture.replace("Hash: SHA512", malformed);
+            assert_eq!(
+                clear_verify_session_fresh(document.as_bytes()).err(),
+                Some(OpenPgpReadError::InvalidArgument),
+                "header must be rejected: {malformed:?}",
+            );
+        }
+    }
+
+    #[test]
+    fn clear_verify_session_ignores_legacy_hash_header_contents() {
+        let fixture = std::str::from_utf8(CLEAR_SIGNED).expect("clear-sign fixture must be UTF-8");
+        for text_name in [
+            "MD5",
+            "SHA1",
+            "RIPEMD160",
+            "SHA256",
+            "SHA384",
+            "SHA224",
+            "SHA3-256",
+            "SHA3-512",
+        ] {
+            let misleading = fixture.replace("Hash: SHA512", &format!("Hash: {text_name}"));
+            let (_, result) = clear_verify_session_fresh(misleading.as_bytes())
+                .expect("the signature packet selects the digest");
+            assert_eq!(
+                result.verification.expect("verification").status,
+                OpenPgpVerificationStatus::Valid as i32,
+            );
+        }
+        let (_, result) = clear_verify_session_fresh(
+            fixture
+                .replace("Hash: SHA512", "Hash: SHA256, SHA512")
+                .as_bytes(),
+        )
+        .expect("a well-formed digest list must be accepted");
+        assert_eq!(
+            result.verification.expect("verification").status,
+            OpenPgpVerificationStatus::Valid as i32,
+        );
+    }
+
+    #[test]
+    fn clear_verify_session_accepts_a_whitespace_only_header_separator() {
+        let fixture = std::str::from_utf8(CLEAR_SIGNED).expect("clear-sign fixture must be UTF-8");
+        let document = fixture.replace("Hash: SHA512\n\n", "Hash: SHA512\n \t\n");
+        let (body, result) = clear_verify_session_fresh(document.as_bytes())
+            .expect("a whitespace-only armor separator must be accepted");
+        assert_eq!(
+            body,
+            b"OpenPGP clear text\n- dash-prefixed line\nfinal line",
+        );
+        assert_eq!(
+            result.verification.expect("verification").status,
+            OpenPgpVerificationStatus::Valid as i32,
+        );
+    }
+
+    #[test]
+    fn clear_verify_session_omits_unauthenticated_trailing_whitespace() {
+        let fixture = std::str::from_utf8(CLEAR_SIGNED).expect("clear-sign fixture must be UTF-8");
+        let document = fixture.replace(
+            "OpenPGP clear text\n- - dash-prefixed line\nfinal line\n",
+            "OpenPGP clear text \t\n- - dash-prefixed line\t\nfinal line   \n",
+        );
+        let (body, result) = clear_verify_session_fresh(document.as_bytes())
+            .expect("trailing whitespace is excluded from cleartext signatures");
+        assert_eq!(
+            body,
+            b"OpenPGP clear text\n- dash-prefixed line\nfinal line",
+        );
+        assert_eq!(
+            result.verification.expect("verification").status,
+            OpenPgpVerificationStatus::Valid as i32,
+        );
+    }
+
+    #[test]
+    fn clear_verify_session_recovers_body_and_flags_invalid_utf8() {
+        let signature_offset = find_subslice(CLEAR_SIGNED, b"-----BEGIN PGP SIGNATURE-----")
+            .expect("clear-sign fixture signature marker");
+        let mut document = b"-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA512\n\n".to_vec();
+        document.extend_from_slice(b"first\rsecond \xFF\rthird\n");
+        document.extend_from_slice(&CLEAR_SIGNED[signature_offset..]);
+        let (body, result) =
+            clear_verify_session_fresh(&document).expect("bare-CR body must parse");
+        assert_eq!(body, b"first\rsecond \xFF\rthird");
+        assert!(!result.body_valid_utf8);
+        assert_eq!(
+            result.verification.expect("verification").status,
+            OpenPgpVerificationStatus::Invalid as i32,
+        );
+    }
+
+    #[test]
+    fn clear_verify_session_rejects_missing_or_oversized_signature() {
+        let mut document = b"-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA512\n\nbody\n".to_vec();
+        assert_eq!(
+            clear_verify_session_fresh(&document).err(),
+            Some(OpenPgpReadError::InvalidArgument),
+        );
+        document.extend_from_slice(b"-----BEGIN PGP SIGNATURE-----\n");
+        document.extend(std::iter::repeat_n(b'a', MAX_CLEAR_SIGNED_SIGNATURE_BYTES));
+        assert_eq!(
+            clear_verify_session_fresh(&document).err(),
+            Some(OpenPgpReadError::ResourceLimit),
+        );
+    }
+
+    #[test]
+    fn clear_verify_signature_buffer_accepts_single_byte_updates_up_to_limit() {
+        let mut session = ClearVerificationSession::with_certificates(
+            Vec::new(),
+            OpenPgpReadBudget::default(),
+            REFERENCE_TIME,
+        );
+        for _ in 0..MAX_CLEAR_SIGNED_SIGNATURE_BYTES {
+            session
+                .push_signature(b"a")
+                .expect("single-byte signature update within the limit must succeed");
+        }
+        assert_eq!(session.signature.len(), MAX_CLEAR_SIGNED_SIGNATURE_BYTES);
+        assert_eq!(
+            session.push_signature(b"a"),
+            Err(OpenPgpReadError::ResourceLimit),
+        );
+    }
+
+    #[test]
+    fn clear_verify_session_bounds_retained_canonical_body() {
+        let mut document = b"-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA512\n\n".to_vec();
+        let line = vec![b'a'; MAX_CLEAR_SIGNED_LINE_BYTES];
+        for _ in 0..(MAX_CLEAR_SIGNED_BODY_BYTES / MAX_CLEAR_SIGNED_LINE_BYTES + 2) {
+            document.extend_from_slice(&line);
+            document.push(b'\n');
+        }
+        assert_eq!(
+            clear_verify_session_fresh(&document).err(),
+            Some(OpenPgpReadError::ResourceLimit),
+        );
+    }
+
+    #[test]
+    fn clear_verify_session_bounds_the_preamble_scan() {
+        let mut document = Vec::new();
+        for _ in 0..=(MAX_CLEAR_SIGNED_HEADER_BYTES / 8) {
+            document.extend_from_slice(b"quoted \n");
+        }
+        document.extend_from_slice(CLEAR_SIGNED);
+        assert_eq!(
+            clear_verify_session_fresh(&document).err(),
+            Some(OpenPgpReadError::ResourceLimit),
+        );
+        assert_eq!(
+            clear_verify_session_fresh(b"no marker here\n\nbody\n").err(),
+            Some(OpenPgpReadError::InvalidArgument),
+        );
+    }
+
+    #[test]
     fn cleartext_header_line_count_and_line_length_limits_are_inclusive() {
         let signature_marker = b"-----BEGIN PGP SIGNATURE-----";
         let signature_offset = find_subslice(CLEAR_SIGNED, signature_marker)
             .expect("clear-sign fixture signature marker");
         let signature = &CLEAR_SIGNED[signature_offset..];
 
-        let clear_signed = |header_bytes: usize, line_count: usize, line_bytes: usize| {
-            let mut document = b"-----BEGIN PGP SIGNED MESSAGE-----".to_vec();
-            document.resize(header_bytes, b'X');
-            document.extend_from_slice(b"\n\n");
-            for index in 0..line_count {
+        // The framing region (marker line, headers, blank line) is padded to
+        // exactly `framing_bytes` using interior whitespace in a valid Hash
+        // header, which the parser trims before matching the algorithm.
+        const MIN_FRAMING_BYTES: usize =
+            "-----BEGIN PGP SIGNED MESSAGE-----\n".len() + "Hash: SHA256\n".len() + "\n".len();
+        let clear_signed = |framing_bytes: usize, line_count: usize, line_bytes: usize| {
+            let mut document = b"-----BEGIN PGP SIGNED MESSAGE-----\n".to_vec();
+            document.extend_from_slice(b"Hash: ");
+            document.extend(std::iter::repeat_n(b' ', framing_bytes - MIN_FRAMING_BYTES));
+            document.extend_from_slice(b"SHA256\n\n");
+            for _ in 0..line_count {
                 document.extend(std::iter::repeat_n(b'a', line_bytes));
-                if index + 1 < line_count {
-                    document.push(b'\n');
-                }
-            }
-            if line_count > 0 {
                 document.push(b'\n');
             }
             document.extend_from_slice(signature);
@@ -2965,34 +3492,40 @@ mod tests {
         };
 
         assert!(
-            parse_clear_signed_message_fresh(&clear_signed(MAX_CLEAR_SIGNED_HEADER_BYTES, 1, 1,))
+            clear_verify_session_fresh(&clear_signed(MAX_CLEAR_SIGNED_HEADER_BYTES, 1, 1,)).is_ok(),
+        );
+        assert_eq!(
+            clear_verify_session_fresh(&clear_signed(MAX_CLEAR_SIGNED_HEADER_BYTES + 1, 1, 1,))
+                .err(),
+            Some(OpenPgpReadError::ResourceLimit),
+        );
+        assert!(
+            clear_verify_session_fresh(&clear_signed(MIN_FRAMING_BYTES, MAX_CLEAR_SIGNED_LINES, 1))
                 .is_ok(),
         );
         assert_eq!(
-            parse_clear_signed_message_fresh(&clear_signed(
-                MAX_CLEAR_SIGNED_HEADER_BYTES + 1,
-                1,
-                1,
+            clear_verify_session_fresh(&clear_signed(
+                MIN_FRAMING_BYTES,
+                MAX_CLEAR_SIGNED_LINES + 1,
+                1
             ))
             .err(),
             Some(OpenPgpReadError::ResourceLimit),
         );
         assert!(
-            parse_clear_signed_message_fresh(&clear_signed(64, MAX_CLEAR_SIGNED_LINES, 1)).is_ok(),
+            clear_verify_session_fresh(&clear_signed(
+                MIN_FRAMING_BYTES,
+                1,
+                MAX_CLEAR_SIGNED_LINE_BYTES
+            ))
+            .is_ok(),
         );
         assert_eq!(
-            parse_clear_signed_message_fresh(&clear_signed(64, MAX_CLEAR_SIGNED_LINES + 1, 1))
-                .err(),
-            Some(OpenPgpReadError::ResourceLimit),
-        );
-        assert!(
-            parse_clear_signed_message_fresh(&clear_signed(64, 1, MAX_CLEAR_SIGNED_LINE_BYTES))
-                .is_ok(),
-        );
-        assert_eq!(
-            parse_clear_signed_message_fresh(
-                &clear_signed(64, 1, MAX_CLEAR_SIGNED_LINE_BYTES + 1,)
-            )
+            clear_verify_session_fresh(&clear_signed(
+                MIN_FRAMING_BYTES,
+                1,
+                MAX_CLEAR_SIGNED_LINE_BYTES + 1,
+            ))
             .err(),
             Some(OpenPgpReadError::ResourceLimit),
         );

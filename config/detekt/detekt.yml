@@ -11,6 +11,19 @@ complexity:
 
 naming:
   FunctionNaming:
+    excludes: &testSourceSets
+      - '**/test/**'
+      - '**/androidTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/jvmCommonTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
+      - '**/macosArm64Test/**'
+      - '**/desktopTest/**'
+      - '**/*E2eTest/**'
     # Composable functions are PascalCase by Compose convention.
     ignoreAnnotated:
       - 'Composable'
@@ -29,6 +42,20 @@ style:
     excludes:
       - '**/credentialexchange/impl/CxfImportServiceImpl.kt'
   MagicNumber:
+    excludes:
+      - '**/test/**'
+      - '**/androidTest/**'
+      - '**/androidUnitTest/**'
+      - '**/androidInstrumentedTest/**'
+      - '**/commonTest/**'
+      - '**/jvmTest/**'
+      - '**/jvmCommonTest/**'
+      - '**/jsTest/**'
+      - '**/iosTest/**'
+      - '**/macosArm64Test/**'
+      - '**/desktopTest/**'
+      - '**/*E2eTest/**'
+      - '**/*.kts'
     ignoreAnnotation: true
   UnusedPrivateFunction:
     ignoreAnnotated:

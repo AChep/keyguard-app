@@ -1,0 +1,56 @@
+import kotlin.Boolean;
+
+CREATE TABLE gpgAgentKeyInfo (
+  accountId TEXT NOT NULL,
+  cipherId TEXT NOT NULL,
+  keygrip TEXT NOT NULL,
+  fingerprint TEXT NOT NULL,
+  algorithm TEXT NOT NULL,
+  canSign INTEGER AS Boolean NOT NULL,
+  canDecrypt INTEGER AS Boolean NOT NULL,
+  PRIMARY KEY (accountId, cipherId, keygrip),
+  FOREIGN KEY (accountId, cipherId)
+    REFERENCES gpgPublicKey(accountId, cipherId)
+    ON DELETE CASCADE
+);
+
+insert:
+INSERT OR REPLACE INTO gpgAgentKeyInfo(
+  accountId,
+  cipherId,
+  keygrip,
+  fingerprint,
+  algorithm,
+  canSign,
+  canDecrypt
+)
+VALUES (
+  :accountId,
+  :cipherId,
+  :keygrip,
+  :fingerprint,
+  :algorithm,
+  :canSign,
+  :canDecrypt
+);
+
+get:
+SELECT gpgAgentKeyInfo.*, gpgPublicKey.name
+FROM gpgAgentKeyInfo
+JOIN gpgPublicKey
+  ON gpgPublicKey.accountId = gpgAgentKeyInfo.accountId
+  AND gpgPublicKey.cipherId = gpgAgentKeyInfo.cipherId
+ORDER BY gpgAgentKeyInfo.fingerprint ASC, gpgAgentKeyInfo.keygrip ASC,
+  gpgAgentKeyInfo.accountId ASC, gpgAgentKeyInfo.cipherId ASC;
+
+getByKeygrip:
+SELECT gpgAgentKeyInfo.*, gpgPublicKey.name
+FROM gpgAgentKeyInfo
+JOIN gpgPublicKey
+  ON gpgPublicKey.accountId = gpgAgentKeyInfo.accountId
+  AND gpgPublicKey.cipherId = gpgAgentKeyInfo.cipherId
+WHERE gpgAgentKeyInfo.keygrip = :keygrip
+ORDER BY gpgAgentKeyInfo.accountId ASC, gpgAgentKeyInfo.cipherId ASC;
+
+deleteAll:
+DELETE FROM gpgAgentKeyInfo;

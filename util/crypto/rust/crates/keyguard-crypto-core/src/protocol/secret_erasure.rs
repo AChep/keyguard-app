@@ -536,6 +536,15 @@ impl Drop for OpenPgpDetachedSignStreamOpenRequest {
     }
 }
 
+impl Drop for OpenPgpClearSignStreamOpenRequest {
+    fn drop(&mut self) {
+        zeroize::Zeroize::zeroize(&mut self.private_key);
+        debug_assert!(self.private_key.iter().all(|byte| *byte == 0));
+        #[cfg(test)]
+        record_zeroized_secret_request_drop();
+    }
+}
+
 impl Drop for OpenPgpEncryptRequest {
     fn drop(&mut self) {
         zeroize::Zeroize::zeroize(&mut self.content);

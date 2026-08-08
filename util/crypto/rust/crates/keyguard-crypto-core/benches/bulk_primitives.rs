@@ -233,6 +233,7 @@ fn openpgp_encrypt_stream_request(public_key: &[u8]) -> Vec<u8> {
             armored: false,
             literal_time_epoch_seconds: Some(OPENPGP_REFERENCE_TIME - 1),
             reference_time_epoch_seconds: Some(OPENPGP_REFERENCE_TIME),
+            enable_compression: None,
         },
     ))
 }
@@ -243,6 +244,7 @@ fn openpgp_decrypt_stream_request(private_key: &[u8]) -> Vec<u8> {
             private_keys: vec![private_key.to_vec()],
             verification_public_keys: Vec::new(),
             reference_time_epoch_seconds: Some(OPENPGP_REFERENCE_TIME),
+            allow_signed_only: None,
         },
     ))
 }

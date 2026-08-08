@@ -16,11 +16,13 @@ import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
+import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalPrompt
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
-import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorJvm
+import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
 import com.artemchep.keyguard.common.service.sshagent.androidBridgeAuthorization
 import com.artemchep.keyguard.common.service.sshagent.buildAndroidSshAgentCallerIdentity
@@ -92,6 +94,7 @@ class SshAgentService : Service(), DIAware {
     private val getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy by instance()
     private val getSshAgentFilter: GetSshAgentFilter by instance()
     private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository by instance()
+    private val pendingUsageHistoryQueue: PendingUsageHistoryQueue by instance()
     private val approvalWindowMemory: SshAgentApprovalWindowMemory by instance()
 
     private val notificationIdPool = Notifications.sshAgent
@@ -129,7 +132,7 @@ class SshAgentService : Service(), DIAware {
         sessionId: String,
         notificationTag: String,
     ): SshAgentRequestProcessor =
-        SshAgentRequestProcessorJvm(
+        SshAgentRequestProcessorImpl(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
@@ -138,13 +141,12 @@ class SshAgentService : Service(), DIAware {
             scope = scope,
             approvalWindowMemory = approvalWindowMemory,
             sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
+            pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             sessionId = sessionId,
-            onApprovalRequest = { caller, keyName, keyFingerprint ->
+            onApprovalRequest = { prompt ->
                 requestSigningApproval(
                     requestFlow = requestFlow,
-                    caller = caller,
-                    keyName = keyName,
-                    keyFingerprint = keyFingerprint,
+                    prompt = prompt,
                     notificationTag = notificationTag,
                 )
             },
@@ -397,25 +399,21 @@ class SshAgentService : Service(), DIAware {
         return requestFlow.requestVaultUnlock(
             caller = caller,
             notificationTag = notificationTag,
-            timeout = SshAgentRequestProcessorJvm.APPROVAL_TIMEOUT_MS
+            timeout = SshAgentRequestProcessorImpl.APPROVAL_TIMEOUT_MS
                 .toDuration(DurationUnit.MILLISECONDS),
         )
     }
 
     private suspend fun requestSigningApproval(
         requestFlow: AndroidSshAgentRequestFlow,
-        caller: SshAgentMessages.CallerIdentity?,
-        keyName: String,
-        keyFingerprint: String,
+        prompt: SshAgentApprovalPrompt,
         notificationTag: String,
     ): Boolean {
         logRepository.post(TAG, "Waiting for user approval for SSH signing", LogLevel.INFO)
         return requestFlow.requestSigningApproval(
-            keyName = keyName,
-            keyFingerprint = keyFingerprint,
-            caller = caller,
+            prompt = prompt,
             notificationTag = notificationTag,
-            timeout = SshAgentRequestProcessorJvm.APPROVAL_TIMEOUT_MS
+            timeout = SshAgentRequestProcessorImpl.APPROVAL_TIMEOUT_MS
                 .toDuration(DurationUnit.MILLISECONDS),
         )
     }

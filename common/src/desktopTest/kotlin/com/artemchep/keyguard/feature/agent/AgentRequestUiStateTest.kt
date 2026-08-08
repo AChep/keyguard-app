@@ -40,6 +40,8 @@ class AgentRequestUiStateTest {
     ) = SshAgentApprovalRequest(
         keyName = keyName,
         keyFingerprint = "SHA256:test",
+        accountId = null,
+        cipherId = null,
         caller = null,
         expiresAt = Clock.System.now() + 60.seconds,
         deferred = CompletableDeferred(),

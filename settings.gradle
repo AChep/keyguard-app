@@ -18,7 +18,19 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://jitpack.io' }
+        // JitPack builds artifacts on demand from arbitrary GitHub repos, so an
+        // unscoped entry lets it answer for any coordinate in the build. Only
+        // these three groups are unavailable from Central and Google; keep the
+        // list exact so a compromised or typo-squatted repo cannot shadow a
+        // dependency that should come from a first-party repository.
+        maven {
+            url 'https://jitpack.io'
+            content {
+                includeGroup 'com.github.AChep'
+                includeGroup 'com.github.Kyant0'
+                includeGroup 'com.github.open-keychain.open-keychain'
+            }
+        }
         maven { url "https://maven.pkg.jetbrains.space/public/p/compose/dev" }
     }
 }
@@ -51,5 +63,6 @@ include ':integration:webdavE2eTest'
 include ':integration:gpgE2eTest'
 include ':integration:sshE2eTest'
 include ':integration:kdbxE2eTest'
+include ':integration:androidIpcTestClient'
 
 project(':integration:wearCredentialProviderApp').projectDir = file('integration/wearCredentialProviderApp')

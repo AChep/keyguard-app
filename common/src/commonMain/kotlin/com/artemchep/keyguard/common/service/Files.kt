@@ -13,4 +13,5 @@ enum class Files(
     BREACHES("breaches"),
     REVIEW("review"),
     NOTIFICATIONS("notifications"),
+    ANDROID_IPC("android_ipc"),
 }

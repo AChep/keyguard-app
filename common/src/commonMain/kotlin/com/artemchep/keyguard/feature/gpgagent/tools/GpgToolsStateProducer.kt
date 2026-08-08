@@ -3,12 +3,14 @@ package com.artemchep.keyguard.feature.gpgagent.tools
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpEncryptFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpEncryptTextRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpLiteralFileName
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPrivateKey
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadFileRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadFileResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignTextRequest
@@ -489,7 +491,9 @@ fun produceGpgToolsState(
                                         input = fileService.readFromFile(input.uri),
                                         output = fileService.writeToFile(output.uri),
                                         publicKeys = publicKeys,
-                                        fileName = input.name ?: "message",
+                                        fileName = GpgOpenPgpLiteralFileName.fromUntrusted(
+                                            input.name ?: "message",
+                                        ),
                                         armored = armored,
                                         signingPrivateKey = signingPrivateKey,
                                     ),
@@ -524,8 +528,8 @@ fun produceGpgToolsState(
                     saveAs(fileName = input.decryptedOutputName()) { output ->
                         launchOperation {
                             val result = withContext(Dispatchers.Default) {
-                                openPgpService.decryptFile(
-                                    GpgOpenPgpDecryptFileRequest(
+                                openPgpService.readFile(
+                                    GpgOpenPgpReadFileRequest(
                                         input = fileService.readFromFile(input.uri),
                                         output = fileService.writeToFile(output.uri),
                                         privateKeys = privateKeys,
@@ -533,8 +537,12 @@ fun produceGpgToolsState(
                                     ),
                                 )
                             }
+                            val verification = when (result) {
+                                is GpgOpenPgpReadFileResult.Message -> result.verification
+                                is GpgOpenPgpReadFileResult.ClearSigned -> result.verification
+                            }
                             showResultDialog(
-                                verification = result.verification?.let { toVerificationNote(it) },
+                                verification = verification?.let { toVerificationNote(it) },
                             )
                         }
                     }

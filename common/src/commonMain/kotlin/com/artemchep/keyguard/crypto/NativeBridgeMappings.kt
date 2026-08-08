@@ -22,3 +22,8 @@ internal fun NativeSshKeyType.toDomain(): KeyPair.Type = when (this) {
     NativeSshKeyType.RSA -> KeyPair.Type.RSA
     NativeSshKeyType.ED25519 -> KeyPair.Type.ED25519
 }
+
+internal fun KeyPair.Type.toNative(): NativeSshKeyType = when (this) {
+    KeyPair.Type.RSA -> NativeSshKeyType.RSA
+    KeyPair.Type.ED25519 -> NativeSshKeyType.ED25519
+}

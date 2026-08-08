@@ -156,6 +156,21 @@ internal fun collectNativeStreamToExpectedSize(
     return result
 }
 
+/**
+ * Walks this buffer in transport-sized chunks, invoking [block] with the
+ * offset and length of each. The buffer itself is never copied.
+ */
+internal inline fun ByteArray.forEachStreamChunk(
+    block: (offset: Int, length: Int) -> Unit,
+) {
+    var offset = 0
+    while (offset < size) {
+        val length = minOf(NATIVE_CRYPTO_STREAM_CHUNK_BYTES, size - offset)
+        block(offset, length)
+        offset += length
+    }
+}
+
 internal fun stageOutput(
     operation: String,
     output: ByteArray,

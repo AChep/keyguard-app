@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <queries>
+        <intent>
+            <action android:name="org.openintents.openpgp.IOpenPgpService2" />
+        </intent>
+        <intent>
+            <action android:name="org.openintents.ssh.authentication.ISshAuthenticationService" />
+        </intent>
+        <intent>
+            <action android:name="org.openintents.openpgp.IOpenPgpService" />
+        </intent>
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.IpcTestClient">
+        <activity
+            android:name=".ui.DriverActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <!--
+            Headless host for the provider's approval PendingIntent. Deliberately
+            not android:noHistory - that would finish this activity the moment the
+            approval dialog covers it, and the result would never come back.
+        -->
+        <activity
+            android:name=".IpcTestClientActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@style/Theme.IpcTestClient.Transparent" />
+    </application>
+</manifest>

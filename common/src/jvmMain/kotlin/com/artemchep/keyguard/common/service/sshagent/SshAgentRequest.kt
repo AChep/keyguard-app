@@ -35,6 +35,12 @@ sealed interface SshAgentRequest : AgentRequest {
 data class SshAgentApprovalRequest(
     val keyName: String,
     val keyFingerprint: String,
+    /**
+     * Identity of the vault entry holding the key, when known; lets
+     * the approval surface link the request to the entry.
+     */
+    val accountId: String?,
+    val cipherId: String?,
     override val caller: SshAgentMessages.CallerIdentity?,
     override val notificationTag: String? = null,
     override val expiresAt: Instant,

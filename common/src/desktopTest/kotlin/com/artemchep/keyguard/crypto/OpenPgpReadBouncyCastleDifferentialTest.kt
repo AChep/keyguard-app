@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.GpgKeyExpiry
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPrivateKey
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerification
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationStatus
@@ -23,7 +24,9 @@ import com.artemchep.keyguard.common.service.crypto.parseClearSignedMessage
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.util.io.toSource
 import kotlinx.datetime.TimeZone
+import kotlinx.io.Buffer
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.bcpg.BCPGInputStream
 import org.bouncycastle.bcpg.BCPGOutputStream
@@ -73,6 +76,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
     private val nativeParser = NativeGpgPublicKeyParser
     private val nativeMetadataResolver = NativeGpgKeyMetadataResolver
     private val nativeVerifier = NativeGpgOpenPgpVerifier
+    private val nativeService = NativeGpgOpenPgpService()
     private val bcSigner = BcGpgOpenPgpServiceTestOracle()
 
     @BeforeTest
@@ -573,11 +577,23 @@ class OpenPgpReadBouncyCastleDifferentialTest {
         context: String,
         request: GpgOpenPgpVerifyTextRequest,
     ) {
+        val expected = BouncyCastleVerificationOracle.verifyClearSignedText(request)
         assertEquals(
-            expected = BouncyCastleVerificationOracle.verifyClearSignedText(request),
+            expected = expected,
             actual = nativeVerifier.verifyClearSignedText(request),
             message = context,
         )
+        // The streaming session must agree with the independent BC oracle too.
+        val body = Buffer()
+        val streamed = nativeService.verifyClearSignedFile(
+            GpgOpenPgpReadFileRequest(
+                input = request.signedText.encodeToByteArray().toSource(),
+                output = body,
+                publicKeys = request.publicKeys,
+            ),
+        )
+        assertEquals(expected, streamed.verification, "$context (streamed)")
+        assertEquals(body.size, streamed.bodySize, "$context (streamed body size)")
     }
 
     private fun generator(creationTime: Instant): BcGpgKeyGeneratorTestOracle =

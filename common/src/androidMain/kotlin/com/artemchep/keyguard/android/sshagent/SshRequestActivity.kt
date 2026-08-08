@@ -6,39 +6,26 @@ import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.android.BaseActivity
+import com.artemchep.keyguard.android.ui.DialogActivityWindow
+import com.artemchep.keyguard.android.ui.dialogActivityContainerColor
+import com.artemchep.keyguard.android.ui.dialogActivityContentColor
 import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalRequest
@@ -55,7 +42,6 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.sshagent.SshAgentApprovalContent
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ssh_client_request
-import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlinx.coroutines.delay
 import kotlin.time.Clock
 
@@ -77,6 +63,11 @@ internal class SshRequestActivity : BaseActivity() {
             ?.getLongExtra(KEY_LAUNCH_ID, 0L)
             ?.takeIf { it > 0L }
     }
+
+    // Approving here lets an SSH client sign with a private key, so the
+    // screen must not be coverable by an overlay.
+    override val isConsentSurface: Boolean
+        get() = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -102,12 +93,12 @@ internal class SshRequestActivity : BaseActivity() {
     }
 
     @Composable
-    override fun activityContainerColor(): Color = Color.Transparent
+    override fun activityContainerColor(): Color = dialogActivityContainerColor()
 
     @Composable
     override fun activityContentColor(
         containerColor: Color,
-    ): Color = MaterialTheme.colorScheme.onSurface
+    ): Color = dialogActivityContentColor()
 
     override fun onDestroy() {
         if (isFinishing && !isChangingConfigurations) {
@@ -160,107 +151,28 @@ internal class SshRequestActivity : BaseActivity() {
             dismissCurrentRequestAndFinish()
         }
 
-        var dimColorTarget by remember {
-            val initialColor = Color.Black
-                .combineAlpha(0.0f)
-            mutableStateOf(initialColor)
-        }
-        var contentScaleTarget by remember {
-            val initialScale = 0.8f
-            mutableFloatStateOf(initialScale)
-        }
-        var contentAlphaTarget by remember {
-            val initialAlpha = 0.0f
-            mutableFloatStateOf(initialAlpha)
-        }
-        var contentTranslationYTarget by remember {
-            val initialY = 48.dp
-            mutableStateOf(initialY)
-        }
-        val dimColor by animateColorAsState(
-            targetValue = dimColorTarget,
-            animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-        )
-        val contentScale by animateFloatAsState(
-            targetValue = contentScaleTarget,
-            animationSpec = tween(durationMillis = 300),
-        )
-        val contentAlpha by animateFloatAsState(
-            targetValue = contentAlphaTarget,
-            animationSpec = tween(durationMillis = 180),
-        )
-        val contentTranslationY by animateDpAsState(
-            targetValue = contentTranslationYTarget,
-            animationSpec = tween(durationMillis = 300),
-        )
-
-        LaunchedEffect(Unit) {
-            dimColorTarget = Color.Black
-                .copy(alpha = 0.44f)
-            contentScaleTarget = 1f
-            contentAlphaTarget = 1f
-            contentTranslationYTarget = 0.dp
-        }
-
-        val dismissInteractionSource = remember { MutableInteractionSource() }
-        val contentInteractionSource = remember { MutableInteractionSource() }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(dimColor)
-                .clickable(
-                    interactionSource = dismissInteractionSource,
-                    indication = null,
-                ) {
-                    dismissCurrentRequestAndFinish()
-                },
-            contentAlignment = Alignment.Center,
+        DialogActivityWindow(
+            onDismiss = ::dismissCurrentRequestAndFinish,
         ) {
-            Surface(
-                modifier = Modifier
-                    .graphicsLayer {
-                        scaleX = contentScale
-                        scaleY = contentScale
-                        alpha = contentAlpha
-                        translationY = contentTranslationY.toPx()
-                    }
-                    .heightIn(max = 520.dp)
-                    .widthIn(max = 380.dp)
-                    .fillMaxWidth(0.9f)
-                    .fillMaxHeight(0.9f)
-                    .clickable(
-                        interactionSource = contentInteractionSource,
-                        indication = null,
-                    ) {},
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                shape = MaterialTheme.shapes.extraLarge,
-                tonalElevation = 0.dp,
-                shadowElevation = 8.dp,
+            val authScreen = AuthScreen(
+                reason = TextHolder.Res(Res.string.ssh_client_request),
+                style = AuthScreen.Style.DIALOG,
+            )
+            CompositionLocalProvider(
+                LocalAuthScreen provides authScreen,
             ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    val authScreen = AuthScreen(
-                        reason = TextHolder.Res(Res.string.ssh_client_request),
-                        style = AuthScreen.Style.DIALOG,
-                    )
-                    CompositionLocalProvider(
-                        LocalAuthScreen provides authScreen,
-                    ) {
-                        ActiveRequestContent(
-                            activeRequestState = activeRequestState,
-                            modifier = Modifier
-                                .fillMaxSize(),
-                        )
-                    }
-                    TimeoutIndicator(
-                        activeRequestState = activeRequestState,
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .fillMaxWidth(),
-                    )
-                }
+                ActiveRequestContent(
+                    activeRequestState = activeRequestState,
+                    modifier = Modifier
+                        .fillMaxSize(),
+                )
             }
+            TimeoutIndicator(
+                activeRequestState = activeRequestState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth(),
+            )
         }
     }
 

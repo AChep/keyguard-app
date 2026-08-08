@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.AddGpgUsageHistoryRequest
 import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheIdentity
@@ -13,24 +14,28 @@ import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.agent.flowBackedAgentApprovalCacheConfigProvider
 import com.artemchep.keyguard.common.service.agent.toApprovalCacheIdentity
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentApprovalPrompt
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentCrypto
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyNotFoundException
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeyRepository
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeyRepositoryEmpty
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeyRow
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyInfoRow
+import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
+import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepositoryEmpty
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor.GpgAgentOperationResult
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentUnsupportedAlgorithmException
 import com.artemchep.keyguard.common.service.gpgagent.hasPrivateKey
-import com.artemchep.keyguard.common.service.gpgagent.isUsableAgentKey
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgKeygrip
 import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
+import com.artemchep.keyguard.common.service.gpgagent.toGpgPublicKeyEntry
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistory
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
+import com.artemchep.keyguard.common.service.pendinghistory.enqueueEvent
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
@@ -58,16 +63,11 @@ class GpgAgentRequestProcessorImpl(
         GetGpgAgentApprovalCachePolicyNoOp,
     private val getGpgAgentFilter: GetGpgAgentFilter,
     scope: CoroutineScope,
-    private val gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository = GpgAgentPublicKeyRepositoryEmpty,
+    private val gpgPublicKeyRepository: GpgPublicKeyRepository = GpgPublicKeyRepositoryEmpty,
+    private val pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
     private val sessionId: String = "",
     private val json: Json = Json,
-    private val onApprovalRequest: suspend (
-        operation: GpgAgentOperation,
-        caller: GpgAgentMessages.CallerIdentity?,
-        keyName: String,
-        keyFingerprint: String,
-        keygrip: String,
-    ) -> Boolean = { _, _, _, _, _ -> true },
+    private val onApprovalRequest: suspend (GpgAgentApprovalPrompt) -> Boolean = { true },
 ) : GpgAgentRequestProcessor {
     companion object {
         private const val TAG = "GpgAgentRequestProcessor"
@@ -95,18 +95,37 @@ class GpgAgentRequestProcessorImpl(
     override suspend fun listKeys(
         caller: GpgAgentMessages.CallerIdentity?,
     ): GpgAgentRequestProcessor.ListKeysResult {
+        // The catalog and the vault intentionally keep one entry per
+        // (cipher, keygrip) pair, while KEYINFO lists each keygrip once —
+        // both listing paths collapse the cipher dimension here.
         val vault = getGpgKeysFromVault()
         if (vault == null) {
             val keys = getCachedGpgKeys()
                 .map { it.toGpgKeyMessage() }
+                .distinctBy { it.keygrip }
+            recordPendingGpgUsage(
+                cipherId = null,
+                caller = caller,
+                request = GpgUsageHistoryRequestType.AGENT_LIST_KEYS,
+                response = GpgUsageHistoryResponseType.SUCCESS,
+                fingerprint = null,
+                keygrip = null,
+                // gpg runs KEYINFO on most operations; while the vault
+                // stays locked all probes from the same program collapse
+                // into a single queued event so that they can not push
+                // rarer denial events past the queue cap.
+                coalescenceKey = "OPENPGP|AGENT_LIST_KEYS|${caller?.processName.orEmpty()}",
+            )
             return GpgAgentRequestProcessor.ListKeysResult.Success(
                 response = GpgAgentMessages.ListKeysResponse(keys = keys),
             )
         }
 
-        val keys = vault.gpgSecrets.flatMap { secret ->
-            secret.toGpgKeyMessages()
-        }
+        val keys = vault.gpgSecrets
+            .flatMap { secret ->
+                secret.toGpgKeyMessages()
+            }
+            .distinctBy { it.keygrip }
         recordGpgUsage(
             vault = vault,
             cipherId = null,
@@ -196,20 +215,40 @@ class GpgAgentRequestProcessorImpl(
         if (wasVaultLocked) {
             val cachedKey = getCachedGpgKey(normalizedKeygrip)
             val approved = requestApproval(
-                operation = operation,
-                keyName = cachedKey?.displayName ?: "GPG key",
-                keyFingerprint = cachedKey?.fingerprint.orEmpty(),
-                keygrip = normalizedKeygrip,
-                caller = caller,
+                GpgAgentApprovalPrompt(
+                    operation = operation,
+                    caller = caller,
+                    keyName = cachedKey?.displayName ?: "GPG key",
+                    keyFingerprint = cachedKey?.fingerprint.orEmpty(),
+                    keygrip = normalizedKeygrip,
+                    accountId = cachedKey?.accountId,
+                    cipherId = cachedKey?.cipherId,
+                ),
             )
             if (!approved) {
                 logRepository.post(TAG, "User denied the GPG $logNoun request while vault was locked", LogLevel.INFO)
+                recordPendingGpgUsage(
+                    cipherId = cachedKey?.cipherId,
+                    caller = caller,
+                    request = usageRequestType,
+                    response = GpgUsageHistoryResponseType.USER_DENIED,
+                    fingerprint = cachedKey?.fingerprint,
+                    keygrip = normalizedKeygrip,
+                )
                 return GpgAgentOperationResult.UserDenied
             }
             approvalGranted = true
 
             vault = getGpgKeysFromVault()
             if (vault == null) {
+                recordPendingGpgUsage(
+                    cipherId = cachedKey?.cipherId,
+                    caller = caller,
+                    request = usageRequestType,
+                    response = GpgUsageHistoryResponseType.VAULT_LOCKED,
+                    fingerprint = cachedKey?.fingerprint,
+                    keygrip = normalizedKeygrip,
+                )
                 return GpgAgentOperationResult.VaultLocked
             }
             approvalAccess = vault.approvalWindowSession.access(
@@ -251,13 +290,17 @@ class GpgAgentRequestProcessorImpl(
 
         if (!wasVaultLocked && !approvalRemembered) {
             val approved = requestApproval(
-                operation = operation,
-                keyName = match.secret.cipher.name,
-                keyFingerprint = match.metadataKey.fingerprint.ifBlank {
-                    match.secret.fingerprint.orEmpty()
-                },
-                keygrip = normalizedKeygrip,
-                caller = caller,
+                GpgAgentApprovalPrompt(
+                    operation = operation,
+                    caller = caller,
+                    keyName = match.secret.cipher.name,
+                    keyFingerprint = match.metadataKey.fingerprint.ifBlank {
+                        match.secret.fingerprint.orEmpty()
+                    },
+                    keygrip = normalizedKeygrip,
+                    accountId = match.secret.cipher.accountId,
+                    cipherId = match.secret.cipher.id,
+                ),
             )
             if (!approved) {
                 logRepository.post(TAG, "User denied the GPG $logNoun request", LogLevel.INFO)
@@ -291,8 +334,8 @@ class GpgAgentRequestProcessorImpl(
         }
     }
 
-    private suspend fun getCachedGpgKeys(): List<GpgAgentPublicKeyRow> = try {
-        gpgAgentPublicKeyRepository.get()
+    private suspend fun getCachedGpgKeys(): List<GpgAgentKeyInfoRow> = try {
+        gpgPublicKeyRepository.getKeyInfo()
             .bind()
     } catch (e: Exception) {
         e.throwIfFatalOrCancellation()
@@ -302,16 +345,20 @@ class GpgAgentRequestProcessorImpl(
 
     private suspend fun getCachedGpgKey(
         keygrip: String,
-    ): GpgAgentPublicKeyRow? = try {
-        gpgAgentPublicKeyRepository.getByKeygrip(keygrip)
+    ): GpgAgentKeyInfoRow? = try {
+        // The same component key may live in more than one cipher; for
+        // the approval display any of the matching rows works, so take
+        // the first one of the deterministically ordered result.
+        gpgPublicKeyRepository.getKeyInfoByKeygrip(keygrip)
             .bind()
+            .firstOrNull()
     } catch (e: Exception) {
         e.throwIfFatalOrCancellation()
         logRepository.post(TAG, "Failed to read cached GPG public key: ${e.message}", LogLevel.ERROR)
         null
     }
 
-    private fun GpgAgentPublicKeyRow.toGpgKeyMessage() = GpgAgentMessages.GpgKey(
+    private fun GpgAgentKeyInfoRow.toGpgKeyMessage() = GpgAgentMessages.GpgKey(
         name = displayName,
         keygrip = keygrip,
         fingerprint = fingerprint,
@@ -321,16 +368,16 @@ class GpgAgentRequestProcessorImpl(
     )
 
     private fun GpgAgentSecret.toGpgKeyMessages(): List<GpgAgentMessages.GpgKey> =
-        metadata.keys
-            .filter { it.isUsableAgentKey }
+        toGpgPublicKeyEntry(name = cipher.name)
+            .keyInfo
             .map { key ->
                 GpgAgentMessages.GpgKey(
                     name = cipher.name,
-                    keygrip = key.keygrip.normalizeGpgKeygrip(),
-                    fingerprint = key.fingerprint.ifBlank { fingerprint.orEmpty() },
+                    keygrip = key.keygrip,
+                    fingerprint = key.fingerprint,
                     algorithm = key.algorithm,
-                    canSign = hasPrivateKey && key.canSign,
-                    canDecrypt = hasPrivateKey && key.canDecrypt,
+                    canSign = key.canSign,
+                    canDecrypt = key.canDecrypt,
                 )
             }
 
@@ -346,25 +393,50 @@ class GpgAgentRequestProcessorImpl(
         val addGpgUsageHistory = key.di.direct.instanceOrNull<AddGpgUsageHistory>()
             ?: NoOpAddGpgUsageHistory
 
-        val gpgAgentFilter = gpgAgentFilterState.value.normalize()
-        if (!gpgAgentFilter.isActive) {
-            return GpgVaultContext(
-                gpgSecrets = gpgSecrets,
-                addGpgUsageHistory = addGpgUsageHistory,
-                approvalWindowSession = approvalWindowSession,
-            )
-        }
-
-        val ciphers = gpgSecrets.map { it.cipher }
-        val predicate = gpgAgentFilter.toDFilter().prepare(
-            directDI = key.di.direct,
-            ciphers = ciphers,
-        )
         return GpgVaultContext(
-            gpgSecrets = gpgSecrets.filter { predicate(it.cipher) },
+            gpgSecrets = gpgAgentFilterState.value.filterCiphers(
+                directDI = key.di.direct,
+                items = gpgSecrets,
+                cipherOf = { it.cipher },
+            ),
             addGpgUsageHistory = addGpgUsageHistory,
             approvalWindowSession = approvalWindowSession,
         )
+    }
+
+    /**
+     * Records an event that happened while the vault was locked: the
+     * usage-history tables are unreachable, so the event is sealed into
+     * the pending queue and flushed on the next unlock. A no-op when no
+     * queue is wired up (e.g. tests, embedded uses).
+     */
+    @Suppress("LongParameterList")
+    private suspend fun recordPendingGpgUsage(
+        cipherId: String?,
+        caller: GpgAgentMessages.CallerIdentity?,
+        request: GpgUsageHistoryRequestType,
+        response: GpgUsageHistoryResponseType,
+        fingerprint: String?,
+        keygrip: String?,
+        coalescenceKey: String? = null,
+    ) {
+        val queue = pendingUsageHistoryQueue ?: return
+        try {
+            queue.enqueueEvent(
+                protocol = PendingUsageHistory.Protocol.OPENPGP,
+                sessionId = sessionId,
+                caller = encodeCaller(caller),
+                requestType = request.name,
+                responseType = response.name,
+                cipherId = cipherId,
+                fingerprint = fingerprint,
+                keygrip = keygrip,
+                coalescenceKey = coalescenceKey,
+            ).bind()
+        } catch (e: Exception) {
+            e.throwIfFatalOrCancellation()
+            logRepository.post(TAG, "Failed to queue GPG usage history: ${e.message}", LogLevel.ERROR)
+        }
     }
 
     private suspend fun recordGpgUsage(
@@ -404,20 +476,10 @@ class GpgAgentRequestProcessorImpl(
     }
 
     private suspend fun requestApproval(
-        operation: GpgAgentOperation,
-        keyName: String,
-        keyFingerprint: String,
-        keygrip: String,
-        caller: GpgAgentMessages.CallerIdentity?,
+        prompt: GpgAgentApprovalPrompt,
     ): Boolean = try {
         withTimeoutOrNull(APPROVAL_TIMEOUT_MS) {
-            onApprovalRequest(
-                operation,
-                caller,
-                keyName,
-                keyFingerprint,
-                keygrip,
-            )
+            onApprovalRequest(prompt)
         } ?: false
     } catch (e: Exception) {
         if (e is CancellationException) throw e

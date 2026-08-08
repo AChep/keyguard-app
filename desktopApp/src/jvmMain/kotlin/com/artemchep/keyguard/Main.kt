@@ -52,13 +52,14 @@ import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowManage
 import com.artemchep.keyguard.common.service.session.VaultLockHotkeyService
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentManager
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeyRepository
+import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
 import com.artemchep.keyguard.common.service.gpgagent.retryGpgAgentStartup
 import com.artemchep.keyguard.common.service.sshagent.retrySshAgentStartup
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
 import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
@@ -396,8 +397,9 @@ private fun runKeyguardApplication() {
     val getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow = appDi.direct.instance()
     val getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy = appDi.direct.instance()
     val getGpgAgentFilter: GetGpgAgentFilter = appDi.direct.instance()
-    val gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository = appDi.direct.instance()
+    val gpgPublicKeyRepository: GpgPublicKeyRepository = appDi.direct.instance()
     val gpgAgentStatusService: GpgAgentStatusService = appDi.direct.instance()
+    val pendingUsageHistoryQueue: PendingUsageHistoryQueue = appDi.direct.instance()
     val dataDirectory: DataDirectory = appDi.direct.instance()
 
     val translatorScope by lazy {
@@ -481,6 +483,7 @@ private fun runKeyguardApplication() {
                     getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
                     getSshAgentFilter = getSshAgentFilter,
                     sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
+                    pendingUsageHistoryQueue = pendingUsageHistoryQueue,
                 )
             }
             val showMessage by rememberInstance<ShowMessage>()
@@ -568,7 +571,8 @@ private fun runKeyguardApplication() {
                     getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
                     getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
                     getGpgAgentFilter = getGpgAgentFilter,
-                    gpgAgentPublicKeyRepository = gpgAgentPublicKeyRepository,
+                    gpgPublicKeyRepository = gpgPublicKeyRepository,
+                    pendingUsageHistoryQueue = pendingUsageHistoryQueue,
                 )
             }
             val getGpgAgentState = remember { getGpgAgent() }

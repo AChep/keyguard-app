@@ -1,8 +1,8 @@
 package com.artemchep.keyguard.copy
 
 import android.content.pm.PackageManager
-import android.os.Build
 import androidx.collection.LruCache
+import com.artemchep.keyguard.android.util.getAndroidPackageSigningCertificates
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.LinkInfoAndroid
@@ -10,8 +10,8 @@ import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.util.normalizeSha256FingerprintOrNull
 import com.artemchep.keyguard.common.util.toHex
+import com.artemchep.keyguard.util.foundation.crypto.sha256
 import com.google.accompanist.drawablepainter.DrawablePainter
-import java.security.MessageDigest
 import kotlin.reflect.KClass
 
 class LinkInfoExtractorAndroid(
@@ -75,59 +75,23 @@ class LinkInfoExtractorAndroid(
         )
     }
 
-    @Suppress("DEPRECATION")
     private fun obtainSigningCertificates(
         packageName: String,
-    ): LinkInfoAndroid.SigningCertificates? = runCatching {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val packageInfo = packageManager.getPackageInfo(
-                packageName,
-                PackageManager.GET_SIGNING_CERTIFICATES,
-            )
-            val signingInfo = requireNotNull(packageInfo.signingInfo)
-            val hasMultipleSigners = signingInfo.hasMultipleSigners()
-            val current = signingInfo.apkContentsSigners
-                .orEmpty()
-                .mapTo(mutableSetOf()) { signature ->
-                    signature.toByteArray().sha256Fingerprint()
-                }
-            val history = if (hasMultipleSigners) {
-                emptySet()
-            } else {
-                signingInfo.signingCertificateHistory
-                    .orEmpty()
-                    .mapTo(mutableSetOf()) { signature ->
-                        signature.toByteArray().sha256Fingerprint()
-                    }
-            }
+    ): LinkInfoAndroid.SigningCertificates? = packageManager
+        .getAndroidPackageSigningCertificates(packageName)
+        ?.let { certificates ->
             LinkInfoAndroid.SigningCertificates(
-                current = current,
-                history = history,
-                hasMultipleSigners = hasMultipleSigners,
-            )
-        } else {
-            val packageInfo = packageManager.getPackageInfo(
-                packageName,
-                PackageManager.GET_SIGNATURES,
-            )
-            val current = packageInfo.signatures
-                .orEmpty()
-                .mapTo(mutableSetOf()) { signature ->
-                    signature.toByteArray().sha256Fingerprint()
-                }
-            LinkInfoAndroid.SigningCertificates(
-                current = current,
-                history = current,
-                hasMultipleSigners = current.size > 1,
+                current = certificates.current
+                    .mapTo(mutableSetOf()) { it.sha256Fingerprint() },
+                history = certificates.history
+                    .mapTo(mutableSetOf()) { it.sha256Fingerprint() },
+                hasMultipleSigners = certificates.hasMultipleSigners,
             )
         }
-    }.getOrNull()
 
     private fun ByteArray.sha256Fingerprint(): String =
         checkNotNull(
-            MessageDigest
-                .getInstance("SHA-256")
-                .digest(this)
+            sha256(this)
                 .toHex()
                 .normalizeSha256FingerprintOrNull(),
         )

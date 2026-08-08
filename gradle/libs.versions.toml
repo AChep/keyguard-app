@@ -157,6 +157,9 @@ mlkitBarcodeScanning = "18.3.1"
 # https://square.github.io/okhttp/changelogs/changelog/
 okHttp = "5.4.0"
 okio = "3.17.0"
+# https://github.com/open-keychain/openpgp-api
+# v5.7.1
+openKeychainApi = "43b85e12ea6c3e269b8dcafb21f1d04b7b61af72"
 # https://mvnrepository.com/artifact/com.google.android.play/review-ktx
 playReviewKtx = "2.0.2"
 # https://developers.google.com/android/guides/setup
@@ -236,6 +239,8 @@ androidx-wear-compose-navigation = { module = "androidx.wear.compose:compose-nav
 androidx-wear-remote-interactions = { module = "androidx.wear:wear-remote-interactions", version.ref = "androidxWearRemoteInteractions" }
 androidx-work-runtime = { module = "androidx.work:work-runtime", version.ref = "androidxWork" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "androidxWork" }
+openkeychain-openpgp-api = { module = "com.github.open-keychain.open-keychain:openpgp-api", version.ref = "openKeychainApi" }
+openkeychain-sshauthentication-api = { module = "com.github.open-keychain.open-keychain:sshauthentication-api", version.ref = "openKeychainApi" }
 androidx-arch-core-testing = { module = "androidx.arch.core:core-testing", version.ref = "coreTestingVersion" }
 androidx-test-core = { module = "androidx.test:core", version.ref = "androidxTestCore" }
 androidx-test-core-ktx = { module = "androidx.test:core-ktx", version.ref = "androidxTestCore" }

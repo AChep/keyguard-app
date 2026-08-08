@@ -1,6 +1,6 @@
 ---
 title: SSH agent setup
-description: Use SSH keys stored in your vault to authenticate — socket paths, named pipes, SSH_AUTH_SOCK, and the Android helper.
+description: Use SSH keys stored in your vault from desktop tools, Termux, and Android apps.
 category: guides
 order: 6
 ---
@@ -55,8 +55,10 @@ and **RSA** keys are supported.
 
 ## Android
 
-On Android the agent ships as a dedicated **helper package** for
-[Termux](https://termux.dev/):
+### Termux
+
+For OpenSSH in [Termux](https://termux.dev/), the agent uses a dedicated
+**helper package**:
 
 1. Enable the **SSH agent** in Keyguard's settings.
 2. Install Termux, then install the Keyguard SSH agent helper package from
@@ -65,8 +67,26 @@ On Android the agent ships as a dedicated **helper package** for
    exchange encrypted messages over a local channel, and Keyguard shows the
    approval dialog.
 
+### Other apps
 
-## Approval scopes
+Android apps that support the OpenKeychain/OpenIntents SSH Authentication API
+can use Keyguard directly. This path does not need Termux, the helper package,
+or a local SSH agent socket.
+
+1. Enable **SSH agent** in Keyguard's SSH settings. The provider is visible to
+   Android apps only while this switch is enabled.
+2. Choose **Keyguard** as the SSH authentication or key provider in the other
+   app. The exact name of this setting depends on the app.
+3. Approve the first registration request. Keyguard may then ask you to choose
+   an eligible key, unlock the vault, or authenticate for a signing request.
+4. Review or revoke registered apps from **Connected apps** in either the SSH
+   or GPG settings.
+
+## Agent approval scopes
+
+These approval-window and scope settings govern the standard desktop agent and
+the Termux helper. Direct Android SSH Authentication API registrations and
+request approvals do not reuse these scopes.
 
 The approval window controls **how long** an approval is remembered. The
 approval scope controls **which verified callers** may reuse it during that
@@ -84,13 +104,14 @@ the connection and process scopes usually ask again even in the same terminal
 tab or pane.
 
 The terminal columns describe Linux and macOS when native identity evidence is
-available. On Android, **Per process** falls back to the current connection,
-while **Application, isolated by terminal session** falls back to the verified
-application because Android does not provide a terminal-session identity here.
-On Windows, every option currently behaves like **Per connection**.
+available. With the Termux helper on Android, **Per process** falls back to the
+current connection, while **Application, isolated by terminal session** falls
+back to the verified application because Android does not provide a
+terminal-session identity here. On Windows, every option currently behaves
+like **Per connection**.
 
 ## Reviewing activity
 
-Keyguard keeps a history of agent requests, so you can review which
-applications asked for signatures and whether each request succeeded, was
-denied, or referenced an unknown key.
+Keyguard keeps a history of agent and direct API requests, so you can review
+which applications asked for signatures and whether each request succeeded,
+was denied, or referenced an unknown key.

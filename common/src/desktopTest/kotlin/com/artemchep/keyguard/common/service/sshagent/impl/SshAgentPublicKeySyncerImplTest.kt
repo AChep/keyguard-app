@@ -107,6 +107,9 @@ class SshAgentPublicKeySyncerImplTest {
             assertEquals(includedPublicKey, key.publicKey)
             assertEquals("ssh-ed25519", key.keyType)
             assertEquals("SHA256:included", key.fingerprint)
+            assertEquals("account", key.accountId)
+            assertEquals("include", key.cipherId)
+            assertEquals(true, key.canSign)
         } finally {
             job.cancel()
         }
@@ -117,10 +120,13 @@ class SshAgentPublicKeySyncerImplTest {
         val repository = RecordingSshAgentPublicKeyRepository(
             initialKeys = listOf(
                 SshAgentPublicKeyRow(
+                    accountId = "account",
+                    cipherId = "cached",
                     publicKeyBlobSha256 = "existing",
                     publicKey = "ssh-ed25519 cached",
                     keyType = "ssh-ed25519",
                     fingerprint = "SHA256:cached",
+                    canSign = true,
                     name = "Cached",
                 ),
             ),
@@ -214,14 +220,14 @@ class SshAgentPublicKeySyncerImplTest {
 
         override fun getByPublicKeyBlobSha256(
             publicKeyBlobSha256: String,
-        ): IO<SshAgentPublicKeyRow?> = {
-            keys.firstOrNull { it.publicKeyBlobSha256 == publicKeyBlobSha256 }
+        ): IO<List<SshAgentPublicKeyRow>> = {
+            keys.filter { it.publicKeyBlobSha256 == publicKeyBlobSha256 }
         }
 
         override fun getByPublicKey(
             publicKey: String,
-        ): IO<SshAgentPublicKeyRow?> = {
-            keys.firstOrNull { it.publicKey == publicKey }
+        ): IO<List<SshAgentPublicKeyRow>> = {
+            keys.filter { it.publicKey == publicKey }
         }
 
         override fun replaceAll(

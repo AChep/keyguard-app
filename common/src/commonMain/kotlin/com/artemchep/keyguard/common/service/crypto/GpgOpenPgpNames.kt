@@ -21,13 +21,25 @@ internal fun gpgAlgorithmName(
 internal fun extractGpgUserIdEmail(
     userId: String,
 ): String? {
-    val start = userId.indexOf('<')
-    val end = userId.indexOf('>', startIndex = start + 1)
-    if (start in 0..<end) {
-        return userId.substring(start + 1, end)
+    val bracketed = GPG_EMAIL_IN_BRACKETS
+        .find(userId)
+        ?.groupValues
+        ?.getOrNull(1)
+    if (bracketed != null) {
+        return bracketed
             .trim()
             .takeIf { it.isNotEmpty() }
     }
     // Some user-ids are a bare e-mail without angle brackets.
     return userId.trim().takeIf { it.contains('@') && !it.contains(' ') }
 }
+
+internal fun normalizeGpgUserIdEmail(
+    userId: String,
+): String? = extractGpgUserIdEmail(userId)
+    ?.trim()
+    ?.lowercase()
+    ?.takeIf(GPG_EMAIL::matches)
+
+private val GPG_EMAIL_IN_BRACKETS = Regex("<([^<>]+)>")
+private val GPG_EMAIL = Regex("[^\\s@<>]+@[^\\s@<>]+")

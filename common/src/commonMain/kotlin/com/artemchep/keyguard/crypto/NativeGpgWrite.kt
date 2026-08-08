@@ -8,20 +8,20 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportService
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptFileRequest
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptFileResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextResult
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpClearSignFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpEncryptFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpEncryptTextRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpExportPublicKeyRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpLiteralMetadata
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPrivateKey
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadFileRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadFileResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignTextRequest
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerification
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyDetachedTextRequest
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyFileRequest
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyTextRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
@@ -41,6 +41,8 @@ import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyMaterial
 import com.artemchep.keyguard.util.io.consumeWithErasedBuffer
 import kotlinx.datetime.TimeZone
 import kotlinx.io.Sink
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import org.kodein.di.DirectDI
 import org.kodein.di.instance
 import kotlin.time.Clock
@@ -225,7 +227,9 @@ object NativeGpgKeyImportService : GpgKeyImportService {
 class NativeGpgOpenPgpService internal constructor(
     private val stagingSpoolFactory: StagingSpoolFactory =
         DefaultStagingSpoolFactory(),
-) : GpgOpenPgpService {
+    verifier: GpgOpenPgpVerifier = NativeGpgOpenPgpVerifier,
+) : GpgOpenPgpService,
+    GpgOpenPgpVerifier by verifier {
     constructor(
         directDI: DirectDI,
     ) : this(
@@ -265,14 +269,6 @@ class NativeGpgOpenPgpService internal constructor(
             content.fill(0)
         }
     }
-
-    override fun verifyClearSignedText(
-        request: GpgOpenPgpVerifyTextRequest,
-    ): GpgOpenPgpVerification = NativeGpgOpenPgpVerifier.verifyClearSignedText(request)
-
-    override fun verifyDetachedText(
-        request: GpgOpenPgpVerifyDetachedTextRequest,
-    ): GpgOpenPgpVerification = NativeGpgOpenPgpVerifier.verifyDetachedText(request)
 
     override fun encryptText(
         request: GpgOpenPgpEncryptTextRequest,
@@ -317,11 +313,32 @@ class NativeGpgOpenPgpService internal constructor(
                     GpgOpenPgpDecryptTextResult(
                         text = result.data.decodeAndErase(),
                         verification = result.verification?.toDomain(),
+                        decryptionKeyFingerprint = result.decryptionKeyFingerprint,
                     )
                 } finally {
                     content.fill(0)
                 }
             }
+        }
+    }
+
+    override fun exportPublicKey(
+        request: GpgOpenPgpExportPublicKeyRequest,
+    ) {
+        requireSinglePublicKeyArmor(request.publicKey.armored)
+        val parsed = NativeGpgPublicKeyParser.parse(request.publicKey.armored)
+        val publicKey = (parsed as? GpgPublicKeyParseResult.Success)
+            ?.keys
+            ?.singleOrNull()
+            ?: throw IllegalArgumentException("Expected exactly one valid OpenPGP public key.")
+        request.output.use { output ->
+            val data = if (request.armored) {
+                publicKey.publicKeyArmored.encodeToByteArray()
+            } else {
+                decodeCanonicalPublicKeyArmor(publicKey.publicKeyArmored)
+            }
+            writeAndErase(output, data)
+            output.flush()
         }
     }
 
@@ -350,9 +367,61 @@ class NativeGpgOpenPgpService internal constructor(
         }
     }
 
-    override fun verifyFile(
-        request: GpgOpenPgpVerifyFileRequest,
-    ): GpgOpenPgpVerification = NativeGpgOpenPgpVerifier.verifyFile(request)
+    override fun clearSignFile(
+        request: GpgOpenPgpClearSignFileRequest,
+    ) {
+        request.input.use { input ->
+            request.output.use { output ->
+                request.privateKey.withEncoded { privateKey, preferredFingerprint ->
+                    translateNativeOpenPgpWriteError {
+                        NativeCrypto.openPgp.openClearSigning(
+                            privateKey = privateKey,
+                            preferredFingerprint = preferredFingerprint,
+                        ).use { session ->
+                            input.consumeWithErasedBuffer { data, length ->
+                                writeAndErase(output, session.update(data, length = length))
+                            }
+                            writeAndErase(output, session.finish())
+                            output.flush()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override fun verifyClearSignedFile(
+        request: GpgOpenPgpReadFileRequest,
+    ): GpgOpenPgpReadFileResult.ClearSigned = request.output.use { output ->
+        // The recovered body is staged and only released to the caller's
+        // sink after the trailing signature has been checked.
+        withStagedOpenPgpPlaintext(
+            output = output,
+            stagingSpoolFactory = stagingSpoolFactory,
+        ) { stagedOutput ->
+            request.input.use { input ->
+                request.publicKeys.withEncodedPublicKeys { publicKeys ->
+                    NativeCrypto.openPgp.openClearVerification(
+                        publicKeys = publicKeys,
+                    ).use { session ->
+                        var bodySize = 0L
+                        input.consumeWithErasedBuffer { data, length ->
+                            val body = session.update(data, length = length)
+                            bodySize += body.size
+                            writeAndErase(stagedOutput, body)
+                        }
+                        val result = session.finish()
+                        stagedOutput.flush()
+                        GpgOpenPgpReadFileResult.ClearSigned(
+                            verification = result.verification.toDomain(),
+                            bodyValidUtf8 = result.bodyValidUtf8,
+                            bodySize = bodySize,
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     override fun encryptFile(
         request: GpgOpenPgpEncryptFileRequest,
@@ -368,8 +437,9 @@ class NativeGpgOpenPgpService internal constructor(
                                 publicKeys = publicKeys,
                                 signingPrivateKey = signingPrivateKey,
                                 preferredSigningFingerprint = preferredFingerprint,
-                                fileName = request.fileName.ifBlank { CONSOLE_FILE_NAME },
+                                fileName = request.fileName.value,
                                 armored = request.armored,
+                                enableCompression = request.enableCompression,
                             ).use { session ->
                                 input.consumeWithErasedBuffer { data, length ->
                                     writeAndErase(output, session.update(data, length = length))
@@ -386,9 +456,11 @@ class NativeGpgOpenPgpService internal constructor(
     }
 
     override fun decryptFile(
-        request: GpgOpenPgpDecryptFileRequest,
-    ): GpgOpenPgpDecryptFileResult {
-        check(request.privateKeys.isNotEmpty()) { "At least one OpenPGP private key is required." }
+        request: GpgOpenPgpReadFileRequest,
+    ): GpgOpenPgpReadFileResult.Message {
+        check(request.allowSignedOnly || request.privateKeys.isNotEmpty()) {
+            "At least one OpenPGP private key is required."
+        }
         return request.output.use { output ->
             withStagedOpenPgpPlaintext(
                 output = output,
@@ -401,6 +473,7 @@ class NativeGpgOpenPgpService internal constructor(
                                 NativeCrypto.openPgp.openDecryption(
                                     privateKeys = privateKeys,
                                     verificationPublicKeys = publicKeys,
+                                    allowSignedOnly = request.allowSignedOnly,
                                 ).use { session ->
                                     input.consumeWithErasedBuffer { data, length ->
                                         writeAndErase(stagedOutput, session.update(data, length = length))
@@ -408,8 +481,21 @@ class NativeGpgOpenPgpService internal constructor(
                                     val final = session.finish()
                                     writeAndErase(stagedOutput, final.data)
                                     stagedOutput.flush()
-                                    GpgOpenPgpDecryptFileResult(
+                                    GpgOpenPgpReadFileResult.Message(
                                         verification = final.verification?.toDomain(),
+                                        metadata = final.metadata?.let { metadata ->
+                                            GpgOpenPgpLiteralMetadata(
+                                                fileName = metadata.fileName,
+                                                format = metadata.format,
+                                                modificationTimeEpochSeconds =
+                                                    metadata.modificationTimeEpochSeconds,
+                                                originalSize = metadata.originalSize,
+                                            )
+                                        },
+                                        encrypted = final.encrypted,
+                                        declaredCharset = final.declaredCharset,
+                                        decryptionKeyFingerprint =
+                                            final.decryptionKeyFingerprint,
                                     )
                                 }
                             }
@@ -418,6 +504,16 @@ class NativeGpgOpenPgpService internal constructor(
                 }
             }
         }
+    }
+}
+
+private fun requireSinglePublicKeyArmor(armored: String) {
+    val lines = armored.lineSequence().map(String::trim).toList()
+    require(lines.count { it == PUBLIC_KEY_ARMOR_BEGIN } == 1) {
+        "Expected exactly one OpenPGP public-key armor header."
+    }
+    require(lines.count { it == PUBLIC_KEY_ARMOR_END } == 1) {
+        "Expected exactly one OpenPGP public-key armor footer."
     }
 }
 
@@ -486,6 +582,34 @@ private fun ByteArray.decodeAndErase(): String = try {
     fill(0)
 }
 
+@OptIn(ExperimentalEncodingApi::class)
+private fun decodeCanonicalPublicKeyArmor(
+    armored: String,
+): ByteArray {
+    val lines = armored.lineSequence().toList()
+    require(lines.firstOrNull() == PUBLIC_KEY_ARMOR_BEGIN) {
+        "Native public-key parser returned an invalid armor header."
+    }
+    require(lines.lastOrNull { it.isNotEmpty() } == PUBLIC_KEY_ARMOR_END) {
+        "Native public-key parser returned an invalid armor footer."
+    }
+
+    val separatorIndex = lines.indexOfFirst(String::isEmpty)
+    require(separatorIndex > 0) {
+        "Native public-key parser returned armor without a header separator."
+    }
+    val payload = lines
+        .asSequence()
+        .drop(separatorIndex + 1)
+        .takeWhile { line -> line != PUBLIC_KEY_ARMOR_END }
+        .filterNot { line -> line.startsWith('=') }
+        .joinToString(separator = "")
+    require(payload.isNotEmpty()) {
+        "Native public-key parser returned empty public-key armor."
+    }
+    return Base64.Default.decode(payload)
+}
+
 internal inline fun <T> translateNativeOpenPgpWriteError(
     noUsableKeyMeansLegacyFailure: Boolean = false,
     block: () -> T,
@@ -550,3 +674,5 @@ private fun MutableList<GpgAgentKeyMetadataKey>.addMetadataKey(
 }
 
 private const val CONSOLE_FILE_NAME = "_CONSOLE"
+private const val PUBLIC_KEY_ARMOR_BEGIN = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
+private const val PUBLIC_KEY_ARMOR_END = "-----END PGP PUBLIC KEY BLOCK-----"

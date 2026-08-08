@@ -18,6 +18,7 @@ import com.artemchep.keyguard.android.util.broadcastFlow
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.UnlockUseCase
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
+import com.artemchep.keyguard.common.util.UniqueKeyBuilder
 import com.artemchep.keyguard.feature.apppicker.model.AppPickerSortItem
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.favicon.AppIconUrl
@@ -304,18 +305,11 @@ fun produceAppPickerState(
     }
 
     fun List<AppInfo>.toItems(): List<AppPickerState.Item> {
-        val packageNameCollisions = mutableMapOf<String, Int>()
+        val keyBuilder = UniqueKeyBuilder()
         return this
             .map { appInfo ->
-                val key = kotlin.run {
-                    val newPackageNameCollisionCounter = packageNameCollisions
-                        .getOrDefault(appInfo.packageName, 0) + 1
-                    packageNameCollisions[appInfo.packageName] =
-                        newPackageNameCollisionCounter
-                    appInfo.packageName + ":" + newPackageNameCollisionCounter
-                }
                 AppPickerState.Item(
-                    key = key,
+                    key = keyBuilder.build(appInfo.packageName),
                     icon = AppIconUrl(
                         packageName = appInfo.packageName,
                     ),

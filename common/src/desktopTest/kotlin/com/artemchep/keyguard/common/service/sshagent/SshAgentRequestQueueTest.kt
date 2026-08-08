@@ -358,6 +358,8 @@ class SshAgentRequestQueueTest {
     ) = SshAgentApprovalRequest(
         keyName = keyName,
         keyFingerprint = "SHA256:test",
+        accountId = null,
+        cipherId = null,
         caller = null,
         notificationTag = notificationTag,
         expiresAt = Clock.System.now() + timeout,

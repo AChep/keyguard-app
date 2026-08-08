@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.service.agent.AgentManager
 import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -32,6 +33,7 @@ class SshAgentManager(
     private val getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy,
     private val getSshAgentFilter: GetSshAgentFilter,
     private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository,
+    private val pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
 ) : AgentManager(
     logRepository = logRepository,
     cryptoGenerator = cryptoGenerator,
@@ -100,16 +102,19 @@ class SshAgentManager(
             getSshAgentApprovalCachePolicy = getSshAgentApprovalCachePolicy,
             getSshAgentFilter = getSshAgentFilter,
             sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
+            pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             authToken = authToken,
             scope = scope,
             expectedPeerProcess = expectedPeerProcess,
             sessionId = sessionId,
-            onApprovalRequest = { caller, keyName, keyFingerprint ->
+            onApprovalRequest = { prompt ->
                 val deferred = CompletableDeferred<Boolean>()
                 val request = SshAgentApprovalRequest(
-                    keyName = keyName,
-                    keyFingerprint = keyFingerprint,
-                    caller = caller,
+                    keyName = prompt.keyName,
+                    keyFingerprint = prompt.keyFingerprint,
+                    accountId = prompt.accountId,
+                    cipherId = prompt.cipherId,
+                    caller = prompt.caller,
                     notificationTag = null,
                     expiresAt = Clock.System.now() + SshAgentIpcServer.APPROVAL_TIMEOUT_MS.milliseconds,
                     deferred = deferred,

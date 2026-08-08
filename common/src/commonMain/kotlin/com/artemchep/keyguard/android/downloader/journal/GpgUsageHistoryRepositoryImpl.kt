@@ -75,6 +75,7 @@ class GpgUsageHistoryRepositoryImpl(
                 fingerprint = model.fingerprint,
                 keygrip = model.keygrip,
                 createdAt = model.instant,
+                eventId = model.eventId,
             )
             Unit
         }
@@ -104,4 +105,5 @@ private fun GpgUsageHistory.toDomain(): DGpgUsageHistory = DGpgUsageHistory(
     fingerprint = fingerprint,
     keygrip = keygrip,
     instant = createdAt,
+    eventId = eventId,
 )

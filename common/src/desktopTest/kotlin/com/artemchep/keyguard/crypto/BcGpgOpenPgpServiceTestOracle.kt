@@ -2,23 +2,23 @@ package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.util.io.toInputStream
 import com.artemchep.keyguard.util.io.toOutputStream
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptFileResult
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpClearSignFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpEncryptFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpEncryptTextRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpExportPublicKeyRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPrivateKey
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadFileRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpReadFileResult
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpService
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignFileRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpSignTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerification
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationStatus
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerificationWarning
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyFileRequest
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyDetachedTextRequest
-import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifyTextRequest
+import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.crypto.splitClearTextLines
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import org.bouncycastle.bcpg.ArmoredOutputStream
@@ -61,7 +61,9 @@ import java.util.Date
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService {
+@Suppress("LargeClass", "TooManyFunctions")
+class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService,
+    GpgOpenPgpVerifier by NativeGpgOpenPgpVerifier {
     constructor(
         directDI: DirectDI,
     ) : this()
@@ -116,6 +118,26 @@ class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService {
         return out.toString(Charsets.UTF_8)
     }
 
+    override fun exportPublicKey(
+        request: GpgOpenPgpExportPublicKeyRequest,
+    ) {
+        val rings = parseGpgPublicKeyRingCollection(request.publicKey.armored)
+            .keyRings
+            .asSequence()
+            .toList()
+        require(rings.size == 1) { "Expected exactly one valid OpenPGP public key." }
+        request.output.use { output ->
+            val destination = if (request.armored) {
+                ArmoredOutputStream(output.toOutputStream())
+            } else {
+                output.toOutputStream()
+            }
+            destination.use { stream ->
+                rings.single().encode(stream)
+            }
+        }
+    }
+
     override fun signTextDetached(
         request: GpgOpenPgpSignTextRequest,
     ): String {
@@ -139,14 +161,6 @@ class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService {
         }
         return out.toString(Charsets.UTF_8)
     }
-
-    override fun verifyClearSignedText(
-        request: GpgOpenPgpVerifyTextRequest,
-    ): GpgOpenPgpVerification = NativeGpgOpenPgpVerifier.verifyClearSignedText(request)
-
-    override fun verifyDetachedText(
-        request: GpgOpenPgpVerifyDetachedTextRequest,
-    ): GpgOpenPgpVerification = NativeGpgOpenPgpVerifier.verifyDetachedText(request)
 
     override fun encryptText(
         request: GpgOpenPgpEncryptTextRequest,
@@ -213,9 +227,27 @@ class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService {
         }
     }
 
-    override fun verifyFile(
-        request: GpgOpenPgpVerifyFileRequest,
-    ): GpgOpenPgpVerification = NativeGpgOpenPgpVerifier.verifyFile(request)
+    override fun clearSignFile(
+        request: GpgOpenPgpClearSignFileRequest,
+    ) {
+        val text = request.input
+            .toInputStream()
+            .use { it.readBytes().decodeToString(throwOnInvalidSequence = true) }
+        val signed = clearSignText(
+            GpgOpenPgpSignTextRequest(
+                text = text,
+                privateKey = request.privateKey,
+            ),
+        ).encodeToByteArray()
+        request.output.toOutputStream().use {
+            it.write(signed)
+        }
+    }
+
+    override fun verifyClearSignedFile(
+        request: GpgOpenPgpReadFileRequest,
+    ): GpgOpenPgpReadFileResult.ClearSigned =
+        NativeGpgOpenPgpService().verifyClearSignedFile(request)
 
     override fun encryptFile(
         request: GpgOpenPgpEncryptFileRequest,
@@ -224,15 +256,15 @@ class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService {
             input = request.input.toInputStream(),
             output = request.output.toOutputStream(),
             publicKeys = request.publicKeys,
-            fileName = request.fileName.ifBlank { PGPLiteralData.CONSOLE },
+            fileName = request.fileName.value,
             armored = request.armored,
             signingPrivateKey = request.signingPrivateKey,
         )
     }
 
     override fun decryptFile(
-        request: GpgOpenPgpDecryptFileRequest,
-    ): GpgOpenPgpDecryptFileResult {
+        request: GpgOpenPgpReadFileRequest,
+    ): GpgOpenPgpReadFileResult.Message {
         val verification = request.output.toOutputStream().use { output ->
             decrypt(
                 input = request.input.toInputStream(),
@@ -241,7 +273,7 @@ class BcGpgOpenPgpServiceTestOracle() : GpgOpenPgpService {
                 publicKeys = request.publicKeys,
             )
         }
-        return GpgOpenPgpDecryptFileResult(
+        return GpgOpenPgpReadFileResult.Message(
             verification = verification,
         )
     }

@@ -13,4 +13,5 @@ data class DGpgUsageHistory(
     val fingerprint: String?,
     val keygrip: String?,
     val instant: Instant = Clock.System.now(),
+    val eventId: String? = null,
 )

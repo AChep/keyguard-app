@@ -14,7 +14,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
-import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorJvm
+import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
@@ -162,7 +162,7 @@ class SshAgentSharedApprovalMemoryTest {
         var approvalPromptCount = 0
             private set
 
-        fun createProcessor() = SshAgentRequestProcessorJvm(
+        fun createProcessor() = SshAgentRequestProcessorImpl(
             logRepository = NoOpLogRepository,
             getVaultSession = vaultSession,
             getSshAgentApprovalWindow = approvalWindow,
@@ -170,7 +170,7 @@ class SshAgentSharedApprovalMemoryTest {
             getSshAgentFilter = sshAgentFilter,
             scope = scope,
             approvalWindowMemory = sharedApprovalMemory,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount += 1
                 true
             },

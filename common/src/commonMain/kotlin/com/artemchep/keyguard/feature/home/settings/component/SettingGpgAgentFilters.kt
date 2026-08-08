@@ -41,6 +41,7 @@ fun settingGpgAgentFiltersProvider(
     val active = filter.normalize().isActive
     SettingIi(
         platformClasses = listOf(
+            Platform.Mobile.Android::class,
             Platform.Desktop.Linux::class,
             Platform.Desktop.MacOS::class,
             Platform.Desktop.Windows::class,

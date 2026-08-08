@@ -40,6 +40,22 @@ class SshAgentHistoryMapperTest {
     }
 
     @Test
+    fun `build caller info shows Android app label and package`() {
+        val caller = SshAgentMessages.CallerIdentity(
+            pid = 123,
+            uid = 456,
+            appName = "Example Client",
+            appBundlePath = "com.example.client",
+        )
+        val encoded = Json.encodeToString(caller)
+
+        val info = buildSshUsageHistoryCallerInfo(encoded, Json)
+
+        assertEquals("Example Client", info?.primaryLabel)
+        assertEquals("com.example.client", info?.secondaryLabel)
+    }
+
+    @Test
     fun `build caller info returns null for malformed json`() {
         val info = buildSshUsageHistoryCallerInfo("{not-json", Json)
 

@@ -22,6 +22,8 @@ import com.artemchep.keyguard.common.model.Product
 import com.artemchep.keyguard.common.model.RichResult
 import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.service.Files
+import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
+import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationServiceNone
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.autofill.AutofillServiceStatus
 import com.artemchep.keyguard.common.service.backup.BackupLocalObjectStoreFactoryTag
@@ -303,6 +305,9 @@ fun diFingerprintRepositoryModule() = DI.Module(
 
     bindProvider<LeContext> {
         LeContext()
+    }
+    bindSingleton<AndroidIpcRegistrationService> {
+        AndroidIpcRegistrationServiceNone
     }
     bindSingleton<BackupObjectStoreFactory>(tag = BackupLocalObjectStoreFactoryTag) {
         LocalFolderBackupObjectStoreFactory()

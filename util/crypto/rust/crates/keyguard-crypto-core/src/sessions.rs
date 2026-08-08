@@ -70,7 +70,9 @@ enum Session {
     AesCbcHmacSha256Encrypt(Box<AesCbcHmacSha256EncryptSession>),
     AesCbcHmacSha256Decrypt(Box<AesCbcHmacSha256DecryptSession>),
     OpenPgpDetachedVerify(Box<crate::openpgp_read::DetachedVerificationSession>),
+    OpenPgpClearVerify(Box<crate::openpgp_read::ClearVerificationSession>),
     OpenPgpDetachedSign(Box<crate::openpgp_write::DetachedSigningSession>),
+    OpenPgpClearSign(Box<crate::openpgp_write::ClearSigningSession>),
     OpenPgpEncrypt(Box<crate::openpgp_write::OpenPgpEncryptionSession>),
     OpenPgpDecrypt(Box<crate::openpgp_write::OpenPgpDecryptionSession>),
 }
@@ -177,12 +179,28 @@ pub(crate) fn open_openpgp_detached_verify(
     insert(Session::OpenPgpDetachedVerify(Box::new(session)))
 }
 
+pub(crate) fn open_openpgp_clear_verify(
+    request: crate::protocol::OpenPgpClearVerifyStreamOpenRequest,
+) -> Result<u64, SessionError> {
+    let session =
+        crate::openpgp_read::ClearVerificationSession::open(request).map_err(openpgp_read_error)?;
+    insert(Session::OpenPgpClearVerify(Box::new(session)))
+}
+
 pub(crate) fn open_openpgp_detached_sign(
     request: crate::protocol::OpenPgpDetachedSignStreamOpenRequest,
 ) -> Result<u64, SessionError> {
     let session =
         crate::openpgp_write::DetachedSigningSession::open(request).map_err(openpgp_write_error)?;
     insert(Session::OpenPgpDetachedSign(Box::new(session)))
+}
+
+pub(crate) fn open_openpgp_clear_sign(
+    request: crate::protocol::OpenPgpClearSignStreamOpenRequest,
+) -> Result<u64, SessionError> {
+    let session =
+        crate::openpgp_write::ClearSigningSession::open(request).map_err(openpgp_write_error)?;
+    insert(Session::OpenPgpClearSign(Box::new(session)))
 }
 
 pub(crate) fn open_openpgp_encrypt(
@@ -264,10 +282,12 @@ impl Session {
                 session.update(data).map_err(openpgp_read_error)?;
                 Ok(Vec::new())
             }
+            Self::OpenPgpClearVerify(session) => session.update(data).map_err(openpgp_read_error),
             Self::OpenPgpDetachedSign(session) => {
                 session.update(data).map_err(openpgp_write_error)?;
                 Ok(Vec::new())
             }
+            Self::OpenPgpClearSign(session) => session.update(data).map_err(openpgp_write_error),
             Self::OpenPgpEncrypt(session) => session.update(data).map_err(openpgp_write_error),
             Self::OpenPgpDecrypt(session) => session.update(data).map_err(openpgp_write_error),
         }
@@ -295,7 +315,13 @@ impl Session {
             Self::OpenPgpDetachedVerify(session) => {
                 return (*session).finish().map_err(openpgp_read_error);
             }
+            Self::OpenPgpClearVerify(session) => {
+                return (*session).finish().map_err(openpgp_read_error);
+            }
             Self::OpenPgpDetachedSign(session) => {
+                return (*session).finish().map_err(openpgp_write_error);
+            }
+            Self::OpenPgpClearSign(session) => {
                 return (*session).finish().map_err(openpgp_write_error);
             }
             Self::OpenPgpEncrypt(session) => {

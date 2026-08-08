@@ -92,11 +92,7 @@ class SshAgentRequestProcessingTest {
         approvalCachePolicyFlow: Flow<AgentApprovalCachePolicy> =
             flowOf(AgentApprovalCachePolicy.Default),
         sessionId: String = "test-session",
-        onApprovalRequest: suspend (
-            caller: SshAgentMessages.CallerIdentity?,
-            keyName: String,
-            keyFingerprint: String,
-        ) -> Boolean = { _, _, _ -> true },
+        onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
         sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
         onGetListRequest: suspend (caller: SshAgentMessages.CallerIdentity?) -> Boolean = { _ -> false },
     ) = SshAgentIpcServer(
@@ -325,6 +321,9 @@ class SshAgentRequestProcessingTest {
             sshAgentPublicKeyRepository = FakeSshAgentPublicKeyRepository(
                 listOf(
                     SshAgentPublicKeyRow(
+                        accountId = "account",
+                        cipherId = "cipher",
+                        canSign = true,
                         publicKeyBlobSha256 = "cached-hash",
                         publicKey = publicKey,
                         keyType = "ssh-ed25519",
@@ -403,6 +402,9 @@ class SshAgentRequestProcessingTest {
             sshAgentPublicKeyRepository = FakeSshAgentPublicKeyRepository(
                 listOf(
                     SshAgentPublicKeyRow(
+                        accountId = "account",
+                        cipherId = "cipher",
+                        canSign = true,
                         publicKeyBlobSha256 = "cached-hash",
                         publicKey = cachedPublicKey,
                         keyType = "ssh-ed25519",
@@ -548,7 +550,7 @@ class SshAgentRequestProcessingTest {
         var approvalPromptCount = 0
         var unlockPromptCount = 0
         val server = createServer(
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 false
             },
@@ -578,7 +580,7 @@ class SshAgentRequestProcessingTest {
         var approvalPromptCount = 0
         var unlockPromptCount = 0
         val server = createServer(
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 true
             },
@@ -609,6 +611,9 @@ class SshAgentRequestProcessingTest {
             sshAgentPublicKeyRepository = FakeSshAgentPublicKeyRepository(
                 listOf(
                     SshAgentPublicKeyRow(
+                        accountId = "account",
+                        cipherId = "cipher",
+                        canSign = true,
                         publicKeyBlobSha256 = "cached-hash",
                         publicKey = publicKey,
                         keyType = "ssh-ed25519",
@@ -617,10 +622,10 @@ class SshAgentRequestProcessingTest {
                     ),
                 ),
             ),
-            onApprovalRequest = { _, keyName, keyFingerprint ->
+            onApprovalRequest = { prompt ->
                 approvalPromptCount++
-                approvalKeyName = keyName
-                approvalKeyFingerprint = keyFingerprint
+                approvalKeyName = prompt.keyName
+                approvalKeyFingerprint = prompt.keyFingerprint
                 true
             },
         )
@@ -650,6 +655,9 @@ class SshAgentRequestProcessingTest {
             sshAgentPublicKeyRepository = FakeSshAgentPublicKeyRepository(
                 listOf(
                     SshAgentPublicKeyRow(
+                        accountId = "account",
+                        cipherId = "cipher",
+                        canSign = true,
                         publicKeyBlobSha256 = "cached-hash",
                         publicKey = publicKey,
                         keyType = "ssh-ed25519",
@@ -658,8 +666,8 @@ class SshAgentRequestProcessingTest {
                     ),
                 ),
             ),
-            onApprovalRequest = { _, keyName, _ ->
-                approvalKeyName = keyName
+            onApprovalRequest = { prompt ->
+                approvalKeyName = prompt.keyName
                 true
             },
         )
@@ -695,7 +703,7 @@ class SshAgentRequestProcessingTest {
         )
         val server = createServer(
             vaultSession = unlockedSession,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 false
             },
@@ -736,7 +744,7 @@ class SshAgentRequestProcessingTest {
         )
         val server = createServer(
             vaultSession = unlockedSession,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 true
             },
@@ -772,7 +780,7 @@ class SshAgentRequestProcessingTest {
         val vaultSession = MutableVaultSession()
         val server = createServer(
             vaultSession = vaultSession,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 if (approvalPromptCount == 1) {
                     vaultSession.valueOrNull = unlockedSession
@@ -812,7 +820,7 @@ class SshAgentRequestProcessingTest {
                     ),
                 ),
             ),
-            onApprovalRequest = { _, _, _ -> false },
+            onApprovalRequest = { false },
         )
 
         val response = server.handleSignData(
@@ -850,7 +858,7 @@ class SshAgentRequestProcessingTest {
                 ),
             ),
             sessionId = "session-missing-key",
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 true
             },
@@ -928,7 +936,7 @@ class SshAgentRequestProcessingTest {
                     ),
                 ),
             ),
-            onApprovalRequest = { _, _, _ -> true },
+            onApprovalRequest = { true },
         )
 
         val response = server.handleSignData(
@@ -963,7 +971,7 @@ class SshAgentRequestProcessingTest {
                     ),
                 ),
             ),
-            onApprovalRequest = { _, _, _ -> true },
+            onApprovalRequest = { true },
         )
 
         val response = server.handleSignData(
@@ -1000,7 +1008,7 @@ class SshAgentRequestProcessingTest {
                 ),
             ),
             sessionId = "session-sign",
-            onApprovalRequest = { _, _, _ -> true },
+            onApprovalRequest = { true },
         )
 
         val response = server.handleSignData(
@@ -1039,7 +1047,7 @@ class SshAgentRequestProcessingTest {
                 ),
             ),
             approvalWindow = 5.minutes,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 true
             },
@@ -1076,7 +1084,7 @@ class SshAgentRequestProcessingTest {
                 ),
             ),
             approvalWindow = 5.minutes,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 true
             },
@@ -1113,7 +1121,7 @@ class SshAgentRequestProcessingTest {
                 ),
             ),
             approvalWindow = 5.minutes,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 true
             },
@@ -1156,7 +1164,7 @@ class SshAgentRequestProcessingTest {
                 ),
             ),
             approvalWindowFlow = approvalWindow,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 true
             },
@@ -1196,7 +1204,7 @@ class SshAgentRequestProcessingTest {
                 ),
             ),
             approvalWindowFlow = approvalWindow,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 true
             },
@@ -1236,7 +1244,7 @@ class SshAgentRequestProcessingTest {
             ),
             approvalWindow = 5.minutes,
             approvalCachePolicyFlow = approvalCachePolicy,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 true
             },
@@ -1279,7 +1287,7 @@ class SshAgentRequestProcessingTest {
             ),
             approvalWindow = 5.minutes,
             approvalCachePolicyFlow = approvalCachePolicy,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 if (approvalPromptCount == 1) {
                     approvalStarted.complete(Unit)
@@ -1330,7 +1338,7 @@ class SshAgentRequestProcessingTest {
         val server = createServer(
             vaultSession = vaultSession,
             approvalWindow = 5.minutes,
-            onApprovalRequest = { _, _, _ ->
+            onApprovalRequest = {
                 approvalPromptCount++
                 true
             },
@@ -1426,15 +1434,15 @@ class SshAgentRequestProcessingTest {
 
         override fun getByPublicKeyBlobSha256(
             publicKeyBlobSha256: String,
-        ): IO<SshAgentPublicKeyRow?> = {
-            keys.firstOrNull { it.publicKeyBlobSha256 == publicKeyBlobSha256 }
+        ): IO<List<SshAgentPublicKeyRow>> = {
+            keys.filter { it.publicKeyBlobSha256 == publicKeyBlobSha256 }
         }
 
         override fun getByPublicKey(
             publicKey: String,
-        ): IO<SshAgentPublicKeyRow?> = {
-            keys.firstOrNull { key ->
-                SshAgentRequestProcessorJvm.publicKeysMatch(key.publicKey, publicKey)
+        ): IO<List<SshAgentPublicKeyRow>> = {
+            keys.filter { key ->
+                sshPublicKeysMatch(key.publicKey, publicKey)
             }
         }
 

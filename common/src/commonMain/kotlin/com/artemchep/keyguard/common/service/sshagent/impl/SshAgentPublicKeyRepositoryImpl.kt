@@ -38,20 +38,20 @@ class SshAgentPublicKeyRepositoryImpl(
 
     override fun getByPublicKeyBlobSha256(
         publicKeyBlobSha256: String,
-    ): IO<SshAgentPublicKeyRow?> = daoEffect {
+    ): IO<List<SshAgentPublicKeyRow>> = daoEffect {
         it.getByPublicKeyBlobSha256(publicKeyBlobSha256)
-            .executeAsOneOrNull()
-            ?.let(::parseEntity)
+            .executeAsList()
+            .map(::parseEntity)
     }
 
     override fun getByPublicKey(
         publicKey: String,
-    ): IO<SshAgentPublicKeyRow?> = ioEffect(dispatcher) {
+    ): IO<List<SshAgentPublicKeyRow>> = ioEffect(dispatcher) {
         val material = parseSshAgentPublicKeyMaterial(
             publicKey = publicKey,
             cryptoGenerator = cryptoGenerator,
             base64Service = base64Service,
-        ) ?: return@ioEffect null
+        ) ?: return@ioEffect emptyList()
         getByPublicKeyBlobSha256(material.publicKeyBlobSha256)
             .bind()
     }
@@ -62,18 +62,16 @@ class SshAgentPublicKeyRepositoryImpl(
         db.sshAgentPublicKeyQueries.transaction {
             db.sshAgentPublicKeyQueries.deleteAll()
             keys
-                .distinctBy { it.publicKeyBlobSha256 }
-                .sortedWith(
-                    compareBy<SshAgentPublicKeyRow> { it.keyType }
-                        .thenBy { it.fingerprint }
-                        .thenBy { it.publicKeyBlobSha256 },
-                )
+                .distinctBy { it.accountId to it.cipherId }
                 .forEach { key ->
                     db.sshAgentPublicKeyQueries.insert(
-                        publicKeyBlobSha256 = key.publicKeyBlobSha256,
+                        accountId = key.accountId,
+                        cipherId = key.cipherId,
                         publicKey = key.publicKey,
+                        publicKeyBlobSha256 = key.publicKeyBlobSha256,
                         keyType = key.keyType,
                         fingerprint = key.fingerprint,
+                        canSign = key.canSign,
                         name = key.name,
                     )
                 }
@@ -102,10 +100,13 @@ class SshAgentPublicKeyRepositoryImpl(
     private fun parseEntity(
         entity: SshAgentPublicKey,
     ) = SshAgentPublicKeyRow(
+        accountId = entity.accountId,
+        cipherId = entity.cipherId,
         publicKeyBlobSha256 = entity.publicKeyBlobSha256,
         publicKey = entity.publicKey,
         keyType = entity.keyType,
         fingerprint = entity.fingerprint,
+        canSign = entity.canSign,
         name = entity.name,
     )
 }

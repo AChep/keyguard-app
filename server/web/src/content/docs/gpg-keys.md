@@ -126,12 +126,15 @@ signature is **valid**, **invalid**, or **missing the public key**, and adds
 warnings when the signing key is **revoked** or **expired**, or when the
 **signature itself has expired**.
 
-## Operations with the GPG agent
+## Using GPG keys from other tools
 
 On desktop Linux, macOS, and Windows, Keyguard can act as a drop-in
 **gpg-agent** so that a local `gpg` (for example, when signing Git commits) uses
-keys from your vault. See the [GPG agent setup](/docs/gpg-agent/) guide for
-configuration.
+keys from your vault. On Android, compatible apps can use Keyguard as an
+OpenKeychain-compatible OpenPGP provider for signing, verification, encryption,
+decryption, and public-key access. In both cases the private key stays inside
+Keyguard. See the [GPG agent setup](/docs/gpg-agent/) guide for both connection
+paths.
 
 ## Keyservers
 
@@ -161,7 +164,7 @@ schedule you set.
 
 ## Related
 
-- [GPG agent setup](/docs/gpg-agent/) — serve vault keys to a local `gpg`, and sign Git commits.
+- [GPG agent setup](/docs/gpg-agent/) — use vault keys from desktop `gpg` or compatible Android apps.
 - [Generator](/docs/generator/) — create new GPG keys.
 - [Watchtower](/docs/watchtower/) — audit keys for weaknesses.
 - [Item types & extras](/docs/item-extras/) — other item conventions.

@@ -94,6 +94,10 @@ pub const CAPABILITY_RANDOM_FAST_PATH: u64 = 1 << 23;
 pub const CAPABILITY_PASSKEYS: u64 = 1 << 24;
 /// Validated RSA/Ed25519 PKCS#8 export for Credential Exchange Format.
 pub const CAPABILITY_SSH_CXF_EXPORT: u64 = 1 << 25;
+/// OpenSSH public-key decoding into validated SubjectPublicKeyInfo DER.
+pub const CAPABILITY_SSH_PUBLIC_KEY_DECODE: u64 = 1 << 26;
+/// Streaming cleartext OpenPGP signature verification and body recovery.
+pub const CAPABILITY_OPENPGP_CLEAR_VERIFY: u64 = 1 << 27;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -120,7 +124,9 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_AES_CBC_HMAC_SHA256_STREAMING
     | CAPABILITY_RANDOM_FAST_PATH
     | CAPABILITY_PASSKEYS
-    | CAPABILITY_SSH_CXF_EXPORT;
+    | CAPABILITY_SSH_CXF_EXPORT
+    | CAPABILITY_SSH_PUBLIC_KEY_DECODE
+    | CAPABILITY_OPENPGP_CLEAR_VERIFY;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -263,6 +269,12 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
                 operation_name,
                 sessions::open_openpgp_detached_sign(request),
             )
+        }
+        native_stream_open_request::Operation::OpenPgpClearSign(request) => {
+            stream_open_response(operation_name, sessions::open_openpgp_clear_sign(request))
+        }
+        native_stream_open_request::Operation::OpenPgpClearVerify(request) => {
+            stream_open_response(operation_name, sessions::open_openpgp_clear_verify(request))
         }
         native_stream_open_request::Operation::OpenPgpEncrypt(request) => {
             stream_open_response(operation_name, sessions::open_openpgp_encrypt(request))
@@ -505,6 +517,9 @@ fn execute_one_shot(
             std::mem::take(&mut request.private_key_pem),
             std::mem::take(&mut request.public_key_openssh),
         )?,
+        native_request::Operation::SshPublicKeyDecode(mut request) => {
+            ssh_keys::public_key_decode(std::mem::take(&mut request.public_key_openssh))?
+        }
         native_request::Operation::PasskeyKeyGenerate(request) => {
             passkeys::generate(request.algorithm)?
         }
@@ -588,6 +603,7 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::SshAgentSign(_) => "ssh_agent_sign",
         native_request::Operation::SshPrivateKeyImport(_) => "ssh_private_key_import",
         native_request::Operation::SshKeyExportCxf(_) => "ssh_key_export_cxf",
+        native_request::Operation::SshPublicKeyDecode(_) => "ssh_public_key_decode",
         native_request::Operation::PasskeyKeyGenerate(_) => "passkey_key_generate",
         native_request::Operation::PasskeyKeyInspect(_) => "passkey_key_inspect",
         native_request::Operation::PasskeySign(_) => "passkey_sign",
@@ -619,6 +635,12 @@ fn stream_open_operation_name(operation: &native_stream_open_request::Operation)
         }
         native_stream_open_request::Operation::OpenPgpDetachedSign(_) => {
             "open_pgp_detached_sign.stream_open"
+        }
+        native_stream_open_request::Operation::OpenPgpClearSign(_) => {
+            "open_pgp_clear_sign.stream_open"
+        }
+        native_stream_open_request::Operation::OpenPgpClearVerify(_) => {
+            "open_pgp_clear_verify.stream_open"
         }
         native_stream_open_request::Operation::OpenPgpEncrypt(_) => "open_pgp_encrypt.stream_open",
         native_stream_open_request::Operation::OpenPgpDecrypt(_) => "open_pgp_decrypt.stream_open",
@@ -1119,13 +1141,15 @@ mod tests {
     #[test]
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
-        assert_eq!(CAPABILITIES, 0x3ffffff);
+        assert_eq!(CAPABILITIES, 0x0fffffff);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256, 1 << 20);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH, 1 << 21);
         assert_eq!(CAPABILITY_RANDOM_FAST_PATH, 1 << 23);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_STREAMING, 1 << 22);
         assert_eq!(CAPABILITY_PASSKEYS, 1 << 24);
         assert_eq!(CAPABILITY_SSH_CXF_EXPORT, 1 << 25);
+        assert_eq!(CAPABILITY_SSH_PUBLIC_KEY_DECODE, 1 << 26);
+        assert_eq!(CAPABILITY_OPENPGP_CLEAR_VERIFY, 1 << 27);
     }
 
     #[test]

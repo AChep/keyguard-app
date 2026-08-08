@@ -68,10 +68,13 @@ import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountSyncer
 import com.artemchep.keyguard.common.service.exposedaccount.impl.ExposedAccountSyncerImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeySyncerImpl
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeySyncer
-import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentPublicKeySyncerImpl
+import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgPublicKeySyncerImpl
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
 import com.artemchep.keyguard.common.service.gpgkeyserver.impl.GpgKeyserverRefreshWorkerImpl
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunnerImpl
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlusher
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepository
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepositoryImpl
 import com.artemchep.keyguard.common.service.urloverride.UrlOverrideRepository
@@ -635,8 +638,14 @@ fun DI.Builder.createSubDi2(
     bindSingleton<SshAgentPublicKeySyncer> {
         SshAgentPublicKeySyncerImpl(this)
     }
-    bindSingleton<GpgAgentPublicKeySyncer> {
-        GpgAgentPublicKeySyncerImpl(this)
+    bindSingleton<GpgPublicKeySyncer> {
+        GpgPublicKeySyncerImpl(this)
+    }
+    bindSingleton<PendingUsageHistoryFlusher> {
+        PendingUsageHistoryFlusher(this)
+    }
+    bindSingleton<PendingUsageHistoryFlushRunner> {
+        PendingUsageHistoryFlushRunnerImpl(this)
     }
     bindSingleton<UploadGpgPublicKey> {
         UploadGpgPublicKeyImpl(this)

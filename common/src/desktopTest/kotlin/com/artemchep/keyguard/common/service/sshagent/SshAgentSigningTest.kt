@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator
 import org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters
 import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters
@@ -21,6 +22,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /** Production-native SSH signing checked with independent JCA/BC test oracles. */
+@Suppress("FunctionNaming")
 class SshAgentSigningTest {
     @Test
     fun `native Ed25519 signing returns raw verifiable signature`() {
@@ -31,7 +33,7 @@ class SshAgentSigningTest {
         val publicKey = keyPair.public as Ed25519PublicKeyParameters
         val data = "verification test".encodeToByteArray()
 
-        val result = SshAgentRequestProcessorJvm.signWithPrivateKey(
+        val result = NativeCrypto.ssh.sign(
             privateKeyPem = toOpenSshPrivateKeyPem(privateKey),
             publicKeyOpenSsh = toOpenSshPublicKey(publicKey),
             data = data,
@@ -61,8 +63,9 @@ class SshAgentSigningTest {
         )
 
         cases.forEach { (flags, expectedAlgorithm, verifierAlgorithm) ->
-            val result = SshAgentRequestProcessorJvm.signWithPrivateKey(
+            val result = NativeCrypto.ssh.sign(
                 privateKeyPem = privateKeyPem,
+                publicKeyOpenSsh = null,
                 data = data,
                 flags = flags,
             )
@@ -84,7 +87,7 @@ class SshAgentSigningTest {
         )
         val data = "non-CRT RSA verification test".encodeToByteArray()
 
-        val result = SshAgentRequestProcessorJvm.signWithPrivateKey(
+        val result = NativeCrypto.ssh.sign(
             privateKeyPem = toPkcs8PrivateKeyPem(nonCrtPrivateKey),
             publicKeyOpenSsh = toOpenSshPublicKey(publicKey),
             data = data,
@@ -105,7 +108,7 @@ class SshAgentSigningTest {
         val firstEd = edGenerator.generateKeyPair()
         val secondEd = edGenerator.generateKeyPair()
         assertFailsWith<Exception> {
-            SshAgentRequestProcessorJvm.signWithPrivateKey(
+            NativeCrypto.ssh.sign(
                 privateKeyPem = toOpenSshPrivateKeyPem(firstEd.private as Ed25519PrivateKeyParameters),
                 publicKeyOpenSsh = toOpenSshPublicKey(secondEd.public as Ed25519PublicKeyParameters),
                 data = "mismatched Ed25519 identity".encodeToByteArray(),
@@ -116,7 +119,7 @@ class SshAgentSigningTest {
         val firstRsa = generateJcaRsaKeyPair()
         val secondRsa = generateJcaRsaKeyPair()
         assertFailsWith<Exception> {
-            SshAgentRequestProcessorJvm.signWithPrivateKey(
+            NativeCrypto.ssh.sign(
                 privateKeyPem = toPkcs8PrivateKeyPem(firstRsa.private),
                 publicKeyOpenSsh = toOpenSshPublicKey(secondRsa.public as RSAPublicKey),
                 data = "mismatched RSA identity".encodeToByteArray(),
@@ -128,8 +131,9 @@ class SshAgentSigningTest {
     @Test
     fun `native signing rejects invalid PEM`() {
         assertFailsWith<Exception> {
-            SshAgentRequestProcessorJvm.signWithPrivateKey(
+            NativeCrypto.ssh.sign(
                 privateKeyPem = "not a valid PEM key",
+                publicKeyOpenSsh = null,
                 data = "data".encodeToByteArray(),
                 flags = 0,
             )
@@ -137,27 +141,27 @@ class SshAgentSigningTest {
     }
 
     @Test
-    fun `extractKeyType preserves OpenSSH text behavior`() {
-        assertEquals("ssh-ed25519", SshAgentRequestProcessorJvm.extractKeyType("ssh-ed25519 AAAA... comment"))
-        assertEquals("ssh-rsa", SshAgentRequestProcessorJvm.extractKeyType("ssh-rsa AAAA... user@host"))
+    fun `extractSshKeyType preserves OpenSSH text behavior`() {
+        assertEquals("ssh-ed25519", extractSshKeyType("ssh-ed25519 AAAA... comment"))
+        assertEquals("ssh-rsa", extractSshKeyType("ssh-rsa AAAA... user@host"))
         assertEquals(
             "ecdsa-sha2-nistp256",
-            SshAgentRequestProcessorJvm.extractKeyType("ecdsa-sha2-nistp256 AAAA..."),
+            extractSshKeyType("ecdsa-sha2-nistp256 AAAA..."),
         )
-        assertEquals("ssh-ed25519", SshAgentRequestProcessorJvm.extractKeyType("ssh-ed25519\tAAAA... comment"))
-        assertEquals("", SshAgentRequestProcessorJvm.extractKeyType(""))
+        assertEquals("ssh-ed25519", extractSshKeyType("ssh-ed25519\tAAAA... comment"))
+        assertEquals("", extractSshKeyType(""))
     }
 
     @Test
-    fun `publicKeysMatch accepts tab-delimited OpenSSH public keys`() {
+    fun `sshPublicKeysMatch accepts tab-delimited OpenSSH public keys`() {
         val blob = byteArrayOf(1, 2, 3, 4, 5)
         val encodedBlob = Base64.getEncoder().encodeToString(blob)
         val tabDelimitedKey = "ssh-ed25519\t$encodedBlob comment"
         val spaceDelimitedKey = "ssh-ed25519 $encodedBlob comment"
 
-        assertTrue(SshAgentRequestProcessorJvm.publicKeysMatch(tabDelimitedKey, spaceDelimitedKey))
+        assertTrue(sshPublicKeysMatch(tabDelimitedKey, spaceDelimitedKey))
         assertFalse(
-            SshAgentRequestProcessorJvm.publicKeysMatch(
+            sshPublicKeysMatch(
                 tabDelimitedKey,
                 "ssh-ed25519 ${Base64.getEncoder().encodeToString(byteArrayOf(5, 4, 3, 2, 1))} comment",
             ),

@@ -12,15 +12,17 @@ CREATE TABLE gpgUsageHistory (
   fingerprint TEXT,
   keygrip TEXT,
   createdAt INTEGER AS Instant NOT NULL,
+  eventId TEXT,
   FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_gpgUsageHistory_createdAt ON gpgUsageHistory(createdAt DESC);
 CREATE INDEX idx_gpgUsageHistory_cipherId_createdAt ON gpgUsageHistory(cipherId, createdAt DESC);
+CREATE UNIQUE INDEX idx_gpgUsageHistory_eventId ON gpgUsageHistory(eventId);
 
 insert:
-INSERT INTO gpgUsageHistory(cipherId, sessionId, caller, request, response, fingerprint, keygrip, createdAt)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO gpgUsageHistory(cipherId, sessionId, caller, request, response, fingerprint, keygrip, createdAt, eventId)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getRecent:
 SELECT *

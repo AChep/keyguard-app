@@ -138,6 +138,93 @@ class NativeCryptoOpenPgpFixtureTest {
     }
 
     @Test
+    fun signedOnlyModeRejectsUnsignedLiteralPacket() {
+        val plaintext = "unsigned literal payload".encodeToByteArray()
+        val literalBody = byteArrayOf(
+            'b'.code.toByte(),
+            0, // Empty file name.
+            0, 0, 0, 0, // Modification time.
+        ) + plaintext
+        val packet = byteArrayOf(
+            0xcb.toByte(), // New-format literal-data packet tag.
+            literalBody.size.toByte(),
+        ) + literalBody
+
+        val failure = assertFailsWith<NativeCryptoException> {
+            NativeCrypto.openPgp.decrypt(
+                content = packet,
+                privateKeys = emptyList(),
+                allowSignedOnly = true,
+            )
+        }
+
+        assertEquals(NativeCryptoErrorCode.INVALID_ARGUMENT, failure.code)
+    }
+
+    @Test
+    fun clearVerificationStreamsAcrossArbitraryChunkBoundaries() {
+        val expectedBody = "OpenPGP clear text\n- dash-prefixed line\nfinal line"
+        for (chunkSize in listOf(1, 7, 31, 64 * 1024)) {
+            val session = NativeCrypto.openPgp.openClearVerification(
+                publicKeys = listOf(PUBLIC_KEY.encodeToByteArray()),
+                referenceTimeEpochSeconds = REFERENCE_TIME,
+            )
+            session.use {
+                val document = CLEAR_SIGNED.encodeToByteArray()
+                val body = StringBuilder()
+                var offset = 0
+                while (offset < document.size) {
+                    val length = minOf(chunkSize, document.size - offset)
+                    body.append(it.update(document, offset = offset, length = length).decodeToString())
+                    offset += length
+                }
+                val result = it.finish()
+                assertEquals(expectedBody, body.toString())
+                assertVerification(result.verification, createdAtEpochSeconds = 1_784_073_600L)
+                assertTrue(result.bodyValidUtf8)
+            }
+        }
+    }
+
+    @Test
+    fun streamedClearVerificationTamperIsRejectedAtFinishAndConsumesTheSession() {
+        val session = NativeCrypto.openPgp.openClearVerification(
+            publicKeys = listOf(PUBLIC_KEY.encodeToByteArray()),
+            referenceTimeEpochSeconds = REFERENCE_TIME,
+        )
+        session.use {
+            val tampered = CLEAR_SIGNED
+                .replace("OpenPGP clear text", "OpenPGP sneak text")
+                .encodeToByteArray()
+            it.update(tampered)
+            val result = it.finish()
+            assertEquals(NativeOpenPgpVerificationStatus.INVALID, result.verification.status)
+
+            val finishReuse = assertFailsWith<NativeCryptoException> { it.finish() }
+            assertEquals(NativeCryptoErrorCode.INVALID_SESSION, finishReuse.code)
+            val updateReuse = assertFailsWith<NativeCryptoException> { it.update(byteArrayOf(0)) }
+            assertEquals(NativeCryptoErrorCode.INVALID_SESSION, updateReuse.code)
+        }
+    }
+
+    @Test
+    fun closingAPartialClearVerificationSessionCancelsItAndIsIdempotent() {
+        val session = NativeCrypto.openPgp.openClearVerification(
+            publicKeys = listOf(PUBLIC_KEY.encodeToByteArray()),
+            referenceTimeEpochSeconds = REFERENCE_TIME,
+        )
+        session.update(CLEAR_SIGNED.encodeToByteArray(), length = 7)
+
+        session.close()
+        session.close()
+
+        val updateReuse = assertFailsWith<NativeCryptoException> { session.update(byteArrayOf(0)) }
+        assertEquals(NativeCryptoErrorCode.INVALID_SESSION, updateReuse.code)
+        val finishReuse = assertFailsWith<NativeCryptoException> { session.finish() }
+        assertEquals(NativeCryptoErrorCode.INVALID_SESSION, finishReuse.code)
+    }
+
+    @Test
     fun streamedTamperIsRejectedAtFinishAndConsumesTheSession() {
         val session = NativeCrypto.openPgp.openDetachedVerification(
             signature = DETACHED_SIGNATURE.encodeToByteArray(),

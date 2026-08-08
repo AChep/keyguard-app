@@ -71,6 +71,8 @@ import com.artemchep.keyguard.common.service.notification.NotificationFingerprin
 import com.artemchep.keyguard.common.service.notification.impl.NotificationFingerprintRepositoryImpl
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.impl.PassKeyServiceImpl
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueueImpl
 import com.artemchep.keyguard.common.service.placeholder.impl.CipherPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.impl.CommentPlaceholder
 import com.artemchep.keyguard.common.service.placeholder.impl.CustomPlaceholder
@@ -91,8 +93,8 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepositor
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeyRepositoryImpl
 import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.service.staging.StagingSpoolObserver
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPublicKeyRepository
-import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentPublicKeyRepositoryImpl
+import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgPublicKeyRepositoryImpl
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverClient
 import com.artemchep.keyguard.common.service.gpgkeyserver.impl.GpgKeyserverClientImpl
 import com.artemchep.keyguard.common.service.state.StateRepository
@@ -1845,6 +1847,9 @@ private fun DI.Builder.installSettingsRepo() {
 }
 
 private fun DI.Builder.installExposedRepo() {
+    bindSingleton<PendingUsageHistoryQueue> {
+        PendingUsageHistoryQueueImpl(this)
+    }
     // App-level, not session-level: the credential-transfer activity and the
     // autofill service both read the mirror before the vault is unlocked, so there
     // is no session DI to resolve it from.
@@ -1857,7 +1862,7 @@ private fun DI.Builder.installExposedRepo() {
     bindSingleton<SshAgentPublicKeyRepository> {
         SshAgentPublicKeyRepositoryImpl(this)
     }
-    bindSingleton<GpgAgentPublicKeyRepository> {
-        GpgAgentPublicKeyRepositoryImpl(this)
+    bindSingleton<GpgPublicKeyRepository> {
+        GpgPublicKeyRepositoryImpl(this)
     }
 }

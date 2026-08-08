@@ -11,15 +11,17 @@ CREATE TABLE sshUsageHistory (
   response INTEGER AS SshUsageHistoryResponseType NOT NULL,
   fingerprint TEXT,
   createdAt INTEGER AS Instant NOT NULL,
+  eventId TEXT,
   FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
 );
 
 CREATE INDEX idx_sshUsageHistory_createdAt ON sshUsageHistory(createdAt DESC);
 CREATE INDEX idx_sshUsageHistory_cipherId_createdAt ON sshUsageHistory(cipherId, createdAt DESC);
+CREATE UNIQUE INDEX idx_sshUsageHistory_eventId ON sshUsageHistory(eventId);
 
 insert:
-INSERT INTO sshUsageHistory(cipherId, sessionId, caller, request, response, fingerprint, createdAt)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO sshUsageHistory(cipherId, sessionId, caller, request, response, fingerprint, createdAt, eventId)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 getRecent:
 SELECT *

@@ -25,7 +25,7 @@ use ocb3::{
     consts::{U15, U16},
 };
 use pgp::{
-    armor::{self, BlockType},
+    armor::{self, BlockType, Headers},
     composed::{
         ArmorOptions, DecryptionOptions, Deserializable, DetachedSignature, Esk, Message,
         PlainSessionKey, PublicOrSecret, RawSessionKey, SignedKeyDetails, SignedPublicKey,
@@ -68,13 +68,14 @@ use crate::{
         reference_time, signing_component_usable,
     },
     protocol::{
-        OpenPgpDecryptFinal, OpenPgpDecryptRequest, OpenPgpDecryptResult,
-        OpenPgpDecryptStreamOpenRequest, OpenPgpDetachedSignStreamOpenRequest, OpenPgpEncryptFinal,
-        OpenPgpEncryptRequest, OpenPgpEncryptResult, OpenPgpEncryptStreamOpenRequest,
-        OpenPgpKeyGenerateRequest, OpenPgpKeyImportError, OpenPgpKeyImportErrorReason,
-        OpenPgpKeyImportNeedsPassphrase, OpenPgpKeyImportRequest, OpenPgpKeyImportResult,
-        OpenPgpKeyImportSuccess, OpenPgpKeyKind, OpenPgpKeyMaterial, OpenPgpProtectionMode,
-        OpenPgpSignKind, OpenPgpSignRequest, OpenPgpVerification, open_pgp_key_import_result,
+        OpenPgpClearSignStreamOpenRequest, OpenPgpDecryptFinal, OpenPgpDecryptRequest,
+        OpenPgpDecryptResult, OpenPgpDecryptStreamOpenRequest,
+        OpenPgpDetachedSignStreamOpenRequest, OpenPgpEncryptFinal, OpenPgpEncryptRequest,
+        OpenPgpEncryptResult, OpenPgpEncryptStreamOpenRequest, OpenPgpKeyGenerateRequest,
+        OpenPgpKeyImportError, OpenPgpKeyImportErrorReason, OpenPgpKeyImportNeedsPassphrase,
+        OpenPgpKeyImportRequest, OpenPgpKeyImportResult, OpenPgpKeyImportSuccess, OpenPgpKeyKind,
+        OpenPgpKeyMaterial, OpenPgpLiteralMetadata, OpenPgpProtectionMode, OpenPgpSignKind,
+        OpenPgpSignRequest, OpenPgpVerification, open_pgp_key_import_result,
     },
 };
 
@@ -85,6 +86,7 @@ const MAX_OPENPGP_PRIVATE_KEY_ATTEMPTS: usize = 64;
 const MAX_OPENPGP_PACKETS: usize = 4_096;
 const MAX_USER_ID_BYTES: usize = 16 * 1024;
 const MAX_FILE_NAME_BYTES: usize = 4 * 1024;
+const MAX_CLEAR_SIGNED_PENDING_WHITESPACE_BYTES: usize = 64 * 1024;
 const GNUPG_AEAD_CHUNK_OCTET: u8 = 10;
 const GNUPG_AEAD_CHUNK_BYTES: usize = 1 << (GNUPG_AEAD_CHUNK_OCTET as usize + 6);
 const AEAD_TAG_BYTES: usize = 16;
@@ -92,6 +94,7 @@ const OPENPGP_PARTIAL_PACKET_BYTES: usize = 64 * 1024;
 const OPENPGP_PARTIAL_PACKET_OCTET: u8 = 0xf0;
 const MAX_OPENPGP_STREAM_WORKERS: usize = 4;
 const STREAM_CHANNEL_DEPTH: usize = 4;
+const CLEAR_SIGN_HEADER: &[u8] = b"-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA256\n\n";
 
 static OPENPGP_STREAM_WORKERS: AtomicUsize = AtomicUsize::new(0);
 
@@ -1013,23 +1016,33 @@ pub(crate) fn sign_request(mut request: OpenPgpSignRequest) -> Result<Vec<u8>, O
         return Err(OpenPgpWriteError::InvalidArgument);
     }
 
-    let private_key = Zeroizing::new(std::mem::take(&mut request.private_key));
-    let secret = parse_secret_key(private_key.as_slice())?;
-    let packet = select_signing_packet(
-        &secret,
-        &request.preferred_fingerprint,
-        reference_time(request.reference_time_epoch_seconds),
-    )?;
-    let signature_time = request
-        .signature_time_epoch_seconds
-        .map_or_else(Timestamp::now, |value| Timestamp::from_secs(value as u32));
-    sign_with_packet(
-        packet,
-        kind,
-        &request.content,
-        request.armored,
-        signature_time,
-    )
+    let private_key = std::mem::take(&mut request.private_key);
+    let preferred_fingerprint = std::mem::take(&mut request.preferred_fingerprint);
+    match kind {
+        OpenPgpSignKind::Detached => {
+            let mut session = DetachedSigningSession::open(OpenPgpDetachedSignStreamOpenRequest {
+                private_key,
+                preferred_fingerprint,
+                armored: request.armored,
+                signature_time_epoch_seconds: request.signature_time_epoch_seconds,
+                reference_time_epoch_seconds: request.reference_time_epoch_seconds,
+            })?;
+            session.update(&request.content)?;
+            session.finish()
+        }
+        OpenPgpSignKind::ClearText => {
+            let mut session = ClearSigningSession::open(OpenPgpClearSignStreamOpenRequest {
+                private_key,
+                preferred_fingerprint,
+                signature_time_epoch_seconds: request.signature_time_epoch_seconds,
+                reference_time_epoch_seconds: request.reference_time_epoch_seconds,
+            })?;
+            let mut output = session.update(&request.content)?;
+            output.extend_from_slice(&session.finish()?);
+            Ok(output)
+        }
+        OpenPgpSignKind::Unspecified => Err(OpenPgpWriteError::InvalidArgument),
+    }
 }
 
 /// Incremental detached signer. Only the SHA-256 state grows with input; key
@@ -1064,7 +1077,7 @@ impl DetachedSigningSession {
         let signature_time = request
             .signature_time_epoch_seconds
             .map_or_else(Timestamp::now, |value| Timestamp::from_secs(value as u32));
-        let hasher = detached_signature_hasher(packet, signature_time)?;
+        let hasher = detached_signature_hasher(packet, signature_time, SignatureType::Binary)?;
         Ok(Self {
             secret,
             selection,
@@ -1081,16 +1094,7 @@ impl DetachedSigningSession {
 
     pub(crate) fn finish(self) -> Result<Vec<u8>, OpenPgpWriteError> {
         let packet = self.selection.packet(&self.secret)?;
-        let signature = if is_rsa_private_algorithm(packet.algorithm()) {
-            let adapter = AwsLcRsaSecretKey::new(packet)?;
-            self.hasher.sign(&adapter, &Password::empty())
-        } else {
-            match packet {
-                SecretPacketRef::Primary(key) => self.hasher.sign(key, &Password::empty()),
-                SecretPacketRef::Subkey(key) => self.hasher.sign(key, &Password::empty()),
-            }
-        }
-        .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
+        let signature = sign_hasher_with_packet(self.hasher, packet)?;
         let signature = DetachedSignature::new(signature);
         if self.armored {
             signature
@@ -1107,23 +1111,45 @@ impl DetachedSigningSession {
 fn detached_signature_hasher(
     packet: SecretPacketRef<'_>,
     signature_time: Timestamp,
+    signature_type: SignatureType,
 ) -> Result<SignatureHasher, OpenPgpWriteError> {
     if is_rsa_private_algorithm(packet.algorithm()) {
         let adapter = AwsLcRsaSecretKey::new(packet)?;
-        signature_hasher_with_key(&adapter, signature_time)
+        signature_hasher_with_key(&adapter, signature_time, signature_type)
     } else {
         match packet {
-            SecretPacketRef::Primary(key) => signature_hasher_with_key(key, signature_time),
-            SecretPacketRef::Subkey(key) => signature_hasher_with_key(key, signature_time),
+            SecretPacketRef::Primary(key) => {
+                signature_hasher_with_key(key, signature_time, signature_type)
+            }
+            SecretPacketRef::Subkey(key) => {
+                signature_hasher_with_key(key, signature_time, signature_type)
+            }
         }
     }
+}
+
+fn sign_hasher_with_packet(
+    hasher: SignatureHasher,
+    packet: SecretPacketRef<'_>,
+) -> Result<pgp::packet::Signature, OpenPgpWriteError> {
+    if is_rsa_private_algorithm(packet.algorithm()) {
+        let adapter = AwsLcRsaSecretKey::new(packet)?;
+        hasher.sign(&adapter, &Password::empty())
+    } else {
+        match packet {
+            SecretPacketRef::Primary(key) => hasher.sign(key, &Password::empty()),
+            SecretPacketRef::Subkey(key) => hasher.sign(key, &Password::empty()),
+        }
+    }
+    .map_err(|_| OpenPgpWriteError::CryptoFailure)
 }
 
 fn signature_hasher_with_key(
     key: &impl SigningKey,
     signature_time: Timestamp,
+    signature_type: SignatureType,
 ) -> Result<SignatureHasher, OpenPgpWriteError> {
-    let mut config = data_signature_config(key, SignatureType::Binary)?;
+    let mut config = data_signature_config(key, signature_type)?;
     let SubpacketConfig::UserDefined { hashed, unhashed } =
         signing_subpackets(key, signature_time)?
     else {
@@ -1134,6 +1160,234 @@ fn signature_hasher_with_key(
     config
         .into_hasher()
         .map_err(|_| OpenPgpWriteError::CryptoFailure)
+}
+
+/// Incremental cleartext signer. Only up to 64 KiB of trailing horizontal
+/// whitespace and an incomplete UTF-8 code point are retained between chunks.
+pub(crate) struct ClearSigningSession {
+    secret: SignedSecretKey,
+    selection: SecretPacketSelection,
+    hasher: SignatureHasher,
+    pending_whitespace: Zeroizing<Vec<u8>>,
+    utf8_tail: Zeroizing<Vec<u8>>,
+    started: bool,
+    line_start: bool,
+    canonical_needs_break: bool,
+    previous_input_was_cr: bool,
+    output_ended_with_line_break: bool,
+}
+
+impl ClearSigningSession {
+    pub(crate) fn open(
+        mut request: OpenPgpClearSignStreamOpenRequest,
+    ) -> Result<Self, OpenPgpWriteError> {
+        if request.private_key.is_empty()
+            || request.private_key.len() > MAX_CONTROL_ENVELOPE_BYTES
+            || request
+                .signature_time_epoch_seconds
+                .is_some_and(|value| value > u64::from(u32::MAX))
+        {
+            return Err(OpenPgpWriteError::InvalidArgument);
+        }
+        let private_key = Zeroizing::new(std::mem::take(&mut request.private_key));
+        let secret = parse_secret_key(private_key.as_slice())?;
+        let packet = select_signing_packet(
+            &secret,
+            &request.preferred_fingerprint,
+            reference_time(request.reference_time_epoch_seconds),
+        )?;
+        let selection = SecretPacketSelection::from_ref(&secret, packet)?;
+        let signature_time = request
+            .signature_time_epoch_seconds
+            .map_or_else(Timestamp::now, |value| Timestamp::from_secs(value as u32));
+        let hasher = detached_signature_hasher(packet, signature_time, SignatureType::Text)?;
+        Ok(Self {
+            secret,
+            selection,
+            hasher,
+            pending_whitespace: Zeroizing::new(Vec::new()),
+            utf8_tail: Zeroizing::new(Vec::new()),
+            started: false,
+            line_start: true,
+            canonical_needs_break: false,
+            previous_input_was_cr: false,
+            output_ended_with_line_break: false,
+        })
+    }
+
+    pub(crate) fn update(&mut self, data: &[u8]) -> Result<Vec<u8>, OpenPgpWriteError> {
+        self.validate_pending_whitespace_run(data)?;
+        self.validate_utf8(data)?;
+        let header_length = if self.started {
+            0
+        } else {
+            CLEAR_SIGN_HEADER.len()
+        };
+        let mut output = Vec::with_capacity(data.len() + header_length + 2);
+        if !self.started {
+            output.extend_from_slice(CLEAR_SIGN_HEADER);
+            self.started = true;
+        }
+        // Canonical bytes are hashed as contiguous `data` runs rather than one
+        // byte at a time. Whitespace stays provisional until a later
+        // non-whitespace byte on the same line confirms it; only whitespace
+        // that is still provisional at the end of the chunk is copied into
+        // `pending_whitespace`.
+        let mut hash_run: Option<(usize, usize)> = None;
+        let mut whitespace_start: Option<usize> = None;
+        for (index, &byte) in data.iter().enumerate() {
+            if self.previous_input_was_cr && byte == b'\n' {
+                output.push(byte);
+                self.previous_input_was_cr = false;
+                self.line_start = true;
+                self.output_ended_with_line_break = true;
+                continue;
+            }
+            self.previous_input_was_cr = false;
+            if matches!(byte, b'\r' | b'\n') {
+                self.hash_canonical_run(data, hash_run.take())?;
+                whitespace_start = None;
+                if self.canonical_needs_break {
+                    self.hasher
+                        .write_all(b"\r\n")
+                        .map_err(|_| OpenPgpWriteError::Internal)?;
+                }
+                self.pending_whitespace.clear();
+                self.canonical_needs_break = true;
+                self.previous_input_was_cr = byte == b'\r';
+                self.line_start = true;
+                self.output_ended_with_line_break = true;
+                output.push(byte);
+                continue;
+            }
+            if self.canonical_needs_break {
+                self.hasher
+                    .write_all(b"\r\n")
+                    .map_err(|_| OpenPgpWriteError::Internal)?;
+                self.canonical_needs_break = false;
+            }
+            if matches!(byte, b' ' | b'\t') {
+                whitespace_start.get_or_insert(index);
+            } else {
+                // Carried-over whitespace can only precede the first confirmed
+                // byte of this chunk, so the run is necessarily empty here.
+                if !self.pending_whitespace.is_empty() {
+                    self.hasher
+                        .write_all(self.pending_whitespace.as_slice())
+                        .map_err(|_| OpenPgpWriteError::Internal)?;
+                    self.pending_whitespace.clear();
+                }
+                match hash_run.as_mut() {
+                    Some((_, end)) => *end = index + 1,
+                    None => hash_run = Some((whitespace_start.unwrap_or(index), index + 1)),
+                }
+                whitespace_start = None;
+            }
+            if self.line_start && byte == b'-' {
+                output.extend_from_slice(b"- ");
+            }
+            output.push(byte);
+            self.line_start = false;
+            self.output_ended_with_line_break = false;
+        }
+        self.hash_canonical_run(data, hash_run)?;
+        if let Some(start) = whitespace_start {
+            self.pending_whitespace.extend_from_slice(&data[start..]);
+        }
+        Ok(output)
+    }
+
+    pub(crate) fn finish(mut self) -> Result<Vec<u8>, OpenPgpWriteError> {
+        if !self.utf8_tail.is_empty() {
+            return Err(OpenPgpWriteError::InvalidArgument);
+        }
+        self.pending_whitespace.clear();
+        let packet = self.selection.packet(&self.secret)?;
+        let signature = sign_hasher_with_packet(self.hasher, packet)?;
+        let armored = DetachedSignature::new(signature)
+            .to_armored_bytes(ArmorOptions::default())
+            .map_err(|_| OpenPgpWriteError::Internal)?;
+        let header_length = if self.started {
+            0
+        } else {
+            CLEAR_SIGN_HEADER.len()
+        };
+        let mut output = Vec::with_capacity(armored.len() + header_length + 1);
+        if !self.started {
+            output.extend_from_slice(CLEAR_SIGN_HEADER);
+        }
+        if !self.output_ended_with_line_break {
+            output.push(b'\n');
+        }
+        output.extend_from_slice(&armored);
+        Ok(output)
+    }
+
+    fn hash_canonical_run(
+        &mut self,
+        data: &[u8],
+        run: Option<(usize, usize)>,
+    ) -> Result<(), OpenPgpWriteError> {
+        if let Some((start, end)) = run {
+            self.hasher
+                .write_all(&data[start..end])
+                .map_err(|_| OpenPgpWriteError::Internal)?;
+        }
+        Ok(())
+    }
+
+    fn validate_pending_whitespace_run(&self, data: &[u8]) -> Result<(), OpenPgpWriteError> {
+        let mut pending = self.pending_whitespace.len();
+        for &byte in data {
+            if matches!(byte, b' ' | b'\t') {
+                pending = pending
+                    .checked_add(1)
+                    .filter(|length| *length <= MAX_CLEAR_SIGNED_PENDING_WHITESPACE_BYTES)
+                    .ok_or(OpenPgpWriteError::ResourceLimit)?;
+            } else {
+                pending = 0;
+            }
+        }
+        Ok(())
+    }
+
+    fn validate_utf8(&mut self, data: &[u8]) -> Result<(), OpenPgpWriteError> {
+        let mut remaining = data;
+        if !self.utf8_tail.is_empty() {
+            // The retained tail is a valid prefix of a single code point, so
+            // its lead byte determines the full sequence length. Completing it
+            // needs at most three bytes; the chunk itself is validated
+            // borrowed, without copying it.
+            let sequence_length = match self.utf8_tail[0] {
+                byte if byte >= 0xF0 => 4,
+                byte if byte >= 0xE0 => 3,
+                _ => 2,
+            };
+            let needed = sequence_length - self.utf8_tail.len();
+            if remaining.len() < needed {
+                self.utf8_tail.extend_from_slice(remaining);
+                return Ok(());
+            }
+            let (head, rest) = remaining.split_at(needed);
+            let mut sequence = Zeroizing::new([0_u8; 4]);
+            sequence[..self.utf8_tail.len()].copy_from_slice(&self.utf8_tail);
+            sequence[self.utf8_tail.len()..sequence_length].copy_from_slice(head);
+            if std::str::from_utf8(&sequence[..sequence_length]).is_err() {
+                return Err(OpenPgpWriteError::InvalidArgument);
+            }
+            self.utf8_tail.clear();
+            remaining = rest;
+        }
+        match std::str::from_utf8(remaining) {
+            Ok(_) => {}
+            Err(error) if error.error_len().is_none() => {
+                self.utf8_tail
+                    .extend_from_slice(&remaining[error.valid_up_to()..]);
+            }
+            Err(_) => return Err(OpenPgpWriteError::InvalidArgument),
+        }
+        Ok(())
+    }
 }
 
 fn parse_secret_key(input: &[u8]) -> Result<SignedSecretKey, OpenPgpWriteError> {
@@ -1255,164 +1509,6 @@ fn select_signing_packet<'a>(
         .ok_or(OpenPgpWriteError::MissingKey)
 }
 
-fn sign_with_packet(
-    packet: SecretPacketRef<'_>,
-    kind: OpenPgpSignKind,
-    content: &[u8],
-    armored: bool,
-    signature_time: Timestamp,
-) -> Result<Vec<u8>, OpenPgpWriteError> {
-    if is_rsa_private_algorithm(packet.algorithm()) {
-        let adapter = AwsLcRsaSecretKey::new(packet)?;
-        sign_with_key(&adapter, kind, content, armored, signature_time)
-    } else {
-        match packet {
-            SecretPacketRef::Primary(key) => {
-                sign_with_key(key, kind, content, armored, signature_time)
-            }
-            SecretPacketRef::Subkey(key) => {
-                sign_with_key(key, kind, content, armored, signature_time)
-            }
-        }
-    }
-}
-
-fn sign_with_key<K>(
-    key: &K,
-    kind: OpenPgpSignKind,
-    content: &[u8],
-    armored: bool,
-    signature_time: Timestamp,
-) -> Result<Vec<u8>, OpenPgpWriteError>
-where
-    K: SigningKey,
-{
-    let subpackets = signing_subpackets(key, signature_time)?;
-    let password = Password::empty();
-    match kind {
-        OpenPgpSignKind::Detached => {
-            let signature = DetachedSignature::sign_binary_data_with_subpackets(
-                AwsLcRng,
-                key,
-                &password,
-                HashAlgorithm::Sha256,
-                Cursor::new(content),
-                subpackets,
-            )
-            .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
-            if armored {
-                signature
-                    .to_armored_bytes(ArmorOptions::default())
-                    .map_err(|_| OpenPgpWriteError::Internal)
-            } else {
-                signature
-                    .to_bytes()
-                    .map_err(|_| OpenPgpWriteError::Internal)
-            }
-        }
-        OpenPgpSignKind::ClearText => {
-            let text =
-                std::str::from_utf8(content).map_err(|_| OpenPgpWriteError::InvalidArgument)?;
-            let mut config = data_signature_config(key, SignatureType::Text)?;
-            let SubpacketConfig::UserDefined { hashed, unhashed } = subpackets else {
-                return Err(OpenPgpWriteError::Internal);
-            };
-            config.hashed_subpackets = hashed;
-            config.unhashed_subpackets = unhashed;
-            clear_sign_message(text, config, key, &password)
-        }
-        OpenPgpSignKind::Unspecified => Err(OpenPgpWriteError::InvalidArgument),
-    }
-}
-
-fn clear_sign_message(
-    text: &str,
-    config: SignatureConfig,
-    key: &impl SigningKey,
-    password: &Password,
-) -> Result<Vec<u8>, OpenPgpWriteError> {
-    let canonical = canonical_cleartext(text.as_bytes());
-    let signature = config
-        .sign(key, password, Cursor::new(canonical.as_slice()))
-        .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
-    let signature = DetachedSignature::new(signature)
-        .to_armored_bytes(ArmorOptions::default())
-        .map_err(|_| OpenPgpWriteError::Internal)?;
-
-    let mut output = Vec::with_capacity(
-        text.len()
-            .checked_add(signature.len())
-            .and_then(|length| length.checked_add(96))
-            .ok_or(OpenPgpWriteError::ResourceLimit)?,
-    );
-    output.extend_from_slice(b"-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA256\n\n");
-    let escaped = dash_escape_cleartext(text.as_bytes());
-    output.extend_from_slice(&escaped);
-    if !escaped
-        .last()
-        .is_some_and(|byte| matches!(byte, b'\r' | b'\n'))
-    {
-        output.push(b'\n');
-    }
-    output.extend_from_slice(&signature);
-    Ok(output)
-}
-
-fn canonical_cleartext(text: &[u8]) -> Zeroizing<Vec<u8>> {
-    let mut output = Zeroizing::new(Vec::with_capacity(text.len()));
-    let mut offset = 0_usize;
-    let mut first = true;
-    loop {
-        let line_end = text[offset..]
-            .iter()
-            .position(|byte| matches!(byte, b'\r' | b'\n'))
-            .map_or(text.len(), |index| offset + index);
-        let content = &text[offset..line_end];
-        let canonical_end = content
-            .iter()
-            .rposition(|byte| !matches!(byte, b' ' | b'\t'))
-            .map_or(0, |index| index + 1);
-        if !first {
-            output.extend_from_slice(b"\r\n");
-        }
-        output.extend_from_slice(&content[..canonical_end]);
-        first = false;
-        if line_end == text.len() {
-            break;
-        }
-        offset = line_end + 1;
-        if text[line_end] == b'\r' && text.get(offset) == Some(&b'\n') {
-            offset += 1;
-        }
-        if offset == text.len() {
-            break;
-        }
-    }
-    output
-}
-
-fn dash_escape_cleartext(text: &[u8]) -> Vec<u8> {
-    let extra = text
-        .iter()
-        .enumerate()
-        .filter(|(index, byte)| {
-            **byte == b'-'
-                && (*index == 0 || matches!(text[index.saturating_sub(1)], b'\r' | b'\n'))
-        })
-        .count()
-        .saturating_mul(2);
-    let mut output = Vec::with_capacity(text.len().saturating_add(extra));
-    let mut line_start = true;
-    for byte in text {
-        if line_start && *byte == b'-' {
-            output.extend_from_slice(b"- ");
-        }
-        output.push(*byte);
-        line_start = matches!(byte, b'\r' | b'\n');
-    }
-    output
-}
-
 fn signing_subpackets(
     key: &(impl SigningKey + ?Sized),
     signature_time: Timestamp,
@@ -1507,11 +1603,12 @@ pub(crate) fn encrypt_request(
         .literal_time_epoch_seconds
         .map_or_else(Timestamp::now, |value| Timestamp::from_secs(value as u32));
     let plaintext = Zeroizing::new(std::mem::take(&mut request.content));
-    let compressed = build_compressed_message(
+    let composed = build_composed_message(
         plaintext.as_slice(),
         request.file_name.as_bytes(),
         literal_time,
         signer,
+        request.enable_compression.unwrap_or(true),
     )?;
 
     let mode = if all_recipients_allow_ocb {
@@ -1519,7 +1616,7 @@ pub(crate) fn encrypt_request(
     } else {
         OpenPgpProtectionMode::SeipdV1Mdc
     };
-    let mut encrypted = encrypt_composed_message(&compressed, &recipients, mode)?;
+    let mut encrypted = encrypt_composed_message(&composed, &recipients, mode)?;
     if request.armored {
         encrypted = armor_message(&encrypted)?;
     }
@@ -1618,11 +1715,12 @@ fn recipient_allows_gnupg_ocb(policy: &CertificatePolicy<'_>) -> bool {
         && features.first().is_some_and(|byte| byte & 0x02 != 0)
 }
 
-fn build_compressed_message(
+fn build_composed_message(
     content: &[u8],
     file_name: &[u8],
     literal_time: Timestamp,
     signer: Option<SecretPacketRef<'_>>,
+    enable_compression: bool,
 ) -> Result<Zeroizing<Vec<u8>>, OpenPgpWriteError> {
     let mut inner = Zeroizing::new(Vec::new());
     let inline_signature = signer
@@ -1638,6 +1736,9 @@ fn build_compressed_message(
         signature
             .to_writer_with_header(&mut *inner)
             .map_err(|_| OpenPgpWriteError::Internal)?;
+    }
+    if !enable_compression {
+        return Ok(inner);
     }
 
     let mut encoder = DeflateEncoder::new(SecretVec::default(), Compression::default());
@@ -1945,7 +2046,14 @@ enum OpenPgpWorkerOutput {
 
 enum OpenPgpWorkerFinal {
     Encrypt(OpenPgpProtectionMode),
-    Decrypt(Option<OpenPgpVerification>),
+    Decrypt(Box<OpenPgpDecryptWorkerFinal>),
+}
+
+struct OpenPgpDecryptWorkerFinal {
+    verification: Option<OpenPgpVerification>,
+    metadata: Option<OpenPgpLiteralMetadata>,
+    decryption_key_fingerprint: Option<Fingerprint>,
+    declared_charset: Option<String>,
 }
 
 struct OpenPgpWorkerPermit;
@@ -2262,7 +2370,9 @@ impl<R: Read> Read for OpenPgpPreludeLimitedReader<R> {
     }
 }
 
-fn parse_streaming_message<'a, R>(input: R) -> Result<Message<'a>, OpenPgpWriteError>
+fn parse_streaming_message<'a, R>(
+    input: R,
+) -> Result<(Message<'a>, Option<Headers>), OpenPgpWriteError>
 where
     R: Read + std::fmt::Debug + Send + 'a,
 {
@@ -2271,13 +2381,26 @@ where
     let reader = OpenPgpPreludeLimitedReader::new(input, active.clone(), exceeded.clone());
     let parsed = Message::from_reader(BufReader::new(reader));
     active.store(false, Ordering::Release);
-    parsed.map(|(message, _)| message).map_err(|_| {
+    parsed.map_err(|_| {
         if exceeded.load(Ordering::Acquire) {
             OpenPgpWriteError::ResourceLimit
         } else {
             OpenPgpWriteError::InvalidArgument
         }
     })
+}
+
+fn declared_armor_charset(headers: Option<&Headers>) -> Option<String> {
+    let mut values = headers?
+        .iter()
+        .filter(|(name, _)| name.eq_ignore_ascii_case("Charset"))
+        .flat_map(|(_, values)| values.iter());
+    let value = values.next()?;
+    if values.next().is_some() {
+        return None;
+    }
+    let value = value.trim();
+    (!value.is_empty()).then(|| value.to_owned())
 }
 
 struct OpenPgpChannelWriter {
@@ -2941,6 +3064,7 @@ struct OpenPgpEncryptWorkerConfig {
     file_name: Vec<u8>,
     literal_time: Timestamp,
     armored: bool,
+    enable_compression: bool,
     mode: OpenPgpProtectionMode,
 }
 
@@ -3020,6 +3144,7 @@ impl OpenPgpEncryptionSession {
             file_name: std::mem::take(&mut request.file_name).into_bytes(),
             literal_time,
             armored: request.armored,
+            enable_compression: request.enable_compression.unwrap_or(true),
             mode,
         };
         let worker = OpenPgpWorkerPipe::spawn("keyguard-openpgp-encrypt", move |input, output| {
@@ -3056,6 +3181,7 @@ fn run_openpgp_encrypt_worker(
         file_name,
         literal_time,
         armored,
+        enable_compression,
         mode,
     } = config;
     let mut rng = AwsLcRng;
@@ -3089,14 +3215,21 @@ fn run_openpgp_encrypt_worker(
         })
     };
     let signed = SignedLiteralReader::new(input, &file_name, literal_time, signer)?;
-    let compressed = DeflateReader::new(signed, Compression::default());
-    let compressed_body =
-        PrefixedReader::new(vec![u8::from(CompressionAlgorithm::ZIP)], compressed);
-    let compressed_packet = PartialPacketReader::new(Tag::CompressedData, compressed_body);
+    let composed: Box<dyn Read> = if enable_compression {
+        let compressed = DeflateReader::new(signed, Compression::default());
+        let compressed_body =
+            PrefixedReader::new(vec![u8::from(CompressionAlgorithm::ZIP)], compressed);
+        Box::new(PartialPacketReader::new(
+            Tag::CompressedData,
+            compressed_body,
+        ))
+    } else {
+        Box::new(signed)
+    };
     match mode {
         OpenPgpProtectionMode::SeipdV1Mdc => {
             let encrypted = SymmetricKeyAlgorithm::AES256
-                .stream_encryptor(rng, session_key.as_ref(), compressed_packet)
+                .stream_encryptor(rng, session_key.as_ref(), composed)
                 .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
             let protected = PrefixedReader::new(vec![1], encrypted);
             let mut protected_packet =
@@ -3105,7 +3238,7 @@ fn run_openpgp_encrypt_worker(
                 .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
         }
         OpenPgpProtectionMode::GnupgOcb => {
-            let encrypted = GnuPgpOcbEncryptReader::new(compressed_packet, &session_key, &mut rng)?;
+            let encrypted = GnuPgpOcbEncryptReader::new(composed, &session_key, &mut rng)?;
             let mut protected_packet = PartialPacketReader::new(Tag::GnupgAeadData, encrypted);
             std::io::copy(&mut protected_packet, &mut writer)
                 .map_err(|_| OpenPgpWriteError::CryptoFailure)?;
@@ -3122,6 +3255,7 @@ struct OpenPgpDecryptWorkerConfig {
     secrets: Vec<SignedSecretKey>,
     verification_certificates: Vec<SignedPublicKey>,
     policy_time: u64,
+    allow_signed_only: bool,
 }
 
 /// Incremental authenticated OpenPGP decryption. Update output is explicitly
@@ -3134,7 +3268,8 @@ impl OpenPgpDecryptionSession {
     pub(crate) fn open(
         mut request: OpenPgpDecryptStreamOpenRequest,
     ) -> Result<Self, OpenPgpWriteError> {
-        if request.private_keys.is_empty()
+        let allow_signed_only = request.allow_signed_only.unwrap_or(false);
+        if (!allow_signed_only && request.private_keys.is_empty())
             || request.private_keys.len() > MAX_OPENPGP_KEYS
             || request.verification_public_keys.len() > MAX_OPENPGP_KEYS
         {
@@ -3161,6 +3296,7 @@ impl OpenPgpDecryptionSession {
             secrets,
             verification_certificates,
             policy_time: reference_time(request.reference_time_epoch_seconds),
+            allow_signed_only,
         };
         let worker = OpenPgpWorkerPipe::spawn("keyguard-openpgp-decrypt", move |input, output| {
             run_openpgp_decrypt_worker(config, input, output)
@@ -3174,10 +3310,25 @@ impl OpenPgpDecryptionSession {
 
     pub(crate) fn finish(self) -> Result<Vec<u8>, OpenPgpWriteError> {
         let (data, final_state) = self.worker.finish()?;
-        let OpenPgpWorkerFinal::Decrypt(verification) = final_state else {
+        let OpenPgpWorkerFinal::Decrypt(final_state) = final_state else {
             return Err(OpenPgpWriteError::Internal);
         };
-        Ok(OpenPgpDecryptFinal { data, verification }.encode_to_vec())
+        let OpenPgpDecryptWorkerFinal {
+            verification,
+            metadata,
+            decryption_key_fingerprint,
+            declared_charset,
+        } = *final_state;
+        Ok(OpenPgpDecryptFinal {
+            data,
+            verification,
+            metadata,
+            encrypted: decryption_key_fingerprint.is_some(),
+            declared_charset,
+            decryption_key_fingerprint: decryption_key_fingerprint
+                .map(|fingerprint| format!("{fingerprint:X}")),
+        }
+        .encode_to_vec())
     }
 }
 
@@ -3186,21 +3337,25 @@ fn run_openpgp_decrypt_worker(
     input: OpenPgpChannelReader,
     output: SyncSender<OpenPgpWorkerOutput>,
 ) -> Result<OpenPgpWorkerFinal, OpenPgpWriteError> {
-    let message = parse_streaming_message(input)?;
-    let session_key = find_message_session_key(&message, &config.secrets, config.policy_time)?;
-    let ring = TheRing {
-        session_keys: vec![session_key],
-        decrypt_options: DecryptionOptions::new()
+    let (message, armor_headers) = parse_streaming_message(input)?;
+    let declared_charset = declared_armor_charset(armor_headers.as_ref());
+    let OpenedLiteralMessage {
+        mut message,
+        decryption_key_fingerprint,
+    } = open_literal_message(
+        message,
+        &config.secrets,
+        config.policy_time,
+        config.allow_signed_only,
+        DecryptionOptions::new()
             .enable_gnupg_aead()
             .set_seipdv1_read_mode(Seipdv1ReadMode::Streaming),
-        ..TheRing::default()
-    };
-    let (message, _) = message
-        .decrypt_the_ring(ring, true)
-        .map_err(|_| OpenPgpWriteError::AuthenticationFailed)?;
-    let mut message = decompress_to_literal(message)?;
+    )?;
+    let encrypted = decryption_key_fingerprint.is_some();
+    let mut metadata = literal_metadata(&message)?;
 
     let mut buffer = Zeroizing::new(vec![0_u8; OPENPGP_PARTIAL_PACKET_BYTES]);
+    let mut original_size = 0_u64;
     loop {
         let read = message
             .read(&mut buffer)
@@ -3208,6 +3363,9 @@ fn run_openpgp_decrypt_worker(
         if read == 0 {
             break;
         }
+        original_size = original_size
+            .checked_add(read as u64)
+            .ok_or(OpenPgpWriteError::ResourceLimit)?;
         output
             .send(OpenPgpWorkerOutput::Data(Zeroizing::new(
                 buffer[..read].to_vec(),
@@ -3215,12 +3373,21 @@ fn run_openpgp_decrypt_worker(
             .map_err(|_| OpenPgpWriteError::Internal)?;
         buffer[..read].zeroize();
     }
-    let verification = evaluate_inline_verification(
+    let verification = finish_inline_verification(
         &message,
         &config.verification_certificates,
         config.policy_time,
+        encrypted,
     )?;
-    Ok(OpenPgpWorkerFinal::Decrypt(verification))
+    metadata.original_size = original_size;
+    Ok(OpenPgpWorkerFinal::Decrypt(Box::new(
+        OpenPgpDecryptWorkerFinal {
+            verification,
+            metadata: Some(metadata),
+            decryption_key_fingerprint,
+            declared_charset,
+        },
+    )))
 }
 
 /// Decrypts and authenticates a bounded OpenPGP message. Plaintext remains in
@@ -3230,7 +3397,7 @@ pub(crate) fn decrypt_request(
 ) -> Result<Vec<u8>, OpenPgpWriteError> {
     if request.content.is_empty()
         || request.content.len() > MAX_CONTROL_ENVELOPE_BYTES
-        || request.private_keys.is_empty()
+        || (!request.allow_signed_only.unwrap_or(false) && request.private_keys.is_empty())
         || request.private_keys.len() > MAX_OPENPGP_KEYS
         || request.verification_public_keys.len() > MAX_OPENPGP_KEYS
     {
@@ -3257,18 +3424,22 @@ pub(crate) fn decrypt_request(
     let policy_time = reference_time(request.reference_time_epoch_seconds);
 
     let content = Zeroizing::new(std::mem::take(&mut request.content));
-    let (message, _) = Message::from_reader(BufReader::new(Cursor::new(content.as_slice())))
-        .map_err(|_| OpenPgpWriteError::InvalidArgument)?;
-    let session_key = find_message_session_key(&message, &secrets, policy_time)?;
-    let ring = TheRing {
-        session_keys: vec![session_key],
-        decrypt_options: DecryptionOptions::new().enable_gnupg_aead(),
-        ..TheRing::default()
-    };
-    let (message, _) = message
-        .decrypt_the_ring(ring, true)
-        .map_err(|_| OpenPgpWriteError::AuthenticationFailed)?;
-    let mut message = decompress_to_literal(message)?;
+    let (message, armor_headers) =
+        Message::from_reader(BufReader::new(Cursor::new(content.as_slice())))
+            .map_err(|_| OpenPgpWriteError::InvalidArgument)?;
+    let declared_charset = declared_armor_charset(armor_headers.as_ref());
+    let OpenedLiteralMessage {
+        mut message,
+        decryption_key_fingerprint,
+    } = open_literal_message(
+        message,
+        &secrets,
+        policy_time,
+        request.allow_signed_only.unwrap_or(false),
+        DecryptionOptions::new().enable_gnupg_aead(),
+    )?;
+    let encrypted = decryption_key_fingerprint.is_some();
+    let mut metadata = literal_metadata(&message)?;
 
     let mut plaintext = Zeroizing::new(Vec::new());
     read_to_end_bounded(&mut message, &mut plaintext, MAX_CONTROL_ENVELOPE_BYTES).map_err(
@@ -3278,10 +3449,17 @@ pub(crate) fn decrypt_request(
         },
     )?;
     let verification =
-        evaluate_inline_verification(&message, &verification_certificates, policy_time)?;
+        finish_inline_verification(&message, &verification_certificates, policy_time, encrypted)?;
+    metadata.original_size =
+        u64::try_from(plaintext.len()).map_err(|_| OpenPgpWriteError::ResourceLimit)?;
     let result = OpenPgpDecryptResult {
         data: plaintext.to_vec(),
         verification,
+        metadata: Some(metadata),
+        encrypted,
+        declared_charset,
+        decryption_key_fingerprint: decryption_key_fingerprint
+            .map(|fingerprint| format!("{fingerprint:X}")),
     }
     .encode_to_vec();
     if result.len() > MAX_CONTROL_ENVELOPE_BYTES {
@@ -3290,9 +3468,83 @@ pub(crate) fn decrypt_request(
     Ok(result)
 }
 
+/// Resolves a parsed message to its literal form, enforcing the signed-only
+/// policy: a message that is not encrypted is accepted only when
+/// `allow_signed_only` is set and it carries an inline signature. Returns the
+/// authenticated literal message and the private component used to open it.
+struct OpenedLiteralMessage<'a> {
+    message: Message<'a>,
+    decryption_key_fingerprint: Option<Fingerprint>,
+}
+
+fn open_literal_message<'a>(
+    message: Message<'a>,
+    secrets: &[SignedSecretKey],
+    policy_time: u64,
+    allow_signed_only: bool,
+    decrypt_options: DecryptionOptions,
+) -> Result<OpenedLiteralMessage<'a>, OpenPgpWriteError> {
+    let (message, decryption_key_fingerprint) = if message.is_encrypted() {
+        let recovered = find_message_session_key(&message, secrets, policy_time)?;
+        let ring = TheRing {
+            session_keys: vec![recovered.session_key],
+            decrypt_options,
+            ..TheRing::default()
+        };
+        let message = message
+            .decrypt_the_ring(ring, true)
+            .map_err(|_| OpenPgpWriteError::AuthenticationFailed)?
+            .0;
+        (message, Some(recovered.key_fingerprint))
+    } else if allow_signed_only {
+        (message, None)
+    } else {
+        return Err(OpenPgpWriteError::InvalidArgument);
+    };
+    let message = decompress_to_literal(message)?;
+    if decryption_key_fingerprint.is_none() && !message.is_signed() {
+        return Err(OpenPgpWriteError::InvalidArgument);
+    }
+    Ok(OpenedLiteralMessage {
+        message,
+        decryption_key_fingerprint,
+    })
+}
+
+/// Evaluates inline signatures once the literal data has been fully read,
+/// rejecting messages accepted under the signed-only policy whose signature
+/// did not verify.
+fn finish_inline_verification(
+    message: &Message<'_>,
+    certificates: &[SignedPublicKey],
+    policy_time: u64,
+    encrypted: bool,
+) -> Result<Option<OpenPgpVerification>, OpenPgpWriteError> {
+    let verification = evaluate_inline_verification(message, certificates, policy_time)?;
+    if !encrypted && verification.is_none() {
+        return Err(OpenPgpWriteError::InvalidArgument);
+    }
+    Ok(verification)
+}
+
+fn literal_metadata(message: &Message<'_>) -> Result<OpenPgpLiteralMetadata, OpenPgpWriteError> {
+    let header = message
+        .literal_data_header()
+        .ok_or(OpenPgpWriteError::InvalidArgument)?;
+    Ok(OpenPgpLiteralMetadata {
+        file_name: header.file_name().to_vec(),
+        format: u32::from(u8::from(header.mode())),
+        modification_time_epoch_seconds: u64::from(header.created().as_secs()),
+        original_size: 0,
+    })
+}
+
 fn parse_secret_key_candidates(
     inputs: &[Zeroizing<Vec<u8>>],
 ) -> Result<Vec<SignedSecretKey>, OpenPgpWriteError> {
+    if inputs.is_empty() {
+        return Ok(Vec::new());
+    }
     let mut secrets = Vec::with_capacity(inputs.len());
     let mut unsupported_version = None;
     for input in inputs {
@@ -3313,11 +3565,16 @@ fn parse_secret_key_candidates(
     Ok(secrets)
 }
 
+struct RecoveredSessionKey {
+    session_key: PlainSessionKey,
+    key_fingerprint: Fingerprint,
+}
+
 fn find_message_session_key(
     message: &Message<'_>,
     secrets: &[SignedSecretKey],
     reference_time: u64,
-) -> Result<PlainSessionKey, OpenPgpWriteError> {
+) -> Result<RecoveredSessionKey, OpenPgpWriteError> {
     let Message::Encrypted { esk, .. } = message else {
         return Err(OpenPgpWriteError::InvalidArgument);
     };
@@ -3362,7 +3619,10 @@ fn find_message_session_key(
             {
                 increment_private_key_attempts(&mut private_key_attempts)?;
                 if let Some(session_key) = decrypt_session_key(primary, values, typ) {
-                    return Ok(session_key);
+                    return Ok(RecoveredSessionKey {
+                        session_key,
+                        key_fingerprint: primary.fingerprint(),
+                    });
                 }
             }
             let public_offset = secret.public_subkeys.len();
@@ -3377,7 +3637,10 @@ fn find_message_session_key(
                 {
                     increment_private_key_attempts(&mut private_key_attempts)?;
                     if let Some(session_key) = decrypt_session_key(packet, values, typ) {
-                        return Ok(session_key);
+                        return Ok(RecoveredSessionKey {
+                            session_key,
+                            key_fingerprint: packet.fingerprint(),
+                        });
                     }
                 }
             }
@@ -4069,7 +4332,7 @@ mod tests {
         OpenPgpMetadataResolveResult, OpenPgpSignRequest, OpenPgpVerificationStatus,
         OpenPgpVerifyKind, OpenPgpVerifyRequest, open_pgp_key_import_result,
     };
-    use pgp::composed::{KeyType, SecretKeyParamsBuilder};
+    use pgp::composed::{KeyType, MessageBuilder, SecretKeyParamsBuilder};
     use pgp::types::{EncryptedSecretParams, RevocationKey, RevocationKeyClass, StringToKey};
 
     const TEST_TIME: u64 = 1_700_000_000;
@@ -4780,6 +5043,7 @@ mod tests {
                 armored: false,
                 literal_time_epoch_seconds: Some(TEST_TIME),
                 reference_time_epoch_seconds: Some(TEST_TIME),
+                enable_compression: None,
             })
             .expect("encrypt to bound subkey")
             .as_slice(),
@@ -4800,6 +5064,7 @@ mod tests {
                 ],
                 verification_public_keys: Vec::new(),
                 reference_time_epoch_seconds: Some(TEST_TIME),
+                allow_signed_only: None,
             }),
             Err(OpenPgpWriteError::MissingKey),
         );
@@ -4818,6 +5083,7 @@ mod tests {
                 armored: false,
                 literal_time_epoch_seconds: Some(TEST_TIME),
                 reference_time_epoch_seconds: Some(TEST_TIME),
+                enable_compression: None,
             })
             .expect("encrypt to bound encryption subkey")
             .as_slice(),
@@ -4853,6 +5119,7 @@ mod tests {
                 ],
                 verification_public_keys: Vec::new(),
                 reference_time_epoch_seconds: Some(TEST_TIME),
+                allow_signed_only: None,
             }),
             Err(OpenPgpWriteError::MissingKey),
         );
@@ -4991,6 +5258,7 @@ mod tests {
                 armored: false,
                 literal_time_epoch_seconds: Some(TEST_TIME + 1),
                 reference_time_epoch_seconds: Some(TEST_TIME + 1),
+                enable_compression: None,
             })
             .expect("RSA recipient encryption")
             .as_slice(),
@@ -5002,6 +5270,7 @@ mod tests {
                 private_keys: vec![material.private_key_armored.clone()],
                 verification_public_keys: Vec::new(),
                 reference_time_epoch_seconds: Some(TEST_TIME + 1),
+                allow_signed_only: None,
             })
             .expect("AWS-LC RSA PKESK decryption")
             .as_slice(),
@@ -5180,7 +5449,7 @@ mod tests {
     #[test]
     fn clear_sign_canonicalizes_marker_lines_and_trailing_whitespace() {
         let material = generated_modern_material();
-        let content = b"- leading dash\n-----BEGIN PGP SIGNATURE-----\n-----BEGIN PGP SIGNED MESSAGE-----\ntrailing whitespace here   ";
+        let content = b"- leading dash\n - space-indented dash\n\t- tab-indented dash\n-----BEGIN PGP SIGNATURE-----\n-----BEGIN PGP SIGNED MESSAGE-----\ntrailing whitespace here   ";
         let signed = sign_request(OpenPgpSignRequest {
             kind: OpenPgpSignKind::ClearText as i32,
             content: content.to_vec(),
@@ -5196,10 +5465,15 @@ mod tests {
                 .windows(b"- -----BEGIN PGP SIGNATURE-----".len())
                 .any(|window| window == b"- -----BEGIN PGP SIGNATURE-----")
         );
+        assert!(
+            signed
+                .windows(b"\n - space-indented dash\n\t- tab-indented dash\n".len())
+                .any(|window| window == b"\n - space-indented dash\n\t- tab-indented dash\n")
+        );
         let verification = OpenPgpVerification::decode(
             crate::openpgp_read::verify_request(OpenPgpVerifyRequest {
                 kind: OpenPgpVerifyKind::ClearText as i32,
-                content: signed,
+                content: signed.to_vec(),
                 signature: Vec::new(),
                 public_keys: vec![material.public_key_armored.clone()],
                 reference_time_epoch_seconds: Some(TEST_TIME + 1),
@@ -5248,6 +5522,7 @@ mod tests {
                 armored: false,
                 literal_time_epoch_seconds: Some(TEST_TIME + 2),
                 reference_time_epoch_seconds: Some(TEST_TIME + 2),
+                enable_compression: None,
             })
             .expect_err("expired primary cannot receive"),
             OpenPgpWriteError::MissingKey
@@ -5284,6 +5559,7 @@ mod tests {
             armored: false,
             literal_time_epoch_seconds: Some(TEST_TIME),
             reference_time_epoch_seconds: Some(TEST_TIME),
+            enable_compression: None,
         };
         assert_eq!(
             encrypt_request(request(vec![legacy_public.clone()])),
@@ -5324,6 +5600,7 @@ mod tests {
                 private_keys: vec![legacy_secret_bytes, material.private_key_armored.clone()],
                 verification_public_keys: Vec::new(),
                 reference_time_epoch_seconds: Some(TEST_TIME),
+                allow_signed_only: None,
             })
             .expect("mixed-candidate decryption")
             .as_slice(),
@@ -5386,6 +5663,7 @@ mod tests {
                 armored: false,
                 literal_time_epoch_seconds: Some(TEST_TIME + 2),
                 reference_time_epoch_seconds: Some(TEST_TIME + 2),
+                enable_compression: None,
             })
             .expect("encrypt request")
             .as_slice(),
@@ -5402,6 +5680,7 @@ mod tests {
                 private_keys: vec![material.private_key_armored.clone()],
                 verification_public_keys: Vec::new(),
                 reference_time_epoch_seconds: Some(TEST_TIME + 2),
+                allow_signed_only: None,
             })
             .expect("decrypt request")
             .as_slice(),
@@ -5417,6 +5696,7 @@ mod tests {
             private_keys: vec![material.private_key_armored.clone()],
             verification_public_keys: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME + 2),
+            allow_signed_only: None,
         })
         .expect_err("tampered OCB must fail");
         assert_eq!(error, OpenPgpWriteError::AuthenticationFailed);
@@ -5435,11 +5715,12 @@ mod tests {
             .map(|subkey| PublicComponent::Subkey(subkey.key.clone()))
             .expect("encryption subkey");
         let plaintext = b"AES-256 SEIPDv1 MDC payload";
-        let composed = build_compressed_message(
+        let composed = build_composed_message(
             plaintext,
             b"_CONSOLE",
             Timestamp::from_secs(TEST_TIME as u32),
             None,
+            true,
         )
         .expect("compose message");
         let encrypted = encrypt_composed_message(
@@ -5454,6 +5735,7 @@ mod tests {
                 private_keys: vec![material.private_key_armored.clone()],
                 verification_public_keys: Vec::new(),
                 reference_time_epoch_seconds: Some(TEST_TIME),
+                allow_signed_only: None,
             })
             .expect("decrypt MDC message")
             .as_slice(),
@@ -5487,6 +5769,459 @@ mod tests {
     }
 
     #[test]
+    fn streaming_clear_sign_matches_one_shot_across_utf8_and_line_boundaries() {
+        let material = generated_modern_material();
+        let mut content = Vec::new();
+        for index in 0..8_192 {
+            content.extend_from_slice(
+                format!("- unicode λ line {index}\t \r\nplain line {index}\n").as_bytes(),
+            );
+        }
+        content.extend_from_slice(b"final trailing whitespace\t ");
+        let expected = sign_request(OpenPgpSignRequest {
+            kind: OpenPgpSignKind::ClearText as i32,
+            content: content.clone(),
+            private_key: material.private_key_armored.clone(),
+            preferred_fingerprint: String::new(),
+            armored: true,
+            signature_time_epoch_seconds: Some(TEST_TIME + 5),
+            reference_time_epoch_seconds: Some(TEST_TIME + 5),
+        })
+        .expect("one-shot clear signature");
+        let mut session = ClearSigningSession::open(OpenPgpClearSignStreamOpenRequest {
+            private_key: material.private_key_armored.clone(),
+            preferred_fingerprint: String::new(),
+            signature_time_epoch_seconds: Some(TEST_TIME + 5),
+            reference_time_epoch_seconds: Some(TEST_TIME + 5),
+        })
+        .expect("open clear-sign stream");
+        let mut actual = Vec::new();
+        for_odd_chunks(&content, &[1, 2, 7, 31], |chunk| {
+            actual.extend_from_slice(&session.update(chunk).expect("clear-sign update"));
+        });
+        actual.extend_from_slice(&session.finish().expect("finish clear-sign stream"));
+
+        assert_eq!(actual, expected);
+        assert!(actual.windows(4).any(|window| window == b"- - "));
+    }
+
+    #[test]
+    fn clear_sign_pending_whitespace_limit_is_inclusive_and_atomic() {
+        let material = generated_modern_material();
+        let request = || OpenPgpClearSignStreamOpenRequest {
+            private_key: material.private_key_armored.clone(),
+            preferred_fingerprint: String::new(),
+            signature_time_epoch_seconds: Some(TEST_TIME + 5),
+            reference_time_epoch_seconds: Some(TEST_TIME + 5),
+        };
+        let whitespace = (0..MAX_CLEAR_SIGNED_PENDING_WHITESPACE_BYTES)
+            .map(|index| if index % 2 == 0 { b' ' } else { b'\t' })
+            .collect::<Vec<_>>();
+
+        let mut session = ClearSigningSession::open(request()).expect("open clear-sign stream");
+        let mut signed = session
+            .update(&whitespace[..whitespace.len() - 1])
+            .expect("accept whitespace below the limit");
+        let pending_before = session.pending_whitespace.to_vec();
+        let utf8_tail_before = session.utf8_tail.to_vec();
+        let started_before = session.started;
+        let line_start_before = session.line_start;
+        let canonical_needs_break_before = session.canonical_needs_break;
+        let previous_input_was_cr_before = session.previous_input_was_cr;
+        let output_ended_with_line_break_before = session.output_ended_with_line_break;
+
+        assert_eq!(
+            session.update(&[whitespace[whitespace.len() - 1], b' ']),
+            Err(OpenPgpWriteError::ResourceLimit),
+        );
+        assert_eq!(session.pending_whitespace.as_slice(), pending_before);
+        assert_eq!(session.utf8_tail.as_slice(), utf8_tail_before);
+        assert_eq!(session.started, started_before);
+        assert_eq!(session.line_start, line_start_before);
+        assert_eq!(session.canonical_needs_break, canonical_needs_break_before);
+        assert_eq!(session.previous_input_was_cr, previous_input_was_cr_before);
+        assert_eq!(
+            session.output_ended_with_line_break,
+            output_ended_with_line_break_before
+        );
+
+        signed.extend_from_slice(
+            &session
+                .update(&[whitespace[whitespace.len() - 1], b'\n'])
+                .expect("recover with an exactly-at-limit run"),
+        );
+        signed.extend_from_slice(
+            &session
+                .finish()
+                .expect("finish recovered clear-sign stream"),
+        );
+        let verification = OpenPgpVerification::decode(
+            crate::openpgp_read::verify_request(OpenPgpVerifyRequest {
+                kind: OpenPgpVerifyKind::ClearText as i32,
+                content: signed,
+                signature: Vec::new(),
+                public_keys: vec![material.public_key_armored.clone()],
+                reference_time_epoch_seconds: Some(TEST_TIME + 5),
+            })
+            .expect("verify recovered clear signature")
+            .as_slice(),
+        )
+        .expect("decode recovered verification");
+        assert_eq!(verification.status, OpenPgpVerificationStatus::Valid as i32);
+
+        let mixed_content = b"mixed \t \t  whitespace";
+        let expected = sign_request(OpenPgpSignRequest {
+            kind: OpenPgpSignKind::ClearText as i32,
+            content: mixed_content.to_vec(),
+            private_key: material.private_key_armored.clone(),
+            preferred_fingerprint: String::new(),
+            armored: true,
+            signature_time_epoch_seconds: Some(TEST_TIME + 5),
+            reference_time_epoch_seconds: Some(TEST_TIME + 5),
+        })
+        .expect("one-shot mixed-whitespace clear signature");
+        let mut mixed =
+            ClearSigningSession::open(request()).expect("open mixed-whitespace clear-sign stream");
+        let mut actual = mixed.update(b"mixed \t ").expect("buffer mixed whitespace");
+        actual.extend_from_slice(
+            &mixed
+                .update(b"\t  whitespace")
+                .expect("flush mixed whitespace"),
+        );
+        actual.extend_from_slice(&mixed.finish().expect("finish mixed-whitespace stream"));
+        assert_eq!(actual, expected);
+
+        let mut fresh = ClearSigningSession::open(request()).expect("open fresh clear-sign stream");
+        let too_long = vec![b' '; MAX_CLEAR_SIGNED_PENDING_WHITESPACE_BYTES + 1];
+        assert_eq!(
+            fresh.update(&too_long),
+            Err(OpenPgpWriteError::ResourceLimit),
+        );
+        assert!(!fresh.started);
+        assert!(fresh.pending_whitespace.is_empty());
+        assert!(fresh.utf8_tail.is_empty());
+
+        let mut reset = ClearSigningSession::open(request()).expect("open reset clear-sign stream");
+        let _ = reset
+            .update(&whitespace)
+            .expect("accept an exactly-at-limit run");
+        assert_eq!(
+            reset.pending_whitespace.len(),
+            MAX_CLEAR_SIGNED_PENDING_WHITESPACE_BYTES
+        );
+        let _ = reset.update(b"\n").expect("line break resets the run");
+        assert!(reset.pending_whitespace.is_empty());
+        let _ = reset
+            .update(&whitespace)
+            .expect("accept another run after a line break");
+        assert_eq!(
+            reset.pending_whitespace.len(),
+            MAX_CLEAR_SIGNED_PENDING_WHITESPACE_BYTES
+        );
+
+        let mut content_reset =
+            ClearSigningSession::open(request()).expect("open content-reset clear-sign stream");
+        let _ = content_reset
+            .update(&whitespace)
+            .expect("accept a run before content");
+        let _ = content_reset
+            .update(b"x")
+            .expect("non-whitespace resets the run");
+        assert!(content_reset.pending_whitespace.is_empty());
+    }
+
+    #[test]
+    fn allow_signed_only_rejects_unsigned_literal_messages_without_streaming_plaintext() {
+        let _stream_guard = STREAM_TEST_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let plaintext = b"unsigned OpenPGP literal payload";
+
+        for enable_compression in [false, true] {
+            let unsigned = build_composed_message(
+                plaintext,
+                b"unsigned.txt",
+                Timestamp::from_secs((TEST_TIME + 6) as u32),
+                None,
+                enable_compression,
+            )
+            .expect("compose unsigned literal message");
+
+            assert_eq!(
+                decrypt_request(OpenPgpDecryptRequest {
+                    content: unsigned.to_vec(),
+                    private_keys: Vec::new(),
+                    verification_public_keys: Vec::new(),
+                    reference_time_epoch_seconds: Some(TEST_TIME + 6),
+                    allow_signed_only: Some(true),
+                }),
+                Err(OpenPgpWriteError::InvalidArgument),
+            );
+
+            let mut session = OpenPgpDecryptionSession::open(OpenPgpDecryptStreamOpenRequest {
+                private_keys: Vec::new(),
+                verification_public_keys: Vec::new(),
+                reference_time_epoch_seconds: Some(TEST_TIME + 6),
+                allow_signed_only: Some(true),
+            })
+            .expect("open signed-only decryption stream");
+            let mut provisional = Vec::new();
+            let mut update_failure = None;
+            for chunk in unsigned.chunks(7) {
+                match session.update(chunk) {
+                    Ok(data) => provisional.extend_from_slice(&data),
+                    Err(error) => {
+                        update_failure = Some(error);
+                        break;
+                    }
+                }
+            }
+            let error = if let Some(error) = update_failure {
+                error
+            } else {
+                session
+                    .finish()
+                    .expect_err("unsigned literal stream must fail")
+            };
+
+            assert_eq!(error, OpenPgpWriteError::InvalidArgument);
+            assert!(provisional.is_empty());
+        }
+    }
+
+    #[test]
+    fn signed_only_messages_decode_with_verification_and_literal_metadata() {
+        let material = generated_modern_material();
+        let plaintext = b"signed-only OpenPGP payload";
+        let (secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            material.private_key_armored.as_slice(),
+        ))
+        .expect("parse generated secret key");
+        let signing_packet = select_signing_packet(&secret, &material.fingerprint, TEST_TIME + 6)
+            .expect("select signing packet");
+
+        for enable_compression in [false, true] {
+            let signed = build_composed_message(
+                plaintext,
+                b"signed-only.txt",
+                Timestamp::from_secs((TEST_TIME + 6) as u32),
+                Some(signing_packet),
+                enable_compression,
+            )
+            .expect("compose signed-only message");
+            let result = OpenPgpDecryptResult::decode(
+                decrypt_request(OpenPgpDecryptRequest {
+                    content: signed.to_vec(),
+                    private_keys: Vec::new(),
+                    verification_public_keys: vec![material.public_key_armored.clone()],
+                    reference_time_epoch_seconds: Some(TEST_TIME + 6),
+                    allow_signed_only: Some(true),
+                })
+                .expect("decode signed-only message")
+                .as_slice(),
+            )
+            .expect("decode signed-only result");
+
+            assert_eq!(result.data, plaintext);
+            assert!(!result.encrypted);
+            assert!(result.decryption_key_fingerprint.is_none());
+            assert_eq!(
+                result.verification.as_ref().expect("verification").status,
+                OpenPgpVerificationStatus::Valid as i32,
+            );
+            let metadata = result.metadata.as_ref().expect("literal metadata");
+            assert_eq!(metadata.file_name, b"signed-only.txt");
+            assert_eq!(metadata.modification_time_epoch_seconds, TEST_TIME + 6);
+            assert_eq!(metadata.original_size, plaintext.len() as u64);
+
+            let missing_key = OpenPgpDecryptResult::decode(
+                decrypt_request(OpenPgpDecryptRequest {
+                    content: signed.to_vec(),
+                    private_keys: Vec::new(),
+                    verification_public_keys: Vec::new(),
+                    reference_time_epoch_seconds: Some(TEST_TIME + 6),
+                    allow_signed_only: Some(true),
+                })
+                .expect("decode signed-only message without verification key")
+                .as_slice(),
+            )
+            .expect("decode missing-key result");
+            assert_eq!(
+                missing_key
+                    .verification
+                    .as_ref()
+                    .expect("missing-key verification")
+                    .status,
+                OpenPgpVerificationStatus::MissingPublicKey as i32,
+            );
+            assert!(missing_key.decryption_key_fingerprint.is_none());
+        }
+    }
+
+    #[test]
+    fn decryption_results_identify_the_successful_private_component() {
+        let _stream_guard = STREAM_TEST_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let unrelated = generated_modern_material();
+        let recipient = generated_modern_material();
+        let (recipient_secret, _) = SignedSecretKey::from_reader_single(Cursor::new(
+            recipient.private_key_armored.as_slice(),
+        ))
+        .expect("parse recipient secret key");
+        let expected_fingerprint = fingerprint_hex(&recipient_secret.secret_subkeys[1].key);
+        let plaintext = b"attribute the actual recipient";
+        let encrypted = OpenPgpEncryptResult::decode(
+            encrypt_request(OpenPgpEncryptRequest {
+                content: plaintext.to_vec(),
+                public_keys: vec![recipient.public_key_armored.clone()],
+                signing_private_key: None,
+                preferred_signing_fingerprint: String::new(),
+                file_name: "attribution.bin".to_owned(),
+                armored: false,
+                literal_time_epoch_seconds: Some(TEST_TIME),
+                reference_time_epoch_seconds: Some(TEST_TIME),
+                enable_compression: None,
+            })
+            .expect("encrypt for recipient")
+            .as_slice(),
+        )
+        .expect("decode encrypted message");
+
+        let one_shot = OpenPgpDecryptResult::decode(
+            decrypt_request(OpenPgpDecryptRequest {
+                content: encrypted.data.clone(),
+                private_keys: vec![
+                    unrelated.private_key_armored.clone(),
+                    recipient.private_key_armored.clone(),
+                ],
+                verification_public_keys: Vec::new(),
+                reference_time_epoch_seconds: Some(TEST_TIME),
+                allow_signed_only: None,
+            })
+            .expect("decrypt with recipient after unrelated candidate")
+            .as_slice(),
+        )
+        .expect("decode one-shot decryption result");
+        assert_eq!(one_shot.data, plaintext);
+        assert_eq!(
+            one_shot.decryption_key_fingerprint.as_deref(),
+            Some(expected_fingerprint.as_str()),
+        );
+
+        let mut rng = AwsLcRng;
+        let mut anonymous_builder =
+            MessageBuilder::from_bytes("anonymous.bin", plaintext.as_slice())
+                .seipd_v1(&mut rng, SymmetricKeyAlgorithm::AES256);
+        anonymous_builder
+            .encrypt_to_key_anonymous(&mut rng, &recipient_secret.secret_subkeys[1].public_key())
+            .expect("encrypt for hidden recipient");
+        let anonymous_encrypted = anonymous_builder
+            .to_vec(rng)
+            .expect("serialize hidden-recipient message");
+        let hidden_recipient = OpenPgpDecryptResult::decode(
+            decrypt_request(OpenPgpDecryptRequest {
+                content: anonymous_encrypted,
+                private_keys: vec![
+                    unrelated.private_key_armored.clone(),
+                    recipient.private_key_armored.clone(),
+                ],
+                verification_public_keys: Vec::new(),
+                reference_time_epoch_seconds: Some(TEST_TIME),
+                allow_signed_only: None,
+            })
+            .expect("decrypt hidden-recipient message")
+            .as_slice(),
+        )
+        .expect("decode hidden-recipient result");
+        assert_eq!(hidden_recipient.data, plaintext);
+        assert_eq!(
+            hidden_recipient.decryption_key_fingerprint.as_deref(),
+            Some(expected_fingerprint.as_str()),
+        );
+
+        let mut streaming = OpenPgpDecryptionSession::open(OpenPgpDecryptStreamOpenRequest {
+            private_keys: vec![
+                recipient.private_key_armored.clone(),
+                unrelated.private_key_armored.clone(),
+            ],
+            verification_public_keys: Vec::new(),
+            reference_time_epoch_seconds: Some(TEST_TIME),
+            allow_signed_only: None,
+        })
+        .expect("open streaming decryption");
+        let mut streamed_plaintext = Vec::new();
+        for chunk in encrypted.data.chunks(17) {
+            streamed_plaintext
+                .extend_from_slice(&streaming.update(chunk).expect("stream decryption update"));
+        }
+        let final_result = OpenPgpDecryptFinal::decode(
+            streaming
+                .finish()
+                .expect("finish streaming decryption")
+                .as_slice(),
+        )
+        .expect("decode streaming decryption result");
+        streamed_plaintext.extend_from_slice(&final_result.data);
+        assert_eq!(streamed_plaintext, plaintext);
+        assert_eq!(
+            final_result.decryption_key_fingerprint.as_deref(),
+            Some(expected_fingerprint.as_str()),
+        );
+    }
+
+    #[test]
+    fn streaming_encryption_without_compression_preserves_metadata() {
+        let _stream_guard = STREAM_TEST_LOCK
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let material = generated_modern_material();
+        let plaintext = vec![0x5a_u8; 256 * 1024];
+        let mut encryption = OpenPgpEncryptionSession::open(OpenPgpEncryptStreamOpenRequest {
+            public_keys: vec![material.public_key_armored.clone()],
+            signing_private_key: None,
+            preferred_signing_fingerprint: String::new(),
+            file_name: "uncompressed.bin".to_owned(),
+            armored: false,
+            literal_time_epoch_seconds: Some(TEST_TIME + 7),
+            reference_time_epoch_seconds: Some(TEST_TIME + 7),
+            enable_compression: Some(false),
+        })
+        .expect("open uncompressed encryption stream");
+        let mut encrypted = Vec::new();
+        for chunk in plaintext.chunks(7_919) {
+            encrypted.extend_from_slice(&encryption.update(chunk).expect("encrypt update"));
+        }
+        let final_output =
+            OpenPgpEncryptFinal::decode(encryption.finish().expect("finish encryption").as_slice())
+                .expect("decode encryption final");
+        encrypted.extend_from_slice(&final_output.data);
+
+        let mut decryption = OpenPgpDecryptionSession::open(OpenPgpDecryptStreamOpenRequest {
+            private_keys: vec![material.private_key_armored.clone()],
+            verification_public_keys: Vec::new(),
+            reference_time_epoch_seconds: Some(TEST_TIME + 7),
+            allow_signed_only: Some(false),
+        })
+        .expect("open decryption stream");
+        let mut decrypted = Vec::new();
+        for chunk in encrypted.chunks(8_111) {
+            decrypted.extend_from_slice(&decryption.update(chunk).expect("decrypt update"));
+        }
+        let final_output =
+            OpenPgpDecryptFinal::decode(decryption.finish().expect("finish decryption").as_slice())
+                .expect("decode decryption final");
+        decrypted.extend_from_slice(&final_output.data);
+
+        assert_eq!(decrypted, plaintext);
+        assert!(final_output.encrypted);
+        let metadata = final_output.metadata.as_ref().expect("literal metadata");
+        assert_eq!(metadata.file_name, b"uncompressed.bin");
+        assert_eq!(metadata.modification_time_epoch_seconds, TEST_TIME + 7);
+        assert_eq!(metadata.original_size, plaintext.len() as u64);
+    }
+
+    #[test]
     fn streaming_seipd_v1_mdc_roundtrip_and_truncated_finalization() {
         let _stream_guard = STREAM_TEST_LOCK
             .lock()
@@ -5510,6 +6245,7 @@ mod tests {
             armored: false,
             literal_time_epoch_seconds: Some(TEST_TIME),
             reference_time_epoch_seconds: Some(1_800_000_000),
+            enable_compression: None,
         })
         .expect("open MDC encryption stream");
         let mut encrypted = Vec::new();
@@ -5534,6 +6270,7 @@ mod tests {
                 private_keys: vec![private_key.clone()],
                 verification_public_keys: Vec::new(),
                 reference_time_epoch_seconds: Some(1_800_000_000),
+                allow_signed_only: None,
             })
             .expect("open MDC decryption stream");
             let mut provisional = Zeroizing::new(Vec::new());
@@ -5583,6 +6320,7 @@ mod tests {
             armored: true,
             literal_time_epoch_seconds: Some(TEST_TIME + 3),
             reference_time_epoch_seconds: Some(TEST_TIME + 3),
+            enable_compression: None,
         })
         .expect("open encryption stream");
         let mut encrypted = Vec::new();
@@ -5602,17 +6340,27 @@ mod tests {
         );
         encrypted.extend_from_slice(&final_output.data);
         assert!(encrypted.starts_with(b"-----BEGIN PGP MESSAGE-----"));
+        let armor_header_end = if encrypted.starts_with(b"-----BEGIN PGP MESSAGE-----\r\n") {
+            b"-----BEGIN PGP MESSAGE-----\r\n".len()
+        } else {
+            b"-----BEGIN PGP MESSAGE-----\n".len()
+        };
+        encrypted.splice(
+            armor_header_end..armor_header_end,
+            b"Charset: ISO-8859-1\n".iter().copied(),
+        );
 
         let mut decryption = OpenPgpDecryptionSession::open(OpenPgpDecryptStreamOpenRequest {
             private_keys: vec![material.private_key_armored.clone()],
             verification_public_keys: vec![material.public_key_armored.clone()],
             reference_time_epoch_seconds: Some(TEST_TIME + 3),
+            allow_signed_only: None,
         })
         .expect("open decryption stream");
         let mut decrypted = Zeroizing::new(Vec::new());
         for_odd_chunks(
             &encrypted,
-            &[31, 7, 1, OPENPGP_PARTIAL_PACKET_BYTES],
+            &[64, 31, 7, 1, OPENPGP_PARTIAL_PACKET_BYTES],
             |chunk| {
                 decrypted.extend_from_slice(&decryption.update(chunk).expect("decrypt update"));
             },
@@ -5623,6 +6371,7 @@ mod tests {
         decrypted.extend_from_slice(&final_output.data);
         assert_eq!(decrypted.as_slice(), plaintext.as_slice());
         assert!(final_output.verification.is_some());
+        assert_eq!(final_output.declared_charset.as_deref(), Some("ISO-8859-1"));
     }
 
     #[test]
@@ -5639,6 +6388,7 @@ mod tests {
             armored: false,
             literal_time_epoch_seconds: Some(TEST_TIME),
             reference_time_epoch_seconds: Some(TEST_TIME),
+            enable_compression: None,
         };
         let sessions = (0..MAX_OPENPGP_STREAM_WORKERS)
             .map(|_| OpenPgpEncryptionSession::open(request()).expect("worker slot"))
@@ -5704,6 +6454,7 @@ mod tests {
             armored: false,
             literal_time_epoch_seconds: Some(TEST_TIME + 4),
             reference_time_epoch_seconds: Some(TEST_TIME + 4),
+            enable_compression: None,
         })
         .expect("open tamper encryption stream");
         let mut encrypted = Vec::new();
@@ -5723,6 +6474,7 @@ mod tests {
             private_keys: vec![material.private_key_armored.clone()],
             verification_public_keys: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME + 4),
+            allow_signed_only: None,
         })
         .expect("open decryption stream");
         let mut provisional_bytes = 0_usize;

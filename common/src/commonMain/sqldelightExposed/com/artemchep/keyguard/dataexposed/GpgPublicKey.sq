@@ -1,0 +1,44 @@
+import kotlin.Boolean;
+
+CREATE TABLE gpgPublicKey (
+  accountId TEXT NOT NULL,
+  cipherId TEXT NOT NULL,
+  publicKeyArmored TEXT,
+  primaryFingerprint TEXT,
+  canSign INTEGER AS Boolean NOT NULL,
+  canDecrypt INTEGER AS Boolean NOT NULL,
+  name TEXT,
+  PRIMARY KEY (accountId, cipherId)
+);
+
+insert:
+INSERT OR REPLACE INTO gpgPublicKey(
+  accountId,
+  cipherId,
+  publicKeyArmored,
+  primaryFingerprint,
+  canSign,
+  canDecrypt,
+  name
+)
+VALUES (
+  :accountId,
+  :cipherId,
+  :publicKeyArmored,
+  :primaryFingerprint,
+  :canSign,
+  :canDecrypt,
+  :name
+);
+
+get:
+SELECT *
+FROM gpgPublicKey
+ORDER BY primaryFingerprint ASC, accountId ASC, cipherId ASC;
+
+deleteAll:
+DELETE FROM gpgPublicKey;
+
+clearNames:
+UPDATE gpgPublicKey
+SET name = NULL;

@@ -3,11 +3,11 @@
 use keyguard_crypto_core::{
     MAX_CONTROL_ENVELOPE_BYTES, MAX_STREAM_CHUNK_BYTES, PROTOCOL_VERSION,
     protocol::{
-        NativeRequest, NativeResponse, NativeStreamOpenRequest, OpenPgpDecryptRequest,
-        OpenPgpDecryptStreamOpenRequest, OpenPgpDetachedSignStreamOpenRequest,
-        OpenPgpEncryptRequest, OpenPgpEncryptStreamOpenRequest, OpenPgpKeyImportRequest,
-        OpenPgpSignKind, OpenPgpSignRequest, native_request, native_response,
-        native_stream_open_request,
+        NativeRequest, NativeResponse, NativeStreamOpenRequest, OpenPgpClearSignStreamOpenRequest,
+        OpenPgpDecryptRequest, OpenPgpDecryptStreamOpenRequest,
+        OpenPgpDetachedSignStreamOpenRequest, OpenPgpEncryptRequest,
+        OpenPgpEncryptStreamOpenRequest, OpenPgpKeyImportRequest, OpenPgpSignKind,
+        OpenPgpSignRequest, native_request, native_response, native_stream_open_request,
     },
 };
 use libfuzzer_sys::fuzz_target;
@@ -57,6 +57,7 @@ fuzz_target!(|input: &[u8]| {
             armored: selector & 8 == 0,
             literal_time_epoch_seconds: Some(REFERENCE_TIME - 1),
             reference_time_epoch_seconds: Some(REFERENCE_TIME),
+            enable_compression: None,
         },
     ));
     call(native_request::Operation::OpenPgpDecrypt(
@@ -65,6 +66,7 @@ fuzz_target!(|input: &[u8]| {
             private_keys: vec![private_key.clone()],
             verification_public_keys: vec![public_key.clone()],
             reference_time_epoch_seconds: Some(REFERENCE_TIME),
+            allow_signed_only: None,
         },
     ));
 
@@ -78,6 +80,14 @@ fuzz_target!(|input: &[u8]| {
                 reference_time_epoch_seconds: Some(REFERENCE_TIME),
             },
         ),
+        native_stream_open_request::Operation::OpenPgpClearSign(
+            OpenPgpClearSignStreamOpenRequest {
+                private_key: private_key.clone(),
+                preferred_fingerprint: String::new(),
+                signature_time_epoch_seconds: Some(REFERENCE_TIME - 1),
+                reference_time_epoch_seconds: Some(REFERENCE_TIME),
+            },
+        ),
         native_stream_open_request::Operation::OpenPgpEncrypt(OpenPgpEncryptStreamOpenRequest {
             public_keys: vec![public_key.clone()],
             signing_private_key: None,
@@ -86,11 +96,13 @@ fuzz_target!(|input: &[u8]| {
             armored: false,
             literal_time_epoch_seconds: Some(REFERENCE_TIME - 1),
             reference_time_epoch_seconds: Some(REFERENCE_TIME),
+            enable_compression: None,
         }),
         native_stream_open_request::Operation::OpenPgpDecrypt(OpenPgpDecryptStreamOpenRequest {
             private_keys: vec![private_key],
             verification_public_keys: vec![public_key],
             reference_time_epoch_seconds: Some(REFERENCE_TIME),
+            allow_signed_only: None,
         }),
     ];
     for (index, operation) in operations.into_iter().enumerate() {

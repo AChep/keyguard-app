@@ -6,10 +6,11 @@ use keyguard_crypto_core::{
         AesCbcPkcs7Request, AesCbcPkcs7StreamOpenRequest, CipherDirection, DigestRequest,
         DigestStreamOpenRequest, HashAlgorithm, HmacRequest, HmacStreamOpenRequest,
         NativeErrorCode, NativeRequest, NativeResponse, NativeStreamOpenRequest,
-        OpenPgpDetachedVerifyStreamOpenRequest, OpenPgpVerification, OpenPgpVerificationStatus,
-        OpenPgpVerifyKind, OpenPgpVerifyRequest, SshAgentTcpChaCha20Poly1305Request,
-        StreamCipherAlgorithm, StreamCipherXorAtOffsetRequest, TwofishCbcPkcs7Request,
-        TwofishCbcPkcs7StreamOpenRequest, native_request, native_response,
+        OpenPgpClearVerifyResult, OpenPgpClearVerifyStreamOpenRequest,
+        OpenPgpDetachedVerifyStreamOpenRequest, OpenPgpSignKind, OpenPgpSignRequest,
+        OpenPgpVerification, OpenPgpVerificationStatus, OpenPgpVerifyKind, OpenPgpVerifyRequest,
+        SshAgentTcpChaCha20Poly1305Request, StreamCipherAlgorithm, StreamCipherXorAtOffsetRequest,
+        TwofishCbcPkcs7Request, TwofishCbcPkcs7StreamOpenRequest, native_request, native_response,
         native_stream_open_request,
     },
     stream_finish, stream_open, stream_update,
@@ -231,6 +232,118 @@ fn streamed_detached_verification(data: &[u8], signature: &[u8], partitions: &[u
 
 fn open_pgp_verification(data: &[u8]) -> OpenPgpVerification {
     OpenPgpVerification::decode(data).expect("OpenPGP verification result must decode")
+}
+
+fn deterministic_clear_signed_document(body: &str) -> Vec<u8> {
+    one_shot(native_request::Operation::OpenPgpSign(OpenPgpSignRequest {
+        kind: OpenPgpSignKind::ClearText as i32,
+        content: body.as_bytes().to_vec(),
+        private_key: OPENPGP_SECRET_KEY.to_vec(),
+        preferred_fingerprint: String::new(),
+        armored: true,
+        signature_time_epoch_seconds: Some(u64::from(OPENPGP_SIGNATURE_TIME)),
+        reference_time_epoch_seconds: Some(OPENPGP_REFERENCE_TIME),
+    }))
+}
+
+fn normalized_cleartext_body(body: &[u8]) -> Vec<u8> {
+    let body = body.strip_suffix(b"\n").unwrap_or(body);
+    let mut recovered = Vec::with_capacity(body.len());
+    for (index, line) in body.split(|byte| *byte == b'\n').enumerate() {
+        if index > 0 {
+            recovered.push(b'\n');
+        }
+        let content_length = line
+            .iter()
+            .rposition(|byte| !matches!(byte, b' ' | b'\t'))
+            .map_or(0, |position| position + 1);
+        recovered.extend_from_slice(&line[..content_length]);
+    }
+    recovered
+}
+
+fn one_shot_clear_verification(document: &[u8]) -> Vec<u8> {
+    one_shot(native_request::Operation::OpenPgpVerify(
+        OpenPgpVerifyRequest {
+            kind: OpenPgpVerifyKind::ClearText as i32,
+            content: document.to_vec(),
+            signature: Vec::new(),
+            public_keys: vec![OPENPGP_PUBLIC_KEY.to_vec()],
+            reference_time_epoch_seconds: Some(OPENPGP_REFERENCE_TIME),
+        },
+    ))
+}
+
+fn streamed_clear_verification(
+    document: &[u8],
+    partitions: &[usize],
+) -> (Vec<u8>, OpenPgpClearVerifyResult) {
+    assert!(!partitions.is_empty());
+    assert!(partitions.iter().all(|size| *size > 0));
+    let open_response =
+        stream_open_response(native_stream_open_request::Operation::OpenPgpClearVerify(
+            OpenPgpClearVerifyStreamOpenRequest {
+                public_keys: vec![OPENPGP_PUBLIC_KEY.to_vec()],
+                reference_time_epoch_seconds: Some(OPENPGP_REFERENCE_TIME),
+            },
+        ));
+    let open_status = open_response
+        .status
+        .expect("stream-open response must contain status");
+    assert_eq!(open_status.code, NativeErrorCode::Ok as i32);
+    let handle = match open_response.result {
+        Some(native_response::Result::Uint64Value(handle)) => handle,
+        _ => panic!("stream-open response must contain a handle"),
+    };
+
+    let mut body = Vec::new();
+    let mut offset = 0;
+    for size in partitions.iter().copied().cycle() {
+        if offset == document.len() {
+            break;
+        }
+        let end = offset.saturating_add(size).min(document.len());
+        let update =
+            NativeResponse::decode(stream_update(handle, &document[offset..end]).as_slice())
+                .expect("stream-update response must decode");
+        body.extend(response_bytes(update));
+        offset = end;
+    }
+    let finish = NativeResponse::decode(stream_finish(handle).as_slice())
+        .expect("stream-finish response must decode");
+    let result = OpenPgpClearVerifyResult::decode(response_bytes(finish).as_slice())
+        .expect("clear-verify result must decode");
+    (body, result)
+}
+
+#[test]
+fn clear_signed_recovery_excludes_the_signature_separator_line_ending() {
+    let cases: [(&str, &[u8]); 5] = [
+        ("", b""),
+        ("\n", b""),
+        ("a", b"a"),
+        ("a\n", b"a"),
+        ("a\n\n", b"a\n"),
+    ];
+    let mut documents = Vec::with_capacity(cases.len());
+
+    for (body, expected) in cases {
+        let document = deterministic_clear_signed_document(body);
+        let (recovered, result) = streamed_clear_verification(&document, &[1, 7, 31]);
+
+        assert_eq!(recovered, expected);
+        assert_eq!(
+            result
+                .verification
+                .expect("clear-sign verification result must be present")
+                .status,
+            OpenPgpVerificationStatus::Valid as i32,
+        );
+        documents.push(document);
+    }
+
+    assert_eq!(documents[0], documents[1]);
+    assert_eq!(documents[2], documents[3]);
 }
 
 proptest! {
@@ -503,6 +616,30 @@ proptest! {
         prop_assert_eq!(
             response_status_code(&malformed_one_shot),
             NativeErrorCode::InvalidArgument as i32,
+        );
+    }
+
+    #[test]
+    fn clear_signed_openpgp_one_shot_and_streaming_match_and_recover_the_body(
+        lines in prop::collection::vec("[ -~]{0,40}", 0..12),
+        partitions in prop::collection::vec(1_usize..512, 1..16),
+    ) {
+        let body = lines.join("\n");
+        let document = deterministic_clear_signed_document(&body);
+
+        let one_shot_verification = open_pgp_verification(&one_shot_clear_verification(&document));
+        prop_assert_eq!(
+            one_shot_verification.status,
+            OpenPgpVerificationStatus::Valid as i32,
+        );
+
+        let (streamed_body, streamed_result) =
+            streamed_clear_verification(&document, &partitions);
+        prop_assert_eq!(streamed_result.verification, Some(one_shot_verification));
+        prop_assert!(streamed_result.body_valid_utf8);
+        prop_assert_eq!(
+            streamed_body,
+            normalized_cleartext_body(body.as_bytes()),
         );
     }
 }

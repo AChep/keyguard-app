@@ -117,8 +117,3 @@ private fun NativeSshKeyMaterial.toDomain(): KeyParameterRawZero = KeyPairRaw(
     privateKey = KeyPairRaw.KeyParameter(privateKey),
     publicKey = KeyPairRaw.KeyParameter(publicKey),
 )
-
-private fun KeyPair.Type.toNative(): NativeSshKeyType = when (this) {
-    KeyPair.Type.RSA -> NativeSshKeyType.RSA
-    KeyPair.Type.ED25519 -> NativeSshKeyType.ED25519
-}

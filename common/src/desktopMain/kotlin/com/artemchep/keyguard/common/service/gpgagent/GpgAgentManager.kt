@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
@@ -42,7 +43,8 @@ class GpgAgentManager(
     private val getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow,
     private val getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy,
     private val getGpgAgentFilter: GetGpgAgentFilter,
-    private val gpgAgentPublicKeyRepository: GpgAgentPublicKeyRepository,
+    private val gpgPublicKeyRepository: GpgPublicKeyRepository,
+    private val pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
 ) : AgentManager(
     logRepository = logRepository,
     cryptoGenerator = cryptoGenerator,
@@ -133,19 +135,22 @@ class GpgAgentManager(
             getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
             getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
             getGpgAgentFilter = getGpgAgentFilter,
-            gpgAgentPublicKeyRepository = gpgAgentPublicKeyRepository,
+            gpgPublicKeyRepository = gpgPublicKeyRepository,
+            pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             authToken = authToken,
             scope = scope,
             expectedPeerProcess = expectedPeerProcess,
             sessionId = sessionId,
-            onApprovalRequest = { operation, caller, keyName, keyFingerprint, keygrip ->
+            onApprovalRequest = { prompt ->
                 val deferred = CompletableDeferred<Boolean>()
                 val request = GpgAgentApprovalRequest(
-                    operation = operation,
-                    keyName = keyName,
-                    keyFingerprint = keyFingerprint,
-                    keygrip = keygrip,
-                    caller = caller,
+                    operation = prompt.operation,
+                    keyName = prompt.keyName,
+                    keyFingerprint = prompt.keyFingerprint,
+                    keygrip = prompt.keygrip,
+                    accountId = prompt.accountId,
+                    cipherId = prompt.cipherId,
+                    caller = prompt.caller,
                     notificationTag = null,
                     expiresAt = Clock.System.now() + GpgAgentIpcServer.APPROVAL_TIMEOUT_MS.milliseconds,
                     deferred = deferred,

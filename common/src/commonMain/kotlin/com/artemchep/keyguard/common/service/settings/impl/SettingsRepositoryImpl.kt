@@ -122,6 +122,7 @@ class SettingsRepositoryImpl(
         private const val KEY_COLORS = "colors"
         private const val KEY_LOCALE = "locale"
         private const val KEY_DATABASE_EXPOSED_KEY = "database_exposed_key"
+        private const val KEY_CONTENT_PUBLIC_KEY = "content_public_key"
 
         private const val NONE_DURATION = -1L
     }
@@ -503,6 +504,21 @@ class SettingsRepositoryImpl(
             },
         )
 
+    private val exposedContentPublicKeyPref =
+        store.getObject<ByteArray?>(
+            KEY_CONTENT_PUBLIC_KEY,
+            defaultValue = null,
+            serialize = { keyRaw ->
+                keyRaw
+                    ?.let(base64Service::encodeToString)
+                    .orEmpty()
+            },
+            deserialize = { keyBase64 ->
+                if (keyBase64.isEmpty()) return@getObject null
+                keyBase64.let(base64Service::decode)
+            },
+        )
+
     private val internalPrefKeys = setOf(
         KEY_WRITE_ACCESS,
         KEY_DEBUG_PREMIUM,
@@ -512,6 +528,7 @@ class SettingsRepositoryImpl(
         KEY_ONBOARDING_LAST_VISIT,
         KEY_VERSION_LOG,
         KEY_DATABASE_EXPOSED_KEY,
+        KEY_CONTENT_PUBLIC_KEY,
         KEY_GPG_KEYSERVER_LAST_REFRESH,
     )
 
@@ -997,6 +1014,13 @@ class SettingsRepositoryImpl(
         .setAndCommit(key)
 
     override fun getExposedDatabaseKey() = databaseExposedPref
+
+    override fun setExposedContentPublicKey(
+        key: ByteArray?,
+    ) = exposedContentPublicKeyPref
+        .setAndCommit(key)
+
+    override fun getExposedContentPublicKey() = exposedContentPublicKeyPref
 }
 
 @Suppress("UNCHECKED_CAST")

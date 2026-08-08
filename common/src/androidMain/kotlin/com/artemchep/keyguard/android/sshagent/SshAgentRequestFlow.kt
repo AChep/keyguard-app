@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.android.sshagent
 
+import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalPrompt
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalRequest
 import com.artemchep.keyguard.common.service.sshagent.SshAgentGetListRequest
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
@@ -36,16 +37,16 @@ internal class AndroidSshAgentRequestFlow(
     )
 
     suspend fun requestSigningApproval(
-        caller: SshAgentMessages.CallerIdentity?,
-        keyName: String,
-        keyFingerprint: String,
+        prompt: SshAgentApprovalPrompt,
         notificationTag: String?,
         timeout: Duration,
     ): Boolean = enqueueAndAwait(
         request = SshAgentApprovalRequest(
-            keyName = keyName,
-            keyFingerprint = keyFingerprint,
-            caller = caller,
+            keyName = prompt.keyName,
+            keyFingerprint = prompt.keyFingerprint,
+            accountId = prompt.accountId,
+            cipherId = prompt.cipherId,
+            caller = prompt.caller,
             notificationTag = notificationTag,
             expiresAt = Clock.System.now() + timeout,
             deferred = CompletableDeferred(),

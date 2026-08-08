@@ -11,4 +11,9 @@ data class AddSshUsageHistoryRequest(
     val response: SshUsageHistoryResponseType,
     val fingerprint: String?,
     val instant: Instant = Clock.System.now(),
+    /**
+     * Optional unique event id. Queued events and Android IPC direct writes
+     * set it so falling back to or replaying the queue remains idempotent.
+     */
+    val eventId: String? = null,
 )

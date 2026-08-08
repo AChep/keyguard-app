@@ -1,30 +1,49 @@
+import kotlin.Boolean;
+
 CREATE TABLE sshAgentPublicKey (
-  publicKeyBlobSha256 TEXT NOT NULL PRIMARY KEY,
+  accountId TEXT NOT NULL,
+  cipherId TEXT NOT NULL,
   publicKey TEXT NOT NULL,
+  publicKeyBlobSha256 TEXT NOT NULL,
   keyType TEXT NOT NULL,
   fingerprint TEXT NOT NULL,
-  name TEXT
+  canSign INTEGER AS Boolean NOT NULL,
+  name TEXT,
+  PRIMARY KEY (accountId, cipherId)
 );
 
 insert:
 INSERT OR REPLACE INTO sshAgentPublicKey(
-  publicKeyBlobSha256,
+  accountId,
+  cipherId,
   publicKey,
+  publicKeyBlobSha256,
   keyType,
   fingerprint,
+  canSign,
   name
 )
-VALUES (:publicKeyBlobSha256, :publicKey, :keyType, :fingerprint, :name);
+VALUES (
+  :accountId,
+  :cipherId,
+  :publicKey,
+  :publicKeyBlobSha256,
+  :keyType,
+  :fingerprint,
+  :canSign,
+  :name
+);
 
 get:
 SELECT *
 FROM sshAgentPublicKey
-ORDER BY keyType ASC, fingerprint ASC, publicKeyBlobSha256 ASC;
+ORDER BY keyType ASC, fingerprint ASC, publicKeyBlobSha256 ASC, accountId ASC, cipherId ASC;
 
 getByPublicKeyBlobSha256:
 SELECT *
 FROM sshAgentPublicKey
-WHERE publicKeyBlobSha256 = :publicKeyBlobSha256;
+WHERE publicKeyBlobSha256 = :publicKeyBlobSha256
+ORDER BY accountId ASC, cipherId ASC;
 
 deleteAll:
 DELETE FROM sshAgentPublicKey;

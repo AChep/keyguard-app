@@ -73,6 +73,12 @@ public data class NativeOpenPgpVerification(
     val warnings: List<NativeOpenPgpVerificationWarning>,
 )
 
+public data class NativeOpenPgpClearVerifyResult(
+    val verification: NativeOpenPgpVerification,
+    /** True when every recovered body line is valid UTF-8. */
+    val bodyValidUtf8: Boolean,
+)
+
 public data class NativeOpenPgpKeyMetadata(
     val version: Int,
     val keys: List<NativeOpenPgpKeyMetadataKey>,
@@ -90,14 +96,14 @@ public enum class NativeOpenPgpKeyKind {
     RSA,
 }
 
-public data class NativeOpenPgpKeyMaterial(
+public class NativeOpenPgpKeyMaterial(
     val privateKeyArmored: ByteArray,
     val publicKeyArmored: ByteArray,
     val fingerprint: String,
 )
 
 public sealed interface NativeOpenPgpKeyImportResult {
-    public data class Success(
+    public class Success(
         val keyMaterial: NativeOpenPgpKeyMaterial,
     ) : NativeOpenPgpKeyImportResult
 
@@ -122,28 +128,79 @@ public enum class NativeOpenPgpProtectionMode {
     GNUPG_OCB,
 }
 
-public data class NativeOpenPgpEncryptResult(
+public class NativeOpenPgpEncryptResult(
     val data: ByteArray,
     val protectionMode: NativeOpenPgpProtectionMode,
 )
 
-public data class NativeOpenPgpDecryptResult(
+public class NativeOpenPgpDecryptResult(
     val data: ByteArray,
     val verification: NativeOpenPgpVerification?,
+    /** See [NativeOpenPgpLiteralMetadata] for its authenticity limits. */
+    val metadata: NativeOpenPgpLiteralMetadata?,
+    /** True when the input was encrypted rather than accepted signed-only. */
+    val encrypted: Boolean,
+    /**
+     * Raw value of the message "Charset:" armor header, when exactly one is
+     * present. Armor headers sit outside every integrity envelope, so this
+     * is an unauthenticated transport hint that anyone in the path can add
+     * or alter; prefer inspecting [data] itself over trusting it.
+     */
+    val declaredCharset: String?,
+    /** Exact primary key or subkey component that recovered the session key. */
+    val decryptionKeyFingerprint: String? = null,
 )
 
-public data class NativeOpenPgpEncryptFinal(
+public class NativeOpenPgpEncryptFinal(
     val data: ByteArray,
     val protectionMode: NativeOpenPgpProtectionMode,
 )
 
-public data class NativeOpenPgpDecryptFinal(
+public class NativeOpenPgpDecryptFinal(
     val data: ByteArray,
     val verification: NativeOpenPgpVerification?,
+    /** See [NativeOpenPgpLiteralMetadata] for its authenticity limits. */
+    val metadata: NativeOpenPgpLiteralMetadata?,
+    /** True when the input was encrypted rather than accepted signed-only. */
+    val encrypted: Boolean,
+    /**
+     * Raw value of the message "Charset:" armor header, when exactly one is
+     * present. Armor headers sit outside every integrity envelope, so this
+     * is an unauthenticated transport hint that anyone in the path can add
+     * or alter; prefer inspecting [data] itself over trusting it.
+     */
+    val declaredCharset: String?,
+    /** Exact primary key or subkey component that recovered the session key. */
+    val decryptionKeyFingerprint: String? = null,
+)
+
+/**
+ * Header of the OpenPGP literal data packet. OpenPGP signatures cover only
+ * the literal *data*, never this header — so when [NativeOpenPgpDecryptResult.encrypted]
+ * is false, every field except [originalSize] is attacker-malleable even
+ * while the signature verifies as valid. For encrypted messages the header
+ * is integrity-protected by the encryption envelope, but it is still
+ * whatever the sender chose to claim.
+ */
+public class NativeOpenPgpLiteralMetadata(
+    /**
+     * Raw file name bytes embedded by the sender: unauthenticated and
+     * unvalidated. Unsafe to use as a filesystem path (may contain path
+     * separators or traversal) and unsafe to render unescaped (may contain
+     * control characters; see GnuPG CVE-2018-12020 "SigSpoof").
+     */
+    val fileName: ByteArray,
+    val format: Int,
+    val modificationTimeEpochSeconds: Long,
+    /**
+     * Actual decoded plaintext size in bytes, counted by the native layer —
+     * not the sender-declared length.
+     */
+    val originalSize: Long,
 )
 
 public sealed interface NativeOpenPgpExpirationUpdateResult {
-    public data class Success(
+    public class Success(
         val keyMaterial: NativeOpenPgpKeyMaterial,
         val metadata: NativeOpenPgpKeyMetadata,
     ) : NativeOpenPgpExpirationUpdateResult
@@ -173,7 +230,7 @@ public enum class NativeOpenPgpExpirationUpdateError {
 }
 
 public sealed interface NativeOpenPgpAgentSignResult {
-    public data class Success(
+    public class Success(
         val canonicalSexp: ByteArray,
     ) : NativeOpenPgpAgentSignResult
 
@@ -183,7 +240,7 @@ public sealed interface NativeOpenPgpAgentSignResult {
 }
 
 public sealed interface NativeOpenPgpAgentDecryptResult {
-    public data class Success(
+    public class Success(
         val canonicalSexp: ByteArray,
     ) : NativeOpenPgpAgentDecryptResult
 
@@ -212,6 +269,30 @@ public interface NativeOpenPgpVerificationSession : AutoCloseable {
     override fun close()
 }
 
+public interface NativeOpenPgpClearVerificationSession : AutoCloseable {
+    /**
+     * Supplies at most 64 KiB of the cleartext-signed document and returns
+     * the dash-unescaped body bytes recovered so far. The structural line
+     * ending before the signature armor and unauthenticated trailing spaces
+     * and tabs are excluded. Line endings are preserved as received; the
+     * signature covers only the CRLF-canonical form of the text, so their
+     * exact bytes are attacker-malleable even in a valid document (GnuPG
+     * and RNP recover them the same way). The returned plaintext is
+     * provisional until [finish] succeeds.
+     */
+    public fun update(
+        data: ByteArray,
+        offset: Int = 0,
+        length: Int = data.size - offset,
+    ): ByteArray
+
+    /** Finishes and consumes this session, returning the authenticated result. */
+    public fun finish(): NativeOpenPgpClearVerifyResult
+
+    /** Releases this session. This operation is idempotent. */
+    override fun close()
+}
+
 public interface NativeOpenPgpDetachedSigningSession : AutoCloseable {
     /** Supplies at most 64 KiB of the exact file body to sign. */
     public fun update(
@@ -221,6 +302,25 @@ public interface NativeOpenPgpDetachedSigningSession : AutoCloseable {
     )
 
     /** Finishes and consumes this session, returning the detached signature. */
+    public fun finish(): ByteArray
+
+    /** Releases this session. This operation is idempotent. */
+    override fun close()
+}
+
+public interface NativeOpenPgpClearSigningSession : AutoCloseable {
+    /**
+     * Supplies at most 64 KiB of UTF-8 cleartext and returns the next
+     * cleartext-signature framework chunk. A contiguous run of spaces and
+     * tabs across updates is limited to 64 KiB.
+     */
+    public fun update(
+        data: ByteArray,
+        offset: Int = 0,
+        length: Int = data.size - offset,
+    ): ByteArray
+
+    /** Finishes and consumes this session, returning the armored signature trailer. */
     public fun finish(): ByteArray
 
     /** Releases this session. This operation is idempotent. */
@@ -355,6 +455,18 @@ public object NativeCryptoOpenPgp {
             referenceTimeEpochSeconds = referenceTimeEpochSeconds,
         )
         return NativeOpenPgpVerificationSessionImpl(session)
+    }
+
+    public fun openClearVerification(
+        publicKeys: List<ByteArray>,
+        referenceTimeEpochSeconds: Long? = null,
+    ): NativeOpenPgpClearVerificationSession {
+        requireReferenceTime(referenceTimeEpochSeconds)
+        val session = NativeCrypto.openPgpClearVerification(
+            publicKeys = publicKeys,
+            referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+        )
+        return NativeOpenPgpClearVerificationSessionImpl(session)
     }
 
     public fun resolveMetadata(
@@ -531,6 +643,7 @@ public object NativeCryptoOpenPgp {
         armored: Boolean,
         literalTimeEpochSeconds: Long? = null,
         referenceTimeEpochSeconds: Long? = null,
+        enableCompression: Boolean = true,
     ): NativeOpenPgpEncryptResult {
         requireEncryptInputs(
             publicKeys = publicKeys,
@@ -554,6 +667,7 @@ public object NativeCryptoOpenPgp {
                 armored = armored,
                 literalTimeEpochSeconds = literalTimeEpochSeconds,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                enableCompression = enableCompression,
             )
         }
         val payload = NativeCrypto.call(
@@ -568,6 +682,7 @@ public object NativeCryptoOpenPgp {
                     armored = armored,
                     literalTimeEpochSeconds = literalTimeEpochSeconds,
                     referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                    enableCompression = enableCompression,
                 ),
             ),
         ).requireBytes("open_pgp_encrypt")
@@ -586,6 +701,7 @@ public object NativeCryptoOpenPgp {
         armored: Boolean,
         literalTimeEpochSeconds: Long?,
         referenceTimeEpochSeconds: Long?,
+        enableCompression: Boolean,
     ): NativeOpenPgpEncryptResult {
         val session = openEncryption(
             publicKeys = publicKeys,
@@ -595,22 +711,20 @@ public object NativeCryptoOpenPgp {
             armored = armored,
             literalTimeEpochSeconds = literalTimeEpochSeconds,
             referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            enableCompression = enableCompression,
         )
         val stagedOutputs = mutableListOf<ByteArray>()
         var totalOutputSize = 0L
         var primaryFailure: Throwable? = null
         var resultData: ByteArray? = null
         val result = try {
-            var offset = 0
-            while (offset < content.size) {
-                val length = minOf(NATIVE_CRYPTO_STREAM_CHUNK_BYTES, content.size - offset)
+            content.forEachStreamChunk { offset, length ->
                 totalOutputSize = stageOutput(
                     operation = "open_pgp_encrypt.stream_update",
                     output = session.update(content, offset, length),
                     stagedOutputs = stagedOutputs,
                     previousTotal = totalOutputSize,
                 )
-                offset += length
             }
 
             val final = session.finish()
@@ -648,13 +762,23 @@ public object NativeCryptoOpenPgp {
         return result
     }
 
+    /**
+     * Decrypts an OpenPGP message. When [allowSignedOnly] is true, unencrypted
+     * inline-signed messages are also accepted; unsigned literal packets are
+     * always rejected.
+     */
     public fun decrypt(
         content: ByteArray,
         privateKeys: List<ByteArray>,
         verificationPublicKeys: List<ByteArray> = emptyList(),
         referenceTimeEpochSeconds: Long? = null,
+        allowSignedOnly: Boolean = false,
     ): NativeOpenPgpDecryptResult {
-        requireDecryptInputs(privateKeys, referenceTimeEpochSeconds)
+        requireDecryptInputs(
+            privateKeys = privateKeys,
+            referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            allowSignedOnly = allowSignedOnly,
+        )
         if (content.isEmpty()) {
             throw NativeCryptoException(
                 operation = "open_pgp_decrypt",
@@ -666,6 +790,7 @@ public object NativeCryptoOpenPgp {
             privateKeys = privateKeys,
             verificationPublicKeys = verificationPublicKeys,
             referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            allowSignedOnly = allowSignedOnly,
         )
     }
 
@@ -674,11 +799,13 @@ public object NativeCryptoOpenPgp {
         privateKeys: List<ByteArray>,
         verificationPublicKeys: List<ByteArray>,
         referenceTimeEpochSeconds: Long?,
+        allowSignedOnly: Boolean,
     ): NativeOpenPgpDecryptResult {
         val session = openDecryption(
             privateKeys = privateKeys,
             verificationPublicKeys = verificationPublicKeys,
             referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            allowSignedOnly = allowSignedOnly,
         )
         val stagedPlaintext = BoundedOpenPgpPlaintextAccumulator(
             operation = "open_pgp_decrypt",
@@ -688,11 +815,8 @@ public object NativeCryptoOpenPgp {
         var resultData: ByteArray? = null
         var deferredCloseFailure: Throwable? = null
         val result = try {
-            var offset = 0
-            while (offset < content.size) {
-                val length = minOf(NATIVE_CRYPTO_STREAM_CHUNK_BYTES, content.size - offset)
+            content.forEachStreamChunk { offset, length ->
                 stagedPlaintext.stage(session.update(content, offset, length))
-                offset += length
             }
 
             val final = session.finish()
@@ -700,6 +824,10 @@ public object NativeCryptoOpenPgp {
             NativeOpenPgpDecryptResult(
                 data = stagedPlaintext.commit().also { resultData = it },
                 verification = final.verification,
+                metadata = final.metadata,
+                encrypted = final.encrypted,
+                declaredCharset = final.declaredCharset,
+                decryptionKeyFingerprint = final.decryptionKeyFingerprint,
             )
         } catch (failure: Throwable) {
             primaryFailure = failure
@@ -745,6 +873,28 @@ public object NativeCryptoOpenPgp {
         )
     }
 
+    public fun openClearSigning(
+        privateKey: ByteArray,
+        preferredFingerprint: String = "",
+        signatureTimeEpochSeconds: Long? = null,
+        referenceTimeEpochSeconds: Long? = null,
+    ): NativeOpenPgpClearSigningSession {
+        requireSigningInputs(
+            privateKey = privateKey,
+            preferredFingerprint = preferredFingerprint,
+            signatureTimeEpochSeconds = signatureTimeEpochSeconds,
+            referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+        )
+        return NativeOpenPgpClearSigningSessionImpl(
+            NativeCrypto.openPgpClearSigning(
+                privateKey = privateKey,
+                preferredFingerprint = preferredFingerprint,
+                signatureTimeEpochSeconds = signatureTimeEpochSeconds,
+                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            ),
+        )
+    }
+
     public fun openEncryption(
         publicKeys: List<ByteArray>,
         signingPrivateKey: ByteArray? = null,
@@ -753,6 +903,7 @@ public object NativeCryptoOpenPgp {
         armored: Boolean,
         literalTimeEpochSeconds: Long? = null,
         referenceTimeEpochSeconds: Long? = null,
+        enableCompression: Boolean = true,
     ): NativeOpenPgpEncryptionSession {
         requireEncryptInputs(
             publicKeys = publicKeys,
@@ -771,21 +922,33 @@ public object NativeCryptoOpenPgp {
                 armored = armored,
                 literalTimeEpochSeconds = literalTimeEpochSeconds,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                enableCompression = enableCompression,
             ),
         )
     }
 
+    /**
+     * Opens a decryption stream. When [allowSignedOnly] is true, unencrypted
+     * inline-signed messages are also accepted; unsigned literal packets are
+     * always rejected.
+     */
     public fun openDecryption(
         privateKeys: List<ByteArray>,
         verificationPublicKeys: List<ByteArray> = emptyList(),
         referenceTimeEpochSeconds: Long? = null,
+        allowSignedOnly: Boolean = false,
     ): NativeOpenPgpDecryptionSession {
-        requireDecryptInputs(privateKeys, referenceTimeEpochSeconds)
+        requireDecryptInputs(
+            privateKeys = privateKeys,
+            referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            allowSignedOnly = allowSignedOnly,
+        )
         return NativeOpenPgpDecryptionSessionImpl(
             NativeCrypto.openPgpDecryption(
                 privateKeys = privateKeys,
                 verificationPublicKeys = verificationPublicKeys,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                allowSignedOnly = allowSignedOnly,
             ),
         )
     }
@@ -1065,6 +1228,34 @@ private class NativeOpenPgpVerificationSessionImpl(
     }
 }
 
+private class NativeOpenPgpClearVerificationSessionImpl(
+    private val delegate: NativeCryptoSession,
+) : NativeOpenPgpClearVerificationSession {
+    override fun update(
+        data: ByteArray,
+        offset: Int,
+        length: Int,
+    ): ByteArray = delegate.update(data, offset, length)
+
+    override fun finish(): NativeOpenPgpClearVerifyResult {
+        val operation = "open_pgp_clear_verify.stream_finish"
+        val result = decodePayload<OpenPgpClearVerifyResultProto>(
+            operation = operation,
+            payload = delegate.finish(),
+        )
+        val verification = result.verification
+            ?: malformedOpenPgp(operation)
+        return NativeOpenPgpClearVerifyResult(
+            verification = verification.toPublic(operation),
+            bodyValidUtf8 = result.bodyValidUtf8,
+        )
+    }
+
+    override fun close() {
+        delegate.close()
+    }
+}
+
 private class NativeOpenPgpDetachedSigningSessionImpl(
     private val delegate: NativeCryptoSession,
 ) : NativeOpenPgpDetachedSigningSession {
@@ -1082,6 +1273,24 @@ private class NativeOpenPgpDetachedSigningSessionImpl(
 
     override fun finish(): ByteArray = delegate.finish().also { signature ->
         if (signature.isEmpty()) malformedOpenPgp("open_pgp_detached_sign.stream_finish")
+    }
+
+    override fun close() {
+        delegate.close()
+    }
+}
+
+private class NativeOpenPgpClearSigningSessionImpl(
+    private val delegate: NativeCryptoSession,
+) : NativeOpenPgpClearSigningSession {
+    override fun update(
+        data: ByteArray,
+        offset: Int,
+        length: Int,
+    ): ByteArray = delegate.update(data, offset, length)
+
+    override fun finish(): ByteArray = delegate.finish().also { trailer ->
+        if (trailer.isEmpty()) malformedOpenPgp("open_pgp_clear_sign.stream_finish")
     }
 
     override fun close() {
@@ -1284,15 +1493,42 @@ internal fun OpenPgpDecryptFinalProto.toPublicDecryptFinal(
 ): NativeOpenPgpDecryptFinal {
     var ownershipTransferred = false
     return try {
+        decryptionKeyFingerprint?.let { fingerprint ->
+            requireOpenPgpFingerprint(operation, fingerprint)
+        }
+        if (!encrypted && decryptionKeyFingerprint != null) {
+            malformedOpenPgp(operation)
+        }
         NativeOpenPgpDecryptFinal(
             data = data,
             verification = verification?.toPublic(operation),
+            metadata = metadata?.toPublic(operation),
+            encrypted = encrypted,
+            declaredCharset = declaredCharset,
+            decryptionKeyFingerprint = decryptionKeyFingerprint,
         ).also {
             ownershipTransferred = true
         }
     } finally {
         if (!ownershipTransferred) data.fill(0)
     }
+}
+
+private fun OpenPgpLiteralMetadataProto.toPublic(
+    operation: String,
+): NativeOpenPgpLiteralMetadata {
+    if (format !in 0..UByte.MAX_VALUE.toInt() ||
+        modificationTimeEpochSeconds < 0L ||
+        originalSize < 0L
+    ) {
+        malformedOpenPgp(operation)
+    }
+    return NativeOpenPgpLiteralMetadata(
+        fileName = fileName,
+        format = format,
+        modificationTimeEpochSeconds = modificationTimeEpochSeconds,
+        originalSize = originalSize,
+    )
 }
 
 private fun OpenPgpPublicKeyInfoProto.toPublic(
@@ -1504,8 +1740,12 @@ private fun requireEncryptInputs(
 private fun requireDecryptInputs(
     privateKeys: List<ByteArray>,
     referenceTimeEpochSeconds: Long?,
+    allowSignedOnly: Boolean,
 ) {
-    require(privateKeys.isNotEmpty() && privateKeys.all { key -> key.isNotEmpty() }) {
+    require(
+        (allowSignedOnly || privateKeys.isNotEmpty()) &&
+                privateKeys.all { key -> key.isNotEmpty() },
+    ) {
         "At least one non-empty OpenPGP private key is required"
     }
     requireReferenceTime(referenceTimeEpochSeconds)

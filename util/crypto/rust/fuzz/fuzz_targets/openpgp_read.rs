@@ -4,9 +4,9 @@ use keyguard_crypto_core::{
     PROTOCOL_VERSION,
     protocol::{
         NativeRequest, NativeResponse, NativeStreamOpenRequest,
-        OpenPgpDetachedVerifyStreamOpenRequest, OpenPgpMetadataResolveRequest,
-        OpenPgpPublicKeyParseRequest, OpenPgpVerifyKind, OpenPgpVerifyRequest, native_request,
-        native_response, native_stream_open_request,
+        OpenPgpClearVerifyStreamOpenRequest, OpenPgpDetachedVerifyStreamOpenRequest,
+        OpenPgpMetadataResolveRequest, OpenPgpPublicKeyParseRequest, OpenPgpVerifyKind,
+        OpenPgpVerifyRequest, native_request, native_response, native_stream_open_request,
     },
 };
 use libfuzzer_sys::fuzz_target;
@@ -100,7 +100,27 @@ fuzz_target!(|input: &[u8]| {
     ));
 
     if selector & 0x04 != 0 {
-        fuzz_stream(selector, body);
+        fuzz_stream(
+            native_stream_open_request::Operation::OpenPgpDetachedVerify(
+                OpenPgpDetachedVerifyStreamOpenRequest {
+                    signature: DETACHED_SIGNATURE.to_vec(),
+                    public_keys: vec![PUBLIC_KEY.to_vec()],
+                    reference_time_epoch_seconds: Some(REFERENCE_TIME),
+                },
+            ),
+            choose_bytes(selector, body, DETACHED_BODY),
+        );
+    }
+    if selector & 0x08 != 0 {
+        fuzz_stream(
+            native_stream_open_request::Operation::OpenPgpClearVerify(
+                OpenPgpClearVerifyStreamOpenRequest {
+                    public_keys: vec![PUBLIC_KEY.to_vec()],
+                    reference_time_epoch_seconds: Some(REFERENCE_TIME),
+                },
+            ),
+            choose_bytes(selector.rotate_left(4), body, CLEAR_SIGNED),
+        );
     }
 });
 
@@ -133,18 +153,10 @@ fn call(operation: native_request::Operation) {
     assert!(response.len() <= keyguard_crypto_core::MAX_CONTROL_ENVELOPE_BYTES);
 }
 
-fn fuzz_stream(selector: u8, body: &[u8]) {
+fn fuzz_stream(operation: native_stream_open_request::Operation, content: Vec<u8>) {
     let request = NativeStreamOpenRequest {
         protocol_version: PROTOCOL_VERSION,
-        operation: Some(
-            native_stream_open_request::Operation::OpenPgpDetachedVerify(
-                OpenPgpDetachedVerifyStreamOpenRequest {
-                    signature: DETACHED_SIGNATURE.to_vec(),
-                    public_keys: vec![PUBLIC_KEY.to_vec()],
-                    reference_time_epoch_seconds: Some(REFERENCE_TIME),
-                },
-            ),
-        ),
+        operation: Some(operation),
     };
     let response = keyguard_crypto_core::stream_open(&request.encode_to_vec());
     let Ok(response) = NativeResponse::decode(response.as_slice()) else {
@@ -154,7 +166,6 @@ fn fuzz_stream(selector: u8, body: &[u8]) {
         return;
     };
 
-    let content = choose_bytes(selector, body, DETACHED_BODY);
     for chunk in content.chunks(keyguard_crypto_core::MAX_STREAM_CHUNK_BYTES) {
         let response = keyguard_crypto_core::stream_update(handle, chunk);
         assert!(response.len() <= keyguard_crypto_core::MAX_CONTROL_ENVELOPE_BYTES);

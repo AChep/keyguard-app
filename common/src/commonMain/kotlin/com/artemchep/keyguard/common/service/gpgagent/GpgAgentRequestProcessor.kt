@@ -1,5 +1,24 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+/**
+ * Everything the approval surface may show for a pending GPG key
+ * operation request.
+ */
+data class GpgAgentApprovalPrompt(
+    val operation: GpgAgentOperation,
+    val caller: GpgAgentMessages.CallerIdentity?,
+    val keyName: String,
+    val keyFingerprint: String,
+    val keygrip: String,
+    /**
+     * Identity of the vault entry holding the key, when known. The
+     * locked-vault path resolves it from the exposed catalog, so a key
+     * that is missing from the catalog carries no identity.
+     */
+    val accountId: String?,
+    val cipherId: String?,
+)
+
 interface GpgAgentRequestProcessor {
     sealed interface ListKeysResult {
         data class Success(

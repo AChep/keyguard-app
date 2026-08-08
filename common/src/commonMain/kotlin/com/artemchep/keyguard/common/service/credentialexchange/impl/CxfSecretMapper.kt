@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.service.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyPkcs8Exporter
 import com.artemchep.keyguard.common.service.webauthn.PasskeyBase64
 import com.artemchep.keyguard.crypto.NativePasskeyCrypto
+import com.artemchep.keyguard.nativecrypto.NativeCryptoSsh
 
 /**
  * Pure, side-effect-free mapping from Keyguard vault models to CXF models.
@@ -424,8 +425,8 @@ private fun gpgKeyLossCount(
 }
 
 private fun KeyPair.Type.toCxfSshKeyType(): String = when (this) {
-    KeyPair.Type.RSA -> "ssh-rsa"
-    KeyPair.Type.ED25519 -> "ssh-ed25519"
+    KeyPair.Type.RSA -> NativeCryptoSsh.ALGORITHM_SSH_RSA
+    KeyPair.Type.ED25519 -> NativeCryptoSsh.ALGORITHM_SSH_ED25519
 }
 
 internal fun encodeIdToB64Url(

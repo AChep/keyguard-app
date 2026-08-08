@@ -3,15 +3,16 @@ package com.artemchep.keyguard.common.model
 enum class SshUsageHistoryResponseType(
     val code: Long,
 ) {
-    SUCCESS(0L),
-    USER_DENIED(1L),
-    KEY_NOT_FOUND(2L),
-    FAILURE(3L),
+    SUCCESS(code = 0L),
+    USER_DENIED(code = 1L),
+    KEY_NOT_FOUND(code = 2L),
+    FAILURE(code = 3L),
+    VAULT_LOCKED(code = 4L),
 
     /**
      * An unrecognized response type, e.g. a code written by a newer app version.
      */
-    UNKNOWN(-1L),
+    UNKNOWN(code = -1L),
     ;
 
     companion object {

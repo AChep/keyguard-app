@@ -36,6 +36,8 @@ public enum class NativeCryptoCapability(
     RNG_FAST_PATH(bit = 1L shl 23),
     PASSKEYS(bit = 1L shl 24),
     SSH_CXF_EXPORT(bit = 1L shl 25),
+    SSH_PUBLIC_KEY_DECODE(bit = 1L shl 26),
+    OPENPGP_CLEAR_VERIFY(bit = 1L shl 27),
 }
 
 public object NativeCrypto {
@@ -170,6 +172,14 @@ public object NativeCrypto {
         referenceTimeEpochSeconds = referenceTimeEpochSeconds,
     )
 
+    internal fun openPgpClearVerification(
+        publicKeys: List<ByteArray>,
+        referenceTimeEpochSeconds: Long?,
+    ): NativeCryptoSession = client.openPgpClearVerification(
+        publicKeys = publicKeys,
+        referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+    )
+
     internal fun openPgpDetachedSigning(
         privateKey: ByteArray,
         preferredFingerprint: String,
@@ -184,6 +194,18 @@ public object NativeCrypto {
         referenceTimeEpochSeconds = referenceTimeEpochSeconds,
     )
 
+    internal fun openPgpClearSigning(
+        privateKey: ByteArray,
+        preferredFingerprint: String,
+        signatureTimeEpochSeconds: Long?,
+        referenceTimeEpochSeconds: Long?,
+    ): NativeCryptoSession = client.openPgpClearSigning(
+        privateKey = privateKey,
+        preferredFingerprint = preferredFingerprint,
+        signatureTimeEpochSeconds = signatureTimeEpochSeconds,
+        referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+    )
+
     internal fun openPgpEncryption(
         publicKeys: List<ByteArray>,
         signingPrivateKey: ByteArray?,
@@ -192,6 +214,7 @@ public object NativeCrypto {
         armored: Boolean,
         literalTimeEpochSeconds: Long?,
         referenceTimeEpochSeconds: Long?,
+        enableCompression: Boolean,
     ): NativeCryptoSession = client.openPgpEncryption(
         publicKeys = publicKeys,
         signingPrivateKey = signingPrivateKey,
@@ -200,16 +223,19 @@ public object NativeCrypto {
         armored = armored,
         literalTimeEpochSeconds = literalTimeEpochSeconds,
         referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+        enableCompression = enableCompression,
     )
 
     internal fun openPgpDecryption(
         privateKeys: List<ByteArray>,
         verificationPublicKeys: List<ByteArray>,
         referenceTimeEpochSeconds: Long?,
+        allowSignedOnly: Boolean,
     ): NativeCryptoSession = client.openPgpDecryption(
         privateKeys = privateKeys,
         verificationPublicKeys = verificationPublicKeys,
         referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+        allowSignedOnly = allowSignedOnly,
     )
 }
 
@@ -479,6 +505,19 @@ internal class NativeCryptoClient(
         ),
     )
 
+    fun openPgpClearVerification(
+        publicKeys: List<ByteArray>,
+        referenceTimeEpochSeconds: Long?,
+    ): NativeCryptoSession = openSession(
+        operationName = "open_pgp_clear_verify.stream_open",
+        operation = OpenPgpClearVerifyStreamOpenOperationProto(
+            OpenPgpClearVerifyStreamOpenRequestProto(
+                publicKeys = publicKeys,
+                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            ),
+        ),
+    )
+
     fun openPgpDetachedSigning(
         privateKey: ByteArray,
         preferredFingerprint: String,
@@ -498,6 +537,23 @@ internal class NativeCryptoClient(
         ),
     )
 
+    fun openPgpClearSigning(
+        privateKey: ByteArray,
+        preferredFingerprint: String,
+        signatureTimeEpochSeconds: Long?,
+        referenceTimeEpochSeconds: Long?,
+    ): NativeCryptoSession = openSession(
+        operationName = "open_pgp_clear_sign.stream_open",
+        operation = OpenPgpClearSignStreamOpenOperationProto(
+            OpenPgpClearSignStreamOpenRequestProto(
+                privateKey = privateKey,
+                preferredFingerprint = preferredFingerprint,
+                signatureTimeEpochSeconds = signatureTimeEpochSeconds,
+                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+            ),
+        ),
+    )
+
     fun openPgpEncryption(
         publicKeys: List<ByteArray>,
         signingPrivateKey: ByteArray?,
@@ -506,6 +562,7 @@ internal class NativeCryptoClient(
         armored: Boolean,
         literalTimeEpochSeconds: Long?,
         referenceTimeEpochSeconds: Long?,
+        enableCompression: Boolean,
     ): NativeCryptoSession = openSession(
         operationName = "open_pgp_encrypt.stream_open",
         operation = OpenPgpEncryptStreamOpenOperationProto(
@@ -517,6 +574,7 @@ internal class NativeCryptoClient(
                 armored = armored,
                 literalTimeEpochSeconds = literalTimeEpochSeconds,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                enableCompression = enableCompression,
             ),
         ),
     )
@@ -525,6 +583,7 @@ internal class NativeCryptoClient(
         privateKeys: List<ByteArray>,
         verificationPublicKeys: List<ByteArray>,
         referenceTimeEpochSeconds: Long?,
+        allowSignedOnly: Boolean,
     ): NativeCryptoSession = openSession(
         operationName = "open_pgp_decrypt.stream_open",
         operation = OpenPgpDecryptStreamOpenOperationProto(
@@ -532,6 +591,7 @@ internal class NativeCryptoClient(
                 privateKeys = privateKeys,
                 verificationPublicKeys = verificationPublicKeys,
                 referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                allowSignedOnly = allowSignedOnly,
             ),
         ),
     )

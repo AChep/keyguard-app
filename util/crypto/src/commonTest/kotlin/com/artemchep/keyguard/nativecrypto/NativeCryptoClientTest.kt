@@ -15,6 +15,9 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+private val allNativeCryptoCapabilitiesMask: Long = NativeCryptoCapability.entries
+    .fold(0L) { mask, capability -> mask or capability.bit }
+
 class NativeCryptoClientTest {
     @Test
     fun rejectsAbiMismatch() {
@@ -36,6 +39,37 @@ class NativeCryptoClientTest {
 
         assertEquals(NativeCryptoErrorCode.MISSING_CAPABILITY, exception.code)
         assertEquals("bootstrap.capabilities", exception.operation)
+    }
+
+    @Test
+    fun rejectsRuntimeMissingLockstepExtensionCapabilities() {
+        listOf(
+            NativeCryptoCapability.SSH_PUBLIC_KEY_DECODE,
+            NativeCryptoCapability.OPENPGP_CLEAR_VERIFY,
+        ).forEach { missingCapability ->
+            val bridge = FakeBridge(
+                capabilities = allNativeCryptoCapabilitiesMask and missingCapability.bit.inv(),
+            )
+            val exception = assertFailsWith<NativeCryptoException> {
+                NativeCryptoClient(bridge).ensureReady()
+            }
+
+            assertEquals(NativeCryptoErrorCode.MISSING_CAPABILITY, exception.code)
+            assertEquals("bootstrap.capabilities", exception.operation)
+            assertNull(bridge.lastCallRequest)
+            assertNull(bridge.lastStreamOpenRequest)
+        }
+    }
+
+    @Test
+    fun ignoresUnknownFutureCapabilityBits() {
+        val client = NativeCryptoClient(
+            FakeBridge(capabilities = allNativeCryptoCapabilitiesMask or (1L shl 62)),
+        )
+
+        client.ensureReady()
+
+        assertEquals(NativeCryptoCapability.entries.toSet(), client.capabilities)
     }
 
     @Test
@@ -857,15 +891,27 @@ class NativeCryptoClientTest {
         assertContentEquals(byteArrayOf(13), encryptFinal.data)
         assertEquals(OpenPgpProtectionModeProto.SEIPD_V1_MDC, encryptFinal.protectionMode)
         val decryptResult = roundTrip(
-            OpenPgpDecryptResultProto(data = byteArrayOf(14), verification = verification),
+            OpenPgpDecryptResultProto(
+                data = byteArrayOf(14),
+                verification = verification,
+                encrypted = true,
+                decryptionKeyFingerprint = "A".repeat(40),
+            ),
         )
         assertContentEquals(byteArrayOf(14), decryptResult.data)
         assertEquals(OpenPgpVerificationStatusProto.VALID, decryptResult.verification?.status)
+        assertEquals("A".repeat(40), decryptResult.decryptionKeyFingerprint)
         val decryptFinal = roundTrip(
-            OpenPgpDecryptFinalProto(data = byteArrayOf(15), verification = verification),
+            OpenPgpDecryptFinalProto(
+                data = byteArrayOf(15),
+                verification = verification,
+                encrypted = true,
+                decryptionKeyFingerprint = "B".repeat(40),
+            ),
         )
         assertContentEquals(byteArrayOf(15), decryptFinal.data)
         assertEquals(OpenPgpVerificationStatusProto.VALID, decryptFinal.verification?.status)
+        assertEquals("B".repeat(40), decryptFinal.decryptionKeyFingerprint)
     }
 
     @Test
@@ -920,6 +966,7 @@ class NativeCryptoClientTest {
             armored = false,
             literalTimeEpochSeconds = 0L,
             referenceTimeEpochSeconds = 0L,
+            enableCompression = true,
         )
 
         val updateOutput = session.update(byteArrayOf(9, 4, 3), offset = 1, length = 2)
@@ -1138,7 +1185,7 @@ class NativeCryptoClientTest {
 
     private class FakeBridge(
         private val abiVersion: Int = NativeCrypto.EXPECTED_ABI_VERSION,
-        private val capabilities: Long = 0x3ffffffL,
+        private val capabilities: Long = allNativeCryptoCapabilitiesMask,
         private val callResponse: ByteArray = response(BytesResultProto(ByteArray(0))),
         private val callFailure: Throwable? = null,
         private val streamOpenResponse: ByteArray = response(UInt64ResultProto(1L)),

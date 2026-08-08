@@ -12,6 +12,7 @@ import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributor
 import com.artemchep.keyguard.common.service.localizationcontributors.LocalizationContributorsService
+import com.artemchep.keyguard.common.util.UniqueKeyBuilder
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -77,19 +78,12 @@ suspend fun RememberStateFlowScope.localizationContributorsListStateProducer(
     }
 
     fun List<LocalizationContributor>.toItems(): List<LocalizationContributorsListState.Item> {
-        val nameCollisions = mutableMapOf<String, Int>()
+        val keyBuilder = UniqueKeyBuilder()
         return this
             .mapIndexed { index, contributor ->
-                val key = kotlin.run {
-                    val newNameCollisionCounter = nameCollisions
-                        .getOrElse(contributor.user.username) { 0 } + 1
-                    nameCollisions[contributor.user.username] =
-                        newNameCollisionCounter
-                    contributor.user.username + ":" + newNameCollisionCounter
-                }
                 val score = contributor.translated
                 LocalizationContributorsListState.Item(
-                    key = key,
+                    key = keyBuilder.build(contributor.user.username),
                     icon = {
                         Avatar {
                             UserIcon(

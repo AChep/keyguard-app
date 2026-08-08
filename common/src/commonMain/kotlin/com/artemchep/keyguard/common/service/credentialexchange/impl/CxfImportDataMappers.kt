@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.credentialexchange.model.CxfEditabl
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
+import com.artemchep.keyguard.nativecrypto.NativeCryptoSsh
 import kotlin.reflect.KMutableProperty0
 
 private const val YEAR_MONTH_PARTS = 2
@@ -442,10 +443,12 @@ internal fun mapImportSshKey(
 }
 
 private fun String.toSupportedCxfSshKeyType(): KeyPair.Type? = when (this) {
-    "ssh-ed25519" -> KeyPair.Type.ED25519
-    "ssh-rsa",
-    "rsa-sha2-256",
-    "rsa-sha2-512",
+    NativeCryptoSsh.ALGORITHM_SSH_ED25519 -> KeyPair.Type.ED25519
+    // The rsa-sha2-* signature algorithm names are accepted as type aliases,
+    // a CXF-import leniency on top of the canonical key type names.
+    NativeCryptoSsh.ALGORITHM_SSH_RSA,
+    NativeCryptoSsh.ALGORITHM_RSA_SHA2_256,
+    NativeCryptoSsh.ALGORITHM_RSA_SHA2_512,
     -> KeyPair.Type.RSA
 
     else -> null

@@ -1,0 +1,47 @@
+-- Write-only spill queue for usage-history events that occur while the
+-- vault is locked. Everything except the ordering key is sealed to the
+-- vault-held envelope key, so rows are opaque at this protection tier.
+CREATE TABLE pendingUsageHistory (
+  id TEXT NOT NULL PRIMARY KEY,
+  timestampEpochMilliseconds INTEGER NOT NULL,
+  payload BLOB NOT NULL
+);
+
+insert:
+INSERT OR REPLACE INTO pendingUsageHistory(
+  id,
+  timestampEpochMilliseconds,
+  payload
+)
+VALUES (
+  :id,
+  :timestampEpochMilliseconds,
+  :payload
+);
+
+get:
+SELECT *
+FROM pendingUsageHistory
+ORDER BY timestampEpochMilliseconds ASC, id ASC;
+
+count:
+SELECT count(*)
+FROM pendingUsageHistory;
+
+countById:
+SELECT count(*)
+FROM pendingUsageHistory
+WHERE id = :id;
+
+deleteById:
+DELETE FROM pendingUsageHistory
+WHERE id = :id;
+
+deleteOldest:
+DELETE FROM pendingUsageHistory
+WHERE id IN (
+  SELECT id
+  FROM pendingUsageHistory
+  ORDER BY timestampEpochMilliseconds ASC, id ASC
+  LIMIT :count
+);

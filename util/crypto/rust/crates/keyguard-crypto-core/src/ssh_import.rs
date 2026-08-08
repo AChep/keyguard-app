@@ -47,7 +47,6 @@ use crate::{
 const MAX_IMPORT_TEXT_BYTES: usize = 1024 * 1024;
 const MAX_DECODED_KEY_BYTES: usize = 512 * 1024;
 const MAX_PUTTY_PAYLOAD_LINES: usize = 8192;
-const MIN_IMPORTED_RSA_MODULUS_BYTES: usize = 64;
 const MAX_RSA_COMPONENT_BYTES: usize = 2_048;
 const MAX_PASSPHRASE_BYTES: usize = 16 * 1024;
 const MAX_OPENSSH_BCRYPT_ROUNDS: u32 = 1_024;
@@ -692,28 +691,7 @@ fn validate_rsa_public_components(
     modulus: &[u8],
     public_exponent: &[u8],
 ) -> Result<(), ImportError> {
-    let modulus_bits = modulus
-        .len()
-        .checked_mul(8)
-        .and_then(|bits| {
-            modulus
-                .first()
-                .map(|first| bits - first.leading_zeros() as usize)
-        })
-        .ok_or(ImportError::MalformedKey)?;
-    let exponent_is_at_least_three = public_exponent.len() > 1
-        || public_exponent
-            .first()
-            .is_some_and(|exponent| *exponent >= 3);
-    if !(MIN_IMPORTED_RSA_MODULUS_BYTES * 8..=MAX_RSA_COMPONENT_BYTES * 8).contains(&modulus_bits)
-        || public_exponent.len() > 8
-        || !exponent_is_at_least_three
-        || public_exponent.last().is_none_or(|byte| byte & 1 == 0)
-    {
-        Err(ImportError::MalformedKey)
-    } else {
-        Ok(())
-    }
+    ssh_keys::validate_rsa_public_components(modulus, public_exponent).map_err(map_primitive_error)
 }
 
 fn wrap_rsa_pkcs8(pkcs1: &[u8]) -> Result<Zeroizing<Vec<u8>>, ImportError> {

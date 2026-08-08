@@ -309,6 +309,63 @@ class NativeCryptoOpenPgpValidationTest {
     }
 
     @Test
+    fun validatesFinalDecryptionKeyAttribution() {
+        val attributed = OpenPgpDecryptFinalProto(
+            encrypted = true,
+            decryptionKeyFingerprint = FINGERPRINT,
+        ).toPublicDecryptFinal("open_pgp_decrypt.stream_finish")
+        assertEquals(FINGERPRINT, attributed.decryptionKeyFingerprint)
+
+        val compatible = OpenPgpDecryptFinalProto(
+            encrypted = true,
+        ).toPublicDecryptFinal("open_pgp_decrypt.stream_finish")
+        assertEquals(null, compatible.decryptionKeyFingerprint)
+
+        for (response in listOf(
+            OpenPgpDecryptFinalProto(
+                data = byteArrayOf(1, 2, 3),
+                encrypted = true,
+                decryptionKeyFingerprint = "not-a-fingerprint",
+            ),
+            OpenPgpDecryptFinalProto(
+                data = byteArrayOf(1, 2, 3),
+                encrypted = false,
+                decryptionKeyFingerprint = FINGERPRINT,
+            ),
+        )) {
+            val failure = assertFailsWith<NativeCryptoException> {
+                response.toPublicDecryptFinal("open_pgp_decrypt.stream_finish")
+            }
+            assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
+            assertTrue(response.data.all { byte -> byte == 0.toByte() })
+        }
+    }
+
+    @Test
+    fun clearsFinalPlaintextWhenLiteralMetadataIsMalformed() {
+        val malformedMetadata = listOf(
+            OpenPgpLiteralMetadataProto(format = -1),
+            OpenPgpLiteralMetadataProto(format = UByte.MAX_VALUE.toInt() + 1),
+            OpenPgpLiteralMetadataProto(modificationTimeEpochSeconds = -1L),
+            OpenPgpLiteralMetadataProto(originalSize = -1L),
+        )
+        for (metadata in malformedMetadata) {
+            val plaintext = byteArrayOf(1, 2, 3)
+            val response = OpenPgpDecryptFinalProto(
+                data = plaintext,
+                metadata = metadata,
+            )
+
+            val failure = assertFailsWith<NativeCryptoException> {
+                response.toPublicDecryptFinal("open_pgp_decrypt.stream_finish")
+            }
+
+            assertEquals(NativeCryptoErrorCode.MALFORMED_RESPONSE, failure.code)
+            assertTrue(plaintext.all { byte -> byte == 0.toByte() })
+        }
+    }
+
+    @Test
     fun clearsDecodedExpirationKeyMaterialWhenMetadataIsMissing() {
         val privateKey = byteArrayOf(1, 2, 3)
         val publicKey = byteArrayOf(4, 5, 6)

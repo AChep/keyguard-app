@@ -278,6 +278,9 @@ private suspend fun TranslatorScope.title(response: SshUsageHistoryResponseType)
     SshUsageHistoryResponseType.FAILURE ->
         translate(Res.string.ssh_agent_history_response_failure)
 
+    SshUsageHistoryResponseType.VAULT_LOCKED ->
+        translate(Res.string.ssh_agent_history_response_vault_locked)
+
     SshUsageHistoryResponseType.UNKNOWN ->
         translate(Res.string.cipher_type_unknown)
 }

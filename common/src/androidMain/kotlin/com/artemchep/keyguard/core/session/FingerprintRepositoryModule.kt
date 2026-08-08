@@ -3,11 +3,14 @@ package com.artemchep.keyguard.core.session
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
+import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeImportTransportAndroid
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
+import com.artemchep.keyguard.android.ipc.AndroidIpcRegistrationRepository
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
+import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
 import com.artemchep.keyguard.common.service.autofill.AutofillService
 import com.artemchep.keyguard.common.service.backup.AndroidTreeBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.BackupLocalObjectStoreFactoryTag
@@ -15,7 +18,6 @@ import com.artemchep.keyguard.common.service.backup.BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
-import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeImportTransportAndroid
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.credentialexchange.CredentialExchangeImportTransport
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
@@ -32,7 +34,7 @@ import com.artemchep.keyguard.common.service.download.store.DownloadFileStore
 import com.artemchep.keyguard.common.service.download.store.DownloadFileStoreAndroid
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
-import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceStatelessProxy
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keychain.impl.KeychainRepositoryNoOp
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
@@ -266,7 +268,7 @@ fun diFingerprintRepositoryModule() = DI.Module(
         SshAgentStatusServiceStatelessProxy(this)
     }
     bindSingleton<GpgAgentStatusService> {
-        GpgAgentStatusServiceImpl()
+        GpgAgentStatusServiceStatelessProxy(this)
     }
     bindSingleton<ReviewService> {
         ReviewServiceAndroid(
@@ -320,6 +322,12 @@ fun diFingerprintRepositoryModule() = DI.Module(
     bind<KeyValueStore>() with factory { key: Files ->
         val factory = instance<SharedPreferencesStoreFactory>()
         factory.getStore(di, key)
+    }
+    bindSingleton<AndroidIpcRegistrationRepository> {
+        AndroidIpcRegistrationRepository(this)
+    }
+    bindSingleton<AndroidIpcRegistrationService> {
+        instance<AndroidIpcRegistrationRepository>()
     }
     bind<KeyValueStore>(SharedPreferencesTypes.SHARED_PREFS_ENCRYPTED) with multiton { arg: SharedPreferencesArg ->
         SecureSharedPrefsKeyValueStore(

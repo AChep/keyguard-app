@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.common.service.crypto
 
-import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorJvm
+import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
 import com.artemchep.keyguard.crypto.NativeSshKeyImportService
@@ -199,7 +199,7 @@ class SshKeyImportServiceJvmTest {
         val keyPair = assertIs<SshKeyImportResult.Success>(imported).keyPair
         val data = "PuTTY n-e-d compatibility".encodeToByteArray()
 
-        val result = SshAgentRequestProcessorJvm.signWithPrivateKey(
+        val result = NativeCrypto.ssh.sign(
             privateKeyPem = keyPair.privateKey.ssh,
             publicKeyOpenSsh = keyPair.publicKey.ssh,
             data = data,

@@ -43,7 +43,7 @@ import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_APP_BUNDLE_P
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_EXECUTABLE_PATH_LENGTH
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_NAME_LENGTH
 import com.artemchep.keyguard.common.service.agent.completeWithLog
-import com.artemchep.keyguard.common.service.agent.isUnsafeAgentCallerDisplayCodePoint
+import com.artemchep.keyguard.common.service.agent.sanitizedAgentDisplayValue
 import com.artemchep.keyguard.feature.dialog.DialogContent
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
@@ -320,37 +320,3 @@ internal fun buildAgentApprovalCallerInfo(
         secondaryLabel = secondaryLabel,
     )
 }
-
-/** Escapes control/directionality characters and bounds security-prompt text. */
-private fun String?.sanitizedAgentDisplayValue(
-    maxLength: Int,
-): String? {
-    val value = this
-        ?.trim()
-        ?.takeIf(String::isNotEmpty)
-        ?: return null
-    val output = StringBuilder(minOf(value.length, maxLength))
-    var truncated = false
-    for (character in value) {
-        val encoded = if (character.requiresSecurityPromptEscape()) {
-            "\\u${character.code.toString(16).padStart(4, '0')}"
-        } else {
-            character.toString()
-        }
-        if (output.length + encoded.length > maxLength) {
-            truncated = true
-            break
-        }
-        output.append(encoded)
-    }
-    if (truncated && output.length >= maxLength) {
-        output.setLength(maxLength - 1)
-    }
-    if (truncated) {
-        output.append('…')
-    }
-    return output.toString().takeIf(String::isNotEmpty)
-}
-
-private fun Char.requiresSecurityPromptEscape(): Boolean =
-    isUnsafeAgentCallerDisplayCodePoint(code)

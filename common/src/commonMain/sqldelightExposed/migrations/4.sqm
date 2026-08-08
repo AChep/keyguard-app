@@ -1,0 +1,43 @@
+DROP TABLE gpgAgentPublicKey;
+CREATE TABLE gpgPublicKey (
+  accountId TEXT NOT NULL,
+  cipherId TEXT NOT NULL,
+  publicKeyArmored TEXT,
+  primaryFingerprint TEXT,
+  canSign INTEGER NOT NULL,
+  canDecrypt INTEGER NOT NULL,
+  name TEXT,
+  PRIMARY KEY (accountId, cipherId)
+);
+CREATE TABLE gpgAgentKeyInfo (
+  accountId TEXT NOT NULL,
+  cipherId TEXT NOT NULL,
+  keygrip TEXT NOT NULL,
+  fingerprint TEXT NOT NULL,
+  algorithm TEXT NOT NULL,
+  canSign INTEGER NOT NULL,
+  canDecrypt INTEGER NOT NULL,
+  PRIMARY KEY (accountId, cipherId, keygrip),
+  FOREIGN KEY (accountId, cipherId)
+    REFERENCES gpgPublicKey(accountId, cipherId)
+    ON DELETE CASCADE
+);
+
+DROP TABLE sshAgentPublicKey;
+CREATE TABLE sshAgentPublicKey (
+  accountId TEXT NOT NULL,
+  cipherId TEXT NOT NULL,
+  publicKey TEXT NOT NULL,
+  publicKeyBlobSha256 TEXT NOT NULL,
+  keyType TEXT NOT NULL,
+  fingerprint TEXT NOT NULL,
+  canSign INTEGER NOT NULL,
+  name TEXT,
+  PRIMARY KEY (accountId, cipherId)
+);
+
+CREATE TABLE pendingUsageHistory (
+  id TEXT NOT NULL PRIMARY KEY,
+  timestampEpochMilliseconds INTEGER NOT NULL,
+  payload BLOB NOT NULL
+);

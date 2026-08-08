@@ -23,6 +23,7 @@ class AddSshUsageHistoryImpl(
             response = request.response,
             fingerprint = request.fingerprint,
             instant = request.instant,
+            eventId = request.eventId,
         )
         sshUsageHistoryRepository.put(model)
     }

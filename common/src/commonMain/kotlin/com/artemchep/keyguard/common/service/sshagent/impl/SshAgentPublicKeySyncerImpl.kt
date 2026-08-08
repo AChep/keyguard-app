@@ -3,7 +3,7 @@ package com.artemchep.keyguard.common.service.sshagent.impl
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.SshAgentFilter
+import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -80,9 +80,9 @@ class SshAgentPublicKeySyncerImpl(
                 ) { ciphers, filter ->
                     val eligibleCiphers = ciphers
                         .filter { it.isEligibleForSshAgent() }
-                    filterCiphers(
+                    filter.filterCiphers(
+                        directDI = directDI,
                         ciphers = eligibleCiphers,
-                        filter = filter,
                     )
                 }
                     .distinctUntilChanged()
@@ -90,13 +90,11 @@ class SshAgentPublicKeySyncerImpl(
                     filteredCiphersFlow,
                     getSshAgentDisplayKeyNames(),
                 ) { filteredCiphers, displayKeyNames ->
-                    val keys = mapCiphersToSshKeys(
+                    val exposedKeys = mapCiphersToExposedSshKeys(
                         ciphers = filteredCiphers,
                         displayKeyNames = displayKeyNames,
                     )
-                    SyncState.Enabled(
-                        keys = keys,
-                    )
+                    SyncState.Enabled(keys = exposedKeys)
                 }
             }
             .distinctUntilChanged()
@@ -105,10 +103,9 @@ class SshAgentPublicKeySyncerImpl(
         syncStateFlow.collectLatest { state ->
             try {
                 when (state) {
-                    SyncState.Disabled -> {
+                    SyncState.Disabled ->
                         sshAgentPublicKeyRepository.clear()
                             .bind()
-                    }
 
                     is SyncState.Enabled -> sync(state)
                 }
@@ -126,12 +123,11 @@ class SshAgentPublicKeySyncerImpl(
     private suspend fun sync(
         state: SyncState.Enabled,
     ) {
-        val keys = state.keys
-        sshAgentPublicKeyRepository.replaceAll(keys)
+        sshAgentPublicKeyRepository.replaceAll(state.keys)
             .bind()
     }
 
-    private suspend fun mapCiphersToSshKeys(
+    private suspend fun mapCiphersToExposedSshKeys(
         ciphers: List<DSecret>,
         displayKeyNames: Boolean,
     ): List<SshAgentPublicKeyRow> = ciphers
@@ -142,31 +138,17 @@ class SshAgentPublicKeySyncerImpl(
                 ?.takeIf { it.isNotBlank() }
                 ?: return@mapNotNull null
             createSshAgentPublicKeyRow(
+                accountId = cipher.accountId,
+                cipherId = cipher.id,
                 publicKey = publicKey,
                 fingerprint = sshKey.fingerprint.orEmpty(),
+                canSign = !sshKey.privateKey.isNullOrBlank(),
                 name = cipher.name
                     .takeIf { displayKeyNames },
                 cryptoGenerator = cryptoGenerator,
                 base64Service = base64Service,
             )
         }
-
-    private suspend fun filterCiphers(
-        ciphers: List<DSecret>,
-        filter: SshAgentFilter,
-    ): List<DSecret> {
-        if (!filter.isActive) {
-            return ciphers
-        }
-
-        val predicate = filter
-            .toDFilter()
-            .prepare(
-                directDI = directDI,
-                ciphers = ciphers,
-            )
-        return ciphers.filter(predicate)
-    }
 
     private sealed interface SyncState {
         data object Disabled : SyncState

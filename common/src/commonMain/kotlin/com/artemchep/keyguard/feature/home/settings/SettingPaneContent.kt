@@ -55,6 +55,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingCloseToTray
 import com.artemchep.keyguard.feature.home.settings.component.settingColorAccentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingColorSchemeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingConcealFieldsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingConnectedAppsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCrashProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCrashlyticsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCredentialProviderProvider
@@ -221,6 +222,7 @@ object Setting {
     const val LOGS = "logs"
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
+    const val CONNECTED_APPS = "connected_apps"
     const val SSH_SETTINGS = "ssh_settings"
     const val SSH_AGENT = "ssh_agent"
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
@@ -350,6 +352,7 @@ val hub = mapOf<String, (DirectDI) -> SettingComponent>(
     Setting.LOGS to ::settingLogsProvider,
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
+    Setting.CONNECTED_APPS to ::settingConnectedAppsProvider,
     Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,

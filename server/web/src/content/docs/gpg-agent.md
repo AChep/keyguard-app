@@ -1,6 +1,6 @@
 ---
 title: GPG agent setup
-description: Use GPG keys stored in your vault to sign and decrypt — GNUPGHOME, GnuPG's agent socket, and Git commit signing.
+description: Use GPG keys stored in your vault from desktop tools and Android apps.
 category: guides
 order: 5
 ---
@@ -120,13 +120,40 @@ $env:GNUPGHOME = "$env:LOCALAPPDATA\ArtemChepurnyi\keyguard\gnupg"
 git commit -S
 ```
 
-> **Android** — you can store GPG key items and search keyservers, but there
-> is no agent to serve keys to a local `gpg`.
+## Android apps
 
-## Approval scopes
+On Android, Keyguard can be selected as an **OpenPGP provider** by apps that
+support the OpenKeychain API.
 
-The approval window controls **how long** an approval is remembered. The
-approval scope controls **which verified callers** may reuse it during that
+1. Open Keyguard's **GPG settings** and enable **GPG agent**. Android publishes
+   Keyguard as an OpenPGP provider only while this switch is enabled. Check the
+   GPG agent filters if a key you expect is not offered.
+2. In the other app's encryption or OpenPGP settings, choose **Keyguard** as the
+   OpenPGP provider. The exact menu and wording depend on the app.
+3. Approve the first registration request in Keyguard. Later requests may ask
+   you to select eligible keys, unlock the vault, or authenticate when private
+   key access is required.
+4. Review or revoke registered apps from **Connected apps** in Keyguard's GPG
+   settings. Registrations are tied to the app's signing certificate; if its
+   signer changes, access is disabled until you revoke the old registration.
+
+Compatible apps can ask Keyguard to select recipients or signing keys, provide
+public keys, sign or verify data, and encrypt or decrypt it. The calling app never gets access to the private key.
+Apps known to include integrations for this API include
+[Thunderbird for Android and K-9 Mail](https://github.com/thunderbird/thunderbird-android/tree/main/plugins/openpgp-api-lib)
+and [FairEmail](https://github.com/M66B/FairEmail/tree/master/openpgp-api).
+These are compatibility examples rather than a guarantee for every app version;
+the client must let you choose an OpenPGP provider instead of requiring the
+OpenKeychain app specifically.
+
+## Desktop approval scopes
+
+The following settings apply to the standard desktop `gpg-agent`. Direct
+Android provider registrations and request approvals do not use these remembered
+approval scopes.
+
+The desktop approval window controls **how long** an approval is remembered.
+The approval scope controls **which verified callers** may reuse it during that
 window. Choose a scope in the GPG agent settings:
 
 | Scope                                                     | Who can reuse an approval? | Same terminal tab or pane | Different terminal tab or pane |
@@ -146,7 +173,7 @@ connection**.
 
 ## Reviewing activity
 
-Keyguard keeps a history of GPG agent requests, so you can review which
-applications asked to sign or decrypt, which key they used, and whether each
-request succeeded or was denied. Filters let you restrict which keys and
-callers the agent will serve.
+Keyguard keeps a history of desktop agent and Android provider requests, so you
+can review which applications asked to sign or decrypt, which key they used,
+and whether each request succeeded or was denied. Filters let you restrict
+which keys and callers Keyguard will serve.

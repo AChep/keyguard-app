@@ -78,16 +78,18 @@ jobs:
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
           git fetch upstream --tags --force
-          mkdir -p /tmp/patches /tmp/packaging
+          mkdir -p /tmp/patches /tmp/packaging /tmp/rust-crypto
           cp -r patches/* /tmp/patches/
           cp -r packaging/* /tmp/packaging/
+          cp -r util/crypto/rust/* /tmp/rust-crypto/
           git checkout "$TAG"
 
       - name: "Apply crack patches"
         run: |
-          mkdir -p patches packaging
+          mkdir -p patches packaging util/crypto/rust
           cp -r /tmp/patches/* patches/
           cp -r /tmp/packaging/* packaging/
+          cp -r /tmp/rust-crypto/* util/crypto/rust/
           chmod +x patches/apply-crack.sh
           ./patches/apply-crack.sh
 
@@ -149,16 +151,18 @@ jobs:
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
           git fetch upstream --tags --force
-          mkdir -p /tmp/patches /tmp/packaging
+          mkdir -p /tmp/patches /tmp/packaging /tmp/rust-crypto
           cp -r patches/* /tmp/patches/
           cp -r packaging/* /tmp/packaging/
+          cp -r util/crypto/rust/* /tmp/rust-crypto/
           git checkout "$TAG"
 
       - name: "Apply crack patches"
         run: |
-          mkdir -p patches packaging
+          mkdir -p patches packaging util/crypto/rust
           cp -r /tmp/patches/* patches/
           cp -r /tmp/packaging/* packaging/
+          cp -r /tmp/rust-crypto/* util/crypto/rust/
           chmod +x patches/apply-crack.sh
           ./patches/apply-crack.sh
 
@@ -265,14 +269,16 @@ jobs:
         run: |
           git remote add upstream "https://github.com/$UPSTREAM_REPO.git" || true
           git fetch upstream --tags --force
-          mkdir -p /tmp/patches /tmp/packaging
+          mkdir -p /tmp/patches /tmp/packaging /tmp/rust-crypto
           cp -r patches/* /tmp/patches/
           cp -r packaging/* /tmp/packaging/
+          cp -r util/crypto/rust/* /tmp/rust-crypto/
           git checkout "$TAG"
 
-          mkdir -p patches packaging
+          mkdir -p patches packaging util/crypto/rust
           cp -r /tmp/patches/* patches/
           cp -r /tmp/packaging/* packaging/
+          cp -r /tmp/rust-crypto/* util/crypto/rust/
           chmod +x patches/apply-crack.sh
           ./patches/apply-crack.sh
 

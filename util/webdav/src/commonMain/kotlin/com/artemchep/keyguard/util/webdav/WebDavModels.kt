@@ -70,7 +70,11 @@ data class WebDavResource(
     val size: Long?,
     val lastModified: Instant?,
     val etag: String?,
-)
+) {
+    /** The display name of the resource: the last segment of its [path]. */
+    val name: String
+        get() = path.substringAfterLast('/')
+}
 
 enum class WebDavOperation {
     Open,

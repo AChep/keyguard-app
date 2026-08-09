@@ -1,5 +1,10 @@
 package com.artemchep.keyguard.common.service.webdav
 
+import io.ktor.http.URLBuilder
+import io.ktor.http.URLProtocol
+import io.ktor.http.Url
+import io.ktor.http.encodedPath
+
 internal data class WebDavKeePassFileUrl(
     val baseUrl: String,
     val path: String,
@@ -19,26 +24,45 @@ internal fun parseWebDavKeePassFileUrlOrNull(
 internal fun parseWebDavKeePassFileUrl(
     url: String,
 ): WebDavKeePassFileUrl {
-    val normalized = url.trim()
-        .substringBefore('#')
-        .substringBefore('?')
-    require(!normalized.endsWith('/')) {
-        "WebDAV KeePass database URL must point to a file."
-    }
-    require(normalized.startsWith("http://") || normalized.startsWith("https://")) {
+    val parsedUrl = Url(url.trim())
+    require(
+        parsedUrl.protocol == URLProtocol.HTTP ||
+                parsedUrl.protocol == URLProtocol.HTTPS,
+    ) {
         "WebDAV KeePass database URL must use HTTP or HTTPS."
     }
-    val lastSlash = normalized.lastIndexOf('/')
-    require(lastSlash >= "https://".length) {
+    require(parsedUrl.host.isNotBlank()) {
+        "WebDAV KeePass database URL must include a host."
+    }
+    val encodedPath = parsedUrl.encodedPath
+    require(!encodedPath.endsWith('/')) {
+        "WebDAV KeePass database URL must point to a file."
+    }
+    val lastSlash = encodedPath.lastIndexOf('/')
+    require(lastSlash >= 0 && lastSlash < encodedPath.lastIndex) {
         "WebDAV KeePass database URL must include a file path."
     }
-    val fileName = normalized.substring(lastSlash + 1)
+    val fileName = percentDecodeWebDavPathSegment(
+        encodedPath.substring(lastSlash + 1),
+    )
+    require(
+        '/' !in fileName &&
+                fileName != "." &&
+                fileName != "..",
+    ) {
+        "WebDAV KeePass database URL must include a valid file name."
+    }
     require(fileName.endsWith(".kdbx", ignoreCase = true)) {
         "WebDAV KeePass database URL must point to a .kdbx file."
     }
     return WebDavKeePassFileUrl(
-        baseUrl = normalized.substring(0, lastSlash + 1),
-        path = percentDecodeWebDavPathSegment(fileName),
+        baseUrl = URLBuilder(parsedUrl)
+            .apply {
+                fragment = ""
+                this.encodedPath = encodedPath.substring(0, lastSlash + 1)
+            }
+            .buildString(),
+        path = fileName,
     )
 }
 

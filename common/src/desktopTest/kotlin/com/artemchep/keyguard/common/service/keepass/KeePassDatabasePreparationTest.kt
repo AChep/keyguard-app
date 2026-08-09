@@ -369,7 +369,7 @@ class KeePassDatabasePreparationTest {
     }
 
     @Test
-    fun `webdav url strips query and fragment and decodes filename`() = runTest {
+    fun `webdav url preserves query strips fragment and decodes filename`() = runTest {
         val webDavClientFactory = FakeKeePassWebDavClientFactory()
         val dbUri = "https://example.com/dav/folder/vault%20file.kdbx?download=1#section"
 
@@ -385,7 +385,7 @@ class KeePassDatabasePreparationTest {
         )
 
         val config = webDavClientFactory.configs.single()
-        assertEquals("https://example.com/dav/folder/", config.baseUrl)
+        assertEquals("https://example.com/dav/folder/?download=1", config.baseUrl)
         assertTrue(config.noCache)
         assertEquals(WebDavWriteStrategy.AllowLossy, config.writeStrategy)
         assertNotNull(webDavClientFactory.client.readObjectBytes("vault file.kdbx"))

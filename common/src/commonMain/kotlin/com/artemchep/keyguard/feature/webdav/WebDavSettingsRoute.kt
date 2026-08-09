@@ -13,11 +13,17 @@ data class WebDavSettingsRoute(
         val username: String = "",
         val password: String = "",
         val purpose: Purpose = Purpose.Collection,
+        val keePassMode: KeePassMode = KeePassMode.Open,
     )
 
     enum class Purpose {
         Collection,
         KeePassDatabase,
+    }
+
+    enum class KeePassMode {
+        Open,
+        Create,
     }
 
     @Composable

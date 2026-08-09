@@ -13,7 +13,10 @@ class WebDavKeePassUrlTest {
             "  https://example.com/dav/folder/vault%20file.kdbx?download=1#section  ",
         )
 
-        assertEquals("https://example.com/dav/folder/", result.baseUrl)
+        assertEquals(
+            "https://example.com/dav/folder/?download=1",
+            result.baseUrl,
+        )
         assertEquals("vault file.kdbx", result.path)
     }
 
@@ -24,6 +27,15 @@ class WebDavKeePassUrlTest {
         )
 
         assertEquals("VAULT.KDBX", result.path)
+    }
+
+    @Test
+    fun `accepts encoded backslash as file name data`() {
+        val result = parseWebDavKeePassFileUrl(
+            "https://example.com/dav/a%5Cb.kdbx",
+        )
+
+        assertEquals("a\\b.kdbx", result.path)
     }
 
     @Test
@@ -61,5 +73,20 @@ class WebDavKeePassUrlTest {
         assertNull(
             parseWebDavKeePassFileUrlOrNull("https://example.com/dav/vault"),
         )
+    }
+
+    @Test
+    fun `rejects encoded path separators in file name`() {
+        listOf(
+            "a%2Fb.kdbx",
+            "a%2fb.kdbx",
+            "%2E%2E%2Fvault.kdbx",
+            ".%2Fvault.kdbx",
+        ).forEach { fileName ->
+            val url = "https://example.com/dav/$fileName"
+
+            assertFalse(url.isWebDavKeePassFileUrl(), fileName)
+            assertNull(parseWebDavKeePassFileUrlOrNull(url), fileName)
+        }
     }
 }

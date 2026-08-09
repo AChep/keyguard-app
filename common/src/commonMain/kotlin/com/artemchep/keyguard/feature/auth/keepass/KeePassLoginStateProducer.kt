@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.WebDavCredentials
 import com.artemchep.keyguard.common.model.WebDavLocation
+import com.artemchep.keyguard.common.service.webdav.parseWebDavKeePassFileUrl
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
@@ -76,6 +77,13 @@ internal fun createKeePassLoginAction(
         },
     )
 }
+
+internal fun KeePassLoginState.WebDav.toKeePassLoginFile() =
+    KeePassLoginState.FileItem.File(
+        uri = url,
+        name = parseWebDavKeePassFileUrl(url).path,
+        size = null,
+    )
 
 internal fun createKeePassLoginState(
     sideEffects: KeePassLoginState.SideEffect,
@@ -182,14 +190,6 @@ fun produceKeePassLoginScreenState(
         accessToken = accessToken,
     )
 
-    fun KeePassLoginState.WebDav.toFile() = KeePassLoginState.FileItem.File(
-        uri = url,
-        name = url.substringBefore('#')
-            .substringBefore('?')
-            .substringAfterLast('/'),
-        size = null,
-    )
-
     fun onWebDavLocationSelected(
         result: com.artemchep.keyguard.feature.webdav.WebDavSettingsResult,
     ) {
@@ -200,7 +200,7 @@ fun produceKeePassLoginScreenState(
         )
         databaseLocationSink.value = LOCATION_WEBDAV
         webDavSink.value = webDav
-        dbFileSink.value = webDav.toFile()
+        dbFileSink.value = webDav.toKeePassLoginFile()
     }
 
     fun onSelectWebDavLocation() {
@@ -212,6 +212,10 @@ fun produceKeePassLoginScreenState(
                     username = webDav?.username.orEmpty(),
                     password = webDav?.password.orEmpty(),
                     purpose = WebDavSettingsRoute.Purpose.KeePassDatabase,
+                    keePassMode = when (tabSink.value) {
+                        MODE_NEW -> WebDavSettingsRoute.KeePassMode.Create
+                        else -> WebDavSettingsRoute.KeePassMode.Open
+                    },
                 ),
             ),
         ) { result ->

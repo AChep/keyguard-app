@@ -39,6 +39,19 @@ interface WebDavClient {
         prefix: String,
     ): List<WebDavResource>
 
+    /**
+     * Lists the immediate children of [collectionPath].
+     *
+     * Unlike [list], this operation is non-recursive and includes both files
+     * and collections. The path is relative to the configured base URL; an
+     * empty path addresses the base collection itself. An existing collection
+     * without children returns an empty list, while a missing collection throws
+     * [WebDavException.NotFound].
+     */
+    suspend fun listChildren(
+        collectionPath: String,
+    ): List<WebDavResource>
+
     suspend fun delete(
         path: String,
     )

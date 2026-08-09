@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.PrivateConnectivity
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.Button
@@ -14,6 +15,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,6 +60,7 @@ fun WebDavSettingsScreen(
     WebDavSettingsContent(
         state = state,
         purpose = route.args.purpose,
+        keePassMode = route.args.keePassMode,
     )
 }
 
@@ -66,6 +69,7 @@ fun WebDavSettingsScreen(
 private fun WebDavSettingsContent(
     state: WebDavSettingsState,
     purpose: WebDavSettingsRoute.Purpose,
+    keePassMode: WebDavSettingsRoute.KeePassMode,
 ) {
     val urlRequiredError =
         stringResource(Res.string.error_webdav_url_required)
@@ -75,6 +79,8 @@ private fun WebDavSettingsContent(
         stringResource(Res.string.webdav_settings_password_requires_username_error)
     val urlError = when (state.error) {
         WebDavSettingsState.Error.UrlRequired -> urlRequiredError
+        WebDavSettingsState.Error.InvalidUrl ->
+            stringResource(Res.string.error_invalid_url)
         WebDavSettingsState.Error.FileUrlRequired -> fileUrlRequiredError
         else -> null
     }
@@ -85,10 +91,13 @@ private fun WebDavSettingsContent(
         else -> null
     }
 
-    val probeText = when (purpose) {
-        WebDavSettingsRoute.Purpose.Collection ->
+    val probeText = when {
+        purpose == WebDavSettingsRoute.Purpose.Collection ||
+                purpose == WebDavSettingsRoute.Purpose.KeePassDatabase &&
+                keePassMode == WebDavSettingsRoute.KeePassMode.Create ->
             stringResource(Res.string.webdav_settings_test_text)
-        WebDavSettingsRoute.Purpose.KeePassDatabase ->
+
+        else ->
             stringResource(Res.string.webdav_settings_test_text_read_only)
     }
 
@@ -142,7 +151,7 @@ private fun WebDavSettingsContent(
                     WebDavSettingsRoute.Purpose.Collection -> "https://example.com/keyguard-backups/"
                     WebDavSettingsRoute.Purpose.KeePassDatabase -> "https://example.com/keyguard.kdbx"
                 },
-                onChange = state.url::value::set,
+                onChange = state.onUrlChange,
             )
             UrlFlatTextField(
                 modifier = Modifier
@@ -151,6 +160,18 @@ private fun WebDavSettingsContent(
                 value = url,
                 shapeState = ShapeState.ALL,
                 clearButton = true,
+                trailing = {
+                    IconButton(
+                        onClick = state.onBrowse,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.FolderOpen,
+                            contentDescription = stringResource(
+                                Res.string.webdav_settings_browse_title,
+                            ),
+                        )
+                    }
+                },
             )
         }
         item("auth.header") {

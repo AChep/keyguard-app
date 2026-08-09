@@ -11,8 +11,14 @@ internal fun normalizeBaseCollectionUrl(
     require(value.isNotBlank()) {
         "WebDAV base URL must not be blank."
     }
-    val normalized = if (value.endsWith("/")) value else "$value/"
-    return Url(normalized)
+    return URLBuilder(value.trim())
+        .apply {
+            fragment = ""
+            if (!encodedPath.endsWith("/")) {
+                encodedPath += "/"
+            }
+        }
+        .build()
 }
 
 internal fun validateObjectPath(
@@ -75,10 +81,11 @@ internal fun hrefToWebDavPath(
     baseUrl: Url,
     href: String,
 ): String? {
-    val encodedHrefPath = href
+    val hrefValue = href
         .trim()
         .takeIf { it.isNotEmpty() }
-        ?.extractEncodedPath()
+        ?: return null
+    val encodedHrefPath = hrefValue.extractEncodedPath(baseUrl)
         ?: return null
     val basePath = baseUrl.encodedPath
         .ensureSuffix("/")
@@ -91,16 +98,32 @@ internal fun hrefToWebDavPath(
         .trimEnd('/')
         .split('/')
         .filter { it.isNotEmpty() }
-        .joinToString("/") { segment ->
+        .map { segment ->
             percentDecode(segment)
         }
+        .takeIf { segments ->
+            segments.none { segment -> '/' in segment || segment == "." || segment == ".." }
+        }
+        ?.joinToString("/")
 }
 
-private fun String.extractEncodedPath(): String {
+private fun String.extractEncodedPath(
+    baseUrl: Url,
+): String? {
     val withoutFragment = substringBefore('#')
     val withoutQuery = withoutFragment.substringBefore('?')
-    return if (withoutQuery.startsWith("http://") || withoutQuery.startsWith("https://")) {
-        Url(withoutQuery).encodedPath
+    return if (
+        withoutQuery.startsWith("http://", ignoreCase = true) ||
+        withoutQuery.startsWith("https://", ignoreCase = true)
+    ) {
+        runCatching { Url(withoutQuery) }
+            .getOrNull()
+            ?.takeIf { url ->
+                url.protocol == baseUrl.protocol &&
+                        url.host.equals(baseUrl.host, ignoreCase = true) &&
+                        url.port == baseUrl.port
+            }
+            ?.encodedPath
     } else {
         withoutQuery
     }

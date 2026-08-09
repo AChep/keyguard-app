@@ -892,16 +892,13 @@ class KtorWebDavClient(
         queue.add(startCollection)
         while (queue.isNotEmpty()) {
             val collectionPath = queue.removeFirst()
-            propfindChildren(collectionPath).forEach { resource ->
-                if (resource.path == collectionPath) {
-                    return@forEach
-                }
+            directChildren(
+                collectionPath = collectionPath,
+                missingCollectionBehavior = MissingCollectionBehavior.ReturnEmpty,
+            ).forEach { resource ->
                 if (resource.isCollection) {
                     queue.add(resource.path)
-                } else if (
-                    resource.path.startsWith(normalizedPrefix) &&
-                    !isReservedTemporaryArtifactName(resource.path.substringAfterLast('/'))
-                ) {
+                } else if (resource.path.startsWith(normalizedPrefix)) {
                     result += resource
                 }
             }
@@ -909,6 +906,30 @@ class KtorWebDavClient(
 
         return result.sortedBy { it.path }
     }
+
+    override suspend fun listChildren(
+        collectionPath: String,
+    ): List<WebDavResource> {
+        val normalizedPath = validatePrefixPath(collectionPath).trimEnd('/')
+        return directChildren(
+            collectionPath = normalizedPath,
+            missingCollectionBehavior = MissingCollectionBehavior.ThrowNotFound,
+        )
+            .sortedBy { resource -> resource.path }
+    }
+
+    private suspend fun directChildren(
+        collectionPath: String,
+        missingCollectionBehavior: MissingCollectionBehavior,
+    ): List<WebDavResource> = propfindChildren(
+        path = collectionPath,
+        missingCollectionBehavior = missingCollectionBehavior,
+    )
+        .filter { resource ->
+            resource.path.isDirectChildOf(collectionPath) &&
+                    !isReservedTemporaryArtifactName(resource.name)
+        }
+        .distinctBy { resource -> resource.path }
 
     override suspend fun delete(
         path: String,
@@ -1184,6 +1205,7 @@ class KtorWebDavClient(
 
     private suspend fun propfindChildren(
         path: String,
+        missingCollectionBehavior: MissingCollectionBehavior,
     ): List<WebDavResource> {
         val response = propfind(
             path = path,
@@ -1191,7 +1213,10 @@ class KtorWebDavClient(
             depth = 1,
             collection = true,
         )
-        if (response.status.value == STATUS_NOT_FOUND) {
+        if (
+            response.status.value == STATUS_NOT_FOUND &&
+            missingCollectionBehavior == MissingCollectionBehavior.ReturnEmpty
+        ) {
             return emptyList()
         }
         requireSuccessfulStatus(
@@ -1211,6 +1236,11 @@ class KtorWebDavClient(
                     operation = WebDavOperation.List,
                 )
             }
+    }
+
+    private enum class MissingCollectionBehavior {
+        ReturnEmpty,
+        ThrowNotFound,
     }
 
     private suspend fun propfind(
@@ -1553,6 +1583,19 @@ class KtorWebDavClient(
         prefix.endsWith("/") -> prefix.trimEnd('/')
         '/' in prefix -> prefix.substringBeforeLast('/')
         else -> ""
+    }
+
+    private fun String.isDirectChildOf(
+        collectionPath: String,
+    ): Boolean {
+        val relativePath = if (collectionPath.isEmpty()) {
+            this
+        } else {
+            removePrefix("$collectionPath/")
+                .takeUnless { it == this }
+                ?: return false
+        }
+        return relativePath.isNotEmpty() && '/' !in relativePath
     }
 
     private fun createTempPath(

@@ -297,6 +297,32 @@ class KtorWebDavClientHacdiasE2eTest {
     }
 
     @Test
+    fun `list children returns immediate files and collections`() = runTest {
+        withServer { server ->
+            server.root.resolve("root/file.kdbx").writeBytes("db".encodeToByteArray())
+            server.root.resolve("root/nested/deep.kdbx").writeBytes("deep".encodeToByteArray())
+            Files.createDirectories(server.root.resolve("root/empty"))
+
+            server.client().use { client ->
+                val rootChildren = client.listChildren("root")
+
+                assertEquals(
+                    listOf("root/empty", "root/file.kdbx", "root/nested"),
+                    rootChildren.map { it.path },
+                )
+                assertEquals(
+                    listOf(true, false, true),
+                    rootChildren.map { it.isCollection },
+                )
+                assertEquals(
+                    listOf("root/nested/deep.kdbx"),
+                    client.listChildren("root/nested").map { it.path },
+                )
+            }
+        }
+    }
+
+    @Test
     fun `client works with non root webdav prefix`() = runTest {
         withServer(
             ServerConfig(

@@ -367,6 +367,10 @@ private class FakeWebDavClient(
                 )
             }
 
+    override suspend fun listChildren(
+        collectionPath: String,
+    ): List<WebDavResource> = error("Not used by this test.")
+
     override suspend fun delete(
         path: String,
     ) {

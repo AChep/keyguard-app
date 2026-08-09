@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.WebDavLocation
 import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
+import com.artemchep.keyguard.common.service.webdav.parseWebDavKeePassFileUrl
 import com.artemchep.keyguard.common.service.webdav.toWebDavAuthorization
 import com.artemchep.keyguard.common.usecase.CheckWebDavConnection
 import com.artemchep.keyguard.util.io.readByteArrayAndClose
@@ -35,17 +36,36 @@ class CheckWebDavConnectionImpl internal constructor(
     override fun invoke(
         location: WebDavLocation,
     ): IO<Unit> = ioEffect {
-        val client = clientFactory.create(
-            WebDavClientConfig(
-                baseUrl = location.url,
-                authorization = location.toWebDavAuthorization(),
-            ),
-        )
         when (location) {
-            is WebDavLocation.Collection -> testReadWrite(client)
-            is WebDavLocation.File -> testRead(client)
+            is WebDavLocation.Collection -> testReadWrite(
+                client = createClient(
+                    baseUrl = location.url,
+                    location = location,
+                ),
+            )
+
+            is WebDavLocation.File -> {
+                val fileUrl = parseWebDavKeePassFileUrl(location.url)
+                testRead(
+                    client = createClient(
+                        baseUrl = fileUrl.baseUrl,
+                        location = location,
+                    ),
+                    path = fileUrl.path,
+                )
+            }
         }
     }
+
+    private fun createClient(
+        baseUrl: String,
+        location: WebDavLocation,
+    ): WebDavClient = clientFactory.create(
+        WebDavClientConfig(
+            baseUrl = baseUrl,
+            authorization = location.toWebDavAuthorization(),
+        ),
+    )
 
     private suspend fun testReadWrite(
         client: WebDavClient,
@@ -75,12 +95,15 @@ class CheckWebDavConnectionImpl internal constructor(
 
     private suspend fun testRead(
         client: WebDavClient,
+        path: String,
     ) {
         try {
             client.open()
-            // The client should already point us to
-            // the right resource.
-            client.stat("")
+            val resource = client.stat(path)
+                ?: throw IllegalStateException("The WebDAV resource does not exist.")
+            check(!resource.isCollection) {
+                "The WebDAV resource is not a file."
+            }
         } finally {
             client.close()
         }

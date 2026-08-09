@@ -28,10 +28,12 @@ import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.usecase.ListWebDavDirectory
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.common.usecase.TestBackupLocation
 import com.artemchep.keyguard.common.usecase.impl.CheckWebDavConnectionImpl
+import com.artemchep.keyguard.common.usecase.impl.ListWebDavDirectoryImpl
 import com.artemchep.keyguard.common.usecase.impl.RunBackupNowImpl
 import com.artemchep.keyguard.common.usecase.impl.TestBackupLocationImpl
 import com.artemchep.keyguard.copy.Base32ServiceJvm
@@ -185,6 +187,11 @@ fun globalModuleJvm() = DI.Module(
     }
     bindSingleton<CheckWebDavConnection> {
         CheckWebDavConnectionImpl(
+            directDI = this,
+        )
+    }
+    bindSingleton<ListWebDavDirectory> {
+        ListWebDavDirectoryImpl(
             directDI = this,
         )
     }

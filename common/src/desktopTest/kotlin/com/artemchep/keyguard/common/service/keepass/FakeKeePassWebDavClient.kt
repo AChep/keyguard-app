@@ -136,6 +136,10 @@ internal class FakeKeePassWebDavClient : WebDavClient {
         .filterKeys { key -> key.startsWith(prefix) }
         .map { (path, obj) -> obj.toResource(path) }
 
+    override suspend fun listChildren(
+        collectionPath: String,
+    ): List<WebDavResource> = error("Not used by this test.")
+
     override suspend fun delete(
         path: String,
     ) {

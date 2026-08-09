@@ -6,7 +6,6 @@ import com.artemchep.keyguard.common.model.WebDavLocation
 import com.artemchep.keyguard.util.io.toSource
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
 import com.artemchep.keyguard.util.webdav.WebDavByteRange
-import com.artemchep.keyguard.util.webdav.WebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavClientConfig
 import com.artemchep.keyguard.util.webdav.WebDavOpenResult
 import com.artemchep.keyguard.util.webdav.WebDavResource
@@ -16,11 +15,11 @@ import com.artemchep.keyguard.util.webdav.WebDavWriteStrategy
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.test.runTest
-import kotlinx.io.Sink
 import kotlinx.io.Source
 
 class CheckWebDavConnectionImplTest {
@@ -98,7 +97,11 @@ class CheckWebDavConnectionImplTest {
     @Test
     fun `checks keepass database connection with read-only access`() = runTest {
         val client = FakeWebDavClient()
-        val useCase = CheckWebDavConnectionImpl { client }
+        var capturedConfig: WebDavClientConfig? = null
+        val useCase = CheckWebDavConnectionImpl { config ->
+            capturedConfig = config
+            client
+        }
 
         useCase(
             WebDavLocation.File(
@@ -107,10 +110,30 @@ class CheckWebDavConnectionImplTest {
         ).bind()
 
         assertEquals(listOf("open", "stat", "close"), client.events)
-        assertEquals("", client.statPath)
+        assertEquals("vault.kdbx", client.statPath)
+        assertEquals("https://example.com/dav/", capturedConfig?.baseUrl)
         assertEquals(null, client.writtenPath)
         assertEquals(null, client.readPath)
         assertEquals(null, client.deletedPath)
+    }
+
+    @Test
+    fun `rejects encoded file path separator before creating client`() = runTest {
+        var clientCreated = false
+        val useCase = CheckWebDavConnectionImpl {
+            clientCreated = true
+            FakeWebDavClient()
+        }
+
+        assertFailsWith<IllegalArgumentException> {
+            useCase(
+                WebDavLocation.File(
+                    url = "https://example.com/dav/a%2Fb.kdbx",
+                ),
+            ).bind()
+        }
+
+        assertFalse(clientCreated)
     }
 
     @Test
@@ -148,7 +171,7 @@ private fun defaultRequest() = WebDavLocation.Collection(
 private class FakeWebDavClient(
     private val readBytes: ByteArray? = null,
     private val deleteError: Exception? = null,
-) : WebDavClient {
+) : StubWebDavClient() {
     val events = mutableListOf<String>()
     var writtenPath: String? = null
     var writtenMode: WebDavWriteMode? = null
@@ -209,18 +232,6 @@ private class FakeWebDavClient(
             etag = null,
         )
     }
-
-    override suspend fun write(
-        path: String,
-        mode: WebDavWriteMode,
-        contentLength: Long?,
-        precondition: WebDavWritePrecondition?,
-        write: suspend (Sink) -> Unit,
-    ): WebDavResource = error("Not used by this test.")
-
-    override suspend fun list(
-        prefix: String,
-    ): List<WebDavResource> = error("Not used by this test.")
 
     override suspend fun delete(
         path: String,

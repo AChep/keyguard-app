@@ -85,6 +85,21 @@ class KeePassLoginStateProducerTest {
     }
 
     @Test
+    fun `webdav file keeps encoded uri and exposes decoded name`() {
+        val webDav = KeePassLoginState.WebDav(
+            url = "https://example.com/dav/vault%20%E2%9C%93%20%25%23.kdbx?download=1#section",
+            username = null,
+            password = null,
+        )
+
+        val file = webDav.toKeePassLoginFile()
+
+        assertEquals(webDav.url, file.uri)
+        assertEquals("vault ✓ %#.kdbx", file.name)
+        assertNull(file.size)
+    }
+
+    @Test
     fun `invalid password does not create action`() {
         val action = createKeePassLoginAction(
             mode = "open",

@@ -825,6 +825,222 @@ class KtorWebDavClientTest {
     }
 
     @Test
+    fun `list returns empty for a missing start collection`() = runTest {
+        val engine = MockEngine { request ->
+            assertEquals(HttpMethod("PROPFIND"), request.method)
+            assertEquals("/dav/root/missing/", request.url.encodedPath)
+            assertEquals("0", request.headers["Depth"])
+            respond("", status = HttpStatusCode.NotFound)
+        }
+        val client = testClient(engine)
+
+        assertTrue(client.list("missing/").isEmpty())
+    }
+
+    @Test
+    fun `list skips a collection that disappears during traversal`() = runTest {
+        val engine = MockEngine { request ->
+            when (request.url.encodedPath to request.headers["Depth"]) {
+                "/dav/root/snapshots/" to "0" -> respond(
+                    content = singleMultistatus(
+                        href = "/dav/root/snapshots/",
+                        properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+                    ),
+                    status = MULTI_STATUS,
+                )
+
+                "/dav/root/snapshots/" to "1" -> respond(
+                    content = multistatus(
+                        responseXml(
+                            href = "/dav/root/snapshots/",
+                            properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+                        ),
+                        responseXml(
+                            href = "/dav/root/snapshots/one.zip",
+                            properties = "<D:resourcetype/>",
+                        ),
+                        responseXml(
+                            href = "/dav/root/snapshots/disappeared/",
+                            properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+                        ),
+                    ),
+                    status = MULTI_STATUS,
+                )
+
+                "/dav/root/snapshots/disappeared/" to "1" ->
+                    respond("", status = HttpStatusCode.NotFound)
+
+                else -> error("Unexpected request: ${request.method.value} ${request.url}")
+            }
+        }
+        val client = testClient(engine)
+
+        assertEquals(
+            listOf("snapshots/one.zip"),
+            client.list("snapshots/").map { item -> item.path },
+        )
+    }
+
+    @Test
+    fun `list children returns only direct safe children`() = runTest {
+        val tempName = temporaryArtifactName(
+            TemporaryArtifactRole.New,
+            "123e4567-e89b-42d3-a456-426614174000",
+        )
+        val engine = MockEngine { request ->
+            assertEquals(HttpMethod("PROPFIND"), request.method)
+            assertEquals("/dav/root/folder/", request.url.encodedPath)
+            assertEquals("1", request.headers["Depth"])
+            respond(
+                content = multistatus(
+                    responseXml(
+                        href = "/dav/root/folder/?ignored=true",
+                        properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+                    ),
+                    responseXml(
+                        href = "https://example.com/dav/root/folder/sub%20folder/",
+                        properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+                    ),
+                    responseXml(
+                        href = "/dav/root/folder/vault%20%E2%9C%93.kdbx#fragment",
+                        properties = "<D:resourcetype/><D:getcontentlength>42</D:getcontentlength>",
+                    ),
+                    responseXml(
+                        href = "/dav/root/folder/sub/deep.kdbx",
+                        properties = "<D:resourcetype/>",
+                    ),
+                    responseXml(
+                        href = "/dav/root/sibling.kdbx",
+                        properties = "<D:resourcetype/>",
+                    ),
+                    responseXml(
+                        href = "https://evil.example/dav/root/folder/stolen.kdbx",
+                        properties = "<D:resourcetype/>",
+                    ),
+                    responseXml(
+                        href = "http://example.com/dav/root/folder/insecure.kdbx",
+                        properties = "<D:resourcetype/>",
+                    ),
+                    responseXml(
+                        href = "https://example.com:8443/dav/root/folder/wrong-port.kdbx",
+                        properties = "<D:resourcetype/>",
+                    ),
+                    responseXml(
+                        href = "/dav/root/folder/$tempName",
+                        properties = "<D:resourcetype/>",
+                    ),
+                    responseXml(
+                        href = "/dav/root/folder/vault%20%E2%9C%93.kdbx",
+                        properties = "<D:resourcetype/><D:getcontentlength>42</D:getcontentlength>",
+                    ),
+                ),
+                status = MULTI_STATUS,
+            )
+        }
+        val client = testClient(engine)
+
+        val items = client.listChildren("folder/")
+
+        assertEquals(
+            listOf("folder/sub folder", "folder/vault ✓.kdbx"),
+            items.map { item -> item.path },
+        )
+        assertEquals(listOf(true, false), items.map { item -> item.isCollection })
+    }
+
+    @Test
+    fun `list children throws not found for a missing collection`() = runTest {
+        val engine = MockEngine { request ->
+            assertEquals("1", request.headers["Depth"])
+            respond("", status = HttpStatusCode.NotFound)
+        }
+        val client = testClient(engine)
+
+        val error = assertFailsWith<WebDavException.NotFound> {
+            client.listChildren("missing")
+        }
+
+        assertEquals(WebDavOperation.List, error.operation)
+        assertEquals("missing", error.path)
+        assertEquals(HttpStatusCode.NotFound.value, error.statusCode)
+        assertEquals(false, error.retryable)
+    }
+
+    @Test
+    fun `list children returns empty when collection has no children`() = runTest {
+        val engine = MockEngine {
+            respond(
+                content = singleMultistatus(
+                    href = "/dav/root/empty/",
+                    properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+                ),
+                status = MULTI_STATUS,
+            )
+        }
+        val client = testClient(engine)
+
+        assertTrue(client.listChildren("empty").isEmpty())
+    }
+
+    @Test
+    fun `relative path normalizer strips slashes and rejects traversal`() {
+        assertEquals("one/two", normalizeWebDavRelativePath("/one/two/"))
+        assertEquals("", normalizeWebDavRelativePath("/"))
+        assertFailsWith<IllegalArgumentException> {
+            normalizeWebDavRelativePath("one/../two")
+        }
+    }
+
+    @Test
+    fun `resource URL resolver encodes relative segments`() {
+        assertEquals(
+            "https://example.com/dav/root/folder%20%23/vault%20%E2%9C%93.kdbx",
+            resolveWebDavResourceUrl(
+                baseUrl = "https://example.com/dav/root",
+                path = "folder #/vault ✓.kdbx",
+            ),
+        )
+        assertEquals(
+            "https://example.com/dav/root/folder%20%23/",
+            resolveWebDavResourceUrl(
+                baseUrl = "https://example.com/dav/root/",
+                path = "folder #",
+                collection = true,
+            ),
+        )
+        assertEquals(
+            "https://example.com/dav/root/folder/?download=1",
+            resolveWebDavResourceUrl(
+                baseUrl = "https://example.com/dav/root?download=1#fragment",
+                path = "folder",
+                collection = true,
+            ),
+        )
+    }
+
+    @Test
+    fun `requests preserve base URL query parameters`() = runTest {
+        val engine = MockEngine { request ->
+            assertEquals("/dav/root/", request.url.encodedPath)
+            assertEquals(listOf("one", "two"), request.url.parameters.getAll("token"))
+            assertEquals("read/write", request.url.parameters["scope"])
+            respond(
+                content = singleMultistatus(
+                    href = "/dav/root/",
+                    properties = "<D:resourcetype><D:collection/></D:resourcetype>",
+                ),
+                status = MULTI_STATUS,
+            )
+        }
+        val client = testClient(
+            engine = engine,
+            baseUrl = "https://example.com/dav/root?token=one&token=two&scope=read%2Fwrite#fragment",
+        )
+
+        assertTrue(client.listChildren("").isEmpty())
+    }
+
+    @Test
     fun `range read sends byte range and requires partial content`() = runTest {
         val engine = MockEngine { request ->
             when (request.method.value) {
@@ -1365,10 +1581,11 @@ class KtorWebDavClientTest {
     private fun testClient(
         engine: MockEngine,
         writeStrategy: WebDavWriteStrategy = WebDavWriteStrategy.RequireAtomic,
+        baseUrl: String = "https://example.com/dav/root/",
     ): KtorWebDavClient = KtorWebDavClient(
         httpClient = HttpClient(engine),
         config = WebDavClientConfig(
-            baseUrl = "https://example.com/dav/root/",
+            baseUrl = baseUrl,
             writeStrategy = writeStrategy,
         ),
     )

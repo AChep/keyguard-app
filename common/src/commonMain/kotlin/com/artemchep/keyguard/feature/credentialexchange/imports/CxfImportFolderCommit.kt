@@ -7,48 +7,7 @@ import com.artemchep.keyguard.common.service.credentialexchange.CxfImportPlan
 import com.artemchep.keyguard.common.service.credentialexchange.impl.DEFAULT_FOLDER_TITLE
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddFolderRequest
-import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.util.FOLDER_HIERARCHY_DELIMITER_STRING
-import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
-import kotlinx.coroutines.flow.first
-
-/**
- * Reads the target account's backend and picks the folder representation its
- * sync can actually persist. Falls back to the safe representation when the
- * account cannot be resolved — see [cxfFolderHierarchyMode].
- */
-internal suspend fun resolveFolderHierarchyMode(
-    getAccounts: GetAccounts,
-    accountId: AccountId,
-): FolderHierarchyMode {
-    val accountType = getAccounts()
-        .first()
-        .firstOrNull { account -> account.id == accountId }
-        ?.type
-    return cxfFolderHierarchyMode(accountType)
-}
-
-/**
- * The folder representation an imported hierarchy must be written in for the
- * given backend.
- *
- * Only [FolderHierarchyMode.ParentId] expresses nesting as a real parent edge,
- * so a ParentId tree written to a backend whose sync does not round-trip that
- * edge is lost on the next sync: the hierarchy collapses into flat root folders
- * and same-named leaves of different branches merge into one node.
- * [FolderHierarchyMode.Path] keeps the nesting inside the folder name, which
- * every backend carries — hence also the choice for an unresolvable account.
- */
-internal fun cxfFolderHierarchyMode(
-    accountType: AccountType?,
-): FolderHierarchyMode = when (accountType) {
-    // KeePass groups are a real tree and `KeePassFolderSyncOps` performs an
-    // actual group move, re-asserting ParentId on every push.
-    AccountType.KEEPASS -> FolderHierarchyMode.ParentId
-    AccountType.BITWARDEN,
-    null,
-    -> FolderHierarchyMode.Path
-}
 
 /**
  * One planned folder resolved against the target account's representation: the

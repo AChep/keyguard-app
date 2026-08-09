@@ -6,13 +6,13 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Merge
 import androidx.compose.runtime.Composable
 import arrow.core.partially1
+import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddFolderRequest
@@ -22,6 +22,7 @@ import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.MergeFolderById
 import com.artemchep.keyguard.common.usecase.RemoveFolderById
 import com.artemchep.keyguard.common.usecase.RenameFolderById
+import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.core.store.bitwarden.exists
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
@@ -74,6 +75,7 @@ fun foldersScreenState(
         getCiphers = instance(),
         getCanWrite = instance(),
         addFolder = instance(),
+        resolveFolderHierarchyMode = instance(),
         mergeFolderById = instance(),
         removeFolderById = instance(),
         renameFolderById = instance(),
@@ -90,6 +92,7 @@ fun foldersScreenState(
     getCiphers: GetCiphers,
     getCanWrite: GetCanWrite,
     addFolder: AddFolder,
+    resolveFolderHierarchyMode: ResolveFolderHierarchyMode,
     mergeFolderById: MergeFolderById,
     removeFolderById: RemoveFolderById,
     renameFolderById: RenameFolderById,
@@ -104,6 +107,7 @@ fun foldersScreenState(
         getCiphers,
         getCanWrite,
         addFolder,
+        resolveFolderHierarchyMode,
         mergeFolderById,
         removeFolderById,
         renameFolderById,
@@ -116,6 +120,7 @@ fun foldersScreenState(
         getCiphers = getCiphers,
         getCanWrite = getCanWrite,
         addFolder = addFolder,
+        resolveFolderHierarchyMode = resolveFolderHierarchyMode,
         mergeFolderById = mergeFolderById,
         removeFolderById = removeFolderById,
         renameFolderById = renameFolderById,
@@ -131,6 +136,7 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
     getCiphers: GetCiphers,
     getCanWrite: GetCanWrite,
     addFolder: AddFolder,
+    resolveFolderHierarchyMode: ResolveFolderHierarchyMode,
     mergeFolderById: MergeFolderById,
     removeFolderById: RemoveFolderById,
     renameFolderById: RenameFolderById,
@@ -261,16 +267,25 @@ suspend fun RememberStateFlowScope.foldersScreenStateProducer(
     suspend fun onAdd(
         parent: FolderBrowseNode?,
     ) {
+        val rootHierarchyMode = if (parent == null) {
+            val rootAccountId = accountId
+                ?: return
+            resolveFolderHierarchyMode(AccountId(rootAccountId))
+                .bind()
+        } else {
+            null
+        }
+
         fun createRequest(name: String): AddFolderRequest? {
             val requestInfo = parent
                 ?.folder
                 ?.createAddFolderRequest(name)
-                ?: AddFolderRequestInfo(
+                ?: createRootAddFolderRequest(
                     accountId = accountId
                         ?: return null,
                     name = name,
-                    parentId = null,
-                    hierarchyMode = FolderHierarchyMode.Path,
+                    hierarchyMode = rootHierarchyMode
+                        ?: return null,
                 )
             return AddFolderRequest(
                 accountId = AccountId(requestInfo.accountId),

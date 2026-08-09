@@ -10,6 +10,52 @@ import kotlin.time.Instant
 
 class FolderBrowseAddTest {
     @Test
+    fun `keepass root preserves parent id mode for an offline child`() {
+        val rootRequest = createRootAddFolderRequest(
+            accountId = accountId,
+            name = "Parent",
+            hierarchyMode = FolderHierarchyMode.ParentId,
+        )
+
+        assertEquals("Parent", rootRequest.name)
+        assertNull(rootRequest.parentId)
+        assertEquals(FolderHierarchyMode.ParentId, rootRequest.hierarchyMode)
+
+        val childRequest = folder(
+            id = "root-id",
+            name = rootRequest.name,
+            hierarchyMode = rootRequest.hierarchyMode,
+        ).createAddFolderRequest(name = "Child")
+
+        assertEquals("Child", childRequest.name)
+        assertEquals("root-id", childRequest.parentId)
+        assertEquals(FolderHierarchyMode.ParentId, childRequest.hierarchyMode)
+    }
+
+    @Test
+    fun `bitwarden root preserves path mode for an offline child`() {
+        val rootRequest = createRootAddFolderRequest(
+            accountId = accountId,
+            name = "Parent",
+            hierarchyMode = FolderHierarchyMode.Path,
+        )
+
+        assertEquals("Parent", rootRequest.name)
+        assertNull(rootRequest.parentId)
+        assertEquals(FolderHierarchyMode.Path, rootRequest.hierarchyMode)
+
+        val childRequest = folder(
+            id = "root-id",
+            name = rootRequest.name,
+            hierarchyMode = rootRequest.hierarchyMode,
+        ).createAddFolderRequest(name = "Child")
+
+        assertEquals("Parent/Child", childRequest.name)
+        assertNull(childRequest.parentId)
+        assertEquals(FolderHierarchyMode.Path, childRequest.hierarchyMode)
+    }
+
+    @Test
     fun `path mode with non-empty parent joins parent and leaf with delimiter`() {
         val request = folder(name = "Work")
             .createAddFolderRequest(name = "Clients")

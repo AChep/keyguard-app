@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddFolderRequest
 import com.artemchep.keyguard.common.usecase.CopyCipherById
+import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.CipherSourceDataReconciler
 import com.artemchep.keyguard.core.store.bitwarden.attachments
@@ -25,6 +26,7 @@ import org.kodein.di.instance
 class CopyCipherByIdImpl(
     private val modifyCipherById: ModifyCipherById,
     private val addFolder: AddFolder,
+    private val resolveFolderHierarchyMode: ResolveFolderHierarchyMode,
     private val cryptoGenerator: CryptoGenerator,
 ) : CopyCipherById {
     companion object {
@@ -34,6 +36,7 @@ class CopyCipherByIdImpl(
     constructor(directDI: DirectDI) : this(
         modifyCipherById = directDI.instance(),
         addFolder = directDI.instance(),
+        resolveFolderHierarchyMode = directDI.instance(),
         cryptoGenerator = directDI.instance(),
     )
 
@@ -46,10 +49,13 @@ class CopyCipherByIdImpl(
                     is FolderInfo.None -> null
                     is FolderInfo.New -> {
                         val accountId = AccountId(value.accountId!!)
+                        val hierarchyMode = resolveFolderHierarchyMode(accountId)
+                            .bind()
                         val rq = listOf(
                             AddFolderRequest(
                                 accountId = accountId,
                                 name = folder.name,
+                                hierarchyMode = hierarchyMode,
                             ),
                         )
                         val rs = addFolder(rq)

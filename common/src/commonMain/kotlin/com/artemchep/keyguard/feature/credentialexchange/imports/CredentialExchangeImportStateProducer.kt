@@ -22,8 +22,8 @@ import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.DateFormatter
-import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
 import com.artemchep.keyguard.common.usecase.createCiphers
 import com.artemchep.keyguard.feature.credentialexchange.toggleNote
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -64,7 +64,7 @@ fun produceCredentialExchangeImportScreenState(
 ): Loadable<CredentialExchangeImportState> = with(localDI().direct) {
     produceCredentialExchangeImportScreenState(
         args = args,
-        getAccounts = instance(),
+        resolveFolderHierarchyMode = instance(),
         getProfiles = instance(),
         cxfImportService = instance(),
         addFolder = instance(),
@@ -79,7 +79,7 @@ fun produceCredentialExchangeImportScreenState(
 @Composable
 fun produceCredentialExchangeImportScreenState(
     args: CredentialExchangeImportRoute.Args,
-    getAccounts: GetAccounts,
+    resolveFolderHierarchyMode: ResolveFolderHierarchyMode,
     getProfiles: GetProfiles,
     cxfImportService: CxfImportService,
     addFolder: AddFolder,
@@ -97,7 +97,7 @@ fun produceCredentialExchangeImportScreenState(
 ) {
     credentialExchangeImportScreenStateProducer(
         args = args,
-        getAccounts = getAccounts,
+        resolveFolderHierarchyMode = resolveFolderHierarchyMode,
         getProfiles = getProfiles,
         cxfImportService = cxfImportService,
         addFolder = addFolder,
@@ -158,7 +158,7 @@ internal sealed interface Step {
 
 suspend fun RememberStateFlowScope.credentialExchangeImportScreenStateProducer(
     args: CredentialExchangeImportRoute.Args,
-    getAccounts: GetAccounts,
+    resolveFolderHierarchyMode: ResolveFolderHierarchyMode,
     getProfiles: GetProfiles,
     cxfImportService: CxfImportService,
     addFolder: AddFolder,
@@ -250,10 +250,8 @@ suspend fun RememberStateFlowScope.credentialExchangeImportScreenStateProducer(
                 commitPlan(
                     plan = review.selectedPlan,
                     accountId = args.accountId,
-                    folderHierarchyMode = resolveFolderHierarchyMode(
-                        getAccounts = getAccounts,
-                        accountId = args.accountId,
-                    ),
+                    folderHierarchyMode = resolveFolderHierarchyMode(args.accountId)
+                        .bind(),
                     addFolder = addFolder,
                     addCipher = addCipher,
                     cryptoGenerator = cryptoGenerator,

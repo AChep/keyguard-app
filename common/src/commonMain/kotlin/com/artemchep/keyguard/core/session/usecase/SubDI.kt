@@ -208,6 +208,7 @@ import com.artemchep.keyguard.common.usecase.RemoveLicense
 import com.artemchep.keyguard.common.usecase.RefreshGpgPublicKeys
 import com.artemchep.keyguard.common.usecase.RenameFolderById
 import com.artemchep.keyguard.common.usecase.ResetAllWatchtowerAlert
+import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
 import com.artemchep.keyguard.common.usecase.RestoreCipherById
 import com.artemchep.keyguard.common.usecase.RetryCipher
 import com.artemchep.keyguard.common.usecase.RotateDeviceIdUseCase
@@ -417,6 +418,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveUrlBlockByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveUrlOverrideByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RenameFolderByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ResetAllWatchtowerAlertImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.ResolveFolderHierarchyModeImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RestoreCipherByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RetryCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.SyncAllImpl
@@ -958,6 +960,9 @@ fun DI.Builder.createSubDi2(
     }
     bindSingleton<AddFolder> {
         AddFolderImpl(this)
+    }
+    bindSingleton<ResolveFolderHierarchyMode> {
+        ResolveFolderHierarchyModeImpl(this)
     }
     bindSingleton<ExportLogs> {
         ExportLogsImpl(this)

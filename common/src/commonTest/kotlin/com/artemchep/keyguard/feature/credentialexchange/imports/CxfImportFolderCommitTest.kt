@@ -6,7 +6,6 @@ import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.common.service.credentialexchange.CxfImportPlan
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddFolderRequest
-import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -52,7 +51,7 @@ class CxfImportFolderCommitTest {
             folders = plan,
             accountId = accountId,
             addFolder = addFolder,
-            hierarchyMode = cxfFolderHierarchyMode(AccountType.BITWARDEN),
+            hierarchyMode = FolderHierarchyMode.Path,
         )
 
         val requests = addFolder.batches.flatten()
@@ -80,7 +79,7 @@ class CxfImportFolderCommitTest {
             folders = plan,
             accountId = accountId,
             addFolder = addFolder,
-            hierarchyMode = cxfFolderHierarchyMode(AccountType.KEEPASS),
+            hierarchyMode = FolderHierarchyMode.ParentId,
         )
 
         val requests = addFolder.batches.flatten()
@@ -94,11 +93,6 @@ class CxfImportFolderCommitTest {
         )
         // Children resolve against the ids their parents were created with.
         assertEquals(listOf(null, null, "id-1-0", "id-1-1"), requests.map { it.parentId })
-    }
-
-    @Test
-    fun `an unresolvable account falls back to the representation that survives`() {
-        assertEquals(FolderHierarchyMode.Path, cxfFolderHierarchyMode(null))
     }
 
     @Test

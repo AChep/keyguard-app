@@ -22,5 +22,5 @@ data class AddFolderRequest(
     val accountId: AccountId,
     val name: String,
     val parentId: String? = null,
-    val hierarchyMode: FolderHierarchyMode = FolderHierarchyMode.Path,
+    val hierarchyMode: FolderHierarchyMode,
 )

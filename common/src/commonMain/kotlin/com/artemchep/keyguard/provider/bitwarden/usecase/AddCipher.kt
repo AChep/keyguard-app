@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddFolderRequest
 import com.artemchep.keyguard.common.usecase.ArchiveCipherById
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
+import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
@@ -48,6 +49,7 @@ import org.kodein.di.instanceOrNull
 class AddCipherImpl(
     private val modifyDatabase: ModifyDatabase,
     private val addFolder: AddFolder,
+    private val resolveFolderHierarchyMode: ResolveFolderHierarchyMode,
     private val archiveCipherById: ArchiveCipherById,
     private val trashCipherById: TrashCipherById,
     private val cryptoGenerator: CryptoGenerator,
@@ -63,6 +65,7 @@ class AddCipherImpl(
     constructor(directDI: DirectDI) : this(
         modifyDatabase = directDI.instance(),
         addFolder = directDI.instance(),
+        resolveFolderHierarchyMode = directDI.instance(),
         archiveCipherById = directDI.instance(),
         trashCipherById = directDI.instance(),
         cryptoGenerator = directDI.instance(),
@@ -82,10 +85,13 @@ class AddCipherImpl(
                     is FolderInfo.None -> null
                     is FolderInfo.New -> {
                         val accountId = AccountId(value.accountId!!)
+                        val hierarchyMode = resolveFolderHierarchyMode(accountId)
+                            .bind()
                         val rq = listOf(
                             AddFolderRequest(
                                 accountId = accountId,
                                 name = folder.name,
+                                hierarchyMode = hierarchyMode,
                             ),
                         )
                         val rs = addFolder(rq)

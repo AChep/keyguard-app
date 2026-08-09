@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.FolderOwnership2
 import com.artemchep.keyguard.common.usecase.AddFolder
 import com.artemchep.keyguard.common.usecase.AddFolderRequest
 import com.artemchep.keyguard.common.usecase.MoveCipherToFolderById
+import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.folderId
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
@@ -22,6 +23,7 @@ import org.kodein.di.instance
 class MoveCipherToFolderByIdImpl(
     private val modifyCipherById: ModifyCipherById,
     private val addFolder: AddFolder,
+    private val resolveFolderHierarchyMode: ResolveFolderHierarchyMode,
 ) : MoveCipherToFolderById {
     companion object {
         private const val TAG = "MoveCipherToFolderById.bitwarden"
@@ -30,6 +32,7 @@ class MoveCipherToFolderByIdImpl(
     constructor(directDI: DirectDI) : this(
         modifyCipherById = directDI.instance(),
         addFolder = directDI.instance(),
+        resolveFolderHierarchyMode = directDI.instance(),
     )
 
     override fun invoke(
@@ -40,10 +43,13 @@ class MoveCipherToFolderByIdImpl(
             is FolderInfo.None -> null
             is FolderInfo.New -> {
                 val accountId = AccountId(ownership.accountId)
+                val hierarchyMode = resolveFolderHierarchyMode(accountId)
+                    .bind()
                 val rq = listOf(
                     AddFolderRequest(
                         accountId = accountId,
                         name = folder.name,
+                        hierarchyMode = hierarchyMode,
                     ),
                 )
                 val rs = addFolder(rq)

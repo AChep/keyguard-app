@@ -5,6 +5,17 @@ import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.common.util.FOLDER_HIERARCHY_DELIMITER
 import com.artemchep.keyguard.common.util.FOLDER_HIERARCHY_DELIMITER_STRING
 
+internal fun createRootAddFolderRequest(
+    accountId: String,
+    name: String,
+    hierarchyMode: FolderHierarchyMode,
+): AddFolderRequestInfo = AddFolderRequestInfo(
+    accountId = accountId,
+    name = name,
+    parentId = null,
+    hierarchyMode = hierarchyMode,
+)
+
 internal fun DFolder.createAddFolderRequest(
     name: String,
 ): AddFolderRequestInfo = when (hierarchyMode) {

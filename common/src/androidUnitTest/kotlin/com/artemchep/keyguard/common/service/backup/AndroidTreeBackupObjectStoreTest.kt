@@ -47,8 +47,10 @@ class AndroidTreeBackupObjectStoreTest {
         val key = BackupObjectKey("repo.zip")
         val cause = IOException("failed to publish replacement")
         client.putFile(key.value, "old".encodeToByteArray())
+        var failureInjected = false
         client.onRenamePath = { fromPath, displayName ->
             if (fromPath.isTempReplacement() && displayName == "repo.zip") {
+                failureInjected = true
                 throw cause
             }
             true
@@ -63,6 +65,7 @@ class AndroidTreeBackupObjectStoreTest {
         assertEquals(BackupObjectStoreOperation.Write, error.operation)
         assertEquals(key, error.key)
         assertEquals(cause, error.cause)
+        assertTrue(failureInjected)
         assertContentEquals("old".encodeToByteArray(), store.readAll(key))
         assertEquals(
             listOf("repo.zip"),
@@ -76,8 +79,12 @@ class AndroidTreeBackupObjectStoreTest {
         val store = AndroidTreeBackupObjectStore(client)
         val key = BackupObjectKey("repo.zip")
         client.putFile(key.value, "old".encodeToByteArray())
+        var failureInjected = false
         client.onRenamePath = { fromPath, displayName ->
-            !(fromPath == "repo.zip" && displayName.isTemporaryOfRole(TemporaryArtifactRole.Previous))
+            val shouldFail = fromPath == "repo.zip" &&
+                displayName.isTemporaryOfRole(TemporaryArtifactRole.Previous)
+            failureInjected = failureInjected || shouldFail
+            !shouldFail
         }
 
         val error = assertFailsWith<BackupObjectStoreException.Transient> {
@@ -88,6 +95,11 @@ class AndroidTreeBackupObjectStoreTest {
 
         assertEquals(BackupObjectStoreOperation.Write, error.operation)
         assertEquals(key, error.key)
+        assertEquals(
+            "Document provider failed to stage existing backup object.",
+            error.cause?.message,
+        )
+        assertTrue(failureInjected)
         assertContentEquals("old".encodeToByteArray(), store.readAll(key))
         assertEquals(
             listOf("repo.zip"),
@@ -101,8 +113,11 @@ class AndroidTreeBackupObjectStoreTest {
         val store = AndroidTreeBackupObjectStore(client)
         val key = BackupObjectKey("repo.zip")
         client.putFile(key.value, "old".encodeToByteArray())
+        var failureInjected = false
         client.onRenamePath = { fromPath, displayName ->
-            !(fromPath.isTempReplacement() && displayName == "repo.zip")
+            val shouldFail = fromPath.isTempReplacement() && displayName == "repo.zip"
+            failureInjected = failureInjected || shouldFail
+            !shouldFail
         }
 
         val error = assertFailsWith<BackupObjectStoreException.Transient> {
@@ -113,6 +128,11 @@ class AndroidTreeBackupObjectStoreTest {
 
         assertEquals(BackupObjectStoreOperation.Write, error.operation)
         assertEquals(key, error.key)
+        assertEquals(
+            "Document provider failed to publish backup object.",
+            error.cause?.message,
+        )
+        assertTrue(failureInjected)
         assertContentEquals("old".encodeToByteArray(), store.readAll(key))
         assertEquals(
             listOf("repo.zip"),
@@ -660,5 +680,5 @@ private fun String.isTempReplacement(): Boolean =
 
 private fun String.isTemporaryOfRole(
     role: TemporaryArtifactRole,
-): Boolean = startsWith("$KEYGUARD_TEMPORARY_ARTIFACT_PREFIX${role.token}-") &&
+): Boolean = startsWith("${KEYGUARD_TEMPORARY_ARTIFACT_PREFIX}v1u-${role.token}-") &&
     endsWith(".tmp")

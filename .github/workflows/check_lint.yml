@@ -36,8 +36,14 @@ jobs:
           echo "" >> gradle.properties
         env:
           VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
-      - name: "Check lint"
-        run: ./gradlew --continue lint detekt detektCustomRules
+      - name: "Check Android lint"
+        run: ./gradlew --continue --no-parallel --max-workers=2 lint
+      - name: "Check Detekt"
+        if: ${{ !cancelled() }}
+        run: ./gradlew --continue --no-parallel --max-workers=2 detekt
+      - name: "Check custom Detekt rules"
+        if: ${{ !cancelled() }}
+        run: ./gradlew --continue --no-parallel --max-workers=1 detektCustomRules
       - name: "Create lint summary"
         if: always()
         shell: bash

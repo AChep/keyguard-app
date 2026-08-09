@@ -11,12 +11,19 @@ import io.ktor.http.HttpProtocolVersion
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.util.date.GMTDate
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 class KtorTransportTest {
@@ -100,6 +107,51 @@ class KtorTransportTest {
             client.close()
         }
     }
+
+    @Test
+    fun `cancelling websocket upgrade cancels request`() = runTest {
+        val upgradeStarted = CompletableDeferred<Unit>()
+        val upgradeCancelled = CompletableDeferred<Unit>()
+        val releaseUpgrade = CompletableDeferred<Unit>()
+        val client = HttpClient(
+            MockEngine {
+                try {
+                    upgradeStarted.complete(Unit)
+                    releaseUpgrade.await()
+                } finally {
+                    upgradeCancelled.complete(Unit)
+                }
+                respond(
+                    content = "Upgrade released",
+                    status = HttpStatusCode.ServiceUnavailable,
+                )
+            },
+        ) {
+            install(WebSockets)
+        }
+
+        try {
+            val connectJob = launch {
+                client.connectTransport(
+                    url = "https://example.com/hub",
+                    headers = emptyMap(),
+                )
+            }
+            upgradeStarted.await()
+
+            connectJob.cancelAndJoin()
+
+            withContext(Dispatchers.Default) {
+                withTimeout(5.seconds) {
+                    upgradeCancelled.await()
+                }
+            }
+            assertTrue(client.coroutineContext[Job]?.isActive == true)
+        } finally {
+            releaseUpgrade.complete(Unit)
+            client.close()
+        }
+    }
 }
 
 private suspend fun assertWebSocketUrl(
@@ -131,4 +183,3 @@ private suspend fun assertWebSocketUrl(
         session.dispose()
     }
 }
-

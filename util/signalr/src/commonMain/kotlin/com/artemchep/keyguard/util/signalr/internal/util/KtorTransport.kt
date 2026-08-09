@@ -15,6 +15,7 @@ import io.ktor.client.request.prepareRequest
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.takeFrom
 import io.ktor.websocket.WebSocketSession
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
@@ -57,7 +58,7 @@ private suspend fun HttpClient.openWebSocketSession(
         }
     }
 
-    launch {
+    val upgradeJob = launch {
         try {
             statement.execute { response ->
                 val status = response.status
@@ -85,7 +86,12 @@ private suspend fun HttpClient.openWebSocketSession(
         }
     }
 
-    return sessionDeferred.await()
+    return try {
+        sessionDeferred.await()
+    } catch (cause: CancellationException) {
+        upgradeJob.cancel(cause)
+        throw cause
+    }
 }
 
 internal suspend fun HttpClient.connectTransport(

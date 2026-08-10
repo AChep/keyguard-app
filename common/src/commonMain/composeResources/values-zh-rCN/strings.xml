@@ -6,14 +6,24 @@
     <string name="yes">是</string>
     <string name="no">否</string>
     <!-- On click brings Keyguard app to the front -->
-    <string name="show_keyguard">回到Keyguard</string>
+    <string name="show_keyguard">显示 Keyguard</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名称</string>
     <string name="description">描述</string>
+    <string name="result">结果</string>
+    <!-- Text input -->
+    <string name="input">输入</string>
+    <!-- Text output -->
+    <string name="output">输出</string>
+    <string name="run_action">运行</string>
     <string name="account_name">账户名</string>
     <string name="database_name">数据库名</string>
     <string name="enabled">已启用</string>
     <string name="disabled">已禁用</string>
+    <string name="sign">签名</string>
+    <string name="encrypt">加密</string>
+    <string name="verify">验证</string>
+    <string name="decrypt">解密</string>
     <string name="wordlist">词表</string>
     <string name="username">用户名</string>
     <string name="password">密码</string>
@@ -23,6 +33,7 @@
     <string name="no_password">暂无密码</string>
     <string name="advanced_options">高级选项</string>
     <string name="file">文件</string>
+    <string name="choose_file">选择文件</string>
     <string name="file_name_placeholder">文件名</string>
     <string name="file_status_pending_upload">待上传</string>
     <string name="file_status_auto_resume">自动恢复</string>
@@ -44,6 +55,8 @@
         access count limits the amount a send can be opened.
         -->
     <string name="max_access_count">最大访问次数</string>
+    <string name="package_name">Package name</string>
+    <string name="status">Status</string>
     <string name="ready_status_beta">Beta 测试</string>
     <string name="ready_status_alpha">Alpha 测试</string>
     <string name="learn_more">了解详情</string>
@@ -92,7 +105,10 @@
     <string name="attachments">附件</string>
     <string name="attachments_empty_label">暂无附件</string>
     <string name="deactivated">已停用</string>
+    <!-- (certificate/credit card) expired -->
     <string name="expired">已过期</string>
+    <!-- (certificate) revoked -->
+    <string name="revoked">已吊销</string>
     <string name="expiring_soon">即将过期</string>
     <string name="item_incomplete_title">不完整的数据</string>
     <string name="item_incomplete_text">此条目缺少一些重要信息。</string>
@@ -151,6 +167,7 @@
     <string name="address3">地址行 3</string>
     <string name="ssh_agent">SSH 代理</string>
     <string name="ssh_client">SSH 客户端</string>
+    <string name="gpg_agent">GPG 代理</string>
     <string name="rename">重命名</string>
     <string name="deletion_date">删除时间</string>
     <string name="deletion_date_custom">自定义</string>
@@ -262,8 +279,16 @@
     <string name="fingerprint">指纹</string>
     <string name="key_type">密钥类型</string>
     <string name="key_pair">密钥对</string>
+    <string name="key_id">密钥 ID</string>
+    <string name="algorithm">算法</string>
+    <string name="created">创建于</string>
+    <string name="expires">过期于</string>
+    <string name="capabilities">功能</string>
+    <string name="subkeys">子钥</string>
     <string name="key_ssh">SSH 密钥</string>
     <string name="key_ssh_value_placeholder">这里什么都没有。生成一个 SSH 密钥即可开始！</string>
+    <string name="key_gpg">GPG 密钥</string>
+    <string name="key_gpg_value_placeholder">这里看起来空空如也。生成一个 GPG 密钥以开始！</string>
     <string name="fingerprint_phrase">指纹短语</string>
     <string name="fingerprint_phrase_help_title">什么是指纹？</string>
     <string name="filter_auth_reprompt_items">身份验证重新提示</string>
@@ -279,6 +304,9 @@
     <string name="select_key_file">选择密钥文件</string>
     <string name="select_database_file">选择数据库文件</string>
     <string name="replace_database_file">替换数据库文件</string>
+    <string name="database_location_title">数据库位置</string>
+    <string name="database_location_local">本地文件</string>
+    <string name="database_location_webdav">WebDAV</string>
     <string name="open_database">打开数据库</string>
     <string name="create_database">创建数据库</string>
     <string name="addaccount_method_header_title">添加账户</string>
@@ -352,17 +380,25 @@
     <string name="ciphers_action_change_passwords_title">修改密码</string>
     <string name="ciphers_action_view_password_history_title">查看历史密码</string>
     <string name="ciphers_action_view_ssh_agent_history_title">查看 SSH 代理历史记录</string>
+    <string name="ciphers_action_upload_gpg_public_key_title">上传 GPG 公钥</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_title">上传公钥到密钥服务器？</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard 将把此条目的 ASCII 封装的 GPG 公钥发送到您配置的密钥服务器。公钥可能包含指纹、用户 ID（如姓名和电子邮件地址）、子钥、日期和吊销状态。密钥服务器可能会存储并重新分发这些公开数据。此次上传不会请求验证邮件。</string>
+    <string name="ciphers_action_refresh_gpg_public_key_title">刷新 GPG 公钥</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">从密钥服务器刷新公钥？</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard 将使用此密钥的指纹联系您配置的 GPG 密钥服务器。如果找到匹配的公钥，Keyguard 将更新此条目存储的公钥、密钥元数据以及密钥服务器状态。</string>
+    <string name="ciphers_action_verify_gpg_public_key_title">验证 GPG 公钥</string>
+    <string name="ciphers_action_change_gpg_key_expiry_title">修改 GPG 密钥过期时间</string>
     <string name="ciphers_action_archive_title">归档</string>
     <string name="ciphers_action_archive_confirmation_title">移至归档？</string>
     <string name="ciphers_action_unarchive_title">从归档中恢复</string>
     <string name="ciphers_action_unarchive_confirmation_title">从归档中恢复？</string>
-    <string name="ciphers_action_trash_title">回收站</string>
+    <string name="ciphers_action_trash_title">移至回收站</string>
     <string name="ciphers_action_trash_confirmation_title">移至回收站？</string>
     <string name="ciphers_action_trash_confirmation_text">回收站中超过 30 天的项目将会被自动删除。</string>
     <string name="ciphers_action_restore_title">恢复</string>
     <string name="ciphers_action_restore_confirmation_title">从回收站还原？</string>
     <string name="ciphers_action_delete_title">永久删除</string>
-    <string name="ciphers_action_delete_confirmation_title">确认永久删除?</string>
+    <string name="ciphers_action_delete_confirmation_title">确认永久删除？</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">配置概况提醒</string>
     <string name="ciphers_action_cascade_trash_associated_items_title">将关联项目移动到回收站</string>
     <string name="sends_action_change_name_title">修改名称</string>
@@ -383,13 +419,13 @@
     <string name="sends_action_show_email_title">显示邮箱</string>
     <string name="sends_action_enable_title">激活</string>
     <string name="sends_action_enable_text">激活的 Send 可以通过公网访问</string>
-    <string name="sends_action_enable_confirmation_title">确认激活?</string>
+    <string name="sends_action_enable_confirmation_title">确认激活？</string>
     <string name="sends_action_disable_title">停用</string>
     <string name="sends_action_disable_text">停用的 Send 无法通过公网访问</string>
-    <string name="sends_action_disable_confirmation_title">确认停用?</string>
+    <string name="sends_action_disable_confirmation_title">确认停用？</string>
     <string name="sends_action_disabled_note">此 Send 已被停用，没有人能够访问它。</string>
     <string name="sends_action_delete_title">永久删除</string>
-    <string name="sends_action_delete_confirmation_title">确认永久删除?</string>
+    <string name="sends_action_delete_confirmation_title">确认永久删除？</string>
     <string name="file_action_open_with_title">通过…打开</string>
     <string name="file_action_preview_title">预览</string>
     <string name="file_action_send_with_title">通过…发送</string>
@@ -485,6 +521,57 @@
     <string name="ssh_key_action_save_unencrypted_private_key_saved_downloads_success_title">保存未加密私钥到下载</string>
     <string name="ssh_key_action_add_key_title">添加密钥</string>
     <string name="ssh_key_action_replace_key_title">替换密钥</string>
+    <string name="gpg_key_action_save_unencrypted_keys_title">保存未加密的密钥</string>
+    <string name="gpg_key_action_save_unencrypted_keys_saved_downloads_success_title">GPG 密钥已保存至“下载”目录</string>
+    <string name="gpg_key_action_save_public_key_title">保存公钥</string>
+    <string name="gpg_key_action_save_public_key_saved_downloads_success_title">GPG 公钥已保存至“下载”目录</string>
+    <string name="gpg_key_action_save_unencrypted_private_key_title">保存未加密的私钥</string>
+    <string name="gpg_key_action_save_unencrypted_private_key_saved_downloads_success_title">未加密的 GPG 私钥已保存至“下载”目录</string>
+    <string name="gpg_key_import_title">导入 GPG 密钥</string>
+    <string name="gpg_key_import_drop_here">拖放文件以导入 GPG 公钥或私钥</string>
+    <string name="gpg_key_import_failed_title">导入 GPG 密钥失败</string>
+    <string name="gpg_key_import_success_title">GPG 密钥已导入</string>
+    <string name="gpg_key_import_error_empty">GPG 密钥文件为空。</string>
+    <string name="gpg_key_import_error_unsupported_format">不支持的 GPG 密钥格式。</string>
+    <string name="gpg_key_import_error_unsupported_platform">此平台不支持导入 GPG 密钥。</string>
+    <string name="gpg_key_import_error_invalid_passphrase">GPG 密钥密码无效。</string>
+    <string name="gpg_key_import_error_malformed_key">GPG 密钥文件格式损坏。</string>
+    <string name="gpg_key_import_error_read">无法读取所选文件。</string>
+    <string name="gpg_key_import_error_passphrase_required">需要密码才能解锁此 GPG 密钥。</string>
+    <string name="gpg_key_import_error_key_changed">导入过程中 GPG 密钥发生了变化。请尝试重新导入。</string>
+    <string name="gpg_key_import_passphrase_title">密码</string>
+    <string name="gpg_key_import_passphrase_hint">输入 GPG 密钥密码</string>
+    <string name="gpg_key_import_passphrase_dialog_title">输入 GPG 密钥密码</string>
+    <string name="gpg_key_import_passphrase_dialog_message">此 <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> 私钥已加密。导入后，Keyguard 将在不保存密钥密码的情况下存储该私钥。</string>
+    <string name="gpg_key_expiry_title">过期时间</string>
+    <string name="gpg_key_expiry_never">永不过期</string>
+    <string name="gpg_key_expiry_same_as_primary">与主密钥相同 (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
+    <string name="gpg_key_expiry_unknown">未知</string>
+    <string name="gpg_key_expiry_private_key_required">导入私钥以修改其过期时间。</string>
+    <string name="gpg_key_expiry_unavailable">此平台不支持编辑过期时间。</string>
+    <string name="gpg_key_expiry_key_unreadable">无法验证公钥或其指纹。</string>
+    <string name="gpg_key_expiry_dialog_title">修改 GPG 密钥过期时间</string>
+    <string name="gpg_key_expiry_dialog_message">设置过期时间是可逆的，且无法保护已泄露的密钥。如果密钥已泄露，请将其吊销。</string>
+    <string name="gpg_key_expiry_primary">主密钥</string>
+    <string name="gpg_key_expiry_subkey">子密钥 <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
+    <string name="gpg_key_expiry_subkey_capabilities">功能：<xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>。当前过期时间：<xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
+    <string name="gpg_key_expiry_capability_sign">签名</string>
+    <string name="gpg_key_expiry_capability_encrypt">加密</string>
+    <string name="gpg_key_expiry_preset_one_year">一年</string>
+    <string name="gpg_key_expiry_preset_two_years">两年</string>
+    <string name="gpg_key_expiry_preset_five_years">五年</string>
+    <string name="gpg_key_expiry_preset_custom">自定义日期</string>
+    <string name="gpg_key_expiry_no_explicit_expiry">无明确的过期时间</string>
+    <string name="gpg_key_expiry_success_title">GPG 密钥过期时间已更新</string>
+    <string name="gpg_key_expiry_success_message">保存此条目，然后重新分发或上传其公钥。</string>
+    <string name="gpg_key_expiry_cipher_success_message">该条目已更新。请重新分发或上传其公钥。</string>
+    <string name="gpg_key_expiry_failed_title">更新 GPG 密钥过期时间失败</string>
+    <string name="gpg_key_expiry_failed_message">无法更新密钥过期时间。原始密钥保持不变。</string>
+    <string name="gpg_key_expiry_no_components_message">请至少选择一个密钥组件。</string>
+    <string name="gpg_key_expiry_after_primary_message">主密钥过期后，子密钥将无法继续使用。请同时选择主密钥，或选择更早的过期时间。</string>
+    <string name="gpg_key_expiry_invalid_message">请选择一个有效的未来过期日期。</string>
+    <string name="gpg_key_expiry_revoked_message">无法更新已吊销的密钥组件。</string>
+    <string name="gpg_key_expiry_unresolved_revocation_message">由于吊销者的公钥不可用，无法验证指定的吊销。请将其导入并重试。</string>
     <string name="ssh_key_import_title">导入 SSH 密钥</string>
     <string name="ssh_key_import_drop_here">拖放文件以导入 SSH 密钥</string>
     <string name="ssh_key_import_failed_title">导入 SSH 密钥失败</string>
@@ -523,6 +610,9 @@
     <string name="copy_ssh_unencrypted_private_key">复制未加密的私钥</string>
     <string name="copy_ssh_public_key">复制公钥</string>
     <string name="copy_ssh_fingerprint">复制指纹</string>
+    <string name="copy_gpg_unencrypted_private_key">复制未加密的私钥</string>
+    <string name="copy_gpg_public_key">复制公钥</string>
+    <string name="copy_gpg_fingerprint">复制指纹</string>
     <string name="copied_value">已复制值</string>
     <string name="copied_url">已复制 URL</string>
     <string name="copied_uri">已复制 URI</string>
@@ -541,8 +631,8 @@
     <string name="copied_expiration_year">已复制过期年份</string>
     <string name="copied_expiration_month">已复制过期月份</string>
     <string name="copied_cvv_code">已复制安全码（CVV）</string>
-    <string name="copied_otp_code">复制一次性密码</string>
-    <string name="copied_otp_secret_code">复制私钥</string>
+    <string name="copied_otp_code">已复制一次性密码</string>
+    <string name="copied_otp_secret_code">已复制密钥</string>
     <string name="found_otp_code">已找到一次性密码</string>
     <string name="found_value">已找到值</string>
     <string name="autofill_unlock_keyguard">解锁 Keyguard</string>
@@ -600,8 +690,10 @@
     <string name="error_invalid_key">无效的密钥</string>
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_webdav_url_required">需要填写 WebDAV 地址</string>
+    <string name="error_webdav_file_url_required">输入文件资源的完整 WebDAV URL</string>
     <string name="error_incorrect_password">密码错误</string>
     <string name="error_not_found">未找到</string>
+    <string name="error_file_must_be_n_or_smaller">文件大小必须小于等于 <xliff:g id="size" example="500MB">%1$s</xliff:g></string>
     <string name="error_file_must_be_500_mb_or_smaller">文件大小必须小于等于 500 MB</string>
     <string name="error_file_must_be_1_mb_or_smaller">文件大小必须小于等于 1 MB</string>
     <string name="error_otp_key_must_not_be_empty">一次性密码的密钥不能为空</string>
@@ -620,6 +712,7 @@
     <string name="error_failed_encrypt_biometric_key">加密生物识别密钥失败</string>
     <string name="error_failed_decrypt_biometric_key">解密生物识别密钥失败</string>
     <string name="error_failed_ssh_agent_start">启动 SSH 代理失败</string>
+    <string name="error_failed_gpg_agent_start">动 GPG 代理失败</string>
     <string name="error_credential_calling_app_not_privileged">发起调用的应用程序不在特权列表中，因此不能代表其他应用程序请求身份验证。</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
@@ -898,6 +991,7 @@
     <string name="cipher_type_identity">身份</string>
     <string name="cipher_type_note">备注</string>
     <string name="cipher_type_ssh_key">SSH 密钥</string>
+    <string name="cipher_type_gpg_key">GPG 密钥</string>
     <string name="cipher_type_passkey">通行密钥</string>
     <string name="field_type_text">文本</string>
     <string name="field_type_text_concealed">文本（已隐藏）</string>
@@ -935,6 +1029,7 @@
     <string name="ssh_agent_history_response_user_denied">拒绝</string>
     <string name="ssh_agent_history_response_key_not_found">找不到密钥</string>
     <string name="ssh_agent_history_response_failure">失败</string>
+    <string name="ssh_agent_history_response_vault_locked">Vault locked</string>
     <string name="ssh_agent_history_unknown_caller">未知调用方</string>
     <string name="ssh_agent_history_unknown_key">未知的密钥</string>
     <string name="ssh_agent_history_all_accessible_keys">所有可访问的密钥</string>
@@ -973,6 +1068,65 @@
     <string name="ssh_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> 请求使用以下 SSH 密钥对数据进行签名：</string>
     <string name="ssh_agent_request_approval_sign_message_unknown_app">某应用请求使用以下 SSH 密钥对数据进行签名：</string>
     <string name="ssh_client_request">SSH 客户端请求</string>
+    <string name="connected_crypto_apps_title">Connected apps</string>
+    <string name="connected_crypto_apps_summary">Review or revoke apps registered for GPG and/or SSH access.</string>
+    <string name="connected_crypto_apps_empty">No apps are registered</string>
+    <string name="connected_crypto_apps_status_registered">Registered</string>
+    <string name="connected_crypto_apps_status_not_installed">Not installed</string>
+    <string name="connected_crypto_apps_status_signer_changed">Signer changed — access disabled</string>
+    <string name="connected_crypto_apps_signer">App signer</string>
+    <string name="connected_crypto_apps_registered_at">Registered</string>
+    <string name="connected_crypto_apps_last_used">Last used</string>
+    <string name="connected_crypto_apps_revoke">Revoke</string>
+    <string name="connected_crypto_apps_revoke_title">Revoke %1$s?</string>
+    <string name="connected_crypto_apps_revoke_message">The app will need to be registered again before it can use Keyguard as the provider.</string>
+    <string name="connected_crypto_apps_unknown">Unknown</string>
+    <string name="ipc_approval_title">External app request</string>
+    <string name="ipc_approval_auth_reason">Approve an external cryptographic request</string>
+    <string name="ipc_approval_unavailable">This approval request expired or is no longer available.</string>
+    <string name="ipc_approval_message"><xliff:g id="app" example="Termux">%1$s</xliff:g> wants to <xliff:g id="request" example="use GPG to encrypt a message">%2$s</xliff:g>.</string>
+    <string name="ipc_approval_operation">use <xliff:g id="protocol" example="GPG">%1$s</xliff:g> to <xliff:g id="operation" example="encrypt a message">%2$s</xliff:g></string>
+    <string name="ipc_approval_operation_with_registration">register with Keyguard and <xliff:g id="request" example="use GPG to encrypt a message">%1$s</xliff:g></string>
+    <string name="ipc_approval_no_keys">No eligible keys are available.</string>
+    <string name="ipc_approval_no_keys_continue">No eligible keys are available. You can continue to check whether the signer is missing.</string>
+    <string name="ipc_approval_deny">Deny</string>
+    <string name="ipc_approval_approve">Approve</string>
+    <string name="ipc_protocol_openpgp">GPG agent</string>
+    <string name="ipc_protocol_ssh">SSH agent</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_check_permission">confirm it has access</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_clear_sign">sign a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_detached_sign">create a detached signature</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_encrypt">encrypt a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_sign_and_encrypt">sign and encrypt a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_decrypt_verify">decrypt or verify a message</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_decrypt_metadata">read a message's metadata</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_sign_key">choose a signing key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_key_ids">look up recipient keys</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_autocrypt_status">check which recipients it can encrypt to</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_get_key">export a public key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_openpgp_other">run an unrecognized operation</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_select_key">choose a key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_get_public_key">read a public key</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_get_ssh_public_key">read a public key in OpenSSH format</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_sign">sign an authentication challenge</string>
+    <!-- Used to compose a sentence, for example: Use GPG to <our message>. -->
+    <string name="ipc_operation_ssh_other">run an unrecognized operation</string>
     <string name="sort_header_title">排序方式</string>
     <string name="sort_empty_label">没有可用的排序方式</string>
     <string name="sortby_title_title">标题</string>
@@ -1041,6 +1195,7 @@
     <string name="generator_header_username_title">用户名生成器</string>
     <string name="generator_header_password_title">密码生成器</string>
     <string name="generator_header_ssh_key_title">SSH 密钥生成器</string>
+    <string name="generator_header_gpg_key_title">SSH 密钥生成器</string>
     <string name="generator_generate_button">生成</string>
     <string name="generator_regenerate_button">重新生成</string>
     <!-- 'Use' generated password as a password -->
@@ -1080,6 +1235,10 @@
     <string name="generator_email_subdomain_addressing_note">子域意味着任何发送到 <xliff:g id="email" example="username@abc.example.com">%1$s</xliff:g> 的电子邮件仍会发送到您的账户。这意味着您的电子邮件地址可以有很多变化，可以发送给不同的人、网站或邮件列表。使用前请确保您的电子邮件主机支持此功能。</string>
     <string name="generator_email_subdomain_addressing_email_title">电子邮件</string>
     <string name="generator_email_forward_alias_type">转发的电子邮件别名</string>
+    <string name="generator_gpg_key_name_title">名称</string>
+    <string name="generator_gpg_key_email_title">电子邮件</string>
+    <string name="generator_gpg_key_modern_note">创建一个带有 Ed25519 签名/认证主密钥和 X25519 加密子钥的 OpenPGP 密钥。</string>
+    <string name="generator_gpg_key_modern_text">现代 OpenPGP 密钥配置</string>
     <string name="generator_key_length_title">长度</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-位</string>
     <string name="generator_key_rsa_note">所有 SSH 客户端都支持这种算法。对于 RSA，推荐至少使用 2048 位的密钥大小；4096 位则更好。在可预见的未来，RSA算法变得实际上可以破解是相当可能的。</string>
@@ -1089,6 +1248,7 @@
     <string name="generator_create_item_with_password_title">使用此密码新建项目</string>
     <string name="generator_create_item_with_username_title">使用此用户名新建项目</string>
     <string name="generator_create_item_with_ssh_key_title">创建新的 SSH 密钥项</string>
+    <string name="generator_create_item_with_gpg_key_title">创建新的 GPG 密钥条目</string>
     <string name="generator_password_history_title">生成密码历史记录</string>
     <string name="generator_show_tips_title">显示提示</string>
     <string name="generatorhistory_header_title">生成器历史记录</string>
@@ -1116,6 +1276,12 @@
     <string name="watchtower_item_reused_passwords_text">不要在多个网站上使用相同的密码，生成唯一的密码来提高安全性。</string>
     <string name="watchtower_item_weak_ssh_keys_title">弱 SSH 密钥</string>
     <string name="watchtower_item_weak_ssh_keys_text">不符合 NIST 建议的项目。</string>
+    <string name="watchtower_item_unusable_gpg_keys_title">不可用的 GPG 密钥</string>
+    <string name="watchtower_item_unusable_gpg_keys_text">已吊销、已过期、格式损坏或缺失可用签名/解密材料的 GPG 密钥条目。</string>
+    <string name="watchtower_item_weak_gpg_keys_title">弱 GPG 密钥</string>
+    <string name="watchtower_item_weak_gpg_keys_text">使用弱算法、过时算法或较短密钥长度的 GPG 密钥条目。</string>
+    <string name="watchtower_item_gpg_key_publishing_title">GPG 密钥发布</string>
+    <string name="watchtower_item_gpg_key_publishing_text">密钥服务器状态缺失、陈旧、未验证或已吊销的 GPG 密钥。</string>
     <string name="watchtower_item_vulnerable_accounts_title">安全性低的账户</string>
     <string name="watchtower_item_vulnerable_accounts_text">自您上次修改密码以来受数据泄露影响的站点，更改您的密码以保证账户安全。</string>
     <string name="watchtower_item_unsecure_websites_title">不安全的网站</string>
@@ -1173,6 +1339,46 @@
     <string name="exportaccount_export_started">导出已开始</string>
     <string name="exportaccount_export_success">导出完成</string>
     <string name="exportaccount_export_failure">导出失败</string>
+    <string name="credential_exchange_export_header_title">转移凭据</string>
+    <string name="credential_exchange_export_header_text">应用请求访问凭据</string>
+    <string name="credential_exchange_export_header_text_named"><xliff:g id="app_name" example="Example Passwords">%1$s</xliff:g> 请求访问凭据</string>
+    <string name="credential_exchange_export_empty_label">没有可转移的凭据。</string>
+    <string name="credential_exchange_export_credential_passkey">通行密钥</string>
+    <string name="credential_exchange_export_credential_password">密码</string>
+    <string name="credential_exchange_export_credential_totp">一次性密码</string>
+    <string name="credential_exchange_export_credential_card">卡片</string>
+    <string name="credential_exchange_export_credential_identity">身份</string>
+    <string name="credential_exchange_export_credential_note">备注</string>
+    <string name="credential_exchange_export_credential_fields">自定义字段</string>
+    <string name="credential_exchange_export_credential_ssh_key">SSH 密钥</string>
+    <string name="credential_exchange_export_export_button">转移</string>
+    <string name="credential_exchange_export_error_unknown">准备条目时出错。</string>
+    <string name="credential_exchange_import_review_all_items_section">所有条目</string>
+    <string name="credential_exchange_export_error_account_unavailable">此账户已不可用。</string>
+    <string name="skipped_items_text">部分条目已跳过。</string>
+    <string name="account_action_import_credentials_title">从其他应用导入</string>
+    <string name="credential_exchange_import_header_title">导入凭据</string>
+    <string name="credential_exchange_import_header_text">直接从此设备上安装的其他密码管理器转移凭据。</string>
+    <string name="credential_exchange_import_step_1_title">开始转移</string>
+    <string name="credential_exchange_import_step_1_text">点击"开始导入"。Android 将显示可与 Keyguard 共享凭据的应用。</string>
+    <string name="credential_exchange_import_step_2_title">选择来源应用</string>
+    <string name="credential_exchange_import_step_2_text">选择要从中导入的密码管理器，然后按照其提示批准转移。</string>
+    <string name="credential_exchange_import_step_3_title">审阅并导入</string>
+    <string name="credential_exchange_import_step_3_text">返回 Keyguard 后，请审阅接收到的内容。在您点击"导入"之前，不会向此账户保存任何内容。</string>
+    <string name="credential_exchange_import_learn_more">了解凭据交换</string>
+    <string name="credential_exchange_import_start_button">开始导入</string>
+    <string name="credential_exchange_import_retry_button">重试导入</string>
+    <string name="credential_exchange_import_import_button">导入</string>
+    <string name="credential_exchange_import_review_source_label">接收自</string>
+    <string name="credential_exchange_import_review_items_section">要导入的条目</string>
+    <string name="credential_exchange_import_empty_label">所选应用未发送任何可导入的条目。</string>
+    <string name="credential_exchange_import_error_unavailable">此设备不支持凭据转移。这需要较新版本的 Google Play 服务。</string>
+    <string name="credential_exchange_import_error_no_providers">已安装的应用中没有任何应用能以这种方式共享凭据。</string>
+    <string name="credential_exchange_import_error_parse">无法读取接收到的数据。</string>
+    <string name="credential_exchange_import_error_unknown">导入条目时出错。</string>
+    <string name="credential_exchange_import_error_save">导入凭据失败。</string>
+    <string name="credential_exchange_import_success_title">导入完成</string>
+    <string name="credential_exchange_import_untitled">无标题</string>
     <string name="contactus_header_title">联系我们</string>
     <string name="contactus_message_label">您的留言</string>
     <string name="contactus_english_note">使用英语来确保您的反馈不会被误解。</string>
@@ -1196,8 +1402,11 @@
     <string name="settings_security_header_title">安全</string>
     <string name="settings_subscriptions_header_title">Keyguard 高级版</string>
     <string name="settings_developer_header_title">开发者</string>
+    <string name="settings_ssh_agent_header_title">SSH 代理</string>
+    <string name="settings_gpg_agent_header_title">GPG 代理</string>
     <string name="settings_watchtower_header_title">概况</string>
     <string name="settings_automatic_backups_header_title">备份</string>
+    <string name="settings_navigation_items_header_title">导航项</string>
     <string name="settings_open_source_licenses_header_title">开放源代码许可</string>
     <string name="pref_section_premium_title">高级版</string>
     <string name="pref_section_options_title">选项</string>
@@ -1298,8 +1507,16 @@
     <string name="pref_item_automatic_backups_retention_value">%1$d 个快照</string>
     <string name="pref_item_automatic_backups_disable_title">关闭自动备份</string>
     <string name="pref_item_automatic_backups_disable_message">此操作仅停止未来的自动备份，并从 Keyguard 中清除本地文件夹、密码及附件选项。现有备份仓库及该文件夹中的文件不会被删除。</string>
+    <string name="pref_item_nav_items_title">导航项</string>
     <string name="pref_item_nav_label_title">在导航按钮上显示标签</string>
-    <string name="pref_item_nav_hidden_send_title">隐藏 Send 选项卡</string>
+    <string name="navigation_items_add_item_title">添加项目</string>
+    <string name="navigation_items_reset_confirmation_title">重置导航项？</string>
+    <string name="navigation_items_reset_confirmation_text">这将恢复默认的导航顺序和可见性。自定义过滤器不会被删除，但它们的导航项将被移除。</string>
+    <string name="navigation_items_built_in_text">内置目标</string>
+    <string name="navigation_items_custom_filter_text">自定义过滤器</string>
+    <string name="navigation_items_missing_filter_title">自定义过滤器</string>
+    <string name="navigation_items_missing_filter_text">未找到过滤器</string>
+    <string name="navigation_items_predefined_route_text">预定义路由</string>
     <string name="pref_item_app_version_title">应用版本</string>
     <string name="pref_item_app_build_date_title">应用构建日期</string>
     <!--
@@ -1391,6 +1608,24 @@
     <string name="pref_item_permissions_title">权限</string>
     <string name="pref_item_features_overview_title">功能概述</string>
     <string name="pref_item_url_override_title">URL 覆写</string>
+    <string name="pref_item_agent_approval_scope_title">授权范围</string>
+    <string name="pref_item_agent_approval_scope_connection">每个连接</string>
+    <string name="pref_item_agent_approval_scope_process">每个进程</string>
+    <string name="pref_item_agent_approval_scope_application">每个应用程序</string>
+    <string name="pref_item_agent_approval_scope_application_and_terminal_session">每个应用程序（按终端会话隔离）</string>
+    <string name="pref_item_agent_approval_scope_table_reuse_boundary">谁可以重复使用？</string>
+    <string name="pref_item_agent_approval_scope_table_same_terminal">相同的标签页或窗格</string>
+    <string name="pref_item_agent_approval_scope_table_other_terminal">其他标签页或窗格</string>
+    <string name="pref_item_agent_approval_scope_table_connection_reuse">当前活跃的代理连接</string>
+    <string name="pref_item_agent_approval_scope_table_process_reuse">同一已验证的进程实例</string>
+    <string name="pref_item_agent_approval_scope_table_application_reuse">同一已验证的应用程序</string>
+    <string name="pref_item_agent_approval_scope_table_application_and_terminal_session_reuse">同一已验证的终端会话；终端外部的已验证应用程序</string>
+    <string name="pref_item_agent_approval_scope_table_android_process_reuse">当前活跃的代理连接；进程标识不可用</string>
+    <string name="pref_item_agent_approval_scope_table_android_application_and_terminal_session_reuse">同一已验证的应用程序；终端会话标识不可用</string>
+    <string name="pref_item_agent_approval_scope_table_current_connection_only">仅限当前连接</string>
+    <string name="pref_item_agent_approval_scope_table_same_process_only">仅限同一进程</string>
+    <string name="pref_item_agent_approval_scope_table_shared">已共享</string>
+    <string name="pref_item_agent_approval_scope_table_not_shared">未共享</string>
     <string name="pref_item_ssh_agent_title">SSH 代理</string>
     <string name="pref_item_ssh_agent_text">对您的 Git 和 SSH 客户端进行身份验证，且确保这些客户端永远无法读取您的私钥</string>
     <string name="pref_item_ssh_agent_status_unsupported">暂不支持</string>
@@ -1399,10 +1634,10 @@
     <string name="pref_item_ssh_agent_status_ready">准备就绪</string>
     <string name="pref_item_ssh_agent_status_failed">失败</string>
     <string name="pref_item_ssh_agent_approval_window_title">记住密钥授权</string>
-    <string name="pref_item_ssh_agent_local_storage_title">Local storage</string>
-    <string name="pref_item_ssh_agent_local_storage_text">When the SSH agent is on, Keyguard keeps unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
-    <string name="pref_item_ssh_agent_display_key_names_title">Display key names before vault is unlocked</string>
-    <string name="pref_item_ssh_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
+    <string name="pref_item_ssh_agent_local_storage_title">本地存储</string>
+    <string name="pref_item_ssh_agent_local_storage_text">当 SSH 代理开启时，Keyguard 会在磁盘上保留公钥的未加密副本，以便客户端在密码库锁定时也能列出密钥。私钥绝不会泄露；只有在您开启相应选项后，系统才会存储密钥名称。</string>
+    <string name="pref_item_ssh_agent_display_key_names_title">在保管库解锁前显示密钥名称</string>
+    <string name="pref_item_ssh_agent_display_key_names_note">项目标题的未加密副本将存储在本地</string>
     <string name="pref_item_ssh_agent_approval_window_always_ask">每次询问</string>
     <string name="pref_item_ssh_agent_approval_window_until_lock">直至密码库锁定</string>
     <string name="pref_item_ssh_agent_setup_title">SSH 客户端设置</string>
@@ -1411,6 +1646,22 @@
     <string name="pref_item_ssh_agent_filters_summary_all">所有密钥均可访问</string>
     <string name="pref_item_ssh_agent_filters_summary_active">过滤器已启用</string>
     <string name="pref_item_ssh_agent_history_title">SSH 代理历史记录</string>
+    <string name="pref_item_license_key_title">关联现有授权令牌</string>
+    <string name="pref_item_license_key_field_label">授权令牌</string>
+    <string name="pref_item_license_key_message_redeemed">授权令牌关联成功</string>
+    <string name="pref_item_license_key_message_invalid">无效或过期的密钥</string>
+    <string name="pref_item_license_key_status_active">活动</string>
+    <string name="pref_item_license_key_status_invalid">无效</string>
+    <string name="pref_item_license_key_status_revoked">已吊销</string>
+    <string name="pref_item_license_key_status_expired">已过期</string>
+    <string name="pref_item_license_key_status_available">可用</string>
+    <string name="pref_item_license_sync_title">获取授权令牌</string>
+    <string name="pref_item_license_sync_text">验证您有效的商店购买记录，并生成一个与该购买绑定的授权令牌。使用此令牌可将购买状态转移到您的其他设备。</string>
+    <string name="pref_item_license_sync_requested">已请求授权令牌</string>
+    <string name="pref_item_license_sync_success">授权令牌同步成功</string>
+    <string name="pref_item_license_sync_already">当前的授权令牌已处于激活状态</string>
+    <string name="pref_item_license_sync_no_purchases">未找到符合条件的购买记录</string>
+    <string name="pref_item_license_sync_failed">无法获取授权令牌</string>
     <string name="pref_item_biometric_unlock_title">生物识别解锁</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">需要确认</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">需要在成功的生物识别认证后点击额外的确认按钮</string>
@@ -1429,10 +1680,9 @@
     <string name="pref_item_autofill_service_title">自动填充服务</string>
     <string name="pref_item_autofill_service_text">使用 Android 自动填充框架帮助将登录信息填写到设备上的其他应用</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">一些 Xiaomi 设备要求您手动允许“在后台运行时显示弹出窗口”权限。 请打开设置并确认它已被授予。</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_title">Chrome 原生支持第三方自动填充服务</string>
-    <string name="pref_item_autofill_service_chrome_native_autofill_text">1. 打开 Chrome 设置，点击自动填充服务
-2. 选择使用其他服务进行自动填充
-3. 确认并重启 Chrome</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_title">浏览器第三方自动填充服务</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_text">在列出的每个浏览器中启用第三方自动填充，以允许 Keyguard 在其中填充登录信息。</string>
+    <string name="pref_item_autofill_service_browser_autofill_settings_error">无法打开浏览器自动填充设置</string>
     <string name="pref_item_autofill_auto_copy_otp_title">自动复制一次性密码</string>
     <string name="pref_item_autofill_auto_copy_otp_text">填充登录信息时，自动复制一次性密码</string>
     <string name="pref_item_autofill_default_match_detection_title">默认匹配检测</string>
@@ -1481,6 +1731,33 @@
     <string name="pref_item_permission_camera_text">用于扫描 QR 码</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">横屏下启用双面板布局</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">竖屏下启用双面板布局</string>
+    <string name="pref_item_gpg_agent_title">GPG 代理</string>
+    <string name="pref_item_gpg_agent_setup_title">GPG 客户端设置</string>
+    <string name="pref_item_gpg_agent_status_ready">准备就绪</string>
+    <string name="pref_item_gpg_agent_status_starting">正在启动</string>
+    <string name="pref_item_gpg_agent_status_stopped">已停止</string>
+    <string name="pref_item_gpg_agent_status_failed">失败</string>
+    <string name="pref_item_gpg_agent_status_unsupported">暂不支持</string>
+    <string name="pref_item_gpg_agent_approval_window_title">记住密钥授权</string>
+    <string name="pref_item_gpg_agent_approval_window_always_ask">每次询问</string>
+    <string name="pref_item_gpg_agent_approval_window_until_lock">直至密码库锁定</string>
+    <string name="pref_item_gpg_agent_display_key_names_title">在保管库解锁前显示密钥名称</string>
+    <string name="pref_item_gpg_agent_display_key_names_note">条目标题的未加密副本将存储在本地</string>
+    <string name="pref_item_gpg_agent_local_storage_title">本地存储</string>
+    <string name="pref_item_gpg_agent_local_storage_text">当 GPG 代理开启时，Keyguard 会在磁盘上保存公钥的未加密副本，以便客户端在保险库锁定期间列出密钥。私钥绝不会泄露；只有在您启用相应选项后，才会存储密钥名称。</string>
+    <string name="pref_item_gpg_agent_filters_title">GPG 代理过滤器</string>
+    <string name="pref_item_gpg_agent_filters_text">选择 GPG 代理可访问的 GPG 密钥</string>
+    <string name="pref_item_gpg_agent_filters_summary_all">所有密钥均可访问</string>
+    <string name="pref_item_gpg_agent_filters_summary_active">过滤器已启用</string>
+    <string name="pref_item_gpg_agent_history_title">请求日志</string>
+    <string name="pref_item_gpg_keyserver_search_title">GPG 密钥服务器搜索</string>
+    <string name="pref_item_gpg_keyserver_search_text">通过电子邮件、指纹、密钥 ID 或姓名查找 GPG 公钥</string>
+    <string name="pref_item_gpg_keyserver_url_title">密钥服务器</string>
+    <string name="pref_item_gpg_keyserver_url_text">用于查询和刷新 GPG 公钥的服务器</string>
+    <string name="pref_item_gpg_keyserver_protocol_title">密钥服务器协议</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_title">自动刷新公钥</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_note">当应用处于活跃状态且密码库已解锁时，Keyguard 会使用每个仅包含公钥的 GPG 条目的指纹，按照选定的时间间隔联系您配置的 GPG 密钥服务器。如果找到匹配的公钥，Keyguard 将更新已存储的公钥、密钥元数据和密钥服务器状态。</string>
+    <string name="pref_item_gpg_keyserver_refresh_interval_title">刷新间隔</string>
     <string name="theme_dark">暗色模式</string>
     <string name="theme_light">亮色模式</string>
     <string name="nav_animation_disabled">已禁用</string>
@@ -1542,12 +1819,22 @@
     <string name="datasafety_remote_text">远程数据以零知识加密方式存储在 Bitwarden 服务器上。</string>
     <string name="webdav_settings_header_title">WebDAV 服务器配置</string>
     <string name="webdav_settings_url_title">WebDAV URL</string>
-    <string name="webdav_settings_url_hint">https://example.com/remote.php/dav/files/me/Keyguard/</string>
     <string name="webdav_settings_auth_note">若您的 WebDAV 服务器需要身份验证，请在此处输入服务器凭据，勿输入主密码。</string>
     <string name="webdav_settings_test_title">测试连接</string>
     <string name="webdav_settings_test_text">写入并删除一个小型探测文件以验证服务器访问权限。</string>
+    <string name="webdav_settings_test_text_read_only">读取资源以验证服务器访问权限。</string>
     <string name="webdav_settings_test_success">WebDAV 连接验证成功。</string>
     <string name="webdav_settings_password_requires_username_error">设置 WebDAV 密码前请先输入用户名。</string>
+    <string name="webdav_settings_browse_title">Browse</string>
+    <string name="webdav_picker_header_title">Browse WebDAV</string>
+    <string name="webdav_picker_choose_folder">Choose this folder</string>
+    <string name="webdav_picker_refresh">Refresh folder</string>
+    <string name="webdav_picker_empty">This folder is empty.</string>
+    <string name="webdav_picker_error">Could not load this folder.</string>
+    <string name="webdav_picker_filename_required">Enter a database name.</string>
+    <string name="webdav_picker_filename_invalid">The database name cannot contain path separators.</string>
+    <string name="webdav_picker_filename_extension">The database name must end with %1$s.</string>
+    <string name="webdav_picker_filename_exists">A file with this name already exists.</string>
     <!-- Title of the 'Localization contributors' screen -->
     <string name="localization_contributors_title">翻译贡献者</string>
     <string name="localization_contributors_search_placeholder">搜索贡献者</string>
@@ -1557,4 +1844,121 @@
     <string name="logs_stop_recording_fab_title">停止录制</string>
     <string name="logs_export_button">导出</string>
     <string name="logs_export_success">导出完成</string>
+    <string name="gpg_client_request">GPG 客户端请求</string>
+    <string name="gpg_agent_request_approval_sign_title">GPG 签名请求</string>
+    <string name="gpg_agent_request_approval_sign_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> 想要使用以下 GPG 密钥对数据进行签名：</string>
+    <string name="gpg_agent_request_approval_sign_message_unknown_app">某个应用程序想要使用以下GPG密钥对数据进行签名：</string>
+    <string name="gpg_agent_request_approval_decrypt_title">GPG 解密请求</string>
+    <string name="gpg_agent_request_approval_decrypt_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> 想要使用以下 GPG 密钥解密数据：</string>
+    <string name="gpg_agent_request_approval_decrypt_message_unknown_app">某个应用程序想要使用以下 GPG 密钥解密数据：</string>
+    <string name="gpg_agent_setup_header_title">GPG 客户端设置</string>
+    <string name="gpg_agent_setup_intro">配置 GnuPG 以使用 Keyguard 的 GPG 代理进行签名和解密，而无需泄露私钥材料。</string>
+    <string name="gpg_agent_setup_unsupported_text">GPG 代理仅在 Keyguard 桌面版中可用。</string>
+    <string name="gpg_agent_setup_step_1_title">1. 在 Keyguard 中启用 GPG 代理</string>
+    <string name="gpg_agent_setup_step_1_text">打开 GPG 设置，启用 GPG 代理，并确保保险库中包含代理允许使用的 GPG 密钥。</string>
+    <string name="gpg_agent_setup_step_2_title">2. 配置 GNUPGHOME</string>
+    <string name="gpg_agent_setup_step_2_text">在指向 Keyguard 代理主目录的终端中运行 GnuPG 命令。Keyguard 会监听 GnuPG 为该主目录解析的代理套接字（Socket）。</string>
+    <string name="gpg_agent_setup_linux_home_fallback_note">如果未设置 XDG_RUNTIME_DIR，请改用此备选路径：</string>
+    <string name="gpg_agent_setup_step_3_title">3. 导入公钥</string>
+    <string name="gpg_agent_setup_step_3_text">从 Keyguard 的 GPG 密钥条目中导出公钥，然后将其导入到此 GnuPG 主目录中。此操作仅会公开公钥材料。</string>
+    <string name="gpg_agent_setup_step_4_title">4. 验证</string>
+    <string name="gpg_agent_setup_step_4_text">列出 Keyguard 可见的密钥，然后尝试签名一段简短文字。请将 YOUR_KEY_FINGERPRINT 替换为已导入密钥的指纹。</string>
+    <string name="gpg_agent_setup_step_5_title">5. 签名 Git 提交</string>
+    <string name="gpg_agent_setup_step_5_text">在 Git 签名提交时使用相同的 GNUPGHOME。您可以将配置保留在当前仓库，也可以将 --local 改为 --global 全局生效。</string>
+    <string name="gpg_agent_setup_windows_native_gnupg_note">Windows 系统需要安装原生 GnuPG。Git for Windows 自带的 GPG 与此配置不兼容。</string>
+    <string name="gpg_agent_filters_header_title">GPG 代理过滤器</string>
+    <string name="gpg_agent_filters_note_save_to_apply">更改将在点击“保存”后生效。</string>
+    <string name="gpg_agent_history_header_title">GPG 代理历史记录</string>
+    <string name="gpg_keys_capability_sign">签名</string>
+    <string name="gpg_key_status">GPG 密钥状态</string>
+    <string name="gpg_key_status_revoked_text">此 GPG 密钥已被吊销，不应使用。</string>
+    <string name="gpg_key_status_expired_text">此 GPG 密钥已过期，不应使用。</string>
+    <string name="gpg_key_user_ids">用户 ID</string>
+    <string name="gpg_key_does_not_expire">永不过期</string>
+    <string name="gpg_key_capability_encrypt_decrypt">加密 / 解密</string>
+    <string name="gpg_key_sec_pub">sec/pub</string>
+    <string name="gpg_key_secret_key">私钥</string>
+    <string name="gpg_key_subkey_n">子钥 <xliff:g id="index" example="1">%1$d</xliff:g></string>
+    <string name="gpg_tools_header_title">GPG 工具</string>
+    <string name="gpg_tools_scope_text">文本</string>
+    <string name="gpg_tools_scope_file">文件</string>
+    <string name="gpg_tools_operation_encrypt_text">为选定的收件人加密文本或文件</string>
+    <string name="gpg_tools_operation_decrypt_text">使用存储的私钥解密文本或文件</string>
+    <string name="gpg_tools_operation_sign_text">使用存储的私钥签名文本或文件</string>
+    <string name="gpg_tools_operation_verify_text">验证内联签名或分离签名</string>
+    <string name="gpg_tools_mode_cleartext">明文</string>
+    <string name="gpg_tools_mode_inline">内联</string>
+    <string name="gpg_tools_mode_detached">分离</string>
+    <string name="gpg_tools_armor_label">ASCII 封装</string>
+    <string name="gpg_tools_sign_encrypted_message">签名</string>
+    <string name="gpg_tools_sign_none">不签名</string>
+    <string name="gpg_tools_signed_text_label">已签名的文本</string>
+    <string name="gpg_tools_encrypted_text_label">加密的消息</string>
+    <string name="gpg_tools_signature_label">签名</string>
+    <string name="gpg_tools_pasted_public_key_label">公钥</string>
+    <string name="gpg_tools_pasted_public_key_placeholder">粘贴 ASCII 封装的公钥块</string>
+    <string name="gpg_tools_select_signing_key">签名密钥</string>
+    <string name="gpg_tools_select_recipients">收件人</string>
+    <string name="gpg_tools_stored_public_keys_note">存储的公钥将自动用于验证。</string>
+    <string name="gpg_tools_decrypt_keys_note">存储的私钥将自动尝试用于解密。</string>
+    <string name="gpg_tools_no_gpg_keys">无存储的 GPG 密钥</string>
+    <string name="gpg_tools_no_signing_key">未选择具有签名能力的 GPG 密钥</string>
+    <string name="gpg_tools_no_recipient">选择存储的收件人或粘贴公钥</string>
+    <string name="gpg_tools_missing_private_key">没有可用的具有解密能力的私钥</string>
+    <string name="gpg_tools_select_input_file">输入文件</string>
+    <string name="gpg_tools_select_signature_file">签名文件</string>
+    <string name="gpg_tools_clear_file">清除</string>
+    <string name="gpg_tools_run_success">GPG 操作已完成</string>
+    <string name="gpg_tools_valid_signature">有效签名</string>
+    <string name="gpg_tools_invalid_signature">无效签名</string>
+    <string name="gpg_tools_missing_public_key">缺少公钥</string>
+    <string name="gpg_tools_signature_by">由 <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g> 签名</string>
+    <string name="gpg_tools_signature_created_at">创建于 <xliff:g id="date" example="2026-06-28T12:30:00Z">%1$s</xliff:g></string>
+    <string name="gpg_tools_warning_key_revoked">警告：签名密钥已被吊销</string>
+    <string name="gpg_tools_warning_key_expired">警告：签名密钥已过期</string>
+    <string name="gpg_tools_warning_signature_expired">警告：签名已过期</string>
+    <string name="gpg_tools_file_required">选择输入文件</string>
+    <string name="gpg_tools_signature_file_required">选择签名文件</string>
+    <string name="gpg_tools_text_required">输入要处理的文本</string>
+    <string name="gpg_tools_public_key_title">自定义公钥</string>
+    <string name="gpg_tools_public_key_description">粘贴用于此操作的 ASCII 封装公钥块。它将作为您存储密钥的补充使用。</string>
+    <string name="gpg_tools_public_key_add">添加公钥</string>
+    <string name="gpg_keyserver_search_header_title">GPG 密钥服务器搜索</string>
+    <string name="gpg_keyserver_search_placeholder">搜索电子邮件、指纹、密钥 ID 或姓名</string>
+    <string name="gpg_keyserver_search_empty_query_label">输入电子邮件、指纹、密钥 ID 或姓名</string>
+    <string name="gpg_keyserver_search_empty_label">未找到公钥</string>
+    <string name="gpg_keyserver_search_error_text">搜索公钥失败</string>
+    <string name="gpg_keyserver_search_revoked_label">已吊销</string>
+    <string name="gpg_keyserver_search_index_label">索引</string>
+    <string name="gpg_keyserver_search_public_key_not_found_title">在密钥服务器上未找到 GPG 公钥</string>
+    <string name="gpg_keyserver_upload_success_title">GPG 公钥已上传</string>
+    <string name="gpg_keyserver_refresh_success_title">GPG 公钥已刷新</string>
+    <string name="gpg_keyserver_refresh_not_found_title">在密钥服务器上未找到 GPG 公钥</string>
+    <string name="gpg_keyserver_verify_unknown_title">GPG 公钥验证状态未知</string>
+    <string name="gpg_keyserver_verify_not_found_title">在密钥服务器上未找到 GPG 公钥</string>
+    <string name="gpg_keyserver_verify_unverified_title">找到 GPG 公钥，但电子邮件未经验证</string>
+    <string name="gpg_keyserver_verify_verified_title">GPG 公钥已验证</string>
+    <string name="gpg_keyserver_verify_revoked_title">GPG 公钥已被吊销</string>
+    <string name="gpg_keyserver_status_title">GPG 密钥服务器</string>
+    <string name="gpg_keyserver_status_not_checked">未检查</string>
+    <string name="gpg_keyserver_status_checked_at">检查于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="gpg_agent_history_request_list_keys">列出密钥</string>
+    <string name="gpg_agent_history_request_sign_hash">签名哈希</string>
+    <string name="gpg_agent_history_request_decrypt">解密</string>
+    <string name="gpg_agent_history_response_success">成功</string>
+    <string name="gpg_agent_history_response_user_denied">拒绝</string>
+    <string name="gpg_agent_history_response_key_not_found">找不到密钥</string>
+    <string name="gpg_agent_history_response_vault_locked">密码库已锁定</string>
+    <string name="gpg_agent_history_response_unsupported">暂不支持</string>
+    <string name="gpg_agent_history_response_failure">失败</string>
+    <string name="gpg_agent_history_unknown_caller">未知调用方</string>
+    <string name="gpg_agent_history_unknown_key">未知的密钥</string>
+    <string name="gpg_agent_history_clear_history_title">清除历史记录</string>
+    <string name="gpg_agent_history_clear_history_confirmation_title">清除GPG代理历史记录？</string>
+    <string name="gpg_agent_history_clear_history_confirmation_text">这将删除所有 GPG 代理使用历史记录。</string>
+    <string name="cipher_links_outgoing_title">关联的条目</string>
+    <string name="cipher_links_incoming_title">被引用者</string>
+    <string name="cipher_link_unavailable_title">条目不可用</string>
+    <string name="cipher_link_picker_title">选择关联条目</string>
+    <string name="cipher_link_picker_action">关联到条目</string>
 </resources>
